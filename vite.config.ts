@@ -226,28 +226,37 @@ export default defineConfig(({ mode, command }) => ({
       } : {}),
       
       output: {
-        // CRITICAL: NO manual chunks in dev mode - let Rollup decide
-        // The chunk assignment function itself causes memory bloat
-        ...(mode === 'production' ? {
-          manualChunks: (id: string) => {
-            if (!id.includes('node_modules')) return undefined;
-            if (id.includes('recharts') || id.includes('d3-')) return 'charts';
-            if (id.includes('@blocknote')) return 'blocknote';
-            if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
-            if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
-            if (id.includes('framer-motion')) return 'motion';
-            if (id.includes('@radix-ui')) return 'radix';
-            if (id.includes('@supabase')) return 'supabase';
-            if (id.includes('mermaid')) return 'mermaid';
-            if (id.includes('fabric')) return 'fabric';
-            if (id.includes('jspdf')) return 'pdf';
-            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-              return 'react-vendor';
+        // OOM FIX: In very large projects, letting Rollup decide chunking in dev
+        // can still explode memory during the rendering/chunking phase.
+        // Use a *static object* for manualChunks (cheaper than a function) to
+        // force the heaviest libs into separate chunks.
+        manualChunks: mode === 'production'
+          ? (id: string) => {
+              if (!id.includes('node_modules')) return undefined;
+              if (id.includes('recharts') || id.includes('d3-')) return 'charts';
+              if (id.includes('@blocknote')) return 'blocknote';
+              if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
+              if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
+              if (id.includes('framer-motion')) return 'motion';
+              if (id.includes('@radix-ui')) return 'radix';
+              if (id.includes('@supabase')) return 'supabase';
+              if (id.includes('mermaid')) return 'mermaid';
+              if (id.includes('fabric')) return 'fabric';
+              if (id.includes('jspdf')) return 'pdf';
+              if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+                return 'react-vendor';
+              }
             }
-          },
-        } : {
-          // Dev mode: NO manualChunks at all - simplest possible output
-        }),
+          : {
+              'react-vendor': ['react', 'react-dom'],
+              radix: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover'],
+              charts: ['recharts'],
+              blocknote: ['@blocknote/core', '@blocknote/react'],
+              editor: ['@tiptap/core', '@tiptap/react'],
+              livekit: ['livekit-client', '@livekit/components-react'],
+              pdf: ['jspdf', 'jspdf-autotable'],
+              motion: ['framer-motion'],
+            },
       },
     },
   },
