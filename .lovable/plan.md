@@ -1,366 +1,499 @@
 
-# Comprehensive Terms & Legal Documentation System
+# Enterprise Image Cropping & Resizing System
 
 ## Executive Summary
 
-This plan addresses how The Quantum Club displays and manages legal documents (Terms of Service, Privacy Policy, Cookie Policy, etc.) to users. The goal is to implement industry best practices for legal document accessibility, versioning, consent tracking, and GDPR/EU compliance while maintaining the luxury, discrete brand experience.
+This plan creates a unified, reusable image editing system for The Quantum Club that provides cropping, resizing, and enhancement capabilities across all image upload touchpoints: profile pictures, company logos, cover images, backgrounds, and more. The system will be built on the existing `AvatarEditor` foundation and extended to support multiple aspect ratios, image types, and use cases.
 
 ---
 
-## Current State Assessment
+## Current State Analysis
 
 ### What Exists (Strengths)
 
-| Document | Status | Location |
-|----------|--------|----------|
-| Terms of Service | Complete, comprehensive | `/terms` (601 lines) |
-| Privacy Policy | Complete, GDPR-compliant | `/privacy` (541 lines) |
-| Cookie Consent Banner | Functional | `CookieConsentBanner.tsx` |
-| Consent Receipts | Database tracking | `consent_receipts` table |
-| Cookie Consent Records | Database tracking | `cookie_consent_records` table |
-| Legal Page Layout | Professional TOC sidebar | `LegalPageLayout.tsx` |
-| Subprocessors List | Exists in compliance section | `/compliance/subprocessors` |
-| Legal Agreements (DPA/BAA) | Template-based system | `/compliance/legal-agreements` |
+| Component | Features | Location |
+|-----------|----------|----------|
+| `AvatarEditor.tsx` | Full-featured cropper with zoom, rotation, filters, live preview | `src/components/AvatarEditor.tsx` |
+| `AvatarUpload.tsx` | File selection, validation, storage upload | `src/components/AvatarUpload.tsx` |
+| `react-easy-crop` | Already installed as dependency | `package.json` |
+| `ProfileHeaderUpload.tsx` | Header/wallpaper upload (no cropping) | `src/components/profile/ProfileHeaderUpload.tsx` |
+| `BackgroundImagePicker.tsx` | Virtual background upload (no cropping) | `src/components/livehub/BackgroundImagePicker.tsx` |
+| `AddCompanyDialog.tsx` | Logo + cover upload (no cropping) | `src/components/companies/AddCompanyDialog.tsx` |
 
 ### What is Missing (Gaps)
 
-| Gap | Impact | Priority |
-|-----|--------|----------|
-| No Cookie Policy page | Users can't read full cookie details | High |
-| No Acceptable Use Policy (standalone) | AUP buried in ToS | Medium |
-| No Data Processing Agreement (public DPA) | Partners can't download DPA | High |
-| No Referral Terms page | Referral conditions not documented | Medium |
-| No version history viewer | Users can't see document changes | Medium |
-| No legal document modal/drawer reader | Users leave page to read terms | High |
-| No footer with legal links | Legal docs not accessible site-wide | High |
-| Links in onboarding open in new tab | Context loss, user friction | Medium |
-| No accessibility compliance statement | A11y commitment not documented | Low |
-| No Security Policy page | Security practices not public | Medium |
-
----
-
-## Industry Best Practices Analysis
-
-### 1. Document Accessibility
-
-**Best Practice**: Legal documents should be accessible from:
-- Global footer on every page
-- Dedicated `/legal` hub page
-- Inline within consent flows (modal/drawer, not new tab)
-- Settings/account page
-
-**Current Gap**: No global footer, links open in new tabs during onboarding.
-
-### 2. Layered Approach (GDPR Recommended)
-
-**Best Practice**: Use a "layered" approach:
-- **Layer 1**: Short summary/highlights (what users see first)
-- **Layer 2**: Full document (detailed reading)
-- **Layer 3**: Version history (transparency)
-
-**Current Gap**: Only full documents exist; no summary layer.
-
-### 3. Version Control & Notification
-
-**Best Practice**:
-- Show "Last Updated" date prominently
-- Maintain version history accessible to users
-- Email notification for material changes (30 days notice)
-- Allow users to download previous versions
-
-**Current Gap**: Last updated shown, but no version history access.
-
-### 4. Modal/Drawer Reading (Context Preservation)
-
-**Best Practice**: For consent flows, use slide-over panels or modals:
-- User stays on the page
-- Can read full document in context
-- Accept/decline buttons in footer
-- Progress saved if they scroll
-
-**Current Gap**: Links open in new browser tabs, losing onboarding context.
-
-### 5. Required Legal Documents for SaaS Platforms
-
-| Document | Required? | Audience |
-|----------|-----------|----------|
-| Terms of Service | Yes | All users |
-| Privacy Policy | Yes | All users |
-| Cookie Policy | Yes (ePrivacy) | All users |
-| Acceptable Use Policy | Recommended | All users |
-| Data Processing Agreement | Yes (B2B GDPR) | Partners |
-| Security Policy | Recommended | All users |
-| Referral Terms & Conditions | If program exists | Referrers |
-| Accessibility Statement | Recommended (EU) | All users |
-| Subprocessor List | Yes (GDPR) | All users |
+| Gap | Impact | Current Behavior |
+|-----|--------|------------------|
+| No cropping for company logos | Distorted logos, inconsistent sizing | Direct upload, no editing |
+| No cropping for cover images | Poor composition, clipped content | Direct upload |
+| No cropping for profile headers | Users upload full-size images | Direct upload, no editing |
+| No cropping for virtual backgrounds | Poor framing for video calls | Direct upload |
+| No aspect ratio presets | Square avatars only | Fixed 1:1 ratio |
+| No image resizing/optimization | Large file sizes, slow loading | Original file stored |
+| No reusable image editor | Duplicated code if added to each upload | Only avatars have editor |
 
 ---
 
 ## Solution Architecture
 
-### New Pages to Create
+### Core Concept: Universal ImageEditor Component
 
-1. **`/legal`** - Legal Hub (index page linking to all documents)
-2. **`/legal/cookies`** - Full Cookie Policy
-3. **`/legal/acceptable-use`** - Standalone AUP
-4. **`/legal/dpa`** - Public DPA template for partners
-5. **`/legal/security`** - Security practices overview
-6. **`/legal/referral-terms`** - Referral program terms
-7. **`/legal/accessibility`** - Accessibility statement
+Create a single, configurable `ImageEditor` component that can be used for ANY image upload in the platform. The existing `AvatarEditor` will be refactored into this universal component.
 
-### New Components to Create
+### Supported Image Types & Aspect Ratios
 
-1. **`LegalDocumentDrawer`** - Slide-over drawer for reading documents in context
-2. **`LegalDocumentSummary`** - Collapsible summary/highlights card
-3. **`LegalVersionHistory`** - Version history accordion
-4. **`GlobalFooter`** - Site-wide footer with legal links
-5. **`LegalHubPage`** - Central index of all legal documents
-6. **`DownloadableDocument`** - PDF download button for legal docs
+| Use Case | Aspect Ratio | Crop Shape | Output Size | Storage Bucket |
+|----------|--------------|------------|-------------|----------------|
+| Profile Avatar | 1:1 | Circle | 400x400px | `avatars` |
+| Company Logo | 1:1 | Square | 400x400px | `company-logos` |
+| Company Cover | 16:9 | Rectangle | 1920x1080px | `company-covers` |
+| Profile Header | 3:1 | Rectangle | 1500x500px | `profile-headers` |
+| Virtual Background | 16:9 | Rectangle | 1920x1080px | `virtual-backgrounds` |
+| Job Banner | 4:1 | Rectangle | 1200x300px | `job-banners` |
+| Course Thumbnail | 16:9 | Rectangle | 1280x720px | `course-thumbnails` |
 
-### Database Changes
+---
 
-New table: `legal_document_versions`
+## Visual Flow
+
 ```text
-id              uuid
-document_type   text (terms, privacy, cookies, aup, dpa, security, referral, accessibility)
-version         text (v1.0, v1.1, v2.0)
-effective_date  date
-summary         text (changelog summary)
-content_hash    text (for integrity verification)
-pdf_url         text (signed URL to archived PDF)
-created_at      timestamptz
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         UNIVERSAL IMAGE EDITOR                                   │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌───────────────────────────────────────────────────────────────────────────┐  │
+│  │                                                                           │  │
+│  │                        [CROP AREA - VISUAL]                               │  │
+│  │                                                                           │  │
+│  │       ┌─────────────────────────────────────────┐                         │  │
+│  │       │                                         │                         │  │
+│  │       │       Cropper with draggable area       │                         │  │
+│  │       │       (aspect ratio enforced)           │                         │  │
+│  │       │                                         │                         │  │
+│  │       └─────────────────────────────────────────┘                         │  │
+│  │                                                                           │  │
+│  └───────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                  │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐               │
+│  │   Adjust    │ │   Filters   │ │   Resize    │ │   Preview   │               │
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘               │
+│                                                                                  │
+│  ADJUST TAB                                                                      │
+│  ─────────                                                                       │
+│  Zoom:     [─────────●───────] 120%                                              │
+│  Rotation: [────●────────────] 15°                                               │
+│  Flip:     [↔ Horizontal] [↕ Vertical]                                           │
+│                                                                                  │
+│  PREVIEW                                                                         │
+│  ───────                                                                         │
+│  ┌───────┐  ┌─────────┐  ┌───────────────┐                                      │
+│  │  □ □  │  │   □ □   │  │     □ □ □     │   Context-aware preview              │
+│  │  □ □  │  │   □ □   │  │     □ □ □     │   (shows how it looks in use)        │
+│  └───────┘  └─────────┘  └───────────────┘                                      │
+│   Small       Medium         Large                                               │
+│                                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │  [Cancel]                                              [Save Changes]   │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## UI/UX Design
+## Component Architecture
 
-### 1. Global Footer Component
+### 1. Core ImageEditor Component
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                  │
-│  © 2025 The Quantum Club B.V.  |  Amsterdam, Netherlands                        │
-│                                                                                  │
-│  Legal                          Company                  Support                 │
-│  ─────                          ───────                  ───────                 │
-│  Terms of Service               About Us                 Help Center            │
-│  Privacy Policy                 Careers                  Contact                │
-│  Cookie Policy                  Press                    Status                 │
-│  Acceptable Use                                                                 │
-│  Security                                                                       │
-│                                                                                  │
-└─────────────────────────────────────────────────────────────────────────────────┘
+```typescript
+interface ImageEditorProps {
+  image: string;                    // Source image (URL or data URL)
+  open: boolean;
+  onClose: () => void;
+  onSave: (blob: Blob, metadata: ImageMetadata) => void;
+  
+  // Configuration
+  config: ImageEditorConfig;
+}
+
+interface ImageEditorConfig {
+  // Aspect ratio
+  aspectRatio: number;              // e.g., 1, 16/9, 3/1, 4/1
+  aspectRatioLabel?: string;        // e.g., "Square", "Banner", "Cover"
+  
+  // Crop shape
+  cropShape: 'rect' | 'round';
+  
+  // Output
+  outputWidth: number;              // Target width in pixels
+  outputHeight: number;             // Target height in pixels
+  outputQuality: number;            // JPEG quality 0-1 (default 0.9)
+  outputFormat: 'jpeg' | 'png' | 'webp';
+  
+  // Features
+  enableFilters: boolean;           // Show filter presets
+  enableRotation: boolean;          // Allow rotation slider
+  enableFlip: boolean;              // Allow horizontal/vertical flip
+  enableZoom: boolean;              // Allow zoom (usually true)
+  
+  // Preview
+  previewSizes?: { label: string; size: number }[];
+  previewShape?: 'circle' | 'square' | 'rectangle';
+  
+  // UI
+  title: string;                    // Dialog title
+  saveButtonText?: string;          // Default: "Save"
+}
 ```
 
-### 2. Legal Hub Page (`/legal`)
+### 2. Preset Configurations
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                  │
-│  LEGAL CENTER                                                                    │
-│  ───────────                                                                     │
-│  Your rights and our commitments, clearly documented.                           │
-│                                                                                  │
-│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐   │
-│  │ 📄 Terms of Service  │  │ 🔒 Privacy Policy    │  │ 🍪 Cookie Policy     │   │
-│  │ Updated: Jan 15, 2025│  │ Updated: Jan 15, 2025│  │ Updated: Jan 15, 2025│   │
-│  │ [Read] [Download PDF]│  │ [Read] [Download PDF]│  │ [Read] [Download PDF]│   │
-│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘   │
-│                                                                                  │
-│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐   │
-│  │ ⚖️ Acceptable Use    │  │ 🛡️ Security Policy   │  │ 📋 DPA (Partners)    │   │
-│  │ What's allowed       │  │ How we protect data  │  │ Data processing terms│   │
-│  │ [Read]               │  │ [Read]               │  │ [Download PDF]       │   │
-│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘   │
-│                                                                                  │
-│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐   │
-│  │ 🎁 Referral Terms    │  │ ♿ Accessibility     │  │ 🔗 Subprocessors     │   │
-│  │ Earn rewards         │  │ Our commitment       │  │ Our vendors          │   │
-│  │ [Read]               │  │ [Read]               │  │ [View List]          │   │
-│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘   │
-│                                                                                  │
-└─────────────────────────────────────────────────────────────────────────────────┘
+```typescript
+const IMAGE_EDITOR_PRESETS = {
+  avatar: {
+    aspectRatio: 1,
+    aspectRatioLabel: 'Square',
+    cropShape: 'round',
+    outputWidth: 400,
+    outputHeight: 400,
+    outputQuality: 0.92,
+    outputFormat: 'jpeg',
+    enableFilters: true,
+    enableRotation: true,
+    enableFlip: true,
+    enableZoom: true,
+    previewSizes: [
+      { label: 'Small', size: 32 },
+      { label: 'Medium', size: 64 },
+      { label: 'Large', size: 96 },
+    ],
+    previewShape: 'circle',
+    title: 'Edit Profile Picture',
+  },
+  
+  companyLogo: {
+    aspectRatio: 1,
+    aspectRatioLabel: 'Square',
+    cropShape: 'rect',
+    outputWidth: 400,
+    outputHeight: 400,
+    outputQuality: 0.95,
+    outputFormat: 'png',  // PNG for logos (transparency)
+    enableFilters: false, // Logos shouldn't be filtered
+    enableRotation: true,
+    enableFlip: true,
+    enableZoom: true,
+    previewSizes: [
+      { label: 'Favicon', size: 32 },
+      { label: 'Card', size: 64 },
+      { label: 'Header', size: 128 },
+    ],
+    previewShape: 'square',
+    title: 'Edit Company Logo',
+  },
+  
+  coverImage: {
+    aspectRatio: 16 / 9,
+    aspectRatioLabel: '16:9 Widescreen',
+    cropShape: 'rect',
+    outputWidth: 1920,
+    outputHeight: 1080,
+    outputQuality: 0.88,
+    outputFormat: 'jpeg',
+    enableFilters: true,
+    enableRotation: true,
+    enableFlip: true,
+    enableZoom: true,
+    previewSizes: [
+      { label: 'Thumbnail', size: 160 },
+      { label: 'Card', size: 320 },
+    ],
+    previewShape: 'rectangle',
+    title: 'Edit Cover Image',
+  },
+  
+  profileHeader: {
+    aspectRatio: 3 / 1,
+    aspectRatioLabel: '3:1 Banner',
+    cropShape: 'rect',
+    outputWidth: 1500,
+    outputHeight: 500,
+    outputQuality: 0.88,
+    outputFormat: 'jpeg',
+    enableFilters: true,
+    enableRotation: true,
+    enableFlip: true,
+    enableZoom: true,
+    previewSizes: [
+      { label: 'Mobile', size: 200 },
+      { label: 'Desktop', size: 400 },
+    ],
+    previewShape: 'rectangle',
+    title: 'Edit Profile Header',
+  },
+  
+  virtualBackground: {
+    aspectRatio: 16 / 9,
+    aspectRatioLabel: '16:9 Video',
+    cropShape: 'rect',
+    outputWidth: 1920,
+    outputHeight: 1080,
+    outputQuality: 0.85,
+    outputFormat: 'jpeg',
+    enableFilters: false,
+    enableRotation: false,
+    enableFlip: true,
+    enableZoom: true,
+    title: 'Edit Virtual Background',
+  },
+};
 ```
 
-### 3. In-Context Legal Document Drawer
+### 3. Universal ImageUpload Component
 
-For onboarding and consent flows, instead of opening new tabs:
+A wrapper component that combines file selection with the ImageEditor:
 
-```text
-┌──────────────────────────────────────────────────────────────────────────────────────┐
-│  [Onboarding Page Content]                     │  TERMS OF SERVICE              [X] │
-│                                                │  ─────────────────────              │
-│  ☑ I agree to the Terms of Service            │  Last Updated: January 15, 2025    │
-│  ☐ I agree to the Privacy Policy              │                                     │
-│                                                │  [Summary | Full Document | History]│
-│                                                │  ──────────────────────────────────│
-│                                                │                                     │
-│                                                │  ### Key Points                     │
-│                                                │  • Platform is invite-only          │
-│                                                │  • No cure, no pay model            │
-│                                                │  • Your data remains yours          │
-│                                                │                                     │
-│                                                │  ### Full Document                  │
-│                                                │  (scrollable content)               │
-│                                                │                                     │
-│                                                │  ─────────────────────────────────  │
-│                                                │  [Download PDF]   [I've Read This]  │
-└──────────────────────────────────────────────────────────────────────────────────────┘
+```typescript
+interface ImageUploadProps {
+  value: string | null;             // Current image URL
+  onChange: (url: string) => void;  // Callback when image changes
+  onRemove?: () => void;            // Optional remove callback
+  
+  // Editor configuration
+  preset: keyof typeof IMAGE_EDITOR_PRESETS;
+  // OR
+  config?: ImageEditorConfig;       // Custom config
+  
+  // Upload configuration
+  bucket: string;                   // Supabase storage bucket
+  path: string;                     // File path pattern (e.g., "{userId}/{timestamp}")
+  maxFileSize?: number;             // Max file size in bytes
+  acceptedTypes?: string[];         // MIME types
+  
+  // UI
+  label?: string;
+  placeholder?: React.ReactNode;
+  showRemoveButton?: boolean;
+  className?: string;
+}
 ```
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Core Pages & Components
+### Phase 1: Core ImageEditor Component
+
+Refactor `AvatarEditor.tsx` into a universal `ImageEditor.tsx`:
 
 **Files to Create:**
-- `src/pages/legal/LegalHub.tsx` - Central legal index
-- `src/pages/legal/CookiePolicy.tsx` - Full cookie policy
-- `src/pages/legal/AcceptableUsePolicy.tsx` - Standalone AUP
-- `src/pages/legal/SecurityPolicy.tsx` - Security overview
-- `src/pages/legal/ReferralTerms.tsx` - Referral T&C
-- `src/pages/legal/AccessibilityStatement.tsx` - A11y commitment
-- `src/pages/legal/DataProcessingAgreement.tsx` - Public DPA
+- `src/components/image-editor/ImageEditor.tsx` - Main editor component
+- `src/components/image-editor/ImageEditorPresets.ts` - Preset configurations
+- `src/components/image-editor/ImageEditorControls.tsx` - Zoom/rotation controls
+- `src/components/image-editor/ImageEditorFilters.tsx` - Filter presets
+- `src/components/image-editor/ImageEditorPreview.tsx` - Multi-size preview
+- `src/components/image-editor/utils/cropImage.ts` - Cropping utility
+- `src/components/image-editor/utils/resizeImage.ts` - Resizing utility
+- `src/components/image-editor/index.ts` - Barrel export
+
+### Phase 2: Universal ImageUpload Component
+
+**Files to Create:**
+- `src/components/image-upload/ImageUpload.tsx` - Main upload component
+- `src/components/image-upload/ImageUploadTrigger.tsx` - Click-to-upload trigger
+- `src/components/image-upload/ImageUploadPreview.tsx` - Current image preview
+- `src/components/image-upload/index.ts` - Barrel export
+
+### Phase 3: Integration with Existing Components
 
 **Files to Modify:**
-- `src/App.tsx` - Add routes for new legal pages
 
-### Phase 2: Global Footer
+| File | Changes |
+|------|---------|
+| `src/components/AvatarUpload.tsx` | Use new ImageEditor with `avatar` preset |
+| `src/components/companies/AddCompanyDialog.tsx` | Add ImageEditor for logo + cover |
+| `src/components/profile/ProfileHeaderUpload.tsx` | Add ImageEditor with `profileHeader` preset |
+| `src/components/livehub/BackgroundImagePicker.tsx` | Add ImageEditor with `virtualBackground` preset |
+| `src/components/profile/ChangeAvatarDialog.tsx` | Use ImageUpload component |
 
-**Files to Create:**
-- `src/components/GlobalFooter.tsx` - Site-wide footer
+### Phase 4: Additional Upload Points
 
-**Files to Modify:**
-- `src/components/AppLayout.tsx` - Include footer in layout
-- Public pages that need footer (Auth, Onboarding)
+Survey all image upload locations and integrate:
 
-### Phase 3: In-Context Reading
-
-**Files to Create:**
-- `src/components/legal/LegalDocumentDrawer.tsx` - Slide-over reader
-- `src/components/legal/LegalDocumentSummary.tsx` - Key points summary
-
-**Files to Modify:**
-- `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` - Use drawer instead of new tab links
-- `src/components/partner-funnel/FunnelSteps.tsx` - Same change
-
-### Phase 4: Version History & Database
-
-**Database Migration:**
-- Create `legal_document_versions` table
-- Seed initial versions
-
-**Files to Create:**
-- `src/components/legal/LegalVersionHistory.tsx` - Version accordion
-- `src/hooks/useLegalDocuments.ts` - Data fetching
+**Files to Audit & Modify:**
+- Job posting banners
+- Course thumbnails
+- Playlist covers
+- Track cover images
+- Academy covers
+- News article images
+- Document thumbnails
 
 ---
 
-## Document Content Outlines
+## Technical Implementation Details
 
-### Cookie Policy (New)
-
-1. **Introduction** - What this policy covers
-2. **What Are Cookies** - Technical explanation
-3. **Types We Use** - Necessary, Functional, Analytics, Marketing
-4. **Third-Party Cookies** - We don't use advertising cookies
-5. **Your Choices** - How to manage, browser settings
-6. **Cookie List** - Detailed table of all cookies
-7. **Updates** - How we notify changes
-8. **Contact** - privacy@thequantumclub.com
-
-### Acceptable Use Policy (New - Extracted from ToS)
-
-1. **Purpose** - Why this policy exists
-2. **Prohibited Content** - What you can't upload/post
-3. **Prohibited Activities** - What you can't do
-4. **Account Sharing** - Prohibited
-5. **Enforcement** - Warnings, suspension, termination
-6. **Reporting** - How to report violations
-
-### Security Policy (New)
-
-1. **Our Commitment** - Security philosophy
-2. **Infrastructure** - Supabase, encryption, EU hosting
-3. **Access Controls** - RLS, role-based permissions
-4. **Data Protection** - Encryption at rest/transit
-5. **Incident Response** - How we handle breaches
-6. **Responsible Disclosure** - Bug bounty/reporting
-7. **Certifications** - SOC 2 (when achieved)
-
-### Referral Terms (New)
-
-1. **Eligibility** - Who can refer
-2. **Qualifying Referrals** - What counts
-3. **Reward Amounts** - Current rates
-4. **Payment Terms** - When and how paid
-5. **Restrictions** - Self-referral, fraud, etc.
-6. **Tax Responsibility** - User's obligation
-7. **Program Changes** - TQC reserves right to modify
-
-### Data Processing Agreement (DPA) (New)
-
-1. **Definitions** - Controller, Processor, Sub-processor
-2. **Scope** - What processing covered
-3. **Data Categories** - Types of personal data
-4. **Processing Instructions** - Purpose limitation
-5. **Security Measures** - Technical/organizational
-6. **Sub-processors** - Link to list
-7. **Data Subject Rights** - Assistance obligations
-8. **Breach Notification** - 72-hour requirement
-9. **Audit Rights** - Partner rights
-10. **Term & Termination** - Data return/deletion
-11. **SCCs** - EU Standard Contractual Clauses
-
-### Accessibility Statement (New)
-
-1. **Commitment** - WCAG 2.1 AA target
-2. **Current Status** - What's accessible
-3. **Known Limitations** - What we're working on
-4. **Feedback** - How to report issues
-5. **Enforcement** - EU directive compliance
-
----
-
-## Technical Details
-
-### Route Structure
+### Image Processing Pipeline
 
 ```text
-/legal                    -> LegalHub (index)
-/legal/terms              -> TermsOfService (redirect from /terms)
-/legal/privacy            -> PrivacyPolicy (redirect from /privacy)
-/legal/cookies            -> CookiePolicy (NEW)
-/legal/acceptable-use     -> AcceptableUsePolicy (NEW)
-/legal/security           -> SecurityPolicy (NEW)
-/legal/referral-terms     -> ReferralTerms (NEW)
-/legal/accessibility      -> AccessibilityStatement (NEW)
-/legal/dpa                -> DataProcessingAgreement (NEW)
-/legal/subprocessors      -> Redirect to /compliance/subprocessors
+1. User selects file
+   ↓
+2. Client-side validation (type, size)
+   ↓
+3. Create object URL for preview
+   ↓
+4. Open ImageEditor dialog
+   ↓
+5. User adjusts crop, zoom, rotation, filters
+   ↓
+6. Generate cropped canvas at target dimensions
+   ↓
+7. Convert to Blob (JPEG/PNG/WebP)
+   ↓
+8. Upload to Supabase Storage
+   ↓
+9. Update database with public URL
+   ↓
+10. Clear object URLs (memory cleanup)
 ```
 
-### LegalDocumentDrawer Component
+### Cropping Algorithm (Enhanced)
 
 ```typescript
-interface LegalDocumentDrawerProps {
-  document: 'terms' | 'privacy' | 'cookies' | 'aup' | 'dpa';
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAccept?: () => void;  // Optional accept button
-  showAcceptButton?: boolean;
+async function cropAndResizeImage(
+  imageSrc: string,
+  pixelCrop: CropArea,
+  rotation: number,
+  flip: { horizontal: boolean; vertical: boolean },
+  filters: FilterSettings,
+  outputWidth: number,
+  outputHeight: number,
+  format: 'jpeg' | 'png' | 'webp',
+  quality: number
+): Promise<Blob> {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Set output dimensions
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
+  
+  // Apply transforms
+  ctx.save();
+  
+  // Flip
+  if (flip.horizontal || flip.vertical) {
+    ctx.translate(
+      flip.horizontal ? outputWidth : 0,
+      flip.vertical ? outputHeight : 0
+    );
+    ctx.scale(
+      flip.horizontal ? -1 : 1,
+      flip.vertical ? -1 : 1
+    );
+  }
+  
+  // Rotation
+  if (rotation !== 0) {
+    ctx.translate(outputWidth / 2, outputHeight / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.translate(-outputWidth / 2, -outputHeight / 2);
+  }
+  
+  // Filters
+  ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
+  
+  // Draw cropped and scaled image
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    outputWidth,
+    outputHeight
+  );
+  
+  ctx.restore();
+  
+  // Convert to blob
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error('Canvas empty')),
+      `image/${format}`,
+      quality
+    );
+  });
 }
 ```
 
-### GlobalFooter Component
+### Memory Management
 
 ```typescript
-interface GlobalFooterProps {
-  variant?: 'full' | 'compact' | 'minimal';
-  showOnMobile?: boolean;
-}
+// Proper cleanup of object URLs
+useEffect(() => {
+  return () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+}, [previewUrl]);
+
+// Cleanup on dialog close
+const handleClose = () => {
+  if (sourceImage) {
+    URL.revokeObjectURL(sourceImage);
+  }
+  onClose();
+};
 ```
+
+---
+
+## UI/UX Enhancements
+
+### 1. Aspect Ratio Selector (Optional)
+
+For components that support multiple aspect ratios:
+
+```text
+┌────────────────────────────────────────┐
+│  Aspect Ratio:                         │
+│  [1:1 Square] [16:9 Wide] [3:1 Banner] │
+└────────────────────────────────────────┘
+```
+
+### 2. Flip Controls
+
+```text
+┌────────────────────────────────────────┐
+│  Flip:                                 │
+│  [↔ Horizontal]  [↕ Vertical]          │
+└────────────────────────────────────────┘
+```
+
+### 3. Reset Button
+
+```text
+┌────────────────────────────────────────┐
+│                              [↺ Reset] │
+└────────────────────────────────────────┘
+```
+
+### 4. Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `+` / `-` | Zoom in/out |
+| `←` / `→` | Rotate left/right |
+| `H` | Flip horizontal |
+| `V` | Flip vertical |
+| `R` | Reset to original |
+| `Enter` | Save |
+| `Escape` | Cancel |
 
 ---
 
@@ -368,29 +501,47 @@ interface GlobalFooterProps {
 
 | File | Purpose |
 |------|---------|
-| `src/pages/legal/LegalHub.tsx` | Central legal index page |
-| `src/pages/legal/CookiePolicy.tsx` | Cookie policy document |
-| `src/pages/legal/AcceptableUsePolicy.tsx` | Standalone AUP |
-| `src/pages/legal/SecurityPolicy.tsx` | Security practices |
-| `src/pages/legal/ReferralTerms.tsx` | Referral program terms |
-| `src/pages/legal/AccessibilityStatement.tsx` | A11y commitment |
-| `src/pages/legal/DataProcessingAgreement.tsx` | Public DPA for partners |
-| `src/components/GlobalFooter.tsx` | Site-wide footer |
-| `src/components/legal/LegalDocumentDrawer.tsx` | In-context reading drawer |
-| `src/components/legal/LegalDocumentSummary.tsx` | Key points summary |
-| `src/components/legal/LegalVersionHistory.tsx` | Version history viewer |
-| `src/components/legal/LegalHubCard.tsx` | Card for legal hub grid |
-| `src/hooks/useLegalDocumentVersions.ts` | Version history data |
+| `src/components/image-editor/ImageEditor.tsx` | Universal image editor dialog |
+| `src/components/image-editor/ImageEditorPresets.ts` | Preset configurations |
+| `src/components/image-editor/ImageEditorControls.tsx` | Zoom/rotation/flip controls |
+| `src/components/image-editor/ImageEditorFilters.tsx` | Filter presets panel |
+| `src/components/image-editor/ImageEditorPreview.tsx` | Multi-size preview component |
+| `src/components/image-editor/utils/cropImage.ts` | Image cropping utility |
+| `src/components/image-editor/utils/resizeImage.ts` | Image resizing utility |
+| `src/components/image-editor/utils/imageValidation.ts` | File validation helpers |
+| `src/components/image-editor/index.ts` | Barrel exports |
+| `src/components/image-upload/ImageUpload.tsx` | Universal upload component |
+| `src/components/image-upload/ImageUploadTrigger.tsx` | Upload trigger button |
+| `src/components/image-upload/ImageUploadPreview.tsx` | Current image preview |
+| `src/components/image-upload/index.ts` | Barrel exports |
+| `src/hooks/useImageUpload.ts` | Upload logic hook |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/App.tsx` | Add routes for /legal/* pages |
-| `src/components/AppLayout.tsx` | Include GlobalFooter |
-| `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` | Use LegalDocumentDrawer instead of Link with target="_blank" |
-| `src/components/partner-funnel/FunnelSteps.tsx` | Same drawer integration |
-| `src/components/support/CookieConsentBanner.tsx` | Update "Learn more" link to /legal/cookies |
+| `src/components/AvatarUpload.tsx` | Migrate to use ImageEditor |
+| `src/components/AvatarEditor.tsx` | Deprecate (replaced by ImageEditor) |
+| `src/components/companies/AddCompanyDialog.tsx` | Add ImageEditor for logo/cover |
+| `src/components/profile/ProfileHeaderUpload.tsx` | Add ImageEditor integration |
+| `src/components/profile/ChangeAvatarDialog.tsx` | Use ImageUpload component |
+| `src/components/livehub/BackgroundImagePicker.tsx` | Add ImageEditor for backgrounds |
+| `src/components/appearance/PresetGallery.tsx` | Add ImageEditor for custom uploads |
+
+---
+
+## Storage Bucket Organization
+
+Current buckets to utilize:
+- `avatars` - Profile pictures (already exists)
+- `profile-headers` - Profile headers/banners (already exists)
+- `company-logos` - Company logos (new bucket)
+- `company-covers` - Company cover images (new bucket or use existing)
+- `virtual-backgrounds` - Video call backgrounds (already exists)
+- `course-thumbnails` - Course images (if needed)
+- `job-banners` - Job posting banners (if needed)
+
+**Migration Note**: New buckets may need to be created with appropriate RLS policies.
 
 ---
 
@@ -398,13 +549,13 @@ interface GlobalFooterProps {
 
 After implementation:
 
-1. **Users can read legal documents anywhere** - Global footer, legal hub, in-context drawers
-2. **No context loss during onboarding** - Documents open in drawer, not new tab
-3. **All required documents exist** - Cookie Policy, AUP, DPA, Security, Referral Terms, Accessibility
-4. **Version transparency** - Users can see document history
-5. **GDPR/ePrivacy compliance** - Proper cookie policy, DPA available
-6. **Professional presentation** - Luxury brand maintained with clean legal center
-7. **Downloadable PDFs** - Partners can download DPA and other documents
-8. **Improved accessibility** - A11y statement, skip links maintained
+1. **Consistent image editing** - Same editor experience across all upload points
+2. **Proper aspect ratios** - Images always fit their intended containers
+3. **Optimized file sizes** - Images resized to target dimensions before upload
+4. **Professional results** - Filters and adjustments for polished images
+5. **Memory efficient** - Proper cleanup of object URLs
+6. **Accessible** - Keyboard shortcuts, focus management
+7. **Reusable** - Single component for all image upload needs
+8. **Maintainable** - Centralized logic, easy to extend
 
-This creates an enterprise-grade legal documentation system that matches the platform's luxury positioning while meeting all regulatory requirements.
+This creates an enterprise-grade image editing system that elevates the platform's visual quality while maintaining consistent UX across all image upload touchpoints.
