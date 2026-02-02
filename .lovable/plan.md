@@ -1,360 +1,310 @@
 
 
-# Multi-Location Support with Country Flags & Remote Option
+# Email Notification Management System - Admin Dashboard
 
-## Current Problems
+## Overview
 
-1. **Location takes up too much space** - When country is added, it wraps to multiple lines on job cards
-2. **Single location only** - Jobs can only have one location, but many roles span multiple cities/countries
-3. **No remote option** - No dedicated "Remote" designation with a recognizable icon
-4. **Text-based location display** - Full text for country/city is inefficient vs. visual flags
+This plan creates a centralized Email Notification Management page for admins to configure who receives which email notifications. The system will allow role-based, user-specific, and event-based notification assignment with full audit logging.
 
 ---
 
-## Solution Overview
+## Current State Analysis
 
-### Visual Design for Job Cards
+### Existing Infrastructure
+
+**Database Tables:**
+- `notification_preferences` - Per-user preferences (email_enabled, email_applications, email_messages, etc.)
+- `approval_notification_logs` - Logs for approval emails sent
+- `email_templates` - Template definitions for emails (3 templates: booking_confirmation, approval_approved, approval_declined)
+
+**Email Edge Functions (32+ functions):**
+- `send-notification-email` - Generic notification email sender
+- `send-approval-notification` - Member approval emails
+- `send-booking-confirmation` - Booking confirmations
+- `send-booking-reminder-email` - Booking reminders
+- `send-meeting-invitation-email` - Meeting invites
+- `send-meeting-summary-email` - Meeting summaries
+- `send-application-submitted-email` - Application confirmations
+- `send-password-reset-email` - Password resets
+- `send-security-alert` - Security notifications
+- Plus 20+ more specialized email functions
+
+**User Roles:**
+- `admin` (11 users)
+- `partner` (27 users)
+- `strategist` (1 user)
+- `user` (81 users)
+
+### Current Gaps
+
+1. **No centralized notification management** - Notifications are hardcoded per function
+2. **No role-based notification routing** - Can't say "all strategists get X notification"
+3. **No admin visibility** - Admins can't see who gets what or override defaults
+4. **Limited audit trail** - Only approval_notification_logs exists
+5. **No notification type registry** - Email types are scattered across 30+ functions
+
+---
+
+## Solution Architecture
+
+### New Database Tables
+
+**1. `email_notification_types`** - Registry of all notification types
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| key | text | Unique key (e.g., "booking_reminder", "application_status") |
+| name | text | Display name |
+| description | text | What this notification is for |
+| category | text | Category (bookings, applications, system, security, meetings) |
+| default_enabled | boolean | Default on/off for new users |
+| allow_user_override | boolean | Can users disable this? |
+| priority | text | low, normal, high, critical |
+| edge_function | text | Edge function that sends this |
+| is_active | boolean | Is this notification type active? |
+| created_at | timestamptz | Created timestamp |
+
+**2. `email_notification_assignments`** - Who gets what notifications
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| notification_type_id | uuid | FK to email_notification_types |
+| assignment_type | text | 'role', 'user', 'all' |
+| role | text | Role if assignment_type='role' |
+| user_id | uuid | User ID if assignment_type='user' |
+| is_enabled | boolean | Enable/disable this assignment |
+| channel | text | 'email', 'push', 'both' |
+| assigned_by | uuid | Admin who made assignment |
+| created_at | timestamptz | Created timestamp |
+
+**3. `email_notification_audit_log`** - Comprehensive audit trail
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| action | text | 'assigned', 'unassigned', 'enabled', 'disabled', 'sent' |
+| notification_type_id | uuid | FK to notification type |
+| target_user_id | uuid | User affected |
+| performed_by | uuid | Admin who performed action |
+| details | jsonb | Additional context |
+| created_at | timestamptz | Timestamp |
+
+---
+
+### Visual Flow
 
 ```text
-Current:
-┌─────────────────────────────────┐
-│ 📍 Amsterdam, Netherlands       │  <- Takes full line
-└─────────────────────────────────┘
-
-New (single location):
-┌─────────────────────────────────┐
-│ 🇳🇱  Amsterdam                   │  <- Flag + city only
-└─────────────────────────────────┘
-
-New (multiple locations):
-┌─────────────────────────────────┐
-│ 🇳🇱 🇩🇪 🇬🇧  Amsterdam, Berlin +1  │  <- Multiple flags + abbreviated cities
-└─────────────────────────────────┘
-
-New (remote):
-┌─────────────────────────────────┐
-│ 🌐  Remote                       │  <- Globe icon for remote
-└─────────────────────────────────┘
-
-New (hybrid):
-┌─────────────────────────────────┐
-│ 🇳🇱 🌐  Amsterdam (Remote OK)     │  <- Flag + globe for hybrid
-└─────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    EMAIL NOTIFICATION MANAGEMENT                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐          │
+│  │  NOTIFICATION   │  │   RECIPIENTS    │  │     AUDIT       │          │
+│  │    TYPES        │  │   MANAGEMENT    │  │      LOG        │          │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘          │
+│                                                                          │
+│  Tab 1: Browse/manage           Tab 2: Assign by role     Tab 3: View   │
+│  all notification types         or individual user         all events   │
+│                                                                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  NOTIFICATION TYPES                                                      │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  📋 Application Submitted                          [Active ✓]     │ │
+│  │  Category: Applications  |  Function: send-application-submitted  │ │
+│  │  Recipients: All users (default)                                  │ │
+│  │                                       [Edit] [Assign Recipients]  │ │
+│  ├────────────────────────────────────────────────────────────────────┤ │
+│  │  🔔 Booking Reminder                               [Active ✓]     │ │
+│  │  Category: Bookings  |  Function: send-booking-reminder-email     │ │
+│  │  Recipients: All users + Partners (additional)                    │ │
+│  │                                       [Edit] [Assign Recipients]  │ │
+│  ├────────────────────────────────────────────────────────────────────┤ │
+│  │  🔒 Security Alert                                 [Active ✓]     │ │
+│  │  Category: Security  |  Function: send-security-alert             │ │
+│  │  Recipients: Admins only                                          │ │
+│  │                                       [Edit] [Assign Recipients]  │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Database Changes
+## Page Components
 
-### New Table: `job_locations`
+### 1. Main Page: `EmailNotificationManagement.tsx`
 
-Stores multiple locations per job with structured data.
+**Features:**
+- Three-tab layout: Notification Types | Recipients | Audit Log
+- Overview statistics (total types, active assignments, emails sent today)
+- Search and filter by category
 
-```sql
-CREATE TABLE job_locations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-  location_type TEXT NOT NULL CHECK (location_type IN ('onsite', 'remote', 'hybrid')),
-  city TEXT,
-  country TEXT,
-  country_code TEXT,
-  latitude NUMERIC,
-  longitude NUMERIC,
-  formatted_address TEXT,
-  is_primary BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+### 2. Notification Types Tab
 
--- Enable RLS
-ALTER TABLE job_locations ENABLE ROW LEVEL SECURITY;
+**Features:**
+- List all registered notification types
+- Show recipient count per type
+- Toggle active/inactive status
+- Quick-assign to roles
+- Link to edge function documentation
 
--- Policy: Authenticated users can read job locations
-CREATE POLICY "Anyone can read job locations"
-  ON job_locations FOR SELECT
-  USING (true);
+### 3. Recipients Tab
 
--- Policy: Job creators/admins can manage locations
-CREATE POLICY "Job owners can manage locations"
-  ON job_locations FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM jobs WHERE jobs.id = job_locations.job_id AND jobs.created_by = auth.uid()
-    )
-  );
-```
+**Features:**
+- View by Role or by User
+- Role-based bulk assignment (e.g., "All partners get X, Y, Z")
+- Individual user assignment with override
+- Channel selection (email/push/both)
+- Preview notification for user
 
-### Add `is_remote` to Jobs Table
+### 4. Audit Log Tab
 
-For quick filtering and backwards compatibility:
-
-```sql
-ALTER TABLE jobs ADD COLUMN is_remote BOOLEAN DEFAULT false;
-```
+**Features:**
+- Filterable timeline of all actions
+- Who assigned what to whom, when
+- Email send history with status
+- Export capability
 
 ---
 
-## Component Changes
+## UI Components to Create
 
-### 1. New: `CountryFlag` Component
-
-Converts country code to emoji flag:
-
-```tsx
-// src/components/ui/country-flag.tsx
-
-interface CountryFlagProps {
-  countryCode: string;
-  size?: 'sm' | 'md' | 'lg';
-  showTooltip?: boolean;
-}
-
-// Convert "NL" to "🇳🇱" using Unicode regional indicators
-const getCountryEmoji = (countryCode: string): string => {
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-};
-```
-
-### 2. New: `RemoteIcon` Component
-
-Recognizable remote work indicator:
-
-```tsx
-// Uses Globe2 from lucide-react
-// Styled with primary color when remote
-// Shows "🌐" or uses Globe2 icon with special styling
-```
-
-### 3. New: `JobLocationDisplay` Component
-
-Compact single-line location display for job cards:
-
-```tsx
-// src/components/jobs/JobLocationDisplay.tsx
-
-interface JobLocationDisplayProps {
-  locations: JobLocation[];
-  isRemote?: boolean;
-  maxFlags?: number;  // Default: 3
-  showCities?: boolean;  // Default: true
-}
-
-// Renders:
-// - Country flags (max 3, then "+N")
-// - City names (comma-separated, truncated)
-// - Remote globe icon if applicable
-// All in ONE LINE
-```
-
-### 4. New: `MultiLocationInput` Component
-
-For job creation/edit dialogs:
-
-```tsx
-// src/components/jobs/MultiLocationInput.tsx
-
-interface MultiLocationInputProps {
-  locations: LocationInput[];
-  onChange: (locations: LocationInput[]) => void;
-  maxLocations?: number;  // Default: 5
-}
-
-// Features:
-// - Add multiple locations via EnhancedLocationAutocomplete
-// - Toggle "Remote" option with prominent switch
-// - Reorder locations (first = primary)
-// - Remove individual locations
-// - Visual preview of how it will appear on cards
-```
+| Component | Purpose |
+|-----------|---------|
+| `EmailNotificationManagement.tsx` | Main page container |
+| `NotificationTypeCard.tsx` | Card for each notification type |
+| `NotificationTypeDialog.tsx` | Edit notification type details |
+| `RecipientAssignmentPanel.tsx` | Manage role/user assignments |
+| `RoleAssignmentCard.tsx` | Quick-assign by role |
+| `UserAssignmentDialog.tsx` | Individual user assignment |
+| `NotificationAuditLog.tsx` | Audit log viewer |
+| `NotificationStatsCards.tsx` | Overview statistics |
 
 ---
+
+## Implementation Steps
+
+### Phase 1: Database Setup
+
+1. Create `email_notification_types` table
+2. Create `email_notification_assignments` table
+3. Create `email_notification_audit_log` table
+4. Add RLS policies (admin-only management, users can read their own)
+5. Seed initial notification types from existing edge functions
+
+### Phase 2: Admin UI
+
+1. Create main page with tabs
+2. Build notification types list with cards
+3. Build role-based assignment panel
+4. Build user-specific assignment dialog
+5. Build audit log viewer
+6. Add to admin routes
+
+### Phase 3: Integration
+
+1. Create `check-notification-recipient` edge function
+2. Update existing email edge functions to check assignments
+3. Add logging to `email_notification_audit_log`
+
+---
+
+## Technical Details
+
+### Notification Type Categories
+
+```typescript
+const NOTIFICATION_CATEGORIES = [
+  { key: 'applications', label: 'Applications', icon: FileText },
+  { key: 'bookings', label: 'Bookings & Meetings', icon: Calendar },
+  { key: 'security', label: 'Security', icon: Shield },
+  { key: 'system', label: 'System', icon: Settings },
+  { key: 'communications', label: 'Communications', icon: MessageSquare },
+  { key: 'approvals', label: 'Approvals', icon: CheckCircle },
+];
+```
+
+### Default Notification Types to Seed
+
+```typescript
+const DEFAULT_NOTIFICATION_TYPES = [
+  // Applications
+  { key: 'application_submitted', name: 'Application Submitted', category: 'applications', edge_function: 'send-application-submitted-email' },
+  { key: 'application_status_change', name: 'Application Status Changed', category: 'applications', edge_function: 'send-notification-email' },
+  
+  // Bookings
+  { key: 'booking_confirmation', name: 'Booking Confirmation', category: 'bookings', edge_function: 'send-booking-confirmation' },
+  { key: 'booking_reminder', name: 'Booking Reminder', category: 'bookings', edge_function: 'send-booking-reminder-email' },
+  { key: 'booking_cancelled', name: 'Booking Cancelled', category: 'bookings', edge_function: 'send-booking-confirmation' },
+  
+  // Meetings
+  { key: 'meeting_invitation', name: 'Meeting Invitation', category: 'bookings', edge_function: 'send-meeting-invitation-email' },
+  { key: 'meeting_summary', name: 'Meeting Summary', category: 'bookings', edge_function: 'send-meeting-summary-email' },
+  
+  // Security
+  { key: 'security_alert', name: 'Security Alert', category: 'security', edge_function: 'send-security-alert', priority: 'critical' },
+  { key: 'password_reset', name: 'Password Reset', category: 'security', edge_function: 'send-password-reset-email' },
+  { key: 'password_changed', name: 'Password Changed', category: 'security', edge_function: 'send-password-changed-email' },
+  
+  // Approvals
+  { key: 'member_approved', name: 'Member Approved', category: 'approvals', edge_function: 'send-approval-notification' },
+  { key: 'member_declined', name: 'Member Declined', category: 'approvals', edge_function: 'send-approval-notification' },
+  
+  // System
+  { key: 'system_notification', name: 'System Notification', category: 'system', edge_function: 'send-notification-email' },
+  { key: 'weekly_digest', name: 'Weekly Digest', category: 'system', edge_function: 'send-notification-email' },
+];
+```
+
+### Role-Based Default Assignments
+
+| Notification Type | Admin | Strategist | Partner | User |
+|-------------------|-------|------------|---------|------|
+| Security Alert | ✓ | ✓ | ✗ | ✗ |
+| Member Approved | ✓ | ✓ | ✓ | ✓ |
+| Booking Confirmation | ✓ | ✓ | ✓ | ✓ |
+| Meeting Summary | ✓ | ✓ | ✓ | ✗ |
+| Weekly Digest | ✓ | ✓ | ✓ | ✓ |
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/pages/admin/EmailNotificationManagement.tsx` | Main admin page |
+| `src/components/admin/notifications/NotificationTypesList.tsx` | List of notification types |
+| `src/components/admin/notifications/NotificationTypeCard.tsx` | Individual type card |
+| `src/components/admin/notifications/RecipientAssignmentDialog.tsx` | Assignment dialog |
+| `src/components/admin/notifications/RoleAssignmentPanel.tsx` | Role-based assignment |
+| `src/components/admin/notifications/NotificationAuditLog.tsx` | Audit log viewer |
+| `src/components/admin/notifications/NotificationStatsCards.tsx` | Stats overview |
+| `src/hooks/useNotificationTypes.ts` | Data fetching hook |
+| `src/hooks/useNotificationAssignments.ts` | Assignment management hook |
+| `supabase/functions/check-notification-recipient/index.ts` | Recipient check function |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/ui/country-flag.tsx` | NEW - Country code to flag emoji converter |
-| `src/components/jobs/JobLocationDisplay.tsx` | NEW - Compact multi-location display |
-| `src/components/jobs/MultiLocationInput.tsx` | NEW - Multi-location input with remote toggle |
-| `src/components/partner/jobs/CompactJobCard.tsx` | Replace MapPin + text with JobLocationDisplay |
-| `src/components/partner/CreateJobDialog.tsx` | Replace single location input with MultiLocationInput |
-| `src/components/partner/EditJobSheet.tsx` | Same as CreateJobDialog |
-| `src/schemas/jobFormSchema.ts` | Add `locations` array and `is_remote` field |
-| `src/components/partner/PartnerJobsHome.tsx` | Fetch job_locations in query, pass to cards |
-| `src/types/job.ts` | Add JobLocation interface |
-
----
-
-## Implementation Details
-
-### Country Code to Flag Emoji
-
-Unicode regional indicator symbols allow any 2-letter country code to become a flag:
-
-```typescript
-// "US" -> "🇺🇸", "NL" -> "🇳🇱", "DE" -> "🇩🇪"
-const countryToFlag = (code: string): string => {
-  const base = 0x1F1E6 - 'A'.charCodeAt(0);
-  return code.toUpperCase().split('').map(c => 
-    String.fromCodePoint(c.charCodeAt(0) + base)
-  ).join('');
-};
-```
-
-### Remote Icon Design
-
-Using Lucide's `Globe2` icon with special styling:
-- **Color**: Primary/teal when active
-- **Background**: Subtle ring/glow effect
-- **Size**: Matches flag emoji (~16-20px)
-- **Tooltip**: "Remote position" on hover
-
-### Location Display Logic
-
-```typescript
-function formatLocationDisplay(locations: JobLocation[], isRemote: boolean) {
-  const flags = locations
-    .filter(l => l.countryCode)
-    .slice(0, 3)
-    .map(l => countryToFlag(l.countryCode));
-  
-  const extraCount = Math.max(0, locations.filter(l => l.countryCode).length - 3);
-  
-  const cities = locations
-    .filter(l => l.city)
-    .slice(0, 2)
-    .map(l => l.city);
-  
-  return {
-    flags,
-    extraCount,
-    cities,
-    isRemote,
-  };
-}
-```
-
-### Job Creation/Edit Flow
-
-1. **Remote Toggle** at top of location section (prominent switch)
-2. **Location List** with add/remove functionality
-3. **Visual Preview** showing how the location will appear on cards
-4. **Validation**: At least one location OR remote must be selected
-
----
-
-## UI Mockups
-
-### Job Card Location (Compact):
-
-```text
-Single onsite:        🇳🇱 Amsterdam
-Multiple onsite:      🇳🇱 🇩🇪 Amsterdam, Berlin
-Many locations:       🇳🇱 🇩🇪 🇬🇧 +2 Amsterdam...
-Remote only:          🌐 Remote
-Hybrid single:        🇳🇱 🌐 Amsterdam
-Hybrid multiple:      🇳🇱 🇩🇪 🌐 Amsterdam +1
-```
-
-### Create Job Dialog (Location Section):
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ Location                                                     │
-├─────────────────────────────────────────────────────────────┤
-│  [Remote Position] ─────────────────────── [ Toggle ON/OFF ] │
-│                                                               │
-│  Office Locations:                                           │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │ 🇳🇱 Amsterdam, Netherlands                      [✕]   │  │
-│  └───────────────────────────────────────────────────────┘  │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │ 🇩🇪 Berlin, Germany                             [✕]   │  │
-│  └───────────────────────────────────────────────────────┘  │
-│                                                               │
-│  [+ Add Location]                                            │
-│                                                               │
-│  Preview: 🇳🇱 🇩🇪 🌐 Amsterdam, Berlin              │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Migration Strategy
-
-### Backwards Compatibility
-
-1. Keep existing `location`, `location_city`, `location_country_code` columns
-2. New `job_locations` table is additive
-3. On display, prefer `job_locations` if available, fallback to legacy `location` field
-4. Migration script to populate `job_locations` from existing `location_country_code` and `location_city`
-
-### Data Migration
-
-```sql
--- Populate job_locations from existing single-location data
-INSERT INTO job_locations (job_id, location_type, city, country_code, latitude, longitude, formatted_address, is_primary)
-SELECT 
-  id,
-  'onsite',
-  location_city,
-  location_country_code,
-  latitude,
-  longitude,
-  location_formatted,
-  true
-FROM jobs
-WHERE location_city IS NOT NULL OR location_country_code IS NOT NULL;
-```
-
----
-
-## Technical Considerations
-
-### Performance
-
-- Fetch `job_locations` in single JOIN with jobs query
-- Index on `job_locations.job_id` for fast lookups
-- Memoize flag emoji generation (it's pure computation)
-
-### Realtime
-
-- Add `job_locations` to Supabase Realtime publication for live updates
-
-### Validation
-
-- Maximum 5 locations per job
-- At least one location OR remote must be enabled
-- Each location must have either city or country_code
-
----
-
-## Implementation Order
-
-1. **Database Migration** - Create `job_locations` table and `is_remote` column
-2. **CountryFlag Component** - Simple utility component
-3. **JobLocationDisplay** - Compact display for cards
-4. **Update CompactJobCard** - Integrate new display
-5. **MultiLocationInput** - Input component for forms
-6. **Update CreateJobDialog** - Multi-location support
-7. **Update EditJobSheet** - Same changes
-8. **Data Fetching** - Update PartnerJobsHome to fetch locations
-9. **Migration Script** - Populate from existing data
+| `src/routes/admin.routes.tsx` | Add route for `/admin/email-notifications` |
+| `supabase/functions/send-notification-email/index.ts` | Integrate assignment check |
 
 ---
 
 ## Expected Outcome
 
-| Before | After |
-|--------|-------|
-| "Amsterdam, Netherlands" (long text) | "🇳🇱 Amsterdam" (compact) |
-| Single location only | Up to 5 locations |
-| No remote indicator | Prominent 🌐 globe icon |
-| Multiple lines on cards | Always single line |
-| Text-based country | Visual flag emoji |
+After implementation, admins will be able to:
 
-This creates a professional, space-efficient location display that scales from single to multi-location jobs while providing clear visual indicators for remote work opportunities.
+1. **View all notification types** - See every email the system can send
+2. **Assign by role** - "All partners receive booking confirmations"
+3. **Assign by user** - "John specifically gets security alerts"
+4. **Override defaults** - Turn off notifications for specific users/roles
+5. **Audit everything** - Full history of who changed what and when
+6. **Monitor delivery** - See email send status and failures
+
+This creates a robust, enterprise-grade notification management system with full GDPR compliance through the audit trail.
 
