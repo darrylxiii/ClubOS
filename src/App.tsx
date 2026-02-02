@@ -89,6 +89,13 @@ const ClubHome = lazy(() => import("./pages/ClubHome"));
 // Legal & Public Pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const LegalHub = lazy(() => import("./pages/legal/LegalHub"));
+const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
+const AcceptableUsePolicy = lazy(() => import("./pages/legal/AcceptableUsePolicy"));
+const SecurityPolicy = lazy(() => import("./pages/legal/SecurityPolicy"));
+const ReferralTerms = lazy(() => import("./pages/legal/ReferralTerms"));
+const AccessibilityStatement = lazy(() => import("./pages/legal/AccessibilityStatement"));
+const DataProcessingAgreement = lazy(() => import("./pages/legal/DataProcessingAgreement"));
 
 // Misc Protected Pages
 const ClubAI = lazy(() => import("./pages/ClubAI"));
