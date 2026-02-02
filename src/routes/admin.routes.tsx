@@ -19,6 +19,7 @@ const DisasterRecoveryPage = lazy(() => import("@/pages/admin/DisasterRecoveryPa
 // DRRunbooks and ComprehensiveDRPage consolidated into DisasterRecoveryPage
 const MemberRequestsPage = lazy(() => import("@/pages/admin/MemberRequestsPage"));
 const EmailTemplateManager = lazy(() => import("@/pages/admin/EmailTemplateManager"));
+const EmailNotificationManagement = lazy(() => import("@/pages/admin/EmailNotificationManagement"));
 const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
 const AdminRejections = lazy(() => import("@/pages/AdminRejections"));
 const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
@@ -280,6 +281,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <EmailTemplateManager />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/email-notifications"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <EmailNotificationManagement />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>

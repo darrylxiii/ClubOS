@@ -17131,6 +17131,148 @@ export type Database = {
           },
         ]
       }
+      email_notification_assignments: {
+        Row: {
+          assigned_by: string | null
+          assignment_type: string
+          channel: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          notification_type_id: string
+          role: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assignment_type: string
+          channel?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          notification_type_id: string
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assignment_type?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          notification_type_id?: string
+          role?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notification_assignments_notification_type_id_fkey"
+            columns: ["notification_type_id"]
+            isOneToOne: false
+            referencedRelation: "email_notification_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_notification_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown
+          notification_type_id: string | null
+          notification_type_key: string | null
+          performed_by: string | null
+          target_role: string | null
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          notification_type_id?: string | null
+          notification_type_key?: string | null
+          performed_by?: string | null
+          target_role?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          notification_type_id?: string | null
+          notification_type_key?: string | null
+          performed_by?: string | null
+          target_role?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notification_audit_log_notification_type_id_fkey"
+            columns: ["notification_type_id"]
+            isOneToOne: false
+            referencedRelation: "email_notification_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_notification_types: {
+        Row: {
+          allow_user_override: boolean
+          category: string
+          created_at: string
+          default_enabled: boolean
+          description: string | null
+          edge_function: string | null
+          id: string
+          is_active: boolean
+          key: string
+          name: string
+          priority: string
+          updated_at: string
+        }
+        Insert: {
+          allow_user_override?: boolean
+          category?: string
+          created_at?: string
+          default_enabled?: boolean
+          description?: string | null
+          edge_function?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          name: string
+          priority?: string
+          updated_at?: string
+        }
+        Update: {
+          allow_user_override?: boolean
+          category?: string
+          created_at?: string
+          default_enabled?: boolean
+          description?: string | null
+          edge_function?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          name?: string
+          priority?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_relationships: {
         Row: {
           avg_response_time_hours: number | null
