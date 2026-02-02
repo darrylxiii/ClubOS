@@ -1,11 +1,13 @@
-import { useState, useCallback, useEffect } from "react";
-import Cropper from "react-easy-crop";
+import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ZoomIn, ZoomOut, RotateCw, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Keep legacy AvatarEditor functional but avoid a static import that inflates build memory.
+const Cropper = lazy(() => import('react-easy-crop').then((m) => ({ default: m.default })));
 
 interface AvatarEditorProps {
   image: string;
@@ -180,19 +182,21 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
         
         <div className="space-y-6">
           <div className="relative h-[400px] bg-muted rounded-lg overflow-hidden" style={getFilterStyle()}>
-            <Cropper
-              image={image}
-              crop={crop}
-              zoom={zoom}
-              rotation={rotation}
-              aspect={1}
-              cropShape="round"
-              showGrid={false}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onRotationChange={setRotation}
-              onCropComplete={onCropComplete}
-            />
+            <Suspense fallback={<div className="absolute inset-0" />}>
+              <Cropper
+                image={image}
+                crop={crop}
+                zoom={zoom}
+                rotation={rotation}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onRotationChange={setRotation}
+                onCropComplete={onCropComplete}
+              />
+            </Suspense>
           </div>
 
           <Tabs defaultValue="adjust" className="w-full">
