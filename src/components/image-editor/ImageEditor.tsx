@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import Cropper from 'react-easy-crop';
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,8 +12,10 @@ import {
   type ImageEditorConfig, 
   type ImageEditorPreset,
   type FilterSettings,
-  FILTER_PRESETS 
 } from './ImageEditorPresets';
+
+// Dynamic import for heavy cropper library to reduce bundle size
+const Cropper = lazy(() => import('react-easy-crop').then(mod => ({ default: mod.default })));
 
 interface ImageEditorProps {
   image: string;
@@ -36,6 +37,15 @@ const DEFAULT_FLIP: FlipSettings = {
   horizontal: false,
   vertical: false,
 };
+
+// Loading fallback for the cropper
+function CropperLoading() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 
 export function ImageEditor({
   image,
@@ -127,7 +137,7 @@ export function ImageEditor({
     };
   }, []);
 
-  const onCropComplete = useCallback((_: any, croppedAreaPixels: CropArea) => {
+  const onCropComplete = useCallback((_: unknown, croppedAreaPixels: CropArea) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
@@ -187,19 +197,21 @@ export function ImageEditor({
             className="relative h-[400px] bg-muted rounded-lg overflow-hidden"
             style={getFilterStyle()}
           >
-            <Cropper
-              image={image}
-              crop={crop}
-              zoom={zoom}
-              rotation={rotation}
-              aspect={config.aspectRatio}
-              cropShape={config.cropShape}
-              showGrid={config.cropShape === 'rect'}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onRotationChange={setRotation}
-              onCropComplete={onCropComplete}
-            />
+            <Suspense fallback={<CropperLoading />}>
+              <Cropper
+                image={image}
+                crop={crop}
+                zoom={zoom}
+                rotation={rotation}
+                aspect={config.aspectRatio}
+                cropShape={config.cropShape}
+                showGrid={config.cropShape === 'rect'}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onRotationChange={setRotation}
+                onCropComplete={onCropComplete}
+              />
+            </Suspense>
           </div>
 
           {/* Aspect Ratio Info */}
