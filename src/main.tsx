@@ -48,8 +48,9 @@ async function bootstrap() {
     
     // Report to Sentry if available
     try {
-      const { captureException } = await import("@sentry/react");
-      captureException(error);
+      // Use the pre-initialized Sentry from our lib to avoid mixed import issues
+      const { captureError } = await import("./lib/sentry");
+      captureError(error instanceof Error ? error : new Error(String(error)));
     } catch {
       // Sentry not available
     }
