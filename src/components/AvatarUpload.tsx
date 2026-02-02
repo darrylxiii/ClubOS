@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AvatarEditor } from "./AvatarEditor";
+import { ImageEditor } from "@/components/image-editor";
 
 interface AvatarUploadProps {
   avatarUrl: string | null;
@@ -232,7 +232,7 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
       </div>
 
       {selectedImage && (
-        <AvatarEditor
+        <ImageEditor
           image={selectedImage}
           open={editorOpen}
           onClose={() => {
@@ -242,7 +242,8 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
               setSelectedImage(null);
             }
           }}
-          onSave={handleSaveCroppedImage}
+          preset="avatar"
+          onSave={(blob) => handleSaveCroppedImage(blob)}
         />
       )}
     </>
