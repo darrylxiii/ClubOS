@@ -37,6 +37,9 @@ verify_jwt = false
 [functions.register-instantly-webhooks]
 verify_jwt = true
 
+[functions.test-instantly-connection]
+verify_jwt = false
+
 [functions.send-instantly-reply]
 verify_jwt = true
 
