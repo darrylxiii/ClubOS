@@ -25,7 +25,6 @@ import { CRMProspectsWidget } from "./CRMProspectsWidget";
 import { TopClientsWidget } from "./TopClientsWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
-import { AdminCommandCenter } from "@/components/admin/command-center/AdminCommandCenter";
 import { QUINAnalyticsWidget } from "./QUINAnalyticsWidget";
 import { AdminReferralWidget } from "./AdminReferralWidget";
 import { PipelineVelocityWidget } from "./PipelineVelocityWidget";
@@ -37,15 +36,6 @@ const AdminHomeContent = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Command Center v2 */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <AdminCommandCenter />
-      </motion.div>
-
       {/* Stats Bar */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
