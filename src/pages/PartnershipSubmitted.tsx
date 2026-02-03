@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -15,19 +15,64 @@ declare global {
   }
 }
 
+// Navigation state from FunnelSteps
+interface LocationState {
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  estimatedRolesPerYear?: number;
+}
+
+// Platform average fee (matches platform_settings.estimated_placement_fee)
+const AVERAGE_PLACEMENT_FEE = 15000;
+
 export default function PartnershipSubmitted() {
   const { companyName } = useParams<{ companyName?: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  
+  const state = location.state as LocationState | null;
 
   useEffect(() => {
-    // Track page view for Google Tag Manager
+    // Track page view for Google Tag Manager with Enhanced Conversions data
     if (window.dataLayer) {
+      const decodedName = companyName ? decodeURIComponent(companyName) : undefined;
+      
+      // Parse name into first/last for Enhanced Conversions
+      const nameParts = (state?.contactName || '').trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Calculate potential conversion value (roles × average placement fee)
+      const estimatedRoles = state?.estimatedRolesPerYear || 0;
+      const conversionValue = estimatedRoles * AVERAGE_PLACEMENT_FEE;
+
       window.dataLayer.push({
         event: 'partnership_submitted',
-        companyName: companyName,
+        companyName: decodedName,
+        
+        // Enhanced Conversions user data (Google Ads schema)
+        user_data: {
+          email: state?.contactEmail?.toLowerCase().trim(),
+          phone_number: state?.contactPhone, // E.164 format
+          address: {
+            first_name: firstName,
+            last_name: lastName,
+          }
+        },
+        
+        // Conversion value for Google Ads Smart Bidding
+        value: conversionValue,
+        currency: 'EUR',
+        estimated_roles: estimatedRoles,
+        
+        // Flat fields for flexibility with other tools
+        userEmail: state?.contactEmail?.toLowerCase().trim(),
+        userName: state?.contactName,
+        userPhone: state?.contactPhone,
       });
     }
-  }, [companyName]);
+  }, [companyName, state]);
 
   return (
     <div className="min-h-screen bg-background">
