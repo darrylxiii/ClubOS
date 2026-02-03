@@ -210,7 +210,7 @@ export default defineConfig(({ mode, command }) => ({
     assetsInlineLimit: 0,
 
     rollupOptions: {
-      maxParallelFileOps: 1, // Minimum parallelism
+      maxParallelFileOps: 1, // Minimum parallelism to reduce peak memory
       treeshake: mode === 'production',
       
       // CRITICAL: Mark heavy dependencies as external in dev mode
@@ -222,14 +222,26 @@ export default defineConfig(({ mode, command }) => ({
           '@mediapipe/camera_utils',
           'fabric',
           'katex',
+          '@blocknote/core',
+          '@blocknote/react',
+          '@blocknote/mantine',
+          'livekit-client',
+          '@livekit/components-react',
+          '@livekit/components-styles',
+          'jspdf',
+          'jspdf-autotable',
+          '@tiptap/core',
+          '@tiptap/react',
+          '@tiptap/extensions',
+          'prosemirror-state',
+          'prosemirror-view',
+          'prosemirror-model',
         ],
       } : {}),
       
       output: {
-        // OOM FIX: In very large projects, letting Rollup decide chunking in dev
-        // can still explode memory during the rendering/chunking phase.
-        // Use a *static object* for manualChunks (cheaper than a function) to
-        // force the heaviest libs into separate chunks.
+        // OOM FIX: Static object for manualChunks is cheaper than a function
+        // and forces the heaviest libs into separate chunks
         manualChunks: mode === 'production'
           ? (id: string) => {
               if (!id.includes('node_modules')) return undefined;
@@ -243,20 +255,14 @@ export default defineConfig(({ mode, command }) => ({
               if (id.includes('mermaid')) return 'mermaid';
               if (id.includes('fabric')) return 'fabric';
               if (id.includes('jspdf')) return 'pdf';
+              if (id.includes('@sentry')) return 'sentry';
+              if (id.includes('posthog')) return 'analytics';
+              if (id.includes('@opentelemetry')) return 'telemetry';
               if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
                 return 'react-vendor';
               }
             }
-          : {
-              'react-vendor': ['react', 'react-dom'],
-              radix: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover'],
-              charts: ['recharts'],
-              blocknote: ['@blocknote/core', '@blocknote/react'],
-              editor: ['@tiptap/core', '@tiptap/react'],
-              livekit: ['livekit-client', '@livekit/components-react'],
-              pdf: ['jspdf', 'jspdf-autotable'],
-              motion: ['framer-motion'],
-            },
+          : undefined, // Let Rollup handle chunking in dev to avoid function overhead
       },
     },
   },
