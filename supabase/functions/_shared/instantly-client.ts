@@ -46,15 +46,28 @@ export async function instantlyRequest<T>(
   endpoint: string,
   options: InstantlyRequestOptions = {}
 ): Promise<InstantlyResponse<T>> {
-  // Check multiple possible env var names for the API key
-  const apiKey = Deno.env.get('InstantlyAPI') 
-    || Deno.env.get('INSTANTLY_API_KEY') 
+  // Check multiple possible env var names for the API key (prioritize INSTANTLY_API_KEY)
+  const apiKey = Deno.env.get('INSTANTLY_API_KEY') 
+    || Deno.env.get('InstantlyAPI') 
     || Deno.env.get('INSTANTLY_API');
   
   if (!apiKey) {
-    console.error('[Instantly] API key not found. Checked: InstantlyAPI, INSTANTLY_API_KEY, INSTANTLY_API');
-    return { error: 'Instantly API key not configured. Please add InstantlyAPI secret.', status: 500 };
+    // Log diagnostic info about available env vars
+    const allVars = Object.keys(Deno.env.toObject());
+    const instantlyVars = allVars.filter(k => k.toLowerCase().includes('instant'));
+    console.error('[Instantly] API key not found!');
+    console.error('[Instantly] Checked: INSTANTLY_API_KEY, InstantlyAPI, INSTANTLY_API');
+    console.error('[Instantly] Available instantly-related vars:', instantlyVars);
+    console.error('[Instantly] Total env vars available:', allVars.length);
+    return { 
+      error: `Instantly API key not configured. Checked: INSTANTLY_API_KEY, InstantlyAPI, INSTANTLY_API. Found instantly vars: ${instantlyVars.join(', ') || 'none'}`, 
+      status: 500 
+    };
   }
+
+  // Log successful key resolution (masked for security)
+  const maskedKey = `${apiKey.substring(0, 8)}...${apiKey.slice(-4)}`;
+  console.log(`[Instantly] Using API key: ${maskedKey}`);
 
   await checkRateLimit();
 
