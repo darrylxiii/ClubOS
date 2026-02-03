@@ -358,7 +358,16 @@ export function FunnelSteps() {
       autoSave.markCompleted();
       setTimeout(() => autoSave.clear(), 1000);
 
-      navigate(`/partnership-submitted/${encodedCompanyName}`);
+      navigate(`/partnership-submitted/${encodedCompanyName}`, {
+        state: {
+          contactName: formData.contact_name,
+          contactEmail: formData.contact_email,
+          contactPhone: phoneNumber,
+          estimatedRolesPerYear: formData.estimated_roles_per_year 
+            ? parseInt(formData.estimated_roles_per_year) 
+            : null,
+        }
+      });
     });
 
     if (!verified) {
