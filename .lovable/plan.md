@@ -1,144 +1,233 @@
 
+# Sidebar Stability Audit - Full Report & Hardening Plan
 
-# Fix: Resume Viewer - In-Browser Preview with Signed URLs
+## Current Architecture Analysis
 
-## Problem Identified
+The sidebar consists of these key components:
 
-You're getting a **404 "Bucket not found"** error when clicking the Resume button because:
-
-1. The `resumes` storage bucket is **private** (not public)
-2. Resume URLs are stored as public-style URLs (using `/object/public/` path)
-3. Public URLs **do not work for private buckets** - Supabase returns 404
-
-Additionally, the current Resume button simply opens `window.open(resume_url)` which redirects to the broken URL instead of showing an in-browser viewer like you had before.
-
----
-
-## Solution
-
-Create an in-browser document preview dialog for the Admin Member Requests page that:
-
-1. **Generates signed URLs** for private bucket files (valid for 1 hour)
-2. **Displays PDF/documents in an iframe** within a modal dialog
-3. **Handles both new private URLs and legacy public URLs**
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `AnimatedSidebar.tsx` | `src/components/` | Main sidebar with desktop/mobile variants |
+| `AppLayout.tsx` | `src/components/` | Parent layout consuming the sidebar |
+| `navigation.config.ts` | `src/config/` | Navigation group definitions |
+| `RoleContext.tsx` | `src/contexts/` | Role-based navigation filtering |
+| `useNavigationState.ts` | `src/hooks/` | Group expand/collapse state |
+| `use-mobile.tsx` | `src/hooks/` | Mobile breakpoint detection |
 
 ---
 
-## Technical Details
+## Identified Vulnerabilities
 
-### 1. Create a Reusable DocumentPreviewDialog Component
+### 1. Global Window Object Anti-Pattern (Critical)
+**File:** `AnimatedSidebar.tsx` lines 82-85
 
-**File:** `src/components/shared/DocumentPreviewDialog.tsx`
-
-A reusable component that:
-- Takes a storage path or full URL
-- Generates a signed URL if needed (for `resumes` bucket)
-- Displays the document in an iframe inside a dialog
-- Shows loading state while fetching signed URL
-- Provides download button
-
+The sidebar exposes toggle functions via the global `window` object:
 ```typescript
-interface DocumentPreviewDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  documentUrl: string | null;
-  documentName?: string;
-  bucketName?: string; // defaults to 'resumes'
+if (typeof window !== 'undefined') {
+  (window as any).__toggleSidebar = () => setOpen(!open);
+  (window as any).__getSidebarOpen = () => open;
 }
 ```
 
-### 2. Update AdminMemberRequests to Use Preview Dialog
+**Problems:**
+- Stale closures: The `open` value captured in the closure becomes stale after state updates
+- Race conditions: Multiple components polling/setting state through window creates sync issues
+- No cleanup: These assignments persist even after component unmount
+- SSR incompatibility: `window` access during render phase
 
-**File:** `src/components/admin/AdminMemberRequests.tsx`
+**Evidence:** The `AppLayout.tsx` polls this with a 100ms interval (line 64), which can cause state desync.
 
-Changes:
-- Add state for preview dialog: `previewDocument`, `showPreviewDialog`
-- Replace `window.open(request.resume_url)` with opening the preview dialog
-- The dialog will handle generating signed URLs
+### 2. Polling-Based State Sync (High Risk)
+**File:** `AppLayout.tsx` lines 55-67
 
-**Current (line 720-728):**
 ```typescript
-{request.resume_url && (
-  <Button 
-    variant="outline" 
-    onClick={() => window.open(request.resume_url!, '_blank')}
-    className="gap-2"
-  >
-    <ExternalLink className="w-4 h-4" />
-    Resume
-  </Button>
-)}
+useEffect(() => {
+  const syncSidebarState = () => {
+    if (typeof window !== 'undefined' && (window as any).__getSidebarOpen) {
+      const isOpen = (window as any).__getSidebarOpen();
+      setMobileMenuOpen(isOpen);
+    }
+  };
+  const interval = setInterval(syncSidebarState, 100);
+  return () => clearInterval(interval);
+}, []);
 ```
 
-**Updated:**
+**Problems:**
+- 100ms polling is inefficient and causes stale reads
+- Creates memory pressure and battery drain on mobile
+- Race condition between poll and actual state change
+
+### 3. Framer Motion AnimatePresence Without Key Stability
+**File:** `AnimatedSidebar.tsx` lines 122-166, 392-434
+
+Using `AnimatePresence` with conditional rendering but keys depend on transient state:
 ```typescript
-{(request.resume_url || request.profiles?.resume_url) && (
-  <Button 
-    variant="outline" 
-    onClick={() => {
-      setPreviewDocumentUrl(request.profiles?.resume_url || request.resume_url);
-      setPreviewDocumentName(request.profiles?.resume_filename || 'Resume');
-      setShowPreviewDialog(true);
-    }}
-    className="gap-2"
-  >
-    <Eye className="w-4 h-4" />
-    Resume
-  </Button>
-)}
+<AnimatePresence mode="wait">
+  {open ? (
+    <motion.div key="expanded">...</motion.div>
+  ) : (
+    <motion.div key="collapsed">...</motion.div>
+  )}
+</AnimatePresence>
 ```
 
-### 3. Signed URL Generation Logic
+**Problem:** Rapid open/close toggles can cause animation state corruption when exit animations overlap with enter animations.
 
-The component will:
-1. Check if URL is already a signed URL (contains `token=`) - use as-is
-2. Check if URL is a full public URL - extract path and generate signed URL
-3. Generate signed URL from `resumes` bucket with 1-hour expiry
+### 4. No Error Boundary Around Sidebar
+The sidebar is rendered directly in `AppLayout.tsx` without protection:
+```typescript
+<Sidebar logoLight={...} logoDark={...}>
+  {navigationGroups.map((group) => (
+    <SidebarGroup key={group.title} group={group} />
+  ))}
+</Sidebar>
+```
+
+**Problem:** Any error in navigation config, role context, or child components crashes the entire layout.
+
+### 5. Context Throw Without Fallback
+**File:** `AnimatedSidebar.tsx` lines 27-32
 
 ```typescript
-const extractPathFromUrl = (url: string): string => {
-  // Handle full URLs like:
-  // https://xxx.supabase.co/storage/v1/object/public/resumes/onboarding/file.pdf
-  const match = url.match(/\/storage\/v1\/object\/(?:public|sign)\/resumes\/(.+)/);
-  if (match) return match[1];
-  return url; // Already a path
+export const useSidebar = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error("useSidebar must be used within a SidebarProvider");
+  }
+  return context;
 };
+```
 
-const { data } = await supabase.storage
-  .from('resumes')
-  .createSignedUrl(extractedPath, 3600);
+**Problem:** If called outside provider (which can happen during fast navigation or HMR), throws and crashes.
+
+### 6. Role Context Race Condition
+**File:** `RoleContext.tsx` + `AppLayout.tsx`
+
+The navigation is computed based on `currentRole`:
+```typescript
+const navigationGroups = useMemo(
+  () => getNavigationForRole(currentRole),
+  [currentRole]
+);
+```
+
+**Problem:** If `currentRole` changes rapidly (role switching, session refresh), the sidebar re-renders with potentially undefined navigation groups.
+
+### 7. Mobile Sidebar Z-Index Conflicts
+**File:** `AnimatedSidebar.tsx`
+
+Multiple z-index values scattered across components:
+- Sidebar overlay: `z-[80]`
+- Mobile sidebar: `z-[90]`
+- Header in AppLayout: `z-[100]`
+- Desktop sidebar: `z-[110]`
+
+**Problem:** Inconsistent layering can cause clickthrough issues on certain devices.
+
+### 8. useIsMobile Returns Undefined Initially
+**File:** `use-mobile.tsx` lines 6, 18
+
+```typescript
+const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
+// ...
+return !!isMobile; // undefined -> false on first render
+```
+
+**Problem:** On initial render, `isMobile` is `undefined`, converted to `false`. This causes a flash of desktop UI on mobile devices before hydration completes.
+
+---
+
+## Hardening Plan
+
+### Phase 1: Eliminate Global Window Pattern (Critical)
+
+Replace the window-based communication with proper React patterns:
+
+1. **Create a shared sidebar context** that both `AnimatedSidebar` and `AppLayout` can consume
+2. **Lift state up** to `AppLayout` and pass down as controlled props
+3. **Remove polling interval** - use direct state binding instead
+
+**New Architecture:**
+```text
+AppLayout (owns sidebar open state)
+  └── SidebarProvider (provides state + toggle)
+        ├── Sidebar (consumes state)
+        └── Header (consumes toggle function)
+```
+
+### Phase 2: Add Sidebar-Specific Error Boundary
+
+Create `SidebarErrorBoundary.tsx` with:
+- Graceful fallback showing collapsed icon-only sidebar
+- Error logging to monitoring system
+- Auto-recovery attempt after 3 seconds
+- Manual retry button
+
+### Phase 3: Stabilize Animation Layer
+
+1. Add `layoutId` to motion components for stable identity
+2. Use `AnimatePresence` with `initial={false}` to prevent mount animations
+3. Add `onAnimationComplete` handlers to prevent overlapping animations
+4. Debounce toggle function (300ms) to prevent rapid fire
+
+### Phase 4: Safe Context Access
+
+Create `useSidebarSafe()` hook:
+```typescript
+export const useSidebarSafe = () => {
+  const context = useContext(SidebarContext);
+  return context ?? { open: false, setOpen: () => {}, toggle: () => {} };
+};
+```
+
+### Phase 5: Fix Mobile Detection Hydration
+
+Initialize `isMobile` with SSR-safe default based on `navigator.userAgent` where available, or use CSS media queries as truth source.
+
+### Phase 6: Navigation Config Validation
+
+Add runtime validation to `getNavigationForRole()`:
+```typescript
+if (!role || !['candidate', 'partner', 'admin', 'strategist'].includes(role)) {
+  console.warn('[Navigation] Invalid role, defaulting to candidate');
+  return getNavigationForRole('candidate');
+}
+```
+
+### Phase 7: Z-Index Standardization
+
+Create CSS custom properties:
+```css
+--z-sidebar-overlay: 80;
+--z-sidebar-mobile: 90;
+--z-header: 100;
+--z-sidebar-desktop: 110;
+--z-modal: 120;
 ```
 
 ---
 
-## Files to Create/Modify
+## Implementation Summary
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/components/shared/DocumentPreviewDialog.tsx` | Create | Reusable preview dialog component |
-| `src/components/admin/AdminMemberRequests.tsx` | Modify | Add preview state, use dialog instead of window.open |
-
----
-
-## UI Preview
-
-The Resume button will open a dialog with:
-- Document name in the header
-- Full-size iframe showing the PDF/document
-- Download button
-- Close button
-
-This matches the existing pattern used in:
-- `CandidateDocumentsViewer.tsx` (lines 613-629)
-- `UserSettings.tsx` (lines 2798-2829)
+| File | Changes |
+|------|---------|
+| `src/components/AnimatedSidebar.tsx` | Remove window globals, add safe context, debounce toggle, stabilize animations |
+| `src/components/AppLayout.tsx` | Remove polling, lift state, add SidebarErrorBoundary wrapper |
+| `src/components/SidebarErrorBoundary.tsx` | New file - sidebar-specific error boundary |
+| `src/hooks/use-mobile.tsx` | Fix hydration flash with SSR-safe initial value |
+| `src/hooks/useNavigationState.ts` | Add error handling for localStorage access |
+| `src/config/navigation.config.ts` | Add validation and fallback for invalid roles |
+| `src/index.css` | Add z-index CSS custom properties |
 
 ---
 
 ## Expected Outcome
 
-After this fix:
-1. Clicking "Resume" opens an in-browser preview dialog
-2. PDFs display correctly via signed URLs (no 404 errors)
-3. Works for both current and future uploads
-4. Provides download option for candidates who prefer that
-
+After implementation:
+1. Sidebar state is fully React-controlled (no window globals)
+2. Errors in sidebar components are isolated and recoverable
+3. Animations are stable even under rapid user interaction
+4. Mobile/desktop transitions are smooth without layout flash
+5. Navigation gracefully handles invalid or loading role states
+6. Z-index layering is predictable and consistent
