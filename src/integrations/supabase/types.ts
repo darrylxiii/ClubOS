@@ -33631,6 +33631,7 @@ export type Database = {
           created_at: string
           id: string
           metadata: Json | null
+          metric_name: string | null
           metric_type: string
           page_path: string | null
           recorded_at: string
@@ -33643,6 +33644,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          metric_name?: string | null
           metric_type: string
           page_path?: string | null
           recorded_at?: string
@@ -33655,6 +33657,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          metric_name?: string | null
           metric_type?: string
           page_path?: string | null
           recorded_at?: string
@@ -47905,6 +47908,7 @@ export type Database = {
       }
       user_activity_tracking: {
         Row: {
+          action_type: string | null
           activity_level: string
           activity_score: number | null
           created_at: string | null
@@ -47921,6 +47925,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action_type?: string | null
           activity_level?: string
           activity_score?: number | null
           created_at?: string | null
@@ -47937,6 +47942,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action_type?: string | null
           activity_level?: string
           activity_score?: number | null
           created_at?: string | null
