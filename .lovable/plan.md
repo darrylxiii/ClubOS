@@ -1,176 +1,82 @@
 
-# Stability Audit: Two Critical Issues Found
 
-## Issue Summary
+# Fix: SLA Tracking Metric Type Mismatch
 
-You're experiencing two distinct problems:
+## Problem Identified
 
-### 1. Application Startup Crash (livekit-client error)
-The app crashes on startup with "Failed to resolve module specifier 'livekit-client'" because a voice assistant component is loaded on every page.
+When approving a member and assigning them to a pipeline, the system creates an application record. This triggers the `trigger_create_sla_tracking()` function, which tries to insert a row with `metric_type = 'application_response_time'`.
 
-### 2. Member Approval Error (duplicate key violation)
-When approving Vinay Sharma, you get "Profile creation failed: duplicate key value violates unique constraint 'unique_email_when_present'" because the system tries to create a candidate profile that already exists.
+However, the `partner_sla_tracking` table has a CHECK constraint that only allows these values:
+- `response_time`
+- `shortlist_delivery`
+- `interview_scheduling`
+- `replacement`
 
----
-
-## Root Cause Analysis
-
-### Issue 1: LiveKit Startup Crash
-
-**Chain of imports causing the crash:**
-```text
-AppLayout.tsx (line 23)
-  → imports ClubAIVoice.tsx
-    → imports useClubAIVoice.ts
-      → imports from '@elevenlabs/react' (line 2)
-        → @elevenlabs/react depends on 'livekit-client'
-          → Module resolution fails at startup
-```
-
-The `ClubAIVoice` component (the voice assistant FAB button) is rendered in `AppLayout.tsx` on every protected page. This triggers a static import chain that loads `@elevenlabs/react`, which internally depends on `livekit-client`.
-
-### Issue 2: Member Approval Duplicate Key
-
-**Data state discovered:**
-- User profile exists: `id: 367325d4-1ce6-497a-b73b-ac57859508cd` (email: vinaysharma14978@gmail.com)
-- Candidate profile already exists: `id: 79655828-a3e3-4564-9062-2d8f1fa95bcf` with `user_id: 367325d4-1ce6-497a-b73b-ac57859508cd`
-- User is already approved (`account_status: approved`)
-
-**Code gap:** The `createCandidateFromRequest` function (lines 77-120 in memberApprovalService.ts) does NOT check for existing candidates before inserting, unlike `autoCreateCandidateProfile` (lines 125-209) which properly checks both by `user_id` and by `email`.
+The value `application_response_time` is NOT in the allowed list, causing the error.
 
 ---
 
-## Technical Details
+## Solution Options
 
-### Fix 1: Lazy Load ClubAIVoice in AppLayout
+### Option A: Update the Constraint (Recommended)
+Expand the CHECK constraint to include the new metric type that the trigger is using.
 
-Convert the static import of `ClubAIVoice` to a dynamic lazy import with Suspense.
+```sql
+ALTER TABLE partner_sla_tracking 
+DROP CONSTRAINT partner_sla_tracking_metric_check;
 
-**File:** `src/components/AppLayout.tsx`
-
-**Current (line 23):**
-```typescript
-import { ClubAIVoice } from "@/components/voice/ClubAIVoice";
+ALTER TABLE partner_sla_tracking 
+ADD CONSTRAINT partner_sla_tracking_metric_check 
+CHECK (metric_type = ANY (ARRAY[
+  'response_time', 
+  'shortlist_delivery', 
+  'interview_scheduling', 
+  'replacement',
+  'application_response_time'  -- Add the new type
+]));
 ```
 
-**Fixed:**
-```typescript
-import { lazy, Suspense } from "react";
+### Option B: Update the Trigger
+Change the trigger to use an existing allowed value (`response_time` instead of `application_response_time`).
 
-// Lazy load ClubAIVoice to prevent livekit-client resolution at startup
-const ClubAIVoice = lazy(() => 
-  import("@/components/voice/ClubAIVoice").then(m => ({ default: m.ClubAIVoice }))
-);
-```
-
-**Render change (line 217):**
-```typescript
-// Wrap in Suspense with empty fallback (FAB can load async)
-<Suspense fallback={null}>
-  <ClubAIVoice />
-</Suspense>
-```
-
-### Fix 2: Add Duplicate Check to createCandidateFromRequest
-
-Add the same deduplication logic that exists in `autoCreateCandidateProfile`.
-
-**File:** `src/services/memberApprovalService.ts`
-
-**Updated createCandidateFromRequest function:**
-```typescript
-async createCandidateFromRequest(
-  requestData: CandidateProfileData,
-  userId: string
-): Promise<string | null> {
-  try {
-    // Check 1: By user_id (prevents duplicate for same user)
-    const { data: existingByUserId } = await supabase
-      .from('candidate_profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (existingByUserId) {
-      console.log('[MemberApproval] Candidate already exists by user_id:', existingByUserId.id);
-      return existingByUserId.id;
-    }
-
-    // Check 2: By email (prevents unique_email_when_present violation)
-    if (requestData.email) {
-      const { data: existingByEmail } = await supabase
-        .from('candidate_profiles')
-        .select('id, user_id')
-        .eq('email', requestData.email)
-        .maybeSingle();
-
-      if (existingByEmail) {
-        // Link existing candidate to this user if not already linked
-        if (!existingByEmail.user_id) {
-          const { error: linkError } = await supabase
-            .from('candidate_profiles')
-            .update({ user_id: userId })
-            .eq('id', existingByEmail.id);
-          
-          if (linkError) {
-            console.error('[MemberApproval] Failed to link candidate:', linkError);
-          } else {
-            console.log('[MemberApproval] Linked existing candidate to user:', existingByEmail.id);
-          }
-        } else {
-          console.log('[MemberApproval] Candidate already exists by email (already linked):', existingByEmail.id);
-        }
-        return existingByEmail.id;
-      }
-    }
-
-    // No existing candidate found - proceed with insert
-    const insertData = {
-      user_id: userId,
-      full_name: requestData.full_name,
-      email: requestData.email,
-      // ... rest of fields
-    };
-
-    const { data, error } = await supabase
-      .from('candidate_profiles')
-      .insert(insertData)
-      .select('id')
-      .single();
-
-    if (error) {
-      console.error('[MemberApproval] Create candidate error:', error);
-      throw error;
-    }
-    
-    return data?.id || null;
-  } catch (error) {
-    console.error('Error creating candidate profile:', error);
-    throw error;
-  }
-}
+```sql
+CREATE OR REPLACE FUNCTION public.trigger_create_sla_tracking()
+RETURNS TRIGGER AS $$
+DECLARE v_company_id uuid;
+BEGIN
+  IF pg_trigger_depth() > 1 THEN RETURN NEW; END IF;
+  SELECT j.company_id INTO v_company_id FROM jobs j WHERE j.id = NEW.job_id;
+  IF v_company_id IS NULL THEN RETURN NEW; END IF;
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO partner_sla_tracking (company_id, metric_type, target_value, actual_value, is_met, reference_id, reference_type, measured_at)
+    VALUES (v_company_id, 'response_time', 2880, 0, false, NEW.id, 'application', now());  -- Changed from 'application_response_time'
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 ```
 
 ---
 
-## Files to Modify
+## Recommended Approach: Option A
 
-| File | Change | Impact |
-|------|--------|--------|
-| `src/components/AppLayout.tsx` | Lazy load ClubAIVoice | Fixes startup crash |
-| `src/services/memberApprovalService.ts` | Add duplicate check | Fixes approval error |
+Option A is better because:
+1. `application_response_time` is more descriptive than `response_time`
+2. It preserves the intent of the trigger
+3. Allows for more granular SLA tracking in the future
 
 ---
 
-## Data Cleanup Note
+## Implementation
 
-For Vinay Sharma specifically, no cleanup is needed - the candidate profile already exists and is linked to the user. The system was failing because it tried to create a duplicate. Once the fix is applied, re-approving will work correctly by returning the existing candidate ID instead of inserting.
+One database migration to update the CHECK constraint to allow the new metric type.
 
 ---
 
 ## Expected Outcome
 
-After these fixes:
-1. The application will start without the livekit-client module resolution error
-2. Member approvals will gracefully handle existing candidate profiles by linking rather than duplicating
-3. The ClubAI voice assistant will still work, just loaded asynchronously when needed
+After this fix:
+1. Member approval will complete successfully
+2. Pipeline assignments will work without constraint violations
+3. SLA tracking entries will be created properly for applications
+
