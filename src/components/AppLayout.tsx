@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useMemo } from "react";
+import { ReactNode, useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTranslationSync } from "@/hooks/use-translation-sync";
@@ -20,7 +20,10 @@ import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { CommandPalette } from "@/components/CommandPalette";
-import { ClubAIVoice } from "@/components/voice/ClubAIVoice";
+// Lazy load ClubAIVoice to prevent livekit-client module resolution at startup
+const ClubAIVoice = lazy(() => 
+  import("@/components/voice/ClubAIVoice").then(m => ({ default: m.ClubAIVoice }))
+);
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotionToggle } from "@/components/MotionToggle";
@@ -214,7 +217,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       {/* Global Navigation Tools */}
       <QuantumPulse />
       <CommandPalette />
-      <ClubAIVoice />
+      <Suspense fallback={null}>
+        <ClubAIVoice />
+      </Suspense>
       <GlobalCallNotificationProvider />
       <MeetingNotificationManager />
     </div>

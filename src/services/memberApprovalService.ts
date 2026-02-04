@@ -79,6 +79,47 @@ export const memberApprovalService = {
     userId: string
   ): Promise<string | null> {
     try {
+      // Check 1: By user_id (prevents duplicate for same user)
+      const { data: existingByUserId } = await supabase
+        .from('candidate_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (existingByUserId) {
+        console.log('[MemberApproval] Candidate already exists by user_id:', existingByUserId.id);
+        return existingByUserId.id;
+      }
+
+      // Check 2: By email (prevents unique_email_when_present violation)
+      if (requestData.email) {
+        const { data: existingByEmail } = await supabase
+          .from('candidate_profiles')
+          .select('id, user_id')
+          .eq('email', requestData.email)
+          .maybeSingle();
+
+        if (existingByEmail) {
+          // Link existing candidate to this user if not already linked
+          if (!existingByEmail.user_id) {
+            const { error: linkError } = await supabase
+              .from('candidate_profiles')
+              .update({ user_id: userId })
+              .eq('id', existingByEmail.id);
+            
+            if (linkError) {
+              console.error('[MemberApproval] Failed to link candidate:', linkError);
+            } else {
+              console.log('[MemberApproval] Linked existing candidate to user:', existingByEmail.id);
+            }
+          } else {
+            console.log('[MemberApproval] Candidate already exists by email (already linked):', existingByEmail.id);
+          }
+          return existingByEmail.id;
+        }
+      }
+
+      // No existing candidate found - proceed with insert
       const insertData = {
         user_id: userId,
         full_name: requestData.full_name,
