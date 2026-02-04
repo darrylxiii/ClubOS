@@ -28,9 +28,9 @@ export function useEdgeFunctionHealth() {
       // Get performance metrics for edge functions
       const { data: metrics, error } = await supabase
         .from('performance_metrics')
-        .select('metric_name, metric_value, context, created_at')
+        .select('metric_type, value, metadata, created_at')
         .gte('created_at', oneHourAgo.toISOString())
-        .like('metric_name', '%_duration%');
+        .like('metric_type', '%_duration%');
 
       if (error) throw error;
 

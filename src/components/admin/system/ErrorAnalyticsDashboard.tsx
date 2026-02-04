@@ -5,10 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, PieChart, Pie, Cell,
-} from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
 import { 
   AlertTriangle, 
   TrendingUp, 
@@ -34,6 +31,8 @@ const SEVERITY_COLORS = {
  * Provides comprehensive error visualization and insights
  */
 export function ErrorAnalyticsDashboard() {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
+
   // Fetch error trends
   const { data: trends = [] } = useQuery({
     queryKey: ['error-trends'],
@@ -98,96 +97,34 @@ export function ErrorAnalyticsDashboard() {
     }));
   }, [trends]);
 
-  return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Errors */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Errors (7d)</p>
-                <p className="text-2xl font-bold">{totalErrors}</p>
-              </div>
-              <div className={`p-3 rounded-full ${
-                trendDirection === 'up' ? 'bg-destructive/10' : 
-                trendDirection === 'down' ? 'bg-green-500/10' : 'bg-muted'
-              }`}>
-                {trendDirection === 'up' ? (
-                  <TrendingUp className="h-6 w-6 text-destructive" />
-                ) : trendDirection === 'down' ? (
-                  <TrendingDown className="h-6 w-6 text-green-600" />
-                ) : (
-                  <Activity className="h-6 w-6 text-muted-foreground" />
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+  const renderCharts = () => {
+    if (chartsLoading || !recharts) {
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base">Error Trend (Last 7 Days)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Severity Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
 
-        {/* Critical Errors */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Critical Errors</p>
-                <p className="text-2xl font-bold text-destructive">{criticalErrors}</p>
-              </div>
-              <div className="p-3 rounded-full bg-destructive/10">
-                <AlertTriangle className="h-6 w-6 text-destructive" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    const { ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } = recharts;
 
-        {/* Resolution Rate */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Resolution Rate</p>
-                <p className="text-2xl font-bold">
-                  {resolutionStats?.resolutionRate.toFixed(1) || 0}%
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-green-500/10">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-            <Progress 
-              value={resolutionStats?.resolutionRate || 0} 
-              className="mt-3 h-2"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Avg Resolution Time */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Avg Resolution Time</p>
-                <p className="text-2xl font-bold">
-                  {resolutionStats?.avgResolutionTimeHours.toFixed(1) || 0}h
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-amber-500/10">
-                <Clock className="h-6 w-6 text-amber-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs for detailed views */}
-      <Tabs defaultValue="trends" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="trends">Error Trends</TabsTrigger>
-          <TabsTrigger value="components">Top Components</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-        </TabsList>
-
+    return (
+      <>
         {/* Error Trends Tab */}
         <TabsContent value="trends" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -314,6 +251,101 @@ export function ErrorAnalyticsDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+      </>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Errors */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Errors (7d)</p>
+                <p className="text-2xl font-bold">{totalErrors}</p>
+              </div>
+              <div className={`p-3 rounded-full ${
+                trendDirection === 'up' ? 'bg-destructive/10' : 
+                trendDirection === 'down' ? 'bg-green-500/10' : 'bg-muted'
+              }`}>
+                {trendDirection === 'up' ? (
+                  <TrendingUp className="h-6 w-6 text-destructive" />
+                ) : trendDirection === 'down' ? (
+                  <TrendingDown className="h-6 w-6 text-green-600" />
+                ) : (
+                  <Activity className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Critical Errors */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Critical Errors</p>
+                <p className="text-2xl font-bold text-destructive">{criticalErrors}</p>
+              </div>
+              <div className="p-3 rounded-full bg-destructive/10">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Resolution Rate */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Resolution Rate</p>
+                <p className="text-2xl font-bold">
+                  {resolutionStats?.resolutionRate.toFixed(1) || 0}%
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-green-500/10">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+            <Progress 
+              value={resolutionStats?.resolutionRate || 0} 
+              className="mt-3 h-2"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Avg Resolution Time */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Avg Resolution Time</p>
+                <p className="text-2xl font-bold">
+                  {resolutionStats?.avgResolutionTimeHours.toFixed(1) || 0}h
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-amber-500/10">
+                <Clock className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabs for detailed views */}
+      <Tabs defaultValue="trends" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="trends">Error Trends</TabsTrigger>
+          <TabsTrigger value="components">Top Components</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+        </TabsList>
+
+        {renderCharts()}
 
         {/* Performance Tab */}
         <TabsContent value="performance">

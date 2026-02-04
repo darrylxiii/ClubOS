@@ -6,12 +6,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Target, AlertTriangle, CheckCircle2, TrendingUp, 
   Award, DollarSign, Clock, MapPin, Zap, Briefcase, Activity, Star,
   Send, Calendar, FileCheck, ThumbsUp, ThumbsDown
 } from "lucide-react";
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { useRecharts } from "@/hooks/useRecharts";
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
 import { useFieldPermissions } from "@/hooks/useFieldPermissions";
 import { useRole } from "@/contexts/RoleContext";
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export const CandidateDecisionDashboard = ({ candidate, applications, jobId, applicationId, onAction }: Props) => {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [showVerdictDialog, setShowVerdictDialog] = useState(false);
   const [verdictNotes, setVerdictNotes] = useState("");
@@ -175,6 +177,32 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
     onAction?.("schedule_interview");
   };
 
+  const renderRadarChart = () => {
+    if (chartsLoading || !recharts) {
+      return <Skeleton className="w-full h-[200px]" />;
+    }
+
+    const { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } = recharts;
+
+    return (
+      <ResponsiveContainer width="100%" height={200}>
+        <RadarChart data={radarData}>
+          <PolarGrid stroke="hsl(var(--border))" />
+          <PolarAngleAxis 
+            dataKey="category" 
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+          />
+          <Radar 
+            dataKey="value" 
+            stroke="hsl(var(--primary))" 
+            fill="hsl(var(--primary))" 
+            fillOpacity={0.3} 
+          />
+        </RadarChart>
+      </ResponsiveContainer>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Quick Actions Bar - For Partners */}
@@ -311,21 +339,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
 
             {/* Radar Chart - Right side */}
             <div>
-              <ResponsiveContainer width="100%" height={200}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="hsl(var(--border))" />
-                  <PolarAngleAxis 
-                    dataKey="category" 
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                  />
-                  <Radar 
-                    dataKey="value" 
-                    stroke="hsl(var(--primary))" 
-                    fill="hsl(var(--primary))" 
-                    fillOpacity={0.3} 
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+              {renderRadarChart()}
             </div>
           </div>
 
@@ -458,10 +472,8 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
             <CardContent className="pt-6">
               <div className="text-center">
                 <MapPin className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-lg font-bold">{candidate.desired_locations[0]}</p>
-                <p className="text-xs text-muted-foreground">
-                  {candidate.remote_preference === 'remote_only' ? 'Remote Preferred' : 'Location'}
-                </p>
+                <p className="text-lg font-bold truncate">{candidate.desired_locations[0]}</p>
+                <p className="text-xs text-muted-foreground">Preferred Location</p>
               </div>
             </CardContent>
           </Card>
