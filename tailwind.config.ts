@@ -148,6 +148,15 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      zIndex: {
+        "sidebar-overlay": "var(--z-sidebar-overlay)",
+        "sidebar-mobile": "var(--z-sidebar-mobile)",
+        "header": "var(--z-header)",
+        "sidebar-desktop": "var(--z-sidebar-desktop)",
+        "modal": "var(--z-modal)",
+        "popover": "var(--z-popover)",
+        "toast": "var(--z-toast)",
+      },
       letterSpacing: {
         tighter: "-0.05em",
         tight: "-0.025em",

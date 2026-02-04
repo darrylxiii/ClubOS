@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, ReactNode } from "react";
+import { useState, createContext, useContext, ReactNode, useCallback, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, ChevronDown, Palette } from "lucide-react";
@@ -17,38 +17,114 @@ import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
 import { AppearanceSettingsModal } from "./appearance/AppearanceSettingsModal";
 
+// ============================================================================
+// Sidebar Context - Proper React state management (no window globals)
+// ============================================================================
+
 interface SidebarContextProps {
   open: boolean;
   setOpen: (open: boolean) => void;
+  toggle: () => void;
+  isAnimating: boolean;
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(undefined);
 
-export const useSidebar = () => {
+/**
+ * Safe hook to access sidebar context
+ * Returns default values instead of throwing when used outside provider
+ */
+export const useSidebar = (): SidebarContextProps => {
   const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider");
+    // Return safe defaults instead of throwing
+    console.warn("[Sidebar] useSidebar called outside SidebarProvider, using defaults");
+    return {
+      open: false,
+      setOpen: () => {},
+      toggle: () => {},
+      isAnimating: false,
+    };
   }
   return context;
+};
+
+/**
+ * Safe hook that never throws - for components that might render before provider mounts
+ */
+export const useSidebarSafe = (): SidebarContextProps => {
+  const context = useContext(SidebarContext);
+  return context ?? {
+    open: false,
+    setOpen: () => {},
+    toggle: () => {},
+    isAnimating: false,
+  };
 };
 
 interface SidebarProviderProps {
   children: ReactNode;
   open?: boolean;
   setOpen?: (open: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const SidebarProvider = ({ children, open: openProp, setOpen: setOpenProp }: SidebarProviderProps) => {
-  const [openState, setOpenState] = useState(false);
-  const open = openProp !== undefined ? openProp : openState;
-  const setOpen = setOpenProp !== undefined ? setOpenProp : setOpenState;
+export const SidebarProvider = ({ 
+  children, 
+  open: controlledOpen, 
+  setOpen: controlledSetOpen,
+  onOpenChange,
+}: SidebarProviderProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Support both controlled and uncontrolled modes
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  
+  const setOpen = useCallback((value: boolean) => {
+    if (controlledSetOpen) {
+      controlledSetOpen(value);
+    } else {
+      setInternalOpen(value);
+    }
+    onOpenChange?.(value);
+  }, [controlledSetOpen, onOpenChange]);
+
+  // Debounced toggle to prevent rapid-fire state changes
+  const toggle = useCallback(() => {
+    if (debounceRef.current) {
+      return; // Ignore if debouncing
+    }
+    
+    setIsAnimating(true);
+    setOpen(!open);
+    
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null;
+      setIsAnimating(false);
+    }, 300);
+  }, [open, setOpen]);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <SidebarContext.Provider value={{ open, setOpen }}>
+    <SidebarContext.Provider value={{ open, setOpen, toggle, isAnimating }}>
       {children}
     </SidebarContext.Provider>
   );
 };
+
+// ============================================================================
+// Main Sidebar Component
+// ============================================================================
 
 interface SidebarProps {
   children: ReactNode;
@@ -57,35 +133,50 @@ interface SidebarProps {
   logoDark: string;
   logoLightShort: string;
   logoDarkShort: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const Sidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort }: SidebarProps) => {
+export const Sidebar = ({ 
+  children, 
+  className, 
+  logoLight, 
+  logoDark, 
+  logoLightShort, 
+  logoDarkShort,
+  open: controlledOpen,
+  onOpenChange,
+}: SidebarProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Support controlled mode from parent
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (value: boolean) => {
+    setInternalOpen(value);
+    onOpenChange?.(value);
+  };
+
   return (
-    <SidebarProvider>
-      <MobileSidebarWrapper>
-        <DesktopSidebar className={className} logoLight={logoLight} logoDark={logoDark} logoLightShort={logoLightShort} logoDarkShort={logoDarkShort}>
-          {children}
-        </DesktopSidebar>
-        <MobileSidebar logoLight={logoLight} logoDark={logoDark}>
-          {children}
-        </MobileSidebar>
-      </MobileSidebarWrapper>
+    <SidebarProvider open={open} setOpen={setOpen} onOpenChange={onOpenChange}>
+      <DesktopSidebar 
+        className={className} 
+        logoLight={logoLight} 
+        logoDark={logoDark} 
+        logoLightShort={logoLightShort} 
+        logoDarkShort={logoDarkShort}
+      >
+        {children}
+      </DesktopSidebar>
+      <MobileSidebar logoLight={logoLight} logoDark={logoDark}>
+        {children}
+      </MobileSidebar>
     </SidebarProvider>
   );
 };
 
-// Wrapper to expose toggle function
-const MobileSidebarWrapper = ({ children }: { children: ReactNode }) => {
-  const { open, setOpen } = useSidebar();
-
-  // Expose toggle function and state getter globally for header button
-  if (typeof window !== 'undefined') {
-    (window as any).__toggleSidebar = () => setOpen(!open);
-    (window as any).__getSidebarOpen = () => open;
-  }
-
-  return <>{children}</>;
-};
+// ============================================================================
+// Desktop Sidebar
+// ============================================================================
 
 interface DesktopSidebarProps {
   children: ReactNode;
@@ -102,7 +193,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
   return (
     <motion.aside
       className={cn(
-        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-[110]",
+        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop",
         "bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20",
         "shadow-[var(--shadow-glass-lg)]",
         className
@@ -118,8 +209,8 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       onMouseLeave={() => setOpen(false)}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-[100]">
-        <AnimatePresence mode="wait">
+      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-header">
+        <AnimatePresence mode="wait" initial={false}>
           {open ? (
             <motion.div
               key="expanded"
@@ -174,6 +265,10 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
   );
 };
 
+// ============================================================================
+// Mobile Sidebar
+// ============================================================================
+
 interface MobileSidebarProps {
   children: ReactNode;
   logoLight: string;
@@ -181,20 +276,12 @@ interface MobileSidebarProps {
 }
 
 const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) => {
-  const { open, setOpen } = useSidebar();
-  const [isDebouncing, setIsDebouncing] = useState(false);
-
-  const handleToggle = () => {
-    if (isDebouncing) return;
-    setIsDebouncing(true);
-    setOpen(!open);
-    setTimeout(() => setIsDebouncing(false), 300);
-  };
+  const { open, setOpen, toggle, isAnimating } = useSidebar();
 
   return (
     <>
       {/* Mobile Header - Hidden (using AppLayout header instead) */}
-      <div className="h-16 px-4 hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-[100]">
+      <div className="h-16 px-4 hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-header">
         <img
           src={logoLight}
           alt="The Quantum Club"
@@ -208,28 +295,30 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleToggle}
+          onClick={toggle}
           data-sidebar-toggle
           className="z-50 min-h-[44px] min-w-[44px]"
-          disabled={isDebouncing}
+          disabled={isAnimating}
         >
           <Menu className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Mobile Overlay with proper z-index */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait" initial={false}>
         {open && (
           <>
             <motion.div
+              key="overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[80] md:hidden"
-              onClick={handleToggle}
+              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-sidebar-overlay md:hidden"
+              onClick={toggle}
             />
             <motion.aside
+              key="mobile-sidebar"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
@@ -237,7 +326,7 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
                 duration: 0.3,
                 ease: [0.4, 0, 0.2, 1],
               }}
-              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-[90] md:hidden flex flex-col shadow-[var(--shadow-glass-xl)]"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-sidebar-mobile md:hidden flex flex-col shadow-[var(--shadow-glass-xl)]"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
                 <img
@@ -255,6 +344,7 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
                   size="icon"
                   onClick={() => setOpen(false)}
                   aria-label="Close sidebar"
+                  disabled={isAnimating}
                 >
                   <X className="h-5 w-5" aria-hidden="true" />
                 </Button>
@@ -269,6 +359,10 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
     </>
   );
 };
+
+// ============================================================================
+// Sidebar Link Component
+// ============================================================================
 
 interface NavigationItem {
   name: string;
@@ -320,6 +414,10 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
     </Link>
   );
 };
+
+// ============================================================================
+// Sidebar Group Component
+// ============================================================================
 
 interface NavigationGroup {
   title: string;
@@ -389,9 +487,10 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
           />
         )}
       </button>
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="wait">
         {shouldShowItems && (
           <motion.div
+            key={`${group.title}-items`}
             initial={{ height: 0, opacity: 0 }}
             animate={{
               height: "auto",
@@ -436,6 +535,10 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
   );
 };
 
+// ============================================================================
+// Sidebar Footer Component
+// ============================================================================
+
 interface SidebarFooterProps {
   userName: string;
   userInitial: string;
@@ -479,7 +582,7 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-56 bg-card border-border z-[100]"
+            className="w-56 bg-card border-border z-modal"
             sideOffset={5}
           >
             <DropdownMenuItem asChild>
