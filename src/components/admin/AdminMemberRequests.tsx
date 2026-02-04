@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, ExternalLink, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, ExternalLink, AlertCircle, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OnboardingProgressTracker } from "./OnboardingProgressTracker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MemberApprovalWorkflowDialog } from "./approval/MemberApprovalWorkflowDialog";
+import { DocumentPreviewDialog } from "@/components/shared/DocumentPreviewDialog";
 
 interface MemberRequest {
   id: string;
@@ -104,6 +105,11 @@ export const AdminMemberRequests = () => {
   const [showWorkflowDialog, setShowWorkflowDialog] = useState(false);
   const [workflowRequest, setWorkflowRequest] = useState<MemberRequest | null>(null);
   const [currentAdminId, setCurrentAdminId] = useState<string>('');
+  
+  // Document preview state
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [previewDocumentUrl, setPreviewDocumentUrl] = useState<string | null>(null);
+  const [previewDocumentName, setPreviewDocumentName] = useState<string>('Resume');
 
   useEffect(() => {
     fetchRequests();
@@ -716,13 +722,18 @@ export const AdminMemberRequests = () => {
                         </Button>
                       </>
                     )}
-                    {request.resume_url && (
+                    {(request.resume_url || request.profiles?.resume_url) && (
                       <Button 
                         variant="outline" 
-                        onClick={() => window.open(request.resume_url!, '_blank')}
+                        onClick={() => {
+                          const url = request.profiles?.resume_url || request.resume_url;
+                          setPreviewDocumentUrl(url!);
+                          setPreviewDocumentName(request.profiles?.resume_filename || 'Resume');
+                          setShowPreviewDialog(true);
+                        }}
                         className="gap-2"
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <Eye className="w-4 h-4" />
                         Resume
                       </Button>
                     )}
@@ -920,6 +931,15 @@ export const AdminMemberRequests = () => {
           onSuccess={handleWorkflowSuccess}
         />
       )}
+
+      {/* Document Preview Dialog */}
+      <DocumentPreviewDialog
+        open={showPreviewDialog}
+        onOpenChange={setShowPreviewDialog}
+        documentUrl={previewDocumentUrl}
+        documentName={previewDocumentName}
+        bucketName="resumes"
+      />
     </>
   );
 };
