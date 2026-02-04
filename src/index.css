@@ -266,6 +266,15 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --blur-glass: 16px; /* Reduced from 24px for better mobile performance */
     --blur-glass-strong: 24px; /* Reduced from 40px */
     --blur-glass-subtle: 8px; /* Reduced from 12px */
+
+    /* Z-Index Scale - Standardized stacking order */
+    --z-sidebar-overlay: 80;
+    --z-sidebar-mobile: 90;
+    --z-header: 100;
+    --z-sidebar-desktop: 110;
+    --z-modal: 120;
+    --z-popover: 130;
+    --z-toast: 140;
   }
 
   .dark {

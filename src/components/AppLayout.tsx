@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { ReactNode, useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTranslationSync } from "@/hooks/use-translation-sync";
@@ -9,8 +9,6 @@ import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.p
 // Full logos (for expanded state) - these are the full text logos
 import quantumClubLogoDark from "@/assets/quantum-club-logo.png"; // Full logo - black for light theme
 import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo - white for dark theme
-import { Home, LayoutDashboard, Building2, Briefcase, Users, Calendar, Video, MessageSquare, Gift, FileText, Settings, ListTodo, Sparkles, Clock, GraduationCap, Rss, Trophy, MessagesSquare, User, BarChart3, TrendingUp, Share2, Mail, Brain } from "lucide-react";
-import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton";
 import { supabase } from "@/integrations/supabase/client";
 import { GlobalCallNotificationProvider } from "./GlobalCallNotificationProvider";
 import { MeetingNotificationManager } from "./meetings/MeetingNotificationManager";
@@ -32,6 +30,7 @@ import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
 import { QuantumPulse } from "@/components/admin/QuantumPulse";
 import { getNavigationForRole } from "@/config/navigation.config";
+import { SidebarErrorBoundary } from "@/components/SidebarErrorBoundary";
 import {
   Sidebar,
   SidebarGroup,
@@ -49,21 +48,18 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const { currentRole } = useRole();
   const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Lifted sidebar state - single source of truth for mobile menu
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Sync burger menu state with sidebar state
-  useEffect(() => {
-    const syncSidebarState = () => {
-      if (typeof window !== 'undefined' && (window as any).__getSidebarOpen) {
-        const isOpen = (window as any).__getSidebarOpen();
-        setMobileMenuOpen(isOpen);
-      }
-    };
+  // Stable toggle callback to prevent re-renders
+  const handleSidebarToggle = useCallback(() => {
+    setSidebarOpen(prev => !prev);
+  }, []);
 
-    // Poll sidebar state every 100ms when document has focus
-    const interval = setInterval(syncSidebarState, 100);
-
-    return () => clearInterval(interval);
+  // Sync sidebar open state for header burger menu
+  const handleSidebarOpenChange = useCallback((open: boolean) => {
+    setSidebarOpen(open);
   }, []);
 
   // Fetch user profile data including avatar
@@ -112,27 +108,22 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       {/* Skip to main content link for accessibility */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[110] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] flex items-center"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-modal focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] flex items-center"
       >
         Skip to main content
       </a>
 
       {/* Global Header - Fixed Top - Responsive Layout */}
       <header
-        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-20"
+        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-header flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-20"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         {/* Left: Menu Trigger (Mobile Only) */}
         <div className="flex items-center gap-2 md:hidden min-w-[44px]">
           <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
             <BurgerMenu
-              isOpen={mobileMenuOpen}
-              onClick={() => {
-                setMobileMenuOpen(!mobileMenuOpen);
-                if (typeof window !== 'undefined' && (window as any).__toggleSidebar) {
-                  (window as any).__toggleSidebar();
-                }
-              }}
+              isOpen={sidebarOpen}
+              onClick={handleSidebarToggle}
             />
           </div>
         </div>
@@ -164,24 +155,28 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </header>
 
-      {/* Animated Sidebar with Glass Effect */}
-      <Sidebar
-        logoLight={quantumClubLogoLight}
-        logoDark={quantumClubLogoDark}
-        logoLightShort={quantumClubLogoLightShort}
-        logoDarkShort={quantumClubLogoDarkShort}
-      >
-        {navigationGroups.map((group) => (
-          <SidebarGroup key={group.title} group={group} />
-        ))}
-        <SidebarFooter
-          userName={firstName}
-          userInitial={firstName[0].toUpperCase()}
-          userAvatarUrl={userProfile?.avatar_url || null}
-          onSignOut={signOut}
-          profilePath={profilePath}
-        />
-      </Sidebar>
+      {/* Animated Sidebar with Glass Effect - Wrapped in Error Boundary */}
+      <SidebarErrorBoundary>
+        <Sidebar
+          logoLight={quantumClubLogoLight}
+          logoDark={quantumClubLogoDark}
+          logoLightShort={quantumClubLogoLightShort}
+          logoDarkShort={quantumClubLogoDarkShort}
+          open={sidebarOpen}
+          onOpenChange={handleSidebarOpenChange}
+        >
+          {navigationGroups.map((group) => (
+            <SidebarGroup key={group.title} group={group} />
+          ))}
+          <SidebarFooter
+            userName={firstName}
+            userInitial={firstName[0].toUpperCase()}
+            userAvatarUrl={userProfile?.avatar_url || null}
+            onSignOut={signOut}
+            profilePath={profilePath}
+          />
+        </Sidebar>
+      </SidebarErrorBoundary>
 
       {/* Global Running Timer Header */}
       <GlobalRunningTimerHeader />
