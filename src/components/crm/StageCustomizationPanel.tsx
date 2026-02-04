@@ -6,10 +6,25 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import {
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Settings, Plus, GripVertical, Trash2, Edit2, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface CRMStage {
   id: string;
@@ -45,6 +60,65 @@ const COLOR_OPTIONS = [
   { name: 'emerald', class: 'bg-emerald-500' },
 ];
 
+function SortableStageItem({ 
+  stage, 
+  getColorClass, 
+  onEdit, 
+  onDelete 
+}: { 
+  stage: CRMStage; 
+  getColorClass: (colorName: string) => string;
+  onEdit: (stage: CRMStage) => void;
+  onDelete: (stageId: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: stage.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'flex items-center gap-3 p-3 rounded-lg border bg-card',
+        isDragging && 'shadow-lg ring-2 ring-primary'
+      )}
+    >
+      <div {...attributes} {...listeners} className="cursor-grab">
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </div>
+      <div className={`w-4 h-4 rounded-full ${getColorClass(stage.color)}`} />
+      <span className="font-medium flex-1">{stage.name}</span>
+      <Badge variant="outline">{stage.probability}% probability</Badge>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onEdit(stage)}
+      >
+        <Edit2 className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onDelete(stage.id)}
+        className="text-destructive hover:text-destructive"
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+}
+
 export function StageCustomizationPanel() {
   const [stages, setStages] = useState<CRMStage[]>(DEFAULT_STAGES);
   const [loading, setLoading] = useState(true);
@@ -54,6 +128,8 @@ export function StageCustomizationPanel() {
   const [newStageName, setNewStageName] = useState('');
   const [newStageColor, setNewStageColor] = useState('blue');
   const [newStageProbability, setNewStageProbability] = useState(50);
+
+  const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
     loadStages();
@@ -81,12 +157,14 @@ export function StageCustomizationPanel() {
     }
   };
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    const reordered = Array.from(stages);
-    const [removed] = reordered.splice(result.source.index, 1);
-    reordered.splice(result.destination.index, 0, removed);
+    const oldIndex = stages.findIndex(s => s.id === active.id);
+    const newIndex = stages.findIndex(s => s.id === over.id);
+
+    const reordered = arrayMove(stages, oldIndex, newIndex);
 
     // Update sort orders
     const updated = reordered.map((stage, index) => ({
@@ -255,54 +333,25 @@ export function StageCustomizationPanel() {
         </div>
       </CardHeader>
       <CardContent>
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="stages">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-2"
-              >
-                {stages.map((stage, index) => (
-                  <Draggable key={stage.id} draggableId={stage.id} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className={`flex items-center gap-3 p-3 rounded-lg border bg-card ${
-                          snapshot.isDragging ? 'shadow-lg ring-2 ring-primary' : ''
-                        }`}
-                      >
-                        <div {...provided.dragHandleProps} className="cursor-grab">
-                          <GripVertical className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                        <div className={`w-4 h-4 rounded-full ${getColorClass(stage.color)}`} />
-                        <span className="font-medium flex-1">{stage.name}</span>
-                        <Badge variant="outline">{stage.probability}% probability</Badge>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingStage(stage)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteStage(stage.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={stages.map(s => s.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {stages.map((stage) => (
+                <SortableStageItem
+                  key={stage.id}
+                  stage={stage}
+                  getColorClass={getColorClass}
+                  onEdit={setEditingStage}
+                  onDelete={handleDeleteStage}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {/* Edit Stage Dialog */}
         <Dialog open={!!editingStage} onOpenChange={() => setEditingStage(null)}>

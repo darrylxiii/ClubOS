@@ -1,5 +1,20 @@
-import { memo, useMemo } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { memo, useMemo, useState } from 'react';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -87,6 +102,39 @@ const KanbanJobCard = memo(({ job, isSelected, onToggleSelect, onNavigate }: {
 
 KanbanJobCard.displayName = 'KanbanJobCard';
 
+function SortableJobCard({ job, isSelected, onToggleSelect, onNavigate }: {
+  job: JobWithMetrics;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  onNavigate: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: job.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(isDragging && 'opacity-50')}
+    >
+      <KanbanJobCard job={job} isSelected={isSelected} onToggleSelect={onToggleSelect} onNavigate={onNavigate} />
+    </div>
+  );
+}
+
 const KanbanColumn = memo(({ columnId, label, color, jobs, onToggleSelect, onNavigate, isSelected }: {
   columnId: string;
   label: string;
@@ -101,54 +149,83 @@ const KanbanColumn = memo(({ columnId, label, color, jobs, onToggleSelect, onNav
       <span className="font-semibold text-sm">{label}</span>
       <Badge variant="secondary" className="text-xs">{jobs.length}</Badge>
     </div>
-    <Droppable droppableId={columnId}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className={cn('flex-1 p-2 space-y-2 overflow-y-auto rounded-b-lg border border-t-0 border-border/20 bg-card/10', snapshot.isDraggingOver && 'bg-primary/5 border-primary/30')}
-          style={{ minHeight: 200 }}
-        >
-          {jobs.map((job, index) => (
-            <Draggable key={job.id} draggableId={job.id} index={index}>
-              {(provided, snapshot) => (
-                <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={cn(snapshot.isDragging && 'opacity-75')}>
-                  <KanbanJobCard job={job} isSelected={isSelected(job.id)} onToggleSelect={() => onToggleSelect(job.id)} onNavigate={() => onNavigate(job.id)} />
-                </div>
-              )}
-            </Draggable>
-          ))}
-          {provided.placeholder}
-          {jobs.length === 0 && <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">No jobs</div>}
-        </div>
-      )}
-    </Droppable>
+    <SortableContext id={columnId} items={jobs.map(j => j.id)} strategy={verticalListSortingStrategy}>
+      <div
+        className={cn('flex-1 p-2 space-y-2 overflow-y-auto rounded-b-lg border border-t-0 border-border/20 bg-card/10')}
+        style={{ minHeight: 200 }}
+      >
+        {jobs.map((job) => (
+          <SortableJobCard
+            key={job.id}
+            job={job}
+            isSelected={isSelected(job.id)}
+            onToggleSelect={() => onToggleSelect(job.id)}
+            onNavigate={() => onNavigate(job.id)}
+          />
+        ))}
+        {jobs.length === 0 && <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">No jobs</div>}
+      </div>
+    </SortableContext>
   </div>
 ));
 
 KanbanColumn.displayName = 'KanbanColumn';
 
 export const JobKanbanView = memo(({ jobs, selectedIds, focusedIndex, onToggleSelect, onNavigate, onStatusChange, isSelected }: JobKanbanViewProps) => {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(useSensor(PointerSensor));
+
   const jobsByStatus = useMemo(() => {
     const grouped: Record<string, JobWithMetrics[]> = { draft: [], published: [], closed: [], archived: [] };
     jobs.forEach(job => { if (grouped[job.status.toLowerCase()]) grouped[job.status.toLowerCase()].push(job); });
     return grouped;
   }, [jobs]);
 
-  const handleDragEnd = async (result: DropResult) => {
-    const { destination, source, draggableId } = result;
-    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) return;
-    if (destination.droppableId !== source.droppableId) await onStatusChange(draggableId, destination.droppableId);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const jobId = active.id as string;
+    const overId = over.id as string;
+
+    // Check if dropped over a column
+    const targetColumn = KANBAN_COLUMNS.find(col => col.id === overId);
+    if (targetColumn) {
+      const job = jobs.find(j => j.id === jobId);
+      if (job && job.status.toLowerCase() !== targetColumn.id) {
+        await onStatusChange(jobId, targetColumn.id);
+      }
+    }
+  };
+
+  const activeJob = activeId ? jobs.find(j => j.id === activeId) : null;
+
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: 500 }}>
         {KANBAN_COLUMNS.map(col => (
           <KanbanColumn key={col.id} columnId={col.id} label={col.label} color={col.color} jobs={jobsByStatus[col.id] || []} onToggleSelect={onToggleSelect} onNavigate={onNavigate} isSelected={isSelected} />
         ))}
       </div>
-    </DragDropContext>
+
+      <DragOverlay>
+        {activeJob ? (
+          <KanbanJobCard job={activeJob} isSelected={false} onToggleSelect={() => {}} onNavigate={() => {}} />
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 });
 

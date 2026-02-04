@@ -1,6 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Keyboard, KeyboardInfo } from '@capacitor/keyboard';
-import { Capacitor } from '@capacitor/core';
 
 interface KeyboardState {
   isVisible: boolean;
@@ -8,54 +6,54 @@ interface KeyboardState {
 }
 
 export function useNativeKeyboard() {
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = false; // Web-only - no native platform support
   const [keyboardState, setKeyboardState] = useState<KeyboardState>({
     isVisible: false,
     keyboardHeight: 0,
   });
 
+  // Web: Listen for visual viewport changes (mobile browsers)
   useEffect(() => {
-    if (!isNative) return;
+    if (typeof window === 'undefined' || !window.visualViewport) return;
 
-    const showListener = Keyboard.addListener('keyboardWillShow', (info: KeyboardInfo) => {
+    const handleResize = () => {
+      const viewport = window.visualViewport;
+      if (!viewport) return;
+
+      // If viewport height is less than window height, keyboard is likely open
+      const isKeyboardVisible = viewport.height < window.innerHeight * 0.75;
+      const keyboardHeight = isKeyboardVisible ? window.innerHeight - viewport.height : 0;
+
       setKeyboardState({
-        isVisible: true,
-        keyboardHeight: info.keyboardHeight,
+        isVisible: isKeyboardVisible,
+        keyboardHeight,
       });
-    });
-
-    const hideListener = Keyboard.addListener('keyboardWillHide', () => {
-      setKeyboardState({
-        isVisible: false,
-        keyboardHeight: 0,
-      });
-    });
-
-    return () => {
-      showListener.then(l => l.remove());
-      hideListener.then(l => l.remove());
     };
-  }, [isNative]);
+
+    window.visualViewport.addEventListener('resize', handleResize);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const show = useCallback(async () => {
-    if (!isNative) return;
-    await Keyboard.show();
-  }, [isNative]);
+    // No-op for web
+  }, []);
 
   const hide = useCallback(async () => {
-    if (!isNative) return;
-    await Keyboard.hide();
-  }, [isNative]);
+    // Blur active element to hide keyboard on web
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  }, []);
 
   const setAccessoryBarVisible = useCallback(async (visible: boolean) => {
-    if (!isNative) return;
-    await Keyboard.setAccessoryBarVisible({ isVisible: visible });
-  }, [isNative]);
+    // No-op for web
+  }, []);
 
   const setScroll = useCallback(async (enabled: boolean) => {
-    if (!isNative) return;
-    await Keyboard.setScroll({ isDisabled: !enabled });
-  }, [isNative]);
+    // No-op for web
+  }, []);
 
   return {
     ...keyboardState,

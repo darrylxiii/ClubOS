@@ -7,7 +7,21 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Lock, Users, GripVertical } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import {
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface PollMessageProps {
     pollId: string;
@@ -21,6 +35,35 @@ interface PollMessageProps {
     };
 }
 
+function SortableRankingItem({ id, index, option, isClosed }: { id: number; index: number; option: string; isClosed: boolean }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: String(id), disabled: isClosed });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="flex items-center gap-2 bg-muted p-2 rounded"
+    >
+      <GripVertical className="w-4 h-4 text-muted-foreground" />
+      <Badge variant="outline" className="w-8 text-center">#{index + 1}</Badge>
+      <span className="flex-1">{option}</span>
+    </div>
+  );
+}
+
 export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
     const { user } = useAuth();
     const [votes, setVotes] = useState<Record<number, number>>({}); // option index -> count
@@ -29,6 +72,8 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
     const [rankedOptions, setRankedOptions] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [isClosed, setIsClosed] = useState(pollData.isClosed || false);
+
+    const sensors = useSensors(useSensor(PointerSensor));
 
     useEffect(() => {
         loadVotes();
@@ -188,14 +233,16 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
         }
     };
 
-    const handleRankingDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
+    const handleRankingDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
 
-        const items = Array.from(rankedOptions.length > 0 ? rankedOptions : pollData.options.map((_, i) => i));
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
+        const items = rankedOptions.length > 0 ? rankedOptions : pollData.options.map((_, i) => i);
+        const oldIndex = items.indexOf(Number(active.id));
+        const newIndex = items.indexOf(Number(over.id));
 
-        setRankedOptions(items);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        setRankedOptions(newItems);
     };
 
     const submitRanking = async () => {
@@ -225,6 +272,7 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
 
     const hasVoted = userVote !== null && userVote.length > 0;
     const showResults = hasVoted || pollData.showResultsBeforeVote || isClosed;
+    const rankingItems = rankedOptions.length > 0 ? rankedOptions : pollData.options.map((_, i) => i);
 
     return (
         <div className="bg-card border border-border rounded-lg p-4 max-w-md w-full space-y-4 my-2">
@@ -330,31 +378,25 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
                     ) : (
                         <>
                             <p className="text-sm text-muted-foreground">Drag to rank your preferences</p>
-                            <DragDropContext onDragEnd={handleRankingDragEnd}>
-                                <Droppable droppableId="ranking">
-                                    {(provided) => (
-                                        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                                            {(rankedOptions.length > 0 ? rankedOptions : pollData.options.map((_, i) => i)).map((index, rank) => (
-                                                <Draggable key={index} draggableId={String(index)} index={rank} isDragDisabled={isClosed}>
-                                                    {(provided) => (
-                                                        <div
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                            className="flex items-center gap-2 bg-muted p-2 rounded"
-                                                        >
-                                                            <GripVertical className="w-4 h-4 text-muted-foreground" />
-                                                            <Badge variant="outline" className="w-8 text-center">#{rank + 1}</Badge>
-                                                            <span className="flex-1">{pollData.options[index]}</span>
-                                                        </div>
-                                                    )}
-                                                </Draggable>
-                                            ))}
-                                            {provided.placeholder}
-                                        </div>
-                                    )}
-                                </Droppable>
-                            </DragDropContext>
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleRankingDragEnd}
+                            >
+                                <SortableContext items={rankingItems.map(String)} strategy={verticalListSortingStrategy}>
+                                    <div className="space-y-2">
+                                        {rankingItems.map((index, rank) => (
+                                            <SortableRankingItem
+                                                key={index}
+                                                id={index}
+                                                index={rank}
+                                                option={pollData.options[index]}
+                                                isClosed={isClosed}
+                                            />
+                                        ))}
+                                    </div>
+                                </SortableContext>
+                            </DndContext>
                             {!isClosed && rankedOptions.length > 0 && (
                                 <Button onClick={submitRanking} className="w-full">
                                     Submit Ranking

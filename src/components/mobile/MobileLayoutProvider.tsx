@@ -1,6 +1,4 @@
 import { ReactNode, createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { App } from '@capacitor/app';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { secureStorage } from '@/services/secureStorage';
 import { BiometricLockScreen } from '@/components/native/BiometricLockScreen';
@@ -51,14 +49,12 @@ export function MobileLayoutProvider({
     checkBiometric();
   }, []);
 
-  // Handle app state changes (background/foreground)
+  // Handle app visibility changes (background/foreground) - web version
   useEffect(() => {
-    if (!isNative || !autoLockEnabled || !biometricEnabled) return;
+    if (!autoLockEnabled || !biometricEnabled) return;
 
-    let listener: { remove: () => void } | null = null;
-
-    App.addListener('appStateChange', async ({ isActive }) => {
-      if (!isActive) {
+    const handleVisibilityChange = async () => {
+      if (document.hidden) {
         await secureStorage.updateLastAuthTime();
       } else {
         const shouldLock = await secureStorage.shouldRequireReauth(autoLockTimeout);
@@ -66,14 +62,13 @@ export function MobileLayoutProvider({
           setIsLocked(true);
         }
       }
-    }).then(handle => {
-      listener = handle;
-    });
-
-    return () => {
-      listener?.remove();
     };
-  }, [isNative, autoLockEnabled, autoLockTimeout, biometricEnabled]);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [autoLockEnabled, autoLockTimeout, biometricEnabled]);
 
   const lockApp = useCallback(() => {
     if (biometricEnabled) {
