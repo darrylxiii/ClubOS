@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { MessageSquare, Send, Download, Clock, TrendingUp, Users } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { AppLayout } from '@/components/AppLayout';
@@ -271,16 +271,19 @@ export default function MessagingAnalytics() {
               <CardDescription>Messages sent and received each day</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyActivity}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="sent" fill="hsl(var(--primary))" name="Sent" />
-                  <Bar dataKey="received" fill="hsl(var(--accent))" name="Received" />
-                </BarChart>
-              </ResponsiveContainer>
+              <DynamicChart
+                type="bar"
+                data={dailyActivity}
+                height={280}
+                config={{
+                  xAxisKey: 'date',
+                  bars: [
+                    { dataKey: 'sent', fill: 'hsl(var(--primary))', name: 'Sent' },
+                    { dataKey: 'received', fill: 'hsl(var(--accent))', name: 'Received' },
+                  ],
+                  showTooltip: true,
+                }}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -292,15 +295,16 @@ export default function MessagingAnalytics() {
               <CardDescription>When you send messages throughout the day</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={hourlyDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="messages" stroke="hsl(var(--primary))" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
+              <DynamicChart
+                type="line"
+                data={hourlyDistribution}
+                height={280}
+                config={{
+                  xAxisKey: 'hour',
+                  lines: [{ dataKey: 'messages', stroke: 'hsl(var(--primary))', strokeWidth: 2 }],
+                  showTooltip: true,
+                }}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -312,25 +316,21 @@ export default function MessagingAnalytics() {
               <CardDescription>Types of files shared</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px] flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={mediaBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {mediaBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <DynamicChart
+                type="pie"
+                data={mediaBreakdown}
+                height={280}
+                config={{
+                  pie: {
+                    dataKey: 'value',
+                    outerRadius: 80,
+                    colors: COLORS,
+                    label: ({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`,
+                    labelLine: false,
+                  },
+                  showTooltip: true,
+                }}
+              />
             </CardContent>
           </Card>
         </TabsContent>

@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageSquare, Clock, TrendingUp, Smile, Meh, Frown } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { format, subDays } from 'date-fns';
 
 interface ConversationMetrics {
@@ -157,17 +157,20 @@ export default function ConversationAnalytics() {
               <CardDescription>Daily message and conversation counts</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={metrics.dailyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="messages" stroke="hsl(var(--primary))" name="Messages" />
-                  <Line type="monotone" dataKey="conversations" stroke="hsl(var(--secondary))" name="Conversations" />
-                </LineChart>
-              </ResponsiveContainer>
+              <DynamicChart
+                type="line"
+                data={metrics.dailyTrend}
+                height={300}
+                config={{
+                  xAxisKey: 'date',
+                  lines: [
+                    { dataKey: 'messages', stroke: 'hsl(var(--primary))', name: 'Messages' },
+                    { dataKey: 'conversations', stroke: 'hsl(var(--secondary))', name: 'Conversations' },
+                  ],
+                  showTooltip: true,
+                  legend: true,
+                }}
+              />
             </CardContent>
           </Card>
 
@@ -178,24 +181,21 @@ export default function ConversationAnalytics() {
             </CardHeader>
             <CardContent>
               {sentimentData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={sentimentData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
-                      dataKey="value"
-                    >
-                      {sentimentData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="pie"
+                  data={sentimentData}
+                  height={300}
+                  config={{
+                    pie: {
+                      dataKey: 'value',
+                      outerRadius: 100,
+                      colors: sentimentData.map(d => d.color),
+                      label: ({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`,
+                      labelLine: false,
+                    },
+                    showTooltip: true,
+                  }}
+                />
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                   No sentiment data available

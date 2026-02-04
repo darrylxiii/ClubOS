@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { useJobAnalytics } from '@/hooks/useJobAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, TrendingUp, Clock, Target, Zap, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(142, 76%, 36%)', 'hsl(var(--accent))'];
 
@@ -135,25 +135,21 @@ export default function JobAnalyticsDashboard() {
                 <CardDescription>Where candidates are coming from</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie
-                      data={sourcingData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={120}
-                      dataKey="value"
-                    >
-                      {sourcingData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="pie"
+                  data={sourcingData}
+                  height={350}
+                  config={{
+                    pie: {
+                      dataKey: 'value',
+                      outerRadius: 120,
+                      colors: COLORS,
+                      label: ({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`,
+                    },
+                    showTooltip: true,
+                    legend: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -165,15 +161,17 @@ export default function JobAnalyticsDashboard() {
                 <CardDescription>Candidates progressing through stages</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={funnelData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="bar"
+                  data={funnelData}
+                  height={350}
+                  config={{
+                    layout: 'vertical',
+                    xAxisKey: 'name',
+                    bars: [{ dataKey: 'value', fill: 'hsl(var(--primary))' }],
+                    showTooltip: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -185,15 +183,16 @@ export default function JobAnalyticsDashboard() {
                 <CardDescription>Average days spent in each pipeline stage</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={timeInStageData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="stage" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="days" fill="hsl(var(--primary))" name="Days" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="bar"
+                  data={timeInStageData}
+                  height={350}
+                  config={{
+                    xAxisKey: 'stage',
+                    bars: [{ dataKey: 'days', fill: 'hsl(var(--primary))', name: 'Days' }],
+                    showTooltip: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>

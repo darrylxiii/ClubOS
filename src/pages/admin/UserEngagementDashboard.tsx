@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Activity, Clock, MousePointer } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { format, subDays } from 'date-fns';
 
 interface EngagementMetrics {
@@ -176,17 +176,20 @@ export default function UserEngagementDashboard() {
               <CardDescription>User activity trend over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={metrics.dailyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="users" stroke="hsl(var(--primary))" name="Active Users" />
-                  <Line type="monotone" dataKey="sessions" stroke="hsl(var(--secondary))" name="Sessions" />
-                </LineChart>
-              </ResponsiveContainer>
+              <DynamicChart
+                type="line"
+                data={metrics.dailyTrend}
+                height={300}
+                config={{
+                  xAxisKey: 'date',
+                  lines: [
+                    { dataKey: 'users', stroke: 'hsl(var(--primary))', name: 'Active Users' },
+                    { dataKey: 'sessions', stroke: 'hsl(var(--secondary))', name: 'Sessions' },
+                  ],
+                  showTooltip: true,
+                  legend: true,
+                }}
+              />
             </CardContent>
           </Card>
 
@@ -197,15 +200,17 @@ export default function UserEngagementDashboard() {
             </CardHeader>
             <CardContent>
               {metrics.featureUsage.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={metrics.featureUsage} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="feature" type="category" width={120} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="bar"
+                  data={metrics.featureUsage}
+                  height={300}
+                  config={{
+                    layout: 'vertical',
+                    xAxisKey: 'feature',
+                    bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
+                    showTooltip: true,
+                  }}
+                />
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                   No feature usage data

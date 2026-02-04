@@ -4,22 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Area,
-  AreaChart,
-} from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { 
   BarChart3, 
   Mail, 
@@ -66,27 +51,11 @@ export function CommunicationAnalyticsDashboard() {
   };
 
   const pieData = analytics ? [
-    { name: 'Email', value: analytics.channel_breakdown.email, color: CHANNEL_COLORS.email },
-    { name: 'WhatsApp', value: analytics.channel_breakdown.whatsapp, color: CHANNEL_COLORS.whatsapp },
-    { name: 'Meeting', value: analytics.channel_breakdown.meeting, color: CHANNEL_COLORS.meeting },
-    { name: 'Phone', value: analytics.channel_breakdown.phone, color: CHANNEL_COLORS.phone },
+    { name: 'Email', value: analytics.channel_breakdown.email, fill: CHANNEL_COLORS.email },
+    { name: 'WhatsApp', value: analytics.channel_breakdown.whatsapp, fill: CHANNEL_COLORS.whatsapp },
+    { name: 'Meeting', value: analytics.channel_breakdown.meeting, fill: CHANNEL_COLORS.meeting },
+    { name: 'Phone', value: analytics.channel_breakdown.phone, fill: CHANNEL_COLORS.phone },
   ].filter(d => d.value > 0) : [];
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg">
-          <p className="text-sm font-medium mb-1">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.value}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
 
   if (loading && !analytics) {
     return (
@@ -194,32 +163,20 @@ export function CommunicationAnalyticsDashboard() {
                 <CardTitle>Daily Communication Activity</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={analytics.daily_activity}>
-                      <defs>
-                        <linearGradient id="sentGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                        </linearGradient>
-                        <linearGradient id="receivedGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                      <XAxis 
-                        dataKey="date" 
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                        tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      />
-                      <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="sent" name="Sent" stroke="hsl(var(--primary))" fill="url(#sentGradient)" />
-                      <Area type="monotone" dataKey="received" name="Received" stroke="#22c55e" fill="url(#receivedGradient)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                <DynamicChart
+                  type="area"
+                  data={analytics.daily_activity}
+                  height={300}
+                  config={{
+                    xAxisKey: 'date',
+                    xAxisFormatter: (value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    areas: [
+                      { dataKey: 'sent', name: 'Sent', stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))', fillOpacity: 0.2 },
+                      { dataKey: 'received', name: 'Received', stroke: '#22c55e', fill: '#22c55e', fillOpacity: 0.2 },
+                    ],
+                    showTooltip: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -231,30 +188,25 @@ export function CommunicationAnalyticsDashboard() {
                   <CardTitle>Channel Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={2}
-                          dataKey="value"
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <DynamicChart
+                    type="pie"
+                    data={pieData}
+                    height={250}
+                    config={{
+                      pie: {
+                        dataKey: 'value',
+                        innerRadius: 60,
+                        outerRadius: 90,
+                        paddingAngle: 2,
+                        colors: pieData.map(d => d.fill),
+                      },
+                      showTooltip: true,
+                    }}
+                  />
                   <div className="flex flex-wrap justify-center gap-4 mt-4">
                     {pieData.map((entry) => (
                       <div key={entry.name} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }} />
                         <span className="text-sm">{entry.name}: {entry.value}</span>
                       </div>
                     ))}
@@ -304,34 +256,28 @@ export function CommunicationAnalyticsDashboard() {
                 <CardTitle>Sentiment Trend Over Time</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={analytics.sentiment_trend}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                      <XAxis 
-                        dataKey="date" 
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                        tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      />
-                      <YAxis 
-                        domain={[0, 1]} 
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                        tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
-                      />
-                      <Tooltip 
-                        formatter={(value: number) => [`${(value * 100).toFixed(0)}%`, 'Sentiment']}
-                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="avg_sentiment" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--primary))' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <DynamicChart
+                  type="line"
+                  data={analytics.sentiment_trend}
+                  height={300}
+                  config={{
+                    xAxisKey: 'date',
+                    xAxisFormatter: (value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    yAxisDomain: [0, 1],
+                    yAxisFormatter: (value) => `${(value * 100).toFixed(0)}%`,
+                    lines: [{
+                      dataKey: 'avg_sentiment',
+                      stroke: 'hsl(var(--primary))',
+                      strokeWidth: 2,
+                      dot: { fill: 'hsl(var(--primary))' },
+                    }],
+                    showTooltip: true,
+                    tooltip: {
+                      formatter: (value: number) => [`${(value * 100).toFixed(0)}%`, 'Sentiment'],
+                      labelFormatter: (label) => new Date(label).toLocaleDateString(),
+                    },
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
