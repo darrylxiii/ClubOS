@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
 
 interface CampaignROI {
   id: string;
@@ -33,6 +33,7 @@ interface CampaignROI {
 }
 
 export function CampaignROIDashboard() {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: roiData, isLoading } = useQuery({
     queryKey: ['campaign-roi'],
     queryFn: async () => {
@@ -99,32 +100,68 @@ export function CampaignROIDashboard() {
     cost: item.total_cost || 0
   })) || [];
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-lg p-3 shadow-lg">
-          <p className="font-medium mb-2">{label}</p>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">ROI:</span>
-              <span className={`font-medium ${data.roi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {data.roi.toFixed(0)}%
-              </span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Revenue:</span>
-              <span>€{data.revenue.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Cost:</span>
-              <span>€{data.cost.toLocaleString()}</span>
+  const renderChart = () => {
+    if (chartsLoading || !recharts) {
+      return <Skeleton className="h-[300px] w-full" />;
+    }
+
+    const { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } = recharts;
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+      if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+          <div className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-lg p-3 shadow-lg">
+            <p className="font-medium mb-2">{label}</p>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">ROI:</span>
+                <span className={`font-medium ${data.roi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {data.roi.toFixed(0)}%
+                </span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Revenue:</span>
+                <span>€{data.revenue.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Cost:</span>
+                <span>€{data.cost.toLocaleString()}</span>
+              </div>
             </div>
           </div>
-        </div>
-      );
-    }
-    return null;
+        );
+      }
+      return null;
+    };
+
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={chartData} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+          <XAxis 
+            type="number" 
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            tickFormatter={(value) => `${value}%`}
+          />
+          <YAxis 
+            type="category" 
+            dataKey="name" 
+            width={100}
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey="roi" radius={[0, 4, 4, 0]}>
+            {chartData.map((entry, index) => (
+              <Cell 
+                key={index} 
+                fill={entry.roi >= 0 ? 'hsl(var(--primary))' : 'hsl(0, 84%, 60%)'}
+              />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    );
   };
 
   return (
@@ -180,35 +217,7 @@ export function CampaignROIDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-[300px] w-full" />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-                  <XAxis 
-                    type="number" 
-                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    width={100}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="roi" radius={[0, 4, 4, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell 
-                        key={index} 
-                        fill={entry.roi >= 0 ? 'hsl(var(--primary))' : 'hsl(0, 84%, 60%)'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            {renderChart()}
           </CardContent>
         </Card>
 

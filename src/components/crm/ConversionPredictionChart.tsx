@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, Target, DollarSign, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
 
 interface PredictionData {
   date: string;
@@ -16,6 +16,7 @@ interface PredictionData {
 }
 
 export function ConversionPredictionChart() {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: predictions, isLoading } = useQuery({
     queryKey: ['conversion-predictions'],
     queryFn: async () => {
@@ -70,7 +71,6 @@ export function ConversionPredictionChart() {
   // Calculate summary stats
   const next7Days = predictions?.slice(0, 7) || [];
   const next30Days = predictions?.slice(0, 30) || [];
-  const next90Days = [...(predictions || []), ...(predictions?.slice(0, 60) || [])];
 
   const stats = [
     {
@@ -103,25 +103,78 @@ export function ConversionPredictionChart() {
     },
   ];
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-lg p-3 shadow-lg">
-          <p className="font-medium mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
-              <div 
-                className="w-2 h-2 rounded-full" 
-                style={{ backgroundColor: entry.color }}
-              />
-              <span className="text-muted-foreground">{entry.name}:</span>
-              <span className="font-medium">{entry.value}</span>
-            </div>
-          ))}
-        </div>
-      );
+  const renderChart = () => {
+    if (chartsLoading || !recharts) {
+      return <Skeleton className="h-[300px] w-full" />;
     }
-    return null;
+
+    const { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = recharts;
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+      if (active && payload && payload.length) {
+        return (
+          <div className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-lg p-3 shadow-lg">
+            <p className="font-medium mb-2">{label}</p>
+            {payload.map((entry: any, index: number) => (
+              <div key={index} className="flex items-center gap-2 text-sm">
+                <div 
+                  className="w-2 h-2 rounded-full" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-muted-foreground">{entry.name}:</span>
+                <span className="font-medium">{entry.value}</span>
+              </div>
+            ))}
+          </div>
+        );
+      }
+      return null;
+    };
+
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+        <AreaChart data={predictions}>
+          <defs>
+            <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+          <XAxis 
+            dataKey="date" 
+            className="text-xs"
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+          />
+          <YAxis 
+            className="text-xs"
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          <Area
+            type="monotone"
+            dataKey="predicted_conversions"
+            name="Predicted"
+            stroke="hsl(var(--primary))"
+            fillOpacity={1}
+            fill="url(#colorPredicted)"
+          />
+          <Area
+            type="monotone"
+            dataKey="actual_conversions"
+            name="Actual"
+            stroke="#22c55e"
+            fillOpacity={1}
+            fill="url(#colorActual)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    );
   };
 
   return (
@@ -168,52 +221,7 @@ export function ConversionPredictionChart() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-[300px] w-full" />
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={predictions}>
-                <defs>
-                  <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-                <XAxis 
-                  dataKey="date" 
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis 
-                  className="text-xs"
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Area
-                  type="monotone"
-                  dataKey="predicted_conversions"
-                  name="Predicted"
-                  stroke="hsl(var(--primary))"
-                  fillOpacity={1}
-                  fill="url(#colorPredicted)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="actual_conversions"
-                  name="Actual"
-                  stroke="#22c55e"
-                  fillOpacity={1}
-                  fill="url(#colorActual)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
+          {renderChart()}
         </CardContent>
       </Card>
     </div>

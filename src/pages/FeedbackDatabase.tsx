@@ -53,10 +53,8 @@ import {
   Plus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
-} from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CreateUnifiedTaskDialog } from '@/components/unified-tasks/CreateUnifiedTaskDialog';
 import { ErrorLogsTab } from '@/components/feedback/ErrorLogsTab';
 
@@ -92,6 +90,7 @@ const COLORS = {
 };
 
 const FeedbackDatabase = () => {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [filteredFeedback, setFilteredFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
@@ -499,815 +498,507 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
         title: 'Feedback resolved',
         description: `Response sent to ${selectedFeedback.email}. Conversation created.`
       });
-
-      // Navigate to the conversation
-      navigate(`/messages?conversation=${data.conversation_id}`);
       
       setResolutionDialog(false);
       setResolutionMessage('');
       setSelectedFeedback(null);
       loadFeedback();
     } catch (error: any) {
+      console.error('Error resolving feedback:', error);
       toast({
-        title: 'Failed to send response',
+        title: 'Failed to resolve',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setSendingResponse(false);
     }
   };
 
-  if (currentRole !== 'admin') return null;
+  // Render charts with lazy loading
+  const renderCharts = () => {
+    if (chartsLoading || !recharts) {
+      return (
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Feedback Trend (7 days)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[200px] w-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Rating Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[200px] w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = recharts;
+
+    return (
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Feedback Trend (7 days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={analytics.trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} />
+                <Line type="monotone" dataKey="avgRating" stroke="hsl(var(--destructive))" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Rating Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={analytics.ratingDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, value }) => value > 0 ? `${name.split(' ')[0]}: ${value}` : ''}
+                >
+                  {analytics.ratingDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <SectionLoader />
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 space-y-6 animate-fade-in">
+      <div className="p-6 space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Feedback Analytics Hub
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <BarChart3 className="w-6 h-6" />
+              Feedback Analytics
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Advanced feedback intelligence and insights platform
+            <p className="text-muted-foreground text-sm">
+              Monitor user satisfaction and track improvements
             </p>
           </div>
-          <Button onClick={handleExport} className="gap-2">
-            <Download className="h-4 w-4" />
-            Export Data
+          <Button onClick={handleExport} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Export CSV
           </Button>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-l-4 border-l-primary">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Total Feedback
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{analytics.total}</div>
-              <p className="text-xs text-muted-foreground mt-1">All-time submissions</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-green-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Average Rating
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{analytics.avgRating}/10</div>
-              <p className="text-xs text-muted-foreground mt-1">Overall satisfaction</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-red-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                Critical Issues
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-500">{analytics.criticalCount}</div>
-              <p className="text-xs text-muted-foreground mt-1">Ratings ≤3 require attention</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-yellow-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Response Rate
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{analytics.responseRate}%</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {analytics.pendingCount} pending review
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs for different views */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="heatmap">Page Heat Map</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="feedback">All Feedback</TabsTrigger>
+            <TabsTrigger value="pages">Page Analytics</TabsTrigger>
             <TabsTrigger value="errors">Error Logs</TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Rating Distribution */}
-              <Card className="glass-card border-border/40">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    Rating Distribution
-                  </CardTitle>
-                  <CardDescription>Breakdown of all ratings received</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-2">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={analytics.ratingDistribution}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value }) => `${name}: ${value}`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {analytics.ratingDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Legend 
-                        wrapperStyle={{ paddingTop: '20px' }}
-                        iconType="circle"
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+          <TabsContent value="overview" className="space-y-4">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs text-muted-foreground">Total</span>
+                  </div>
+                  <p className="text-2xl font-bold mt-1">{analytics.total}</p>
                 </CardContent>
               </Card>
-
-              {/* Sentiment Overview */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Engagement Metrics
-                  </CardTitle>
-                  <CardDescription>User feedback patterns</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">Comment Rate</p>
-                      <p className="text-2xl font-bold">{analytics.commentRate}%</p>
-                    </div>
-                    <MessageSquare className="h-8 w-8 text-primary opacity-50" />
+              <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-green-500" />
+                    <span className="text-xs text-muted-foreground">Avg Rating</span>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">Avg Response Time</p>
-                      <p className="text-2xl font-bold">{analytics.avgResponseTime}h</p>
-                    </div>
-                    <Clock className="h-8 w-8 text-primary opacity-50" />
+                  <p className={`text-2xl font-bold mt-1 ${getHealthColor(parseFloat(analytics.avgRating))}`}>
+                    {analytics.avgRating}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-red-500/10 to-red-600/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-xs text-muted-foreground">Critical</span>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">Reviewed</p>
-                      <p className="text-2xl font-bold">{analytics.reviewedCount}</p>
-                    </div>
-                    <CheckCircle className="h-8 w-8 text-green-500" />
+                  <p className="text-2xl font-bold mt-1 text-red-500">{analytics.criticalCount}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-yellow-500" />
+                    <span className="text-xs text-muted-foreground">Pending</span>
                   </div>
+                  <p className="text-2xl font-bold mt-1">{analytics.pendingCount}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-purple-500" />
+                    <span className="text-xs text-muted-foreground">Response Rate</span>
+                  </div>
+                  <p className="text-2xl font-bold mt-1">{analytics.responseRate}%</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-cyan-500" />
+                    <span className="text-xs text-muted-foreground">Comment Rate</span>
+                  </div>
+                  <p className="text-2xl font-bold mt-1">{analytics.commentRate}%</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Top Issues */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-red-500">
-                  <AlertCircle className="h-5 w-5" />
-                  Critical Pages Requiring Attention
-                </CardTitle>
-                <CardDescription>
-                  Pages with highest critical ratings (≤3)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {analytics.pageAnalytics
-                    .filter((p: any) => p.critical > 0)
-                    .slice(0, 5)
-                    .map((page: any) => (
-                      <div key={page.path} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{page.page}</h4>
-                            <p className="text-xs text-muted-foreground">{page.path}</p>
-                          </div>
-                          <Badge variant="destructive">{page.critical} critical</Badge>
-                        </div>
-                        <div className="flex gap-4 text-sm">
-                          <span>Avg: {page.avgRating}/10</span>
-                          <span>Total: {page.count} feedback</span>
-                          <span>{page.criticalRate}% critical</span>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Charts */}
+            {renderCharts()}
           </TabsContent>
 
-          {/* Heat Map Tab */}
-          <TabsContent value="heatmap" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Page Performance Heat Map
-                </CardTitle>
-                <CardDescription>
-                  Visual overview of all pages by rating and volume
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {analytics.pageAnalytics.map((page: any) => {
-                    const avgRating = parseFloat(page.avgRating);
-                    const intensity = (avgRating / 10) * 100;
-                    
-                    return (
-                      <div
-                        key={page.path}
-                        className="p-4 border rounded-lg hover:shadow-md transition-shadow"
-                        style={{
-                          background: `linear-gradient(to right, 
-                            ${avgRating <= 3 ? 'rgba(239, 68, 68, 0.1)' : 
-                              avgRating <= 5 ? 'rgba(249, 115, 22, 0.1)' :
-                              avgRating <= 7 ? 'rgba(234, 179, 8, 0.1)' :
-                              'rgba(34, 197, 94, 0.1)'
-                            } ${intensity}%, 
-                            transparent ${intensity}%)`
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex-1">
-                            <h4 className="font-semibold flex items-center gap-2">
-                              {page.page}
-                              <span className={`text-2xl font-bold ${getHealthColor(avgRating)}`}>
-                                {page.avgRating}
-                              </span>
-                            </h4>
-                            <p className="text-xs text-muted-foreground">{page.path}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Badge variant="outline">{page.count} feedback</Badge>
-                            {page.critical > 0 && (
-                              <Badge variant="destructive">{page.critical} critical</Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-2 text-sm">
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <p className="text-xs text-muted-foreground">Critical Rate</p>
-                            <p className="font-bold text-red-500">{page.criticalRate}%</p>
-                          </div>
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <p className="text-xs text-muted-foreground">Low Ratings</p>
-                            <p className="font-bold">{page.low}</p>
-                          </div>
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <p className="text-xs text-muted-foreground">With Comments</p>
-                            <p className="font-bold">{page.comments}</p>
-                          </div>
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <p className="text-xs text-muted-foreground">Comment Rate</p>
-                            <p className="font-bold">{page.commentRate}%</p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Trends Tab */}
-          <TabsContent value="trends" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Volume Trend */}
-              <Card className="glass-card border-border/40">
-                <CardHeader>
-                  <CardTitle className="text-foreground">Feedback Volume Trend</CardTitle>
-                  <CardDescription>Last 7 days submission count</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-2">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analytics.trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="hsl(var(--muted-foreground))"
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))"
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          color: 'hsl(var(--foreground))'
-                        }}
-                      />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Rating Trend */}
-              <Card className="glass-card border-border/40">
-                <CardHeader>
-                  <CardTitle className="text-foreground">Average Rating Trend</CardTitle>
-                  <CardDescription>Last 7 days rating evolution</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-2">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analytics.trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="hsl(var(--muted-foreground))"
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <YAxis 
-                        domain={[0, 10]} 
-                        stroke="hsl(var(--muted-foreground))"
-                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          color: 'hsl(var(--foreground))'
-                        }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="avgRating" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={3}
-                        dot={{ fill: 'hsl(var(--primary))', r: 6 }}
-                        activeDot={{ r: 8 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* All Feedback Tab */}
-          <TabsContent value="feedback" className="space-y-6">
+          <TabsContent value="feedback" className="space-y-4">
             {/* Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  Filters & Search
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Search</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search by email, page, or comment..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Rating</label>
-                    <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Ratings</SelectItem>
-                        <SelectItem value="critical">Critical (≤3)</SelectItem>
-                        <SelectItem value="low">Low (4-5)</SelectItem>
-                        <SelectItem value="medium">Medium (6-7)</SelectItem>
-                        <SelectItem value="high">High (8-10)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Status</label>
-                    <Select value={reviewedFilter} onValueChange={setReviewedFilter}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="pending">Pending Review</SelectItem>
-                        <SelectItem value="reviewed">Reviewed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Resolution</label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="fixed">Fixed</SelectItem>
-                        <SelectItem value="wont_fix">Won't Fix</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Date Range</label>
-                    <Select value={dateRange} onValueChange={setDateRange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Time</SelectItem>
-                        <SelectItem value="7">Last 7 days</SelectItem>
-                        <SelectItem value="30">Last 30 days</SelectItem>
-                        <SelectItem value="90">Last 90 days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex flex-wrap gap-3">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search email, page, or comment..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Rating" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Ratings</SelectItem>
+                  <SelectItem value="critical">Critical (1-3)</SelectItem>
+                  <SelectItem value="low">Low (4-5)</SelectItem>
+                  <SelectItem value="medium">Medium (6-7)</SelectItem>
+                  <SelectItem value="high">High (8-10)</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={reviewedFilter} onValueChange={setReviewedFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="reviewed">Reviewed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Resolution" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="acknowledged">Acknowledged</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="fixed">Fixed</SelectItem>
+                  <SelectItem value="wont_fix">Won't Fix</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="7">Last 7 days</SelectItem>
+                  <SelectItem value="30">Last 30 days</SelectItem>
+                  <SelectItem value="90">Last 90 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Feedback Table */}
             <Card>
-              <CardContent className="pt-6">
-                {loading ? (
-                  <div className="flex justify-center py-12">
-                    <SectionLoader />
-                  </div>
-                ) : filteredFeedback.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No feedback found matching your filters</p>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Page</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Comment</TableHead>
-                        <TableHead>Review Status</TableHead>
-                        <TableHead>Resolution</TableHead>
-                        <TableHead>Actions</TableHead>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Page</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Resolution</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredFeedback.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No feedback found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredFeedback.slice(0, 50).map((item) => (
+                      <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleViewDetails(item)}>
+                        <TableCell className="text-xs">
+                          {formatDistanceToNow(new Date(item.submitted_at), { addSuffix: true })}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm font-medium truncate max-w-[150px]">{item.email}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{item.role}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[150px] truncate text-sm">{item.page_title}</TableCell>
+                        <TableCell>{getRatingBadge(item.rating)}</TableCell>
+                        <TableCell>
+                          <Badge variant={item.is_reviewed ? 'default' : 'secondary'}>
+                            {item.is_reviewed ? 'Reviewed' : 'Pending'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getResolutionStatusBadge(item.resolution_status)}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewDetails(item); }}>
+                            <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredFeedback.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="whitespace-nowrap">
-                            {formatDistanceToNow(new Date(item.submitted_at), { addSuffix: true })}
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{item.email}</div>
-                              <Badge variant="outline" className="text-xs">
-                                {item.role}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium">{item.page_title}</div>
-                            <div className="text-xs text-muted-foreground">{item.page_path}</div>
-                          </TableCell>
-                          <TableCell>{getRatingBadge(item.rating)}</TableCell>
-                          <TableCell className="max-w-xs">
-                            <p className="truncate">{item.comment || '—'}</p>
-                          </TableCell>
-                          <TableCell>
-                            {item.is_reviewed ? (
-                              <Badge variant="default" className="bg-green-500">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Reviewed
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">Pending</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {getResolutionStatusBadge(item.resolution_status)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => handleViewDetails(item)}>
-                                View
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={item.is_reviewed ? 'ghost' : 'default'}
-                                onClick={() => handleMarkReviewed(item.id, !item.is_reviewed)}
-                              >
-                                {item.is_reviewed ? 'Unmark' : 'Mark'}
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </Card>
           </TabsContent>
 
-          {/* Error Logs Tab */}
+          <TabsContent value="pages" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Page Performance</CardTitle>
+                <CardDescription>Feedback metrics by page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Page</TableHead>
+                      <TableHead>Feedback Count</TableHead>
+                      <TableHead>Avg Rating</TableHead>
+                      <TableHead>Critical Rate</TableHead>
+                      <TableHead>Comment Rate</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {analytics.pageAnalytics.slice(0, 20).map((page: any) => (
+                      <TableRow key={page.path}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{page.page}</p>
+                            <p className="text-xs text-muted-foreground">{page.path}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{page.count}</TableCell>
+                        <TableCell>
+                          <span className={getHealthColor(parseFloat(page.avgRating))}>{page.avgRating}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={parseInt(page.criticalRate) > 20 ? 'destructive' : 'secondary'}>
+                            {page.criticalRate}%
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{page.commentRate}%</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
           <TabsContent value="errors">
             <ErrorLogsTab />
           </TabsContent>
         </Tabs>
-      </div>
 
-      {/* Details Dialog */}
-      <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Feedback Details</DialogTitle>
-            <DialogDescription>
-              View complete feedback and navigation trail
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedFeedback && (
-            <div className="space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">User</label>
-                  <p className="text-sm">{selectedFeedback.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Role</label>
-                  <p className="text-sm capitalize">{selectedFeedback.role}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Page</label>
-                  <p className="text-sm font-medium">{selectedFeedback.page_title}</p>
-                  <p className="text-xs text-muted-foreground">{selectedFeedback.page_path}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Submitted</label>
-                  <p className="text-sm">
-                    {formatDistanceToNow(new Date(selectedFeedback.submitted_at), { addSuffix: true })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Rating */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Rating</label>
-                <div className="mt-2">{getRatingBadge(selectedFeedback.rating)}</div>
-              </div>
-
-              {/* Comment */}
-              {selectedFeedback.comment && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Comment</label>
-                  <p className="mt-2 text-sm p-4 bg-muted rounded-lg">{selectedFeedback.comment}</p>
-                </div>
-              )}
-
-              {/* Navigation Trail */}
-              {selectedFeedback.navigation_trail && selectedFeedback.navigation_trail.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">User Journey</label>
-                  <div className="mt-2 space-y-2">
-                    {selectedFeedback.navigation_trail.map((entry: any, index: number) => (
-                      <div key={index} className="flex items-center gap-3 text-sm">
-                        <span className="text-muted-foreground">{index + 1}.</span>
-                        <div className="flex-1 p-2 bg-muted rounded">
-                          <div className="font-medium">{entry.title}</div>
-                          <div className="text-xs text-muted-foreground">{entry.route}</div>
-                        </div>
-                        {index < selectedFeedback.navigation_trail.length - 1 && (
-                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </div>
-                    ))}
+        {/* Details Dialog */}
+        <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Feedback Details</DialogTitle>
+              <DialogDescription>
+                {selectedFeedback?.email} • {selectedFeedback?.page_title}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedFeedback && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Rating</p>
+                    {getRatingBadge(selectedFeedback.rating)}
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    {getResolutionStatusBadge(selectedFeedback.resolution_status)}
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Submitted</p>
+                    <p className="text-sm">{format(new Date(selectedFeedback.submitted_at), 'PPP pp')}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Role</p>
+                    <p className="text-sm capitalize">{selectedFeedback.role}</p>
                   </div>
                 </div>
-              )}
 
-              {/* Resolution Status */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Resolution Status</label>
-                <div className="mt-2 flex items-center gap-4">
-                  {getResolutionStatusBadge(selectedFeedback.resolution_status)}
-                  {selectedFeedback.resolved_at && (
-                    <span className="text-sm text-muted-foreground">
-                      Resolved {formatDistanceToNow(new Date(selectedFeedback.resolved_at), { addSuffix: true })}
-                      {selectedFeedback.resolver && ` by ${selectedFeedback.resolver.full_name}`}
-                    </span>
-                  )}
-                </div>
-                {selectedFeedback.resolution_conversation_id && (
-                  <Button
-                    size="sm"
-                    variant="link"
-                    className="mt-2 px-0"
-                    onClick={() => navigate(`/messages?conversation=${selectedFeedback.resolution_conversation_id}`)}
-                  >
-                    View conversation →
-                  </Button>
+                {selectedFeedback.comment && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">User Comment</p>
+                    <Card className="p-3">
+                      <p className="text-sm">{selectedFeedback.comment}</p>
+                    </Card>
+                  </div>
                 )}
+
+                {selectedFeedback.navigation_trail && selectedFeedback.navigation_trail.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Navigation Trail</p>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedFeedback.navigation_trail.map((trail: any, i: number) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {trail.title}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedFeedback.resolved_at && (
+                  <div className="bg-green-500/10 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Resolution</p>
+                    <p className="text-sm">{selectedFeedback.resolution_message}</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Resolved by {selectedFeedback.resolver?.full_name} on {format(new Date(selectedFeedback.resolved_at), 'PPP')}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Admin Notes</p>
+                  <Textarea
+                    placeholder="Add notes about this feedback..."
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
               </div>
-
-              {selectedFeedback.resolution_status !== 'fixed' && selectedFeedback.resolution_status !== 'wont_fix' && (
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardContent className="pt-4">
-                    <Button
-                      className="w-full gap-2"
-                      onClick={() => {
-                        setResolutionMessage('');
-                        setResolutionStatus('fixed');
-                        setResolutionDialog(true);
-                      }}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      Mark as Resolved & Send Response
-                    </Button>
-                  </CardContent>
-                </Card>
+            )}
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={handleCreateTask} className="gap-1">
+                <Plus className="w-4 h-4" />
+                Create Task
+              </Button>
+              {selectedFeedback && selectedFeedback.resolution_status === 'pending' && (
+                <Button variant="outline" onClick={() => setResolutionDialog(true)}>
+                  Resolve & Respond
+                </Button>
               )}
+              <Button onClick={handleSaveNotes} disabled={isSaving}>
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Notes'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-              {/* Admin Notes */}
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Admin Notes</label>
-                <Textarea
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Add internal notes about this feedback..."
-                  rows={4}
-                  className="mt-2"
-                />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setSelectedFeedback(null)}>
-              Close
-            </Button>
-            <Button variant="default" className="gap-2" onClick={handleCreateTask}>
-              <Plus className="h-4 w-4" />
-              Create Task
-            </Button>
-            <Button onClick={handleSaveNotes} disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Notes'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Resolution Dialog */}
-      <Dialog open={resolutionDialog} onOpenChange={setResolutionDialog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Resolve Feedback & Send Response</DialogTitle>
-            <DialogDescription>
-              Send a personalized message to {selectedFeedback?.email} about their feedback.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedFeedback && (
+        {/* Resolution Dialog */}
+        <Dialog open={resolutionDialog} onOpenChange={setResolutionDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Resolve Feedback</DialogTitle>
+              <DialogDescription>
+                Send a response to {selectedFeedback?.email}
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
-              {/* Original Feedback Context */}
-              <Card className="bg-muted/50">
-                <CardContent className="pt-4 space-y-2">
-                  <p className="text-sm"><strong>Page:</strong> {selectedFeedback.page_title}</p>
-                  <p className="text-sm"><strong>Rating:</strong> {selectedFeedback.rating}/10</p>
-                  <p className="text-sm"><strong>Comment:</strong> {selectedFeedback.comment || 'No comment'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Submitted {formatDistanceToNow(new Date(selectedFeedback.submitted_at), { addSuffix: true })}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Resolution Status Selector */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Resolution Status</label>
-                <Select value={resolutionStatus} onValueChange={(value: any) => setResolutionStatus(value)}>
+              <div>
+                <p className="text-sm mb-2">Resolution Status</p>
+                <Select value={resolutionStatus} onValueChange={(v: any) => setResolutionStatus(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="acknowledged">Acknowledged - We've seen this</SelectItem>
-                    <SelectItem value="in_progress">In Progress - Working on it</SelectItem>
-                    <SelectItem value="fixed">Fixed - Issue resolved</SelectItem>
-                    <SelectItem value="wont_fix">Won't Fix - Not actionable</SelectItem>
+                    <SelectItem value="acknowledged">Acknowledged</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="fixed">Fixed</SelectItem>
+                    <SelectItem value="wont_fix">Won't Fix</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Custom Message Textarea */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Your Response Message</label>
+              <div>
+                <p className="text-sm mb-2">Response Message</p>
                 <Textarea
-                  placeholder="Thank you for your feedback! We've reviewed your concern and..."
+                  placeholder="Write your response to the user..."
                   value={resolutionMessage}
                   onChange={(e) => setResolutionMessage(e.target.value)}
-                  rows={6}
-                  className="resize-none"
+                  rows={4}
                 />
-                <p className="text-xs text-muted-foreground">
-                  This message will be sent from "The Quantum Club" company account via our messaging system.
-                </p>
               </div>
-
-              {/* Preview of what will be sent */}
-              <Card className="border-primary/20">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Message Preview</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm space-y-2 text-muted-foreground">
-                  <p>📋 <strong>Re: Your feedback on {selectedFeedback.page_title}</strong></p>
-                  <p>Hi! Thank you for sharing your feedback with us.</p>
-                  <p>
-                    <strong>Status:</strong>{' '}
-                    {resolutionStatus === 'fixed' && '✅ Fixed'}
-                    {resolutionStatus === 'in_progress' && '🔄 In Progress'}
-                    {resolutionStatus === 'acknowledged' && '👀 Acknowledged'}
-                    {resolutionStatus === 'wont_fix' && "❌ Won't Fix"}
-                  </p>
-                  <p className="whitespace-pre-wrap">{resolutionMessage || '[Your custom message will appear here]'}</p>
-                  <p className="text-xs">Feel free to reply if you have any questions!</p>
-                </CardContent>
-              </Card>
             </div>
-          )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setResolutionDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleResolve} disabled={sendingResponse}>
+                {sendingResponse ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Send Response
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setResolutionDialog(false)}>Cancel</Button>
-            <Button 
-              onClick={handleResolve} 
-              disabled={sendingResponse || !resolutionMessage.trim()}
-            >
-              {sendingResponse ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-              Send Response & Mark Resolved
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Task Creation Dialog - Using Unified Task System */}
-      <CreateUnifiedTaskDialog
-        objectiveId={null}
-        onTaskCreated={handleTaskCreated}
-        open={showTaskDialog}
-        onOpenChange={setShowTaskDialog}
-        initialTitle={taskInitialData.title}
-        initialDescription={taskInitialData.description}
-        initialPriority={taskInitialData.priority}
-      >
-        <div />
-      </CreateUnifiedTaskDialog>
+        {/* Create Task Dialog */}
+        <CreateUnifiedTaskDialog
+          open={showTaskDialog}
+          onOpenChange={setShowTaskDialog}
+          initialData={taskInitialData}
+          onTaskCreated={handleTaskCreated}
+        />
+      </div>
     </AppLayout>
   );
 };

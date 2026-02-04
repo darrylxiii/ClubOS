@@ -21,7 +21,7 @@ import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
 
 interface KPI {
   label: string;
@@ -34,6 +34,7 @@ interface KPI {
 }
 
 export function OutreachKPIGrid() {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const { campaigns, loading: campaignsLoading } = useCRMCampaigns({ limit: 100 });
   const { prospects, loading: prospectsLoading } = useCRMProspects({ limit: 100 });
   const { replies, loading: repliesLoading } = useCRMEmailReplies({ limit: 100 });
@@ -171,6 +172,30 @@ export function OutreachKPIGrid() {
     },
   ];
 
+  const renderSparkline = (data: number[]) => {
+    if (chartsLoading || !recharts) {
+      return null;
+    }
+
+    const { ResponsiveContainer, LineChart, Line } = recharts;
+
+    return (
+      <div className="h-8 mt-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data.map((v, i) => ({ value: v }))}>
+            <Line 
+              type="monotone" 
+              dataKey="value" 
+              stroke={`hsl(var(--primary))`}
+              strokeWidth={1.5}
+              dot={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
       {kpis.map((kpi, index) => (
@@ -205,21 +230,7 @@ export function OutreachKPIGrid() {
               <p className="text-xs text-muted-foreground truncate">{kpi.label}</p>
 
               {/* Sparkline */}
-              {kpi.sparklineData && (
-                <div className="h-8 mt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={kpi.sparklineData.map((v, i) => ({ value: v }))}>
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke={`hsl(var(--primary))`}
-                        strokeWidth={1.5}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+              {kpi.sparklineData && renderSparkline(kpi.sparklineData)}
             </CardContent>
           </Card>
         </motion.div>
