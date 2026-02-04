@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, ExternalLink, X, FileText } from "lucide-react";
+import { Loader2, Download, ExternalLink, X, FileText, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DocumentPreviewDialogProps {
   open: boolean;
@@ -14,17 +15,12 @@ interface DocumentPreviewDialogProps {
 
 /**
  * Extract the file path from a full Supabase storage URL
- * Handles URLs like:
- * - https://xxx.supabase.co/storage/v1/object/public/resumes/onboarding/file.pdf
- * - https://xxx.supabase.co/storage/v1/object/sign/resumes/onboarding/file.pdf
  */
 const extractPathFromUrl = (url: string, bucketName: string): string | null => {
-  // Pattern to match storage URLs for the specified bucket
   const pattern = new RegExp(`/storage/v1/object/(?:public|sign)/${bucketName}/(.+?)(?:\\?|$)`);
   const match = url.match(pattern);
   if (match) return decodeURIComponent(match[1]);
   
-  // If URL doesn't match pattern, it might already be just a path
   if (!url.startsWith('http')) {
     return url;
   }
@@ -32,9 +28,6 @@ const extractPathFromUrl = (url: string, bucketName: string): string | null => {
   return null;
 };
 
-/**
- * Check if URL is already a signed URL (contains token parameter)
- */
 const isSignedUrl = (url: string): boolean => {
   return url.includes('token=');
 };
@@ -49,11 +42,13 @@ export function DocumentPreviewDialog({
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [iframeBlocked, setIframeBlocked] = useState(false);
 
   useEffect(() => {
     if (!open || !documentUrl) {
       setSignedUrl(null);
       setError(null);
+      setIframeBlocked(false);
       return;
     }
 
@@ -62,19 +57,15 @@ export function DocumentPreviewDialog({
       setError(null);
 
       try {
-        // If already a signed URL, use it directly
         if (isSignedUrl(documentUrl)) {
           setSignedUrl(documentUrl);
           setLoading(false);
           return;
         }
 
-        // Extract path from the URL
         const filePath = extractPathFromUrl(documentUrl, bucketName);
         
         if (!filePath) {
-          // If we can't extract a path, try using the URL as-is
-          // This handles edge cases where the URL format is unexpected
           console.warn('[DocumentPreview] Could not extract path, trying URL as-is:', documentUrl);
           setSignedUrl(documentUrl);
           setLoading(false);
@@ -83,7 +74,6 @@ export function DocumentPreviewDialog({
 
         console.log('[DocumentPreview] Generating signed URL for path:', filePath);
 
-        // Generate a signed URL (1 hour expiry)
         const { data, error: signError } = await supabase.storage
           .from(bucketName)
           .createSignedUrl(filePath, 3600);
@@ -112,14 +102,13 @@ export function DocumentPreviewDialog({
 
   const handleDownload = () => {
     if (signedUrl) {
+      // Force download by opening in new tab
       window.open(signedUrl, '_blank');
     }
   };
 
-  const handleOpenExternal = () => {
-    if (signedUrl) {
-      window.open(signedUrl, '_blank');
-    }
+  const handleIframeError = () => {
+    setIframeBlocked(true);
   };
 
   return (
@@ -129,9 +118,14 @@ export function DocumentPreviewDialog({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-muted-foreground" />
-              <DialogTitle className="text-lg font-medium">
-                {documentName}
-              </DialogTitle>
+              <div>
+                <DialogTitle className="text-lg font-medium">
+                  {documentName}
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Preview of {documentName}
+                </DialogDescription>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {signedUrl && !loading && (
@@ -139,14 +133,14 @@ export function DocumentPreviewDialog({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleOpenExternal}
+                    onClick={handleDownload}
                     className="gap-2"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Open in New Tab
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
                     onClick={handleDownload}
                     className="gap-2"
@@ -168,7 +162,7 @@ export function DocumentPreviewDialog({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative">
           {loading && (
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-3">
@@ -184,11 +178,11 @@ export function DocumentPreviewDialog({
                 <FileText className="w-12 h-12 text-muted-foreground" />
                 <p className="text-sm text-destructive font-medium">Failed to load document</p>
                 <p className="text-xs text-muted-foreground">{error}</p>
-                {documentUrl && (
+                {signedUrl && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(documentUrl, '_blank')}
+                    onClick={handleDownload}
                     className="mt-2 gap-2"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -200,11 +194,48 @@ export function DocumentPreviewDialog({
           )}
 
           {signedUrl && !loading && !error && (
-            <iframe
-              src={signedUrl}
-              className="w-full h-full border-0"
-              title={documentName}
-            />
+            <>
+              {iframeBlocked ? (
+                <div className="flex items-center justify-center h-full p-6">
+                  <div className="flex flex-col items-center gap-4 text-center max-w-md">
+                    <AlertTriangle className="w-12 h-12 text-amber-500" />
+                    <div>
+                      <p className="text-lg font-medium mb-2">Preview blocked by security software</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Your browser or security software (like Comet) is blocking the document preview. 
+                        You can still view the document by opening it in a new tab.
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button onClick={handleDownload} className="gap-2">
+                        <ExternalLink className="w-4 h-4" />
+                        Open in New Tab
+                      </Button>
+                      <Button variant="outline" onClick={handleDownload} className="gap-2">
+                        <Download className="w-4 h-4" />
+                        Download
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Alert className="m-4 mb-0 border-amber-500/50 bg-amber-500/10">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    <AlertDescription className="text-sm">
+                      If the preview doesn't load, your security software may be blocking it. 
+                      Use the <strong>Open in New Tab</strong> button above.
+                    </AlertDescription>
+                  </Alert>
+                  <iframe
+                    src={signedUrl}
+                    className="w-full h-[calc(100%-4rem)] border-0"
+                    title={documentName}
+                    onError={handleIframeError}
+                  />
+                </>
+              )}
+            </>
           )}
         </div>
       </DialogContent>
