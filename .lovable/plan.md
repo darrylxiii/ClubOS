@@ -1,191 +1,141 @@
 
-# Enhanced GTM DataLayer with Phone & Value Calculation
 
-## Summary
+# JavaScript Memory Analysis Report
 
-Update the partner funnel to pass all user data and calculated conversion value to Google Tag Manager's dataLayer for Enhanced Conversions and accurate attribution.
+## Executive Summary
 
-## Data to Push
+Your production build is failing due to **JavaScript heap out of memory** errors during Vite's chunk rendering phase. The project has **17,800+ modules** which is exceptionally large for a single React application. This report identifies memory-consuming dependencies and provides actionable recommendations.
 
-| Field | Source | Example |
-|-------|--------|---------|
-| `user_data.email` | `contact_email` | `john@qualogy.com` |
-| `user_data.phone_number` | `phoneNumber` (E.164) | `+31612345678` |
-| `user_data.address.first_name` | Parsed from `contact_name` | `John` |
-| `user_data.address.last_name` | Parsed from `contact_name` | `Doe` |
-| `value` | `estimated_roles_per_year × €15,000` | `150000` (for 10 roles) |
-| `currency` | Platform setting | `EUR` |
+---
 
-## Value Calculation
+## Dependency Categories by Memory Impact
+
+### CRITICAL - Massive Bundle Size (Remove or Lazy-Load)
+
+| Package | Est. Size | Usage | Files Using | Recommendation |
+|---------|-----------|-------|-------------|----------------|
+| **livekit-client** | ~800KB | Video meetings | 1 file | **PAUSE** - Only 1 hook uses it |
+| **@livekit/components-react** | ~400KB | Video UI | 0 direct imports | **REMOVE** - No direct usage found |
+| **@blocknote/core + react + mantine** | ~600KB | Rich text editor | 15 files | Keep but ensure lazy-loaded |
+| **mermaid** | ~1.2MB | Diagram rendering | 1 file | **Already dynamic import** |
+| **fabric** | ~700KB | Whiteboard/image editor | 2 files | **Already dynamic import** |
+| **recharts** | ~400KB | Charts/analytics | 28 files | Keep - widely used |
+| **framer-motion** | ~150KB | Animations | 314 files | Keep - core to UX |
+
+### HIGH - Significant Memory Usage
+
+| Package | Est. Size | Usage | Files Using | Recommendation |
+|---------|-----------|-------|-------------|----------------|
+| **@sentry/react** | ~200KB | Error tracking | 9 files | Keep - critical for monitoring |
+| **@opentelemetry/*** | ~400KB total | Distributed tracing | 3 files | **PAUSE** - Only dev use confirmed |
+| **posthog-js** | ~100KB | Analytics | 1 file | Keep but ensure lazy-loaded |
+| **jspdf + jspdf-autotable** | ~300KB | PDF generation | 1 file | **PAUSE** - Only 1 component uses it |
+| **katex** | ~300KB | Math equations | 1 file | **Already dynamic import** |
+
+### MEDIUM - Moderate Impact
+
+| Package | Est. Size | Usage | Files Using | Recommendation |
+|---------|-----------|-------|-------------|----------------|
+| **@capacitor/*** (8 packages) | ~150KB | Native mobile | 11 files | **PAUSE** if not deploying mobile |
+| **@elevenlabs/react** | ~80KB | AI voice | 2 files | **PAUSE** - Limited use |
+| **react-markdown** | ~100KB | Markdown rendering | 6 files | Keep - used in AI chat |
+| **@hello-pangea/dnd** | ~60KB | Drag-drop (kanban) | 4 files | Keep - core feature |
+| **@dnd-kit/*** (3 packages) | ~80KB | Drag-drop | 11 files | Keep - core feature |
+
+### LOW - Dev/Test Only (Not in Production Bundle)
+
+| Package | Notes | Recommendation |
+|---------|-------|----------------|
+| **@playwright/test** | E2E tests | Move to devDependencies |
+| **vitest** | Unit tests | Already dev (OK) |
+| **@testing-library/*** | Tests | Move to devDependencies |
+
+### UNUSED - No Imports Found
+
+| Package | Est. Size | Recommendation |
+|---------|-----------|----------------|
+| **@tabler/icons-react** | ~200KB | **REMOVE** - No usage, lucide-react used instead |
+| **@tiptap/extensions** | ~150KB | **REMOVE** - No direct imports |
+| **react-icons** | ~50KB | **REMOVE** - Only 2 files use it (switch to lucide) |
+| **@mediapipe/camera_utils** | ~100KB | **REMOVE** - No imports found |
+| **@mediapipe/selfie_segmentation** | ~100KB | **REMOVE** - No imports found |
+| **@mantine/core** | ~300KB | **REMOVE** - Only @blocknote uses internal mantine |
+| **@mantine/hooks** | ~50KB | **REMOVE** - Same as above |
+
+---
+
+## Immediate Action Plan
+
+### Phase 1: Remove Unused Dependencies (Immediate Build Fix)
+
+Remove these packages from `package.json` - no code imports them:
 
 ```text
-Potential Value = Number of Roles × Average Placement Fee
-
-Example:
-- Roles per year: 10
-- Average fee: €15,000
-- Conversion value: €150,000
+@tabler/icons-react
+@tiptap/extensions
+@mediapipe/camera_utils
+@mediapipe/selfie_segmentation
+@mantine/core
+@mantine/hooks
 ```
 
-This allows Google Ads to:
-- Track high-value conversions properly
-- Optimize bidding for quality leads
-- Use Enhanced Conversions for better matching
+Estimated savings: **~900KB** from bundle, significant memory reduction during build.
 
----
+### Phase 2: Pause Non-Critical Features
 
-## Files to Modify
+Temporarily remove or lazy-load these to unblock the build:
 
-### 1. FunnelSteps.tsx (Line ~361)
+| Package | Feature | Impact |
+|---------|---------|--------|
+| livekit-client | Video meetings | Meetings won't work |
+| @livekit/components-* | Video UI | Same as above |
+| @opentelemetry/* | Tracing | Dev debugging only |
+| @capacitor/* | Mobile app | Web still works |
+| @elevenlabs/react | AI voice | Voice features disabled |
 
-Pass all required data via React Router state:
+### Phase 3: Move Test Packages to devDependencies
 
-```typescript
-// Current (line 361)
-navigate(`/partnership-submitted/${encodedCompanyName}`);
+These should not be in `dependencies`:
 
-// Updated
-navigate(`/partnership-submitted/${encodedCompanyName}`, {
-  state: {
-    contactName: formData.contact_name,
-    contactEmail: formData.contact_email,
-    contactPhone: phoneNumber,
-    estimatedRolesPerYear: formData.estimated_roles_per_year 
-      ? parseInt(formData.estimated_roles_per_year) 
-      : null,
-  }
-});
-```
-
-### 2. PartnershipSubmitted.tsx
-
-Update the success page to:
-1. Read navigation state
-2. Calculate potential value (roles × €15,000)
-3. Push enhanced data to dataLayer
-
-```typescript
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-
-interface LocationState {
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  estimatedRolesPerYear?: number;
-}
-
-// Platform average fee (matches platform_settings.estimated_placement_fee)
-const AVERAGE_PLACEMENT_FEE = 15000;
-
-export default function PartnershipSubmitted() {
-  const { companyName } = useParams<{ companyName?: string }>();
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  const state = location.state as LocationState | null;
-
-  useEffect(() => {
-    if (window.dataLayer) {
-      const decodedName = companyName ? decodeURIComponent(companyName) : undefined;
-      
-      // Parse name into first/last
-      const nameParts = (state?.contactName || '').trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      
-      // Calculate potential conversion value
-      const estimatedRoles = state?.estimatedRolesPerYear || 0;
-      const conversionValue = estimatedRoles * AVERAGE_PLACEMENT_FEE;
-
-      window.dataLayer.push({
-        event: 'partnership_submitted',
-        companyName: decodedName,
-        
-        // Enhanced Conversions user data
-        user_data: {
-          email: state?.contactEmail?.toLowerCase().trim(),
-          phone_number: state?.contactPhone, // E.164 format
-          address: {
-            first_name: firstName,
-            last_name: lastName,
-          }
-        },
-        
-        // Conversion value for Google Ads
-        value: conversionValue,
-        currency: 'EUR',
-        estimated_roles: estimatedRoles,
-        
-        // Flat fields for flexibility
-        userEmail: state?.contactEmail?.toLowerCase().trim(),
-        userName: state?.contactName,
-        userPhone: state?.contactPhone,
-      });
-    }
-  }, [companyName, state]);
+```text
+@playwright/test
+@testing-library/dom
+@testing-library/jest-dom
+@testing-library/react
 ```
 
 ---
 
-## Expected DataLayer Output
+## Current Build Optimization Status
 
-After a partner submits with 10 roles/year:
+Your `vite.config.ts` already has good optimizations:
 
-```javascript
-{
-  event: "partnership_submitted",
-  companyName: "Qualogy",
-  
-  // Enhanced Conversions (for Google Ads)
-  user_data: {
-    email: "john@qualogy.com",
-    phone_number: "+31612345678",
-    address: {
-      first_name: "John",
-      last_name: "Doe"
-    }
-  },
-  
-  // Conversion Value (for Smart Bidding)
-  value: 150000,
-  currency: "EUR",
-  estimated_roles: 10,
-  
-  // Flat fields (for other tools)
-  userEmail: "john@qualogy.com",
-  userName: "John Doe",
-  userPhone: "+31612345678"
-}
-```
+| Setting | Status | Notes |
+|---------|--------|-------|
+| `maxParallelFileOps: 1` | Enabled | Reduces peak memory |
+| `cssCodeSplit: false` | Enabled | Single CSS file |
+| `manualChunks` | Enabled | Separates heavy libs |
+| Heavy libs as `external` (dev) | Enabled | But not in production |
+
+**The Problem**: Production builds still bundle everything. The `external` list only applies to development mode.
 
 ---
 
-## GTM Configuration Benefits
+## Recommended Next Steps
 
-| Feature | What It Enables |
-|---------|-----------------|
-| `user_data.email` | Enhanced Conversions matching |
-| `user_data.phone_number` | Phone number matching for ads |
-| `user_data.address` | Name-based matching for Facebook CAPI |
-| `value` + `currency` | Value-based Smart Bidding optimization |
-| `estimated_roles` | Custom dimension for analytics |
+1. **Immediate**: Remove the 6 unused packages listed above
+2. **Short-term**: Move test packages to devDependencies
+3. **If build still fails**: Temporarily remove livekit and @opentelemetry packages
+4. **Long-term**: Implement proper code splitting for @blocknote and recharts components
 
 ---
 
-## Security Considerations
+## Technical Notes
 
-- PII passed via React Router state (in-memory, not in URL)
-- Email normalized (lowercase, trimmed)
-- Phone already in E.164 format from validation
-- No sensitive data persisted in browser history
-- GDPR-compliant: data only pushed after user consent (agreed_privacy checkbox)
+- **Module count**: 17,807 (extremely high for a React app)
+- **Build phase failing**: "rendering chunks" (memory-intensive phase)
+- **Heap limit reached**: ~3GB (Node.js default max)
+- **Dynamic imports working**: mermaid, fabric, katex all use proper dynamic imports
 
----
+The root cause is too many large dependencies bundled together. Removing unused packages and moving test utilities to devDependencies should recover enough memory for the build to complete.
 
-## Implementation Steps
-
-1. Update `FunnelSteps.tsx` line 361 to pass state with all user data
-2. Update `PartnershipSubmitted.tsx` to read state and push enhanced dataLayer
-3. Verify dataLayer output in browser console
-4. Configure GTM to read `user_data` for Enhanced Conversions
-5. Test conversion tracking in Google Ads
