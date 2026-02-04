@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Mail, Trash2, AtSign } from "lucide-react";
-import { SiGmail } from "react-icons/si";
 import { format } from "date-fns";
 
 interface EmailConnection {
@@ -39,7 +38,7 @@ export function EmailConnections({
   const getProviderIcon = (provider: string) => {
     switch (provider) {
       case 'gmail':
-        return <SiGmail className="h-5 w-5 text-red-500" />;
+        return <Mail className="h-5 w-5 text-red-500" />;
       case 'outlook':
         return <AtSign className="h-5 w-5 text-blue-500" />;
       default:
@@ -130,7 +129,7 @@ export function EmailConnections({
               variant="outline"
               className="justify-start gap-3 h-auto p-4"
             >
-              <SiGmail className="h-5 w-5 text-red-500" />
+              <Mail className="h-5 w-5 text-red-500" />
               <div className="text-left">
                 <p className="font-medium">Connect Gmail</p>
                 <p className="text-xs text-muted-foreground">

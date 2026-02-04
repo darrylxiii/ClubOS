@@ -1,17 +1,16 @@
 /**
- * Tracing Provider Component
- * Initializes OpenTelemetry and provides tracing context
+ * Tracing Provider Component - No-op Implementation
+ * Simply renders children without tracing overhead.
  */
 
-import { createContext, useContext, useEffect, ReactNode, useCallback, useState } from 'react';
-import { initializeTracing, traceStore, getTraceHeaders, withSpan } from './index';
+import { createContext, useContext, ReactNode, useCallback } from 'react';
+import { traceStore, getTraceHeaders, withSpan } from './index';
 import type { TraceEntry } from './index';
-import type { Span } from '@opentelemetry/api';
 
 interface TracingContextValue {
   isInitialized: boolean;
   getTraceHeaders: () => Record<string, string>;
-  withSpan: <T>(name: string, fn: (span: Span) => Promise<T>, options?: {
+  withSpan: <T>(name: string, fn: (span: unknown) => Promise<T>, options?: {
     kind?: number;
     attributes?: Record<string, string | number | boolean>;
   }) => Promise<T>;
@@ -26,16 +25,7 @@ interface TracingProviderProps {
   enabled?: boolean;
 }
 
-export function TracingProvider({ children, enabled = true }: TracingProviderProps) {
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    if (enabled && !isInitialized) {
-      initializeTracing();
-      setIsInitialized(true);
-    }
-  }, [enabled, isInitialized]);
-
+export function TracingProvider({ children, enabled = false }: TracingProviderProps) {
   const getRecentTraces = useCallback((limit = 20) => {
     return traceStore.getRecentTraces(limit);
   }, []);
@@ -45,7 +35,7 @@ export function TracingProvider({ children, enabled = true }: TracingProviderPro
   }, []);
 
   const value: TracingContextValue = {
-    isInitialized,
+    isInitialized: enabled,
     getTraceHeaders,
     withSpan,
     getRecentTraces,
@@ -62,7 +52,14 @@ export function TracingProvider({ children, enabled = true }: TracingProviderPro
 export function useTracing(): TracingContextValue {
   const context = useContext(TracingContext);
   if (!context) {
-    throw new Error('useTracing must be used within a TracingProvider');
+    // Return default no-op implementation instead of throwing
+    return {
+      isInitialized: false,
+      getTraceHeaders: () => ({}),
+      withSpan: async <T,>(_name: string, fn: (span: unknown) => Promise<T>) => fn({}),
+      getRecentTraces: () => [],
+      getAllTraces: () => new Map(),
+    };
   }
   return context;
 }
