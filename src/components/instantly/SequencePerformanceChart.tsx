@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { RefreshCw, TrendingUp, Mail, Eye, MessageSquare, MousePointer } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -217,32 +217,22 @@ export function SequencePerformanceChart({ campaignId, externalCampaignId }: Seq
 
           {/* Chart */}
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                />
-                <Legend />
-                <Bar dataKey="sent" name="Sent" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="opened" name="Opened" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="replied" name="Replied" fill="hsl(142 76% 36%)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <DynamicChart
+              type="bar"
+              data={chartData}
+              height={256}
+              config={{
+                xAxisKey: 'name',
+                bars: [
+                  { dataKey: 'sent', name: 'Sent', fill: 'hsl(var(--muted-foreground))', radius: [4, 4, 0, 0] },
+                  { dataKey: 'opened', name: 'Opened', fill: 'hsl(var(--primary))', radius: [4, 4, 0, 0] },
+                  { dataKey: 'replied', name: 'Replied', fill: 'hsl(142 76% 36%)', radius: [4, 4, 0, 0] },
+                ],
+                showTooltip: true,
+                legend: true,
+                margin: { top: 5, right: 30, left: 20, bottom: 5 },
+              }}
+            />
           </div>
 
           {/* Step Cards */}

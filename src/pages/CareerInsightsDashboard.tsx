@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Target, Lightbulb, ArrowRight, RefreshCw, Brain } from 'lucide-react';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
@@ -118,15 +118,18 @@ export default function CareerInsightsDashboard() {
                 <CardDescription>Your skills vs market requirements</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={280}>
-                  <RadarChart data={insights.skillGapAnalysis}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="skill" />
-                    <PolarRadiusAxis domain={[0, 100]} />
-                    <Radar name="Current" dataKey="current" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} />
-                    <Radar name="Required" dataKey="required" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.1} />
-                  </RadarChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="radar"
+                  data={insights.skillGapAnalysis}
+                  height={280}
+                  config={{
+                    angleAxisKey: 'skill',
+                    radars: [
+                      { dataKey: 'current', name: 'Current', stroke: 'hsl(var(--primary))', fill: 'hsl(var(--primary))', fillOpacity: 0.3 },
+                      { dataKey: 'required', name: 'Required', stroke: 'hsl(var(--destructive))', fill: 'hsl(var(--destructive))', fillOpacity: 0.1 },
+                    ],
+                  }}
+                />
               </CardContent>
             </Card>
 

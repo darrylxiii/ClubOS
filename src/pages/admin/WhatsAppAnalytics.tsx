@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { MessageSquare, Send, CheckCheck, Clock, TrendingUp, Users, Zap, Target } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { DynamicChart } from '@/components/charts/DynamicChart';
 import { format, subDays } from 'date-fns';
 
 export default function WhatsAppAnalytics() {
@@ -162,22 +162,19 @@ export default function WhatsAppAnalytics() {
                     <CardTitle className="text-base">Message Volume</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                        <XAxis dataKey="date" className="text-xs" />
-                        <YAxis className="text-xs" />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))', 
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px'
-                          }} 
-                        />
-                        <Line type="monotone" dataKey="sent" stroke="hsl(var(--chart-1))" strokeWidth={2} />
-                        <Line type="monotone" dataKey="received" stroke="hsl(var(--chart-2))" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <DynamicChart
+                      type="line"
+                      data={chartData}
+                      height={250}
+                      config={{
+                        xAxisKey: 'date',
+                        lines: [
+                          { dataKey: 'sent', stroke: 'hsl(var(--chart-1))', strokeWidth: 2 },
+                          { dataKey: 'received', stroke: 'hsl(var(--chart-2))', strokeWidth: 2 },
+                        ],
+                        showTooltip: true,
+                      }}
+                    />
                   </CardContent>
                 </Card>
 
@@ -186,24 +183,21 @@ export default function WhatsAppAnalytics() {
                     <CardTitle className="text-base">Intent Distribution</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={intentData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {intentData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <DynamicChart
+                      type="pie"
+                      data={intentData}
+                      height={250}
+                      config={{
+                        pie: {
+                          dataKey: 'value',
+                          innerRadius: 60,
+                          outerRadius: 80,
+                          paddingAngle: 5,
+                          colors: intentData.map(d => d.color),
+                        },
+                        showTooltip: true,
+                      }}
+                    />
                     <div className="flex flex-wrap justify-center gap-4 mt-4">
                       {intentData.map((item) => (
                         <div key={item.name} className="flex items-center gap-2">
