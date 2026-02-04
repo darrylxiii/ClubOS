@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +55,21 @@ import { Card } from '@/components/ui/card';
 import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
 import { useMeetingTranscript } from '@/hooks/useMeetingTranscript';
 import { LiveInterviewAnalysis } from './analysis/LiveInterviewAnalysis';
-import { LiveKitMeetingWrapper } from './LiveKitMeetingWrapper';
+
+// CRITICAL: Lazy load LiveKit to prevent module resolution errors at startup
+// livekit-client and @livekit/components-react are heavy dependencies that should only
+// be loaded when actually needed (when user joins a meeting with LiveKit mode enabled)
+const LiveKitMeetingWrapper = lazy(() => 
+  import('./LiveKitMeetingWrapper').then(mod => ({ default: mod.LiveKitMeetingWrapper }))
+);
+
+// Loading fallback for LiveKit wrapper
+const LiveKitLoadingFallback = () => (
+  <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-background border rounded-lg">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+    <p className="text-muted-foreground">Loading video conference...</p>
+  </div>
+);
 
 interface MeetingVideoCallInterfaceProps {
   meeting: any;
@@ -1151,22 +1165,24 @@ export function MeetingVideoCallInterface({
         <div className="absolute inset-0 bg-gradient-to-br from-gray-950/50 via-transparent to-black/50 pointer-events-none" />
         
         {useLiveKitMode ? (
-          /* Primary: LiveKit SFU for scalable meetings */
-          <LiveKitMeetingWrapper
-            meetingId={meeting.id}
-            participantName={participantName}
-            participantId={participantId}
-            isHost={meeting.host_id === participantId}
-            onEnd={onEnd}
-            onFallbackToWebRTC={() => {
-              console.log('[Meeting] 🔄 Falling back to WebRTC P2P mode');
-              setUseLiveKitMode(false);
-              toast.info('Switched to direct peer-to-peer mode', {
-                description: 'Using direct connection for this meeting'
-              });
-            }}
-            className="h-full w-full"
-          />
+          /* Primary: LiveKit SFU for scalable meetings - wrapped in Suspense for lazy loading */
+          <Suspense fallback={<LiveKitLoadingFallback />}>
+            <LiveKitMeetingWrapper
+              meetingId={meeting.id}
+              participantName={participantName}
+              participantId={participantId}
+              isHost={meeting.host_id === participantId}
+              onEnd={onEnd}
+              onFallbackToWebRTC={() => {
+                console.log('[Meeting] 🔄 Falling back to WebRTC P2P mode');
+                setUseLiveKitMode(false);
+                toast.info('Switched to direct peer-to-peer mode', {
+                  description: 'Using direct connection for this meeting'
+                });
+              }}
+              className="h-full w-full"
+            />
+          </Suspense>
         ) : (
           /* Fallback: WebRTC P2P for direct connections */
           <VideoGrid
