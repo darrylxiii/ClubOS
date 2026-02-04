@@ -21,11 +21,7 @@ import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  LineChart, 
-  Line, 
-  ResponsiveContainer 
-} from 'recharts';
+import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 interface KPI {
   label: string;

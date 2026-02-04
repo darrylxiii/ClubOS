@@ -1,23 +1,22 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCampaignPerformance } from '@/hooks/useCampaignPerformance';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, MousePointerClick, Trophy, Users } from 'lucide-react';
+import { DollarSign, Trophy, Users } from 'lucide-react';
 import { formatCurrency } from '@/lib/revenueCalculations';
 
 export function CampaignROIDashboard() {
+    const { recharts, isLoading: chartsLoading } = useRecharts();
     const { data: campaigns, isLoading } = useCampaignPerformance();
 
-    if (isLoading) {
+    if (isLoading || chartsLoading || !recharts) {
         return <Skeleton className="h-[400px] w-full" />;
     }
 
+    const { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } = recharts;
     const topCampaigns = campaigns?.slice(0, 5) || [];
-
-    // Color palette for charts
     const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 
     return (
@@ -42,7 +41,7 @@ export function CampaignROIDashboard() {
                                     type="category"
                                     tick={{ fontSize: 12, fill: '#888' }}
                                     width={100}
-                                    tickFormatter={(val) => val.length > 15 ? val.substring(0, 15) + '...' : val}
+                                    tickFormatter={(val: string) => val.length > 15 ? val.substring(0, 15) + '...' : val}
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}
@@ -50,7 +49,7 @@ export function CampaignROIDashboard() {
                                     formatter={(value: number) => formatCurrency(value)}
                                 />
                                 <Bar dataKey="total_revenue" radius={[0, 4, 4, 0]} barSize={32}>
-                                    {topCampaigns.map((entry, index) => (
+                                    {topCampaigns.map((_: any, index: number) => (
                                         <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                                     ))}
                                 </Bar>
@@ -76,7 +75,7 @@ export function CampaignROIDashboard() {
                                     dataKey="campaign_name"
                                     tick={{ fontSize: 10, fill: '#888' }}
                                     interval={0}
-                                    tickFormatter={(val) => val.length > 8 ? val.substring(0, 8) + '..' : val}
+                                    tickFormatter={(val: string) => val.length > 8 ? val.substring(0, 8) + '..' : val}
                                 />
                                 <YAxis hide />
                                 <Tooltip
@@ -112,7 +111,7 @@ export function CampaignROIDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {campaigns?.map((campaign) => (
+                            {campaigns?.map((campaign: any) => (
                                 <TableRow key={campaign.campaign_id}>
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col">

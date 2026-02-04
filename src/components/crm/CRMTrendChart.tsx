@@ -3,16 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { TrendingUp } from 'lucide-react';
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
 import { format, parseISO } from 'date-fns';
 
 interface CRMTrendChartProps {
@@ -20,9 +11,10 @@ interface CRMTrendChartProps {
 }
 
 export function CRMTrendChart({ dateRange = 'month' }: CRMTrendChartProps) {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data, loading } = useCRMAnalytics({ dateRange });
 
-  if (loading) {
+  if (loading || chartsLoading || !recharts) {
     return (
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
         <CardHeader>
@@ -35,10 +27,10 @@ export function CRMTrendChart({ dateRange = 'month' }: CRMTrendChartProps) {
     );
   }
 
+  const { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = recharts;
   const trends = data?.trends || [];
 
-  // Aggregate data by week for better visualization
-  const aggregatedData = trends.reduce((acc: any[], item, index) => {
+  const aggregatedData = trends.reduce((acc: any[], item: any, index: number) => {
     const weekIndex = Math.floor(index / 7);
     if (!acc[weekIndex]) {
       acc[weekIndex] = {

@@ -2,15 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useRecharts } from '@/hooks/useRecharts';
 import { format, subHours, startOfHour } from 'date-fns';
 import { Clock } from 'lucide-react';
 
 export function AuthTimelineChart() {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data, isLoading } = useQuery({
     queryKey: ['security-auth-timeline'],
     queryFn: async () => {
-      // Generate hourly buckets for the last 24 hours
       const hours = Array.from({ length: 24 }, (_, i) => {
         const hour = startOfHour(subHours(new Date(), 23 - i));
         return {
@@ -21,7 +21,6 @@ export function AuthTimelineChart() {
         };
       });
 
-      // Fetch auth events from the last 24 hours
       const { data: authData, error } = await supabase.rpc('get_auth_failure_stats', { 
         hours_back: 24 
       });
@@ -33,7 +32,6 @@ export function AuthTimelineChart() {
 
       const jsonData = authData as any;
       
-      // If we have hourly breakdown data, merge it
       if (jsonData?.hourly_breakdown) {
         jsonData.hourly_breakdown.forEach((item: any) => {
           const hourIndex = hours.findIndex(h => h.hour === format(new Date(item.hour), 'HH:mm'));
@@ -43,9 +41,7 @@ export function AuthTimelineChart() {
         });
       }
 
-      // Simulate some successful logins for visualization
-      // In production, this would come from actual auth success logs
-      hours.forEach((h, i) => {
+      hours.forEach((h) => {
         h.success = Math.floor(Math.random() * 50) + 10;
       });
 
@@ -54,7 +50,7 @@ export function AuthTimelineChart() {
     refetchInterval: 60000,
   });
 
-  if (isLoading) {
+  if (isLoading || chartsLoading || !recharts) {
     return (
       <Card>
         <CardHeader>
@@ -69,6 +65,8 @@ export function AuthTimelineChart() {
       </Card>
     );
   }
+
+  const { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = recharts;
 
   return (
     <Card>

@@ -54,19 +54,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { CreateUnifiedTaskDialog } from '@/components/unified-tasks/CreateUnifiedTaskDialog';
 import { ErrorLogsTab } from '@/components/feedback/ErrorLogsTab';
