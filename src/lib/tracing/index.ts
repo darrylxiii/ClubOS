@@ -1,26 +1,11 @@
 /**
- * OpenTelemetry Tracing - World-Class Distributed Tracing
- * Provides end-to-end request tracing across frontend and edge functions
+ * Tracing Module - No-op Implementation
+ * OpenTelemetry removed to reduce build memory usage.
+ * This provides stub functions to maintain API compatibility.
  */
 
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ZoneContextManager } from '@opentelemetry/context-zone';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { resourceFromAttributes } from '@opentelemetry/resources';
-import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { context, trace, SpanStatusCode, Span, SpanKind } from '@opentelemetry/api';
-
-// Configuration
-const SERVICE_NAME = 'quantum-club-frontend';
-const SERVICE_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0';
-const ENVIRONMENT = import.meta.env.MODE || 'development';
-
-// Trace storage for waterfall visualization
-interface TraceEntry {
+// Trace storage for waterfall visualization (kept for compatibility)
+export interface TraceEntry {
   traceId: string;
   spanId: string;
   name: string;
@@ -32,17 +17,50 @@ interface TraceEntry {
   parentSpanId?: string;
 }
 
+// Mock span interface
+interface MockSpan {
+  spanContext: () => { traceId: string; spanId: string };
+  setAttribute: (key: string, value: unknown) => MockSpan;
+  setStatus: (status: { code: number; message?: string }) => MockSpan;
+  recordException: (error: Error) => MockSpan;
+  end: () => void;
+}
+
+// Generate random IDs for compatibility
+const generateId = (length: number): string => {
+  const chars = '0123456789abcdef';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+};
+
+// Create a mock span
+const createMockSpan = (name: string): MockSpan => {
+  const traceId = generateId(32);
+  const spanId = generateId(16);
+  
+  return {
+    spanContext: () => ({ traceId, spanId }),
+    setAttribute: function() { return this; },
+    setStatus: function() { return this; },
+    recordException: function() { return this; },
+    end: () => {},
+  };
+};
+
+// TraceStore stub
 class TraceStore {
   private traces: Map<string, TraceEntry[]> = new Map();
-  private maxTraces = 100;
-
+  
   addTrace(entry: TraceEntry): void {
     const entries = this.traces.get(entry.traceId) || [];
     entries.push(entry);
     this.traces.set(entry.traceId, entries);
-
-    // Cleanup old traces
-    if (this.traces.size > this.maxTraces) {
+    
+    // Cleanup old traces (keep max 50)
+    if (this.traces.size > 50) {
       const firstKey = this.traces.keys().next().value;
       if (firstKey) this.traces.delete(firstKey);
     }
@@ -78,152 +96,62 @@ class TraceStore {
 
 export const traceStore = new TraceStore();
 
-// Provider instance
-let provider: WebTracerProvider | null = null;
-let isInitialized = false;
-
 /**
- * Initialize OpenTelemetry tracing
+ * Initialize tracing (no-op)
  */
 export function initializeTracing(): void {
-  if (isInitialized || typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    // Create resource with service attributes
-    const resource = resourceFromAttributes({
-      [ATTR_SERVICE_NAME]: SERVICE_NAME,
-      [ATTR_SERVICE_VERSION]: SERVICE_VERSION,
-      'deployment.environment': ENVIRONMENT,
-    });
-
-    // Configure exporter (console for now, can be replaced with OTLP endpoint)
-    const exporter = new OTLPTraceExporter({
-      url: import.meta.env.VITE_OTEL_EXPORTER_OTLP_ENDPOINT || '/api/traces',
-      headers: {},
-    });
-
-    // Create provider with resource and span processor
-    provider = new WebTracerProvider({
-      resource,
-      spanProcessors: [new SimpleSpanProcessor(exporter)],
-    });
-
-    // Configure context manager and register
-    provider.register({
-      contextManager: new ZoneContextManager(),
-    });
-
-    // Register instrumentations
-    registerInstrumentations({
-      instrumentations: [
-        new FetchInstrumentation({
-          propagateTraceHeaderCorsUrls: [
-            // Allow trace propagation to Supabase edge functions
-            /https:\/\/.*\.supabase\.co\/.*/,
-            /https:\/\/.*\.supabase\.in\/.*/,
-            /https:\/\/dpjucecmoyfzrduhlctt\.supabase\.co\/.*/,
-          ],
-          clearTimingResources: true,
-          applyCustomAttributesOnSpan: (span, request) => {
-            // Add custom attributes
-            if (request instanceof Request) {
-              span.setAttribute('http.url', request.url);
-              span.setAttribute('http.method', request.method);
-              
-              // Store in trace store
-              const spanContext = span.spanContext();
-              traceStore.addTrace({
-                traceId: spanContext.traceId,
-                spanId: spanContext.spanId,
-                name: `${request.method} ${new URL(request.url).pathname}`,
-                startTime: Date.now(),
-                status: 'pending',
-                attributes: {
-                  url: request.url,
-                  method: request.method,
-                },
-              });
-            }
-          },
-        }),
-        new DocumentLoadInstrumentation(),
-      ],
-    });
-
-    isInitialized = true;
-    console.log('[Tracing] OpenTelemetry initialized successfully');
-  } catch (error) {
-    console.error('[Tracing] Failed to initialize OpenTelemetry:', error);
-  }
+  // No-op - tracing disabled
 }
 
 /**
- * Get the tracer instance
+ * Get tracer instance (no-op)
  */
-export function getTracer(name = SERVICE_NAME) {
-  if (!provider) {
-    initializeTracing();
-  }
-  return trace.getTracer(name, SERVICE_VERSION);
+export function getTracer(_name?: string) {
+  return {
+    startSpan: createMockSpan,
+  };
 }
 
 /**
- * Create a span for an operation
+ * Create a span (returns mock span)
  */
 export function createSpan(
   name: string,
-  options?: {
-    kind?: SpanKind;
+  _options?: {
+    kind?: number;
     attributes?: Record<string, string | number | boolean>;
-    parentSpan?: Span;
+    parentSpan?: MockSpan;
   }
-): Span {
-  const tracer = getTracer();
-  
-  const spanOptions = {
-    kind: options?.kind || SpanKind.INTERNAL,
-    attributes: options?.attributes,
-  };
-
-  if (options?.parentSpan) {
-    const ctx = trace.setSpan(context.active(), options.parentSpan);
-    return tracer.startSpan(name, spanOptions, ctx);
-  }
-
-  return tracer.startSpan(name, spanOptions);
+): MockSpan {
+  return createMockSpan(name);
 }
 
 /**
- * Execute a function within a traced span
+ * Execute a function within a traced span (pass-through)
  */
 export async function withSpan<T>(
   name: string,
-  fn: (span: Span) => Promise<T>,
-  options?: {
-    kind?: SpanKind;
+  fn: (span: MockSpan) => Promise<T>,
+  _options?: {
+    kind?: number;
     attributes?: Record<string, string | number | boolean>;
   }
 ): Promise<T> {
-  const span = createSpan(name, options);
+  const span = createMockSpan(name);
   const startTime = Date.now();
   const spanContext = span.spanContext();
 
-  // Add to trace store
   traceStore.addTrace({
     traceId: spanContext.traceId,
     spanId: spanContext.spanId,
     name,
     startTime,
     status: 'pending',
-    attributes: options?.attributes || {},
+    attributes: {},
   });
 
   try {
-    const result = await context.with(trace.setSpan(context.active(), span), () => fn(span));
-    
-    span.setStatus({ code: SpanStatusCode.OK });
+    const result = await fn(span);
     
     const endTime = Date.now();
     traceStore.updateTrace(spanContext.traceId, spanContext.spanId, {
@@ -234,12 +162,6 @@ export async function withSpan<T>(
 
     return result;
   } catch (error) {
-    span.setStatus({
-      code: SpanStatusCode.ERROR,
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
-    span.recordException(error as Error);
-
     const endTime = Date.now();
     traceStore.updateTrace(spanContext.traceId, spanContext.spanId, {
       endTime,
@@ -248,60 +170,27 @@ export async function withSpan<T>(
     });
 
     throw error;
-  } finally {
-    span.end();
   }
 }
 
 /**
- * Trace a React component render
+ * Trace a React component render (no-op decorator)
  */
-export function traceComponent(componentName: string) {
+export function traceComponent(_componentName: string) {
   return function <T extends (...args: unknown[]) => unknown>(
     _target: unknown,
     _propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>
   ): TypedPropertyDescriptor<T> {
-    const originalMethod = descriptor.value!;
-    
-    descriptor.value = function (this: unknown, ...args: unknown[]) {
-      const span = createSpan(`render:${componentName}`, {
-        kind: SpanKind.INTERNAL,
-        attributes: { component: componentName },
-      });
-      
-      try {
-        const result = originalMethod.apply(this, args);
-        span.setStatus({ code: SpanStatusCode.OK });
-        return result;
-      } catch (error) {
-        span.setStatus({ code: SpanStatusCode.ERROR });
-        span.recordException(error as Error);
-        throw error;
-      } finally {
-        span.end();
-      }
-    } as T;
-    
     return descriptor;
   };
 }
 
 /**
- * Create trace headers for propagation to edge functions
+ * Create trace headers for propagation (returns empty object)
  */
 export function getTraceHeaders(): Record<string, string> {
-  const currentSpan = trace.getActiveSpan();
-  if (!currentSpan) {
-    return {};
-  }
-
-  const spanContext = currentSpan.spanContext();
-  return {
-    'traceparent': `00-${spanContext.traceId}-${spanContext.spanId}-01`,
-    'x-trace-id': spanContext.traceId,
-    'x-span-id': spanContext.spanId,
-  };
+  return {};
 }
 
 /**
@@ -324,6 +213,17 @@ export function parseTraceContext(headers: Headers): { traceId: string; parentSp
   return null;
 }
 
-// Export types
-export type { TraceEntry };
-export { SpanKind, SpanStatusCode };
+// Export compatibility constants
+export const SpanKind = {
+  INTERNAL: 0,
+  SERVER: 1,
+  CLIENT: 2,
+  PRODUCER: 3,
+  CONSUMER: 4,
+};
+
+export const SpanStatusCode = {
+  UNSET: 0,
+  OK: 1,
+  ERROR: 2,
+};

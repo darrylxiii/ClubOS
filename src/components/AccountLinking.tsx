@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Mail, Link2, Unlink, Loader2 } from "lucide-react";
-import { FaGoogle } from "react-icons/fa";
+import { Shield, Mail, Link2, Unlink, Loader2, Chrome } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -229,7 +228,7 @@ export const AccountLinking = () => {
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-              <FaGoogle className="w-5 h-5 text-red-500" />
+              <Chrome className="w-5 h-5 text-red-500" />
             </div>
             <div>
               <p className="font-semibold">Google</p>
