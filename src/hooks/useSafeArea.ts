@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Capacitor } from '@capacitor/core';
 
 interface SafeAreaInsets {
   top: number;
@@ -10,18 +9,10 @@ interface SafeAreaInsets {
 
 export function useSafeArea() {
   const [insets, setInsets] = useState<SafeAreaInsets>({ top: 0, right: 0, bottom: 0, left: 0 });
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = false; // Web-only - no native platform support
 
   useEffect(() => {
     const updateInsets = () => {
-      const computedStyle = getComputedStyle(document.documentElement);
-      
-      // Parse CSS env() values
-      const parseEnvValue = (value: string): number => {
-        const match = value.match(/(\d+)/);
-        return match ? parseInt(match[1], 10) : 0;
-      };
-
       // Create a temp element to compute safe area values
       const tempEl = document.createElement('div');
       tempEl.style.cssText = `

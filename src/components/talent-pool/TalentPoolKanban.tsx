@@ -1,4 +1,22 @@
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { useState } from 'react';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,6 +44,52 @@ const columns: { id: TalentTier; title: string; icon: React.ElementType; colorCl
   { id: 'dormant', title: 'Dormant', icon: Moon, colorClass: 'text-slate-400 border-slate-500/30' },
 ];
 
+function SortableCandidateCard({
+  candidate,
+  onCandidateClick,
+  onLogTouchpoint,
+  onAddToList,
+  onViewProfile,
+}: {
+  candidate: TalentPoolCandidate;
+  onCandidateClick?: (candidate: TalentPoolCandidate) => void;
+  onLogTouchpoint?: (candidate: TalentPoolCandidate) => void;
+  onAddToList?: (candidate: TalentPoolCandidate) => void;
+  onViewProfile?: (candidate: TalentPoolCandidate) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: candidate.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(isDragging && 'rotate-2 shadow-lg opacity-50')}
+    >
+      <CandidateCard
+        candidate={candidate}
+        onClick={() => onCandidateClick?.(candidate)}
+        onLogTouchpoint={() => onLogTouchpoint?.(candidate)}
+        onAddToList={() => onAddToList?.(candidate)}
+        onViewProfile={() => onViewProfile?.(candidate)}
+      />
+    </div>
+  );
+}
+
 export function TalentPoolKanban({
   candidates,
   isLoading,
@@ -35,21 +99,43 @@ export function TalentPoolKanban({
   onAddToList,
   onViewProfile,
 }: TalentPoolKanbanProps) {
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-    const candidateId = result.draggableId;
-    const newTier = result.destination.droppableId as TalentTier;
-    const oldTier = result.source.droppableId as TalentTier;
-
-    if (newTier !== oldTier) {
-      onTierChange?.(candidateId, newTier);
-    }
-  };
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const getCandidatesByTier = (tier: TalentTier) => {
     return candidates.filter((c) => c.talent_tier === tier);
   };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const candidateId = active.id as string;
+    const overId = over.id as string;
+
+    // Check if dropped over a column
+    const targetColumn = columns.find(col => col.id === overId);
+    if (targetColumn) {
+      const candidate = candidates.find(c => c.id === candidateId);
+      if (candidate && candidate.talent_tier !== targetColumn.id) {
+        onTierChange?.(candidateId, targetColumn.id);
+      }
+    }
+  };
+
+  const activeCandidate = activeId ? candidates.find(c => c.id === activeId) : null;
 
   if (isLoading) {
     return (
@@ -71,7 +157,12 @@ export function TalentPoolKanban({
   }
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto">
         {columns.map((column) => {
           const tierCandidates = getCandidatesByTier(column.id);
@@ -92,62 +183,48 @@ export function TalentPoolKanban({
                   </div>
                 </CardHeader>
 
-                <Droppable droppableId={column.id}>
-                  {(provided, snapshot) => (
-                    <ScrollArea className="flex-1">
-                      <CardContent
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className={cn(
-                          'p-2 min-h-[200px] transition-colors',
-                          snapshot.isDraggingOver && 'bg-primary/5'
-                        )}
-                      >
-                        {tierCandidates.length === 0 ? (
-                          <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
-                            No candidates
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {tierCandidates.map((candidate, index) => (
-                              <Draggable
-                                key={candidate.id}
-                                draggableId={candidate.id}
-                                index={index}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    style={provided.draggableProps.style}
-                                    className={cn(
-                                      snapshot.isDragging && 'rotate-2 shadow-lg'
-                                    )}
-                                  >
-                                    <CandidateCard
-                                      candidate={candidate}
-                                      onClick={() => onCandidateClick?.(candidate)}
-                                      onLogTouchpoint={() => onLogTouchpoint?.(candidate)}
-                                      onAddToList={() => onAddToList?.(candidate)}
-                                      onViewProfile={() => onViewProfile?.(candidate)}
-                                    />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                          </div>
-                        )}
-                        {provided.placeholder}
-                      </CardContent>
-                    </ScrollArea>
-                  )}
-                </Droppable>
+                <SortableContext
+                  id={column.id}
+                  items={tierCandidates.map(c => c.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ScrollArea className="flex-1">
+                    <CardContent className="p-2 min-h-[200px]">
+                      {tierCandidates.length === 0 ? (
+                        <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
+                          No candidates
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {tierCandidates.map((candidate) => (
+                            <SortableCandidateCard
+                              key={candidate.id}
+                              candidate={candidate}
+                              onCandidateClick={onCandidateClick}
+                              onLogTouchpoint={onLogTouchpoint}
+                              onAddToList={onAddToList}
+                              onViewProfile={onViewProfile}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </ScrollArea>
+                </SortableContext>
               </Card>
             </div>
           );
         })}
       </div>
-    </DragDropContext>
+
+      <DragOverlay>
+        {activeCandidate ? (
+          <CandidateCard
+            candidate={activeCandidate}
+            onClick={() => {}}
+          />
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

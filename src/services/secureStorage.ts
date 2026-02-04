@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core';
-
 const STORAGE_PREFIX = 'tqc_secure_';
 
 interface SecureStorageService {
@@ -9,7 +7,7 @@ interface SecureStorageService {
   clear: () => Promise<boolean>;
 }
 
-// Web fallback using localStorage with basic obfuscation
+// Web storage using localStorage with basic obfuscation
 const webStorage: SecureStorageService = {
   setItem: async (key: string, value: string) => {
     try {
@@ -121,9 +119,9 @@ export const secureStorage = {
     return webStorage.clear();
   },
 
-  // Check if we're on a native platform
+  // Check if we're on a native platform (always false for web)
   isNative: (): boolean => {
-    return Capacitor.isNativePlatform();
+    return false;
   },
 };
 
