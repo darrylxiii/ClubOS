@@ -993,11 +993,16 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
 
         {/* Create Task Dialog */}
         <CreateUnifiedTaskDialog
+          objectiveId={null}
           open={showTaskDialog}
           onOpenChange={setShowTaskDialog}
-          initialData={taskInitialData}
+          initialTitle={taskInitialData.title}
+          initialDescription={taskInitialData.description}
+          initialPriority={taskInitialData.priority}
           onTaskCreated={handleTaskCreated}
-        />
+        >
+          <span />
+        </CreateUnifiedTaskDialog>
       </div>
     </AppLayout>
   );
