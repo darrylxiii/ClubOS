@@ -4,10 +4,11 @@
  * With retry logic and exponential backoff
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Room, RoomEvent, Participant, RemoteParticipant, LocalParticipant, Track, RemoteTrack, RemoteTrackPublication } from 'livekit-client';
+// Note: livekit-client types are used only at runtime in LiveKitRoom component
+// We keep this hook focused on token management only
 
 export interface LiveKitParticipant {
   id: string;
@@ -71,8 +72,9 @@ export function useLiveKitMeeting({
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
-  // We keep a ref to the room instance
-  const roomRef = useRef<Room | null>(null);
+  // We keep a ref to the room instance (typed as any since livekit-client is loaded dynamically)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const roomRef = useRef<any>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   /**
