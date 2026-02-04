@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useRecharts } from '@/hooks/useRecharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export function FeatureAnalyticsTab() {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: featureUsage, isLoading } = useQuery({
     queryKey: ['feature-usage-analytics'],
     queryFn: async () => {
@@ -71,9 +73,16 @@ export function FeatureAnalyticsTab() {
       color: `hsl(var(--chart-${(index % 5) + 1}))`,
     }));
 
-  if (isLoading) {
-    return <div className="p-6">Loading feature analytics...</div>;
+  if (isLoading || chartsLoading || !recharts) {
+    return (
+      <div className="p-6 space-y-6">
+        <Skeleton className="h-[400px] w-full" />
+        <Skeleton className="h-[300px] w-full" />
+      </div>
+    );
   }
+
+  const { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } = recharts;
 
   return (
     <div className="space-y-6">
@@ -127,7 +136,7 @@ export function FeatureAnalyticsTab() {
               <YAxis />
               <Tooltip />
               <Bar dataKey="value" fill="hsl(var(--primary))">
-                {categoryChartData.map((entry: any, index) => (
+                {categoryChartData.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>

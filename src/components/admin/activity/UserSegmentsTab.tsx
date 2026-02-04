@@ -1,22 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useRecharts } from '@/hooks/useRecharts';
 import { Smartphone, Monitor, Tablet } from 'lucide-react';
 
 export function UserSegmentsTab() {
+  const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: deviceData, isLoading } = useQuery({
     queryKey: ['user-segments-device'],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       
-      // Try to get device info from dedicated table
       const { data: deviceInfo } = await supabase
         .from('user_device_info')
         .select('device_type, os, browser, timezone')
         .gte('created_at', sevenDaysAgo);
       
-      // Fallback: derive from session events metadata
       if (!deviceInfo || deviceInfo.length === 0) {
         const { data: sessionEvents } = await supabase
           .from('user_session_events')
@@ -48,7 +48,6 @@ export function UserSegmentsTab() {
       
       if (error) throw error;
       
-      // Categorize by path patterns
       const candidates = data?.filter(e => e.page_path?.includes('/jobs') || e.page_path?.includes('/applications')).length || 0;
       const partners = data?.filter(e => e.page_path?.includes('/hiring') || e.page_path?.includes('/company-intelligence')).length || 0;
       const admins = data?.filter(e => e.page_path?.includes('/admin')).length || 0;
@@ -62,7 +61,6 @@ export function UserSegmentsTab() {
     refetchInterval: 30000,
   });
 
-  // Device breakdown
   const deviceBreakdown = deviceData?.reduce((acc, item) => {
     const key = item.device_type || 'unknown';
     acc[key] = (acc[key] || 0) + 1;
@@ -75,7 +73,6 @@ export function UserSegmentsTab() {
     color: name === 'mobile' ? 'hsl(var(--chart-1))' : name === 'desktop' ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-3))',
   }));
 
-  // Browser breakdown
   const browserBreakdown = deviceData?.reduce((acc, item) => {
     const key = item.browser || 'unknown';
     acc[key] = (acc[key] || 0) + 1;
@@ -99,9 +96,19 @@ export function UserSegmentsTab() {
     }
   };
 
-  if (isLoading) {
-    return <div className="p-6">Loading segments...</div>;
+  if (isLoading || chartsLoading || !recharts) {
+    return (
+      <div className="p-6 space-y-6">
+        <Skeleton className="h-[300px] w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-[250px]" />
+          <Skeleton className="h-[250px]" />
+        </div>
+      </div>
+    );
   }
+
+  const { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } = recharts;
 
   return (
     <div className="space-y-6">
@@ -118,12 +125,12 @@ export function UserSegmentsTab() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {roleActivity?.map((entry, index) => (
+                {roleActivity?.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
