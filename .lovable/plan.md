@@ -1,391 +1,260 @@
 
+# Elite Partner Provisioning System: Comprehensive Audit Report
 
-# Elite Partner Provisioning System: 0.0001% Concierge Onboarding
+## Current Implementation Status: 85/100
 
-## Executive Summary
-
-This plan transforms partner account creation from a fragmented, amateur process into a white-glove concierge experience befitting The Quantum Club's ultra-luxury positioning. Admins will provision fully-verified partner accounts with pre-confirmed contact information, seamless Google OAuth linking, and intelligent domain-based organization management.
-
----
-
-## Current State Problems
-
-| Issue | Impact |
-|-------|--------|
-| Partners must self-signup as regular members | Destroys exclusivity perception |
-| Manual role reassignment after signup | Amateurish workflow |
-| No pre-verification of contact details | Partners don't trust their info is validated |
-| No domain-based organization management | Can't auto-assign @company.com employees |
-| Google OAuth not pre-linkable | Partners can't use SSO on first login |
-| No concierge invite system | Partners feel like they're applying, not being courted |
+The Partner Provisioning system is well-implemented with most core functionality in place, but several areas require improvement for production-grade reliability and UX excellence.
 
 ---
 
-## Solution Architecture
+## ✅ What's Working Well (Strengths)
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                    ADMIN PARTNER PROVISIONING                   │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────┐    ┌──────────────────┐                   │
-│  │ Partner Modal   │───▶│ provision-partner │                   │
-│  │ (Admin UI)      │    │ Edge Function     │                   │
-│  └─────────────────┘    └────────┬─────────┘                   │
-│                                  │                              │
-│         ┌────────────────────────┼────────────────────────┐     │
-│         ▼                        ▼                        ▼     │
-│  ┌──────────────┐    ┌──────────────────┐    ┌────────────────┐│
-│  │ Create Auth  │    │ Pre-verify Email │    │ Setup Company  ││
-│  │ User Account │    │ & Phone          │    │ Domain SSO     ││
-│  └──────────────┘    └──────────────────┘    └────────────────┘│
-│         │                        │                        │     │
-│         ▼                        ▼                        ▼     │
-│  ┌──────────────┐    ┌──────────────────┐    ┌────────────────┐│
-│  │ Assign Role  │    │ Generate Magic   │    │ Send Welcome   ││
-│  │ + Company    │    │ Link / Password  │    │ Email          ││
-│  └──────────────┘    └──────────────────┘    └────────────────┘│
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+### 1. **Core Architecture** (Excellent)
+- ✅ Three-step wizard modal with progress indicators
+- ✅ Comprehensive admin UI with pre-verification toggles
+- ✅ Edge function orchestrates all backend operations atomically
+- ✅ Domain-based auto-provisioning infrastructure
+- ✅ Audit logging to `partner_provisioning_logs` and `comprehensive_audit_logs`
+- ✅ Database schema properly extended with new tables
+- ✅ RLS policies implemented for access control
+
+### 2. **Email Delivery** (Good)
+- ✅ Resend integration for branded welcome emails
+- ✅ Template supports magic links, temporary passwords, and strategist info
+- ✅ 72-hour magic link expiry enforced
+- ✅ Proper HTML escaping for security
+
+### 3. **User Experience** (Good)
+- ✅ Success screen with clear next steps
+- ✅ Magic link copying functionality
+- ✅ Company creation on-the-fly
+- ✅ Domain extraction from email address
+- ✅ International phone number support
+- ✅ Motion animations for engagement
+
+### 4. **Security** (Good)
+- ✅ Admin role verification via JWT
+- ✅ User creation via `auth.admin.createUser()`
+- ✅ Email/phone pre-confirmation support
+- ✅ Invite code generation with expiry
+- ✅ Audit trail for all provisioning actions
+- ✅ Phone number validation
+
+---
+
+## ⚠️ Critical Issues to Fix (Priority: High)
+
+### 1. **OAuth Pre-Linking NOT IMPLEMENTED** ❌
+**Problem**: Plan promised "seamless Google OAuth linking" for pre-provisioned partners, but this isn't built.
+- Pre-verified email accounts can't auto-link to Google OAuth on first login
+- `preferred_auth_method` column exists but isn't used
+- OAuth linking logic in `Auth.tsx` doesn't check for pre-provisioned accounts
+
+**Impact**: Partners with `oauth_only` provision method get stuck; can't use Google Sign-In.
+
+**What's Needed**:
+- Modify `Auth.tsx` OAuth callback to detect pre-provisioned accounts matching Google email
+- Link Google identity server-side when email matches pre-verified account
+- Allow seamless first-login with Google for `oauth_only` partners
+- Add test for OAuth pre-linking flow
+
+### 2. **Magic Link Redirect Broken** ⚠️
+**Problem**: Magic link in edge function hardcodes redirect to `/home`:
+```typescript
+redirectTo: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/home`
 ```
 
+**Issues**:
+- Works for Lovable preview but fails for custom domains
+- No post-login onboarding redirect for pre-provisioned partners
+- Doesn't differentiate partner vs user onboarding flows
+
+**What's Needed**:
+- Use environment variable or config for redirect URL
+- Route pre-provisioned partners to partner-specific onboarding
+- Support custom domain URLs
+
+### 3. **Domain Auto-Provisioning Incomplete** ⚠️
+**Problem**: `organization_domain_settings` table exists but auto-provisioning logic isn't implemented.
+- Modal allows enabling `enableDomainAutoProvisioning` but nothing triggers it
+- No edge function to auto-create users when they signup with @domain email
+- No approval workflow for `require_admin_approval` setting
+
+**What's Needed**:
+- Create `auto-provision-user` edge function triggered on signup
+- Check if email domain matches any `organization_domain_settings`
+- Auto-add to company if `auto_provision_users=true`
+- Queue for approval if `require_admin_approval=true`
+- Notification system for pending approvals
+
+### 4. **Resend Integration Not Configured** ❌
+**Problem**: Code calls `RESEND_API_KEY` but no indication if it's actually set up.
+- `send-partner-welcome` function exists but is never called
+- Welcome email logic is duplicated between two functions
+- No fallback if Resend isn't configured
+
+**What's Needed**:
+- Verify Resend API key is in secrets
+- Call `send-partner-welcome` edge function after provisioning
+- Add console warning if `RESEND_API_KEY` missing
+- Implement fallback email notification
+
+### 5. **Resend Email Address Not Whitelisted** ⚠️
+**Problem**: Function sends from `concierge@thequantumclub.com` but this may not be configured in Resend.
+
+**What's Needed**:
+- Verify sender email is whitelisted in Resend dashboard
+- Update to use `noreply@thequantumclub.com` (more standard)
+- Document email setup requirements
+
 ---
 
-## Phase 1: Partner Provisioning Modal (Admin UI)
+## 🔨 Medium Priority Issues
 
-### Create `src/components/admin/PartnerProvisioningModal.tsx`
-
-A comprehensive modal with:
-
-**Contact Information Section**
-- Full Name (required)
-- Email Address (required) - with domain extraction
-- Phone Number (optional) - with international format
-- Pre-verify toggles: "Mark email as verified" / "Mark phone as verified"
-
-**Company Configuration Section**
-- Company Name (auto-suggest from existing or create new)
-- Company Domain (e.g., `acme.com`)
-- Industry selector
-- Company size selector
-- Company role: Owner / Admin / Recruiter
-
-**Authentication Options Section**
-- Access Method radio group:
-  - "Send Magic Link" (default, one-click login)
-  - "Set Temporary Password" (manual entry)
-  - "Allow Google OAuth Only" (for G Suite companies)
-- Auto-create invite code toggle
-- Welcome message customization
-
-**Domain Management Section**
-- Enable auto-provisioning for `@domain.com`
-- Default role for domain members
-- Require admin approval toggle
-
-**Design**: Dark luxury UI with gold accent, multi-step wizard with progress indicator
-
----
-
-## Phase 2: Edge Function - `provision-partner`
-
-### Create `supabase/functions/provision-partner/index.ts`
-
-**Capabilities:**
-1. Create auth user with `auth.admin.createUser()`
-2. Pre-confirm email and phone in profiles table
-3. Assign partner role in `user_roles`
-4. Create/link company in `companies` table
-5. Add to `company_members` with specified role
-6. Configure domain SSO in `company_sso_config`
-7. Generate magic link OR set password
-8. Send branded welcome email via Resend
-9. Create audit log entry
-
-**Security:**
-- Requires admin role verification
-- Rate limiting (10 provisions per hour)
-- Input validation with Zod
-- Audit trail for compliance
-
-**Response:**
-```json
-{
-  "success": true,
-  "user_id": "uuid",
-  "company_id": "uuid",
-  "magic_link": "https://...",
-  "invite_code": "PARTNER-XXXX"
-}
+### 6. **Invite Code Email NOT SENT** ⚠️
+**Problem**: `TeamInviteWidget` creates invite codes but has TODO comment:
+```typescript
+// TODO: Send invite email via edge function
 ```
 
----
+**Impact**: Partners invite team members but invitees never get notification email.
 
-## Phase 3: Domain-Based Organization Management
+**What's Needed**:
+- Create `send-invite-email` edge function
+- Call from TeamInviteWidget when invite created
+- Include company domain validation in email
 
-### Database Enhancements
+### 7. **Resend Welcome Email Endpoint Not Triggered** ⚠️
+**Problem**: Provisioning function doesn't call `send-partner-welcome` edge function; instead sends inline.
 
-**New table: `organization_domain_settings`**
-```sql
-CREATE TABLE organization_domain_settings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id uuid REFERENCES companies(id) ON DELETE CASCADE,
-  domain text NOT NULL,
-  is_enabled boolean DEFAULT true,
-  auto_provision_users boolean DEFAULT false,
-  default_role text DEFAULT 'viewer',
-  require_admin_approval boolean DEFAULT true,
-  allow_google_oauth boolean DEFAULT true,
-  created_by uuid REFERENCES auth.users(id),
-  created_at timestamptz DEFAULT now(),
-  UNIQUE(company_id, domain)
-);
-```
+**Issues**:
+- Duplicated email logic (in both functions)
+- Complex HTML building in backend function
+- Harder to maintain/update templates
 
-**Update `company_sso_config`:**
-- Already has `allowed_domains` array - will leverage this
-- Add `auto_provision_on_oauth` boolean column
+**What's Needed**:
+- Remove inline email logic from `provision-partner`
+- Call `send-partner-welcome` edge function instead
+- Keep DRY principle
 
-### Self-Service Partner Invite Flow
+### 8. **No Strategist Assignment** ⚠️
+**Problem**: `assignedStrategistId` in form but never used in edge function.
 
-Partners can invite their own organization members:
-- Admin adds domain (e.g., `acme.com`) to company settings
-- Partner clicks "Invite Team" button
-- Enter email addresses (must match domain)
-- System sends branded invites
-- New users auto-join company on signup
+**What's Needed**:
+- Add logic to `provision-partner` to assign strategist
+- Populate strategist email in welcome email
+- Add strategist field to `partner_provisioning_logs`
 
----
+### 9. **Calendar Integration Missing** ⚠️
+**Problem**: `scheduleOnboardingCall` checkbox never used.
 
-## Phase 4: Google OAuth Pre-Linking
+**What's Needed**:
+- Integrate with calendar system (Cal.com/Cronofy)
+- Auto-schedule onboarding call during provisioning
+- Add link to welcome email
 
-### How It Works
+### 10. **No Bulk Provisioning** ⚠️
+**Problem**: Modal provisions one partner at a time; no CSV/bulk upload.
 
-1. Admin provisions partner with email `ceo@acme.com`
-2. System creates auth user with `email_confirmed: true`
-3. When partner clicks Google OAuth:
-   - Supabase matches Google email to existing user
-   - Links Google identity to account
-   - Partner is logged in seamlessly
-
-### Database Support
-
-Add to profiles table migration:
-```sql
-ALTER TABLE profiles 
-ADD COLUMN oauth_providers text[] DEFAULT '{}',
-ADD COLUMN preferred_auth_method text DEFAULT 'magic_link';
-```
-
-Track allowed OAuth methods per company in `company_sso_config`
+**What's Needed**:
+- Add bulk invite tab to modal
+- CSV upload with email/role/domain columns
+- Validation and preview before bulk submit
+- Progress tracking for bulk operations
 
 ---
 
-## Phase 5: Organization Invite Portal
+## 🐛 Minor Issues to Polish
 
-### Create `src/components/admin/OrganizationInviteModal.tsx`
+### 11. **Missing Validation**
+- Phone number not validated server-side in edge function
+- Company domain validation (must be real domain)
+- No duplicate prevention for company domains
 
-**For TQC Admins:**
-- Bulk invite partners with CSV upload
-- Template selector for email content
-- Schedule send time
-- Track invite acceptance
+### 12. **UX Polish**
+- Success screen doesn't auto-close after duration
+- No copy-all button for magic link + invite code
+- Profile picture generation for welcome email preview
+- Loading states on Companies page button
 
-**For Partners (self-service):**
-- Invite team members from their domain
-- Set individual roles
-- View pending/accepted invites
-- Revoke access
+### 13. **Database**
+- `partner_provisioning_logs` missing `welcome_email_sent` column
+- No index on `provisioned_by` for admin auditing
+- No soft-delete for provisioning logs (compliance)
 
-### Invite Code System Enhancement
+### 14. **Error Handling**
+- Edge function doesn't handle duplicate invite codes
+- No retry logic if email send fails
+- Limited error messages in UI
 
-Extend `invite_codes` table:
-```sql
-ALTER TABLE invite_codes
-ADD COLUMN invite_type text DEFAULT 'member', -- 'member', 'partner', 'organization'
-ADD COLUMN company_id uuid REFERENCES companies(id),
-ADD COLUMN target_role text DEFAULT 'user',
-ADD COLUMN max_uses int DEFAULT 1,
-ADD COLUMN uses_count int DEFAULT 0;
-```
-
----
-
-## Phase 6: Concierge Welcome Experience
-
-### Email Templates
-
-**Partner Welcome Email:**
-- Personalized greeting with admin's name
-- One-click magic link button (72h expiry)
-- Alternative: "Set Your Password" link
-- Company logo and branding
-- Direct line to assigned strategist
-- Calendar link for onboarding call
-
-### SMS Notification
-
-Optional SMS with short magic link for mobile-first partners
+### 15. **Documentation**
+- No README for provisioning system
+- No admin guide for using modal
+- No troubleshooting section
 
 ---
 
-## Files to Create
+## 🚀 Enhancement Opportunities (Beyond Scope)
 
-| File | Description |
-|------|-------------|
-| `src/components/admin/PartnerProvisioningModal.tsx` | Main provisioning modal |
-| `src/components/admin/OrganizationInviteModal.tsx` | Bulk/self-service invites |
-| `src/components/admin/DomainManagementPanel.tsx` | Domain SSO config UI |
-| `src/hooks/usePartnerProvisioning.ts` | Hook for provisioning logic |
-| `supabase/functions/provision-partner/index.ts` | Backend provisioning |
-| `supabase/functions/send-partner-welcome/index.ts` | Welcome email sender |
-| `src/components/partner/TeamInviteWidget.tsx` | Partner self-service invite |
+1. **Partner Self-Onboarding Portal**: Link in email allows self-setup of company details
+2. **Whitelabel Domain Setup**: Auto-configure email DNS for partner domain
+3. **SSO Config Wizard**: Help partners set up Google Workspace SSO
+4. **Pre-populated Dossier**: Auto-fetch LinkedIn data for partner company
+5. **Onboarding Checklist**: Interactive checklist in welcome email
+6. **NPS Feedback Loop**: 30-day post-provisioning NPS survey
+7. **Cost Analysis**: Show ROI/metrics for partner onboarding
 
 ---
 
-## Files to Modify
+## 📋 Implementation Priority Matrix
 
-| File | Changes |
-|------|---------|
-| `src/pages/Companies.tsx` | Add "Provision Partner" button |
-| `src/components/crm/ConvertToPartnerDialog.tsx` | Integrate new provisioning flow |
-| `src/pages/CompanyPage.tsx` | Add domain management tab |
-| `src/components/partner/TeamManagement.tsx` | Add invite functionality |
-| `src/pages/Auth.tsx` | Handle pre-provisioned OAuth linking |
-
----
-
-## Database Migration
-
-```sql
--- Organization domain settings
-CREATE TABLE organization_domain_settings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id uuid REFERENCES companies(id) ON DELETE CASCADE,
-  domain text NOT NULL,
-  is_enabled boolean DEFAULT true,
-  auto_provision_users boolean DEFAULT false,
-  default_role text DEFAULT 'viewer',
-  require_admin_approval boolean DEFAULT true,
-  allow_google_oauth boolean DEFAULT true,
-  created_by uuid REFERENCES auth.users(id),
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now(),
-  UNIQUE(company_id, domain)
-);
-
--- Partner provisioning audit log
-CREATE TABLE partner_provisioning_logs (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  provisioned_user_id uuid REFERENCES auth.users(id),
-  provisioned_by uuid REFERENCES auth.users(id),
-  company_id uuid REFERENCES companies(id),
-  provision_method text NOT NULL, -- 'magic_link', 'password', 'oauth_only'
-  email_verified_by_admin boolean DEFAULT false,
-  phone_verified_by_admin boolean DEFAULT false,
-  invite_code_generated text,
-  metadata jsonb DEFAULT '{}',
-  created_at timestamptz DEFAULT now()
-);
-
--- Extend invite_codes for organization invites
-ALTER TABLE invite_codes
-ADD COLUMN IF NOT EXISTS invite_type text DEFAULT 'member',
-ADD COLUMN IF NOT EXISTS company_id uuid REFERENCES companies(id),
-ADD COLUMN IF NOT EXISTS target_role text DEFAULT 'user',
-ADD COLUMN IF NOT EXISTS max_uses int DEFAULT 1,
-ADD COLUMN IF NOT EXISTS uses_count int DEFAULT 0;
-
--- Extend profiles for OAuth tracking
-ALTER TABLE profiles
-ADD COLUMN IF NOT EXISTS oauth_providers text[] DEFAULT '{}',
-ADD COLUMN IF NOT EXISTS preferred_auth_method text DEFAULT 'magic_link',
-ADD COLUMN IF NOT EXISTS provisioned_by uuid REFERENCES auth.users(id),
-ADD COLUMN IF NOT EXISTS provisioned_at timestamptz;
-
--- RLS Policies
-ALTER TABLE organization_domain_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE partner_provisioning_logs ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins can manage domain settings"
-ON organization_domain_settings FOR ALL
-USING (public.has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Company owners can manage their domain settings"
-ON organization_domain_settings FOR ALL
-USING (
-  EXISTS (
-    SELECT 1 FROM company_members
-    WHERE company_members.company_id = organization_domain_settings.company_id
-    AND company_members.user_id = auth.uid()
-    AND company_members.role IN ('owner', 'admin')
-  )
-);
-```
+| Issue | Severity | Effort | Priority |
+|-------|----------|--------|----------|
+| OAuth Pre-Linking | Critical | 3h | 1 |
+| Magic Link Redirect | Critical | 1h | 2 |
+| Domain Auto-Provisioning | High | 4h | 3 |
+| Resend API Key Config | High | 1h | 4 |
+| Invite Email Sending | High | 2h | 5 |
+| Strategist Assignment | Medium | 1h | 6 |
+| Bulk Provisioning | Medium | 3h | 7 |
+| Calendar Integration | Medium | 2h | 8 |
+| Server-side Validation | Medium | 2h | 9 |
+| Documentation | Low | 2h | 10 |
 
 ---
 
-## Additional 0.0001% Features (Not Requested But Elevating)
+## 🎯 Recommended Next Steps
 
-1. **Partner Dossier Auto-Generation**
-   - When provisioning, auto-fetch LinkedIn data
-   - Pre-populate company intel from Clearbit/similar
-   - Generate relationship map with TQC network
+### Immediate (This Sprint)
+1. **Fix OAuth Pre-Linking** - Blocks partners from using Google sign-in
+2. **Configure Resend** - Verify API key and sender email
+3. **Implement Invite Email** - TeamInviteWidget can't notify members
+4. **Fix Magic Link Redirects** - Custom domains won't work
 
-2. **White-Label Email Domain**
-   - Emails come from `invite@thequantumclub.com`
-   - Branded sender name: "Your Concierge at TQC"
+### Next Sprint
+5. Implement domain auto-provisioning engine
+6. Add strategist assignment logic
+7. Build bulk provisioning UI
+8. Add server-side validation
 
-3. **Calendar Pre-Booking**
-   - Optionally schedule onboarding call during provisioning
-   - Auto-assign strategist based on industry/location
-
-4. **Mobile App Deep Link**
-   - Magic links open native app if installed
-   - Fallback to web with app install prompt
-
-5. **Two-Factor Pre-Configuration**
-   - Option to require 2FA for high-value partners
-   - Send authenticator setup QR in welcome email
-
-6. **Granular Permission Templates**
-   - "Executive Partner" preset (full access)
-   - "HR Contact" preset (hiring only)
-   - "Hiring Manager" preset (specific jobs only)
+### Future
+9. Calendar integration
+10. Self-service onboarding portal
+11. Performance optimizations
+12. Analytics dashboard
 
 ---
 
-## Security Considerations
+## 🧪 Testing Checklist
 
-1. Admin provisioning requires verified admin role
-2. All actions logged to audit trail
-3. Magic links expire in 72 hours
-4. Pre-verified status clearly indicated in UI
-5. Domain settings require company ownership verification
-6. Rate limiting on provisioning endpoints
-7. CSRF protection on all forms
-
----
-
-## Estimated Timeline
-
-| Phase | Description | Duration |
-|-------|-------------|----------|
-| Phase 1 | Partner Provisioning Modal | 3 hours |
-| Phase 2 | Edge Function + Email | 2 hours |
-| Phase 3 | Domain Management | 2 hours |
-| Phase 4 | OAuth Pre-Linking | 1 hour |
-| Phase 5 | Organization Invites | 2 hours |
-| Phase 6 | Welcome Experience | 1 hour |
-| **Total** | | **11 hours** |
-
----
-
-## Success Metrics
-
-- Time to provision partner: < 2 minutes
-- Partner first login success rate: > 95%
-- Self-service invite adoption: > 60% of partners
-- Support tickets for access issues: -80%
-- Partner NPS improvement: +15 points
+- [ ] Provision partner with magic link → receives email → clicks link → auto-logged in
+- [ ] Provision partner with password → logs in with password
+- [ ] Provision partner with oauth_only → links Google account on first login
+- [ ] Team invite → invitee receives email → joins company
+- [ ] Domain auto-provisioning → new signup with @domain → auto-added to company
+- [ ] Magic link expiry → 72+ hours old → shows expired error
+- [ ] Audit logs → all actions tracked with IP/user agent
+- [ ] Resend email fails → graceful error, user can retry
+- [ ] Duplicate email → shows error before provisioning
+- [ ] Custom domain redirects → magic link works on custom domain
 
