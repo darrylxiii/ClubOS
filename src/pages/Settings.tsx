@@ -138,7 +138,7 @@ const Settings = () => {
     }
 
     const tabParam = urlParams.get('tab');
-    if (tabParam && ['profile', 'compensation', 'freelance', 'connections', 'calendar', 'notifications', 'privacy', 'security', 'preferences', 'time-tracking', 'api', 'communication'].includes(tabParam)) {
+    if (tabParam && ['profile', 'ai-persona', 'compensation', 'freelance', 'connections', 'calendar', 'notifications', 'privacy', 'security', 'preferences', 'time-tracking', 'api', 'communication', 'company'].includes(tabParam)) {
       return tabParam;
     }
     const hash = location.hash.replace('#', '');
@@ -539,18 +539,19 @@ const Settings = () => {
             {/* ... (in TabList) */}
 
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="ai-persona">My AI Persona</TabsTrigger>
+            <TabsTrigger value="ai-persona">AI Persona</TabsTrigger>
             <TabsTrigger value="compensation">Compensation</TabsTrigger>
             <TabsTrigger value="freelance">Freelance</TabsTrigger>
-            <TabsTrigger value="time-tracking">Time Tracking</TabsTrigger>
+            <TabsTrigger value="time-tracking">Time</TabsTrigger>
             <TabsTrigger value="connections">Connections</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="communication">Communication</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="communication">Comms</TabsTrigger>
+            <TabsTrigger value="notifications">Alerts</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="api">API</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
+            <TabsTrigger value="company">Company</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
@@ -716,6 +717,25 @@ const Settings = () => {
               onSave={saveProfile}
               saving={saving}
             />
+          </TabsContent>
+
+          <TabsContent value="company" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Company Settings</CardTitle>
+                <CardDescription>
+                  Manage your company profile, branding, and team members
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  Company settings have been consolidated here. If you're a company admin, you can manage your company profile, team members, and branding from this section.
+                </p>
+                <Button variant="outline" onClick={() => navigate('/companies')}>
+                  Go to Company Management
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -12,8 +12,6 @@ const CompanyPage = lazy(() => import("@/pages/CompanyPage"));
 const PartnerAnalyticsDashboard = lazy(() => import("@/pages/PartnerAnalyticsDashboard"));
 const PartnerRejections = lazy(() => import("@/pages/PartnerRejections"));
 const PartnerTargetCompanies = lazy(() => import("@/pages/PartnerTargetCompanies"));
-const CompanySettings = lazy(() => import("@/pages/CompanySettings"));
-const CompanyDomainsSettings = lazy(() => import("@/pages/CompanyDomainsSettings"));
 const AuditLog = lazy(() => import("@/pages/partner/AuditLog"));
 const BillingDashboard = lazy(() => import("@/pages/partner/BillingDashboard"));
 const SLADashboard = lazy(() => import("@/pages/partner/SLADashboard"));
@@ -22,6 +20,13 @@ const LiveInterview = lazy(() => import("@/pages/partner/LiveInterview"));
 const PartnerContractsPage = lazy(() => import("@/pages/partner/PartnerContractsPage"));
 const CreateContractPage = lazy(() => import("@/pages/partner/CreateContractPage"));
 
+/**
+ * Partner routes
+ * 
+ * CONSOLIDATION:
+ * - /company-settings → redirects to /settings?tab=company
+ * - /company-domains → redirects to /settings?tab=company
+ */
 export const partnerRoutes = (
   <>
     <Route
@@ -120,30 +125,12 @@ export const partnerRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/company-settings"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CompanySettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/company-domains"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CompanyDomainsSettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    
+    {/* Legacy routes - redirect to unified Settings */}
+    <Route path="/company-settings" element={<Navigate to="/settings?tab=company" replace />} />
+    <Route path="/company-domains" element={<Navigate to="/settings?tab=company" replace />} />
+    <Route path="/company-domains/:id" element={<Navigate to="/settings?tab=company" replace />} />
+    
     <Route
       path="/partner/audit-log"
       element={
