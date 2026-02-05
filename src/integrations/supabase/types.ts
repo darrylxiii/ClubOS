@@ -22696,44 +22696,80 @@ export type Database = {
       invite_codes: {
         Row: {
           code: string
+          company_id: string | null
           created_at: string
           created_by: string
           created_by_type: string
           expires_at: string
           id: string
+          invite_type: string | null
           is_active: boolean
+          max_uses: number | null
           metadata: Json | null
+          provisioned_by: string | null
+          target_role: string | null
           updated_at: string
           used_at: string | null
           used_by: string | null
+          uses_count: number | null
+          welcome_message: string | null
         }
         Insert: {
           code: string
+          company_id?: string | null
           created_at?: string
           created_by: string
           created_by_type: string
           expires_at: string
           id?: string
+          invite_type?: string | null
           is_active?: boolean
+          max_uses?: number | null
           metadata?: Json | null
+          provisioned_by?: string | null
+          target_role?: string | null
           updated_at?: string
           used_at?: string | null
           used_by?: string | null
+          uses_count?: number | null
+          welcome_message?: string | null
         }
         Update: {
           code?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string
           created_by_type?: string
           expires_at?: string
           id?: string
+          invite_type?: string | null
           is_active?: boolean
+          max_uses?: number | null
           metadata?: Json | null
+          provisioned_by?: string | null
+          target_role?: string | null
           updated_at?: string
           used_at?: string | null
           used_by?: string | null
+          uses_count?: number | null
+          welcome_message?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invite_codes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_codes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_line_items: {
         Row: {
@@ -31865,6 +31901,66 @@ export type Database = {
           },
         ]
       }
+      organization_domain_settings: {
+        Row: {
+          allow_google_oauth: boolean | null
+          allow_self_signup: boolean | null
+          auto_provision_users: boolean | null
+          company_id: string
+          created_at: string | null
+          created_by: string | null
+          default_role: string | null
+          domain: string
+          id: string
+          is_enabled: boolean | null
+          require_admin_approval: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_google_oauth?: boolean | null
+          allow_self_signup?: boolean | null
+          auto_provision_users?: boolean | null
+          company_id: string
+          created_at?: string | null
+          created_by?: string | null
+          default_role?: string | null
+          domain: string
+          id?: string
+          is_enabled?: boolean | null
+          require_admin_approval?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_google_oauth?: boolean | null
+          allow_self_signup?: boolean | null
+          auto_provision_users?: boolean | null
+          company_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          default_role?: string | null
+          domain?: string
+          id?: string
+          is_enabled?: boolean | null
+          require_admin_approval?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_domain_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_domain_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_activity: {
         Row: {
           activity_data: Json | null
@@ -33072,6 +33168,69 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      partner_provisioning_logs: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          email_verified_by_admin: boolean | null
+          first_login_at: string | null
+          id: string
+          invite_code_generated: string | null
+          metadata: Json | null
+          phone_verified_by_admin: boolean | null
+          provision_method: string
+          provisioned_by: string | null
+          provisioned_user_id: string | null
+          welcome_email_sent: boolean | null
+          welcome_email_sent_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          email_verified_by_admin?: boolean | null
+          first_login_at?: string | null
+          id?: string
+          invite_code_generated?: string | null
+          metadata?: Json | null
+          phone_verified_by_admin?: boolean | null
+          provision_method: string
+          provisioned_by?: string | null
+          provisioned_user_id?: string | null
+          welcome_email_sent?: boolean | null
+          welcome_email_sent_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          email_verified_by_admin?: boolean | null
+          first_login_at?: string | null
+          id?: string
+          invite_code_generated?: string | null
+          metadata?: Json | null
+          phone_verified_by_admin?: boolean | null
+          provision_method?: string
+          provisioned_by?: string | null
+          provisioned_user_id?: string | null
+          welcome_email_sent?: boolean | null
+          welcome_email_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_provisioning_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_provisioning_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_requests: {
         Row: {
@@ -36641,6 +36800,8 @@ export type Database = {
           account_reviewed_at: string | null
           account_status: string | null
           actively_looking: boolean | null
+          admin_verified_email: boolean | null
+          admin_verified_phone: boolean | null
           allow_stealth_cold_outreach: boolean | null
           apple_music_connected: boolean | null
           apple_music_playlists: Json | null
@@ -36705,6 +36866,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           notice_period: string | null
+          oauth_providers: string[] | null
           onboarding_completed_at: string | null
           onboarding_current_step: number | null
           onboarding_last_activity_at: string | null
@@ -36713,6 +36875,7 @@ export type Database = {
           overtime_willingness: number | null
           phone: string | null
           phone_verified: boolean | null
+          preferred_auth_method: string | null
           preferred_currency: string
           preferred_job_types: string[] | null
           preferred_language: string | null
@@ -36721,6 +36884,8 @@ export type Database = {
           privacy_accepted_at: string | null
           privacy_settings: Json | null
           profile_slug: string | null
+          provisioned_at: string | null
+          provisioned_by: string | null
           public_fields: Json | null
           reference_timezone: string | null
           remote_work_aspiration: boolean | null
@@ -36760,6 +36925,8 @@ export type Database = {
           account_reviewed_at?: string | null
           account_status?: string | null
           actively_looking?: boolean | null
+          admin_verified_email?: boolean | null
+          admin_verified_phone?: boolean | null
           allow_stealth_cold_outreach?: boolean | null
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
@@ -36824,6 +36991,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          oauth_providers?: string[] | null
           onboarding_completed_at?: string | null
           onboarding_current_step?: number | null
           onboarding_last_activity_at?: string | null
@@ -36832,6 +37000,7 @@ export type Database = {
           overtime_willingness?: number | null
           phone?: string | null
           phone_verified?: boolean | null
+          preferred_auth_method?: string | null
           preferred_currency?: string
           preferred_job_types?: string[] | null
           preferred_language?: string | null
@@ -36840,6 +37009,8 @@ export type Database = {
           privacy_accepted_at?: string | null
           privacy_settings?: Json | null
           profile_slug?: string | null
+          provisioned_at?: string | null
+          provisioned_by?: string | null
           public_fields?: Json | null
           reference_timezone?: string | null
           remote_work_aspiration?: boolean | null
@@ -36879,6 +37050,8 @@ export type Database = {
           account_reviewed_at?: string | null
           account_status?: string | null
           actively_looking?: boolean | null
+          admin_verified_email?: boolean | null
+          admin_verified_phone?: boolean | null
           allow_stealth_cold_outreach?: boolean | null
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
@@ -36943,6 +37116,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          oauth_providers?: string[] | null
           onboarding_completed_at?: string | null
           onboarding_current_step?: number | null
           onboarding_last_activity_at?: string | null
@@ -36951,6 +37125,7 @@ export type Database = {
           overtime_willingness?: number | null
           phone?: string | null
           phone_verified?: boolean | null
+          preferred_auth_method?: string | null
           preferred_currency?: string
           preferred_job_types?: string[] | null
           preferred_language?: string | null
@@ -36959,6 +37134,8 @@ export type Database = {
           privacy_accepted_at?: string | null
           privacy_settings?: Json | null
           profile_slug?: string | null
+          provisioned_at?: string | null
+          provisioned_by?: string | null
           public_fields?: Json | null
           reference_timezone?: string | null
           remote_work_aspiration?: boolean | null
