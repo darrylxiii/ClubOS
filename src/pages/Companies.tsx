@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, MapPin, Users, Search, ChevronDown, TrendingUp, Briefcase, Eye, ExternalLink, Heart, BarChart3, Globe, Linkedin, Calendar } from "lucide-react";
+import { Building2, MapPin, Users, Search, ChevronDown, TrendingUp, Briefcase, Eye, ExternalLink, Heart, BarChart3, Globe, Linkedin, Calendar, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +24,7 @@ import { CompanyFeeConfigDialog } from "@/components/financial/CompanyFeeConfigD
 import { CompanyMembersManager } from "@/components/admin/companies/CompanyMembersManager";
 import { ArchiveCompanyDialog } from "@/components/admin/companies/ArchiveCompanyDialog";
 import { DeleteCompanyDialog } from "@/components/admin/companies/DeleteCompanyDialog";
+import { PartnerProvisioningModal } from "@/components/admin/PartnerProvisioningModal";
 import type { FeeType } from "@/types/company";
 
 interface Company {
@@ -96,6 +97,7 @@ export default function Companies() {
   const [membersDialogOpen, setMembersDialogOpen] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [provisioningModalOpen, setProvisioningModalOpen] = useState(false);
 
   const isAdmin = currentRole === 'admin';
   const isPartner = currentRole === 'partner';
@@ -382,10 +384,25 @@ export default function Companies() {
             </p>
           </div>
 
-          {(isAdmin || isPartner) && (
-            <AddCompanyDialog onSuccess={handleRefresh} />
-          )}
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <Button onClick={() => setProvisioningModalOpen(true)} className="gap-2">
+                <Crown className="w-4 h-4" />
+                Provision Partner
+              </Button>
+            )}
+            {(isAdmin || isPartner) && (
+              <AddCompanyDialog onSuccess={handleRefresh} />
+            )}
+          </div>
         </div>
+        
+        {/* Partner Provisioning Modal */}
+        <PartnerProvisioningModal
+          open={provisioningModalOpen}
+          onClose={() => setProvisioningModalOpen(false)}
+          onSuccess={handleRefresh}
+        />
 
         {/* Overall Metrics Dashboard */}
         {overallMetrics && (
