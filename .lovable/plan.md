@@ -1,260 +1,295 @@
 
-# Elite Partner Provisioning System: Comprehensive Audit Report
 
-## Current Implementation Status: 85/100
+# Partner Team Invite System: Domain-Restricted Implementation
 
-The Partner Provisioning system is well-implemented with most core functionality in place, but several areas require improvement for production-grade reliability and UX excellence.
+## Overview
 
----
-
-## ✅ What's Working Well (Strengths)
-
-### 1. **Core Architecture** (Excellent)
-- ✅ Three-step wizard modal with progress indicators
-- ✅ Comprehensive admin UI with pre-verification toggles
-- ✅ Edge function orchestrates all backend operations atomically
-- ✅ Domain-based auto-provisioning infrastructure
-- ✅ Audit logging to `partner_provisioning_logs` and `comprehensive_audit_logs`
-- ✅ Database schema properly extended with new tables
-- ✅ RLS policies implemented for access control
-
-### 2. **Email Delivery** (Good)
-- ✅ Resend integration for branded welcome emails
-- ✅ Template supports magic links, temporary passwords, and strategist info
-- ✅ 72-hour magic link expiry enforced
-- ✅ Proper HTML escaping for security
-
-### 3. **User Experience** (Good)
-- ✅ Success screen with clear next steps
-- ✅ Magic link copying functionality
-- ✅ Company creation on-the-fly
-- ✅ Domain extraction from email address
-- ✅ International phone number support
-- ✅ Motion animations for engagement
-
-### 4. **Security** (Good)
-- ✅ Admin role verification via JWT
-- ✅ User creation via `auth.admin.createUser()`
-- ✅ Email/phone pre-confirmation support
-- ✅ Invite code generation with expiry
-- ✅ Audit trail for all provisioning actions
-- ✅ Phone number validation
+This plan implements a complete domain-based team invite system for partners, ensuring that partners can only invite team members with email addresses matching their company's authorized domain(s).
 
 ---
 
-## ⚠️ Critical Issues to Fix (Priority: High)
+## Current State Analysis
 
-### 1. **OAuth Pre-Linking NOT IMPLEMENTED** ❌
-**Problem**: Plan promised "seamless Google OAuth linking" for pre-provisioned partners, but this isn't built.
-- Pre-verified email accounts can't auto-link to Google OAuth on first login
-- `preferred_auth_method` column exists but isn't used
-- OAuth linking logic in `Auth.tsx` doesn't check for pre-provisioned accounts
+### What Exists
 
-**Impact**: Partners with `oauth_only` provision method get stuck; can't use Google Sign-In.
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `TeamInviteWidget.tsx` | Created but NOT INTEGRATED | Has domain validation logic, but not connected to any page |
+| `organization_domain_settings` table | Exists, empty | Stores domain configurations per company |
+| `DomainManagementPanel.tsx` | Admin-only UI | Partners cannot manage their own domains |
+| Domain validation in widget | Basic client-side | Checks if email ends with `@domain` |
 
-**What's Needed**:
-- Modify `Auth.tsx` OAuth callback to detect pre-provisioned accounts matching Google email
-- Link Google identity server-side when email matches pre-verified account
-- Allow seamless first-login with Google for `oauth_only` partners
-- Add test for OAuth pre-linking flow
+### Gaps Identified
 
-### 2. **Magic Link Redirect Broken** ⚠️
-**Problem**: Magic link in edge function hardcodes redirect to `/home`:
-```typescript
-redirectTo: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/home`
+1. **Widget not integrated**: `TeamInviteWidget` is never rendered anywhere
+2. **No domain source for partners**: Partners' companies have no domain configured
+3. **Domain lookup missing**: No logic to fetch partner's authorized domain from `organization_domain_settings`
+4. **Server-side validation absent**: Edge function doesn't validate domain
+5. **Partners can't see domains**: Only admins can access the Domains tab
+6. **No auto-detection**: Partner's email domain isn't auto-suggested when setting up company
+
+---
+
+## Implementation Architecture
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                  PARTNER TEAM INVITE FLOW                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. Partner accesses Company Page → Team Tab                    │
+│     ↓                                                           │
+│  2. TeamInviteWidget renders (if canInvite=true)                │
+│     ↓                                                           │
+│  3. Widget fetches authorized domains from                      │
+│     organization_domain_settings WHERE company_id = X           │
+│     ↓                                                           │
+│  4. Partner enters invitee email                                │
+│     ↓                                                           │
+│  5. Client validates: email domain ∈ authorized domains         │
+│     ↓                                                           │
+│  6. Edge function validates again server-side                   │
+│     ↓                                                           │
+│  7. Invite created + email sent                                 │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Issues**:
-- Works for Lovable preview but fails for custom domains
-- No post-login onboarding redirect for pre-provisioned partners
-- Doesn't differentiate partner vs user onboarding flows
+---
 
-**What's Needed**:
-- Use environment variable or config for redirect URL
-- Route pre-provisioned partners to partner-specific onboarding
-- Support custom domain URLs
+## Phase 1: Integrate TeamInviteWidget into Company Page
 
-### 3. **Domain Auto-Provisioning Incomplete** ⚠️
-**Problem**: `organization_domain_settings` table exists but auto-provisioning logic isn't implemented.
-- Modal allows enabling `enableDomainAutoProvisioning` but nothing triggers it
-- No edge function to auto-create users when they signup with @domain email
-- No approval workflow for `require_admin_approval` setting
+### Modify `src/pages/CompanyPage.tsx`
 
-**What's Needed**:
-- Create `auto-provision-user` edge function triggered on signup
-- Check if email domain matches any `organization_domain_settings`
-- Auto-add to company if `auto_provision_users=true`
-- Queue for approval if `require_admin_approval=true`
-- Notification system for pending approvals
+- Import `TeamInviteWidget`
+- Add widget to the Team tab for company members (partners/recruiters)
+- Pass `companyId`, `canInvite`, and dynamically fetch `companyDomain`
 
-### 4. **Resend Integration Not Configured** ❌
-**Problem**: Code calls `RESEND_API_KEY` but no indication if it's actually set up.
-- `send-partner-welcome` function exists but is never called
-- Welcome email logic is duplicated between two functions
-- No fallback if Resend isn't configured
+**Location**: Team tab, below the "Manage" sub-tab or as a card in the Team header section
 
-**What's Needed**:
-- Verify Resend API key is in secrets
-- Call `send-partner-welcome` edge function after provisioning
-- Add console warning if `RESEND_API_KEY` missing
-- Implement fallback email notification
-
-### 5. **Resend Email Address Not Whitelisted** ⚠️
-**Problem**: Function sends from `concierge@thequantumclub.com` but this may not be configured in Resend.
-
-**What's Needed**:
-- Verify sender email is whitelisted in Resend dashboard
-- Update to use `noreply@thequantumclub.com` (more standard)
-- Document email setup requirements
+**Permissions**:
+- `canInvite = true` for company members with role: `owner`, `admin`, or `recruiter`
+- Admins can invite to any company; Partners only to their own
 
 ---
 
-## 🔨 Medium Priority Issues
+## Phase 2: Domain Lookup Hook
 
-### 6. **Invite Code Email NOT SENT** ⚠️
-**Problem**: `TeamInviteWidget` creates invite codes but has TODO comment:
+### Create `src/hooks/useCompanyDomains.ts`
+
+A hook that:
+1. Fetches authorized domains from `organization_domain_settings` for a company
+2. Returns: `{ domains: string[], primaryDomain: string | null, loading: boolean }`
+3. Caches result with React Query
+
+**Usage**:
 ```typescript
-// TODO: Send invite email via edge function
+const { domains, primaryDomain, loading } = useCompanyDomains(companyId);
+// Pass to TeamInviteWidget
 ```
 
-**Impact**: Partners invite team members but invitees never get notification email.
+---
 
-**What's Needed**:
-- Create `send-invite-email` edge function
-- Call from TeamInviteWidget when invite created
-- Include company domain validation in email
+## Phase 3: Enhanced TeamInviteWidget
 
-### 7. **Resend Welcome Email Endpoint Not Triggered** ⚠️
-**Problem**: Provisioning function doesn't call `send-partner-welcome` edge function; instead sends inline.
+### Modify `src/components/partner/TeamInviteWidget.tsx`
 
-**Issues**:
-- Duplicated email logic (in both functions)
-- Complex HTML building in backend function
-- Harder to maintain/update templates
+**Current**: Accepts optional `companyDomain` prop
 
-**What's Needed**:
-- Remove inline email logic from `provision-partner`
-- Call `send-partner-welcome` edge function instead
-- Keep DRY principle
+**Enhanced**:
+1. Fetch domains internally using `useCompanyDomains` hook
+2. Support multiple authorized domains (not just one)
+3. Show dropdown/badge of allowed domains
+4. Auto-detect partner's own email domain as suggestion
+5. Improved validation messaging
 
-### 8. **No Strategist Assignment** ⚠️
-**Problem**: `assignedStrategistId` in form but never used in edge function.
-
-**What's Needed**:
-- Add logic to `provision-partner` to assign strategist
-- Populate strategist email in welcome email
-- Add strategist field to `partner_provisioning_logs`
-
-### 9. **Calendar Integration Missing** ⚠️
-**Problem**: `scheduleOnboardingCall` checkbox never used.
-
-**What's Needed**:
-- Integrate with calendar system (Cal.com/Cronofy)
-- Auto-schedule onboarding call during provisioning
-- Add link to welcome email
-
-### 10. **No Bulk Provisioning** ⚠️
-**Problem**: Modal provisions one partner at a time; no CSV/bulk upload.
-
-**What's Needed**:
-- Add bulk invite tab to modal
-- CSV upload with email/role/domain columns
-- Validation and preview before bulk submit
-- Progress tracking for bulk operations
+**UI Changes**:
+- Show "Allowed domains: @acme.com, @acme.io" badge
+- Placeholder dynamically uses first allowed domain
+- Error message lists all valid options
 
 ---
 
-## 🐛 Minor Issues to Polish
+## Phase 4: Server-Side Domain Validation
 
-### 11. **Missing Validation**
-- Phone number not validated server-side in edge function
-- Company domain validation (must be real domain)
-- No duplicate prevention for company domains
+### Modify `supabase/functions/send-team-invite/index.ts`
 
-### 12. **UX Polish**
-- Success screen doesn't auto-close after duration
-- No copy-all button for magic link + invite code
-- Profile picture generation for welcome email preview
-- Loading states on Companies page button
+**Add validation**:
+1. Extract invitee email domain
+2. Fetch `organization_domain_settings` for the company
+3. Verify email domain is in allowed list
+4. Return 403 if domain not authorized
 
-### 13. **Database**
-- `partner_provisioning_logs` missing `welcome_email_sent` column
-- No index on `provisioned_by` for admin auditing
-- No soft-delete for provisioning logs (compliance)
+**New validation logic**:
+```typescript
+// Extract domain from email
+const inviteeDomain = body.email.split('@')[1];
 
-### 14. **Error Handling**
-- Edge function doesn't handle duplicate invite codes
-- No retry logic if email send fails
-- Limited error messages in UI
+// Fetch allowed domains for company
+const { data: domainSettings } = await supabase
+  .from('organization_domain_settings')
+  .select('domain')
+  .eq('company_id', body.companyId)
+  .eq('is_enabled', true);
 
-### 15. **Documentation**
-- No README for provisioning system
-- No admin guide for using modal
-- No troubleshooting section
+const allowedDomains = domainSettings?.map(d => d.domain) || [];
 
----
-
-## 🚀 Enhancement Opportunities (Beyond Scope)
-
-1. **Partner Self-Onboarding Portal**: Link in email allows self-setup of company details
-2. **Whitelabel Domain Setup**: Auto-configure email DNS for partner domain
-3. **SSO Config Wizard**: Help partners set up Google Workspace SSO
-4. **Pre-populated Dossier**: Auto-fetch LinkedIn data for partner company
-5. **Onboarding Checklist**: Interactive checklist in welcome email
-6. **NPS Feedback Loop**: 30-day post-provisioning NPS survey
-7. **Cost Analysis**: Show ROI/metrics for partner onboarding
+if (allowedDomains.length > 0 && !allowedDomains.includes(inviteeDomain)) {
+  return new Response(JSON.stringify({ 
+    error: `Only emails from ${allowedDomains.join(', ')} are allowed` 
+  }), { status: 403, headers: corsHeaders });
+}
+```
 
 ---
 
-## 📋 Implementation Priority Matrix
+## Phase 5: Partner Domain Management
 
-| Issue | Severity | Effort | Priority |
-|-------|----------|--------|----------|
-| OAuth Pre-Linking | Critical | 3h | 1 |
-| Magic Link Redirect | Critical | 1h | 2 |
-| Domain Auto-Provisioning | High | 4h | 3 |
-| Resend API Key Config | High | 1h | 4 |
-| Invite Email Sending | High | 2h | 5 |
-| Strategist Assignment | Medium | 1h | 6 |
-| Bulk Provisioning | Medium | 3h | 7 |
-| Calendar Integration | Medium | 2h | 8 |
-| Server-side Validation | Medium | 2h | 9 |
-| Documentation | Low | 2h | 10 |
+### Create `src/components/partner/PartnerDomainSettings.tsx`
 
----
+A simplified domain management panel for partners (not full admin panel):
+- View authorized domains for their company
+- Request to add a new domain (requires admin approval)
+- Cannot modify SSO settings (admin-only)
 
-## 🎯 Recommended Next Steps
+### Add to Company Page
 
-### Immediate (This Sprint)
-1. **Fix OAuth Pre-Linking** - Blocks partners from using Google sign-in
-2. **Configure Resend** - Verify API key and sender email
-3. **Implement Invite Email** - TeamInviteWidget can't notify members
-4. **Fix Magic Link Redirects** - Custom domains won't work
-
-### Next Sprint
-5. Implement domain auto-provisioning engine
-6. Add strategist assignment logic
-7. Build bulk provisioning UI
-8. Add server-side validation
-
-### Future
-9. Calendar integration
-10. Self-service onboarding portal
-11. Performance optimizations
-12. Analytics dashboard
+- Partners see a "Settings" sub-tab in Team section
+- Includes: Invite widget + Domain settings (view-only)
 
 ---
 
-## 🧪 Testing Checklist
+## Phase 6: Auto-Suggest Domain on Company Setup
 
-- [ ] Provision partner with magic link → receives email → clicks link → auto-logged in
-- [ ] Provision partner with password → logs in with password
-- [ ] Provision partner with oauth_only → links Google account on first login
-- [ ] Team invite → invitee receives email → joins company
-- [ ] Domain auto-provisioning → new signup with @domain → auto-added to company
-- [ ] Magic link expiry → 72+ hours old → shows expired error
-- [ ] Audit logs → all actions tracked with IP/user agent
-- [ ] Resend email fails → graceful error, user can retry
-- [ ] Duplicate email → shows error before provisioning
-- [ ] Custom domain redirects → magic link works on custom domain
+### Modify Partner Provisioning
+
+When a partner is provisioned:
+1. Extract domain from partner's email
+2. Auto-create `organization_domain_settings` entry with that domain
+3. Set `is_enabled = true`, `require_admin_approval = false`
+
+This ensures every provisioned partner's company has at least one authorized domain.
+
+---
+
+## Files to Create
+
+| File | Description |
+|------|-------------|
+| `src/hooks/useCompanyDomains.ts` | Hook to fetch company's authorized domains |
+| `src/components/partner/PartnerDomainSettings.tsx` | Partner view of domain settings |
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/pages/CompanyPage.tsx` | Import and render `TeamInviteWidget` in Team tab |
+| `src/components/partner/TeamInviteWidget.tsx` | Use `useCompanyDomains`, support multiple domains |
+| `supabase/functions/send-team-invite/index.ts` | Add server-side domain validation |
+| `supabase/functions/provision-partner/index.ts` | Auto-create domain setting on provision |
+
+---
+
+## Database Considerations
+
+No new tables required. Existing `organization_domain_settings` table has all necessary columns:
+- `id`, `company_id`, `domain`, `is_enabled`, `auto_provision_users`, etc.
+
+**Optional enhancement**: Add `created_by_partner boolean` column to track partner-requested domains vs admin-added
+
+---
+
+## Security Model
+
+| Action | Who Can Do It |
+|--------|---------------|
+| View authorized domains | Company members (owner, admin, recruiter) |
+| Add domain | Admins only (or partner request with approval) |
+| Invite within domain | Company members with invite permissions |
+| Modify domain SSO settings | Admins only |
+| Delete domain | Admins only |
+
+---
+
+## Validation Flow Summary
+
+```text
+CLIENT SIDE
+├── User enters email: john@example.com
+├── Extract domain: example.com
+├── Check: example.com ∈ [acme.com, acme.io]
+├── If NO → Show error: "Only @acme.com or @acme.io emails allowed"
+├── If YES → Proceed to submit
+
+SERVER SIDE (Edge Function)
+├── Receive request with email + companyId
+├── Query organization_domain_settings for companyId
+├── Extract allowed domains
+├── Validate invitee domain against list
+├── If invalid → 403 Forbidden
+├── If valid → Create invite + send email
+```
+
+---
+
+## Technical Approach
+
+### useCompanyDomains Hook
+
+```typescript
+export function useCompanyDomains(companyId: string) {
+  return useQuery({
+    queryKey: ['company-domains', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('organization_domain_settings')
+        .select('domain, is_enabled')
+        .eq('company_id', companyId)
+        .eq('is_enabled', true);
+      
+      if (error) throw error;
+      return data?.map(d => d.domain) || [];
+    },
+    enabled: !!companyId
+  });
+}
+```
+
+### Widget Integration Point
+
+In `CompanyPage.tsx`, within the Team tab's manage section:
+
+```tsx
+<TeamInviteWidget 
+  companyId={company.id}
+  canInvite={isCompanyMember && memberRole !== 'viewer'}
+/>
+```
+
+---
+
+## Success Criteria
+
+1. Partners can access invite widget from their company's Team tab
+2. Widget shows authorized domains clearly
+3. Invites are blocked (client + server) for unauthorized domains
+4. Provisioned partners automatically have their domain authorized
+5. Partners cannot bypass domain restrictions
+6. Audit logs track all invite attempts
+
+---
+
+## Estimated Implementation Time
+
+| Phase | Duration |
+|-------|----------|
+| Phase 1: Widget Integration | 30 min |
+| Phase 2: Domain Hook | 30 min |
+| Phase 3: Enhanced Widget | 45 min |
+| Phase 4: Server Validation | 30 min |
+| Phase 5: Partner Domain View | 30 min |
+| Phase 6: Auto-Suggest on Provision | 30 min |
+| **Total** | **~3 hours** |
 
