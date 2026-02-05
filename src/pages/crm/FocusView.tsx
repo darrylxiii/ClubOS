@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Calendar,
   CheckCircle2,
@@ -18,12 +19,17 @@ import {
 } from 'lucide-react';
 import { useCRMActivities } from '@/hooks/useCRMActivities';
 import { useCRMKeyboardShortcuts } from '@/hooks/useCRMKeyboardShortcuts';
+import { useActivitySelection } from '@/hooks/useActivitySelection';
 import { ActivityItem } from '@/components/crm/ActivityItem';
 import { ActivityQuickAdd } from '@/components/crm/ActivityQuickAdd';
+import { ActivityEditDialog } from '@/components/crm/ActivityEditDialog';
+import { BulkActivityActions } from '@/components/crm/BulkActivityActions';
 import { KeyboardShortcutsHelp } from '@/components/crm/KeyboardShortcutsHelp';
+import type { CRMActivity } from '@/types/crm-activities';
 
 export default function FocusView() {
   const [addActivityOpen, setAddActivityOpen] = useState(false);
+  const [editActivity, setEditActivity] = useState<CRMActivity | null>(null);
 
   // Fetch different activity categories
   const { activities: overdueActivities, loading: loadingOverdue, refetch: refetchOverdue } = useCRMActivities({ 
@@ -39,10 +45,22 @@ export default function FocusView() {
     limit: 5,
   });
 
+  // Combine all activities for selection
+  const allActivities = [...overdueActivities, ...dueTodayActivities, ...upcomingActivities];
+  
+  const {
+    selectedIds,
+    toggleActivity,
+    clearSelection,
+    isSelected,
+    selectedCount,
+  } = useActivitySelection({ activities: allActivities });
+
   const refetchAll = () => {
     refetchOverdue();
     refetchToday();
     refetchUpcoming();
+    clearSelection();
   };
 
   const { shortcuts, showHelp, setShowHelp } = useCRMKeyboardShortcuts({
@@ -57,6 +75,35 @@ export default function FocusView() {
   const progressPercent = totalDue > 0 ? (completedToday / totalDue) * 100 : 100;
 
   const allCaughtUp = overdueActivities.length === 0 && dueTodayActivities.length === 0;
+
+  const handleEditActivity = (activity: CRMActivity) => {
+    setEditActivity(activity);
+  };
+
+  const renderActivityItem = (activity: CRMActivity, index: number) => (
+    <motion.div
+      key={activity.id}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ delay: index * 0.05 }}
+      className="flex items-start gap-2"
+    >
+      <div className="pt-3">
+        <Checkbox
+          checked={isSelected(activity.id)}
+          onCheckedChange={() => toggleActivity(activity.id)}
+          aria-label={`Select activity: ${activity.subject}`}
+        />
+      </div>
+      <div className="flex-1">
+        <ActivityItem 
+          activity={activity} 
+          onEdit={handleEditActivity}
+        />
+      </div>
+    </motion.div>
+  );
 
   return (
     <AppLayout>
@@ -160,17 +207,9 @@ export default function FocusView() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <AnimatePresence mode="popLayout">
-                        {overdueActivities.map((activity, index) => (
-                          <motion.div
-                            key={activity.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            transition={{ delay: index * 0.05 }}
-                          >
-                            <ActivityItem activity={activity} />
-                          </motion.div>
-                        ))}
+                        {overdueActivities.map((activity, index) => 
+                          renderActivityItem(activity, index)
+                        )}
                       </AnimatePresence>
                     </CardContent>
                   </Card>
@@ -193,17 +232,9 @@ export default function FocusView() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <AnimatePresence mode="popLayout">
-                        {dueTodayActivities.map((activity, index) => (
-                          <motion.div
-                            key={activity.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            transition={{ delay: index * 0.05 }}
-                          >
-                            <ActivityItem activity={activity} />
-                          </motion.div>
-                        ))}
+                        {dueTodayActivities.map((activity, index) => 
+                          renderActivityItem(activity, index)
+                        )}
                       </AnimatePresence>
                     </CardContent>
                   </Card>
@@ -231,8 +262,22 @@ export default function FocusView() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}
+                          className="flex items-start gap-2"
                         >
-                          <ActivityItem activity={activity} compact />
+                          <div className="pt-3">
+                            <Checkbox
+                              checked={isSelected(activity.id)}
+                              onCheckedChange={() => toggleActivity(activity.id)}
+                              aria-label={`Select activity: ${activity.subject}`}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <ActivityItem 
+                              activity={activity} 
+                              onEdit={handleEditActivity}
+                              compact 
+                            />
+                          </div>
                         </motion.div>
                       ))}
                     </CardContent>
@@ -241,6 +286,21 @@ export default function FocusView() {
               )}
             </div>
           )}
+
+          {/* Bulk Actions Bar */}
+          <BulkActivityActions
+            selectedIds={selectedIds}
+            onClearSelection={clearSelection}
+            onSuccess={refetchAll}
+          />
+
+          {/* Activity Edit Dialog */}
+          <ActivityEditDialog
+            activity={editActivity}
+            open={!!editActivity}
+            onOpenChange={(open) => !open && setEditActivity(null)}
+            onSuccess={refetchAll}
+          />
 
           {/* Keyboard Shortcuts Help */}
           <KeyboardShortcutsHelp
