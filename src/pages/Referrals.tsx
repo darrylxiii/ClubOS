@@ -62,7 +62,7 @@ export default function Referrals() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-7xl space-y-6">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
