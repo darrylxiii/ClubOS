@@ -164,17 +164,19 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           logoDarkShort={quantumClubLogoDarkShort}
           open={sidebarOpen}
           onOpenChange={handleSidebarOpenChange}
+          footer={
+            <SidebarFooter
+              userName={firstName}
+              userInitial={firstName[0].toUpperCase()}
+              userAvatarUrl={userProfile?.avatar_url || null}
+              onSignOut={signOut}
+              profilePath={profilePath}
+            />
+          }
         >
           {navigationGroups.map((group) => (
             <SidebarGroup key={group.title} group={group} />
           ))}
-          <SidebarFooter
-            userName={firstName}
-            userInitial={firstName[0].toUpperCase()}
-            userAvatarUrl={userProfile?.avatar_url || null}
-            onSignOut={signOut}
-            profilePath={profilePath}
-          />
         </Sidebar>
       </SidebarErrorBoundary>
 

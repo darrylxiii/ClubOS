@@ -135,6 +135,7 @@ interface SidebarProps {
   logoDarkShort: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  footer?: ReactNode;
 }
 
 export const Sidebar = ({ 
@@ -146,6 +147,7 @@ export const Sidebar = ({
   logoDarkShort,
   open: controlledOpen,
   onOpenChange,
+  footer,
 }: SidebarProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
   
@@ -164,10 +166,11 @@ export const Sidebar = ({
         logoDark={logoDark} 
         logoLightShort={logoLightShort} 
         logoDarkShort={logoDarkShort}
+        footer={footer}
       >
         {children}
       </DesktopSidebar>
-      <MobileSidebar logoLight={logoLight} logoDark={logoDark}>
+      <MobileSidebar logoLight={logoLight} logoDark={logoDark} footer={footer}>
         {children}
       </MobileSidebar>
     </SidebarProvider>
@@ -185,15 +188,16 @@ interface DesktopSidebarProps {
   logoDark: string;
   logoLightShort: string;
   logoDarkShort: string;
+  footer?: ReactNode;
 }
 
-const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort }: DesktopSidebarProps) => {
+const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort, footer }: DesktopSidebarProps) => {
   const { open, setOpen } = useSidebar();
 
   return (
     <motion.aside
       className={cn(
-        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop",
+        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop relative",
         "bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20",
         "shadow-[var(--shadow-glass-lg)]",
         className
@@ -269,10 +273,27 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
         </motion.div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide py-4">
-        {children}
+      {/* Scrollable Menu Content */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide py-4 relative">
+        <div className="pb-20">
+          {children}
+        </div>
       </div>
+
+      {/* Fade gradient overlay - sits above scrollable content */}
+      <div 
+        className="absolute bottom-20 left-0 right-0 h-16 pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(to bottom, transparent 0%, hsl(var(--card) / 0.3) 30%, hsl(var(--card) / 0.95) 100%)'
+        }}
+      />
+
+      {/* Fixed Footer - always visible at bottom */}
+      {footer && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 bg-card/95 backdrop-blur-sm border-t border-border/10">
+          {footer}
+        </div>
+      )}
     </motion.aside>
   );
 };
@@ -285,9 +306,10 @@ interface MobileSidebarProps {
   children: ReactNode;
   logoLight: string;
   logoDark: string;
+  footer?: ReactNode;
 }
 
-const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) => {
+const MobileSidebar = ({ children, logoLight, logoDark, footer }: MobileSidebarProps) => {
   const { open, setOpen, toggle, isAnimating } = useSidebar();
 
   return (
@@ -338,7 +360,7 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
                 duration: 0.3,
                 ease: [0.4, 0, 0.2, 1],
               }}
-              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-sidebar-mobile md:hidden flex flex-col shadow-[var(--shadow-glass-xl)]"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-sidebar-mobile md:hidden flex flex-col shadow-[var(--shadow-glass-xl)] relative"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
                 <img
@@ -361,9 +383,26 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
                   <X className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </div>
-              <div className="flex-1 overflow-y-auto py-4">
-                {children}
+              <div className="flex-1 overflow-y-auto py-4 relative">
+                <div className="pb-20">
+                  {children}
+                </div>
               </div>
+
+              {/* Fade gradient overlay */}
+              <div 
+                className="absolute bottom-20 left-0 right-0 h-16 pointer-events-none z-10"
+                style={{
+                  background: 'linear-gradient(to bottom, transparent 0%, hsl(var(--card) / 0.3) 30%, hsl(var(--card) / 0.95) 100%)'
+                }}
+              />
+
+              {/* Fixed Footer */}
+              {footer && (
+                <div className="absolute bottom-0 left-0 right-0 z-20 bg-card/95 backdrop-blur-sm border-t border-border/10">
+                  {footer}
+                </div>
+              )}
             </motion.aside>
           </>
         )}
