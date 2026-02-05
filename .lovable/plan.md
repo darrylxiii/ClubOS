@@ -1,190 +1,209 @@
 
 
-## Holistic Fix: LiveKit Module Resolution Error
+## CRM Enhancements: Comprehensive Implementation Plan
 
-### Root Cause Analysis
-
-The error `Failed to resolve module specifier "livekit-client"` occurs because of a **conflict between Vite's development configuration and runtime module resolution**.
-
-**In `vite.config.ts` (lines 218-240):**
-```typescript
-// Development mode: mark heavy libs as external
-...(mode === 'development' ? {
-  external: [
-    'livekit-client',
-    '@livekit/components-react',
-    '@livekit/components-styles',
-    // ... other packages
-  ],
-} : {}),
-```
-
-**What this means:**
-1. In development mode, Vite marks `livekit-client` as "external"
-2. External packages are **not bundled** - they're expected to be available at runtime
-3. When the browser encounters `import ... from 'livekit-client'`, it cannot resolve bare module specifiers
-4. The browser throws: `Failed to resolve module specifier "livekit-client"`
-
-**Why it crashes on `/meeting-intelligence`:**
-The `LiveKitMeetingWrapper.tsx` file has static top-level imports from `@livekit/components-react`:
-
-```typescript
-import {
-    LiveKitRoom,
-    VideoConference,
-    RoomAudioRenderer,
-    LayoutContextProvider,
-} from '@livekit/components-react';
-import '@livekit/components-styles';
-```
-
-Even though `MeetingVideoCallInterface` lazy-loads `LiveKitMeetingWrapper`, the **bundler still tries to resolve** the external packages when preparing the module graph.
+Based on my deep audit of the CRM system at `/crm/focus` and supporting components, I've identified several gaps and enhancement opportunities that will transform the CRM into an enterprise-grade sales pipeline tool.
 
 ---
 
-### Solution
+### Current State Assessment
 
-There are two complementary fixes needed:
+| Component | Status | Score |
+|-----------|--------|-------|
+| `useCRMActivities` hook | Complete | 95/100 |
+| `ActivityItem` component | Complete | 90/100 |
+| `ActivityQuickAdd` dialog | Complete | 88/100 |
+| `FocusView` page | Functional | 82/100 |
+| `ProspectActivityLog` | **Mock data only** | 45/100 |
+| Bulk activity operations | Missing | 0/100 |
+| Activity reminders | Partial | 60/100 |
+| Activity analytics | Missing | 0/100 |
 
-#### Fix 1: Remove LiveKit from External List (Temporary Dev Fix)
+---
 
-Remove `livekit-client`, `@livekit/components-react`, and `@livekit/components-styles` from the `external` array in `vite.config.ts`. This allows Vite to bundle these packages normally.
+### Enhancement Areas
 
-**File:** `vite.config.ts`
+#### 1. Live Prospect Activity Logging (Priority: High)
 
-**Before (lines 218-240):**
-```typescript
-external: [
-  'mermaid',
-  '@mediapipe/selfie_segmentation',
-  '@mediapipe/camera_utils',
-  'fabric',
-  'katex',
-  '@blocknote/core',
-  '@blocknote/react',
-  '@blocknote/mantine',
-  'livekit-client',          // ← REMOVE
-  '@livekit/components-react', // ← REMOVE
-  '@livekit/components-styles', // ← REMOVE
-  'jspdf',
-  'jspdf-autotable',
-  // ...
-],
-```
+**Problem:** `ProspectActivityLog.tsx` currently uses **hardcoded mock data** (lines 36-82) instead of fetching real activity data from the database.
 
-**After:**
-```typescript
-external: [
-  'mermaid',
-  '@mediapipe/selfie_segmentation',
-  '@mediapipe/camera_utils',
-  'fabric',
-  'katex',
-  '@blocknote/core',
-  '@blocknote/react',
-  '@blocknote/mantine',
-  // LiveKit removed - must be bundled for lazy loading to work
-  'jspdf',
-  'jspdf-autotable',
-  // ...
-],
-```
+**Solution:**
+- Create new hook `useProspectActivityLog` to fetch real activity data from `crm_activities` table
+- Subscribe to realtime updates for live activity feed
+- Support filtering by activity type
+- Log all prospect interactions automatically (email opens, stage changes, notes, field updates)
 
-#### Fix 2: Ensure Dynamic Import Pattern for LiveKit (Long-term Stability)
+**Files to modify:**
+- `src/components/crm/ProspectActivityLog.tsx` - Replace mock data with live database queries
+- Create `src/hooks/useProspectActivityLog.ts` - New hook for activity logging
 
-To prevent future regressions and keep memory footprint low, restructure `LiveKitMeetingWrapper.tsx` to use dynamic imports instead of static top-level imports.
+---
 
-**File:** `src/components/meetings/LiveKitMeetingWrapper.tsx`
+#### 2. Bulk Activity Operations (Priority: High)
 
-**Current problematic pattern:**
-```typescript
-import {
-    LiveKitRoom,
-    VideoConference,
-    RoomAudioRenderer,
-    LayoutContextProvider,
-} from '@livekit/components-react';
-import '@livekit/components-styles';
-```
+**Problem:** No way to bulk complete, reschedule, or reassign activities.
 
-**New pattern using dynamic imports:**
-```typescript
-// No static imports from @livekit at the top level
-// Components are loaded dynamically only when this wrapper is rendered
+**Solution:**
+- Add multi-select capability to `ActivityItem` component
+- Create `BulkActivityActions` component for mass operations
+- Support bulk complete, bulk reassign, bulk reschedule, bulk delete
 
-const LiveKitComponents = lazy(() => 
-  import('@livekit/components-react').then(mod => ({
-    default: () => {
-      // Import styles side-effect
-      import('@livekit/components-styles');
-      return mod;
-    }
-  }))
+**Files to create:**
+- `src/components/crm/BulkActivityActions.tsx` - Bulk action toolbar
+- Update `src/pages/crm/FocusView.tsx` - Add selection state and bulk actions bar
+
+---
+
+#### 3. Activity Edit Functionality (Priority: Medium)
+
+**Problem:** `ActivityItem` has an `onEdit` prop but no actual edit dialog/modal implemented.
+
+**Solution:**
+- Create `ActivityEditDialog` component for editing existing activities
+- Wire up to the `onEdit` handler in `ActivityItem`
+- Support editing subject, description, due date, time, priority, type
+
+**Files to create:**
+- `src/components/crm/ActivityEditDialog.tsx` - Edit modal for activities
+
+---
+
+#### 4. Activity Recurring/Templates (Priority: Medium)
+
+**Problem:** No way to create recurring activities or use templates.
+
+**Solution:**
+- Add "repeat" option to `ActivityQuickAdd`
+- Create activity templates for common tasks (e.g., "Weekly check-in call", "Monthly review")
+- Database: Add `recurrence_rule` column to `crm_activities` table
+
+**Files to modify:**
+- `src/components/crm/ActivityQuickAdd.tsx` - Add recurrence options
+- Database migration for `recurrence_rule` column
+
+---
+
+#### 5. Activity Analytics Dashboard (Priority: Medium)
+
+**Problem:** No visibility into activity completion rates, team performance, or activity trends.
+
+**Solution:**
+- Create `ActivityAnalyticsDashboard` component with:
+  - Completion rate over time
+  - Activities by type distribution
+  - Team member leaderboard
+  - Overdue trend analysis
+- Add to CRM Dashboard as a new tab
+
+**Files to create:**
+- `src/components/crm/ActivityAnalyticsDashboard.tsx` - Analytics dashboard
+
+---
+
+#### 6. Smart Activity Suggestions (Priority: Low)
+
+**Problem:** No AI-powered suggestions for next best activities.
+
+**Solution:**
+- Create `SmartActivitySuggestions` component
+- Analyze prospect engagement to suggest optimal follow-up timing
+- Recommend activity types based on prospect stage
+
+**Files to create:**
+- `src/components/crm/SmartActivitySuggestions.tsx` - AI suggestions widget
+
+---
+
+### Implementation Phases
+
+#### Phase 1: Core Fixes (~2 hours)
+1. Replace mock data in `ProspectActivityLog` with real database queries
+2. Create `useProspectActivityLog` hook
+3. Wire up realtime subscriptions
+
+#### Phase 2: Activity Management (~1.5 hours)
+1. Create `ActivityEditDialog` component
+2. Implement bulk activity operations
+3. Add selection state to FocusView
+
+#### Phase 3: Analytics & Templates (~1 hour)
+1. Create activity analytics dashboard
+2. Add recurring activity support
+3. Implement activity templates
+
+---
+
+### Database Changes Required
+
+```sql
+-- Add recurrence support
+ALTER TABLE crm_activities 
+ADD COLUMN IF NOT EXISTS recurrence_rule text,
+ADD COLUMN IF NOT EXISTS recurrence_end_date date,
+ADD COLUMN IF NOT EXISTS parent_activity_id uuid REFERENCES crm_activities(id);
+
+-- Create activity templates table
+CREATE TABLE IF NOT EXISTS crm_activity_templates (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  activity_type text NOT NULL,
+  subject_template text,
+  description_template text,
+  default_priority int DEFAULT 0,
+  default_duration_minutes int,
+  created_by uuid REFERENCES auth.users(id),
+  created_at timestamptz DEFAULT now()
 );
-```
 
-However, since the `LiveKitMeetingWrapper` is **already lazy-loaded** by `MeetingVideoCallInterface`, the simpler fix is just removing it from the external list.
-
----
-
-### Files to Modify
-
-| File | Change |
-|------|--------|
-| `vite.config.ts` | Remove `livekit-client`, `@livekit/components-react`, `@livekit/components-styles` from the `external` array in development mode |
-
----
-
-### Technical Explanation
-
-```text
-Current flow (broken):
-┌─────────────────────────────────────────────────────────────┐
-│ Browser loads /meeting-intelligence                         │
-├─────────────────────────────────────────────────────────────┤
-│ Vite prepares module graph                                  │
-│ ├── MeetingIntelligence.tsx (lazy ✓)                        │
-│ ├── ... (other deps)                                        │
-│ └── LiveKitMeetingWrapper.tsx (lazy ✓)                      │
-│     └── @livekit/components-react (EXTERNAL = NOT BUNDLED)  │
-│         └── livekit-client (EXTERNAL = NOT BUNDLED)         │
-│             └── Browser: "I can't resolve bare specifiers!" │
-│                 └── ❌ ERROR                                 │
-└─────────────────────────────────────────────────────────────┘
-
-Fixed flow:
-┌─────────────────────────────────────────────────────────────┐
-│ Browser loads /meeting-intelligence                         │
-├─────────────────────────────────────────────────────────────┤
-│ Vite prepares module graph                                  │
-│ ├── MeetingIntelligence.tsx (lazy ✓)                        │
-│ ├── ... (other deps)                                        │
-│ └── LiveKitMeetingWrapper.tsx (lazy ✓)                      │
-│     └── @livekit/components-react (BUNDLED in livekit chunk)│
-│         └── livekit-client (BUNDLED in livekit chunk)       │
-│             └── ✅ Loaded only when user joins meeting      │
-└─────────────────────────────────────────────────────────────┘
+ALTER TABLE crm_activity_templates ENABLE ROW LEVEL SECURITY;
 ```
 
 ---
 
-### Memory Impact
+### Files to Create/Modify
 
-The memory issue that originally caused LiveKit to be marked as external is addressed by:
+| File | Action | Priority |
+|------|--------|----------|
+| `src/hooks/useProspectActivityLog.ts` | Create | P0 |
+| `src/components/crm/ProspectActivityLog.tsx` | Modify | P0 |
+| `src/components/crm/ActivityEditDialog.tsx` | Create | P1 |
+| `src/components/crm/BulkActivityActions.tsx` | Create | P1 |
+| `src/pages/crm/FocusView.tsx` | Modify | P1 |
+| `src/components/crm/ActivityAnalyticsDashboard.tsx` | Create | P2 |
+| `src/components/crm/ActivityQuickAdd.tsx` | Modify | P2 |
+| Database migration | Create | P2 |
 
-1. **Lazy loading** - `LiveKitMeetingWrapper` is already lazy-loaded via `React.lazy()`
-2. **Code splitting** - Production builds already chunk LiveKit separately (line 251 in vite.config.ts)
-3. **Conditional rendering** - LiveKit components only mount when `useLiveKitMode` is true
+---
 
-Removing it from the external list means Vite will bundle it (adding ~50-100ms to dev server start), but this is necessary for the app to work.
+### Estimated Timeline
+
+| Phase | Description | Time |
+|-------|-------------|------|
+| Phase 1 | Core Fixes - Live activity logging | 2 hours |
+| Phase 2 | Activity Management - Edit/Bulk ops | 1.5 hours |
+| Phase 3 | Analytics & Templates | 1 hour |
+| **Total** | | **4.5 hours** |
 
 ---
 
 ### Acceptance Criteria
 
-1. `/meeting-intelligence` route loads without errors
-2. App starts successfully in development mode
-3. Meeting features remain functional when LiveKit mode is enabled
-4. No increase in initial page load (LiveKit stays lazy-loaded)
-5. Production builds continue to chunk LiveKit separately
+1. ProspectActivityLog displays real activity data from database
+2. Activities can be edited via dialog
+3. Multiple activities can be bulk completed/reassigned
+4. Activity analytics show completion rates and trends
+5. Recurring activities can be created
+6. All components use realtime subscriptions for live updates
+7. Proper RLS policies protect activity data
+8. Activity changes are logged to audit trail
+
+---
+
+### Technical Notes
+
+- Use existing `useCRMActivities` hook pattern for consistency
+- Leverage existing realtime infrastructure in `CRMRealtimeProvider`
+- Follow TQC design system: dark UI, gold accent, generous whitespace
+- All new components should support keyboard navigation
+- Maintain AA accessibility standards
 
