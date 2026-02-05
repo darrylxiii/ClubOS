@@ -97,6 +97,53 @@ serve(async (req) => {
       });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.email)) {
+      return new Response(JSON.stringify({ error: 'Invalid email format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Validate phone number if provided
+    if (body.phoneNumber) {
+      const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+      if (!phoneRegex.test(body.phoneNumber.replace(/[^\d+]/g, ''))) {
+        return new Response(JSON.stringify({ error: 'Invalid phone number format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Validate company domain if provided
+    if (body.companyDomain) {
+      const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+      if (!domainRegex.test(body.companyDomain)) {
+        return new Response(JSON.stringify({ error: 'Invalid company domain format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Validate provision method
+    if (!['magic_link', 'password', 'oauth_only'].includes(body.provisionMethod)) {
+      return new Response(JSON.stringify({ error: 'Invalid provision method' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Validate company role
+    if (!['owner', 'admin', 'recruiter', 'member'].includes(body.companyRole)) {
+      return new Response(JSON.stringify({ error: 'Invalid company role' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Check if user already exists
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
     const existingUser = existingUsers?.users?.find(u => u.email === body.email);

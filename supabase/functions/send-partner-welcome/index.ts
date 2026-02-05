@@ -161,7 +161,7 @@ serve(async (req) => {
       </html>
     `;
 
-    // Send via Resend (or your email provider)
+    // Send via Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
     if (resendApiKey) {
@@ -172,7 +172,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
-          from: 'concierge@thequantumclub.com',
+          from: 'noreply@thequantumclub.com',
           to: payload.partnerEmail,
           subject: `Welcome to The Quantum Club, ${payload.partnerName}`,
           html: emailContent,
@@ -190,7 +190,7 @@ serve(async (req) => {
 
       await response.json();
     } else {
-      console.warn('RESEND_API_KEY not configured - email not sent');
+      console.warn('RESEND_API_KEY not configured - email not sent. Configure Resend API key in environment variables.');
     }
 
     return new Response(

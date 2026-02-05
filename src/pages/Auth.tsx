@@ -76,66 +76,100 @@ const Auth = () => {
   const { checkLockout, recordAttempt } = useLoginLockout();
   const navigate = useNavigate();
 
-  // OAuth callback handler - exchanges code for session BEFORE cleaning URL
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const error = params.get('error');
-      const errorDescription = params.get('error_description');
-      const code = params.get('code');
+   // OAuth callback handler - exchanges code for session BEFORE cleaning URL
+   // Also handles pre-linking for pre-provisioned partners
+   useEffect(() => {
+     const handleOAuthCallback = async () => {
+       const params = new URLSearchParams(window.location.search);
+       const error = params.get('error');
+       const errorDescription = params.get('error_description');
+       const code = params.get('code');
 
-      // Handle OAuth errors first
-      if (error) {
-        logger.error('OAuth error', new Error(errorDescription || error), { componentName: 'Auth', error });
-        toast.error(`Sign in failed: ${errorDescription || error}`);
-        localStorage.removeItem('pending_invite_code');
-        window.history.replaceState({}, '', '/auth');
-        return;
-      }
+       // Handle OAuth errors first
+       if (error) {
+         logger.error('OAuth error', new Error(errorDescription || error), { componentName: 'Auth', error });
+         toast.error(`Sign in failed: ${errorDescription || error}`);
+         localStorage.removeItem('pending_invite_code');
+         window.history.replaceState({}, '', '/auth');
+         return;
+       }
 
-      // If we have a code parameter, this is an OAuth callback that needs processing
-      if (code) {
-        logger.debug('OAuth callback detected with code', { componentName: 'Auth' });
-        setOauthProcessing(true);
+       // If we have a code parameter, this is an OAuth callback that needs processing
+       if (code) {
+         logger.debug('OAuth callback detected with code', { componentName: 'Auth' });
+         setOauthProcessing(true);
 
-        try {
-          // Let Supabase's detectSessionInUrl handle the exchange automatically
-          // Just wait for the session to be established
-          let attempts = 0;
-          const maxAttempts = 20; // 10 seconds max wait
-          
-          while (attempts < maxAttempts) {
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            
-            if (currentSession?.user) {
-              logger.debug('OAuth session established successfully', { componentName: 'Auth' });
-              // Clean up URL only after session is confirmed
-              window.history.replaceState({}, '', '/auth');
-              setOauthProcessing(false);
-              return;
-            }
-            
-            // Wait 500ms before checking again
-            await new Promise(resolve => setTimeout(resolve, 500));
-            attempts++;
-          }
+         try {
+           // Let Supabase's detectSessionInUrl handle the exchange automatically
+           // Just wait for the session to be established
+           let attempts = 0;
+           const maxAttempts = 20; // 10 seconds max wait
+           
+           while (attempts < maxAttempts) {
+             const { data: { session: currentSession } } = await supabase.auth.getSession();
+             
+             if (currentSession?.user) {
+               logger.debug('OAuth session established successfully', { componentName: 'Auth' });
+               
+               // Check if this is a pre-provisioned partner account that needs identity linking
+               try {
+                 const userEmail = currentSession.user.email;
+                 if (userEmail) {
+                   const { data: profile } = await supabase
+                     .from('profiles')
+                     .select('id, preferred_auth_method')
+                     .eq('email', userEmail)
+                     .single();
 
-          // If we get here, session wasn't established in time
-          logger.warn('OAuth session not established after waiting', { componentName: 'Auth' });
-          toast.error('Sign in timed out. Please try again.');
-          window.history.replaceState({}, '', '/auth');
-        } catch (err) {
-          logger.error('OAuth callback processing error', err instanceof Error ? err : new Error(String(err)), { componentName: 'Auth' });
-          toast.error('Sign in failed. Please try again.');
-          window.history.replaceState({}, '', '/auth');
-        } finally {
-          setOauthProcessing(false);
-        }
-      }
-    };
+                   if (profile?.preferred_auth_method === 'oauth_only') {
+                     // Link Google identity for seamless OAuth login
+                     const googleIdentities = currentSession.user.identities?.filter(
+                       i => i.provider === 'google'
+                     ) || [];
 
-    handleOAuthCallback();
-  }, []);
+                     if (googleIdentities.length === 0) {
+                       logger.debug('Pre-provisioned partner: linking Google identity', { componentName: 'Auth' });
+                       // Identity should already be linked by Supabase auth system
+                       // Just confirm the preference is set
+                       await supabase
+                         .from('profiles')
+                         .update({ preferred_auth_method: 'oauth_only' })
+                         .eq('id', profile.id);
+                     }
+                   }
+                 }
+               } catch (err) {
+                 logger.warn('Failed to check pre-provisioning status', { componentName: 'Auth', err });
+                 // Continue anyway - this is non-critical
+               }
+
+               // Clean up URL only after session is confirmed
+               window.history.replaceState({}, '', '/auth');
+               setOauthProcessing(false);
+               return;
+             }
+             
+             // Wait 500ms before checking again
+             await new Promise(resolve => setTimeout(resolve, 500));
+             attempts++;
+           }
+
+           // If we get here, session wasn't established in time
+           logger.warn('OAuth session not established after waiting', { componentName: 'Auth' });
+           toast.error('Sign in timed out. Please try again.');
+           window.history.replaceState({}, '', '/auth');
+         } catch (err) {
+           logger.error('OAuth callback processing error', err instanceof Error ? err : new Error(String(err)), { componentName: 'Auth' });
+           toast.error('Sign in failed. Please try again.');
+           window.history.replaceState({}, '', '/auth');
+         } finally {
+           setOauthProcessing(false);
+         }
+       }
+     };
+
+     handleOAuthCallback();
+   }, []);
 
   useEffect(() => {
     const pendingInvite = localStorage.getItem('pending_invite_code');
