@@ -192,7 +192,8 @@ serve(async (req) => {
         provisioned_at: new Date().toISOString(),
         admin_verified_email: body.markEmailVerified,
         admin_verified_phone: body.markPhoneVerified,
-        preferred_auth_method: body.provisionMethod === 'oauth_only' ? 'google' : body.provisionMethod
+        preferred_auth_method: body.provisionMethod === 'oauth_only' ? 'google' : body.provisionMethod,
+        assigned_strategist_id: body.assignedStrategistId || null
       })
       .eq('id', newUserId);
 
@@ -203,6 +204,18 @@ serve(async (req) => {
         user_id: newUserId,
         role: 'partner'
       });
+
+    // Step 4b: Assign strategist if specified
+    if (body.assignedStrategistId) {
+      await supabase
+        .from('candidate_strategist_assignments')
+        .insert({
+          candidate_id: newUserId,
+          strategist_id: body.assignedStrategistId,
+          status: 'active',
+          notes: 'Assigned during partner provisioning'
+        });
+    }
 
     // Step 5: Add to company members
     if (companyId) {
@@ -237,11 +250,16 @@ serve(async (req) => {
     // Step 7: Generate magic link if needed
     let magicLink: string | null = null;
     if (body.provisionMethod === 'magic_link') {
+      // Use SITE_URL env var for custom domain support, fallback to lovable.app
+      const siteUrl = Deno.env.get('SITE_URL') || supabaseUrl.replace('.supabase.co', '.lovable.app');
+      // Route pre-provisioned partners to partner welcome screen
+      const redirectPath = '/partner-welcome';
+      
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: body.email,
         options: {
-          redirectTo: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/home`
+          redirectTo: `${siteUrl}${redirectPath}`
         }
       });
 
@@ -278,6 +296,7 @@ serve(async (req) => {
         email_verified_by_admin: body.markEmailVerified,
         phone_verified_by_admin: body.markPhoneVerified,
         invite_code_generated: inviteCode,
+        assigned_strategist_id: body.assignedStrategistId || null,
         metadata: {
           company_role: body.companyRole,
           domain_provisioning: body.enableDomainAutoProvisioning,

@@ -33171,6 +33171,7 @@ export type Database = {
       }
       partner_provisioning_logs: {
         Row: {
+          assigned_strategist_id: string | null
           company_id: string | null
           created_at: string | null
           email_verified_by_admin: boolean | null
@@ -33186,6 +33187,7 @@ export type Database = {
           welcome_email_sent_at: string | null
         }
         Insert: {
+          assigned_strategist_id?: string | null
           company_id?: string | null
           created_at?: string | null
           email_verified_by_admin?: boolean | null
@@ -33201,6 +33203,7 @@ export type Database = {
           welcome_email_sent_at?: string | null
         }
         Update: {
+          assigned_strategist_id?: string | null
           company_id?: string | null
           created_at?: string | null
           email_verified_by_admin?: boolean | null
