@@ -4,9 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Building, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Building, CheckCircle, ArrowRight, Sparkles, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { usePartnerProvisioning } from '@/hooks/usePartnerProvisioning';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 interface ConvertToPartnerDialogProps {
   open: boolean;
@@ -23,8 +26,13 @@ interface ConvertToPartnerDialogProps {
 
 export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: ConvertToPartnerDialogProps) {
   const [companyName, setCompanyName] = useState(prospect.company_name || '');
+  const [phone, setPhone] = useState(prospect.phone || '');
+  const [markEmailVerified, setMarkEmailVerified] = useState(false);
+  const [markPhoneVerified, setMarkPhoneVerified] = useState(false);
+  const [useNewProvisioning, setUseNewProvisioning] = useState(true);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const { provisionPartner } = usePartnerProvisioning();
 
   const handleConvert = async () => {
     if (!companyName.trim()) {
@@ -34,8 +42,31 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
 
     setLoading(true);
     try {
-      await onConvert({ companyName, notes });
-      toast.success('Prospect converted to partner successfully!');
+      if (useNewProvisioning) {
+        // Use new provisioning system
+        const result = await provisionPartner({
+          email: prospect.email,
+          fullName: prospect.full_name,
+          phoneNumber: phone,
+          markEmailVerified,
+          markPhoneVerified,
+          companyName,
+          companyRole: 'admin',
+          provisionMethod: 'magic_link',
+          welcomeMessage: notes,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error || 'Provisioning failed');
+        }
+
+        toast.success('Partner account provisioned successfully!');
+      } else {
+        // Use legacy conversion
+        await onConvert({ companyName, notes });
+        toast.success('Prospect converted to partner successfully!');
+      }
+
       onClose();
     } catch (error) {
       console.error('Error converting prospect:', error);
@@ -84,7 +115,7 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
             </div>
           </motion.div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="company-name">Company Name *</Label>
               <Input
@@ -94,6 +125,41 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
                 placeholder="Enter company name"
                 className="bg-muted/20"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <PhoneInput
+                international
+                countryCallingCodeEditable={false}
+                defaultCountry="US"
+                value={phone}
+                onChange={(value) => setPhone(value || '')}
+                placeholder="+1 (555) 000-0000"
+              />
+            </div>
+
+            <div className="bg-muted/20 rounded-lg p-3 space-y-2">
+              <p className="text-sm font-medium">Pre-Verify Contact Information</p>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={markEmailVerified}
+                  onChange={(e) => setMarkEmailVerified(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Mark email as verified</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={markPhoneVerified}
+                  onChange={(e) => setMarkPhoneVerified(e.target.checked)}
+                  disabled={!phone}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Mark phone as verified</span>
+              </label>
             </div>
 
             <div className="space-y-2">
