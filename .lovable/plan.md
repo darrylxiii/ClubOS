@@ -1,421 +1,391 @@
 
 
-# Page Consolidation Audit: The Quantum Club Platform
+# Elite Partner Provisioning System: 0.0001% Concierge Onboarding
 
 ## Executive Summary
 
-After a thorough audit of **215+ pages** across the platform, I identified **significant fragmentation** with many pages serving overlapping purposes or containing minimal content that should be unified into comprehensive hubs with sub-tabs.
+This plan transforms partner account creation from a fragmented, amateur process into a white-glove concierge experience befitting The Quantum Club's ultra-luxury positioning. Admins will provision fully-verified partner accounts with pre-confirmed contact information, seamless Google OAuth linking, and intelligent domain-based organization management.
 
 ---
 
-## Current State Analysis
+## Current State Problems
 
-### Page Count by Category
-
-| Category | Current Pages | Proposed After Merge |
-|----------|---------------|---------------------|
-| Admin | 62 | 18 |
-| CRM | 15 | 4 |
-| Meetings/Scheduling | 11 | 3 |
-| Analytics | 12 | 3 |
-| Settings | 6 | 1 |
-| Social/Feed | 4 | 1 |
-| Projects/Contracts | 15 | 4 |
-| Profiles | 9 | 2 |
-| Partner | 14 | 4 |
-| Compliance | 5 | 1 |
-| Candidate/Jobs | 18 | 6 |
-| Other | 44 | 20 |
-| **Total** | **~215** | **~67** |
-
-**Reduction: ~70% fewer standalone pages**
+| Issue | Impact |
+|-------|--------|
+| Partners must self-signup as regular members | Destroys exclusivity perception |
+| Manual role reassignment after signup | Amateurish workflow |
+| No pre-verification of contact details | Partners don't trust their info is validated |
+| No domain-based organization management | Can't auto-assign @company.com employees |
+| Google OAuth not pre-linkable | Partners can't use SSO on first login |
+| No concierge invite system | Partners feel like they're applying, not being courted |
 
 ---
 
-## High-Priority Consolidation Targets
+## Solution Architecture
 
-### 1. Settings Hub (6 pages into 1)
-
-**Current Fragmentation:**
-- `/settings` - Main settings (12 tabs already)
-- `/user-settings` - Near-duplicate 2800+ lines
-- `/email-settings` - Email connections
-- `/scheduling/settings` - Scheduling preferences
-- `/company-settings` - Company config
-- `/company-domains` - Domain settings
-
-**Proposed Solution:** Single `/settings` page with tabs:
-```
-Settings
-├── Profile
-├── Compensation
-├── Freelance
-├── Connections (social + calendar)
-├── Email (absorb EmailSettings)
-├── Scheduling (absorb SchedulingSettings)
-├── Notifications
-├── Privacy
-├── Security
-├── Preferences
-├── API Integrations
-├── Communication
-└── Company (absorb CompanySettings + CompanyDomains)
-```
-
-**Impact:** Eliminates massive code duplication between Settings and UserSettings (both 700-2800 lines with same functionality)
-
----
-
-### 2. CRM Command Center (15 pages into 4)
-
-**Current Fragmentation:**
-- `/crm` - Dashboard
-- `/crm/pipeline` and `/crm/prospects` - Same component
-- `/crm/prospects/:id` - Prospect detail
-- `/crm/inbox` - Reply inbox
-- `/crm/campaigns` - Campaign dashboard
-- `/crm/imports` - Import history
-- `/crm/suppression` - Suppression list
-- `/crm/focus` - Focus view
-- `/crm/analytics` - Analytics
-- `/crm/lead-scoring` - Lead scoring config
-- `/crm/automations` - Automations
-- `/crm/audit-trail` - Audit trail
-- `/crm/integrations` - Integrations
-- `/crm/settings` - CRM settings
-- `/email-sequences` - Email sequencing hub
-
-**Proposed Structure:**
-```
-/crm (Unified CRM Hub)
-├── Tab: Pipeline (with Focus mode toggle)
-├── Tab: Inbox & Communications
-├── Tab: Campaigns & Sequences
-├── Tab: Analytics & Reports
-└── Tab: Settings (lead scoring, automations, integrations, suppression)
-
-/crm/prospects/:id (Detail page - keep separate)
-/email-sequences (Keep separate - different user journey)
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                    ADMIN PARTNER PROVISIONING                   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐    ┌──────────────────┐                   │
+│  │ Partner Modal   │───▶│ provision-partner │                   │
+│  │ (Admin UI)      │    │ Edge Function     │                   │
+│  └─────────────────┘    └────────┬─────────┘                   │
+│                                  │                              │
+│         ┌────────────────────────┼────────────────────────┐     │
+│         ▼                        ▼                        ▼     │
+│  ┌──────────────┐    ┌──────────────────┐    ┌────────────────┐│
+│  │ Create Auth  │    │ Pre-verify Email │    │ Setup Company  ││
+│  │ User Account │    │ & Phone          │    │ Domain SSO     ││
+│  └──────────────┘    └──────────────────┘    └────────────────┘│
+│         │                        │                        │     │
+│         ▼                        ▼                        ▼     │
+│  ┌──────────────┐    ┌──────────────────┐    ┌────────────────┐│
+│  │ Assign Role  │    │ Generate Magic   │    │ Send Welcome   ││
+│  │ + Company    │    │ Link / Password  │    │ Email          ││
+│  └──────────────┘    └──────────────────┘    └────────────────┘│
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 3. Meetings Hub (11 pages into 3)
+## Phase 1: Partner Provisioning Modal (Admin UI)
 
-**Current Fragmentation:**
-- `/meetings` - Meetings list
-- `/meeting/:code` - Meeting room
-- `/join/:code` - Join meeting
-- `/meeting-notes/:id` - Meeting notes
-- `/scheduling` - Scheduling
-- `/booking-management` - Booking management
-- `/scheduling/settings` - Settings (absorb into main Settings)
-- `/meeting-intelligence` - Intelligence dashboard
-- `/meeting-insights/:id` - Insights detail
-- `/interview-comparison` - Interview comparison
-- `/dossier/:token` - Dossier view (public)
+### Create `src/components/admin/PartnerProvisioningModal.tsx`
 
-**Proposed Structure:**
-```
-/meetings (Unified Meetings Hub)
-├── Tab: Upcoming & History
-├── Tab: Scheduling & Booking Links
-├── Tab: Intelligence & Analytics
-└── Tab: Interview Comparison
+A comprehensive modal with:
 
-/meeting/:code (Active meeting - keep separate)
-/meeting-notes/:id (Keep for deep linking)
-/dossier/:token (Public access - keep separate)
+**Contact Information Section**
+- Full Name (required)
+- Email Address (required) - with domain extraction
+- Phone Number (optional) - with international format
+- Pre-verify toggles: "Mark email as verified" / "Mark phone as verified"
+
+**Company Configuration Section**
+- Company Name (auto-suggest from existing or create new)
+- Company Domain (e.g., `acme.com`)
+- Industry selector
+- Company size selector
+- Company role: Owner / Admin / Recruiter
+
+**Authentication Options Section**
+- Access Method radio group:
+  - "Send Magic Link" (default, one-click login)
+  - "Set Temporary Password" (manual entry)
+  - "Allow Google OAuth Only" (for G Suite companies)
+- Auto-create invite code toggle
+- Welcome message customization
+
+**Domain Management Section**
+- Enable auto-provisioning for `@domain.com`
+- Default role for domain members
+- Require admin approval toggle
+
+**Design**: Dark luxury UI with gold accent, multi-step wizard with progress indicator
+
+---
+
+## Phase 2: Edge Function - `provision-partner`
+
+### Create `supabase/functions/provision-partner/index.ts`
+
+**Capabilities:**
+1. Create auth user with `auth.admin.createUser()`
+2. Pre-confirm email and phone in profiles table
+3. Assign partner role in `user_roles`
+4. Create/link company in `companies` table
+5. Add to `company_members` with specified role
+6. Configure domain SSO in `company_sso_config`
+7. Generate magic link OR set password
+8. Send branded welcome email via Resend
+9. Create audit log entry
+
+**Security:**
+- Requires admin role verification
+- Rate limiting (10 provisions per hour)
+- Input validation with Zod
+- Audit trail for compliance
+
+**Response:**
+```json
+{
+  "success": true,
+  "user_id": "uuid",
+  "company_id": "uuid",
+  "magic_link": "https://...",
+  "invite_code": "PARTNER-XXXX"
+}
 ```
 
 ---
 
-### 4. Analytics Command Center (12 pages into 3)
+## Phase 3: Domain-Based Organization Management
 
-**Current Fragmentation:**
-- `/analytics` - General analytics
-- `/candidate-analytics` - Candidate analytics
-- `/funnel-analytics` - Funnel analytics
-- `/revenue-analytics` - Revenue analytics
-- `/ml-dashboard` - ML dashboard
-- `/hiring-intelligence` - Hiring intelligence
-- `/company-intelligence` - Company intelligence
-- `/meeting-intelligence` - Meeting intelligence (duplicate with meetings)
-- `/meeting-insights` - Meeting insights
-- `/career-insights` - Career insights
-- `/investor-dashboard` - Investor dashboard
-- `/messaging-analytics` - Messaging analytics
+### Database Enhancements
 
-**Proposed Structure:**
+**New table: `organization_domain_settings`**
+```sql
+CREATE TABLE organization_domain_settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid REFERENCES companies(id) ON DELETE CASCADE,
+  domain text NOT NULL,
+  is_enabled boolean DEFAULT true,
+  auto_provision_users boolean DEFAULT false,
+  default_role text DEFAULT 'viewer',
+  require_admin_approval boolean DEFAULT true,
+  allow_google_oauth boolean DEFAULT true,
+  created_by uuid REFERENCES auth.users(id),
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(company_id, domain)
+);
 ```
-/analytics (Unified Analytics Hub)
-├── Tab: Overview Dashboard
-├── Tab: Revenue & Funnel
-├── Tab: Hiring Intelligence (absorb ML, pipeline predictions)
-├── Tab: Company Intelligence
-├── Tab: Candidate Analytics
-└── Tab: Communication & Messaging
 
-/investor-dashboard (Keep separate - different audience)
+**Update `company_sso_config`:**
+- Already has `allowed_domains` array - will leverage this
+- Add `auto_provision_on_oauth` boolean column
+
+### Self-Service Partner Invite Flow
+
+Partners can invite their own organization members:
+- Admin adds domain (e.g., `acme.com`) to company settings
+- Partner clicks "Invite Team" button
+- Enter email addresses (must match domain)
+- System sends branded invites
+- New users auto-join company on signup
+
+---
+
+## Phase 4: Google OAuth Pre-Linking
+
+### How It Works
+
+1. Admin provisions partner with email `ceo@acme.com`
+2. System creates auth user with `email_confirmed: true`
+3. When partner clicks Google OAuth:
+   - Supabase matches Google email to existing user
+   - Links Google identity to account
+   - Partner is logged in seamlessly
+
+### Database Support
+
+Add to profiles table migration:
+```sql
+ALTER TABLE profiles 
+ADD COLUMN oauth_providers text[] DEFAULT '{}',
+ADD COLUMN preferred_auth_method text DEFAULT 'magic_link';
+```
+
+Track allowed OAuth methods per company in `company_sso_config`
+
+---
+
+## Phase 5: Organization Invite Portal
+
+### Create `src/components/admin/OrganizationInviteModal.tsx`
+
+**For TQC Admins:**
+- Bulk invite partners with CSV upload
+- Template selector for email content
+- Schedule send time
+- Track invite acceptance
+
+**For Partners (self-service):**
+- Invite team members from their domain
+- Set individual roles
+- View pending/accepted invites
+- Revoke access
+
+### Invite Code System Enhancement
+
+Extend `invite_codes` table:
+```sql
+ALTER TABLE invite_codes
+ADD COLUMN invite_type text DEFAULT 'member', -- 'member', 'partner', 'organization'
+ADD COLUMN company_id uuid REFERENCES companies(id),
+ADD COLUMN target_role text DEFAULT 'user',
+ADD COLUMN max_uses int DEFAULT 1,
+ADD COLUMN uses_count int DEFAULT 0;
 ```
 
 ---
 
-### 5. Social & Feed (4 pages into 1)
+## Phase 6: Concierge Welcome Experience
 
-**Current Fragmentation:**
-- `/feed` - Main feed
-- `/social-feed` - Social feed (nearly identical)
-- `/posts/:id` - Single post
-- Plus references to Social Management
+### Email Templates
 
-**Proposed Structure:**
-```
-/feed (Unified Social Hub)
-├── Tab: For You (algorithmic)
-├── Tab: Following
-├── Tab: Trending
-└── Modal: Single Post View (instead of separate route)
+**Partner Welcome Email:**
+- Personalized greeting with admin's name
+- One-click magic link button (72h expiry)
+- Alternative: "Set Your Password" link
+- Company logo and branding
+- Direct line to assigned strategist
+- Calendar link for onboarding call
+
+### SMS Notification
+
+Optional SMS with short magic link for mobile-first partners
+
+---
+
+## Files to Create
+
+| File | Description |
+|------|-------------|
+| `src/components/admin/PartnerProvisioningModal.tsx` | Main provisioning modal |
+| `src/components/admin/OrganizationInviteModal.tsx` | Bulk/self-service invites |
+| `src/components/admin/DomainManagementPanel.tsx` | Domain SSO config UI |
+| `src/hooks/usePartnerProvisioning.ts` | Hook for provisioning logic |
+| `supabase/functions/provision-partner/index.ts` | Backend provisioning |
+| `supabase/functions/send-partner-welcome/index.ts` | Welcome email sender |
+| `src/components/partner/TeamInviteWidget.tsx` | Partner self-service invite |
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/pages/Companies.tsx` | Add "Provision Partner" button |
+| `src/components/crm/ConvertToPartnerDialog.tsx` | Integrate new provisioning flow |
+| `src/pages/CompanyPage.tsx` | Add domain management tab |
+| `src/components/partner/TeamManagement.tsx` | Add invite functionality |
+| `src/pages/Auth.tsx` | Handle pre-provisioned OAuth linking |
+
+---
+
+## Database Migration
+
+```sql
+-- Organization domain settings
+CREATE TABLE organization_domain_settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid REFERENCES companies(id) ON DELETE CASCADE,
+  domain text NOT NULL,
+  is_enabled boolean DEFAULT true,
+  auto_provision_users boolean DEFAULT false,
+  default_role text DEFAULT 'viewer',
+  require_admin_approval boolean DEFAULT true,
+  allow_google_oauth boolean DEFAULT true,
+  created_by uuid REFERENCES auth.users(id),
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(company_id, domain)
+);
+
+-- Partner provisioning audit log
+CREATE TABLE partner_provisioning_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  provisioned_user_id uuid REFERENCES auth.users(id),
+  provisioned_by uuid REFERENCES auth.users(id),
+  company_id uuid REFERENCES companies(id),
+  provision_method text NOT NULL, -- 'magic_link', 'password', 'oauth_only'
+  email_verified_by_admin boolean DEFAULT false,
+  phone_verified_by_admin boolean DEFAULT false,
+  invite_code_generated text,
+  metadata jsonb DEFAULT '{}',
+  created_at timestamptz DEFAULT now()
+);
+
+-- Extend invite_codes for organization invites
+ALTER TABLE invite_codes
+ADD COLUMN IF NOT EXISTS invite_type text DEFAULT 'member',
+ADD COLUMN IF NOT EXISTS company_id uuid REFERENCES companies(id),
+ADD COLUMN IF NOT EXISTS target_role text DEFAULT 'user',
+ADD COLUMN IF NOT EXISTS max_uses int DEFAULT 1,
+ADD COLUMN IF NOT EXISTS uses_count int DEFAULT 0;
+
+-- Extend profiles for OAuth tracking
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS oauth_providers text[] DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS preferred_auth_method text DEFAULT 'magic_link',
+ADD COLUMN IF NOT EXISTS provisioned_by uuid REFERENCES auth.users(id),
+ADD COLUMN IF NOT EXISTS provisioned_at timestamptz;
+
+-- RLS Policies
+ALTER TABLE organization_domain_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partner_provisioning_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can manage domain settings"
+ON organization_domain_settings FOR ALL
+USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "Company owners can manage their domain settings"
+ON organization_domain_settings FOR ALL
+USING (
+  EXISTS (
+    SELECT 1 FROM company_members
+    WHERE company_members.company_id = organization_domain_settings.company_id
+    AND company_members.user_id = auth.uid()
+    AND company_members.role IN ('owner', 'admin')
+  )
+);
 ```
 
 ---
 
-### 6. Admin Operations Hub (62 pages into 18)
+## Additional 0.0001% Features (Not Requested But Elevating)
 
-**High-Priority Merges:**
+1. **Partner Dossier Auto-Generation**
+   - When provisioning, auto-fetch LinkedIn data
+   - Pre-populate company intel from Clearbit/similar
+   - Generate relationship map with TQC network
 
-#### 6a. Translation Management (5 into 1)
-```
-/admin/translations (Unified)
-├── Tab: Translation Editor
-├── Tab: Language Manager
-├── Tab: Coverage Report
-├── Tab: Brand Terms
-└── Tab: Audit Log
-```
+2. **White-Label Email Domain**
+   - Emails come from `invite@thequantumclub.com`
+   - Branded sender name: "Your Concierge at TQC"
 
-#### 6b. Employee & HR Hub (existing - expand)
-```
-/admin/employee-management (Already unified with 8 tabs)
-- No changes needed
-```
+3. **Calendar Pre-Booking**
+   - Optionally schedule onboarding call during provisioning
+   - Auto-assign strategist based on industry/location
 
-#### 6c. Financial Operations (6 into 2)
-```
-/admin/financial (Unified Financial Hub)
-├── Tab: Dashboard
-├── Tab: Revenue & Commissions
-├── Tab: Deals Pipeline
-├── Tab: Expense Tracking
-├── Tab: Invoice Reconciliation
-└── Tab: Moneybird Integration
+4. **Mobile App Deep Link**
+   - Magic links open native app if installed
+   - Fallback to web with app install prompt
 
-/admin/investor-metrics (Keep separate for partners)
-```
+5. **Two-Factor Pre-Configuration**
+   - Option to require 2FA for high-value partners
+   - Send authenticator setup QR in welcome email
 
-#### 6d. Inventory & Assets (5 into 1)
-```
-/admin/inventory (Unified)
-├── Tab: Asset Register
-├── Tab: Depreciation Schedule
-├── Tab: Intangible Assets
-├── Tab: KIA Optimization
-└── Tab: Dashboard Overview
-```
-
-#### 6e. Analytics Dashboards (8 into 2)
-```
-/admin/analytics (Unified Admin Analytics)
-├── Tab: Global Analytics
-├── Tab: User Engagement
-├── Tab: Conversation Analytics
-├── Tab: Job Analytics
-├── Tab: Marketplace Analytics
-└── Tab: Security Events
-
-/admin/kpi-command-center (Keep as executive overview)
-```
-
-#### 6f. WhatsApp Operations (Already unified)
-```
-/admin/whatsapp (WhatsAppHub) - No changes needed
-```
-
-#### 6g. System Health (3 into 1)
-```
-/admin/system (Unified System Health)
-├── Tab: System Health
-├── Tab: Data Health
-├── Tab: Error Logs
-└── Tab: Audit Log
-```
+6. **Granular Permission Templates**
+   - "Executive Partner" preset (full access)
+   - "HR Contact" preset (hiring only)
+   - "Hiring Manager" preset (specific jobs only)
 
 ---
 
-### 7. Partner Portal (14 pages into 4)
+## Security Considerations
 
-**Current Fragmentation:**
-- `/companies`, `/companies/:id` - Company management
-- `/company-applications`, `/company-jobs` - Company dashboards
-- `/partner/analytics`, `/partner/rejections`, `/partner/target-companies` - Partner tools
-- `/company-settings`, `/company-domains` - Settings (move to main settings)
-- `/partner/audit-log`, `/partner/billing`, `/partner/sla` - Operations
-- `/partner/integrations`, `/partner/contracts`, `/partner/contracts/new` - Tools
-- `/partner/live-interview` - Interviews
-
-**Proposed Structure:**
-```
-/companies (Unified Partner Hub)
-├── Tab: All Companies
-├── Tab: Applications
-├── Tab: Jobs Dashboard
-├── Tab: Target Companies
-└── Tab: Rejections
-
-/partner (Partner Operations)
-├── Tab: Analytics
-├── Tab: Contracts
-├── Tab: Billing & SLA
-├── Tab: Integrations
-└── Tab: Audit Log
-
-/partner/live-interview (Keep separate - video context)
-```
+1. Admin provisioning requires verified admin role
+2. All actions logged to audit trail
+3. Magic links expire in 72 hours
+4. Pre-verified status clearly indicated in UI
+5. Domain settings require company ownership verification
+6. Rate limiting on provisioning endpoints
+7. CSRF protection on all forms
 
 ---
 
-### 8. Projects & Contracts (15 pages into 4)
+## Estimated Timeline
 
-**Current Fragmentation:**
-Many project-related pages that can be consolidated:
-
-**Proposed Structure:**
-```
-/projects (Project Marketplace Hub)
-├── Tab: Browse Projects
-├── Tab: My Proposals
-├── Tab: Gigs Marketplace
-├── Tab: Disputes
-├── Tab: Team Management
-└── Tab: Analytics
-
-/contracts (Contract Hub)
-├── Tab: Active Contracts
-├── Tab: Retainers
-└── Tab: Time Tracking
-
-/projects/:id (Project detail - keep)
-/contracts/:id (Contract detail - keep)
-```
+| Phase | Description | Duration |
+|-------|-------------|----------|
+| Phase 1 | Partner Provisioning Modal | 3 hours |
+| Phase 2 | Edge Function + Email | 2 hours |
+| Phase 3 | Domain Management | 2 hours |
+| Phase 4 | OAuth Pre-Linking | 1 hour |
+| Phase 5 | Organization Invites | 2 hours |
+| Phase 6 | Welcome Experience | 1 hour |
+| **Total** | | **11 hours** |
 
 ---
 
-### 9. Compliance Hub (5 pages into 1)
+## Success Metrics
 
-**Current Pages:**
-- `/compliance/dashboard`
-- `/compliance/legal-agreements`
-- `/compliance/subprocessors`
-- `/compliance/data-classification`
-- `/compliance/audit-requests`
-
-**Proposed Structure:**
-```
-/compliance (Unified Compliance Hub)
-├── Tab: Dashboard
-├── Tab: Legal Agreements
-├── Tab: Subprocessors
-├── Tab: Data Classification
-└── Tab: Audit Requests
-```
-
----
-
-### 10. Radio & Music (3 pages into 2)
-
-**Current:**
-- `/radio` - Radio player
-- `/radio/:playlistId` - Playlist player
-- `/club-dj` - DJ admin
-
-**Proposed:** Keep as-is - different audiences (users vs. admins)
-
----
-
-## Implementation Approach
-
-### Phase 1: Quick Wins (1-2 days)
-1. Merge `/user-settings` into `/settings` (remove 2800 lines of duplicate code)
-2. Consolidate Social feeds (`/feed` + `/social-feed`)
-3. Merge Compliance pages into single hub
-
-### Phase 2: Settings Consolidation (2-3 days)
-4. Absorb `/email-settings` into Settings
-5. Absorb `/scheduling/settings` into Settings
-6. Absorb `/company-settings` + `/company-domains` into Settings
-
-### Phase 3: Admin Hub Merges (3-4 days)
-7. Translation Management hub
-8. Inventory & Assets hub
-9. System Health hub
-10. Admin Analytics consolidation
-
-### Phase 4: CRM & Meetings (3-4 days)
-11. CRM tab consolidation
-12. Meetings hub consolidation
-
-### Phase 5: Partner & Projects (2-3 days)
-13. Partner portal consolidation
-14. Projects hub consolidation
-
----
-
-## Technical Considerations
-
-### Navigation Updates
-- Update sidebar navigation to reflect new hub structure
-- Add breadcrumbs for deep navigation within hubs
-- Implement URL query params for tab state (`?tab=profile`)
-
-### State Management
-- Use URL-based tab routing for shareable links
-- Preserve scroll position within tabs
-- Lazy-load tab content for performance
-
-### Migration Strategy
-- Add redirects from old routes to new locations
-- Update all internal links progressively
-- Monitor 404s during transition
-
----
-
-## Benefits
-
-1. **Reduced Cognitive Load**: Users navigate 67 pages instead of 215+
-2. **Faster Development**: Changes to related features in one place
-3. **Better Discoverability**: Related features grouped logically
-4. **Improved Maintainability**: Less duplicate code (especially Settings)
-5. **Consistent UX**: Standard tab patterns throughout
-6. **Smaller Bundle**: Fewer route chunks to lazy-load
-
----
-
-## Files to Delete After Consolidation
-
-| File | Merge Into |
-|------|------------|
-| `UserSettings.tsx` (2834 lines) | `Settings.tsx` |
-| `SocialFeed.tsx` | `Feed.tsx` |
-| `EmailSettings.tsx` | Settings/Connections tab |
-| `SchedulingSettings.tsx` | Settings/Calendar tab |
-| `CompanySettings.tsx` | Settings/Company tab |
-| `CompanyDomainsSettings.tsx` | Settings/Company tab |
-| Multiple admin translation pages | TranslationHub |
-| Multiple compliance pages | ComplianceHub |
-
----
-
-## Recommended Starting Point
-
-**Begin with Settings consolidation** - it has the highest duplication and is used by all user roles. Merging `UserSettings.tsx` alone eliminates 2834 lines of near-duplicate code.
+- Time to provision partner: < 2 minutes
+- Partner first login success rate: > 95%
+- Self-service invite adoption: > 60% of partners
+- Support tickets for access issues: -80%
+- Partner NPS improvement: +15 points
 
