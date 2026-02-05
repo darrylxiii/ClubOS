@@ -110,8 +110,40 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
 
       if (error) throw error;
 
-      // TODO: Send invite email via edge function
-      toast.success(`Invitation sent to ${inviteEmail}`);
+      // Get company name for email
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('id', companyId)
+        .single();
+
+      // Get inviter name
+      const { data: inviterProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user?.id || '')
+        .single();
+
+      // Send invite email via edge function
+      const { error: emailError } = await supabase.functions.invoke('send-team-invite', {
+        body: {
+          email: inviteEmail,
+          inviteCode,
+          companyName: companyData?.name || 'Your Organization',
+          inviterName: inviterProfile?.full_name,
+          role: inviteRole
+        }
+      });
+
+      if (emailError) {
+        console.warn('Email send failed but invite created:', emailError);
+        toast.success(`Invitation created for ${inviteEmail}`, {
+          description: 'Email delivery may be delayed'
+        });
+      } else {
+        toast.success(`Invitation sent to ${inviteEmail}`);
+      }
+
       setInviteEmail('');
       setShowInviteDialog(false);
       loadPendingInvites();

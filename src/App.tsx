@@ -101,6 +101,7 @@ const DataProcessingAgreement = lazy(() => import("./pages/legal/DataProcessingA
 const ClubAI = lazy(() => import("./pages/ClubAI"));
 const SocialManagement = lazy(() => import("./pages/SocialManagement"));
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
+const PartnerWelcome = lazy(() => import("./pages/PartnerWelcome"));
 const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
 const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
@@ -250,6 +251,13 @@ const App = () => {
                   <PublicProviders>
                     <RouteErrorBoundary>
                       <Suspense fallback={<PageLoader />}><OAuthOnboarding /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
+                <Route path="/partner-welcome" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><PartnerWelcome /></Suspense>
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
