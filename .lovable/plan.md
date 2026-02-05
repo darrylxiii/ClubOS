@@ -1,83 +1,57 @@
 
 
-## Fix: Swap Logo Sources & Align Q Size
+## Final Fixes: Border Alignment + Collapsed Logo Size
 
-### The Problem
+### Issue 1: Border Misalignment
 
-From your screenshots:
-- **Collapsed sidebar** shows "QuantumCLUB" wordmark → should show QC icon
-- **Expanded sidebar** shows QC icon → should show full wordmark
-- The expanded logo's "Q" appears smaller than the collapsed icon's "Q"
+**Current state:**
+- Header: `h-14 sm:h-16` (56-64px tall), border at bottom
+- Logo container: `h-28` (112px tall), border at bottom
 
-### Root Cause
+The logo container's bottom border is at 112px, while the header's bottom border is at 64px. They don't align.
 
-The animation logic is correct (`open ? 1 : 0` etc.), but the actual image sources are placed in the wrong motion.div containers. We've been swapping props back and forth in AppLayout, but the real fix is to swap the `src` attributes in AnimatedSidebar.tsx directly.
-
----
-
-## Solution
-
-### Change 1: Swap the logo sources in AnimatedSidebar.tsx
-
-Instead of:
-- First motion.div (expanded state) uses `logoLight`/`logoDark`
-- Second motion.div (collapsed state) uses `logoLightShort`/`logoDarkShort`
-
-We swap them:
-- First motion.div (expanded state) uses `logoLightShort`/`logoDarkShort`
-- Second motion.div (collapsed state) uses `logoLight`/`logoDark`
-
-### Change 2: Scale the expanded logo so the "Q" matches
-
-The full wordmark has the Q at a smaller relative size compared to the standalone QC mark. To make both Q's visually identical:
-
-| State | Current | New |
-|-------|---------|-----|
-| Expanded wordmark | h-20 (80px) | **h-28** (~112px) |
-| Collapsed QC icon | h-12 (48px) | h-12 (unchanged) |
-
-The wordmark is roughly 2.3× wider than it is tall, while the QC icon is nearly square. By scaling the wordmark to h-28, the "Q" portion will be approximately the same visual height as the h-12 QC icon.
+**Fix:** Change logo container height to match header: `h-14 sm:h-16`
 
 ---
 
-## Files to Modify
+### Issue 2: Collapsed Logo Too Small
 
-| File | Change |
-|------|--------|
-| `src/components/AnimatedSidebar.tsx` | Swap `logoLight`↔`logoLightShort` and `logoDark`↔`logoDarkShort` between the two motion.divs; increase expanded logo height to h-28 |
+Looking at your screenshots, the collapsed QC icon appears noticeably smaller than the "Q" in the expanded wordmark.
+
+**Current:** `h-12` (48px)
+**Fix:** Increase to `h-14` (56px) to better match the visual weight of the expanded wordmark
 
 ---
 
-## Updated Code
+### Issue 3: Expanded Logo Must Shrink to Fit
+
+Since the container will now be `h-16` (64px) instead of `h-28` (112px), the expanded wordmark must also shrink.
+
+**Current:** `h-28` (112px) - won't fit
+**Fix:** `h-16` or `h-14` to fit within the smaller container
+
+This will make the Q in the wordmark smaller, but that's unavoidable if we want border alignment. The collapsed icon at `h-14` should now be closer in visual weight.
+
+---
+
+## File to Modify
+
+`src/components/AnimatedSidebar.tsx`
 
 ```tsx
-{/* Logo container */}
-<div className="h-28 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
+{/* Logo container - matching header height for border alignment */}
+<div className="h-14 sm:h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
   
-  {/* Full wordmark - visible when EXPANDED (open=true) */}
-  <motion.div
-    animate={{
-      opacity: open ? 1 : 0,
-      scale: open ? 1 : 0.8,
-      visibility: open ? "visible" : "hidden",
-    }}
-    // ... transitions same as before
-  >
-    <img src={logoLightShort} className="hidden dark:block h-28" />  {/* SWAPPED & BIGGER */}
-    <img src={logoDarkShort} className="dark:hidden block h-28" />   {/* SWAPPED & BIGGER */}
+  {/* Full wordmark - visible when expanded */}
+  <motion.div ...>
+    <img src={logoLightShort} className="hidden dark:block h-14 sm:h-16" />
+    <img src={logoDarkShort} className="dark:hidden block h-14 sm:h-16" />
   </motion.div>
 
-  {/* QC icon - visible when COLLAPSED (open=false) */}
-  <motion.div
-    animate={{
-      opacity: open ? 0 : 1,
-      scale: open ? 1.2 : 1,
-      visibility: open ? "hidden" : "visible",
-    }}
-    // ... transitions same as before
-  >
-    <img src={logoLight} className="hidden dark:block h-12" />  {/* SWAPPED */}
-    <img src={logoDark} className="dark:hidden block h-12" />   {/* SWAPPED */}
+  {/* QC icon - visible when collapsed (bigger now) */}
+  <motion.div ...>
+    <img src={logoLight} className="hidden dark:block h-14" />
+    <img src={logoDark} className="dark:hidden block h-14" />
   </motion.div>
   
 </div>
@@ -87,10 +61,12 @@ The wordmark is roughly 2.3× wider than it is tall, while the QC icon is nearly
 
 ## Result
 
-| State | Logo Displayed | Q Visual Size |
-|-------|----------------|---------------|
-| **Collapsed (80px)** | QC icon (h-12) | ~48px |
-| **Expanded (300px)** | Full wordmark (h-28) | ~48px (the Q portion within the larger wordmark) |
+| Element | Before | After |
+|---------|--------|-------|
+| Logo container height | h-28 (112px) | h-14 sm:h-16 (56-64px) |
+| Expanded wordmark | h-28 (112px) | h-14 sm:h-16 (56-64px) |
+| Collapsed icon | h-12 (48px) | h-14 (56px) |
+| Border alignment | Misaligned | ✓ Aligned with header |
 
-Both Q's will now appear visually identical in size, and the correct logo will appear in each state.
+The bottom border of the logo section will now sit at the exact same vertical position as the bottom border of the main header, creating a continuous visual line.
 
