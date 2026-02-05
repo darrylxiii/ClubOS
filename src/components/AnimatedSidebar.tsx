@@ -209,52 +209,57 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       onMouseLeave={() => setOpen(false)}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-header">
-        <AnimatePresence mode="wait" initial={false}>
-          {open ? (
-            <motion.div
-              key="expanded"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-              className="flex items-center justify-center"
-            >
-              {/* Full "Quantum CLUB" text logo when EXPANDED (wide sidebar) */}
-              <img
-                src={logoLightShort}
-                alt="The Quantum Club"
-                className="hidden dark:block h-20"
-              />
-              <img
-                src={logoDarkShort}
-                alt="The Quantum Club"
-                className="dark:hidden block h-20"
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="collapsed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-              className="flex items-center justify-center"
-            >
-              {/* Small QC icon when COLLAPSED (slim sidebar) */}
-              <img
-                src={logoLight}
-                alt="QC"
-                className="hidden dark:block h-12"
-              />
-              <img
-                src={logoDark}
-                alt="QC"
-                className="dark:hidden block h-12"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Logo - Morphing container with simultaneous crossfade */}
+      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
+        {/* Full logo - visible when expanded */}
+        <motion.div
+          className="absolute flex items-center justify-center"
+          initial={false}
+          animate={{
+            opacity: open ? 1 : 0,
+            scale: open ? 1 : 0.8,
+          }}
+          transition={{
+            duration: 0.3,
+            ease: [0.4, 0, 0.2, 1],
+          }}
+        >
+          <img
+            src={logoLight}
+            alt="The Quantum Club"
+            className="hidden dark:block h-10"
+          />
+          <img
+            src={logoDark}
+            alt="The Quantum Club"
+            className="dark:hidden block h-10"
+          />
+        </motion.div>
+
+        {/* Small QC icon - visible when collapsed */}
+        <motion.div
+          className="absolute flex items-center justify-center"
+          initial={false}
+          animate={{
+            opacity: open ? 0 : 1,
+            scale: open ? 1.2 : 1,
+          }}
+          transition={{
+            duration: 0.3,
+            ease: [0.4, 0, 0.2, 1],
+          }}
+        >
+          <img
+            src={logoLightShort}
+            alt="QC"
+            className="hidden dark:block h-10"
+          />
+          <img
+            src={logoDarkShort}
+            alt="QC"
+            className="dark:hidden block h-10"
+          />
+        </motion.div>
       </div>
 
       {/* Content */}
