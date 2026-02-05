@@ -197,6 +197,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
   return (
     <motion.aside
       className={cn(
+        // Fixed, non-scrolling viewport column; only the menu area scrolls.
         "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop overflow-hidden",
         "bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20",
         "shadow-[var(--shadow-glass-lg)]",
@@ -274,23 +275,13 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       </div>
 
       {/* Scrollable Menu Content */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide py-4 relative">
-        <div className="pb-20">
-          {children}
-        </div>
+      <div className="flex-1 overflow-y-auto scrollbar-hide py-4">
+        {children}
       </div>
 
-      {/* Fade gradient overlay - sits above scrollable content */}
-      <div 
-        className="absolute bottom-20 left-0 right-0 h-16 pointer-events-none z-10"
-        style={{
-          background: 'linear-gradient(to bottom, transparent 0%, hsl(var(--card) / 0.3) 30%, hsl(var(--card) / 0.95) 100%)'
-        }}
-      />
-
-      {/* Fixed Footer - always visible at bottom */}
+      {/* Footer - always visible at bottom (not inside any scroll container) */}
       {footer && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 bg-card/95 backdrop-blur-sm border-t border-border/10">
+        <div className="shrink-0 bg-card/95 backdrop-blur-sm border-t border-border/10">
           {footer}
         </div>
       )}
@@ -360,7 +351,7 @@ const MobileSidebar = ({ children, logoLight, logoDark, footer }: MobileSidebarP
                 duration: 0.3,
                 ease: [0.4, 0, 0.2, 1],
               }}
-              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-sidebar-mobile md:hidden flex flex-col shadow-[var(--shadow-glass-xl)] relative"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-sidebar-mobile md:hidden flex flex-col shadow-[var(--shadow-glass-xl)] overflow-hidden"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
                 <img
@@ -383,23 +374,13 @@ const MobileSidebar = ({ children, logoLight, logoDark, footer }: MobileSidebarP
                   <X className="h-5 w-5" aria-hidden="true" />
                 </Button>
               </div>
-              <div className="flex-1 overflow-y-auto py-4 relative">
-                <div className="pb-20">
-                  {children}
-                </div>
+              <div className="flex-1 overflow-y-auto py-4">
+                {children}
               </div>
 
-              {/* Fade gradient overlay */}
-              <div 
-                className="absolute bottom-20 left-0 right-0 h-16 pointer-events-none z-10"
-                style={{
-                  background: 'linear-gradient(to bottom, transparent 0%, hsl(var(--card) / 0.3) 30%, hsl(var(--card) / 0.95) 100%)'
-                }}
-              />
-
-              {/* Fixed Footer */}
+              {/* Footer - always visible at bottom */}
               {footer && (
-                <div className="absolute bottom-0 left-0 right-0 z-20 bg-card/95 backdrop-blur-sm border-t border-border/10">
+                <div className="shrink-0 bg-card/95 backdrop-blur-sm border-t border-border/10">
                   {footer}
                 </div>
               )}
@@ -604,7 +585,7 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
 
   return (
     <>
-      <div className="px-3 mb-4">
+      <div className="p-3">
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
