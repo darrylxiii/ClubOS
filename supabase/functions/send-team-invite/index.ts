@@ -9,6 +9,7 @@ const corsHeaders = {
 interface TeamInviteRequest {
   email: string;
   inviteCode: string;
+  companyId: string;
   companyName: string;
   inviterName?: string;
   role: string;
@@ -61,9 +62,43 @@ serve(async (req) => {
 
     const body: TeamInviteRequest = await req.json();
     
-    if (!body.email || !body.inviteCode || !body.companyName) {
+    if (!body.email || !body.inviteCode || !body.companyName || !body.companyId) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // SERVER-SIDE DOMAIN VALIDATION
+    const inviteeDomain = body.email.split('@')[1]?.toLowerCase();
+    if (!inviteeDomain) {
+      return new Response(JSON.stringify({ error: 'Invalid email format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Fetch allowed domains for this company
+    const { data: domainSettings, error: domainError } = await supabase
+      .from('organization_domain_settings')
+      .select('domain')
+      .eq('company_id', body.companyId)
+      .eq('is_enabled', true);
+
+    if (domainError) {
+      console.error('Error fetching domain settings:', domainError);
+      // Continue without domain validation if fetch fails
+    }
+
+    const allowedDomains = domainSettings?.map(d => d.domain.toLowerCase()) || [];
+
+    // Only enforce domain validation if domains are configured
+    if (allowedDomains.length > 0 && !allowedDomains.includes(inviteeDomain)) {
+      const allowedList = allowedDomains.map(d => `@${d}`).join(', ');
+      return new Response(JSON.stringify({ 
+        error: `Only emails from ${allowedList} are allowed for this company` 
+      }), {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -143,9 +178,11 @@ serve(async (req) => {
         description: `Team invite sent to ${body.email} for ${body.companyName}`,
         new_value: {
           email: body.email,
+          company_id: body.companyId,
           company_name: body.companyName,
           role: body.role,
-          invite_code: body.inviteCode
+          invite_code: body.inviteCode,
+          domain_validated: allowedDomains.length > 0
         },
         ip_address: req.headers.get('x-forwarded-for') || 'unknown',
         user_agent: req.headers.get('user-agent') || 'unknown'

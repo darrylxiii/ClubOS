@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Users, Mail, Shield, Trash2, UserPlus } from "lucide-react";
+import { Users, Mail, Shield, Trash2 } from "lucide-react";
+import { TeamInviteWidget } from "./TeamInviteWidget";
 
 interface TeamManagementProps {
   companyId: string;
@@ -14,10 +15,21 @@ interface TeamManagementProps {
 export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) => {
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [companyName, setCompanyName] = useState("");
 
   useEffect(() => {
     fetchMembers();
+    fetchCompanyName();
   }, [companyId]);
+
+  const fetchCompanyName = async () => {
+    const { data } = await supabase
+      .from('companies')
+      .select('name')
+      .eq('id', companyId)
+      .single();
+    if (data) setCompanyName(data.name);
+  };
 
   const fetchMembers = async () => {
     try {
@@ -75,18 +87,22 @@ export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) =>
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      {/* Invite Widget - Integrated */}
+      {canManage && (
+        <TeamInviteWidget
+          companyId={companyId}
+          companyName={companyName}
+          canInvite={true}
+        />
+      )}
+
+      {/* Team Members Header */}
+      <div className="flex items-center justify-between">
         <h2 className="text-2xl font-black uppercase">Team Members</h2>
-        {canManage && (
-          <Button>
-            <UserPlus className="w-4 h-4 mr-2" />
-            Invite Member
-          </Button>
-        )}
       </div>
 
-      {members.length === 0 ? (
+      {members.filter(m => m.is_active).length === 0 ? (
         <Card className="border-2 border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mb-4" />
@@ -139,6 +155,6 @@ export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) =>
             ))}
         </div>
       )}
-    </>
+    </div>
   );
 };

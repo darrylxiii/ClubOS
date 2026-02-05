@@ -294,6 +294,34 @@ serve(async (req) => {
         });
     }
 
+    // Step 6b: Auto-create domain setting from partner's email domain (if not already created)
+    // This ensures every provisioned partner's company has at least one authorized domain
+    const partnerEmailDomain = body.email.split('@')[1]?.toLowerCase();
+    if (partnerEmailDomain && companyId) {
+      // Check if domain already exists
+      const { data: existingDomain } = await supabase
+        .from('organization_domain_settings')
+        .select('id')
+        .eq('company_id', companyId)
+        .eq('domain', partnerEmailDomain)
+        .maybeSingle();
+
+      if (!existingDomain) {
+        await supabase
+          .from('organization_domain_settings')
+          .insert({
+            company_id: companyId,
+            domain: partnerEmailDomain,
+            is_enabled: true,
+            auto_provision_users: false,
+            default_role: 'member',
+            require_admin_approval: true,
+            allow_google_oauth: true,
+            created_by: adminUser.id
+          });
+      }
+    }
+
     // Step 7: Generate magic link if needed
     let magicLink: string | null = null;
     if (body.provisionMethod === 'magic_link') {

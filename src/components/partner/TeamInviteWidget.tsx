@@ -6,16 +6,18 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { UserPlus, Mail, Send, CheckCircle, Clock, XCircle, Trash2 } from 'lucide-react';
+import { UserPlus, Mail, Send, CheckCircle, Clock, XCircle, Trash2, Globe, AlertCircle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCompanyDomains } from '@/hooks/useCompanyDomains';
 import type { CompanyRole } from '@/types/company';
 
 interface TeamInviteWidgetProps {
   companyId: string;
-  companyDomain?: string;
+  companyName?: string;
+  companyDomain?: string; // Legacy single domain prop
   canInvite: boolean;
 }
 
@@ -28,14 +30,20 @@ interface PendingInvite {
   expires_at: string;
 }
 
-export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamInviteWidgetProps) {
+export function TeamInviteWidget({ companyId, companyName, companyDomain, canInvite }: TeamInviteWidgetProps) {
   const { user } = useAuth();
+  const { domains, primaryDomain, loading: domainsLoading } = useCompanyDomains(companyId);
+  
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<CompanyRole>('member');
   const [isInviting, setIsInviting] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [loadingInvites, setLoadingInvites] = useState(false);
+  const [domainError, setDomainError] = useState<string | null>(null);
+
+  // Use authorized domains from database, fallback to legacy prop
+  const authorizedDomains = domains.length > 0 ? domains : (companyDomain ? [companyDomain] : []);
 
   const loadPendingInvites = async () => {
     setLoadingInvites(true);
@@ -44,7 +52,7 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
         .from('invite_codes')
         .select('*')
         .eq('company_id', companyId)
-        .eq('invite_type', 'organization')
+        .in('invite_type', ['organization', 'team_member'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -73,25 +81,61 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
     }
   };
 
+  // Validate email domain against allowed domains
+  const validateEmailDomain = (emailValue: string): boolean => {
+    if (!emailValue.includes('@')) {
+      setDomainError(null);
+      return false;
+    }
+
+    const emailDomain = emailValue.split('@')[1]?.toLowerCase();
+    if (!emailDomain) {
+      setDomainError(null);
+      return false;
+    }
+
+    // If no domains configured, allow any email
+    if (authorizedDomains.length === 0) {
+      setDomainError(null);
+      return true;
+    }
+
+    const isAllowed = authorizedDomains.some(d => d.toLowerCase() === emailDomain);
+    if (!isAllowed) {
+      const allowedList = authorizedDomains.map(d => `@${d}`).join(', ');
+      setDomainError(`Only ${allowedList} emails are allowed`);
+      return false;
+    }
+
+    setDomainError(null);
+    return true;
+  };
+
+  const handleEmailChange = (value: string) => {
+    setInviteEmail(value);
+    if (value.includes('@')) {
+      validateEmailDomain(value);
+    } else {
+      setDomainError(null);
+    }
+  };
+
   const handleInvite = async () => {
     if (!inviteEmail) {
       toast.error('Please enter an email address');
       return;
     }
 
-    // Validate domain if restricted
-    if (companyDomain) {
-      const emailDomain = inviteEmail.split('@')[1];
-      if (emailDomain !== companyDomain) {
-        toast.error(`Only @${companyDomain} emails can be invited`);
-        return;
-      }
+    // Validate domain
+    if (authorizedDomains.length > 0 && !validateEmailDomain(inviteEmail)) {
+      toast.error('Please use an email from an authorized domain');
+      return;
     }
 
     setIsInviting(true);
     try {
       // Generate invite code
-      const inviteCode = `ORG-${Date.now().toString(36).toUpperCase()}`;
+      const inviteCode = `TEAM-${Date.now().toString(36).toUpperCase()}`;
 
       const { error } = await supabase
         .from('invite_codes')
@@ -100,7 +144,7 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
           created_by: user?.id || '',
           created_by_type: 'user',
           company_id: companyId,
-          invite_type: 'organization',
+          invite_type: 'team_member',
           target_role: inviteRole,
           max_uses: 1,
           uses_count: 0,
@@ -110,12 +154,16 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
 
       if (error) throw error;
 
-      // Get company name for email
-      const { data: companyData } = await supabase
-        .from('companies')
-        .select('name')
-        .eq('id', companyId)
-        .single();
+      // Get company name for email if not provided
+      let resolvedCompanyName = companyName;
+      if (!resolvedCompanyName) {
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('name')
+          .eq('id', companyId)
+          .single();
+        resolvedCompanyName = companyData?.name || 'Your Organization';
+      }
 
       // Get inviter name
       const { data: inviterProfile } = await supabase
@@ -129,7 +177,8 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
         body: {
           email: inviteEmail,
           inviteCode,
-          companyName: companyData?.name || 'Your Organization',
+          companyId,
+          companyName: resolvedCompanyName,
           inviterName: inviterProfile?.full_name,
           role: inviteRole
         }
@@ -145,6 +194,7 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
       }
 
       setInviteEmail('');
+      setDomainError(null);
       setShowInviteDialog(false);
       loadPendingInvites();
     } catch (error) {
@@ -177,7 +227,7 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
       case 'pending':
         return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" /> Pending</Badge>;
       case 'accepted':
-        return <Badge variant="default" className="gap-1 bg-emerald-500"><CheckCircle className="w-3 h-3" /> Accepted</Badge>;
+        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="w-3 h-3" /> Accepted</Badge>;
       case 'expired':
         return <Badge variant="outline" className="gap-1 text-muted-foreground"><XCircle className="w-3 h-3" /> Expired</Badge>;
     }
@@ -185,9 +235,13 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
 
   if (!canInvite) return null;
 
+  const placeholder = primaryDomain || companyDomain
+    ? `colleague@${primaryDomain || companyDomain}`
+    : 'colleague@company.com';
+
   return (
     <>
-      <Card className="border-2">
+      <Card className="border-2 border-foreground">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
@@ -196,8 +250,8 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
                 Invite Team
               </CardTitle>
               <CardDescription>
-                {companyDomain 
-                  ? `Invite colleagues with @${companyDomain} emails` 
+                {authorizedDomains.length > 0 
+                  ? `Invite colleagues with ${authorizedDomains.map(d => `@${d}`).join(' or ')} emails` 
                   : 'Invite team members to your organization'}
               </CardDescription>
             </div>
@@ -210,6 +264,21 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
             </Button>
           </div>
         </CardHeader>
+
+        {/* Authorized domains badge */}
+        {authorizedDomains.length > 0 && (
+          <CardContent className="pt-0 pb-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Globe className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Allowed domains:</span>
+              {authorizedDomains.map(domain => (
+                <Badge key={domain} variant="secondary" className="font-mono text-xs">
+                  @{domain}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        )}
 
         {pendingInvites.length > 0 && (
           <CardContent>
@@ -264,12 +333,25 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
                 id="invite-email"
                 type="email"
                 value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder={companyDomain ? `colleague@${companyDomain}` : 'colleague@company.com'}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                placeholder={placeholder}
+                className={domainError ? 'border-destructive focus-visible:ring-destructive' : ''}
               />
-              {companyDomain && (
+              {domainError && (
+                <div className="flex items-center gap-1.5 text-destructive text-xs">
+                  <AlertCircle className="w-3 h-3" />
+                  {domainError}
+                </div>
+              )}
+              {inviteEmail && !domainError && inviteEmail.includes('@') && (
+                <div className="flex items-center gap-1.5 text-green-600 text-xs">
+                  <Check className="w-3 h-3" />
+                  Valid email domain
+                </div>
+              )}
+              {authorizedDomains.length > 0 && !domainError && !inviteEmail.includes('@') && (
                 <p className="text-xs text-muted-foreground">
-                  Only @{companyDomain} emails are allowed
+                  Only {authorizedDomains.map(d => `@${d}`).join(' or ')} emails are allowed
                 </p>
               )}
             </div>
@@ -330,7 +412,7 @@ export function TeamInviteWidget({ companyId, companyDomain, canInvite }: TeamIn
             <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleInvite} disabled={isInviting || !inviteEmail}>
+            <Button onClick={handleInvite} disabled={isInviting || !inviteEmail || !!domainError || domainsLoading}>
               {isInviting ? (
                 <>
                   <motion.div

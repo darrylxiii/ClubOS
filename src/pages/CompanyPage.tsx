@@ -775,7 +775,7 @@ export default function CompanyPage() {
 
               {(isAdmin || isCompanyMember) && (
                 <TabsContent value="manage" className="mt-6 space-y-6">
-                  <MemberAssignmentEditor companyId={company.id} />
+                  <TeamManagement companyId={company.id} canManage={true} />
                 </TabsContent>
               )}
             </Tabs>
