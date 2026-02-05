@@ -1,72 +1,182 @@
 
 
-## Final Fixes: Border Alignment + Collapsed Logo Size
+## Goal
 
-### Issue 1: Border Misalignment
-
-**Current state:**
-- Header: `h-14 sm:h-16` (56-64px tall), border at bottom
-- Logo container: `h-28` (112px tall), border at bottom
-
-The logo container's bottom border is at 112px, while the header's bottom border is at 64px. They don't align.
-
-**Fix:** Change logo container height to match header: `h-14 sm:h-16`
+Create a **sticky user profile section** at the bottom of the sidebar that:
+1. Always stays visible at the bottom, regardless of scroll position
+2. Overlays menu content when there's overflow
+3. Has a subtle fade gradient above it to signal "more items below"
 
 ---
 
-### Issue 2: Collapsed Logo Too Small
+## Current Architecture
 
-Looking at your screenshots, the collapsed QC icon appears noticeably smaller than the "Q" in the expanded wordmark.
-
-**Current:** `h-12` (48px)
-**Fix:** Increase to `h-14` (56px) to better match the visual weight of the expanded wordmark
-
----
-
-### Issue 3: Expanded Logo Must Shrink to Fit
-
-Since the container will now be `h-16` (64px) instead of `h-28` (112px), the expanded wordmark must also shrink.
-
-**Current:** `h-28` (112px) - won't fit
-**Fix:** `h-16` or `h-14` to fit within the smaller container
-
-This will make the Q in the wordmark smaller, but that's unavoidable if we want border alignment. The collapsed icon at `h-14` should now be closer in visual weight.
-
----
-
-## File to Modify
-
-`src/components/AnimatedSidebar.tsx`
-
-```tsx
-{/* Logo container - matching header height for border alignment */}
-<div className="h-14 sm:h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
-  
-  {/* Full wordmark - visible when expanded */}
-  <motion.div ...>
-    <img src={logoLightShort} className="hidden dark:block h-14 sm:h-16" />
-    <img src={logoDarkShort} className="dark:hidden block h-14 sm:h-16" />
-  </motion.div>
-
-  {/* QC icon - visible when collapsed (bigger now) */}
-  <motion.div ...>
-    <img src={logoLight} className="hidden dark:block h-14" />
-    <img src={logoDark} className="dark:hidden block h-14" />
-  </motion.div>
-  
-</div>
+```text
+DesktopSidebar
+├── Logo Container (h-14/h-16, border-bottom)
+└── Content (flex-1, overflow-y-auto)
+    ├── SidebarGroup (Social)
+    ├── SidebarGroup (Communication)
+    ├── SidebarGroup (Learning)
+    ├── ...
+    └── SidebarFooter ← Currently scrolls with content
 ```
 
 ---
 
-## Result
+## Proposed Architecture
 
-| Element | Before | After |
-|---------|--------|-------|
-| Logo container height | h-28 (112px) | h-14 sm:h-16 (56-64px) |
-| Expanded wordmark | h-28 (112px) | h-14 sm:h-16 (56-64px) |
-| Collapsed icon | h-12 (48px) | h-14 (56px) |
-| Border alignment | Misaligned | ✓ Aligned with header |
+```text
+DesktopSidebar (flex-col, relative)
+├── Logo Container (h-14/h-16, border-bottom)
+├── Scrollable Menu Area (flex-1, overflow-y-auto)
+│   ├── SidebarGroup (Social)
+│   ├── SidebarGroup (Communication)
+│   ├── ...
+│   └── Spacer (padding-bottom to prevent content hiding behind footer)
+├── Fade Gradient Overlay (absolute, pointer-events-none)
+└── User Profile Footer (sticky/absolute bottom, z-10)
+```
 
-The bottom border of the logo section will now sit at the exact same vertical position as the bottom border of the main header, creating a continuous visual line.
+---
+
+## Implementation Plan
+
+### Step 1: Restructure DesktopSidebar
+
+**File:** `src/components/AnimatedSidebar.tsx`
+
+Split the sidebar content into two parts:
+- **Scrollable navigation container** - receives only navigation groups as children
+- **Fixed footer section** - positioned absolutely at bottom with higher z-index
+
+### Step 2: Pass Footer Separately
+
+**File:** `src/components/AppLayout.tsx`
+
+Instead of rendering `SidebarFooter` as a child of `Sidebar`, pass it as a dedicated prop:
+
+```tsx
+<Sidebar
+  logoLight={...}
+  footer={
+    <SidebarFooter
+      userName={firstName}
+      userInitial={firstName[0].toUpperCase()}
+      userAvatarUrl={userProfile?.avatar_url || null}
+      onSignOut={signOut}
+      profilePath={profilePath}
+    />
+  }
+>
+  {navigationGroups.map((group) => (
+    <SidebarGroup key={group.title} group={group} />
+  ))}
+</Sidebar>
+```
+
+### Step 3: Update Sidebar Component Props
+
+**File:** `src/components/AnimatedSidebar.tsx`
+
+Add `footer?: ReactNode` prop to `SidebarProps`, `DesktopSidebarProps`, and `MobileSidebarProps`.
+
+### Step 4: Update DesktopSidebar Layout
+
+**File:** `src/components/AnimatedSidebar.tsx`
+
+```tsx
+const DesktopSidebar = ({ children, footer, ... }) => {
+  return (
+    <motion.aside className="... relative">
+      {/* Logo */}
+      <div className="h-14 sm:h-16 ...">...</div>
+      
+      {/* Scrollable Menu Content */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide py-4 relative">
+        <div className="pb-20"> {/* Space for footer */}
+          {children}
+        </div>
+      </div>
+      
+      {/* Fade gradient - sits above scrollable content */}
+      <div 
+        className="absolute bottom-20 left-0 right-0 h-16 pointer-events-none z-10"
+        style={{
+          background: 'linear-gradient(to bottom, transparent, hsl(var(--card)/0.95))'
+        }}
+      />
+      
+      {/* Fixed Footer - always visible */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-card/95 backdrop-blur-sm border-t border-border/10">
+        {footer}
+      </div>
+    </motion.aside>
+  );
+};
+```
+
+### Step 5: Update MobileSidebar Layout
+
+**File:** `src/components/AnimatedSidebar.tsx`
+
+Apply the same pattern to the mobile sidebar for consistency.
+
+### Step 6: Adjust Footer Styling
+
+**File:** `src/components/AnimatedSidebar.tsx`
+
+The `SidebarFooter` component's wrapper will need slight padding adjustments since it's now in a fixed position container.
+
+---
+
+## Visual Behavior
+
+| Scroll Position | User Profile | Fade Gradient |
+|-----------------|--------------|---------------|
+| Top (no scroll) | Visible at bottom | Visible (subtle) |
+| Middle | Visible at bottom, menu scrolls behind | Visible |
+| Bottom | Visible at bottom | Fades as last items approach |
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/components/AnimatedSidebar.tsx` | Add `footer` prop; restructure DesktopSidebar and MobileSidebar layouts; add fade gradient |
+| `src/components/AppLayout.tsx` | Pass `SidebarFooter` as `footer` prop instead of child |
+
+---
+
+## Technical Details
+
+**Gradient Implementation:**
+```css
+background: linear-gradient(
+  to bottom,
+  transparent 0%,
+  hsl(var(--card) / 0.3) 30%,
+  hsl(var(--card) / 0.9) 100%
+);
+```
+
+**Z-index Stack:**
+- Scrollable content: default (z-0)
+- Fade gradient: z-10
+- User profile footer: z-20
+
+**Footer Height:** ~80px (20 in Tailwind = `pb-20` / `bottom-20` / `h-20`)
+
+---
+
+## Acceptance Criteria
+
+1. User profile section stays fixed at bottom when scrolling menu items
+2. Menu items scroll behind/under the user profile
+3. Subtle fade gradient appears above user profile to hint at more content
+4. Works in both collapsed and expanded states
+5. Works on both desktop and mobile sidebars
+6. Dark and light themes render correctly
+7. No layout shift or flicker during sidebar expand/collapse
 
