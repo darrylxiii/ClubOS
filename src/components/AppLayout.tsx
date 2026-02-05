@@ -115,7 +115,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Header - Fixed Top - Responsive Layout */}
       <header
-        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-header flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-20"
+        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-header flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-[76px]"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         {/* Left: Menu Trigger (Mobile Only) */}
@@ -189,7 +189,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         id="main-content"
         tabIndex={-1}
         className={cn(
-          "flex-1 w-full md:ml-20",
+          "flex-1 w-full md:ml-[76px]",
           (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
             ? 'overflow-hidden'
             : 'overflow-y-auto'
