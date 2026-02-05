@@ -70,6 +70,7 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
   const [dueDate, setDueDate] = useState<Date>();
   const [dueTime, setDueTime] = useState('09:00');
   const [priority, setPriority] = useState<number>(0);
+  const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [saving, setSaving] = useState(false);
 
   const { createActivity } = useCRMActivities();
@@ -90,6 +91,17 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
 
     setSaving(true);
     try {
+      // Build recurrence rule if selected
+      let recurrenceRule: string | null = null;
+      if (recurrence !== 'none' && dueDate) {
+        const freq = recurrence === 'daily' ? 'DAILY' 
+          : recurrence === 'weekly' ? 'WEEKLY'
+          : recurrence === 'biweekly' ? 'WEEKLY' 
+          : 'MONTHLY';
+        const interval = recurrence === 'biweekly' ? ';INTERVAL=2' : '';
+        recurrenceRule = `FREQ=${freq}${interval}`;
+      }
+
       await createActivity({
         prospect_id: prospectId || null,
         activity_type: selectedType,
@@ -98,7 +110,8 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
         due_date: dueDate ? format(dueDate, 'yyyy-MM-dd') : null,
         due_time: dueTime || null,
         priority,
-      });
+        recurrence_rule: recurrenceRule,
+      } as any);
 
       setOpen(false);
       resetForm();
@@ -114,6 +127,7 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
     setDueDate(undefined);
     setDueTime('09:00');
     setPriority(0);
+    setRecurrence('none');
     setSelectedType('call');
     setShowTypeSelect(false);
   };
@@ -255,6 +269,23 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
                   </Button>
                 ))}
               </div>
+            </div>
+
+            {/* Recurrence */}
+            <div>
+              <Label>Repeat</Label>
+              <Select value={recurrence} onValueChange={(v: any) => setRecurrence(v)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Repeat</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="biweekly">Every 2 Weeks</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Description */}
