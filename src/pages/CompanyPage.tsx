@@ -38,6 +38,7 @@ import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledg
 
 
 import { CompanyFinancialsTab } from "@/components/companies/CompanyFinancialsTab";
+import { DomainManagementPanel } from "@/components/admin/DomainManagementPanel";
 
 interface Company {
   id: string;
@@ -557,9 +558,9 @@ export default function CompanyPage() {
         {/* Social Activity Section */}
         <CompanySocialActivity companyId={company.id} isCompanyMember={isCompanyMember} />
 
-        {/* Additional Tabs */}
-        <Tabs defaultValue="about" className="w-full">
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-9' : ((isAdmin || isCompanyMember) ? 'grid-cols-8' : (canAccessTargets ? 'grid-cols-6' : 'grid-cols-5'))}`}>
+         {/* Additional Tabs */}
+         <Tabs defaultValue="about" className="w-full">
+           <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-10' : ((isAdmin || isCompanyMember) ? 'grid-cols-8' : (canAccessTargets ? 'grid-cols-6' : 'grid-cols-5'))}`}>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="jobs">Jobs ({jobCount})</TabsTrigger>
             <TabsTrigger value="news">
@@ -584,13 +585,19 @@ export default function CompanyPage() {
                 <BarChart3 className="w-4 h-4 mr-1.5" />
                 ML
               </TabsTrigger>
-            )}
-            {isAdmin && (
-              <TabsTrigger value="financials">
-                <Wallet className="w-4 h-4 mr-1.5" />
-                Financials
-              </TabsTrigger>
-            )}
+             )}
+             {isAdmin && (
+               <TabsTrigger value="domains">
+                 <Globe className="w-4 h-4 mr-1.5" />
+                 Domains
+               </TabsTrigger>
+             )}
+             {isAdmin && (
+               <TabsTrigger value="financials">
+                 <Wallet className="w-4 h-4 mr-1.5" />
+                 Financials
+               </TabsTrigger>
+             )}
           </TabsList>
 
           <TabsContent value="about" className="space-y-6 mt-6">
@@ -863,6 +870,13 @@ export default function CompanyPage() {
           {isAdmin && (
             <TabsContent value="ml-insights" className="space-y-6 mt-6">
               <CompanyMLInsights companyId={company.id} />
+            </TabsContent>
+          )}
+
+          {/* Domains Tab - Admin Only */}
+          {isAdmin && (
+            <TabsContent value="domains" className="space-y-6 mt-6">
+              <DomainManagementPanel companyId={company.id} canManage={true} />
             </TabsContent>
           )}
 
