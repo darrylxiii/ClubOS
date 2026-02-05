@@ -13112,8 +13112,11 @@ export type Database = {
           outcome: Database["public"]["Enums"]["crm_activity_outcome"] | null
           outcome_notes: string | null
           owner_id: string | null
+          parent_activity_id: string | null
           priority: number | null
           prospect_id: string | null
+          recurrence_end_date: string | null
+          recurrence_rule: string | null
           reminder_at: string | null
           reminder_sent: boolean | null
           subject: string
@@ -13143,8 +13146,11 @@ export type Database = {
           outcome?: Database["public"]["Enums"]["crm_activity_outcome"] | null
           outcome_notes?: string | null
           owner_id?: string | null
+          parent_activity_id?: string | null
           priority?: number | null
           prospect_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
           reminder_at?: string | null
           reminder_sent?: boolean | null
           subject: string
@@ -13174,8 +13180,11 @@ export type Database = {
           outcome?: Database["public"]["Enums"]["crm_activity_outcome"] | null
           outcome_notes?: string | null
           owner_id?: string | null
+          parent_activity_id?: string | null
           priority?: number | null
           prospect_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
           reminder_at?: string | null
           reminder_sent?: boolean | null
           subject?: string
@@ -13247,6 +13256,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "crm_activities_parent_activity_id_fkey"
+            columns: ["parent_activity_id"]
+            isOneToOne: false
+            referencedRelation: "crm_activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "crm_activities_prospect_id_fkey"
             columns: ["prospect_id"]
             isOneToOne: false
@@ -13254,6 +13270,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      crm_activity_templates: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          created_by: string | null
+          default_duration_minutes: number | null
+          default_priority: number | null
+          description_template: string | null
+          id: string
+          name: string
+          subject_template: string
+          updated_at: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          created_by?: string | null
+          default_duration_minutes?: number | null
+          default_priority?: number | null
+          description_template?: string | null
+          id?: string
+          name: string
+          subject_template: string
+          updated_at?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          default_duration_minutes?: number | null
+          default_priority?: number | null
+          description_template?: string | null
+          id?: string
+          name?: string
+          subject_template?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       crm_analytics_snapshots: {
         Row: {
