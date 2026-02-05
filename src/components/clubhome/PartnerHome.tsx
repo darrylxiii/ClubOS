@@ -36,6 +36,7 @@ import { UpcomingDeadlinesWidget } from "../partner/UpcomingDeadlinesWidget";
 import { DossierActivityWidget } from "../partner/DossierActivityWidget";
 import { usePartnerDataPopulation } from "@/hooks/usePartnerDataPopulation";
 import { usePartnerRealtime } from "@/hooks/usePartnerRealtime";
+import { TeamOverviewWidget } from "../partner/TeamOverviewWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
 
@@ -209,7 +210,7 @@ export const PartnerHome = () => {
               </Button>
             </CardContent>
           </Card>
-          {companyId && <InterviewSuccessWidget companyId={companyId} />}
+          {companyId && <TeamOverviewWidget companyId={companyId} />}
         </DashboardSection>
       </motion.div>
 
@@ -220,9 +221,10 @@ export const PartnerHome = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: staggerDelay * 9 }}
         >
-          <DashboardSection columns={2}>
+          <DashboardSection columns={3}>
             <TimeTrackingWidget role="partner" companyId={companyId} />
             <DossierActivityWidget companyId={companyId} />
+            <InterviewSuccessWidget companyId={companyId} />
           </DashboardSection>
         </motion.div>
       )}
