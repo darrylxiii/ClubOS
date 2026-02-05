@@ -225,9 +225,7 @@ export default defineConfig(({ mode, command }) => ({
           '@blocknote/core',
           '@blocknote/react',
           '@blocknote/mantine',
-          'livekit-client',
-          '@livekit/components-react',
-          '@livekit/components-styles',
+          // LiveKit removed - must be bundled for lazy loading to work
           'jspdf',
           'jspdf-autotable',
           '@tiptap/core',
