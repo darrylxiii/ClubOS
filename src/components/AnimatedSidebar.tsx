@@ -210,7 +210,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
     >
       {/* Logo */}
       {/* Logo - Morphing container with simultaneous crossfade */}
-      <div className="h-20 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
+      <div className="h-24 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
         {/* Full logo - visible when expanded */}
         <motion.div
           className="absolute flex items-center justify-center"
@@ -218,21 +218,25 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
           animate={{
             opacity: open ? 1 : 0,
             scale: open ? 1 : 0.8,
+            visibility: open ? "visible" : "hidden",
           }}
           transition={{
-            duration: 0.3,
+            duration: 0.25,
+            delay: open ? 0.1 : 0,
             ease: [0.4, 0, 0.2, 1],
           }}
+          style={{ pointerEvents: open ? "auto" : "none" }}
+          aria-hidden={!open}
         >
           <img
             src={logoLight}
             alt="The Quantum Club"
-            className="hidden dark:block h-14"
+            className="hidden dark:block h-20"
           />
           <img
             src={logoDark}
             alt="The Quantum Club"
-            className="dark:hidden block h-14"
+            className="dark:hidden block h-20"
           />
         </motion.div>
 
@@ -243,11 +247,15 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
           animate={{
             opacity: open ? 0 : 1,
             scale: open ? 1.2 : 1,
+            visibility: open ? "hidden" : "visible",
           }}
           transition={{
-            duration: 0.3,
+            duration: open ? 0.15 : 0.25,
+            delay: open ? 0 : 0.1,
             ease: [0.4, 0, 0.2, 1],
           }}
+          style={{ pointerEvents: open ? "none" : "auto" }}
+          aria-hidden={open}
         >
           <img
             src={logoLightShort}
