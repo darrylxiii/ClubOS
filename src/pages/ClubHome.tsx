@@ -51,7 +51,7 @@ const ClubHome = () => {
   };
 
   return (
-    <div className="relative z-10 container mx-auto py-8 space-y-8 animate-fade-in">
+    <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
       <ClubHomeHeader role={effectiveRole} />
       <div className="glass-card">
         {renderRoleView()}
