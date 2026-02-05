@@ -208,9 +208,8 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      {/* Logo */}
-      {/* Logo - Morphing container with simultaneous crossfade */}
-      <div className="h-28 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
+      {/* Logo - matching header height for border alignment */}
+      <div className="h-14 sm:h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
         {/* Full logo - visible when expanded */}
         <motion.div
           className="absolute flex items-center justify-center"
@@ -231,12 +230,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
           <img
             src={logoLightShort}
             alt="The Quantum Club"
-            className="hidden dark:block h-28"
+            className="hidden dark:block h-14 sm:h-16"
           />
           <img
             src={logoDarkShort}
             alt="The Quantum Club"
-            className="dark:hidden block h-28"
+            className="dark:hidden block h-14 sm:h-16"
           />
         </motion.div>
 
@@ -260,12 +259,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
           <img
             src={logoLight}
             alt="QC"
-            className="hidden dark:block h-12"
+            className="hidden dark:block h-14"
           />
           <img
             src={logoDark}
             alt="QC"
-            className="dark:hidden block h-12"
+            className="dark:hidden block h-14"
           />
         </motion.div>
       </div>
