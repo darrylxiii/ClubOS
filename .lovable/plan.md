@@ -1,208 +1,190 @@
 
 
-## Global Fix: Viewport-Fixed Profile Footer + Reduced Left Whitespace
+## Holistic Fix: LiveKit Module Resolution Error
 
-### Problem Summary
+### Root Cause Analysis
 
-Based on my comprehensive audit of the codebase, I identified **two distinct bugs** preventing the desired behavior:
+The error `Failed to resolve module specifier "livekit-client"` occurs because of a **conflict between Vite's development configuration and runtime module resolution**.
 
----
-
-### Issue 1: Profile Footer Scrolls Away (Not Viewport-Fixed)
-
-**Root Cause:** In `src/components/AnimatedSidebar.tsx` line 200, the DesktopSidebar has conflicting CSS classes:
-
-```tsx
-className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop relative"
+**In `vite.config.ts` (lines 218-240):**
+```typescript
+// Development mode: mark heavy libs as external
+...(mode === 'development' ? {
+  external: [
+    'livekit-client',
+    '@livekit/components-react',
+    '@livekit/components-styles',
+    // ... other packages
+  ],
+} : {}),
 ```
 
-The `relative` class **overrides** the `fixed` class because it comes last. This means:
-- The sidebar is NOT fixed to the viewport
-- It scrolls with the page content
-- The profile footer (which is `absolute bottom-0` inside the sidebar) scrolls away
+**What this means:**
+1. In development mode, Vite marks `livekit-client` as "external"
+2. External packages are **not bundled** - they're expected to be available at runtime
+3. When the browser encounters `import ... from 'livekit-client'`, it cannot resolve bare module specifiers
+4. The browser throws: `Failed to resolve module specifier "livekit-client"`
 
-**Fix:** Remove the erroneous `relative` class so `fixed` takes effect properly.
+**Why it crashes on `/meeting-intelligence`:**
+The `LiveKitMeetingWrapper.tsx` file has static top-level imports from `@livekit/components-react`:
 
----
+```typescript
+import {
+    LiveKitRoom,
+    VideoConference,
+    RoomAudioRenderer,
+    LayoutContextProvider,
+} from '@livekit/components-react';
+import '@livekit/components-styles';
+```
 
-### Issue 2: Too Much Left Whitespace on Pages
-
-**Root Cause:** Most app pages use `container mx-auto` which centers content with auto-margins on both sides. With a fixed sidebar on the left, this creates an asymmetric gap:
-
-| Current Layout Issue |
-|---------------------|
-| Sidebar (80px) + Left gutter from `mx-auto` + Content + Right gutter |
-
-The left gutter is wasted space since the sidebar already occupies that area.
-
-**Pages affected (examples from search):**
-- `/salary-insights` (`SalaryInsights.tsx`)
-- `/home` (`ClubHome.tsx`) 
-- `/referrals` (`Referrals.tsx`)
-- All admin pages
-- 197+ files use this pattern
-
-**Fix:** Replace `container mx-auto` with a left-aligned layout utility across all authenticated app pages.
+Even though `MeetingVideoCallInterface` lazy-loads `LiveKitMeetingWrapper`, the **bundler still tries to resolve** the external packages when preparing the module graph.
 
 ---
 
-## Solution Architecture
+### Solution
 
-### Part 1: Fix Sidebar Footer Position
+There are two complementary fixes needed:
 
-**File:** `src/components/AnimatedSidebar.tsx`
+#### Fix 1: Remove LiveKit from External List (Temporary Dev Fix)
 
-| Line | Change |
-|------|--------|
-| 200 | Remove `relative` from className |
+Remove `livekit-client`, `@livekit/components-react`, and `@livekit/components-styles` from the `external` array in `vite.config.ts`. This allows Vite to bundle these packages normally.
 
-**Before:**
-```tsx
-"hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop relative"
+**File:** `vite.config.ts`
+
+**Before (lines 218-240):**
+```typescript
+external: [
+  'mermaid',
+  '@mediapipe/selfie_segmentation',
+  '@mediapipe/camera_utils',
+  'fabric',
+  'katex',
+  '@blocknote/core',
+  '@blocknote/react',
+  '@blocknote/mantine',
+  'livekit-client',          // ← REMOVE
+  '@livekit/components-react', // ← REMOVE
+  '@livekit/components-styles', // ← REMOVE
+  'jspdf',
+  'jspdf-autotable',
+  // ...
+],
 ```
 
 **After:**
-```tsx
-"hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop"
+```typescript
+external: [
+  'mermaid',
+  '@mediapipe/selfie_segmentation',
+  '@mediapipe/camera_utils',
+  'fabric',
+  'katex',
+  '@blocknote/core',
+  '@blocknote/react',
+  '@blocknote/mantine',
+  // LiveKit removed - must be bundled for lazy loading to work
+  'jspdf',
+  'jspdf-autotable',
+  // ...
+],
 ```
 
-This ensures:
-- Sidebar is truly `position: fixed` to the viewport
-- Footer wrapper (`absolute bottom-0`) is positioned relative to the fixed sidebar = always at viewport bottom-left
-- User can scroll page content, but profile stays pinned at bottom-left of screen
-- Fade gradient appears correctly above the profile to indicate more menu items
+#### Fix 2: Ensure Dynamic Import Pattern for LiveKit (Long-term Stability)
 
----
+To prevent future regressions and keep memory footprint low, restructure `LiveKitMeetingWrapper.tsx` to use dynamic imports instead of static top-level imports.
 
-### Part 2: Create App Layout Utility
+**File:** `src/components/meetings/LiveKitMeetingWrapper.tsx`
 
-To avoid editing 197+ files individually, I'll create a reusable layout wrapper component.
-
-**New File:** `src/components/layouts/AppContentContainer.tsx`
-
-```tsx
-interface AppContentContainerProps {
-  children: ReactNode;
-  className?: string;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | 'full';
-}
-
-export const AppContentContainer = ({ 
-  children, 
-  className,
-  maxWidth = '7xl' 
-}: AppContentContainerProps) => {
-  return (
-    <div className={cn(
-      "w-full px-4 sm:px-6 lg:px-8",  // Consistent padding
-      maxWidth !== 'full' && `max-w-${maxWidth}`,  // Optional max width
-      // NO mx-auto - content aligns to left edge
-      className
-    )}>
-      {children}
-    </div>
-  );
-};
+**Current problematic pattern:**
+```typescript
+import {
+    LiveKitRoom,
+    VideoConference,
+    RoomAudioRenderer,
+    LayoutContextProvider,
+} from '@livekit/components-react';
+import '@livekit/components-styles';
 ```
 
+**New pattern using dynamic imports:**
+```typescript
+// No static imports from @livekit at the top level
+// Components are loaded dynamically only when this wrapper is rendered
+
+const LiveKitComponents = lazy(() => 
+  import('@livekit/components-react').then(mod => ({
+    default: () => {
+      // Import styles side-effect
+      import('@livekit/components-styles');
+      return mod;
+    }
+  }))
+);
+```
+
+However, since the `LiveKitMeetingWrapper` is **already lazy-loaded** by `MeetingVideoCallInterface`, the simpler fix is just removing it from the external list.
+
 ---
 
-### Part 3: Update High-Traffic Pages
+### Files to Modify
 
-I'll update the most visible pages to use the new left-aligned layout:
-
-| File | Current | Updated |
-|------|---------|---------|
-| `src/pages/SalaryInsights.tsx` | `container mx-auto p-6` | `w-full px-6` |
-| `src/pages/ClubHome.tsx` | `container mx-auto py-8` | `w-full px-6 py-8` |
-| `src/pages/Home.tsx` | `container mx-auto p-6` | `w-full px-6` |
-| `src/pages/Referrals.tsx` | `container mx-auto px-4 py-6` | `w-full px-4 py-6` |
-
-For a manageable initial scope, I'll focus on the core user-facing pages. Other pages can be migrated progressively.
+| File | Change |
+|------|--------|
+| `vite.config.ts` | Remove `livekit-client`, `@livekit/components-react`, `@livekit/components-styles` from the `external` array in development mode |
 
 ---
 
-## Visual Behavior After Fix
+### Technical Explanation
 
-### Profile Footer
 ```text
+Current flow (broken):
 ┌─────────────────────────────────────────────────────────────┐
-│ Header                                                      │
-├─────────┬───────────────────────────────────────────────────┤
-│ Sidebar │                                                   │
-│         │  Page Content (scrollable)                        │
-│ Menu    │                                                   │
-│ Items   │                                                   │
-│ (scroll)│                                                   │
-│         │                                                   │
-│ ═══════ │                                                   │ ← Fade gradient
-│ [Profile]│                                                   │ ← ALWAYS HERE
-└─────────┴───────────────────────────────────────────────────┘
+│ Browser loads /meeting-intelligence                         │
+├─────────────────────────────────────────────────────────────┤
+│ Vite prepares module graph                                  │
+│ ├── MeetingIntelligence.tsx (lazy ✓)                        │
+│ ├── ... (other deps)                                        │
+│ └── LiveKitMeetingWrapper.tsx (lazy ✓)                      │
+│     └── @livekit/components-react (EXTERNAL = NOT BUNDLED)  │
+│         └── livekit-client (EXTERNAL = NOT BUNDLED)         │
+│             └── Browser: "I can't resolve bare specifiers!" │
+│                 └── ❌ ERROR                                 │
+└─────────────────────────────────────────────────────────────┘
+
+Fixed flow:
+┌─────────────────────────────────────────────────────────────┐
+│ Browser loads /meeting-intelligence                         │
+├─────────────────────────────────────────────────────────────┤
+│ Vite prepares module graph                                  │
+│ ├── MeetingIntelligence.tsx (lazy ✓)                        │
+│ ├── ... (other deps)                                        │
+│ └── LiveKitMeetingWrapper.tsx (lazy ✓)                      │
+│     └── @livekit/components-react (BUNDLED in livekit chunk)│
+│         └── livekit-client (BUNDLED in livekit chunk)       │
+│             └── ✅ Loaded only when user joins meeting      │
+└─────────────────────────────────────────────────────────────┘
 ```
-
-- Profile is always visible at bottom-left of viewport
-- When scrolling page content: profile stays put
-- When sidebar menu overflows: menu scrolls, profile stays put
-- Fade gradient indicates more menu items above
-
-### Content Spacing
-```text
-Before:                          After:
-┌────────┬─────────────────┐    ┌────────┬─────────────────┐
-│Sidebar │  ←gap→ Content  │    │Sidebar │ Content         │
-│        │  (centered)     │    │        │ (left-aligned)  │
-└────────┴─────────────────┘    └────────┴─────────────────┘
-```
-
-- Content starts immediately after sidebar with minimal padding
-- Same padding on left and right edges of content area
-- Maximum use of horizontal space
 
 ---
 
-## Files to Modify
+### Memory Impact
 
-| Priority | File | Changes |
-|----------|------|---------|
-| P0 | `AnimatedSidebar.tsx` | Remove `relative` class from DesktopSidebar |
-| P1 | `SalaryInsights.tsx` | Replace `container mx-auto` with `w-full` |
-| P1 | `ClubHome.tsx` | Replace `container mx-auto` with `w-full` |
-| P1 | `Home.tsx` | Replace `container mx-auto` with `w-full` |
-| P2 | `Referrals.tsx` | Replace `container mx-auto` with `w-full` |
-| P2 | Other pages | Progressive migration as needed |
+The memory issue that originally caused LiveKit to be marked as external is addressed by:
 
----
+1. **Lazy loading** - `LiveKitMeetingWrapper` is already lazy-loaded via `React.lazy()`
+2. **Code splitting** - Production builds already chunk LiveKit separately (line 251 in vite.config.ts)
+3. **Conditional rendering** - LiveKit components only mount when `useLiveKitMode` is true
 
-## Technical Explanation
-
-**Why profile will be viewport-fixed after the fix:**
-
-```text
-<motion.aside className="fixed left-0 top-0 bottom-0">
-           ↑ position: fixed (pinned to viewport edges)
-           
-  └── <div className="absolute bottom-0">
-           ↑ position: absolute within fixed parent
-             = relative to viewport, not page scroll
-             
-      └── SidebarFooter
-           ↑ Always at bottom-left of SCREEN
-             regardless of page scroll position
-</div>
-```
-
-The bug was that `relative` was overriding `fixed`, making the entire sidebar scroll with the page. Once removed, the CSS cascade works correctly.
+Removing it from the external list means Vite will bundle it (adding ~50-100ms to dev server start), but this is necessary for the app to work.
 
 ---
 
-## Acceptance Criteria
+### Acceptance Criteria
 
-1. Profile footer is ALWAYS visible at bottom-left of viewport on desktop
-2. Scrolling the main page content does not move the profile
-3. Scrolling the sidebar menu (when it overflows) does not move the profile
-4. Fade gradient appears above profile when menu has overflow
-5. Minimal left gap between sidebar and page content
-6. Content padding is symmetric (same on left and right within content area)
-7. Works on all viewport heights (even very short windows)
-8. Mobile sidebar behavior unchanged (footer at bottom of drawer)
+1. `/meeting-intelligence` route loads without errors
+2. App starts successfully in development mode
+3. Meeting features remain functional when LiveKit mode is enabled
+4. No increase in initial page load (LiveKit stays lazy-loaded)
+5. Production builds continue to chunk LiveKit separately
 
