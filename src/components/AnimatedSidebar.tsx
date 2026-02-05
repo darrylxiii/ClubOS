@@ -208,17 +208,17 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      {/* Logo Stage - left-anchored for stable Q position */}
-      <div className="h-20 border-b border-border/20 relative overflow-hidden">
-        {/* Full wordmark - visible when expanded */}
+      {/* Logo */}
+      {/* Logo - Morphing container with simultaneous crossfade */}
+      <div className="h-20 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
+        {/* Full logo - visible when expanded */}
         <motion.div
-          className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+          className="absolute flex items-center justify-center"
           initial={false}
           animate={{
             opacity: open ? 1 : 0,
             scale: open ? 1 : 0.8,
           }}
-          style={{ transformOrigin: 'left center' }}
           transition={{
             duration: 0.3,
             ease: [0.4, 0, 0.2, 1],
@@ -227,24 +227,23 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
           <img
             src={logoLight}
             alt="The Quantum Club"
-            className="hidden dark:block h-10"
+            className="hidden dark:block h-14"
           />
           <img
             src={logoDark}
             alt="The Quantum Club"
-            className="dark:hidden block h-10"
+            className="dark:hidden block h-14"
           />
         </motion.div>
 
-        {/* QC icon - visible when collapsed */}
+        {/* Small QC icon - visible when collapsed */}
         <motion.div
-          className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+          className="absolute flex items-center justify-center"
           initial={false}
           animate={{
             opacity: open ? 0 : 1,
             scale: open ? 1.2 : 1,
           }}
-          style={{ transformOrigin: 'left center' }}
           transition={{
             duration: 0.3,
             ease: [0.4, 0, 0.2, 1],
@@ -253,12 +252,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
           <img
             src={logoLightShort}
             alt="QC"
-            className="hidden dark:block h-10"
+            className="hidden dark:block h-12"
           />
           <img
             src={logoDarkShort}
             alt="QC"
-            className="dark:hidden block h-10"
+            className="dark:hidden block h-12"
           />
         </motion.div>
       </div>

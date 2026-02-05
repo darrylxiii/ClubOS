@@ -158,10 +158,10 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       {/* Animated Sidebar with Glass Effect - Wrapped in Error Boundary */}
       <SidebarErrorBoundary>
         <Sidebar
-          logoLight={quantumClubLogoLight}
-          logoDark={quantumClubLogoDark}
-          logoLightShort={quantumClubLogoLightShort}
-          logoDarkShort={quantumClubLogoDarkShort}
+          logoLight={quantumClubLogoLightShort}
+          logoDark={quantumClubLogoDarkShort}
+          logoLightShort={quantumClubLogoLight}
+          logoDarkShort={quantumClubLogoDark}
           open={sidebarOpen}
           onOpenChange={handleSidebarOpenChange}
         >
