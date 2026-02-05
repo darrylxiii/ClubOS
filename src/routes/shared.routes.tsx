@@ -7,7 +7,6 @@ const ClubHome = lazy(() => import("@/pages/ClubHome"));
 const ClubPilot = lazy(() => import("@/pages/ClubPilot"));
 const Feed = lazy(() => import("@/pages/Feed"));
 const Post = lazy(() => import("@/pages/Post"));
-const SocialFeed = lazy(() => import("@/pages/SocialFeed"));
 const Analytics = lazy(() => import("@/pages/Analytics"));
 const Achievements = lazy(() => import("@/pages/Achievements"));
 const Inbox = lazy(() => import("@/pages/Inbox"));
@@ -25,7 +24,6 @@ const ModuleManagement = lazy(() => import("@/pages/ModuleManagement"));
 const ModuleEdit = lazy(() => import("@/pages/ModuleEdit"));
 const CourseEdit = lazy(() => import("@/pages/CourseEdit"));
 const Settings = lazy(() => import("@/pages/Settings"));
-const UserSettings = lazy(() => import("@/pages/UserSettings"));
 const EnhancedProfile = lazy(() => import("@/pages/EnhancedProfile"));
 const PublicUserProfile = lazy(() => import("@/pages/PublicUserProfile"));
 const UnifiedCandidateProfile = lazy(() => import("@/pages/UnifiedCandidateProfile"));
@@ -33,19 +31,13 @@ const ClubDJ = lazy(() => import("@/pages/ClubDJ"));
 const Radio = lazy(() => import("@/pages/Radio"));
 const RadioListen = lazy(() => import("@/pages/RadioListen"));
 const DocumentManagement = lazy(() => import("@/pages/DocumentManagement"));
-const EmailSettings = lazy(() => import("@/pages/EmailSettings"));
-const CompanySettings = lazy(() => import("@/pages/CompanySettings"));
-// WhatsApp now consolidated into WhatsAppHub at /admin/whatsapp
 
 // Workspace / Quantum OS Pages
 const WorkspaceList = lazy(() => import("@/pages/WorkspaceList"));
 const WorkspacePage = lazy(() => import("@/pages/WorkspacePage"));
-// Compliance & Legal Pages
-const ComplianceDashboard = lazy(() => import("@/pages/compliance/ComplianceDashboard"));
-const LegalAgreementsPage = lazy(() => import("@/pages/compliance/LegalAgreementsPage"));
-const SubprocessorsPage = lazy(() => import("@/pages/compliance/SubprocessorsPage"));
-const DataClassificationPage = lazy(() => import("@/pages/compliance/DataClassificationPage"));
-const AuditRequestsPage = lazy(() => import("@/pages/compliance/AuditRequestsPage"));
+
+// Compliance Hub - Unified page with tabs
+const ComplianceHub = lazy(() => import("@/pages/compliance/ComplianceHub"));
 
 // Financial & Billing Pages
 const FinancialDashboard = lazy(() => import("@/pages/admin/FinancialDashboard"));
@@ -55,16 +47,23 @@ const PartnerBilling = lazy(() => import("@/pages/partner/PartnerBilling"));
 /**
  * Shared routes accessible to all authenticated users
  * Core platform features, communication, learning
+ * 
+ * CONSOLIDATION: Removed duplicate pages:
+ * - /user-settings → redirects to /settings
+ * - /social-feed → redirects to /feed
+ * - /email-settings → redirects to /settings?tab=connections
+ * - /company-settings → redirects to /settings?tab=company
+ * - Compliance pages → unified at /compliance
  */
 export const sharedRoutes = (
   <>
     {/* Home route defined in App.tsx to avoid duplicate */}
     <Route path="/club-pilot" element={<ProtectedRoute><ClubPilot /></ProtectedRoute>} />
     
-    {/* Feed & Social */}
+    {/* Feed & Social - Unified */}
     <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
     <Route path="/posts/:id" element={<ProtectedRoute><Post /></ProtectedRoute>} />
-    <Route path="/social-feed" element={<ProtectedRoute><SocialFeed /></ProtectedRoute>} />
+    <Route path="/social-feed" element={<Navigate to="/feed" replace />} />
     <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
     <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
     
@@ -72,7 +71,6 @@ export const sharedRoutes = (
     <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
     <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
     <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-    {/* Meeting routes defined in meetings.routes.tsx to avoid duplicates */}
     <Route path="/meeting-intelligence" element={<ProtectedRoute><MeetingIntelligence /></ProtectedRoute>} />
     <Route path="/meeting-insights/:meetingId" element={<ProtectedRoute><MeetingInsights /></ProtectedRoute>} />
     
@@ -92,24 +90,24 @@ export const sharedRoutes = (
     <Route path="/courses/:slug" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
     <Route path="/courses/:slug/edit" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />
     
-    {/* Profile & Settings */}
+    {/* Profile & Settings - Consolidated */}
     <Route path="/profile" element={<ProtectedRoute><EnhancedProfile /></ProtectedRoute>} />
     <Route path="/profile/:username" element={<ProtectedRoute><PublicUserProfile /></ProtectedRoute>} />
     <Route path="/candidate/:candidateId" element={<ProtectedRoute><UnifiedCandidateProfile /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-    <Route path="/user-settings" element={<ProtectedRoute><UserSettings /></ProtectedRoute>} />
+    
+    {/* Legacy Settings Routes - Redirect to unified Settings */}
+    <Route path="/user-settings" element={<Navigate to="/settings" replace />} />
+    <Route path="/email-settings" element={<Navigate to="/settings?tab=connections" replace />} />
+    <Route path="/company-settings" element={<Navigate to="/settings?tab=company" replace />} />
     
     {/* Radio & Music */}
     <Route path="/club-dj" element={<ProtectedRoute><ClubDJ /></ProtectedRoute>} />
     <Route path="/radio" element={<ProtectedRoute><Radio /></ProtectedRoute>} />
     <Route path="/radio/:playlistId" element={<ProtectedRoute><RadioListen /></ProtectedRoute>} />
     
-    {/* Documents & Email */}
+    {/* Documents */}
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />
-    <Route path="/email-settings" element={<ProtectedRoute><EmailSettings /></ProtectedRoute>} />
-    
-    {/* Company Settings */}
-    <Route path="/company-settings" element={<ProtectedRoute><CompanySettings /></ProtectedRoute>} />
     
     {/* WhatsApp Business - Redirect to unified hub */}
     <Route path="/whatsapp" element={<Navigate to="/admin/whatsapp" replace />} />
@@ -118,12 +116,13 @@ export const sharedRoutes = (
     <Route path="/pages" element={<ProtectedRoute><WorkspaceList /></ProtectedRoute>} />
     <Route path="/pages/:pageId" element={<ProtectedRoute><WorkspacePage /></ProtectedRoute>} />
     
-    {/* Compliance & Legal */}
-    <Route path="/compliance/dashboard" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />
-    <Route path="/compliance/legal-agreements" element={<ProtectedRoute><LegalAgreementsPage /></ProtectedRoute>} />
-    <Route path="/compliance/subprocessors" element={<ProtectedRoute><SubprocessorsPage /></ProtectedRoute>} />
-    <Route path="/compliance/data-classification" element={<ProtectedRoute><DataClassificationPage /></ProtectedRoute>} />
-    <Route path="/compliance/audit-requests" element={<ProtectedRoute><AuditRequestsPage /></ProtectedRoute>} />
+    {/* Compliance Hub - Unified with tabs */}
+    <Route path="/compliance" element={<ProtectedRoute><ComplianceHub /></ProtectedRoute>} />
+    <Route path="/compliance/dashboard" element={<Navigate to="/compliance?tab=dashboard" replace />} />
+    <Route path="/compliance/legal-agreements" element={<Navigate to="/compliance?tab=legal" replace />} />
+    <Route path="/compliance/subprocessors" element={<Navigate to="/compliance?tab=subprocessors" replace />} />
+    <Route path="/compliance/data-classification" element={<Navigate to="/compliance?tab=classification" replace />} />
+    <Route path="/compliance/audit-requests" element={<Navigate to="/compliance?tab=audits" replace />} />
 
     {/* Financial & Billing Routes */}
     <Route path="/admin/financial" element={<ProtectedRoute><FinancialDashboard /></ProtectedRoute>} />
