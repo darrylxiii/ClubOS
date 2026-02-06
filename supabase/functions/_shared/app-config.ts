@@ -10,7 +10,7 @@ export function getAppUrl(): string {
   return (
     Deno.env.get('APP_URL') ||
     Deno.env.get('VITE_APP_URL') ||
-    'https://bytqc.com'
+    'https://os.thequantumclub.com'
   );
 }
 
