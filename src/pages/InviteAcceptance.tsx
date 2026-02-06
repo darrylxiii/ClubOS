@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MinimalHeader } from "@/components/MinimalHeader";
@@ -63,15 +64,22 @@ export default function InviteAcceptance() {
         sessionStorage.setItem('expected_invitation_email', candidate.email);
       }
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/invite/${token}/complete`,
-          scopes: provider === 'linkedin' ? 'r_emailaddress r_liteprofile' : undefined
-        }
-      });
-
-      if (error) throw error;
+      if (provider === 'google' || provider === 'apple') {
+        const { error } = await lovable.auth.signInWithOAuth(provider, {
+          redirect_uri: window.location.origin,
+        });
+        if (error) throw error;
+      } else {
+        // LinkedIn not supported by managed OAuth, use direct Supabase call
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'linkedin_oidc',
+          options: {
+            redirectTo: `${window.location.origin}/invite/${token}/complete`,
+            scopes: 'r_emailaddress r_liteprofile'
+          }
+        });
+        if (error) throw error;
+      }
     } catch (error) {
       console.error('Sign up error:', error);
       toast.error('Failed to sign up');

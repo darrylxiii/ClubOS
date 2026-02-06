@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Input } from "@/components/ui/input";
@@ -376,19 +377,11 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
 
-      const redirectUrl = inviteCode
-        ? `${window.location.origin}/auth?invite=${inviteCode}`
-        : `${window.location.origin}/auth`;
-
-      // Let Supabase handle PKCE and state internally - don't override state
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: {
+          access_type: 'offline',
+          prompt: 'consent'
         }
       });
 
@@ -404,16 +397,8 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
 
-      const redirectUrl = inviteCode
-        ? `${window.location.origin}/auth?invite=${inviteCode}`
-        : `${window.location.origin}/auth`;
-
-      // Let Supabase handle PKCE and state internally - don't override state
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: redirectUrl
-        }
+      const { error } = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin,
       });
 
       if (error) throw error;

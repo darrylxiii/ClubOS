@@ -59,25 +59,11 @@ export const AuthDiagnostics = () => {
         };
       }
 
-      // Test Google OAuth URL generation
-      try {
-        const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/auth`,
-            skipBrowserRedirect: true,
-          }
-        });
-        
-        results.oauth = {
-          googleUrl: oauthData?.url,
-          error: oauthError?.message,
-        };
-      } catch (e: any) {
-        results.oauth = {
-          error: e.message,
-        };
-      }
+      // Google OAuth is now managed by Lovable Cloud
+      results.oauth = {
+        status: 'Managed by Lovable Cloud',
+        note: 'OAuth redirects are handled automatically for custom domains',
+      };
 
       setDiagnostics(results);
     } catch (error: any) {
