@@ -376,19 +376,11 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
 
-      const redirectUrl = inviteCode
-        ? `${window.location.origin}/auth?invite=${inviteCode}`
-        : `${window.location.origin}/auth`;
-
-      // Let Supabase handle PKCE and state internally - don't override state
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: {
+          access_type: 'offline',
+          prompt: 'consent'
         }
       });
 
