@@ -100,7 +100,7 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
       const { error } = await supabase.from("invite_codes").insert({
         code: inviteCode,
         created_by: user?.id || "",
-        created_by_type: "user",
+        created_by_type: "member",
         company_id: companyId,
         invite_type: "team_member",
         target_role: inviteRole,
