@@ -1,43 +1,59 @@
 
 
-# Fix: Google OAuth Redirect on Custom Domain (os.thequantumclub.com)
+# Fix: Google OAuth Redirect to Custom Domain
 
 ## Problem
 
-When users on `os.thequantumclub.com` click "Sign in with Google," they complete authentication but get redirected back to `thequantumclub.lovable.app` instead of `os.thequantumclub.com`.
+After clicking "Sign in with Google" on `os.thequantumclub.com`, users are redirected to `thequantumclub.lovable.app` instead of back to the custom domain. This happens because the code calls `supabase.auth.signInWithOAuth()` directly, which uses the backend-configured Site URL (the Lovable URL) for redirects.
 
-**Root cause**: The authentication system's Site URL and redirect allow list are configured with Lovable URLs only. The custom domain `os.thequantumclub.com` is not registered as an allowed redirect destination.
+## Root Cause
 
-## Fix Required
+The project uses `supabase.auth.signInWithOAuth()` in multiple files instead of the Lovable Cloud managed OAuth function `lovable.auth.signInWithOAuth()`. The managed solution properly handles redirect URLs for custom domains.
 
-### Step 1: Update Authentication Redirect Allow List
+## Solution
 
-Add `https://os.thequantumclub.com` to the authentication redirect URI allow list. This needs to be done in the Lovable Cloud authentication settings.
+### Step 1: Configure Lovable Cloud Social Auth
 
-Specific URLs to add:
-- `https://os.thequantumclub.com`
-- `https://os.thequantumclub.com/auth`
-- `https://os.thequantumclub.com/**` (wildcard for all paths)
+Use the `configure-social-auth` tool to generate the `src/integrations/lovable/` module and install the `@lovable.dev/cloud-auth-js` package. This sets up the managed OAuth infrastructure.
 
-### Step 2: Update Site URL (optional but recommended)
+### Step 2: Update OAuth calls in all files
 
-If `os.thequantumclub.com` is the primary production domain, the Site URL in the authentication config should be changed from the current value (`https://bytqc.com` or the Lovable URL) to `https://os.thequantumclub.com`.
+Replace `supabase.auth.signInWithOAuth(...)` with `lovable.auth.signInWithOAuth(...)` in the following files:
 
-### Step 3: Update Edge Function Fallback URL
+| File | What changes |
+|------|-------------|
+| `src/pages/Auth.tsx` | Google, Apple, and LinkedIn OAuth calls (~3 calls) |
+| `src/pages/Settings.tsx` | OAuth linking call |
+| `src/pages/InviteAcceptance.tsx` | OAuth call during invite acceptance |
+| `src/components/OAuthDiagnostics.tsx` | Diagnostic OAuth URL check |
+| `src/components/AuthDiagnostics.tsx` | Diagnostic OAuth URL check |
 
-In `supabase/functions/_shared/app-config.ts`, the fallback `APP_URL` is `https://bytqc.com`. This should be updated to `https://os.thequantumclub.com` if that is now the primary domain, so all backend-generated links (emails, notifications) point to the correct domain.
+Each call changes from:
+```typescript
+import { supabase } from "@/integrations/supabase/client";
 
-## Code Changes
+const { error } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: redirectUrl,
+    queryParams: { ... }
+  }
+});
+```
 
-| File | Change |
-|------|--------|
-| `supabase/functions/_shared/app-config.ts` | Update fallback from `bytqc.com` to `os.thequantumclub.com` |
+To:
+```typescript
+import { lovable } from "@/integrations/lovable/index";
 
-## No Client-Side Code Changes Needed
+const { error } = await lovable.auth.signInWithOAuth("google", {
+  redirect_uri: window.location.origin,
+  extraParams: { ... }
+});
+```
 
-The client code already uses `window.location.origin` for redirects, which correctly resolves to `https://os.thequantumclub.com` when accessed from that domain. The issue is purely a backend/auth configuration problem.
+### Important Notes
 
-## Important Note
-
-The redirect allow list update must be done through the Lovable Cloud authentication settings. I will configure this as part of the implementation.
+- Apple and LinkedIn providers are NOT supported by Lovable Cloud managed OAuth (only Google and Apple are). LinkedIn calls will need to remain as-is or be handled differently.
+- The `redirect_uri: window.location.origin` ensures the user returns to whichever domain they started from.
+- The diagnostics components can be simplified or kept using the old method since they only test URL generation without actual redirects.
 
