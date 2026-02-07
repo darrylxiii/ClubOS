@@ -442,7 +442,7 @@ export default function JobDetail() {
                       <DialogTrigger asChild>
                         <Button variant="outline" className="gap-2">
                           <PenLine className="w-4 h-4" />
-                          Generate with QUIN
+                          Generate with Club AI
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

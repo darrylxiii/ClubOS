@@ -12,7 +12,7 @@ interface QUINAnalytics {
   trend: number;
 }
 
-export function useQUINAnalytics() {
+export function useClubAIAnalytics() {
   return useQuery({
     queryKey: ['quin-analytics'],
     queryFn: async (): Promise<QUINAnalytics> => {

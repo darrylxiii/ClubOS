@@ -218,7 +218,7 @@ export function shouldShowNPSSurvey(hasRecentPlacement: boolean): boolean {
 
 /**
  * Check if feature feedback survey should be shown
- * Trigger: After using QUIN 3+ times
+ * Trigger: After using Club AI 3+ times
  */
 export function shouldShowFeatureFeedback(quinnUsageCount: number): boolean {
   if (quinnUsageCount < 3) return false;

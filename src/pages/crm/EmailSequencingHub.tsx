@@ -58,7 +58,7 @@ export default function EmailSequencingHub() {
     { id: 'send-timing', label: 'Send Timing', icon: Clock },
     { id: 'account-health', label: 'Account Health', icon: BarChart3 },
     { id: 'roi', label: 'ROI Analysis', icon: DollarSign },
-    { id: 'strategist', label: 'QUIN Strategist', icon: Sparkles },
+    { id: 'strategist', label: 'Club AI Strategist', icon: Sparkles },
   ];
 
   // Tab navigation with keyboard
@@ -224,7 +224,7 @@ export default function EmailSequencingHub() {
               <CampaignROIDashboard />
             </TabsContent>
 
-            {/* QUIN Strategist */}
+            {/* Club AI Strategist */}
             <TabsContent value="strategist" className="mt-6">
               <OutreachStrategist />
             </TabsContent>

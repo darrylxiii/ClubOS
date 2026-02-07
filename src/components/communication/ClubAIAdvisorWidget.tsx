@@ -11,7 +11,7 @@ import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface QUINAdvisorWidgetProps {
+interface ClubAIAdvisorWidgetProps {
   entityType?: string;
   entityId?: string;
   context?: 'profile' | 'inbox' | 'pipeline' | 'general';
@@ -32,12 +32,12 @@ interface ChatMessage {
   content: string;
 }
 
-export function QUINAdvisorWidget({
+export function ClubAIAdvisorWidget({
   entityType,
   entityId,
   context = 'general',
   className
-}: QUINAdvisorWidgetProps) {
+}: ClubAIAdvisorWidgetProps) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -113,7 +113,7 @@ export function QUINAdvisorWidget({
     action: { icon: Clock, color: 'text-blue-500' },
   };
 
-  const handleAskQUIN = async (e: React.FormEvent) => {
+  const handleAskClubAI = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() || isLoading) return;
 
@@ -152,7 +152,7 @@ export function QUINAdvisorWidget({
       
       setChatMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
     } catch (error) {
-      console.error('Error asking QUIN:', error);
+      console.error('Error asking Club AI:', error);
       setChatMessages(prev => [...prev, { 
         role: 'assistant', 
         content: 'I encountered an error processing your request. Please try again.' 
@@ -204,7 +204,7 @@ export function QUINAdvisorWidget({
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">QUIN Advisor</h3>
+                <h3 className="text-sm font-semibold text-white">Club AI Advisor</h3>
                 <p className="text-[10px] text-white/70">Powered by AI</p>
               </div>
             </div>
@@ -330,7 +330,7 @@ export function QUINAdvisorWidget({
                           className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg mr-4"
                         >
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          <span className="text-xs text-muted-foreground">QUIN is thinking...</span>
+                          <span className="text-xs text-muted-foreground">Club AI is thinking...</span>
                         </motion.div>
                       )}
                     </div>
@@ -339,11 +339,11 @@ export function QUINAdvisorWidget({
 
                 {/* Ask QUIN */}
                 <div className="p-3 border-t bg-muted/30">
-                  <form onSubmit={handleAskQUIN} className="flex gap-2">
+                  <form onSubmit={handleAskClubAI} className="flex gap-2">
                     <Input
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask QUIN anything..."
+                      placeholder="Ask Club AI anything..."
                       className="h-8 text-xs"
                       disabled={isLoading}
                     />

@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePartnerRelationships } from '@/hooks/usePartnerRelationships';
 import { PartnerRelationshipStats } from '@/components/communication/PartnerRelationshipStats';
 import { PartnerRelationshipGrid } from '@/components/communication/PartnerRelationshipGrid';
-import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
+import { ClubAIAdvisorWidget } from '@/components/communication/ClubAIAdvisorWidget';
 import { CrossChannelPatternsCard } from '@/components/communication/CrossChannelPatternsCard';
 import { PageTitle, Subtitle } from '@/components/ui/typography';
 
@@ -108,8 +108,8 @@ export default function PartnerRelationships() {
             <CrossChannelPatternsCard />
           </motion.div>
 
-          {/* QUIN Advisor */}
-          <QUINAdvisorWidget context="pipeline" />
+          {/* Club AI Advisor */}
+          <ClubAIAdvisorWidget context="pipeline" />
         </div>
       </AppLayout>
     </RoleGate>

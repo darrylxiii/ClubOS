@@ -17,8 +17,8 @@ import {
 export type FeatureFlagKey =
   // Core feature rollouts
   | 'pilot_enabled'           // Club Pilot task engine
-  | 'quin_v2'                 // Enhanced QUIN AI
-  | 'quin_enhanced'           // QUIN improvements (legacy)
+  | 'club_ai_v2'               // Enhanced Club AI
+  | 'club_ai_enhanced'          // Club AI improvements (legacy)
   | 'dossier_sharing_v2'      // New dossier experience
   | 'ghost_mode'              // Employer visibility controls
   | 'drops_engine'            // New job drops system

@@ -185,10 +185,10 @@ const insertAICommand = (editor: any, onAICommand?: () => void) => ({
       onAICommand();
     }
   },
-  aliases: ['ai', 'quin', 'write', 'generate', 'ask ai', 'ask quin'],
+  aliases: ['ai', 'club ai', 'write', 'generate', 'ask ai'],
   group: 'AI',
   icon: <Sparkles className="h-4 w-4 text-accent" />,
-  subtext: 'Let QUIN write content for you',
+  subtext: 'Let Club AI write content for you',
 });
 
 // Get all custom slash menu items for our blocks

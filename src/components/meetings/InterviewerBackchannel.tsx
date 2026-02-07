@@ -8,7 +8,7 @@ import { Send, Flag, Lock, Sparkles } from 'lucide-react';
 import { notify } from '@/lib/notify';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { QUINBackchannelSuggestions } from './QUINBackchannelSuggestions';
+import { ClubAIBackchannelSuggestions } from './ClubAIBackchannelSuggestions';
 
 interface BackchannelMessage {
   id: string;
@@ -232,7 +232,7 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
         </TabsContent>
         
         <TabsContent value="quin" className="flex-1 overflow-hidden mt-0">
-          <QUINBackchannelSuggestions meetingId={meetingId} />
+          <ClubAIBackchannelSuggestions meetingId={meetingId} />
         </TabsContent>
       </Tabs>
     </div>

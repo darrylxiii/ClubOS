@@ -9,32 +9,32 @@ import { Mic, MicOff, Volume2, Loader2, Sparkles, X, MessageSquare, Keyboard } f
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface QUINResponse {
+interface ClubAIResponse {
   responseType: string;
   responseText: string;
   timestamp: string;
 }
 
-interface QUINVoiceAssistantProps {
+interface ClubAIVoiceAssistantProps {
   meetingId: string;
   recentTranscript?: string;
   remainingTime?: number;
   onClose?: () => void;
 }
 
-export function QUINVoiceAssistant({ 
+export function ClubAIVoiceAssistant({ 
   meetingId, 
   recentTranscript,
   remainingTime,
   onClose 
-}: QUINVoiceAssistantProps) {
+}: ClubAIVoiceAssistantProps) {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [textInput, setTextInput] = useState('');
   const [showTextInput, setShowTextInput] = useState(false);
-  const [responses, setResponses] = useState<QUINResponse[]>([]);
+  const [responses, setResponses] = useState<ClubAIResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [speechSupported, setSpeechSupported] = useState(true);
   
@@ -135,7 +135,7 @@ export function QUINVoiceAssistant({
       if (apiError) throw apiError;
 
       if (data?.responseText) {
-        const response: QUINResponse = {
+        const response: ClubAIResponse = {
           responseType: data.responseType,
           responseText: data.responseText,
           timestamp: data.timestamp
@@ -145,7 +145,7 @@ export function QUINVoiceAssistant({
         speakResponse(data.responseText);
       }
     } catch (err) {
-      console.error('QUIN voice error:', err);
+      console.error('Club AI voice error:', err);
       setError('Failed to process command');
     } finally {
       setIsProcessing(false);
@@ -208,9 +208,9 @@ export function QUINVoiceAssistant({
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold text-sm">QUIN Voice Assistant</h4>
+              <h4 className="font-semibold text-sm">Club AI Voice Assistant</h4>
               <p className="text-xs text-muted-foreground">
-                {speechSupported ? 'Say "QUIN" to activate' : 'Type your command below'}
+                {speechSupported ? 'Tap to activate' : 'Type your command below'}
               </p>
             </div>
           </div>

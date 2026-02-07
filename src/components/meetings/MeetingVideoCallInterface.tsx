@@ -30,7 +30,7 @@ import { MeetingQAPanel } from '@/components/meetings/MeetingQAPanel';
 import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgroundSelector';
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
-import { QUINVoiceAssistant } from '@/components/meetings/QUINVoiceAssistant';
+import { ClubAIVoiceAssistant } from '@/components/meetings/ClubAIVoiceAssistant';
 import { LiveTranslationPanel } from '@/components/meetings/LiveTranslationPanel';
 import { PredictiveHiringPanel } from '@/components/meetings/PredictiveHiringPanel';
 import { EngagementAnalyticsOverlay } from '@/components/meetings/EngagementAnalyticsOverlay';
@@ -110,7 +110,7 @@ export function MeetingVideoCallInterface({
   const [showBackgrounds, setShowBackgrounds] = useState(false);
   const [showBackchannel, setShowBackchannel] = useState(false);
   const [showVoting, setShowVoting] = useState(false);
-  const [showQUINVoice, setShowQUINVoice] = useState(false);
+  const [showClubAIVoice, setShowClubAIVoice] = useState(false);
   const [showTranslation, setShowTranslation] = useState(false);
   const [showPredictiveHiring, setShowPredictiveHiring] = useState(false);
   const [showEngagementAnalytics, setShowEngagementAnalytics] = useState(false);
@@ -591,7 +591,7 @@ export function MeetingVideoCallInterface({
   const handleToggleVoting = () => setShowVoting(prev => !prev);
 
   // Phase 6: Advanced AI Features
-  const handleToggleQUINVoice = () => setShowQUINVoice(prev => !prev);
+  const handleToggleClubAIVoice = () => setShowClubAIVoice(prev => !prev);
   const handleToggleTranslation = () => setShowTranslation(prev => !prev);
   const handleTogglePredictiveHiring = () => setShowPredictiveHiring(prev => !prev);
   const handleToggleEngagementAnalytics = () => setShowEngagementAnalytics(prev => !prev);
@@ -1374,10 +1374,10 @@ export function MeetingVideoCallInterface({
           // Phase 6: Advanced AI Features
           onToggleQUINVoice={
             ['host', 'interviewer', 'observer'].includes(userRole)
-              ? handleToggleQUINVoice
+              ? handleToggleClubAIVoice
               : undefined
           }
-          showQUINVoice={showQUINVoice}
+          showQUINVoice={showClubAIVoice}
           onToggleTranslation={handleToggleTranslation}
           showTranslation={showTranslation}
           onTogglePredictiveHiring={
@@ -1654,12 +1654,12 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* QUIN Voice Assistant */}
-      {showQUINVoice && (
+      {/* Club AI Voice Assistant */}
+      {showClubAIVoice && (
         <div className="absolute bottom-24 right-4 z-[10001]">
-          <QUINVoiceAssistant
+          <ClubAIVoiceAssistant
             meetingId={meeting.id}
-            onClose={() => setShowQUINVoice(false)}
+            onClose={() => setShowClubAIVoice(false)}
           />
         </div>
       )}

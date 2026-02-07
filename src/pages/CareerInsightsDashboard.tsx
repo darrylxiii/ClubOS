@@ -188,7 +188,7 @@ export default function CareerInsightsDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Lightbulb className="h-5 w-5" />Recommended Actions</CardTitle>
-                <CardDescription>QUIN's personalized recommendations</CardDescription>
+                <CardDescription>Club AI's personalized recommendations</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
