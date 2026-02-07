@@ -30,6 +30,7 @@ import { AdminReferralWidget } from "./AdminReferralWidget";
 import { PipelineVelocityWidget } from "./PipelineVelocityWidget";
 import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
 import { EdgeFunctionHealthWidget } from "./EdgeFunctionHealthWidget";
+import { QUINHomeChatWidget } from "./QUINHomeChatWidget";
 
 const AdminHomeContent = () => {
   const { stats, loading } = useRoleStats('admin');
@@ -44,6 +45,9 @@ const AdminHomeContent = () => {
       >
         <UnifiedStatsBar role="admin" stats={stats} loading={loading} />
       </motion.div>
+
+      {/* QUIN Intelligence Hub */}
+      <QUINHomeChatWidget />
 
       {/* Quick Management & Platform Growth */}
       <DashboardSection columns={2}>

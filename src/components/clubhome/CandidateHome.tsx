@@ -33,6 +33,7 @@ import { PushNotificationOptIn } from "@/components/notifications/PushNotificati
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import { QUINHomeChatWidget } from "./QUINHomeChatWidget";
 
 const BANNER_DISMISS_KEY = 'tqc_club_projects_banner_dismissed';
 
@@ -86,6 +87,9 @@ export const CandidateHome = () => {
       >
         <UnifiedStatsBar role="user" stats={stats} loading={loading} />
       </motion.div>
+
+      {/* QUIN Intelligence Hub */}
+      <QUINHomeChatWidget />
 
       {/* Next Best Action - QUIN Powered */}
       <NextBestActionCard />
