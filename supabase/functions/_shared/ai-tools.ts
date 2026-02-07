@@ -180,7 +180,7 @@ async function searchJobs(args: any, userId: string, supabase: SupabaseClient) {
   let query = supabase
     .from('jobs')
     .select('id, title, location, employment_type, salary_min, salary_max, currency, companies(name, logo_url)')
-    .eq('is_active', true);
+    .eq('status', 'published');
 
   if (title) query = query.ilike('title', `%${title}%`);
   if (location) query = query.ilike('location', `%${location}%`);
