@@ -39,6 +39,7 @@ import { usePartnerRealtime } from "@/hooks/usePartnerRealtime";
 import { TeamOverviewWidget } from "../partner/TeamOverviewWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
+import { QUINHomeChatWidget } from "./QUINHomeChatWidget";
 
 export const PartnerHome = () => {
   const { companyId } = useRole();
@@ -63,6 +64,9 @@ export const PartnerHome = () => {
       >
         <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
       </motion.div>
+
+      {/* QUIN Intelligence Hub */}
+      <QUINHomeChatWidget />
 
       {/* Hero Concierge Card - Premium white-glove service */}
       {companyId && (
