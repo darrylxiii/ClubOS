@@ -421,8 +421,6 @@ const Settings = () => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
 
-      // All social connections in Settings use direct Supabase call
-      // since these are account linking, not primary auth
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
         options: {

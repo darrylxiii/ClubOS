@@ -1,25 +1,43 @@
 
 
-# Fix: Persistent Build Error with `@lovable.dev/cloud-auth-js`
+# Fix: Google OAuth Redirect on Custom Domain (os.thequantumclub.com)
 
 ## Problem
 
-The preview keeps crashing in a loop because TypeScript cannot resolve the `@lovable.dev/cloud-auth-js` module, even though the package exists in `node_modules`. Clicking "Try to Fix" or "Dismiss" does not help because the build error remains.
+When users on `os.thequantumclub.com` click "Sign in with Google," they complete authentication but get redirected back to `thequantumclub.lovable.app` instead of `os.thequantumclub.com`.
 
-## Solution
+**Root cause**: The authentication system's Site URL and redirect allow list are configured with Lovable URLs only. The custom domain `os.thequantumclub.com` is not registered as an allowed redirect destination.
 
-Replace the external package import with inline type declarations and a dynamic import fallback. This eliminates the dependency resolution issue entirely while keeping the exact same functionality.
+## Fix Required
 
-## What Changes
+### Step 1: Update Authentication Redirect Allow List
+
+Add `https://os.thequantumclub.com` to the authentication redirect URI allow list. This needs to be done in the Lovable Cloud authentication settings.
+
+Specific URLs to add:
+- `https://os.thequantumclub.com`
+- `https://os.thequantumclub.com/auth`
+- `https://os.thequantumclub.com/**` (wildcard for all paths)
+
+### Step 2: Update Site URL (optional but recommended)
+
+If `os.thequantumclub.com` is the primary production domain, the Site URL in the authentication config should be changed from the current value (`https://bytqc.com` or the Lovable URL) to `https://os.thequantumclub.com`.
+
+### Step 3: Update Edge Function Fallback URL
+
+In `supabase/functions/_shared/app-config.ts`, the fallback `APP_URL` is `https://bytqc.com`. This should be updated to `https://os.thequantumclub.com` if that is now the primary domain, so all backend-generated links (emails, notifications) point to the correct domain.
+
+## Code Changes
 
 | File | Change |
 |------|--------|
-| `src/integrations/lovable/index.ts` | Replace the `import { createLovableAuth }` from the external package with inline types and a `require`/dynamic approach that won't break the build |
+| `supabase/functions/_shared/app-config.ts` | Update fallback from `bytqc.com` to `os.thequantumclub.com` |
 
-Specifically, the file will:
-1. Define the necessary types inline (copied from the package's own type declarations)
-2. Use a dynamic import pattern that Vite can resolve at runtime
-3. Keep the exact same public API (`lovable.auth.signInWithOAuth`)
+## No Client-Side Code Changes Needed
 
-This is a single-file change. No other files need updating since `Auth.tsx` and `InviteAcceptance.tsx` already import from `@/integrations/lovable/index` which stays the same.
+The client code already uses `window.location.origin` for redirects, which correctly resolves to `https://os.thequantumclub.com` when accessed from that domain. The issue is purely a backend/auth configuration problem.
+
+## Important Note
+
+The redirect allow list update must be done through the Lovable Cloud authentication settings. I will configure this as part of the implementation.
 
