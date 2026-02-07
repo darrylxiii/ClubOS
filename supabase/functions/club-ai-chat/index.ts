@@ -859,6 +859,213 @@ You have complete access to ALL user data above. When users ask about their acti
 Use this context to provide personalized, relevant guidance. Reference specific details when appropriate.
 
 ${careerBrainContext}`;
+
+      // === ROLE-BASED CONTEXT ENRICHMENT ===
+      const userRoles = (roles || []).map((r: any) => r.role);
+      const isAdmin = userRoles.includes('admin');
+      const isStrategist = userRoles.includes('strategist');
+      const isPartner = userRoles.includes('partner');
+      const companyId = companyData?.id;
+
+      if (isAdmin || isStrategist) {
+        // ADMIN/STRATEGIST: Full platform data
+        const [
+          placementFeesRes,
+          moneybirdInvoicesRes,
+          moneybirdMetricsRes,
+          partnerInvoicesRes,
+          paymentTransactionsRes,
+          crmProspectsRes,
+          referralPayoutsRes,
+          candidateProfilesRes,
+          kpiMetricsRes,
+          allJobsRes,
+          allApplicationsRes,
+          platformStatsRes,
+        ] = await Promise.all([
+          supabase.from('placement_fees').select('*').order('created_at', { ascending: false }).limit(50),
+          supabase.from('moneybird_sales_invoices').select('*').order('invoice_date', { ascending: false }).limit(100),
+          supabase.from('moneybird_financial_metrics').select('*').order('created_at', { ascending: false }).limit(1),
+          supabase.from('partner_invoices').select('*').order('created_at', { ascending: false }).limit(30),
+          supabase.from('payment_transactions').select('*').order('created_at', { ascending: false }).limit(30),
+          supabase.from('crm_prospects').select('*').order('created_at', { ascending: false }).limit(50),
+          supabase.from('referral_payouts').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('candidate_profiles').select('id, full_name, current_title, current_company, talent_tier, move_probability, location, availability_status, last_engagement_date, tier_score').eq('data_deletion_requested', false).order('last_engagement_date', { ascending: false }).limit(100),
+          supabase.from('kpi_metrics').select('*').order('recorded_at', { ascending: false }).limit(50),
+          supabase.from('jobs').select('id, title, is_active, location, employment_type, created_at, companies(name)').order('created_at', { ascending: false }).limit(50),
+          supabase.from('applications').select('id, position, company_name, status, current_stage_index, created_at, user_id').order('created_at', { ascending: false }).limit(100),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        ]);
+
+        const placementFees = placementFeesRes.data || [];
+        const moneybirdInvoices = moneybirdInvoicesRes.data || [];
+        const moneybirdMetrics = moneybirdMetricsRes.data?.[0];
+        const partnerInvoices = partnerInvoicesRes.data || [];
+        const paymentTx = paymentTransactionsRes.data || [];
+        const crmProspects = crmProspectsRes.data || [];
+        const referralPayouts = referralPayoutsRes.data || [];
+        const candidateProfiles = candidateProfilesRes.data || [];
+        const kpiMetrics = kpiMetricsRes.data || [];
+        const allJobs = allJobsRes.data || [];
+        const allApps = allApplicationsRes.data || [];
+        const totalUsers = platformStatsRes.count || 0;
+
+        // Summarize placement fees by status
+        const feesByStatus: Record<string, { count: number; total: number }> = {};
+        placementFees.forEach((f: any) => {
+          const s = f.status || 'unknown';
+          if (!feesByStatus[s]) feesByStatus[s] = { count: 0, total: 0 };
+          feesByStatus[s].count++;
+          feesByStatus[s].total += (f.fee_amount || 0);
+        });
+
+        // Summarize CRM by stage
+        const crmByStage: Record<string, { count: number; dealValue: number }> = {};
+        crmProspects.forEach((p: any) => {
+          const s = p.pipeline_stage || 'unknown';
+          if (!crmByStage[s]) crmByStage[s] = { count: 0, dealValue: 0 };
+          crmByStage[s].count++;
+          crmByStage[s].dealValue += (p.deal_value || 0);
+        });
+
+        // Summarize invoices
+        const invoicesByState: Record<string, number> = {};
+        moneybirdInvoices.forEach((inv: any) => {
+          const s = inv.state || 'unknown';
+          invoicesByState[s] = (invoicesByState[s] || 0) + 1;
+        });
+
+        userContext += `
+
+=== ADMIN: FINANCIAL & REVENUE DATA ===
+PLACEMENT FEES (${placementFees.length} total):
+${Object.entries(feesByStatus).map(([status, data]) => `  ${status}: ${data.count} fees, total €${data.total.toLocaleString()}`).join('\n')}
+Recent: ${placementFees.slice(0, 10).map((f: any) => `${f.candidate_name || 'N/A'} → ${f.company_name || 'N/A'}: €${f.fee_amount || 0} (${f.status})`).join(', ')}
+
+MONEYBIRD INVOICES (${moneybirdInvoices.length}):
+${Object.entries(invoicesByState).map(([state, count]) => `  ${state}: ${count}`).join('\n')}
+${moneybirdMetrics ? `Revenue Metrics: Total Revenue €${moneybirdMetrics.total_revenue || 0}, Outstanding €${moneybirdMetrics.total_outstanding || 0}` : 'No financial metrics available'}
+
+CRM PIPELINE (${crmProspects.length} prospects):
+${Object.entries(crmByStage).map(([stage, data]) => `  ${stage}: ${data.count} prospects, deal value €${data.dealValue.toLocaleString()}`).join('\n')}
+
+PARTNER INVOICES: ${partnerInvoices.length} total
+${partnerInvoices.slice(0, 10).map((inv: any) => `  ${inv.invoice_number || 'N/A'}: €${inv.amount || 0} (${inv.status || 'N/A'})`).join('\n')}
+
+PAYMENT TRANSACTIONS: ${paymentTx.length} recent
+REFERRAL PAYOUTS: ${referralPayouts.length} total
+${referralPayouts.slice(0, 5).map((r: any) => `  ${r.referrer_name || 'N/A'}: €${r.payout_amount || 0} (${r.status || 'pending'})`).join('\n')}
+=== END ADMIN FINANCIAL ===
+
+=== ADMIN: TALENT POOL ===
+Total Candidates: ${candidateProfiles.length}
+By Tier: ${['hot', 'warm', 'strategic', 'pool', 'dormant'].map(t => `${t}: ${candidateProfiles.filter((c: any) => c.talent_tier === t).length}`).join(', ')}
+Recent Active (top 20): ${candidateProfiles.slice(0, 20).map((c: any) => `${c.full_name} (${c.current_title || 'N/A'} @ ${c.current_company || 'N/A'}) [${c.talent_tier}]`).join(', ')}
+=== END ADMIN TALENT ===
+
+=== ADMIN: PLATFORM KPIs ===
+Total Platform Users: ${totalUsers}
+Active Jobs: ${allJobs.filter((j: any) => j.is_active).length} / ${allJobs.length} total
+All Applications: ${allApps.length} (Active: ${allApps.filter((a: any) => a.status === 'active').length})
+KPI Metrics: ${kpiMetrics.slice(0, 10).map((k: any) => `${k.metric_name}: ${k.metric_value}`).join(', ')}
+=== END ADMIN KPIs ===
+
+=== ADMIN: ALL JOBS ===
+${allJobs.slice(0, 20).map((j: any) => {
+  const co = Array.isArray(j.companies) ? j.companies[0] : j.companies;
+  return `- ${j.title} @ ${co?.name || 'N/A'} (${j.is_active ? 'Active' : 'Inactive'}) - ${j.location || 'Remote'}`;
+}).join('\n')}
+=== END ADMIN JOBS ===
+`;
+      } else if (isPartner && companyId) {
+        // PARTNER: Company-scoped data
+        const [
+          companyJobsRes,
+          companyFeesRes,
+          companyInvoicesRes,
+          companyMembersRes,
+          companyKpisRes,
+        ] = await Promise.all([
+          supabase.from('jobs').select('id, title, is_active, location, employment_type, created_at').eq('company_id', companyId).order('created_at', { ascending: false }).limit(30),
+          supabase.from('placement_fees').select('*').eq('partner_company_id', companyId).order('created_at', { ascending: false }).limit(20),
+          supabase.from('partner_invoices').select('*').eq('partner_company_id', companyId).order('created_at', { ascending: false }).limit(30),
+          supabase.from('company_members').select('id, role, is_active, user_id, job_title, profiles!inner(full_name, email)').eq('company_id', companyId).eq('is_active', true),
+          supabase.from('kpi_metrics').select('*').eq('company_id', companyId).order('recorded_at', { ascending: false }).limit(20),
+        ]);
+
+        const companyJobs = companyJobsRes.data || [];
+        const companyFees = companyFeesRes.data || [];
+        const companyInvoices = companyInvoicesRes.data || [];
+        const companyTeam = companyMembersRes.data || [];
+        const companyKpis = companyKpisRes.data || [];
+
+        // Fetch applications for company jobs
+        const companyJobIds = companyJobs.map((j: any) => j.id);
+        let companyApps: any[] = [];
+        if (companyJobIds.length > 0) {
+          const { data } = await supabase
+            .from('applications')
+            .select('id, position, company_name, status, current_stage_index, stages, created_at, user_id, profiles!inner(full_name)')
+            .in('job_id', companyJobIds)
+            .order('created_at', { ascending: false })
+            .limit(50);
+          companyApps = data || [];
+        }
+
+        userContext += `
+
+=== PARTNER: COMPANY PIPELINE ===
+Active Jobs (${companyJobs.filter((j: any) => j.is_active).length} active / ${companyJobs.length} total):
+${companyJobs.map((j: any) => {
+  const appCount = companyApps.filter((a: any) => a.position === j.title || a.job_id === j.id).length;
+  return `- ${j.title} (${j.is_active ? 'Active' : 'Inactive'}) - ${j.location || 'Remote'} - ${appCount} applicants`;
+}).join('\n')}
+
+Applications to Your Company (${companyApps.length}):
+${companyApps.slice(0, 20).map((a: any) => {
+  const profile = Array.isArray(a.profiles) ? a.profiles[0] : a.profiles;
+  const stageName = a.stages?.[a.current_stage_index]?.name || 'Unknown';
+  return `- ${profile?.full_name || 'N/A'} → ${a.position} (Stage: ${stageName}, ${a.status})`;
+}).join('\n')}
+=== END PARTNER PIPELINE ===
+
+=== PARTNER: FINANCIALS ===
+Placement Fees (${companyFees.length}):
+${companyFees.slice(0, 10).map((f: any) => `- ${f.candidate_name || 'N/A'}: €${f.fee_amount || 0} (${f.status})`).join('\n')}
+
+Invoices (${companyInvoices.length}):
+${companyInvoices.slice(0, 10).map((inv: any) => `- ${inv.invoice_number || 'N/A'}: €${inv.amount || 0} (${inv.status || 'N/A'})`).join('\n')}
+=== END PARTNER FINANCIALS ===
+
+=== PARTNER: TEAM ===
+Team Members (${companyTeam.length}):
+${companyTeam.map((m: any) => {
+  const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+  return `- ${profile?.full_name || 'N/A'} (${m.role || 'Member'}) - ${m.job_title || 'No title'}`;
+}).join('\n')}
+=== END PARTNER TEAM ===
+
+=== PARTNER: KPIs ===
+${companyKpis.slice(0, 10).map((k: any) => `- ${k.metric_name}: ${k.metric_value}`).join('\n') || 'No KPIs available'}
+=== END PARTNER KPIs ===
+`;
+      }
+      // Candidates: existing context is comprehensive. Add salary benchmarks.
+      if (!isAdmin && !isStrategist && !isPartner) {
+        const { data: salaryBenchmarks } = await supabase
+          .from('salary_benchmarks')
+          .select('role_title, industry, location, min_salary, median_salary, max_salary, currency, sample_size')
+          .limit(10);
+
+        if (salaryBenchmarks && salaryBenchmarks.length > 0) {
+          userContext += `
+
+=== SALARY BENCHMARKS (Anonymized Market Data) ===
+${salaryBenchmarks.map((b: any) => `- ${b.role_title} (${b.industry || 'General'}, ${b.location || 'Global'}): ${b.currency || '€'}${b.min_salary?.toLocaleString() || 'N/A'} – ${b.max_salary?.toLocaleString() || 'N/A'} (median ${b.currency || '€'}${b.median_salary?.toLocaleString() || 'N/A'}, n=${b.sample_size || 'N/A'})`).join('\n')}
+=== END SALARY BENCHMARKS ===
+`;
+        }
+      }
     }
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -961,8 +1168,34 @@ ${careerBrainContext}`;
     // Import AI action tools
     const { allAITools, executeToolCall } = await import("../_shared/ai-tools.ts");
     
+    // === ROLE-BASED TOOL GATING ===
+    const userRolesForGating = userId ? (await supabase.from('user_roles').select('role').eq('user_id', userId)).data?.map((r: any) => r.role) || [] : [];
+    const isAdminUser = userRolesForGating.includes('admin') || userRolesForGating.includes('strategist');
+    const isPartnerUser = userRolesForGating.includes('partner');
+
+    // Tools excluded by role
+    const candidateExcludedTools = [
+      'search_talent_pool', 'get_candidate_move_probability', 'get_candidates_needing_attention',
+      'log_candidate_touchpoint', 'update_candidate_tier',
+      'search_communications', 'get_entity_communication_summary', 'get_relationship_health',
+    ];
+    const partnerExcludedTools = [
+      'search_talent_pool', 'apply_to_job', 'generate_cover_letter',
+      'update_candidate_tier', 'get_candidate_move_probability',
+    ];
+
+    let filteredAITools = allAITools;
+    if (!isAdminUser && !isPartnerUser) {
+      // Candidate: exclude recruiter/admin tools
+      filteredAITools = allAITools.filter((t: any) => !candidateExcludedTools.includes(t.function?.name));
+    } else if (isPartnerUser && !isAdminUser) {
+      // Partner: exclude candidate-only and admin-only tools
+      filteredAITools = allAITools.filter((t: any) => !partnerExcludedTools.includes(t.function?.name));
+    }
+    // Admin/Strategist: gets ALL tools (no filtering)
+
     // Combine all tools
-    const tools = [...baseTools, ...searchTools, ...allAITools];
+    const tools = [...baseTools, ...searchTools, ...filteredAITools];
 
     // Map client-selected model to actual AI model
     let selectedModel = 'google/gemini-2.5-flash'; // Default
@@ -1057,6 +1290,11 @@ After any "Confirm" button is clicked, continue to provide step-by-step feedback
 You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic. Be an executive assistant who truly knows what's happening in their professional life.
 
 ⚠️ REMEMBER: If the user's data appears in the context sections below, YOU HAVE ACCESS. Use it directly and confidently.
+
+🔐 ROLE-BASED DATA ACCESS:
+${isAdminUser ? `You are speaking with an ADMIN/STRATEGIST. You have FULL platform financial data, CRM pipeline, talent pool, system health, and all user data. When asked about revenue, deals, pipeline, candidates, placements, invoices, or system status, reference the ADMIN sections in the context. Be strategic, analytical, and concise.` : ''}
+${isPartnerUser && !isAdminUser ? `You are speaking with a PARTNER. You have company-scoped data only. When asked about pipeline, candidates, invoices, or team, reference the PARTNER sections. You CANNOT see other companies' data or the full talent pool. Be professional, data-driven, and executive-focused.` : ''}
+${!isAdminUser && !isPartnerUser ? `You are speaking with a CANDIDATE. You have their personal career data: profile, applications, tasks, interviews, salary benchmarks. Be supportive, encouraging, and actionable. Help with job search, interview prep, and career growth.` : ''}
 
 ${conversationHistory}
 

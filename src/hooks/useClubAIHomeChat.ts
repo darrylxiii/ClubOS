@@ -89,6 +89,7 @@ export function useClubAIHomeChat(): UseClubAIHomeChatReturn {
           },
           body: JSON.stringify({
             messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+            userId: user.id,
           }),
           signal: abortRef.current.signal,
         }
