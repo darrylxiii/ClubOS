@@ -1,231 +1,93 @@
 
-# QUIN Intelligence Hub: Role-Aware AI Chat + Voice on Every Home Page
 
-## What We're Building
+# Unify Club AI: Kill the Duplicate, Wire Home Widget to the Real Backend
 
-A contextual AI assistant (text + voice) embedded directly on each role's home dashboard. Unlike the existing `/club-ai` page which is a separate destination, this lives right where users work. The key differentiator: QUIN knows your data, respects your permissions, and proactively helps based on what matters to you right now.
+## Problem
 
-## Architecture Overview
+There are currently **two separate AI backends**:
 
-The system has three layers:
-1. **Frontend Widget** -- Embedded on each home page (CandidateHome, PartnerHome, AdminHome)
-2. **Role-Aware Context Engine** -- New edge function that scopes data access by role
-3. **Voice Integration** -- Reuses existing ElevenLabs infrastructure, wired into the same context
+1. **`club-ai-chat`** (1463 lines) -- The full-power backend used by the `/club-ai` page. Has access to ALL data: emails, WhatsApp, SMS, calendar, meetings, CRM, deal pipeline, social data, predictive signals, success patterns, 30+ tools, search/think/canvas modes, image and document support.
 
-```text
-+------------------+     +---------------------+     +--------------------+
-|  Home Dashboard  |     |  quin-home-chat     |     |  Lovable AI        |
-|  (per role)      | --> |  (edge function)    | --> |  Gateway           |
-|                  |     |                     |     |                    |
-|  QUINHomeWidget  |     |  Role-based context |     |  Streaming SSE     |
-|  - Text input    |     |  Data scoping       |     |  Tool calling      |
-|  - Voice toggle  |     |  Conversation save  |     |                    |
-+------------------+     +---------------------+     +--------------------+
-```
+2. **`quin-home-chat`** (502 lines) -- A stripped-down duplicate created for the home widget. Fetches far less data (no emails, no WhatsApp, no meetings, no calendar, no social, limited deal pipeline queries). This is why "active deals" shows 0 and answers are wrong.
 
-## Data Access Matrix (The Core of the System)
+The home widget talks to the weak backend. It needs to talk to the strong one.
 
-This is the most critical part. Each role sees ONLY what they should:
+Additionally, "QUIN" branding appears in ~66 files across the codebase. Everything must be renamed to "Club AI".
 
-| Data Category | Candidate (user) | Partner | Admin |
-|---|---|---|---|
-| Own profile | Yes | Yes | All profiles |
-| Own applications | Yes | No | All applications |
-| Own tasks | Yes | Own company tasks | All tasks |
-| Own bookings/interviews | Yes | Company bookings | All bookings |
-| Own emails | Yes | No | All emails |
-| Own meetings | Yes | Company meetings | All meetings |
-| Own achievements | Yes | No | All achievements |
-| Own social stats | Yes | No | All social stats |
-| Jobs (active, public) | Yes | Company jobs only | All jobs |
-| Salary benchmarks | Market data only | No | Full data |
-| Company data | Followed companies | Own company deep | All companies |
-| Candidates | No | Assigned candidates | All candidates |
-| Applications to their jobs | No | Company applications | All applications |
-| CRM / Prospects | No | No | Full CRM |
-| Revenue / Financials | No | Company invoices | Full financials |
-| WhatsApp / SMS | No | Company comms | All comms |
-| Relationship health | No | Company relationships | All relationships |
-| Predictive signals | Own signals | Company signals | All signals |
-| Audit logs | No | No | Full access |
-| System health | No | No | Full access |
-| Deal pipeline | No | Company deals | All deals |
-| KPIs | No | Company KPIs | Platform KPIs |
-| Referrals | Own referrals | Company referrals | All referrals |
-| Dossiers | Own dossier | Company dossiers | All dossiers |
-| Team members | No | Own team | All teams |
+## Solution
 
-## Implementation Plan
+### 1. Delete `quin-home-chat` Edge Function
 
-### Phase 1: Role-Aware Backend (Edge Function)
+Remove `supabase/functions/quin-home-chat/index.ts` entirely. It is a redundant, inferior copy.
 
-**New file: `supabase/functions/quin-home-chat/index.ts`**
+### 2. Rewire Home Widget to `club-ai-chat`
 
-A new edge function specifically for the home page chat, built on top of the existing `club-ai-chat` patterns but with strict role-based data scoping.
+Update `src/hooks/useQUINHomeChat.ts` to call `club-ai-chat` instead of `quin-home-chat`. This gives the home widget access to the same comprehensive data and tools.
 
-Key design decisions:
-- Authenticate the user via JWT (reuse `auth-helpers.ts`)
-- Fetch roles from `user_roles` table
-- Branch data fetching based on highest-priority role
-- Each role gets a tailored system prompt with ONLY their permitted data
-- Reuse existing `ai-tools.ts` but gate tool availability by role
-- Stream responses via SSE (same pattern as `club-ai-chat`)
+Key changes:
+- Change the fetch URL from `/functions/v1/quin-home-chat` to `/functions/v1/club-ai-chat`
+- Pass `userId` in the request body (club-ai-chat expects it)
+- The role-based context is already handled by `club-ai-chat` since it reads user roles and company data
 
-**Candidate context fetcher:**
-- Profile, applications, tasks, bookings, achievements, social stats, emails, meetings, saved jobs, referrals, AI memory, career trends, profile strength
-- Active jobs (public, for discovery)
-- Salary benchmarks (anonymized market data only)
+### 3. Rename All "QUIN" References to "Club AI"
 
-**Partner context fetcher:**
-- Own profile + company profile (deep: culture, tech stack, benefits, mission)
-- Company jobs with application counts and pipeline stages
-- Applications TO their company's jobs (candidate name, stage, timeline)
-- Company-assigned candidates (dossiers, match scores)
-- Company bookings/interviews
-- Team members + invite status
-- SLA timers, deal pipeline, offer pipeline
-- Company-level KPIs and health scores
-- Company communications (WhatsApp, email threads with candidates)
-- Company relationship health scores
-- Partner-specific AI insights
+Across ~66 files, replace:
+- "QUIN" with "Club AI" in user-facing text
+- "Ask QUIN" with "Ask Club AI"
+- "Powered by QUIN" with "Powered by Club AI"
+- "QUIN is speaking" with "Club AI is speaking"
+- "QUIN is thinking" with "Club AI is thinking"
+- "QUIN Analytics" with "Club AI Analytics"
+- "QUIN Advisor" with "Club AI Advisor"
+- "QUIN Agent" with "Club AI Agent"
+- "QUIN Strategist" with "Club AI Strategist"
+- "QUIN Suggests" with "Club AI Suggests"
 
-**Admin context fetcher:**
-- Everything from candidate + partner contexts
-- Platform-wide stats (total users, companies, active jobs, placements)
-- CRM prospects + pipeline
-- Revenue metrics, placement fees, commission data
-- System health (edge function performance, error rates)
-- Audit logs (recent security events)
-- All predictive signals and success patterns
-- WhatsApp/SMS across all accounts
-- KPI command center data
-- Partner engagement metrics
+Also rename files and component names:
+- `QUINHomeChatWidget.tsx` to `ClubAIHomeChatWidget.tsx`
+- `QUINAnalyticsWidget.tsx` to `ClubAIAnalyticsWidget.tsx`
+- `QUINAdvisorWidget.tsx` to `ClubAIAdvisorWidget.tsx`
+- `EnhancedQUINAdvisor.tsx` to `EnhancedClubAIAdvisor.tsx`
+- `QUINBackchannelSuggestions.tsx` to `ClubAIBackchannelSuggestions.tsx`
+- `useQUINHomeChat.ts` to `useClubAIHomeChat.ts`
+- `useQUINAnalytics.ts` to `useClubAIAnalytics.ts`
 
-### Phase 2: Tool Gating by Role
+And update all imports across the codebase.
 
-**Modify: `supabase/functions/_shared/ai-tools.ts`**
+### 4. Update Edge Function System Prompts
 
-Add a role-aware tool filter. Not all tools should be available to all roles:
+In `club-ai-chat/index.ts`, replace "You are QUIN" and all QUIN references in the system prompt with "You are Club AI".
 
-| Tool | Candidate | Partner | Admin |
-|---|---|---|---|
-| search_jobs | Yes | No | Yes |
-| apply_to_job | Yes | No | No |
-| create_task | Yes | Yes | Yes |
-| generate_cover_letter | Yes | No | No |
-| search_talent_pool | No | Yes | Yes |
-| get_candidates_needing_attention | No | Yes | Yes |
-| search_communications | No | Yes | Yes |
-| get_relationship_health | No | Yes | Yes |
-| navigate_to_page | Yes | Yes | Yes |
-| draft_message | Yes | Yes | Yes |
-| schedule_meeting | Yes | Yes | Yes |
-| analyze_job_fit | Yes | No | Yes |
-| log_candidate_touchpoint | No | Yes | Yes |
+In `ai-chat/index.ts` (partner funnel chat), same replacement.
 
-New admin-only tools to add:
-- `get_platform_health`: System metrics, error rates, uptime
-- `get_revenue_summary`: Revenue, placements, pipeline value
-- `search_all_users`: Search across all users/candidates
+### 5. Remove from `supabase/config.toml`
 
-New partner-only tools to add:
-- `get_company_pipeline`: Full hiring pipeline for their company
-- `compare_candidates`: Side-by-side candidate comparison for a role
+Remove the `quin-home-chat` function entry.
 
-### Phase 3: Frontend Widget
+## Files to Modify
 
-**New file: `src/components/clubhome/QUINHomeChatWidget.tsx`**
+| Category | Files | Change |
+|---|---|---|
+| **Delete** | `supabase/functions/quin-home-chat/index.ts` | Remove entirely |
+| **Backend hook** | `src/hooks/useQUINHomeChat.ts` | Rename to `useClubAIHomeChat.ts`, point to `club-ai-chat`, pass `userId` |
+| **Widget** | `src/components/clubhome/QUINHomeChatWidget.tsx` | Rename to `ClubAIHomeChatWidget.tsx`, update all QUIN text to Club AI |
+| **Analytics** | `src/components/clubhome/QUINAnalyticsWidget.tsx` | Rename to `ClubAIAnalyticsWidget.tsx`, update text |
+| **Analytics hook** | `src/hooks/useQUINAnalytics.ts` | Rename to `useClubAIAnalytics.ts` |
+| **Advisor** | `src/components/communication/QUINAdvisorWidget.tsx` | Rename to `ClubAIAdvisorWidget.tsx`, update text |
+| **Enhanced Advisor** | `src/components/communication/EnhancedQUINAdvisor.tsx` | Rename to `EnhancedClubAIAdvisor.tsx`, update text |
+| **Backchannel** | `src/components/meetings/QUINBackchannelSuggestions.tsx` | Rename to `ClubAIBackchannelSuggestions.tsx` |
+| **Home pages** | `CandidateHome.tsx`, `PartnerHome.tsx`, `AdminHome.tsx` | Update imports and comments |
+| **Config** | `supabase/config.toml` | Remove quin-home-chat entry |
+| **Edge functions** | `club-ai-chat/index.ts`, `ai-chat/index.ts`, `quin-home-chat/index.ts` prompts | Remove QUIN, use Club AI |
+| **All 66 files** | Various `.tsx`/`.ts` files | Replace "QUIN" with "Club AI" in UI text, comments, function names |
 
-A compact, expandable chat widget designed for the home page. Not a full-page chat -- it's a focused assistant panel.
+## Why This Fixes the Data Problem
 
-Design:
-- Collapsed state: Single-line input with QUIN sparkle icon + "Ask QUIN anything..." placeholder
-- Expanded state: Chat panel (max 400px height) with message history, streaming responses, markdown rendering
-- Voice toggle button (mic icon) that activates existing ElevenLabs voice
-- Quick suggestion chips based on role (e.g., candidate sees "Prepare for interview", partner sees "Pipeline summary")
-- Conversation persisted to `ai_conversations` table
-- Model defaults to `google/gemini-3-flash-preview` (fast, capable)
+The home widget currently calls `quin-home-chat` which:
+- Does NOT fetch deal pipeline properly (fetches with `.eq('company_id', companyId)` but the partner context fetcher has bugs -- applications query fetches `.limit(0)`)
+- Does NOT include emails, WhatsApp, SMS, calendar, meetings, social data
+- Does NOT include predictive signals or success patterns
+- Has a simplified tool set without search/think/canvas modes
 
-Role-specific quick actions:
-- **Candidate**: "What should I do today?", "Prepare me for my next interview", "Find matching jobs", "How is my profile?"
-- **Partner**: "Pipeline summary", "Who needs attention?", "Interview schedule today", "Candidate recommendations"
-- **Admin**: "Platform health check", "Revenue this month", "Active searches overview", "At-risk relationships"
+After this change, the home widget will use `club-ai-chat` which has the complete, battle-tested data fetching pipeline that powers the full Club AI page.
 
-**New file: `src/hooks/useQUINHomeChat.ts`**
-
-Custom hook managing:
-- Message state + streaming
-- Conversation persistence (load/save via `ai_conversations`)
-- Voice mode toggle (delegates to existing `useClubAIVoice`)
-- Role-aware quick actions
-- Error handling (429/402 rate limits)
-
-### Phase 4: Integration into Home Pages
-
-**Modify: `src/components/clubhome/CandidateHome.tsx`**
-- Add `QUINHomeChatWidget` as the first widget after stats bar (before NextBestActionCard)
-
-**Modify: `src/components/clubhome/PartnerHome.tsx`**
-- Add `QUINHomeChatWidget` after stats bar, before concierge card
-
-**Modify: `src/components/clubhome/AdminHome.tsx`**
-- Add `QUINHomeChatWidget` after stats bar, before quick management
-
-### Phase 5: Smart System Prompts per Role
-
-Each role gets a different system prompt personality:
-
-**Candidate prompt focus:**
-- Career advisor, interview coach, job search strategist
-- Proactive about upcoming interviews, stalled applications, profile gaps
-- References their specific applications, tasks, saved jobs by name
-- Tone: Supportive, encouraging, actionable
-
-**Partner prompt focus:**
-- Recruitment operations assistant, hiring advisor
-- Proactive about candidates needing attention, SLA breaches, pipeline bottlenecks
-- References specific open roles, candidate shortlists, interview schedules
-- Tone: Professional, data-driven, executive
-
-**Admin prompt focus:**
-- Platform intelligence officer, operations commander
-- Proactive about system health, revenue trends, partner engagement dips
-- References platform-wide metrics, at-risk relationships, growth trends
-- Tone: Strategic, analytical, concise
-
-## Technical Details
-
-### Files to Create
-| File | Purpose |
-|---|---|
-| `supabase/functions/quin-home-chat/index.ts` | Role-aware AI chat edge function |
-| `src/components/clubhome/QUINHomeChatWidget.tsx` | Expandable chat widget for home pages |
-| `src/hooks/useQUINHomeChat.ts` | Chat state management hook |
-
-### Files to Modify
-| File | Change |
-|---|---|
-| `src/components/clubhome/CandidateHome.tsx` | Add QUINHomeChatWidget |
-| `src/components/clubhome/PartnerHome.tsx` | Add QUINHomeChatWidget |
-| `src/components/clubhome/AdminHome.tsx` | Add QUINHomeChatWidget |
-| `supabase/functions/_shared/ai-tools.ts` | Add role filtering + new admin/partner tools |
-| `supabase/config.toml` | Register new edge function |
-
-### No Database Changes Required
-The existing tables (`ai_conversations`, `ai_memory`, `ai_action_log`, `ai_session_scores`) already support everything needed. The `user_roles` table provides role information.
-
-### Performance Considerations
-- Context fetching uses batched `Promise.all` queries (same pattern as `user-context-fetcher.ts`)
-- Partner/admin contexts fetch company-scoped data using `company_members` join
-- Streaming SSE for instant token display
-- Conversations lazy-load on widget expand
-- Voice reuses existing global `ClubAIVoice` infrastructure (no duplication)
-
-### Security Model
-- JWT authentication required (via `auth-helpers.ts`)
-- Role verified server-side from `user_roles` table, never trusted from client
-- Partner data scoped to their `company_id` via `company_members` join
-- Admin verified via `has_role` check before exposing platform-wide data
-- Candidate can never see other candidates' data
-- Partner can never see data outside their company
-- All tool executions logged to `ai_action_log`
