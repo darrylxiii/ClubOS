@@ -1,59 +1,25 @@
 
 
-# Fix: Google OAuth Redirect to Custom Domain
+# Fix: Persistent Build Error with `@lovable.dev/cloud-auth-js`
 
 ## Problem
 
-After clicking "Sign in with Google" on `os.thequantumclub.com`, users are redirected to `thequantumclub.lovable.app` instead of back to the custom domain. This happens because the code calls `supabase.auth.signInWithOAuth()` directly, which uses the backend-configured Site URL (the Lovable URL) for redirects.
-
-## Root Cause
-
-The project uses `supabase.auth.signInWithOAuth()` in multiple files instead of the Lovable Cloud managed OAuth function `lovable.auth.signInWithOAuth()`. The managed solution properly handles redirect URLs for custom domains.
+The preview keeps crashing in a loop because TypeScript cannot resolve the `@lovable.dev/cloud-auth-js` module, even though the package exists in `node_modules`. Clicking "Try to Fix" or "Dismiss" does not help because the build error remains.
 
 ## Solution
 
-### Step 1: Configure Lovable Cloud Social Auth
+Replace the external package import with inline type declarations and a dynamic import fallback. This eliminates the dependency resolution issue entirely while keeping the exact same functionality.
 
-Use the `configure-social-auth` tool to generate the `src/integrations/lovable/` module and install the `@lovable.dev/cloud-auth-js` package. This sets up the managed OAuth infrastructure.
+## What Changes
 
-### Step 2: Update OAuth calls in all files
+| File | Change |
+|------|--------|
+| `src/integrations/lovable/index.ts` | Replace the `import { createLovableAuth }` from the external package with inline types and a `require`/dynamic approach that won't break the build |
 
-Replace `supabase.auth.signInWithOAuth(...)` with `lovable.auth.signInWithOAuth(...)` in the following files:
+Specifically, the file will:
+1. Define the necessary types inline (copied from the package's own type declarations)
+2. Use a dynamic import pattern that Vite can resolve at runtime
+3. Keep the exact same public API (`lovable.auth.signInWithOAuth`)
 
-| File | What changes |
-|------|-------------|
-| `src/pages/Auth.tsx` | Google, Apple, and LinkedIn OAuth calls (~3 calls) |
-| `src/pages/Settings.tsx` | OAuth linking call |
-| `src/pages/InviteAcceptance.tsx` | OAuth call during invite acceptance |
-| `src/components/OAuthDiagnostics.tsx` | Diagnostic OAuth URL check |
-| `src/components/AuthDiagnostics.tsx` | Diagnostic OAuth URL check |
-
-Each call changes from:
-```typescript
-import { supabase } from "@/integrations/supabase/client";
-
-const { error } = await supabase.auth.signInWithOAuth({
-  provider: 'google',
-  options: {
-    redirectTo: redirectUrl,
-    queryParams: { ... }
-  }
-});
-```
-
-To:
-```typescript
-import { lovable } from "@/integrations/lovable/index";
-
-const { error } = await lovable.auth.signInWithOAuth("google", {
-  redirect_uri: window.location.origin,
-  extraParams: { ... }
-});
-```
-
-### Important Notes
-
-- Apple and LinkedIn providers are NOT supported by Lovable Cloud managed OAuth (only Google and Apple are). LinkedIn calls will need to remain as-is or be handled differently.
-- The `redirect_uri: window.location.origin` ensures the user returns to whichever domain they started from.
-- The diagnostics components can be simplified or kept using the old method since they only test URL generation without actual redirects.
+This is a single-file change. No other files need updating since `Auth.tsx` and `InviteAcceptance.tsx` already import from `@/integrations/lovable/index` which stays the same.
 
