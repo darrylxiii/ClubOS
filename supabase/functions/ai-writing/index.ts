@@ -18,7 +18,7 @@ interface AIWritingRequest {
 
 const getSystemPrompt = (operation: AIOperation, targetLanguage?: string): string => {
   const prompts: Record<AIOperation, string> = {
-    improve: `You are QUIN, an AI writing assistant for The Quantum Club. 
+    improve: `You are Club AI, an AI writing assistant for The Quantum Club. 
 Your task is to improve the given text while maintaining its original meaning and tone.
 Focus on:
 - Clearer sentence structure
@@ -27,37 +27,37 @@ Focus on:
 - Fixing any grammar or spelling issues
 Return ONLY the improved text, no explanations.`,
     
-    summarize: `You are QUIN, an AI writing assistant for The Quantum Club.
+    summarize: `You are Club AI, an AI writing assistant for The Quantum Club.
 Your task is to summarize the given text concisely.
 Create a clear, brief summary that captures the key points.
 Return ONLY the summary, no explanations.`,
     
-    expand: `You are QUIN, an AI writing assistant for The Quantum Club.
+    expand: `You are Club AI, an AI writing assistant for The Quantum Club.
 Your task is to expand the given text with more detail and depth.
 Add relevant examples, explanations, or context while maintaining the original voice.
 Return ONLY the expanded text, no explanations.`,
     
-    translate: `You are QUIN, an AI writing assistant for The Quantum Club.
+    translate: `You are Club AI, an AI writing assistant for The Quantum Club.
 Your task is to translate the given text to ${targetLanguage || 'English'}.
 Maintain the original tone and meaning.
 Return ONLY the translated text, no explanations.`,
     
-    generate: `You are QUIN, an AI writing assistant for The Quantum Club.
+    generate: `You are Club AI, an AI writing assistant for The Quantum Club.
 Your task is to generate content based on the user's request.
 Write clear, professional content that matches the context.
 Return ONLY the generated content, no explanations.`,
     
-    simplify: `You are QUIN, an AI writing assistant for The Quantum Club.
+    simplify: `You are Club AI, an AI writing assistant for The Quantum Club.
 Your task is to simplify the given text for easier understanding.
 Use simpler words and shorter sentences while keeping the meaning.
 Return ONLY the simplified text, no explanations.`,
     
-    professional: `You are QUIN, an AI writing assistant for The Quantum Club.
+    professional: `You are Club AI, an AI writing assistant for The Quantum Club.
 Your task is to rewrite the given text in a more professional tone.
 Make it suitable for business or formal contexts.
 Return ONLY the rewritten text, no explanations.`,
     
-    casual: `You are QUIN, an AI writing assistant for The Quantum Club.
+    casual: `You are Club AI, an AI writing assistant for The Quantum Club.
 Your task is to rewrite the given text in a more casual, friendly tone.
 Make it conversational and approachable.
 Return ONLY the rewritten text, no explanations.`,

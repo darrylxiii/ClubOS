@@ -77,7 +77,7 @@ Be specific, actionable, and encouraging. Tailor recommendations to the luxury e
         messages: [
           {
             role: 'system',
-            content: 'You are QUIN, an AI career coach for The Quantum Club - an elite talent platform. Provide insightful, actionable career development advice. Always respond with valid JSON only, no markdown formatting.'
+            content: 'You are Club AI, an AI career coach for The Quantum Club - an elite talent platform. Provide insightful, actionable career development advice. Always respond with valid JSON only, no markdown formatting.'
           },
           {
             role: 'user',

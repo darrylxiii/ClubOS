@@ -100,7 +100,7 @@ async function createGoal(supabase: any, userId: string, data: any) {
 
   // Log the decision
   await supabase.from('agent_decision_log').insert({
-    agent_name: 'quin',
+    agent_name: 'club_ai',
     user_id: userId,
     decision_type: 'create_goal',
     decision_made: `Created goal: ${goalDescription}`,
@@ -113,7 +113,7 @@ async function createGoal(supabase: any, userId: string, data: any) {
   await supabase.from('agent_goal_progress').insert({
     goal_id: goal.id,
     action_taken: 'Goal created and execution plan generated',
-    agent_name: 'quin',
+    agent_name: 'club_ai',
     outcome: 'success',
     progress_delta: 0
   });
@@ -133,7 +133,7 @@ async function generateExecutionPlan(goalType: string, description: string, crit
         { id: 5, description: 'Prepare interview materials', agent: 'interview_agent', status: 'pending' },
         { id: 6, description: 'Track and optimize pipeline', agent: 'analytics_agent', status: 'pending' }
       ],
-      assignedAgents: ['quin', 'sourcing_agent', 'engagement_agent', 'interview_agent', 'analytics_agent']
+      assignedAgents: ['club_ai', 'sourcing_agent', 'engagement_agent', 'interview_agent', 'analytics_agent']
     },
     increase_pipeline: {
       steps: [
@@ -143,7 +143,7 @@ async function generateExecutionPlan(goalType: string, description: string, crit
         { id: 4, description: 'Re-engage dormant candidates', agent: 'engagement_agent', status: 'pending' },
         { id: 5, description: 'Monitor pipeline velocity', agent: 'analytics_agent', status: 'pending' }
       ],
-      assignedAgents: ['quin', 'sourcing_agent', 'engagement_agent', 'analytics_agent']
+      assignedAgents: ['club_ai', 'sourcing_agent', 'engagement_agent', 'analytics_agent']
     },
     engage_company: {
       steps: [
@@ -153,15 +153,15 @@ async function generateExecutionPlan(goalType: string, description: string, crit
         { id: 4, description: 'Execute engagement plan', agent: 'engagement_agent', status: 'pending' },
         { id: 5, description: 'Track relationship health', agent: 'partner_agent', status: 'pending' }
       ],
-      assignedAgents: ['quin', 'partner_agent', 'engagement_agent']
+      assignedAgents: ['club_ai', 'partner_agent', 'engagement_agent']
     },
     custom: {
       steps: [
-        { id: 1, description: 'Analyze goal requirements', agent: 'quin', status: 'pending' },
-        { id: 2, description: 'Create action plan', agent: 'quin', status: 'pending' },
-        { id: 3, description: 'Execute and monitor', agent: 'quin', status: 'pending' }
+        { id: 1, description: 'Analyze goal requirements', agent: 'club_ai', status: 'pending' },
+        { id: 2, description: 'Create action plan', agent: 'club_ai', status: 'pending' },
+        { id: 3, description: 'Execute and monitor', agent: 'club_ai', status: 'pending' }
       ],
-      assignedAgents: ['quin']
+      assignedAgents: ['club_ai']
     }
   };
 
@@ -314,7 +314,7 @@ async function executePlan(supabase: any, userId: string, data: any) {
 
   // Delegate to the appropriate agent
   await delegateTask(supabase, userId, {
-    parentAgent: 'quin',
+    parentAgent: 'club_ai',
     childAgent: nextStep.agent,
     taskDescription: nextStep.description,
     taskData: { goalId, stepId: nextStep.id, goalType: goal.goal_type }

@@ -149,7 +149,7 @@ serve(async (req) => {
         const { data: rules, error } = await supabase
           .from('agent_behavior_rules')
           .select('*')
-          .eq('agent_name', agentName || 'quin')
+          .eq('agent_name', agentName || 'club_ai')
           .eq('is_active', true)
           .gte('confidence_score', 0.5)
           .order('confidence_score', { ascending: false });
@@ -344,7 +344,7 @@ async function upsertBehaviorRule(
   const { error } = await supabase
     .from('agent_behavior_rules')
     .upsert({
-      agent_name: 'quin',
+      agent_name: 'club_ai',
       rule_type: 'learned',
       rule_description: pattern.pattern,
       condition: pattern.condition,

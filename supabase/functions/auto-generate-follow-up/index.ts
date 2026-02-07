@@ -100,7 +100,7 @@ serve(async (req) => {
     });
 
     // Generate follow-up content using AI
-    const systemPrompt = `You are QUIN, an AI assistant for The Quantum Club, a luxury talent platform.
+    const systemPrompt = `You are Club AI, an AI assistant for The Quantum Club, a luxury talent platform.
 Generate professional meeting follow-up content with a ${tone} tone.
 
 Meeting Details:

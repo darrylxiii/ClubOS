@@ -91,19 +91,19 @@ async function processEvent(supabase: any, event: any) {
 
   // Determine which agents should respond based on event type
   const agentMappings: Record<string, string[]> = {
-    'INSERT_applications': ['quin', 'analytics_agent', 'engagement_agent'],
-    'UPDATE_applications': ['quin', 'interview_agent', 'analytics_agent'],
-    'INSERT_pilot_tasks': ['quin'],
+    'INSERT_applications': ['club_ai', 'analytics_agent', 'engagement_agent'],
+    'UPDATE_applications': ['club_ai', 'interview_agent', 'analytics_agent'],
+    'INSERT_pilot_tasks': ['club_ai'],
     'UPDATE_pilot_tasks': ['analytics_agent'],
-    'INSERT_quantum_meetings': ['interview_agent', 'quin'],
+    'INSERT_quantum_meetings': ['interview_agent', 'club_ai'],
     'UPDATE_quantum_meetings': ['interview_agent'],
     'user_action_job_view': ['sourcing_agent'],
-    'user_action_profile_update': ['quin'],
+    'user_action_profile_update': ['club_ai'],
     'external_webhook_email': ['engagement_agent'],
-    'system_deadline_approaching': ['quin', 'engagement_agent'],
+    'system_deadline_approaching': ['club_ai', 'engagement_agent'],
   };
 
-  const agents = agentMappings[event.event_type] || ['quin'];
+  const agents = agentMappings[event.event_type] || ['club_ai'];
   respondingAgents.push(...agents);
 
   // Check autonomy settings for the user
@@ -236,7 +236,7 @@ async function handleNewApplication(supabase: any, event: any) {
       });
       
       await logAgentCommunication(supabase, {
-        agentName: 'quin',
+        agentName: 'club_ai',
         userId: event.user_id,
         candidateId: applicationData.candidate_id,
         channel: 'email',
@@ -362,7 +362,7 @@ async function executeAutonomousAction(supabase: any, userId: string, data: any)
 
   // Log the decision
   await supabase.from('agent_decision_log').insert({
-    agent_name: 'quin',
+    agent_name: 'club_ai',
     user_id: userId,
     decision_type: 'autonomous_execution',
     decision_made: `Executed ${actionType}`,

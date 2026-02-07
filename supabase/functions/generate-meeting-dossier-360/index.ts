@@ -354,7 +354,7 @@ async function generateDossierWithAI(data: {
   }
 
   try {
-    const systemPrompt = `You are QUIN, an expert at creating pre-meeting intelligence briefs for The Quantum Club. 
+    const systemPrompt = `You are Club AI, an expert at creating pre-meeting intelligence briefs for The Quantum Club. 
 Your task is to analyze available data about a meeting participant and generate actionable insights.
 
 Be concise, professional, and discreet. Focus on information that helps the meeting host:

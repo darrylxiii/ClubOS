@@ -250,7 +250,7 @@ Respond in JSON format:
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: 'You are QUIN, an AI scheduling assistant. Generate practical, considerate resolution options for scheduling conflicts.' },
+        { role: 'system', content: 'You are Club AI, an AI scheduling assistant. Generate practical, considerate resolution options for scheduling conflicts.' },
         { role: 'user', content: prompt }
       ],
       response_format: { type: 'json_object' }
