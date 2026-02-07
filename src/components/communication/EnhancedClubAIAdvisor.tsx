@@ -12,7 +12,7 @@ import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/notify';
 
-interface EnhancedQUINAdvisorProps {
+interface EnhancedClubAIAdvisorProps {
   entityType?: string;
   entityId?: string;
   entityName?: string;
@@ -35,13 +35,13 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-export function EnhancedQUINAdvisor({
+export function EnhancedClubAIAdvisor({
   entityType,
   entityId,
   entityName,
   context = 'general',
   className
-}: EnhancedQUINAdvisorProps) {
+}: EnhancedClubAIAdvisorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [question, setQuestion] = useState('');
@@ -129,7 +129,7 @@ export function EnhancedQUINAdvisor({
     }
   };
 
-  const handleAskQUIN = async (e: React.FormEvent) => {
+  const handleAskClubAI = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() || isLoading) return;
 
@@ -231,7 +231,7 @@ export function EnhancedQUINAdvisor({
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">QUIN Advisor</h3>
+                <h3 className="text-sm font-semibold text-white">Club AI Advisor</h3>
                 <p className="text-[10px] text-white/70">
                   {entityName ? `Helping with ${entityName}` : 'Communication Intelligence'}
                 </p>
@@ -382,7 +382,7 @@ export function EnhancedQUINAdvisor({
                       {isLoading && (
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          QUIN is thinking...
+                          Club AI is thinking...
                         </div>
                       )}
                     </div>
@@ -401,11 +401,11 @@ export function EnhancedQUINAdvisor({
 
                 {/* Input */}
                 <div className="p-3 border-t bg-muted/30">
-                  <form onSubmit={handleAskQUIN} className="flex gap-2">
+                  <form onSubmit={handleAskClubAI} className="flex gap-2">
                     <Input
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask QUIN or request a draft..."
+                      placeholder="Ask Club AI or request a draft..."
                       className="h-8 text-xs"
                       disabled={isLoading}
                     />

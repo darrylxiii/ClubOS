@@ -152,8 +152,8 @@ verify_jwt = false
 [functions.club-ai-chat]
 verify_jwt = true
 
-[functions.quin-home-chat]
-verify_jwt = false
+
+[functions.analytics-ai-assistant]
 
 [functions.analytics-ai-assistant]
 verify_jwt = true

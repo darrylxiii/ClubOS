@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Mic, X, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useQUINHomeChat } from '@/hooks/useQUINHomeChat';
+import { useClubAIHomeChat } from '@/hooks/useClubAIHomeChat';
 import { useClubAIVoice } from '@/hooks/useClubAIVoice';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function QUINHomeChatWidget() {
+export function ClubAIHomeChatWidget() {
   const {
     messages,
     isLoading,
@@ -17,7 +17,7 @@ export function QUINHomeChatWidget() {
     sendMessage,
     quickActions,
     clearMessages,
-  } = useQUINHomeChat();
+  } = useClubAIHomeChat();
 
   const voice = useClubAIVoice();
   const [input, setInput] = useState('');
@@ -75,7 +75,7 @@ export function QUINHomeChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsExpanded(true)}
-              placeholder="Ask QUIN anything..."
+              placeholder="Ask Club AI anything..."
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
               disabled={isLoading}
             />
@@ -206,7 +206,7 @@ export function QUINHomeChatWidget() {
                   Clear
                 </Button>
                 <span className="text-[10px] text-muted-foreground/50">
-                  Powered by QUIN
+                  Powered by Club AI
                 </span>
               </div>
             </div>
@@ -226,7 +226,7 @@ export function QUINHomeChatWidget() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-primary">
                 <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                {voice.isSpeaking ? 'QUIN is speaking...' : 'Listening...'}
+                {voice.isSpeaking ? 'Club AI is speaking...' : 'Listening...'}
               </div>
               <Button
                 variant="ghost"

@@ -88,7 +88,7 @@ export default function OfferComparison() {
             <div>
               <h1 className="text-3xl font-bold">Offer Comparison</h1>
               <p className="text-muted-foreground">
-                Compare and evaluate your job offers with QUIN's insights
+                Compare and evaluate your job offers with Club AI's insights
               </p>
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function OfferComparison() {
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium flex items-center gap-2">
                           <Sparkles className="h-4 w-4 text-primary" />
-                          QUIN Analysis
+                          Club AI Analysis
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">

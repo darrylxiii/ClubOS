@@ -20,17 +20,17 @@ interface Suggestion {
   used?: boolean;
 }
 
-interface QUINBackchannelSuggestionsProps {
+interface ClubAIBackchannelSuggestionsProps {
   meetingId: string;
   recentTranscript?: string;
   onSuggestionUsed?: (suggestion: Suggestion) => void;
 }
 
-export function QUINBackchannelSuggestions({
+export function ClubAIBackchannelSuggestions({
   meetingId,
   recentTranscript,
   onSuggestionUsed
-}: QUINBackchannelSuggestionsProps) {
+}: ClubAIBackchannelSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -142,7 +142,7 @@ export function QUINBackchannelSuggestions({
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
-            QUIN Suggestions
+            Club AI Suggestions
           </CardTitle>
           <Button
             variant="ghost"
@@ -158,7 +158,7 @@ export function QUINBackchannelSuggestions({
         {suggestions.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">QUIN is analyzing the conversation...</p>
+            <p className="text-sm">Club AI is analyzing the conversation...</p>
             <p className="text-xs mt-1">Suggestions will appear as the interview progresses</p>
           </div>
         ) : (

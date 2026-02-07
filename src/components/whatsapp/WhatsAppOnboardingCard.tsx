@@ -85,7 +85,7 @@ export function WhatsAppOnboardingCard({
           <div className="flex items-center justify-center gap-4 mb-6">
             <Badge variant="outline" className="bg-background">
               <Sparkles className="w-3 h-3 mr-1" />
-              Powered by QUIN
+              Powered by Club AI
             </Badge>
             <Badge variant="outline" className="bg-background">
               AI Smart Replies

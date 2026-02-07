@@ -137,7 +137,7 @@ export function KPIActionPlanDialog({ open, onOpenChange, kpi }: KPIActionPlanDi
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Lightbulb className="h-4 w-4 text-amber-500" />
-                  <span className="text-sm font-medium">QUIN Suggestions</span>
+                  <span className="text-sm font-medium">Club AI Suggestions</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {suggestions.slice(0, 4).map((suggestion, i) => (

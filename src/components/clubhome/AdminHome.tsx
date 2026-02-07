@@ -25,12 +25,12 @@ import { CRMProspectsWidget } from "./CRMProspectsWidget";
 import { TopClientsWidget } from "./TopClientsWidget";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
-import { QUINAnalyticsWidget } from "./QUINAnalyticsWidget";
+import { ClubAIAnalyticsWidget } from "./ClubAIAnalyticsWidget";
 import { AdminReferralWidget } from "./AdminReferralWidget";
 import { PipelineVelocityWidget } from "./PipelineVelocityWidget";
 import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
 import { EdgeFunctionHealthWidget } from "./EdgeFunctionHealthWidget";
-import { QUINHomeChatWidget } from "./QUINHomeChatWidget";
+import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
 
 const AdminHomeContent = () => {
   const { stats, loading } = useRoleStats('admin');
@@ -46,8 +46,8 @@ const AdminHomeContent = () => {
         <UnifiedStatsBar role="admin" stats={stats} loading={loading} />
       </motion.div>
 
-      {/* QUIN Intelligence Hub */}
-      <QUINHomeChatWidget />
+      {/* Club AI Intelligence Hub */}
+      <ClubAIHomeChatWidget />
 
       {/* Quick Management & Platform Growth */}
       <DashboardSection columns={2}>
@@ -129,7 +129,7 @@ const AdminHomeContent = () => {
 
       {/* AI & System Health */}
       <DashboardSection columns={3} mobileColumns={1}>
-        <QUINAnalyticsWidget />
+        <ClubAIAnalyticsWidget />
         <EdgeFunctionHealthWidget />
         <WhatsAppPreviewWidget />
       </DashboardSection>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { CompanyRelationshipGrid } from '@/components/communication/CompanyRelationshipGrid';
 import { CompanyContactManager } from '@/components/communication/CompanyContactManager';
 import { ContactSentimentList } from '@/components/communication/ContactSentimentList';
-import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
+import { ClubAIAdvisorWidget } from '@/components/communication/ClubAIAdvisorWidget';
 import { useCompanyRelationships } from '@/hooks/useCompanyRelationships';
 import { useEmailIntelligenceSync } from '@/hooks/useEmailIntelligenceSync';
 import { notify } from '@/lib/notify';
@@ -233,9 +233,9 @@ export default function CompanyRelationships() {
               </Tabs>
             </div>
 
-            {/* Sidebar - QUIN Advisor */}
+            {/* Sidebar - Club AI Advisor */}
             <div className="lg:col-span-1">
-              <QUINAdvisorWidget context="general" />
+              <ClubAIAdvisorWidget context="general" />
             </div>
           </div>
         </div>

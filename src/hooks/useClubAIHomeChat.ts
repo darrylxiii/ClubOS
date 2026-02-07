@@ -9,7 +9,7 @@ interface Message {
   content: string;
 }
 
-interface UseQUINHomeChatReturn {
+interface UseClubAIHomeChatReturn {
   messages: Message[];
   isLoading: boolean;
   isExpanded: boolean;
@@ -40,7 +40,7 @@ const ADMIN_QUICK_ACTIONS = [
   "At-risk relationships",
 ];
 
-export function useQUINHomeChat(): UseQUINHomeChatReturn {
+export function useClubAIHomeChat(): UseClubAIHomeChatReturn {
   const { user } = useAuth();
   const { currentRole } = useRole();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -79,7 +79,7 @@ export function useQUINHomeChat(): UseQUINHomeChatReturn {
       if (!session?.access_token) throw new Error('Not authenticated');
 
       const resp = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quin-home-chat`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/club-ai-chat`,
         {
           method: 'POST',
           headers: {
@@ -178,7 +178,7 @@ export function useQUINHomeChat(): UseQUINHomeChatReturn {
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;
-      console.error('QUIN chat error:', err);
+      console.error('Club AI chat error:', err);
       if (!assistantContent) {
         setMessages(prev => [
           ...prev,

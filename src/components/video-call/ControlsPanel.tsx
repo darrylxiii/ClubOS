@@ -405,7 +405,7 @@ export function ControlsPanel({
                 {onToggleQUINVoice && (
                   <DropdownMenuItem onClick={onToggleQUINVoice} className="gap-3 text-white/90 focus:bg-white/10 focus:text-white py-3 px-3 rounded-lg cursor-pointer transition-colors">
                     <Mic2 className={`h-4 w-4 ${showQUINVoice ? 'text-green-400' : ''}`} />
-                    <span>QUIN Voice Assistant</span>
+                    <span>Club AI Voice Assistant</span>
                     {showQUINVoice && <Badge className="ml-auto bg-green-500/20 text-green-300 text-[10px]">ON</Badge>}
                   </DropdownMenuItem>
                 )}

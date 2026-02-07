@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { UnifiedCommunicationTimeline } from '@/components/communication/UnifiedCommunicationTimeline';
 import { RelationshipHealthCard } from '@/components/communication/RelationshipHealthCard';
 import { CrossChannelPatternAlert } from '@/components/communication/CrossChannelPatternAlert';
-import { QUINAdvisorWidget } from '@/components/communication/QUINAdvisorWidget';
+import { ClubAIAdvisorWidget } from '@/components/communication/ClubAIAdvisorWidget';
 import { useUnifiedCommunications } from '@/hooks/useUnifiedCommunications';
 import { useRelationshipHealth } from '@/hooks/useRelationshipHealth';
 import { UnifiedImportDialog } from '@/components/communication/UnifiedImportDialog';
@@ -223,8 +223,8 @@ export default function CommunicationIntelligence() {
             </TabsContent>
           </Tabs>
 
-          {/* QUIN Advisor Widget */}
-          <QUINAdvisorWidget context="general" />
+          {/* Club AI Advisor Widget */}
+          <ClubAIAdvisorWidget context="general" />
         </div>
       </RoleGate>
     </AppLayout>

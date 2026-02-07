@@ -74,7 +74,7 @@ export function useAIWriting() {
       } else if (message.includes('402') || message.includes('credits')) {
         toast.error('AI credits exhausted. Please add funds to continue.');
       } else {
-        toast.error(`QUIN: ${message}`);
+        toast.error(`Club AI: ${message}`);
       }
       
       return null;
