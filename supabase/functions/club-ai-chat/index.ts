@@ -185,10 +185,11 @@ ${successPatterns.map(p => `• [${p.pattern_type?.toUpperCase()}] ${p.pattern_d
         .order("created_at", { ascending: false })
         .limit(15);
 
-      // Get tasks
+      // Get tasks (scoped to current user)
       const { data: tasks } = await supabase
         .from("unified_tasks")
         .select("*")
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -219,7 +220,7 @@ ${successPatterns.map(p => `• [${p.pattern_type?.toUpperCase()}] ${p.pattern_d
       const { data: availableJobs } = await supabase
         .from("jobs")
         .select("id, title, location, employment_type, created_at")
-        .eq("is_active", true)
+        .eq("status", "published")
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -883,16 +884,16 @@ ${careerBrainContext}`;
           allApplicationsRes,
           platformStatsRes,
         ] = await Promise.all([
-          supabase.from('placement_fees').select('*').order('created_at', { ascending: false }).limit(50),
+          supabase.from('placement_fees').select('*, jobs(title), companies:partner_company_id(name)').order('created_at', { ascending: false }).limit(50),
           supabase.from('moneybird_sales_invoices').select('*').order('invoice_date', { ascending: false }).limit(100),
           supabase.from('moneybird_financial_metrics').select('*').order('created_at', { ascending: false }).limit(1),
           supabase.from('partner_invoices').select('*').order('created_at', { ascending: false }).limit(30),
           supabase.from('payment_transactions').select('*').order('created_at', { ascending: false }).limit(30),
           supabase.from('crm_prospects').select('*').order('created_at', { ascending: false }).limit(50),
           supabase.from('referral_payouts').select('*').order('created_at', { ascending: false }).limit(20),
-          supabase.from('candidate_profiles').select('id, full_name, current_title, current_company, talent_tier, move_probability, location, availability_status, last_engagement_date, tier_score').eq('data_deletion_requested', false).order('last_engagement_date', { ascending: false }).limit(100),
-          supabase.from('kpi_metrics').select('*').order('recorded_at', { ascending: false }).limit(50),
-          supabase.from('jobs').select('id, title, is_active, location, employment_type, created_at, companies(name)').order('created_at', { ascending: false }).limit(50),
+          supabase.from('candidate_profiles').select('id, full_name, current_title, current_company, talent_tier, move_probability, location, availability_status, last_activity_at, tier_score').order('last_activity_at', { ascending: false }).limit(100),
+          supabase.from('kpi_metrics').select('*').order('created_at', { ascending: false }).limit(50),
+          supabase.from('jobs').select('id, title, status, location, employment_type, created_at, companies:company_id(name)').order('created_at', { ascending: false }).limit(50),
           supabase.from('applications').select('id, position, company_name, status, current_stage_index, created_at, user_id').order('created_at', { ascending: false }).limit(100),
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
         ]);
@@ -922,7 +923,7 @@ ${careerBrainContext}`;
         // Summarize CRM by stage
         const crmByStage: Record<string, { count: number; dealValue: number }> = {};
         crmProspects.forEach((p: any) => {
-          const s = p.pipeline_stage || 'unknown';
+          const s = p.stage || 'unknown';
           if (!crmByStage[s]) crmByStage[s] = { count: 0, dealValue: 0 };
           crmByStage[s].count++;
           crmByStage[s].dealValue += (p.deal_value || 0);
@@ -931,7 +932,7 @@ ${careerBrainContext}`;
         // Summarize invoices
         const invoicesByState: Record<string, number> = {};
         moneybirdInvoices.forEach((inv: any) => {
-          const s = inv.state || 'unknown';
+          const s = inv.state_normalized || 'unknown';
           invoicesByState[s] = (invoicesByState[s] || 0) + 1;
         });
 
@@ -940,7 +941,7 @@ ${careerBrainContext}`;
 === ADMIN: FINANCIAL & REVENUE DATA ===
 PLACEMENT FEES (${placementFees.length} total):
 ${Object.entries(feesByStatus).map(([status, data]) => `  ${status}: ${data.count} fees, total €${data.total.toLocaleString()}`).join('\n')}
-Recent: ${placementFees.slice(0, 10).map((f: any) => `${f.candidate_name || 'N/A'} → ${f.company_name || 'N/A'}: €${f.fee_amount || 0} (${f.status})`).join(', ')}
+Recent: ${placementFees.slice(0, 10).map((f: any) => { const job = Array.isArray(f.jobs) ? f.jobs[0] : f.jobs; const co = Array.isArray(f.companies) ? f.companies[0] : f.companies; return `${job?.title || 'N/A'} → ${co?.name || 'N/A'}: €${f.fee_amount || 0} (${f.status})`; }).join(', ')}
 
 MONEYBIRD INVOICES (${moneybirdInvoices.length}):
 ${Object.entries(invoicesByState).map(([state, count]) => `  ${state}: ${count}`).join('\n')}
@@ -950,11 +951,11 @@ CRM PIPELINE (${crmProspects.length} prospects):
 ${Object.entries(crmByStage).map(([stage, data]) => `  ${stage}: ${data.count} prospects, deal value €${data.dealValue.toLocaleString()}`).join('\n')}
 
 PARTNER INVOICES: ${partnerInvoices.length} total
-${partnerInvoices.slice(0, 10).map((inv: any) => `  ${inv.invoice_number || 'N/A'}: €${inv.amount || 0} (${inv.status || 'N/A'})`).join('\n')}
+${partnerInvoices.slice(0, 10).map((inv: any) => `  ${inv.invoice_number || 'N/A'}: €${inv.total_amount || 0} (${inv.status || 'N/A'})`).join('\n')}
 
 PAYMENT TRANSACTIONS: ${paymentTx.length} recent
 REFERRAL PAYOUTS: ${referralPayouts.length} total
-${referralPayouts.slice(0, 5).map((r: any) => `  ${r.referrer_name || 'N/A'}: €${r.payout_amount || 0} (${r.status || 'pending'})`).join('\n')}
+${referralPayouts.slice(0, 5).map((r: any) => `  Payout: €${r.payout_amount || 0} (${r.status || 'pending'})`).join('\n')}
 === END ADMIN FINANCIAL ===
 
 === ADMIN: TALENT POOL ===
@@ -965,15 +966,15 @@ Recent Active (top 20): ${candidateProfiles.slice(0, 20).map((c: any) => `${c.fu
 
 === ADMIN: PLATFORM KPIs ===
 Total Platform Users: ${totalUsers}
-Active Jobs: ${allJobs.filter((j: any) => j.is_active).length} / ${allJobs.length} total
+Active Jobs: ${allJobs.filter((j: any) => j.status === 'published').length} / ${allJobs.length} total
 All Applications: ${allApps.length} (Active: ${allApps.filter((a: any) => a.status === 'active').length})
-KPI Metrics: ${kpiMetrics.slice(0, 10).map((k: any) => `${k.metric_name}: ${k.metric_value}`).join(', ')}
+KPI Metrics: ${kpiMetrics.slice(0, 10).map((k: any) => `${k.kpi_name}: ${k.value}`).join(', ')}
 === END ADMIN KPIs ===
 
 === ADMIN: ALL JOBS ===
 ${allJobs.slice(0, 20).map((j: any) => {
   const co = Array.isArray(j.companies) ? j.companies[0] : j.companies;
-  return `- ${j.title} @ ${co?.name || 'N/A'} (${j.is_active ? 'Active' : 'Inactive'}) - ${j.location || 'Remote'}`;
+  return `- ${j.title} @ ${co?.name || 'N/A'} (${j.status === 'published' ? 'Active' : j.status}) - ${j.location || 'Remote'}`;
 }).join('\n')}
 === END ADMIN JOBS ===
 `;
@@ -986,11 +987,11 @@ ${allJobs.slice(0, 20).map((j: any) => {
           companyMembersRes,
           companyKpisRes,
         ] = await Promise.all([
-          supabase.from('jobs').select('id, title, is_active, location, employment_type, created_at').eq('company_id', companyId).order('created_at', { ascending: false }).limit(30),
+          supabase.from('jobs').select('id, title, status, location, employment_type, created_at').eq('company_id', companyId).order('created_at', { ascending: false }).limit(30),
           supabase.from('placement_fees').select('*').eq('partner_company_id', companyId).order('created_at', { ascending: false }).limit(20),
           supabase.from('partner_invoices').select('*').eq('partner_company_id', companyId).order('created_at', { ascending: false }).limit(30),
           supabase.from('company_members').select('id, role, is_active, user_id, job_title, profiles!inner(full_name, email)').eq('company_id', companyId).eq('is_active', true),
-          supabase.from('kpi_metrics').select('*').eq('company_id', companyId).order('recorded_at', { ascending: false }).limit(20),
+          supabase.from('kpi_metrics').select('*').eq('company_id', companyId).order('created_at', { ascending: false }).limit(20),
         ]);
 
         const companyJobs = companyJobsRes.data || [];
@@ -1015,10 +1016,10 @@ ${allJobs.slice(0, 20).map((j: any) => {
         userContext += `
 
 === PARTNER: COMPANY PIPELINE ===
-Active Jobs (${companyJobs.filter((j: any) => j.is_active).length} active / ${companyJobs.length} total):
+Active Jobs (${companyJobs.filter((j: any) => j.status === 'published').length} active / ${companyJobs.length} total):
 ${companyJobs.map((j: any) => {
   const appCount = companyApps.filter((a: any) => a.position === j.title || a.job_id === j.id).length;
-  return `- ${j.title} (${j.is_active ? 'Active' : 'Inactive'}) - ${j.location || 'Remote'} - ${appCount} applicants`;
+  return `- ${j.title} (${j.status === 'published' ? 'Active' : j.status}) - ${j.location || 'Remote'} - ${appCount} applicants`;
 }).join('\n')}
 
 Applications to Your Company (${companyApps.length}):
@@ -1034,7 +1035,7 @@ Placement Fees (${companyFees.length}):
 ${companyFees.slice(0, 10).map((f: any) => `- ${f.candidate_name || 'N/A'}: €${f.fee_amount || 0} (${f.status})`).join('\n')}
 
 Invoices (${companyInvoices.length}):
-${companyInvoices.slice(0, 10).map((inv: any) => `- ${inv.invoice_number || 'N/A'}: €${inv.amount || 0} (${inv.status || 'N/A'})`).join('\n')}
+${companyInvoices.slice(0, 10).map((inv: any) => `- ${inv.invoice_number || 'N/A'}: €${inv.total_amount || 0} (${inv.status || 'N/A'})`).join('\n')}
 === END PARTNER FINANCIALS ===
 
 === PARTNER: TEAM ===
@@ -1046,7 +1047,7 @@ ${companyTeam.map((m: any) => {
 === END PARTNER TEAM ===
 
 === PARTNER: KPIs ===
-${companyKpis.slice(0, 10).map((k: any) => `- ${k.metric_name}: ${k.metric_value}`).join('\n') || 'No KPIs available'}
+${companyKpis.slice(0, 10).map((k: any) => `- ${k.kpi_name}: ${k.value}`).join('\n') || 'No KPIs available'}
 === END PARTNER KPIs ===
 `;
       }
@@ -1054,14 +1055,14 @@ ${companyKpis.slice(0, 10).map((k: any) => `- ${k.metric_name}: ${k.metric_value
       if (!isAdmin && !isStrategist && !isPartner) {
         const { data: salaryBenchmarks } = await supabase
           .from('salary_benchmarks')
-          .select('role_title, industry, location, min_salary, median_salary, max_salary, currency, sample_size')
+          .select('role_title, location, salary_min, salary_max, currency, sample_size, experience_years')
           .limit(10);
 
         if (salaryBenchmarks && salaryBenchmarks.length > 0) {
           userContext += `
 
 === SALARY BENCHMARKS (Anonymized Market Data) ===
-${salaryBenchmarks.map((b: any) => `- ${b.role_title} (${b.industry || 'General'}, ${b.location || 'Global'}): ${b.currency || '€'}${b.min_salary?.toLocaleString() || 'N/A'} – ${b.max_salary?.toLocaleString() || 'N/A'} (median ${b.currency || '€'}${b.median_salary?.toLocaleString() || 'N/A'}, n=${b.sample_size || 'N/A'})`).join('\n')}
+${salaryBenchmarks.map((b: any) => `- ${b.role_title} (${b.location || 'Global'}, ${b.experience_years || '?'}y exp): ${b.currency || '€'}${b.salary_min?.toLocaleString() || 'N/A'} – ${b.currency || '€'}${b.salary_max?.toLocaleString() || 'N/A'} (n=${b.sample_size || 'N/A'})`).join('\n')}
 === END SALARY BENCHMARKS ===
 `;
         }
