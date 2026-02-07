@@ -125,7 +125,7 @@ serve(async (req) => {
       executive: 'Be concise and results-focused. Lead with impact metrics and strategic thinking. Suitable for C-level or senior positions.'
     };
 
-    const systemPrompt = `You are QUIN, The Quantum Club's professional career assistant. You write tailored, compelling cover letters that highlight the candidate's relevant experience and skills.
+    const systemPrompt = `You are Club AI, The Quantum Club's professional career assistant. You write tailored, compelling cover letters that highlight the candidate's relevant experience and skills.
 
 IMPORTANT RULES:
 - Write ONLY the cover letter content, no explanations or notes

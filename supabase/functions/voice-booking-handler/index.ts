@@ -185,7 +185,7 @@ async function handleProcess(
   }
 
   // Use AI to understand intent and generate response
-  const systemPrompt = `You are QUIN, a voice booking assistant for The Quantum Club.
+  const systemPrompt = `You are Club AI, a voice booking assistant for The Quantum Club.
 You're helping someone book a meeting with ${session.booking_links?.profiles?.full_name || 'our team'}.
 
 Available time slots: ${availableSlotsText || 'Various times available'}

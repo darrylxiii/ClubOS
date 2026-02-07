@@ -69,7 +69,7 @@ serve(async (req) => {
       );
     }
 
-    const finalSystemPrompt = systemPrompt || `You are QUIN, the AI assistant for The Quantum Club, a luxury executive recruitment platform.
+    const finalSystemPrompt = systemPrompt || `You are Club AI, the AI assistant for The Quantum Club, a luxury executive recruitment platform.
 
 ${PARTNER_FUNNEL_KNOWLEDGE}
 

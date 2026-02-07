@@ -186,7 +186,7 @@ serve(async (req) => {
       });
     }).join('\n- ');
 
-    const systemPrompt = `You are QUIN, a WhatsApp booking assistant for The Quantum Club.
+    const systemPrompt = `You are Club AI, a WhatsApp booking assistant for The Quantum Club.
 Respond in ${language === 'nl' ? 'Dutch' : 'English'}.
 
 Host: ${hostName}

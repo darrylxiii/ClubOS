@@ -211,9 +211,9 @@ async function logForTraining(supabase: any, userId: string, feedback: FeedbackI
 function getFeedbackMessage(type: string): string {
   switch (type) {
     case 'thumbs_up':
-      return 'Thanks for the positive feedback! This helps QUIN learn.';
+      return 'Thanks for the positive feedback! This helps Club AI learn.';
     case 'thumbs_down':
-      return 'Thanks for letting us know. QUIN will improve based on your feedback.';
+      return 'Thanks for letting us know. Club AI will improve based on your feedback.';
     case 'rating':
       return 'Rating recorded. Thank you!';
     case 'comment':

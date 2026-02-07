@@ -32,7 +32,7 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
-    console.log(`QUIN voice command: ${command} for meeting: ${meetingId}`);
+    console.log(`Club AI voice command: ${command} for meeting: ${meetingId}`);
 
     // Parse the command type
     const commandLower = command.toLowerCase();
@@ -73,7 +73,7 @@ serve(async (req) => {
           messages: [
             { 
               role: "system", 
-              content: "You are QUIN, The Quantum Club's AI assistant. Provide a concise spoken summary (under 100 words) of the meeting discussion so far. Speak naturally as if talking to the meeting host." 
+              content: "You are Club AI, The Quantum Club's AI assistant. Provide a concise spoken summary (under 100 words) of the meeting discussion so far. Speak naturally as if talking to the meeting host." 
             },
             { role: "user", content: `${meetingContext}\n\nPlease summarize the last 5 minutes of discussion.` }
           ],
@@ -98,7 +98,7 @@ serve(async (req) => {
           messages: [
             { 
               role: "system", 
-              content: "You are QUIN, an expert interview coach. Based on the conversation, suggest 2-3 follow-up questions the interviewer should ask. Keep suggestions brief and natural for spoken delivery." 
+              content: "You are Club AI, an expert interview coach. Based on the conversation, suggest 2-3 follow-up questions the interviewer should ask. Keep suggestions brief and natural for spoken delivery." 
             },
             { role: "user", content: `${meetingContext}\n\nWhat questions should I ask next?` }
           ],
@@ -140,7 +140,7 @@ serve(async (req) => {
           messages: [
             { 
               role: "system", 
-              content: "You are QUIN, an expert interview analyst. Identify any potential concerns or red flags from the recent discussion. Be brief and specific." 
+              content: "You are Club AI, an expert interview analyst. Identify any potential concerns or red flags from the recent discussion. Be brief and specific." 
             },
             { role: "user", content: `${meetingContext}\n\nAre there any concerns I should be aware of?` }
           ],
@@ -170,7 +170,7 @@ serve(async (req) => {
           messages: [
             { 
               role: "system", 
-              content: "You are QUIN, The Quantum Club's AI meeting assistant. Respond briefly and helpfully to the host's query. Keep responses under 75 words for spoken delivery." 
+              content: "You are Club AI, The Quantum Club's AI meeting assistant. Respond briefly and helpfully to the host's query. Keep responses under 75 words for spoken delivery." 
             },
             { role: "user", content: `${meetingContext}\n\nUser said: ${command}` }
           ],
@@ -185,7 +185,7 @@ serve(async (req) => {
     // Log the interaction
     await supabase.from("ai_action_log").insert({
       user_id: user.id,
-      action_type: "quin_voice_command",
+      action_type: "club_ai_voice_command",
       action_data: { command, meetingId, responseType },
       result: { responseText: responseText.slice(0, 500) },
       status: "completed"
@@ -201,7 +201,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("QUIN voice error:", error);
+    console.error("Club AI voice error:", error);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : "Unknown error",
