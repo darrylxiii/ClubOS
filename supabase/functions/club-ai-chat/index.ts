@@ -883,6 +883,20 @@ ${careerBrainContext}`;
           allJobsRes,
           allApplicationsRes,
           platformStatsRes,
+          // NEW: Full system data access
+          candidateOffersRes,
+          candidateShortlistsRes,
+          candidateScorecardsRes,
+          interviewFeedbackRes,
+          candidateInteractionsRes,
+          candidateNotesRes,
+          dossierSharesRes,
+          meetingDossiersRes,
+          strategistAssignmentsRes,
+          capacityPlanningRes,
+          churnAnalysisRes,
+          slaTrackingRes,
+          npsSurveysRes,
         ] = await Promise.all([
           supabase.from('placement_fees').select('*, jobs(title), companies:partner_company_id(name)').order('created_at', { ascending: false }).limit(50),
           supabase.from('moneybird_sales_invoices').select('*').order('invoice_date', { ascending: false }).limit(100),
@@ -893,9 +907,23 @@ ${careerBrainContext}`;
           supabase.from('referral_payouts').select('*').order('created_at', { ascending: false }).limit(20),
           supabase.from('candidate_profiles').select('id, full_name, current_title, current_company, talent_tier, move_probability, location, availability_status, last_activity_at, tier_score').order('last_activity_at', { ascending: false }).limit(100),
           supabase.from('kpi_metrics').select('*').order('created_at', { ascending: false }).limit(50),
-          supabase.from('jobs').select('id, title, status, location, employment_type, created_at, companies:company_id(name)').order('created_at', { ascending: false }).limit(50),
-          supabase.from('applications').select('id, position, company_name, status, current_stage_index, created_at, user_id').order('created_at', { ascending: false }).limit(100),
+          supabase.from('jobs').select('id, title, status, location, employment_type, created_at, salary_min, salary_max, currency, job_fee_type, job_fee_percentage, job_fee_fixed, target_hire_count, hired_count, deal_stage, deal_probability, deal_value_override, club_sync_status, is_continuous, companies:company_id(name)').order('created_at', { ascending: false }).limit(50),
+          supabase.from('applications').select('id, position, company_name, status, current_stage_index, stages, created_at, user_id, job_id').order('created_at', { ascending: false }).limit(200),
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
+          // NEW queries for full system data
+          supabase.from('candidate_offers').select('id, candidate_id, job_id, status, total_compensation, base_salary, sent_at, responded_at, offer_type').order('sent_at', { ascending: false }).limit(50),
+          supabase.from('candidate_shortlists').select('id, candidate_id, job_id, company_id, priority, notes, created_at').order('created_at', { ascending: false }).limit(50),
+          supabase.from('candidate_scorecards').select('id, application_id, overall_rating, recommendation, status, submitted_at, submitted_by').order('submitted_at', { ascending: false }).limit(50),
+          supabase.from('interview_feedback').select('id, application_id, overall_rating, recommendation, status, submitted_at, interviewer_name').order('submitted_at', { ascending: false }).limit(50),
+          supabase.from('candidate_interactions').select('id, candidate_id, interaction_type, title, summary, ai_sentiment, created_at').order('created_at', { ascending: false }).limit(50),
+          supabase.from('candidate_notes').select('id, candidate_id, note_type, title, content, pinned, created_at').order('created_at', { ascending: false }).limit(30),
+          supabase.from('dossier_shares').select('id, candidate_id, shared_by, expires_at, view_count, is_revoked, created_at').order('created_at', { ascending: false }).limit(20),
+          supabase.from('meeting_dossiers').select('id, title, candidate_id, view_count, is_revoked, created_at').order('created_at', { ascending: false }).limit(20),
+          supabase.from('strategist_assignments').select('id, partner_id, strategist_id, is_active, assignment_type, created_at').order('created_at', { ascending: false }).limit(30),
+          supabase.from('capacity_planning').select('id, user_id, week_start, scheduled_hours, available_hours, capacity_load_percent').order('week_start', { ascending: false }).limit(20),
+          supabase.from('churn_analysis').select('id, user_id, churned_at, plan_tier, churn_reason, total_revenue_euros, reactivation_likelihood').order('churned_at', { ascending: false }).limit(20),
+          supabase.from('sla_tracking').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('nps_surveys').select('*').order('created_at', { ascending: false }).limit(20),
         ]);
 
         const placementFees = placementFeesRes.data || [];
@@ -910,6 +938,50 @@ ${careerBrainContext}`;
         const allJobs = allJobsRes.data || [];
         const allApps = allApplicationsRes.data || [];
         const totalUsers = platformStatsRes.count || 0;
+        const candidateOffers = candidateOffersRes.data || [];
+        const candidateShortlists = candidateShortlistsRes.data || [];
+        const candidateScorecards = candidateScorecardsRes.data || [];
+        const interviewFeedback = interviewFeedbackRes.data || [];
+        const candidateInteractions = candidateInteractionsRes.data || [];
+        const candidateNotes = candidateNotesRes.data || [];
+        const dossierShares = dossierSharesRes.data || [];
+        const meetingDossiers = meetingDossiersRes.data || [];
+        const strategistAssignments = strategistAssignmentsRes.data || [];
+        const capacityPlanning = capacityPlanningRes.data || [];
+        const churnAnalysis = churnAnalysisRes.data || [];
+        const slaTracking = slaTrackingRes.data || [];
+        const npsSurveys = npsSurveysRes.data || [];
+
+        // === BUILD PER-JOB INTELLIGENCE ===
+        const appsByJob: Record<string, any[]> = {};
+        allApps.forEach((a: any) => {
+          if (a.job_id) {
+            if (!appsByJob[a.job_id]) appsByJob[a.job_id] = [];
+            appsByJob[a.job_id].push(a);
+          }
+        });
+        const offersByJob: Record<string, any[]> = {};
+        candidateOffers.forEach((o: any) => {
+          if (o.job_id) {
+            if (!offersByJob[o.job_id]) offersByJob[o.job_id] = [];
+            offersByJob[o.job_id].push(o);
+          }
+        });
+        const shortlistsByJob: Record<string, any[]> = {};
+        candidateShortlists.forEach((s: any) => {
+          if (s.job_id) {
+            if (!shortlistsByJob[s.job_id]) shortlistsByJob[s.job_id] = [];
+            shortlistsByJob[s.job_id].push(s);
+          }
+        });
+        const calcFee = (j: any): string => {
+          if (j.deal_value_override) return `€${j.deal_value_override.toLocaleString()} (override)`;
+          if (j.job_fee_type === 'fixed' && j.job_fee_fixed) return `€${j.job_fee_fixed.toLocaleString()} (fixed)`;
+          const salaryBase = j.salary_max || j.salary_min || 0;
+          const pct = j.job_fee_percentage || 20;
+          if (salaryBase > 0) return `${pct}% (~€${Math.round(salaryBase * pct / 100).toLocaleString()})`;
+          return 'N/A';
+        };
 
         // Summarize placement fees by status
         const feesByStatus: Record<string, { count: number; total: number }> = {};
@@ -919,8 +991,6 @@ ${careerBrainContext}`;
           feesByStatus[s].count++;
           feesByStatus[s].total += (f.fee_amount || 0);
         });
-
-        // Summarize CRM by stage
         const crmByStage: Record<string, { count: number; dealValue: number }> = {};
         crmProspects.forEach((p: any) => {
           const s = p.stage || 'unknown';
@@ -928,12 +998,17 @@ ${careerBrainContext}`;
           crmByStage[s].count++;
           crmByStage[s].dealValue += (p.deal_value || 0);
         });
-
-        // Summarize invoices
         const invoicesByState: Record<string, number> = {};
         moneybirdInvoices.forEach((inv: any) => {
           const s = inv.state_normalized || 'unknown';
           invoicesByState[s] = (invoicesByState[s] || 0) + 1;
+        });
+        const scorecardsByRec: Record<string, number> = {};
+        let totalRating = 0; let ratedCount = 0;
+        candidateScorecards.forEach((sc: any) => {
+          const rec = sc.recommendation || 'unknown';
+          scorecardsByRec[rec] = (scorecardsByRec[rec] || 0) + 1;
+          if (sc.overall_rating) { totalRating += sc.overall_rating; ratedCount++; }
         });
 
         userContext += `
@@ -971,12 +1046,83 @@ All Applications: ${allApps.length} (Active: ${allApps.filter((a: any) => a.stat
 KPI Metrics: ${kpiMetrics.slice(0, 10).map((k: any) => `${k.kpi_name}: ${k.value}`).join(', ')}
 === END ADMIN KPIs ===
 
-=== ADMIN: ALL JOBS ===
-${allJobs.slice(0, 20).map((j: any) => {
+=== ADMIN: ALL JOBS (Full Pipeline Intelligence) ===
+${allJobs.slice(0, 30).map((j: any) => {
   const co = Array.isArray(j.companies) ? j.companies[0] : j.companies;
-  return `- ${j.title} @ ${co?.name || 'N/A'} (${j.status === 'published' ? 'Active' : j.status}) - ${j.location || 'Remote'}`;
+  const jobApps = appsByJob[j.id] || [];
+  const jobOffers = offersByJob[j.id] || [];
+  const jobShortlists = shortlistsByJob[j.id] || [];
+  const stageBreakdown: Record<string, number> = {};
+  jobApps.forEach((a: any) => {
+    const stageName = a.stages?.[a.current_stage_index]?.name || 'Unknown';
+    stageBreakdown[stageName] = (stageBreakdown[stageName] || 0) + 1;
+  });
+  const stageStr = Object.entries(stageBreakdown).map(([s, c]) => `${s}: ${c}`).join(', ');
+  const salaryStr = j.salary_min || j.salary_max ? `${j.currency || 'EUR'} ${j.salary_min?.toLocaleString() || '?'}-${j.salary_max?.toLocaleString() || '?'}` : 'N/A';
+  const feeStr = calcFee(j);
+  const hireProgress = j.target_hire_count ? `${j.hired_count || 0}/${j.target_hire_count} hired` : '';
+  const dealStr = j.deal_stage ? `Deal: ${j.deal_stage} (${Math.round((j.deal_probability || 0) * 100)}%)` : '';
+  return `- ${j.title} @ ${co?.name || 'N/A'} (${j.status === 'published' ? 'Active' : j.status}) - ${j.location || 'Remote'}
+  Salary: ${salaryStr} | Fee: ${feeStr}
+  Candidates: ${jobApps.length}${stageStr ? ` (${stageStr})` : ''} | Shortlisted: ${jobShortlists.length} | Offers: ${jobOffers.length}${jobOffers.length > 0 ? ` (${jobOffers.map((o: any) => o.status).join(', ')})` : ''}
+  ${hireProgress ? `Multi-hire: ${hireProgress} | ` : ''}${dealStr ? `${dealStr} | ` : ''}Club Sync: ${j.club_sync_status || 'N/A'}${j.is_continuous ? ' | Continuous' : ''}`;
 }).join('\n')}
 === END ADMIN JOBS ===
+
+=== ADMIN: OFFERS & NEGOTIATIONS ===
+Total Offers: ${candidateOffers.length} | By Status: ${['pending', 'accepted', 'declined', 'expired', 'withdrawn'].map(s => { const c = candidateOffers.filter((o: any) => o.status === s).length; return c > 0 ? `${s}: ${c}` : ''; }).filter(Boolean).join(', ') || 'None'}
+${candidateOffers.slice(0, 15).map((o: any) => `- ${o.offer_type || 'standard'} | ${o.status} | Comp: €${o.total_compensation?.toLocaleString() || o.base_salary?.toLocaleString() || 'N/A'} | Sent: ${o.sent_at ? new Date(o.sent_at).toLocaleDateString() : 'N/A'}${o.responded_at ? ` | Responded: ${new Date(o.responded_at).toLocaleDateString()}` : ''}`).join('\n')}
+=== END ADMIN OFFERS ===
+
+=== ADMIN: INTERVIEW FEEDBACK & SCORECARDS ===
+Scorecards: ${candidateScorecards.length} | Avg Rating: ${ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : 'N/A'}/5
+Recommendations: ${Object.entries(scorecardsByRec).map(([rec, count]) => `${rec}: ${count}`).join(', ') || 'None'}
+Feedback Entries: ${interviewFeedback.length}
+${interviewFeedback.slice(0, 10).map((f: any) => `- Rating: ${f.overall_rating || 'N/A'}/5 | Rec: ${f.recommendation || 'N/A'} | By: ${f.interviewer_name || 'N/A'} (${f.status || 'N/A'})`).join('\n')}
+=== END ADMIN FEEDBACK ===
+
+=== ADMIN: SHORTLISTS ===
+Total: ${candidateShortlists.length} candidates shortlisted
+${candidateShortlists.slice(0, 15).map((s: any) => `- Candidate ${s.candidate_id?.substring(0, 8)} → Job ${s.job_id?.substring(0, 8)} | Priority: ${s.priority || 'N/A'}${s.notes ? ` | ${s.notes.substring(0, 80)}` : ''}`).join('\n')}
+=== END ADMIN SHORTLISTS ===
+
+=== ADMIN: CANDIDATE INTERACTIONS (Recent) ===
+${candidateInteractions.slice(0, 20).map((i: any) => `- [${i.interaction_type}] ${i.title || 'Untitled'} | Sentiment: ${i.ai_sentiment || 'N/A'} | ${new Date(i.created_at).toLocaleDateString()}${i.summary ? ` | ${i.summary.substring(0, 100)}` : ''}`).join('\n') || 'No recent interactions'}
+=== END ADMIN INTERACTIONS ===
+
+=== ADMIN: CANDIDATE NOTES ===
+${candidateNotes.slice(0, 15).map((n: any) => `- [${n.note_type || 'general'}] ${n.title || 'Untitled'}${n.pinned ? ' 📌' : ''} | ${new Date(n.created_at).toLocaleDateString()} | ${n.content?.substring(0, 120) || 'No content'}`).join('\n') || 'No notes'}
+=== END ADMIN NOTES ===
+
+=== ADMIN: DOSSIERS ===
+Shared: ${dossierShares.length} | Active: ${dossierShares.filter((d: any) => !d.is_revoked).length} | Expiring <48h: ${dossierShares.filter((d: any) => { if (!d.expires_at || d.is_revoked) return false; const h = (new Date(d.expires_at).getTime() - Date.now()) / (1000*60*60); return h > 0 && h < 48; }).length}
+${dossierShares.slice(0, 10).map((d: any) => `- Candidate ${d.candidate_id?.substring(0, 8)} | Views: ${d.view_count || 0} | ${d.is_revoked ? 'REVOKED' : 'Active'}${d.expires_at ? ` | Expires: ${new Date(d.expires_at).toLocaleDateString()}` : ''}`).join('\n')}
+Meeting Dossiers: ${meetingDossiers.length}
+${meetingDossiers.slice(0, 5).map((d: any) => `- ${d.title || 'Untitled'} | Views: ${d.view_count || 0} | ${d.is_revoked ? 'Revoked' : 'Active'}`).join('\n')}
+=== END ADMIN DOSSIERS ===
+
+=== ADMIN: STRATEGIST ASSIGNMENTS ===
+Active: ${strategistAssignments.filter((a: any) => a.is_active).length} / ${strategistAssignments.length} total
+${strategistAssignments.filter((a: any) => a.is_active).map((a: any) => `- Strategist ${a.strategist_id?.substring(0, 8)} → Partner ${a.partner_id?.substring(0, 8)} (${a.assignment_type || 'standard'})`).join('\n') || 'No active assignments'}
+=== END ADMIN ASSIGNMENTS ===
+
+=== ADMIN: TEAM CAPACITY ===
+${capacityPlanning.slice(0, 10).map((c: any) => `- User ${c.user_id?.substring(0, 8)} | Week: ${c.week_start} | ${c.scheduled_hours || 0}h / ${c.available_hours || 0}h | Load: ${c.capacity_load_percent || 0}%`).join('\n') || 'No capacity data'}
+=== END ADMIN CAPACITY ===
+
+=== ADMIN: SLA COMPLIANCE ===
+${slaTracking.slice(0, 10).map((s: any) => `- ${s.sla_type || 'N/A'}: ${s.status || 'N/A'} | Target: ${s.target_hours || 'N/A'}h | Actual: ${s.actual_hours || 'N/A'}h${s.is_breached ? ' ⚠️ BREACHED' : ''}`).join('\n') || 'No SLA data'}
+=== END ADMIN SLA ===
+
+=== ADMIN: CLIENT SATISFACTION (NPS) ===
+${npsSurveys.length > 0 ? `Surveys: ${npsSurveys.length} | Avg Score: ${(npsSurveys.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / npsSurveys.length).toFixed(1)}/10` : 'No NPS data'}
+${npsSurveys.slice(0, 5).map((s: any) => `- Score: ${s.score}/10 | ${s.feedback?.substring(0, 80) || 'No feedback'} (${new Date(s.created_at).toLocaleDateString()})`).join('\n')}
+=== END ADMIN NPS ===
+
+=== ADMIN: CHURN RISK ===
+Recent Churns: ${churnAnalysis.length}
+${churnAnalysis.slice(0, 10).map((c: any) => `- User ${c.user_id?.substring(0, 8)} | ${c.churned_at ? new Date(c.churned_at).toLocaleDateString() : 'N/A'} | Tier: ${c.plan_tier || 'N/A'} | Reason: ${c.churn_reason || 'N/A'} | Revenue: €${c.total_revenue_euros?.toLocaleString() || 0} | Reactivation: ${c.reactivation_likelihood || 'N/A'}`).join('\n') || 'No churn data'}
+=== END ADMIN CHURN ===
 `;
       } else if (isPartner && companyId) {
         // PARTNER: Company-scoped data
@@ -986,12 +1132,18 @@ ${allJobs.slice(0, 20).map((j: any) => {
           companyInvoicesRes,
           companyMembersRes,
           companyKpisRes,
+          companyOffersRes,
+          companyShortlistsRes,
+          companyFeedbackRes,
         ] = await Promise.all([
-          supabase.from('jobs').select('id, title, status, location, employment_type, created_at').eq('company_id', companyId).order('created_at', { ascending: false }).limit(30),
+          supabase.from('jobs').select('id, title, status, location, employment_type, created_at, salary_min, salary_max, currency, job_fee_type, job_fee_percentage, job_fee_fixed, target_hire_count, hired_count, deal_stage, deal_probability, club_sync_status').eq('company_id', companyId).order('created_at', { ascending: false }).limit(30),
           supabase.from('placement_fees').select('*').eq('partner_company_id', companyId).order('created_at', { ascending: false }).limit(20),
           supabase.from('partner_invoices').select('*').eq('partner_company_id', companyId).order('created_at', { ascending: false }).limit(30),
           supabase.from('company_members').select('id, role, is_active, user_id, job_title, profiles!inner(full_name, email)').eq('company_id', companyId).eq('is_active', true),
           supabase.from('kpi_metrics').select('*').eq('company_id', companyId).order('created_at', { ascending: false }).limit(20),
+          supabase.from('candidate_offers').select('id, candidate_id, job_id, status, total_compensation, base_salary, sent_at, responded_at').order('sent_at', { ascending: false }).limit(30),
+          supabase.from('candidate_shortlists').select('id, candidate_id, job_id, priority, notes').eq('company_id', companyId).order('created_at', { ascending: false }).limit(30),
+          supabase.from('interview_feedback').select('id, application_id, overall_rating, recommendation, status, submitted_at, interviewer_name').order('submitted_at', { ascending: false }).limit(30),
         ]);
 
         const companyJobs = companyJobsRes.data || [];
@@ -999,6 +1151,9 @@ ${allJobs.slice(0, 20).map((j: any) => {
         const companyInvoices = companyInvoicesRes.data || [];
         const companyTeam = companyMembersRes.data || [];
         const companyKpis = companyKpisRes.data || [];
+        const companyOffers = companyOffersRes.data || [];
+        const companyShortlists = companyShortlistsRes.data || [];
+        const companyFeedback = companyFeedbackRes.data || [];
 
         // Fetch applications for company jobs
         const companyJobIds = companyJobs.map((j: any) => j.id);
@@ -1006,20 +1161,57 @@ ${allJobs.slice(0, 20).map((j: any) => {
         if (companyJobIds.length > 0) {
           const { data } = await supabase
             .from('applications')
-            .select('id, position, company_name, status, current_stage_index, stages, created_at, user_id, profiles!inner(full_name)')
+            .select('id, position, company_name, status, current_stage_index, stages, created_at, user_id, job_id, profiles!inner(full_name)')
             .in('job_id', companyJobIds)
             .order('created_at', { ascending: false })
             .limit(50);
           companyApps = data || [];
         }
 
+        // Build per-job maps for partner
+        const partnerAppsByJob: Record<string, any[]> = {};
+        companyApps.forEach((a: any) => {
+          if (a.job_id) {
+            if (!partnerAppsByJob[a.job_id]) partnerAppsByJob[a.job_id] = [];
+            partnerAppsByJob[a.job_id].push(a);
+          }
+        });
+        const partnerOffersByJob: Record<string, any[]> = {};
+        companyOffers.forEach((o: any) => {
+          if (o.job_id && companyJobIds.includes(o.job_id)) {
+            if (!partnerOffersByJob[o.job_id]) partnerOffersByJob[o.job_id] = [];
+            partnerOffersByJob[o.job_id].push(o);
+          }
+        });
+        const partnerCalcFee = (j: any): string => {
+          if (j.job_fee_type === 'fixed' && j.job_fee_fixed) return `€${j.job_fee_fixed.toLocaleString()} (fixed)`;
+          const salaryBase = j.salary_max || j.salary_min || 0;
+          const pct = j.job_fee_percentage || 20;
+          if (salaryBase > 0) return `${pct}% (~€${Math.round(salaryBase * pct / 100).toLocaleString()})`;
+          return 'N/A';
+        };
+
         userContext += `
 
-=== PARTNER: COMPANY PIPELINE ===
+=== PARTNER: COMPANY PIPELINE (Full Intelligence) ===
 Active Jobs (${companyJobs.filter((j: any) => j.status === 'published').length} active / ${companyJobs.length} total):
 ${companyJobs.map((j: any) => {
-  const appCount = companyApps.filter((a: any) => a.position === j.title || a.job_id === j.id).length;
-  return `- ${j.title} (${j.status === 'published' ? 'Active' : j.status}) - ${j.location || 'Remote'} - ${appCount} applicants`;
+  const jobApps = partnerAppsByJob[j.id] || [];
+  const jobOffers = partnerOffersByJob[j.id] || [];
+  const jobShortlists = companyShortlists.filter((s: any) => s.job_id === j.id);
+  const stageBreakdown: Record<string, number> = {};
+  jobApps.forEach((a: any) => {
+    const stageName = a.stages?.[a.current_stage_index]?.name || 'Unknown';
+    stageBreakdown[stageName] = (stageBreakdown[stageName] || 0) + 1;
+  });
+  const stageStr = Object.entries(stageBreakdown).map(([s, c]) => `${s}: ${c}`).join(', ');
+  const salaryStr = j.salary_min || j.salary_max ? `${j.currency || 'EUR'} ${j.salary_min?.toLocaleString() || '?'}-${j.salary_max?.toLocaleString() || '?'}` : 'N/A';
+  const feeStr = partnerCalcFee(j);
+  const hireProgress = j.target_hire_count ? `${j.hired_count || 0}/${j.target_hire_count} hired` : '';
+  return `- ${j.title} (${j.status === 'published' ? 'Active' : j.status}) - ${j.location || 'Remote'}
+  Salary: ${salaryStr} | Fee: ${feeStr}
+  Candidates: ${jobApps.length}${stageStr ? ` (${stageStr})` : ''} | Shortlisted: ${jobShortlists.length} | Offers: ${jobOffers.length}${jobOffers.length > 0 ? ` (${jobOffers.map((o: any) => o.status).join(', ')})` : ''}
+  ${hireProgress ? `Multi-hire: ${hireProgress} | ` : ''}Club Sync: ${j.club_sync_status || 'N/A'}`;
 }).join('\n')}
 
 Applications to Your Company (${companyApps.length}):
@@ -1037,6 +1229,14 @@ ${companyFees.slice(0, 10).map((f: any) => `- ${f.candidate_name || 'N/A'}: €$
 Invoices (${companyInvoices.length}):
 ${companyInvoices.slice(0, 10).map((inv: any) => `- ${inv.invoice_number || 'N/A'}: €${inv.total_amount || 0} (${inv.status || 'N/A'})`).join('\n')}
 === END PARTNER FINANCIALS ===
+
+=== PARTNER: OFFERS ===
+${companyOffers.filter((o: any) => companyJobIds.includes(o.job_id)).slice(0, 10).map((o: any) => `- ${o.status} | Comp: €${o.total_compensation?.toLocaleString() || o.base_salary?.toLocaleString() || 'N/A'} | Sent: ${o.sent_at ? new Date(o.sent_at).toLocaleDateString() : 'N/A'}`).join('\n') || 'No offers'}
+=== END PARTNER OFFERS ===
+
+=== PARTNER: INTERVIEW FEEDBACK ===
+${companyFeedback.slice(0, 10).map((f: any) => `- Rating: ${f.overall_rating || 'N/A'}/5 | Rec: ${f.recommendation || 'N/A'} | By: ${f.interviewer_name || 'N/A'}`).join('\n') || 'No feedback'}
+=== END PARTNER FEEDBACK ===
 
 === PARTNER: TEAM ===
 Team Members (${companyTeam.length}):
@@ -1293,8 +1493,8 @@ You must always feel attentive, proactive, privacy-aware, and trustworthy—neve
 ⚠️ REMEMBER: If the user's data appears in the context sections below, YOU HAVE ACCESS. Use it directly and confidently.
 
 🔐 ROLE-BASED DATA ACCESS:
-${isAdminUser ? `You are speaking with an ADMIN/STRATEGIST. You have FULL platform financial data, CRM pipeline, talent pool, system health, and all user data. When asked about revenue, deals, pipeline, candidates, placements, invoices, or system status, reference the ADMIN sections in the context. Be strategic, analytical, and concise.` : ''}
-${isPartnerUser && !isAdminUser ? `You are speaking with a PARTNER. You have company-scoped data only. When asked about pipeline, candidates, invoices, or team, reference the PARTNER sections. You CANNOT see other companies' data or the full talent pool. Be professional, data-driven, and executive-focused.` : ''}
+${isAdminUser ? `You are speaking with an ADMIN/STRATEGIST. You have FULL platform data access including: financial data (placement fees, invoices, revenue), CRM pipeline, talent pool, ALL jobs with per-job candidate counts/salary/fees/pipeline depth, offers & negotiations, interview feedback & scorecards, shortlists, candidate interactions & notes, dossier shares, strategist assignments, team capacity, SLA compliance, NPS surveys, and churn analysis. When asked about high-value roles, pipeline gaps, under-sourced jobs, or any cross-referencing question, use the ADMIN sections which contain per-job intelligence with candidate counts, stage breakdowns, and estimated fees. Be strategic, analytical, and concise.` : ''}
+${isPartnerUser && !isAdminUser ? `You are speaking with a PARTNER. You have company-scoped data including: jobs with per-job candidate counts/salary/fees/pipeline depth, offers, shortlists, interview feedback, invoices, team, and KPIs. When asked about pipeline, candidates, or job performance, use the PARTNER sections which contain full per-job intelligence. You CANNOT see other companies' data. Be professional, data-driven, and executive-focused.` : ''}
 ${!isAdminUser && !isPartnerUser ? `You are speaking with a CANDIDATE. You have their personal career data: profile, applications, tasks, interviews, salary benchmarks. Be supportive, encouraging, and actionable. Help with job search, interview prep, and career growth.` : ''}
 
 ${conversationHistory}
