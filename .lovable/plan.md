@@ -1,115 +1,32 @@
 
 
-# Fix: Google/Apple OAuth Redirecting to Lovable Domain Instead of os.thequantumclub.com
+# Fix: "Google OAuth is not configured: Popup was blocked" Error
 
 ## Root Cause
 
-All OAuth sign-in calls use `supabase.auth.signInWithOAuth()` directly. This sends the OAuth flow through the Supabase backend, which uses its own configured Site URL (the `*.lovable.app` domain) for the callback -- **ignoring** the `redirectTo` parameter for the actual OAuth provider redirect.
+The `OAuthDiagnostics` component calls `lovable.auth.signInWithOAuth("google", ...)` inside a `useEffect` on page load. This triggers an actual OAuth popup (or redirect) without any user gesture. Browsers block popups not initiated by user clicks, so the call fails with "Popup was blocked", and the component displays a false error: "Google OAuth is not configured."
 
-The Lovable Cloud managed auth package (`@lovable.dev/cloud-auth-js`) was supposed to handle this by using `window.location.origin` as the `redirect_uri`, ensuring users on `os.thequantumclub.com` return to that domain. However, the managed auth module (`src/integrations/lovable/`) **does not exist** in the project. It was either never generated or was deleted at some point.
+Google OAuth IS configured. The diagnostic is simply testing it incorrectly.
 
 ## The Fix
 
-### Step 1: Generate the Lovable Cloud managed auth module
+Remove the `OAuthDiagnostics` component entirely. It provides no value -- it cannot reliably test OAuth without a user click, and its false-positive error message actively confuses users.
 
-Use the `configure-social-auth` tool to regenerate the `src/integrations/lovable/` module and install `@lovable.dev/cloud-auth-js`. This creates the `lovable.auth.signInWithOAuth()` function that routes OAuth through the managed service with correct redirect URIs.
+Also remove the similar auto-test from `AuthDiagnostics.tsx` if it does the same thing.
 
-### Step 2: Update all OAuth call sites (5 files)
-
-Replace every `supabase.auth.signInWithOAuth()` with `lovable.auth.signInWithOAuth()` for Google and Apple. LinkedIn stays on direct Supabase calls (not supported by managed service).
-
-| File | Function | Provider | Change |
-|---|---|---|---|
-| `src/pages/Auth.tsx` | `handleGoogleAuth` (line 384) | Google | Switch to `lovable.auth.signInWithOAuth("google", { redirect_uri: redirectUrl })` |
-| `src/pages/Auth.tsx` | `handleAppleAuth` (line 412) | Apple | Switch to `lovable.auth.signInWithOAuth("apple", { redirect_uri: redirectUrl })` |
-| `src/pages/Auth.tsx` | `handleLinkedInAuth` (line 436) | LinkedIn | Keep as-is (not supported by managed service) |
-| `src/pages/InviteAcceptance.tsx` | `handleSignUp` (line 66) | Google/Apple | Switch Google and Apple to managed auth; keep LinkedIn on direct call |
-| `src/pages/Settings.tsx` | `handleConnectSocial` (line 424) | Various | Switch Google/Apple to managed auth; keep others on direct call |
-| `src/components/AuthDiagnostics.tsx` | diagnostic test (line 64) | Google | Switch to managed auth for accurate diagnostics |
-| `src/components/OAuthDiagnostics.tsx` | diagnostic test (line 17) | Google | Switch to managed auth for accurate diagnostics |
-
-### Step 3: Verify redirect allow list
-
-Confirm the Lovable Cloud redirect allow list includes `https://os.thequantumclub.com/**` so the managed service accepts redirects to the custom domain.
-
-## Detailed Changes Per File
-
-### `src/pages/Auth.tsx`
-
-**handleGoogleAuth** (line 373-398):
-```typescript
-// Before:
-const { error } = await supabase.auth.signInWithOAuth({
-  provider: 'google',
-  options: {
-    redirectTo: redirectUrl,
-    queryParams: { access_type: 'offline', prompt: 'consent' }
-  }
-});
-
-// After:
-import { lovable } from "@/integrations/lovable/index";
-const { error } = await lovable.auth.signInWithOAuth("google", {
-  redirect_uri: redirectUrl,
-  extraParams: { access_type: 'offline', prompt: 'consent' }
-});
-```
-
-**handleAppleAuth** (line 401-422):
-```typescript
-// Before:
-const { error } = await supabase.auth.signInWithOAuth({
-  provider: 'apple',
-  options: { redirectTo: redirectUrl }
-});
-
-// After:
-const { error } = await lovable.auth.signInWithOAuth("apple", {
-  redirect_uri: redirectUrl,
-});
-```
-
-**handleLinkedInAuth** -- no change (LinkedIn not supported by managed auth).
-
-### `src/pages/InviteAcceptance.tsx`
-
-Split the `handleSignUp` function to route Google/Apple through managed auth and keep LinkedIn on direct Supabase:
-
-```typescript
-if (provider === 'google' || provider === 'apple') {
-  const { error } = await lovable.auth.signInWithOAuth(provider, {
-    redirect_uri: `${window.location.origin}/invite/${token}/complete`,
-  });
-} else {
-  const { error } = await supabase.auth.signInWithOAuth({ ... });
-}
-```
-
-### `src/pages/Settings.tsx`
-
-Same pattern -- route Google/Apple through managed auth, keep others on direct Supabase.
-
-### `src/components/AuthDiagnostics.tsx` and `src/components/OAuthDiagnostics.tsx`
-
-Update diagnostic checks to test via managed auth so they accurately reflect the production flow.
-
-## Files Modified
+### Changes
 
 | File | Change |
 |---|---|
-| `src/integrations/lovable/` (generated) | Managed auth module -- auto-generated by tool |
-| `src/pages/Auth.tsx` | Google + Apple OAuth switched to managed auth |
-| `src/pages/InviteAcceptance.tsx` | Google + Apple OAuth switched to managed auth |
-| `src/pages/Settings.tsx` | Google + Apple social connect switched to managed auth |
-| `src/components/AuthDiagnostics.tsx` | Diagnostic test switched to managed auth |
-| `src/components/OAuthDiagnostics.tsx` | Diagnostic test switched to managed auth |
+| `src/components/OAuthDiagnostics.tsx` | Delete the file (or gut it to a no-op) |
+| `src/components/AuthDiagnostics.tsx` | Remove the auto-fire OAuth test if present |
+| Any file importing `OAuthDiagnostics` | Remove the import and usage |
 
-## Execution Order
+### Why not fix the diagnostic instead of removing it?
 
-1. Run `configure-social-auth` tool to generate the managed auth module
-2. Update `Auth.tsx` (Google + Apple handlers)
-3. Update `InviteAcceptance.tsx` (conditional routing by provider)
-4. Update `Settings.tsx` (conditional routing by provider)
-5. Update both diagnostic components
-6. Test end-to-end: sign in via Google on `os.thequantumclub.com` and verify redirect stays on custom domain
+There is no browser-safe way to passively test whether OAuth is configured without triggering an actual sign-in flow. The only reliable test is a real user click. A diagnostic that cannot run without user interaction is not a useful automatic diagnostic.
+
+## Build Error (TS2307)
+
+The `@lovable.dev/cloud-auth-js` package needs to be reinstalled. This will be done as part of the implementation step. The package and `src/integrations/lovable/index.ts` are correct -- it is purely a dependency resolution issue.
 
