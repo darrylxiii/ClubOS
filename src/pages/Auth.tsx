@@ -405,9 +405,12 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Use managed auth for correct custom domain redirect
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: redirectUrl,
+      // Full-page redirect — no popup to block
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: redirectUrl,
+        }
       });
 
       if (error) throw error;

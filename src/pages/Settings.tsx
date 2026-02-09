@@ -422,10 +422,13 @@ const Settings = () => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
 
-      // Route Google/Apple through managed auth for correct custom domain redirect
+      // Full-page redirect — no popup to block
       if (provider === 'google' || provider === 'apple') {
-        const { error } = await lovable.auth.signInWithOAuth(provider, {
-          redirect_uri: redirectTo,
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo,
+          }
         });
         if (error) throw error;
         toast.success(`Redirecting to ${provider} login...`);
