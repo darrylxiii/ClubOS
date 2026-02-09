@@ -605,6 +605,7 @@ ${successPatternsContext}
 6. Use REAL DATA from above - reference specific interview dates, task names, companies
 `;
 
+
       // Build context string
       userContext = `
 
@@ -1124,6 +1125,261 @@ Recent Churns: ${churnAnalysis.length}
 ${churnAnalysis.slice(0, 10).map((c: any) => `- User ${c.user_id?.substring(0, 8)} | ${c.churned_at ? new Date(c.churned_at).toLocaleDateString() : 'N/A'} | Tier: ${c.plan_tier || 'N/A'} | Reason: ${c.churn_reason || 'N/A'} | Revenue: €${c.total_revenue_euros?.toLocaleString() || 0} | Reactivation: ${c.reactivation_likelihood || 'N/A'}`).join('\n') || 'No churn data'}
 === END ADMIN CHURN ===
 `;
+
+        // === BLOCK A: Revenue, Commissions, Employee Performance, Pipeline Conversion ===
+        const [
+          revenueMetricsRes,
+          cashFlowRes,
+          employeeCommissionsRes,
+          employeeProfilesRes,
+          employeeTargetsRes,
+          commissionTiersRes,
+          pipelineConversionRes,
+          pipelineEventsRes,
+          continuousHiresRes,
+          candidateIntPerfRes,
+          candidateActivityRes,
+          candidateProfileViewsRes,
+        ] = await Promise.all([
+          supabase.from('revenue_metrics').select('*').order('created_at', { ascending: false }).limit(10),
+          supabase.from('cash_flow_pipeline').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('employee_commissions').select('id, employee_id, gross_amount, net_amount, commission_rate, status, candidate_name, company_name, job_title, period_date, commission_type').order('created_at', { ascending: false }).limit(30),
+          supabase.from('employee_profiles').select('id, user_id, job_title, department, employment_type, is_active, hire_date, profiles!inner(full_name)').eq('is_active', true),
+          supabase.from('employee_targets').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('commission_tiers').select('*').order('min_revenue', { ascending: true }),
+          supabase.from('pipeline_conversion_metrics').select('*').order('calculated_at', { ascending: false }).limit(20),
+          supabase.from('pipeline_events').select('id, event_type, stage_from, stage_to, reason, created_at, job_id').order('created_at', { ascending: false }).limit(50),
+          supabase.from('continuous_pipeline_hires').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('candidate_interview_performance').select('*').order('created_at', { ascending: false }).limit(30),
+          supabase.from('candidate_activity_metrics').select('*').order('last_activity_at', { ascending: false }).limit(30),
+          supabase.from('candidate_profile_views').select('candidate_id, viewer_type, created_at').order('created_at', { ascending: false }).limit(30),
+        ]);
+
+        // === BLOCK B: CRM, Outreach, Partner Intelligence, Club Sync, Referrals ===
+        const [
+          crmActivitiesRes,
+          crmCampaignsRes,
+          crmCampaignRoiRes,
+          crmLeadPredictionsRes,
+          aiOutreachLogsRes,
+          activationEventsRes,
+          companyAnalyticsRes,
+          companyCandidateFeedbackRes,
+          companyIntelScoresRes,
+          clubSyncRequestsRes,
+          referralTiersRes,
+          referralRevenueSharesRes,
+        ] = await Promise.all([
+          supabase.from('crm_activities').select('id, activity_type, subject, notes, created_at, contact_id').order('created_at', { ascending: false }).limit(30),
+          supabase.from('crm_campaigns').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('crm_campaign_roi').select('*').order('calculated_at', { ascending: false }).limit(10),
+          supabase.from('crm_lead_predictions').select('*').order('confidence_score', { ascending: false }).limit(20),
+          supabase.from('ai_outreach_logs').select('id, outreach_type, status, candidate_name, channel, created_at, response_received').order('created_at', { ascending: false }).limit(20),
+          supabase.from('activation_events').select('id, event_type, event_category, milestone_name, company_id, user_id, created_at').order('created_at', { ascending: false }).limit(20),
+          supabase.from('company_analytics').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('company_candidate_feedback').select('*').order('created_at', { ascending: false }).limit(20),
+          supabase.from('company_intelligence_scores').select('*').order('updated_at', { ascending: false }).limit(20),
+          supabase.from('club_sync_requests').select('*').order('created_at', { ascending: false }).limit(30),
+          supabase.from('referral_tiers').select('*').order('min_referrals', { ascending: true }),
+          supabase.from('referral_revenue_shares').select('*').order('created_at', { ascending: false }).limit(20),
+        ]);
+
+        // === BLOCK C: Assessments, Platform Health, Community, Booking ===
+        const [
+          assessmentResultsRes,
+          assessmentAnalyticsRes,
+          skillsDemandRes,
+          errorLogsRes,
+          featureFlagsRes,
+          approvalWorkflowsRes,
+          userFeedbackRes,
+          csatSurveysRes,
+          bookingAnalyticsRes,
+          dataExportRequestsRes,
+          securityIncidentsRes,
+        ] = await Promise.all([
+          supabase.from('assessment_results').select('id, user_id, assessment_id, score, status, completed_at, time_taken_seconds').order('completed_at', { ascending: false }).limit(30),
+          supabase.from('assessment_analytics').select('*').order('created_at', { ascending: false }).limit(10),
+          supabase.from('skills_demand_metrics').select('*').order('demand_score', { ascending: false }).limit(20),
+          supabase.from('error_logs').select('id, error_type, error_message, severity, user_id, created_at').order('created_at', { ascending: false }).limit(20),
+          supabase.from('feature_flags').select('*').eq('is_active', true),
+          supabase.from('approval_workflows').select('*').eq('status', 'pending').order('created_at', { ascending: false }).limit(10),
+          supabase.from('user_feedback').select('*').order('created_at', { ascending: false }).limit(15),
+          supabase.from('csat_surveys').select('*').order('created_at', { ascending: false }).limit(15),
+          supabase.from('booking_analytics').select('*').order('created_at', { ascending: false }).limit(10),
+          supabase.from('data_export_requests').select('*').order('created_at', { ascending: false }).limit(10),
+          supabase.from('security_incidents').select('*').order('created_at', { ascending: false }).limit(10),
+        ]);
+
+        // Extract data
+        const revenueMetrics = revenueMetricsRes.data || [];
+        const cashFlow = cashFlowRes.data || [];
+        const employeeCommissions = employeeCommissionsRes.data || [];
+        const employeeProfiles = employeeProfilesRes.data || [];
+        const employeeTargets = employeeTargetsRes.data || [];
+        const commissionTiers = commissionTiersRes.data || [];
+        const pipelineConversion = pipelineConversionRes.data || [];
+        const pipelineEvents = pipelineEventsRes.data || [];
+        const continuousHires = continuousHiresRes.data || [];
+        const candidateIntPerf = candidateIntPerfRes.data || [];
+        const candidateActivity = candidateActivityRes.data || [];
+        const candidateProfileViews = candidateProfileViewsRes.data || [];
+        const crmActivities = crmActivitiesRes.data || [];
+        const crmCampaigns = crmCampaignsRes.data || [];
+        const crmCampaignRoi = crmCampaignRoiRes.data || [];
+        const crmLeadPredictions = crmLeadPredictionsRes.data || [];
+        const aiOutreachLogs = aiOutreachLogsRes.data || [];
+        const activationEvents = activationEventsRes.data || [];
+        const companyAnalytics = companyAnalyticsRes.data || [];
+        const companyCandidateFeedback = companyCandidateFeedbackRes.data || [];
+        const companyIntelScores = companyIntelScoresRes.data || [];
+        const clubSyncRequests = clubSyncRequestsRes.data || [];
+        const referralTiers = referralTiersRes.data || [];
+        const referralRevenueShares = referralRevenueSharesRes.data || [];
+        const assessmentResults = assessmentResultsRes.data || [];
+        const assessmentAnalytics = assessmentAnalyticsRes.data || [];
+        const skillsDemand = skillsDemandRes.data || [];
+        const errorLogs = errorLogsRes.data || [];
+        const featureFlags = featureFlagsRes.data || [];
+        const approvalWorkflows = approvalWorkflowsRes.data || [];
+        const userFeedback = userFeedbackRes.data || [];
+        const csatSurveys = csatSurveysRes.data || [];
+        const bookingAnalytics = bookingAnalyticsRes.data || [];
+        const dataExportRequests = dataExportRequestsRes.data || [];
+        const securityIncidents = securityIncidentsRes.data || [];
+
+        // Commission aggregation
+        const commByStatus: Record<string, { count: number; total: number }> = {};
+        employeeCommissions.forEach((c: any) => {
+          const s = c.status || 'unknown';
+          if (!commByStatus[s]) commByStatus[s] = { count: 0, total: 0 };
+          commByStatus[s].count++;
+          commByStatus[s].total += (c.gross_amount || 0);
+        });
+
+        // === FORMAT NEW CONTEXT SECTIONS ===
+        userContext += `
+
+=== ADMIN: REVENUE INTELLIGENCE ===
+Revenue Metrics (${revenueMetrics.length}):
+${revenueMetrics.slice(0, 5).map((r: any) => `- ${r.metric_name || r.metric_type || 'N/A'}: ${r.value ?? r.amount ?? 'N/A'} (${r.period || new Date(r.created_at).toLocaleDateString()})`).join('\n') || 'No revenue metrics'}
+
+Cash Flow Pipeline (${cashFlow.length}):
+${cashFlow.slice(0, 10).map((c: any) => `- ${c.description || c.source || 'N/A'}: €${c.amount?.toLocaleString() || 0} | Status: ${c.status || 'N/A'} | Expected: ${c.expected_date ? new Date(c.expected_date).toLocaleDateString() : 'N/A'}`).join('\n') || 'No cash flow data'}
+=== END ADMIN REVENUE ===
+
+=== ADMIN: STRATEGIST PERFORMANCE ===
+Active Strategists (${employeeProfiles.length}):
+${employeeProfiles.map((e: any) => { const p = Array.isArray(e.profiles) ? e.profiles[0] : e.profiles; return `- ${p?.full_name || 'N/A'} | ${e.job_title || 'N/A'} | ${e.department || 'N/A'} | Since: ${e.hire_date ? new Date(e.hire_date).toLocaleDateString() : 'N/A'}`; }).join('\n') || 'No employee data'}
+
+Employee Targets (${employeeTargets.length}):
+${employeeTargets.slice(0, 10).map((t: any) => `- ${t.target_type || 'N/A'}: ${t.current_value ?? 0}/${t.target_value ?? 0} (${Math.round(((t.current_value || 0) / (t.target_value || 1)) * 100)}%)`).join('\n') || 'No targets'}
+
+Commissions (${employeeCommissions.length}):
+${Object.entries(commByStatus).map(([status, data]) => `  ${status}: ${data.count} entries, total €${data.total.toLocaleString()}`).join('\n')}
+${employeeCommissions.slice(0, 10).map((c: any) => `- ${c.candidate_name || 'N/A'} @ ${c.company_name || 'N/A'} | €${c.gross_amount?.toLocaleString() || 0} (${c.status}) | Rate: ${c.commission_rate || 0}%`).join('\n')}
+
+Commission Tiers: ${commissionTiers.map((t: any) => `${t.tier_name || 'Tier'}: ${t.commission_percentage || 0}% (min €${t.min_revenue?.toLocaleString() || 0})`).join(' | ') || 'No tiers configured'}
+=== END ADMIN STRATEGIST PERFORMANCE ===
+
+=== ADMIN: PIPELINE CONVERSION ===
+Conversion Metrics (${pipelineConversion.length}):
+${pipelineConversion.slice(0, 10).map((m: any) => `- ${m.from_stage || 'N/A'} → ${m.to_stage || 'N/A'}: ${Math.round((m.conversion_rate || 0) * 100)}% (n=${m.sample_size || 'N/A'})`).join('\n') || 'No conversion data'}
+
+Recent Pipeline Events (${pipelineEvents.length}):
+${pipelineEvents.slice(0, 15).map((e: any) => `- [${e.event_type}] ${e.stage_from || 'N/A'} → ${e.stage_to || 'N/A'}${e.reason ? ` (${e.reason})` : ''} | ${new Date(e.created_at).toLocaleDateString()}`).join('\n') || 'No events'}
+
+Continuous Hires: ${continuousHires.length} recent
+Interview Performance: ${candidateIntPerf.length} records | Profile Views: ${candidateProfileViews.length} recent
+Active Candidates: ${candidateActivity.length} with recent activity
+=== END ADMIN PIPELINE CONVERSION ===
+
+=== ADMIN: CRM & OUTREACH ===
+CRM Activities (${crmActivities.length} recent):
+${crmActivities.slice(0, 10).map((a: any) => `- [${a.activity_type}] ${a.subject || 'N/A'} | ${new Date(a.created_at).toLocaleDateString()}`).join('\n') || 'No CRM activities'}
+
+Campaigns (${crmCampaigns.length}):
+${crmCampaigns.slice(0, 5).map((c: any) => `- ${c.name || 'N/A'} | Status: ${c.status || 'N/A'} | Sent: ${c.total_sent || 0} | Opens: ${c.total_opens || 0} | Clicks: ${c.total_clicks || 0}`).join('\n') || 'No campaigns'}
+
+Campaign ROI (${crmCampaignRoi.length}):
+${crmCampaignRoi.slice(0, 5).map((r: any) => `- ${r.campaign_name || 'N/A'}: ROI ${r.roi_percentage || 0}% | Revenue €${r.revenue_generated?.toLocaleString() || 0} | Cost €${r.total_cost?.toLocaleString() || 0}`).join('\n') || 'No ROI data'}
+
+Lead Predictions (${crmLeadPredictions.length}):
+${crmLeadPredictions.slice(0, 5).map((l: any) => `- ${l.lead_name || l.prospect_id?.substring(0, 8) || 'N/A'}: ${Math.round((l.confidence_score || 0) * 100)}% confidence | Predicted: ${l.predicted_outcome || 'N/A'}`).join('\n') || 'No predictions'}
+
+AI Outreach (${aiOutreachLogs.length} recent):
+${aiOutreachLogs.slice(0, 10).map((o: any) => `- ${o.outreach_type || 'N/A'} via ${o.channel || 'N/A'} → ${o.candidate_name || 'N/A'} | ${o.status || 'N/A'}${o.response_received ? ' ✓ Responded' : ''}`).join('\n') || 'No outreach'}
+=== END ADMIN CRM ===
+
+=== ADMIN: PARTNER ACQUISITION ===
+Activation Events (${activationEvents.length} recent):
+${activationEvents.slice(0, 10).map((e: any) => `- [${e.event_category}] ${e.event_type}${e.milestone_name ? ` → ${e.milestone_name}` : ''} | ${new Date(e.created_at).toLocaleDateString()}`).join('\n') || 'No activation events'}
+
+Company Analytics (${companyAnalytics.length}):
+${companyAnalytics.slice(0, 10).map((a: any) => `- ${a.company_name || a.company_id?.substring(0, 8) || 'N/A'}: ${a.metric_name || 'N/A'} = ${a.value ?? 'N/A'}`).join('\n') || 'No company analytics'}
+
+Client Feedback (${companyCandidateFeedback.length}):
+${companyCandidateFeedback.slice(0, 10).map((f: any) => `- Rating: ${f.rating || 'N/A'}/5 | ${f.feedback?.substring(0, 100) || 'No feedback'}`).join('\n') || 'No client feedback'}
+
+Intelligence Scores (${companyIntelScores.length}):
+${companyIntelScores.slice(0, 10).map((s: any) => `- ${s.company_name || s.company_id?.substring(0, 8) || 'N/A'}: Score ${s.overall_score || 'N/A'} | Growth: ${s.growth_signal || 'N/A'} | Hiring: ${s.hiring_velocity || 'N/A'}`).join('\n') || 'No intel scores'}
+=== END ADMIN PARTNER ACQUISITION ===
+
+=== ADMIN: CLUB SYNC ===
+Recent Requests (${clubSyncRequests.length}):
+${clubSyncRequests.slice(0, 15).map((r: any) => `- ${r.status || 'N/A'} | Candidate: ${r.candidate_id?.substring(0, 8) || 'N/A'} → Job: ${r.job_id?.substring(0, 8) || 'N/A'} | ${new Date(r.created_at).toLocaleDateString()}`).join('\n') || 'No Club Sync requests'}
+By Status: ${['pending', 'approved', 'submitted', 'rejected'].map(s => { const c = clubSyncRequests.filter((r: any) => r.status === s).length; return c > 0 ? `${s}: ${c}` : ''; }).filter(Boolean).join(', ') || 'None'}
+=== END ADMIN CLUB SYNC ===
+
+=== ADMIN: REFERRAL PROGRAM ===
+Tiers: ${referralTiers.map((t: any) => `${t.name || 'Tier'}: min ${t.min_referrals || 0} referrals, reward €${t.reward_amount || 0}`).join(' | ') || 'No tiers configured'}
+Revenue Shares (${referralRevenueShares.length}):
+${referralRevenueShares.slice(0, 10).map((r: any) => `- ${r.referrer_id?.substring(0, 8) || 'N/A'}: €${r.amount?.toLocaleString() || 0} (${r.status || 'N/A'}) | ${new Date(r.created_at).toLocaleDateString()}`).join('\n') || 'No revenue shares'}
+=== END ADMIN REFERRALS ===
+
+=== ADMIN: ASSESSMENTS & SKILLS ===
+Assessment Results (${assessmentResults.length} recent):
+${assessmentResults.slice(0, 10).map((r: any) => `- Score: ${r.score || 'N/A'} | Status: ${r.status || 'N/A'} | Time: ${r.time_taken_seconds ? Math.round(r.time_taken_seconds / 60) + 'min' : 'N/A'}`).join('\n') || 'No assessment results'}
+
+Assessment Analytics: ${assessmentAnalytics.slice(0, 5).map((a: any) => `${a.metric_name || 'N/A'}: ${a.value ?? 'N/A'}`).join(', ') || 'No analytics'}
+
+Skills in Demand (${skillsDemand.length}):
+${skillsDemand.slice(0, 10).map((s: any) => `- ${s.skill_name || 'N/A'}: demand ${s.demand_score || 0} | supply ${s.supply_count || 0} | gap ${s.gap_indicator || 'N/A'}`).join('\n') || 'No skills data'}
+=== END ADMIN ASSESSMENTS ===
+
+=== ADMIN: PLATFORM HEALTH ===
+Recent Errors (${errorLogs.length}):
+${errorLogs.slice(0, 10).map((e: any) => `- [${e.severity || 'N/A'}] ${e.error_type || 'N/A'}: ${e.error_message?.substring(0, 120) || 'N/A'} | ${new Date(e.created_at).toLocaleDateString()}`).join('\n') || 'No errors'}
+
+Active Feature Flags (${featureFlags.length}):
+${featureFlags.map((f: any) => `- ${f.flag_name || f.name || 'N/A'}: ${f.rollout_percentage || 100}%${f.description ? ` (${f.description.substring(0, 60)})` : ''}`).join('\n') || 'No feature flags'}
+
+Pending Approvals (${approvalWorkflows.length}):
+${approvalWorkflows.map((a: any) => `- ${a.workflow_type || 'N/A'}: ${a.title || a.entity_type || 'N/A'} | Requested: ${new Date(a.created_at).toLocaleDateString()}`).join('\n') || 'No pending approvals'}
+
+Security Incidents (${securityIncidents.length}):
+${securityIncidents.slice(0, 5).map((s: any) => `- [${s.severity || 'N/A'}] ${s.incident_type || 'N/A'}: ${s.description?.substring(0, 100) || 'N/A'} | ${new Date(s.created_at).toLocaleDateString()}`).join('\n') || 'No incidents'}
+=== END ADMIN PLATFORM HEALTH ===
+
+=== ADMIN: CLIENT SATISFACTION ===
+User Feedback (${userFeedback.length}):
+${userFeedback.slice(0, 10).map((f: any) => `- Rating: ${f.rating || 'N/A'}/5 | Type: ${f.feedback_type || 'N/A'} | ${f.message?.substring(0, 100) || 'No message'} (${new Date(f.created_at).toLocaleDateString()})`).join('\n') || 'No feedback'}
+
+CSAT Surveys (${csatSurveys.length}):
+${csatSurveys.length > 0 ? `Avg Score: ${(csatSurveys.reduce((s: number, c: any) => s + (c.score || 0), 0) / csatSurveys.length).toFixed(1)}/5` : 'No CSAT data'}
+${csatSurveys.slice(0, 5).map((s: any) => `- Score: ${s.score || 'N/A'}/5 | ${s.comment?.substring(0, 80) || 'No comment'}`).join('\n')}
+=== END ADMIN SATISFACTION ===
+
+=== ADMIN: SCHEDULING INTELLIGENCE ===
+Booking Analytics (${bookingAnalytics.length}):
+${bookingAnalytics.slice(0, 5).map((b: any) => `- ${b.metric_name || b.period || 'N/A'}: ${b.value ?? b.total_bookings ?? 'N/A'} | Completion: ${b.completion_rate || 'N/A'}%`).join('\n') || 'No booking analytics'}
+=== END ADMIN SCHEDULING ===
+
+=== ADMIN: COMPLIANCE & DATA ===
+GDPR Export Requests (${dataExportRequests.length}):
+${dataExportRequests.slice(0, 5).map((d: any) => `- User ${d.user_id?.substring(0, 8) || 'N/A'} | Status: ${d.status || 'N/A'} | Type: ${d.request_type || 'export'} | ${new Date(d.created_at).toLocaleDateString()}`).join('\n') || 'No export requests'}
+=== END ADMIN COMPLIANCE ===
+`;
       } else if (isPartner && companyId) {
         // PARTNER: Company-scoped data
         const [
@@ -1493,7 +1749,22 @@ You must always feel attentive, proactive, privacy-aware, and trustworthy—neve
 ⚠️ REMEMBER: If the user's data appears in the context sections below, YOU HAVE ACCESS. Use it directly and confidently.
 
 🔐 ROLE-BASED DATA ACCESS:
-${isAdminUser ? `You are speaking with an ADMIN/STRATEGIST. You have FULL platform data access including: financial data (placement fees, invoices, revenue), CRM pipeline, talent pool, ALL jobs with per-job candidate counts/salary/fees/pipeline depth, offers & negotiations, interview feedback & scorecards, shortlists, candidate interactions & notes, dossier shares, strategist assignments, team capacity, SLA compliance, NPS surveys, and churn analysis. When asked about high-value roles, pipeline gaps, under-sourced jobs, or any cross-referencing question, use the ADMIN sections which contain per-job intelligence with candidate counts, stage breakdowns, and estimated fees. Be strategic, analytical, and concise.` : ''}
+${isAdminUser ? `You are speaking with an ADMIN/STRATEGIST. You have FULL platform data access including:
+- FINANCIAL: placement fees, invoices, revenue metrics, cash flow pipeline, Moneybird data
+- TEAM: employee profiles, targets, commissions (by status/tier), performance metrics
+- PIPELINE: per-job candidate counts/salary/fees/stage breakdowns, conversion metrics, pipeline events
+- TALENT: offers & negotiations, shortlists, scorecards, interview feedback, candidate interactions & notes
+- CRM: activities, campaigns with ROI, lead predictions, AI outreach logs
+- PARTNER: activation events, company analytics, intelligence scores, candidate feedback
+- OPERATIONS: Club Sync requests, referral tiers & revenue shares, assessments, skills demand
+- DOSSIERS: shares, view counts, expiry tracking
+- CAPACITY: strategist assignments, team capacity planning, SLA compliance
+- SATISFACTION: NPS surveys, CSAT surveys, user feedback
+- HEALTH: error logs, feature flags, pending approvals, security incidents
+- COMPLIANCE: GDPR export requests, data management
+- SCHEDULING: booking analytics, conversion funnels
+- CHURN: churn analysis with reasons and reactivation likelihood
+When asked about any business question, cross-reference these sections. Be strategic, analytical, and concise.` : ''}
 ${isPartnerUser && !isAdminUser ? `You are speaking with a PARTNER. You have company-scoped data including: jobs with per-job candidate counts/salary/fees/pipeline depth, offers, shortlists, interview feedback, invoices, team, and KPIs. When asked about pipeline, candidates, or job performance, use the PARTNER sections which contain full per-job intelligence. You CANNOT see other companies' data. Be professional, data-driven, and executive-focused.` : ''}
 ${!isAdminUser && !isPartnerUser ? `You are speaking with a CANDIDATE. You have their personal career data: profile, applications, tasks, interviews, salary benchmarks. Be supportive, encouraging, and actionable. Help with job search, interview prep, and career growth.` : ''}
 
