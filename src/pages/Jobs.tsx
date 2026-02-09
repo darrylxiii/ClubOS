@@ -434,12 +434,12 @@ const Jobs = () => {
   if (isAdminOrPartner) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl text-foreground font-black uppercase tracking-tight mb-4">
-            Jobs
-          </h1>
+        <div className="container mx-auto px-4 pt-2 pb-8">
           <Tabs value={activeHubTab} onValueChange={setActiveHubTab} className="space-y-6">
-            <div className="sticky top-14 sm:top-16 z-30 bg-background/95 backdrop-blur-lg py-3 -mx-4 px-4 border-b border-border/20">
+            <div className="sticky top-14 sm:top-16 z-30 bg-background/95 backdrop-blur-lg pt-3 pb-2 -mx-4 px-4 border-b border-border/10">
+              <h1 className="text-lg text-foreground font-bold uppercase tracking-tight mb-2">
+                {activeHubTab === 'all' ? 'All Jobs' : activeHubTab === 'applications' ? 'Applications' : activeHubTab === 'closed' ? 'Closed Jobs' : activeHubTab === 'analytics' ? 'Analytics' : activeHubTab === 'intelligence' ? 'Intelligence' : 'Interactions'}
+              </h1>
               <TabsList className="h-auto flex-wrap">
                 <TabsTrigger value="all" className="gap-1.5">
                   <Briefcase className="w-3.5 h-3.5" />
