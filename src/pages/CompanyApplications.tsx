@@ -312,13 +312,15 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
     toast.success("Applications exported");
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   if (loading) {
     return (
-      <AppLayout>
+      <Wrapper>
         <div className="container mx-auto px-4 py-8">
           <p className="text-center text-muted-foreground">Loading applications...</p>
         </div>
-      </AppLayout>
+      </Wrapper>
     );
   }
 
