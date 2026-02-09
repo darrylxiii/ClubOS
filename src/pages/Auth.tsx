@@ -521,12 +521,12 @@ const Auth = () => {
           </div>
 
           <div className="space-y-3">
-            <h1 className="text-4xl tracking-tight text-foreground font-semibold">
+            <h1 className="text-4xl tracking-tight text-foreground font-black uppercase">
               {isLogin ? t('login.title') : t('signup.title')}
             </h1>
             <div className="flex items-center justify-center gap-2">
               <Lock className="w-4 h-4 text-foreground/90" />
-              <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly')}</p>
+              <p className="text-sm text-foreground/90 font-semibold">INVITE-ONLY</p>
             </div>
           </div>
 
