@@ -380,12 +380,12 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Use managed auth for correct custom domain redirect
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: redirectUrl,
-        extraParams: {
-          access_type: 'offline',
-          prompt: 'consent'
+      // Full-page redirect — no popup to block
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: { access_type: 'offline', prompt: 'consent' }
         }
       });
 
