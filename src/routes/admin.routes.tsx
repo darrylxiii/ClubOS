@@ -695,21 +695,17 @@ export const adminRoutes = (
     <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/job-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsIndex /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/conversation-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ConversationAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/security-events" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SecurityEventDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/user-engagement" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><UserEngagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Security Hub redirects */}
+    <Route path="/admin/security-events" element={<Navigate to="/admin/security?tab=events" replace />} />
 
-    {/* Missing Operations Routes */}
-    <Route path="/admin/god-mode" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><GodMode /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/error-logs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ErrorLogs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Security Hub redirects */}
+    <Route path="/admin/god-mode" element={<Navigate to="/admin/security?tab=god-mode" replace />} />
+    <Route path="/admin/error-logs" element={<Navigate to="/admin/security?tab=error-logs" replace />} />
 
-    {/* Revenue Shares */}
-    <Route path="/admin/revenue-shares" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RevenueSharesPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Invoice Reconciliation */}
-    <Route path="/admin/reconciliation" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InvoiceReconciliationPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Expense Tracking */}
-    <Route path="/admin/expenses" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ExpenseTrackingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Finance Hub redirects */}
+    <Route path="/admin/revenue-shares" element={<Navigate to="/admin/finance?tab=revenue-shares" replace />} />
+    <Route path="/admin/reconciliation" element={<Navigate to="/admin/finance?tab=reconciliation" replace />} />
+    <Route path="/admin/expenses" element={<Navigate to="/admin/finance?tab=expenses" replace />} />
 
     {/* Closed Jobs */}
     <Route path="/admin/closed-jobs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClosedJobs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
