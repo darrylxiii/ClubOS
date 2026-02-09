@@ -421,7 +421,6 @@ export const adminRoutes = (
     <Route path="/admin/company-fees" element={<Navigate to="/admin/finance?tab=fees" replace />} />
     <Route path="/admin/deal-pipeline-settings" element={<Navigate to="/admin/finance?tab=pipeline-settings" replace />} />
     <Route path="/admin/moneybird" element={<Navigate to="/admin/finance?tab=moneybird" replace />} />
-    />
     {/* Security Hub redirects */}
     <Route path="/admin/anti-hacking" element={<Navigate to="/admin/security" replace />} />
     <Route path="/admin/audit-log" element={<Navigate to="/admin/security?tab=audit-log" replace />} />
