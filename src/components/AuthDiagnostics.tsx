@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { AlertCircle, CheckCircle2, Copy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -60,23 +59,10 @@ export const AuthDiagnostics = () => {
         };
       }
 
-      // Test Google OAuth via managed auth
-      try {
-        const oauthResult = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: `${window.location.origin}/auth`,
-        });
-        
-        results.oauth = {
-          managed: true,
-          redirected: (oauthResult as any)?.redirected,
-          error: (oauthResult as any)?.error?.message,
-        };
-      } catch (e: any) {
-        results.oauth = {
-          managed: true,
-          error: e.message,
-        };
-      }
+      // OAuth config check removed — cannot passively test without triggering a real sign-in flow
+      results.oauth = {
+        note: "OAuth health is verified on actual sign-in attempt",
+      };
 
       setDiagnostics(results);
     } catch (error: any) {
