@@ -63,7 +63,7 @@ function PredictionsTabContent({
   );
 }
 
-export default function HiringIntelligenceHub() {
+export default function HiringIntelligenceHub({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const [stats, setStats] = useState<any>({ activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 });
   const [jobs, setJobs] = useState<any[]>([]);
