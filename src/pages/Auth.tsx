@@ -19,40 +19,36 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { logger } from "@/lib/logger";
 
 // Lazy load heavy components to reduce initial bundle
-const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
+const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
+  default: m.OAuthDiagnostics
+})));
 
 // Inline Google icon SVG to avoid react-icons bundle size
-const GoogleIcon = () => (
-  <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
-    <path
-      fill="currentColor"
-      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-    />
-    <path
-      fill="currentColor"
-      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-    />
-    <path
-      fill="currentColor"
-      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-    />
-    <path
-      fill="currentColor"
-      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-    />
-  </svg>
-);
-
+const GoogleIcon = () => <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+  </svg>;
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
 const emailSchema = z.string().email();
 const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
-
 const Auth = () => {
-  const { user, loading, session } = useAuth();
-  const { resolvedTheme } = useTheme();
-  const { t } = useTranslation('auth');
-  const { t: tCommon } = useTranslation('common');
+  const {
+    user,
+    loading,
+    session
+  } = useAuth();
+  const {
+    resolvedTheme
+  } = useTheme();
+  const {
+    t
+  } = useTranslation('auth');
+  const {
+    t: tCommon
+  } = useTranslation('common');
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
   const prefillEmail = searchParams.get("email");
@@ -73,104 +69,116 @@ const Auth = () => {
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
   const [oauthProcessing, setOauthProcessing] = useState(false);
-  const { checkLockout, recordAttempt } = useLoginLockout();
+  const {
+    checkLockout,
+    recordAttempt
+  } = useLoginLockout();
   const navigate = useNavigate();
 
-   // OAuth callback handler - exchanges code for session BEFORE cleaning URL
-   // Also handles pre-linking for pre-provisioned partners
-   useEffect(() => {
-     const handleOAuthCallback = async () => {
-       const params = new URLSearchParams(window.location.search);
-       const error = params.get('error');
-       const errorDescription = params.get('error_description');
-       const code = params.get('code');
+  // OAuth callback handler - exchanges code for session BEFORE cleaning URL
+  // Also handles pre-linking for pre-provisioned partners
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error');
+      const errorDescription = params.get('error_description');
+      const code = params.get('code');
 
-       // Handle OAuth errors first
-       if (error) {
-         logger.error('OAuth error', new Error(errorDescription || error), { componentName: 'Auth', error });
-         toast.error(`Sign in failed: ${errorDescription || error}`);
-         localStorage.removeItem('pending_invite_code');
-         window.history.replaceState({}, '', '/auth');
-         return;
-       }
+      // Handle OAuth errors first
+      if (error) {
+        logger.error('OAuth error', new Error(errorDescription || error), {
+          componentName: 'Auth',
+          error
+        });
+        toast.error(`Sign in failed: ${errorDescription || error}`);
+        localStorage.removeItem('pending_invite_code');
+        window.history.replaceState({}, '', '/auth');
+        return;
+      }
 
-       // If we have a code parameter, this is an OAuth callback that needs processing
-       if (code) {
-         logger.debug('OAuth callback detected with code', { componentName: 'Auth' });
-         setOauthProcessing(true);
+      // If we have a code parameter, this is an OAuth callback that needs processing
+      if (code) {
+        logger.debug('OAuth callback detected with code', {
+          componentName: 'Auth'
+        });
+        setOauthProcessing(true);
+        try {
+          // Let Supabase's detectSessionInUrl handle the exchange automatically
+          // Just wait for the session to be established
+          let attempts = 0;
+          const maxAttempts = 20; // 10 seconds max wait
 
-         try {
-           // Let Supabase's detectSessionInUrl handle the exchange automatically
-           // Just wait for the session to be established
-           let attempts = 0;
-           const maxAttempts = 20; // 10 seconds max wait
-           
-           while (attempts < maxAttempts) {
-             const { data: { session: currentSession } } = await supabase.auth.getSession();
-             
-             if (currentSession?.user) {
-               logger.debug('OAuth session established successfully', { componentName: 'Auth' });
-               
-               // Check if this is a pre-provisioned partner account that needs identity linking
-               try {
-                 const userEmail = currentSession.user.email;
-                 if (userEmail) {
-                   const { data: profile } = await supabase
-                     .from('profiles')
-                     .select('id, preferred_auth_method')
-                     .eq('email', userEmail)
-                     .single();
+          while (attempts < maxAttempts) {
+            const {
+              data: {
+                session: currentSession
+              }
+            } = await supabase.auth.getSession();
+            if (currentSession?.user) {
+              logger.debug('OAuth session established successfully', {
+                componentName: 'Auth'
+              });
 
-                   if (profile?.preferred_auth_method === 'oauth_only') {
-                     // Link Google identity for seamless OAuth login
-                     const googleIdentities = currentSession.user.identities?.filter(
-                       i => i.provider === 'google'
-                     ) || [];
+              // Check if this is a pre-provisioned partner account that needs identity linking
+              try {
+                const userEmail = currentSession.user.email;
+                if (userEmail) {
+                  const {
+                    data: profile
+                  } = await supabase.from('profiles').select('id, preferred_auth_method').eq('email', userEmail).single();
+                  if (profile?.preferred_auth_method === 'oauth_only') {
+                    // Link Google identity for seamless OAuth login
+                    const googleIdentities = currentSession.user.identities?.filter(i => i.provider === 'google') || [];
+                    if (googleIdentities.length === 0) {
+                      logger.debug('Pre-provisioned partner: linking Google identity', {
+                        componentName: 'Auth'
+                      });
+                      // Identity should already be linked by Supabase auth system
+                      // Just confirm the preference is set
+                      await supabase.from('profiles').update({
+                        preferred_auth_method: 'oauth_only'
+                      }).eq('id', profile.id);
+                    }
+                  }
+                }
+              } catch (err) {
+                logger.warn('Failed to check pre-provisioning status', {
+                  componentName: 'Auth',
+                  err
+                });
+                // Continue anyway - this is non-critical
+              }
 
-                     if (googleIdentities.length === 0) {
-                       logger.debug('Pre-provisioned partner: linking Google identity', { componentName: 'Auth' });
-                       // Identity should already be linked by Supabase auth system
-                       // Just confirm the preference is set
-                       await supabase
-                         .from('profiles')
-                         .update({ preferred_auth_method: 'oauth_only' })
-                         .eq('id', profile.id);
-                     }
-                   }
-                 }
-               } catch (err) {
-                 logger.warn('Failed to check pre-provisioning status', { componentName: 'Auth', err });
-                 // Continue anyway - this is non-critical
-               }
+              // Clean up URL only after session is confirmed
+              window.history.replaceState({}, '', '/auth');
+              setOauthProcessing(false);
+              return;
+            }
 
-               // Clean up URL only after session is confirmed
-               window.history.replaceState({}, '', '/auth');
-               setOauthProcessing(false);
-               return;
-             }
-             
-             // Wait 500ms before checking again
-             await new Promise(resolve => setTimeout(resolve, 500));
-             attempts++;
-           }
+            // Wait 500ms before checking again
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+          }
 
-           // If we get here, session wasn't established in time
-           logger.warn('OAuth session not established after waiting', { componentName: 'Auth' });
-           toast.error('Sign in timed out. Please try again.');
-           window.history.replaceState({}, '', '/auth');
-         } catch (err) {
-           logger.error('OAuth callback processing error', err instanceof Error ? err : new Error(String(err)), { componentName: 'Auth' });
-           toast.error('Sign in failed. Please try again.');
-           window.history.replaceState({}, '', '/auth');
-         } finally {
-           setOauthProcessing(false);
-         }
-       }
-     };
-
-     handleOAuthCallback();
-   }, []);
-
+          // If we get here, session wasn't established in time
+          logger.warn('OAuth session not established after waiting', {
+            componentName: 'Auth'
+          });
+          toast.error('Sign in timed out. Please try again.');
+          window.history.replaceState({}, '', '/auth');
+        } catch (err) {
+          logger.error('OAuth callback processing error', err instanceof Error ? err : new Error(String(err)), {
+            componentName: 'Auth'
+          });
+          toast.error('Sign in failed. Please try again.');
+          window.history.replaceState({}, '', '/auth');
+        } finally {
+          setOauthProcessing(false);
+        }
+      }
+    };
+    handleOAuthCallback();
+  }, []);
   useEffect(() => {
     const pendingInvite = localStorage.getItem('pending_invite_code');
     if (pendingInvite && !inviteCode) {
@@ -181,52 +189,53 @@ const Auth = () => {
       validateInviteCode(pendingInvite);
     }
   }, []);
-
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       // Don't navigate while OAuth is still processing
       if (oauthProcessing) return;
-      
       if (!loading && user && session && !mfaRequired) {
         try {
           // Check if user has completed onboarding
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('onboarding_completed_at')
-            .eq('id', user.id)
-            .single();
-
+          const {
+            data: profile,
+            error
+          } = await supabase.from('profiles').select('onboarding_completed_at').eq('id', user.id).single();
           if (error) {
-            logger.warn('Failed to fetch profile for onboarding check', { componentName: 'Auth', error });
+            logger.warn('Failed to fetch profile for onboarding check', {
+              componentName: 'Auth',
+              error
+            });
             // Safe default: route to onboarding
             navigate("/oauth-onboarding");
             return;
           }
-
           if (!profile?.onboarding_completed_at) {
-            logger.debug('User needs to complete onboarding', { componentName: 'Auth' });
+            logger.debug('User needs to complete onboarding', {
+              componentName: 'Auth'
+            });
             navigate("/oauth-onboarding");
           } else {
-            logger.debug('User authenticated, navigating to /home', { componentName: 'Auth' });
+            logger.debug('User authenticated, navigating to /home', {
+              componentName: 'Auth'
+            });
             navigate("/home");
           }
         } catch (err) {
-          logger.error('Error checking onboarding status', err instanceof Error ? err : new Error(String(err)), { componentName: 'Auth' });
+          logger.error('Error checking onboarding status', err instanceof Error ? err : new Error(String(err)), {
+            componentName: 'Auth'
+          });
           // Safe default: route to onboarding
           navigate("/oauth-onboarding");
         }
       }
     };
-
     checkOnboardingStatus();
   }, [loading, user, session, mfaRequired, oauthProcessing, navigate]);
-
   useEffect(() => {
     if (inviteCode) {
       validateInviteCode(inviteCode);
     }
   }, [inviteCode]);
-
   useEffect(() => {
     if (prefillEmail) {
       setEmail(decodeURIComponent(prefillEmail));
@@ -234,18 +243,22 @@ const Auth = () => {
       toast.info(t('login.pleaseEnterPassword'));
     }
   }, [prefillEmail, t]);
-
   const validateInviteCode = async (code: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('validate-invite-code', {
-        body: { code }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('validate-invite-code', {
+        body: {
+          code
+        }
       });
-
       if (error) throw error;
-
       if (data?.valid) {
         setInviteValid(true);
-        setInviteInfo({ referrerName: data.referrerName });
+        setInviteInfo({
+          referrerName: data.referrerName
+        });
         toast.success(data.message || t('invite.validMessage'));
       } else {
         setInviteValid(false);
@@ -257,11 +270,9 @@ const Auth = () => {
       toast.error(t('invite.errorValidating'));
     }
   };
-
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       emailSchema.parse(email);
       if (!isLogin) {
@@ -271,7 +282,6 @@ const Auth = () => {
           return;
         }
       }
-
       if (isLogin) {
         // Check for account lockout before attempting login
         const lockoutStatus = await checkLockout(email);
@@ -281,15 +291,15 @@ const Auth = () => {
           return;
         }
         setLockoutMessage(null);
-
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const {
+          data,
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
           password
         });
-
         if (error) {
           await recordAttempt(email, false);
-
           if (error.message.includes("Invalid login credentials")) {
             toast.error(t('errors.invalidCredentials'));
           } else if (error.message.includes("Email not confirmed")) {
@@ -303,20 +313,20 @@ const Auth = () => {
 
         // Record successful attempt (clears failed attempts)
         await recordAttempt(email, true);
-
         if (!data.session && data.user) {
           const factors = data.user.factors || [];
           const verifiedFactor = factors.find(f => f.status === 'verified');
           if (verifiedFactor) {
-            const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+            const {
+              data: challengeData,
+              error: challengeError
+            } = await supabase.auth.mfa.challenge({
               factorId: verifiedFactor.id
             });
-
             if (challengeError) {
               toast.error(t('errors.failed2FA'));
               return;
             }
-
             setMfaFactorId(verifiedFactor.id);
             setMfaChallengeId(challengeData.id);
             setMfaRequired(true);
@@ -324,26 +334,30 @@ const Auth = () => {
             return;
           }
         }
-
         if (data?.session) {
-          logger.debug('Login successful', { componentName: 'Auth' });
+          logger.debug('Login successful', {
+            componentName: 'Auth'
+          });
         }
       } else {
         if (!fullName.trim()) {
           toast.error(t('errors.fullNameRequired'));
           return;
         }
-
         const redirectUrl = `${window.location.origin}/`;
-        const { data: authData, error } = await supabase.auth.signUp({
+        const {
+          data: authData,
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: redirectUrl,
-            data: { full_name: fullName }
+            data: {
+              full_name: fullName
+            }
           }
         });
-
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error(t('errors.alreadyRegistered'));
@@ -353,7 +367,6 @@ const Auth = () => {
           }
           return;
         }
-
         if (authData?.user && !authData.session) {
           toast.success(t('messages.verificationEmailSent'));
           setNeedsEmailVerification(true);
@@ -369,19 +382,17 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
-
   const handleGoogleAuth = async () => {
     try {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-
-      const redirectUrl = inviteCode
-        ? `${window.location.origin}/auth?invite=${inviteCode}`
-        : `${window.location.origin}/auth`;
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
       // Let Supabase handle PKCE and state internally - don't override state
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
@@ -391,77 +402,78 @@ const Auth = () => {
           }
         }
       });
-
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.google') }));
+      toast.error(error.message || t('errors.failedToInitiate', {
+        provider: t('oauth.google')
+      }));
     }
   };
-
   const handleAppleAuth = async () => {
     try {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-
-      const redirectUrl = inviteCode
-        ? `${window.location.origin}/auth?invite=${inviteCode}`
-        : `${window.location.origin}/auth`;
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
       // Let Supabase handle PKCE and state internally - don't override state
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
           redirectTo: redirectUrl
         }
       });
-
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.apple') }));
+      toast.error(error.message || t('errors.failedToInitiate', {
+        provider: t('oauth.apple')
+      }));
     }
   };
-
   const handleLinkedInAuth = async () => {
     try {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-
-      const redirectUrl = inviteCode
-        ? `${window.location.origin}/auth?invite=${inviteCode}`
-        : `${window.location.origin}/auth`;
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
       // Let Supabase handle PKCE and state internally - don't override state
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
           redirectTo: redirectUrl,
           scopes: 'openid profile email'
         }
       });
-
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || t('errors.failedToInitiate', { provider: t('oauth.linkedin') }));
+      toast.error(error.message || t('errors.failedToInitiate', {
+        provider: t('oauth.linkedin')
+      }));
     }
   };
-
   const handleVerifyEmail = async () => {
     if (emailVerificationCode.length !== 6) {
       toast.error(t('verification.validCode'));
       return;
     }
-
     setVerificationLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('verify-email-code', {
-        body: { email, code: emailVerificationCode }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('verify-email-code', {
+        body: {
+          email,
+          code: emailVerificationCode
+        }
       });
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
       toast.success(t('messages.emailVerified'));
       setNeedsEmailVerification(false);
       setEmailVerificationCode("");
@@ -472,29 +484,27 @@ const Auth = () => {
       setVerificationLoading(false);
     }
   };
-
   const handleVerifyMFA = async () => {
     if (mfaCode.length !== 6) {
       toast.error(t('verification.validCode'));
       return;
     }
-
     if (!mfaFactorId || !mfaChallengeId) {
       toast.error(t('mfa.noChallengeFound'));
       setMfaRequired(false);
       return;
     }
-
     setVerificationLoading(true);
     try {
-      const { data, error } = await supabase.auth.mfa.verify({
+      const {
+        data,
+        error
+      } = await supabase.auth.mfa.verify({
         factorId: mfaFactorId,
         challengeId: mfaChallengeId,
         code: mfaCode
       });
-
       if (error) throw error;
-
       if (data) {
         setMfaRequired(false);
         navigate("/home");
@@ -506,13 +516,10 @@ const Auth = () => {
       setVerificationLoading(false);
     }
   };
-
   if (loading || oauthProcessing) {
     return <UnifiedLoader variant="page" showBranding />;
   }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+  return <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-lg bg-background/30 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[32px]">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2">
@@ -521,45 +528,42 @@ const Auth = () => {
           </div>
 
           <div className="space-y-3">
-            <h1 className="text-4xl tracking-tight text-foreground font-black uppercase">
+            <h1 className="tracking-tight text-foreground font-bold text-3xl">
               {isLogin ? t('login.title') : t('signup.title')}
             </h1>
             <div className="flex items-center justify-center gap-2">
               <Lock className="w-4 h-4 text-foreground/90" />
-              <p className="text-sm text-foreground/90 font-semibold">INVITE-ONLY</p>
+              <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly')}</p>
             </div>
           </div>
 
-          {inviteValid && inviteInfo && (
-            <div className="p-4 rounded-2xl bg-success/10 border border-success/20 space-y-2">
+          {inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
               </div>
               <p className="text-xs text-foreground/80">
-                {inviteInfo.referrerName
-                  ? t('invite.invitedBy', { name: inviteInfo.referrerName })
-                  : t('invite.invitedByMember')}
+                {inviteInfo.referrerName ? t('invite.invitedBy', {
+              name: inviteInfo.referrerName
+            }) : t('invite.invitedByMember')}
               </p>
-            </div>
-          )}
+            </div>}
 
-          {inviteValid === false && (
-            <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+          {inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
                 {t('invite.invalidOrExpired')}
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
         </CardHeader>
 
         <CardContent className="pt-2 px-8 pb-10">
-          {needsEmailVerification ? (
-            <div className="space-y-5">
+          {needsEmailVerification ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
                 <p className="text-sm font-bold text-primary text-center">{t('verification.title')}</p>
                 <p className="text-xs text-foreground/80 text-center">
-                  {t('verification.codeSentTo', { email })}
+                  {t('verification.codeSentTo', {
+                email
+              })}
                 </p>
               </div>
 
@@ -580,12 +584,13 @@ const Auth = () => {
                 {verificationLoading ? t('verification.verifying') : t('verification.verify')}
               </RainbowButton>
 
-              <button type="button" onClick={() => { setNeedsEmailVerification(false); setEmailVerificationCode(""); }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
+              <button type="button" onClick={() => {
+            setNeedsEmailVerification(false);
+            setEmailVerificationCode("");
+          }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
                 {t('resetPassword.backToLogin')}
               </button>
-            </div>
-          ) : mfaRequired ? (
-            <div className="space-y-5">
+            </div> : mfaRequired ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
                 <p className="text-sm font-bold text-primary text-center">{t('mfa.title')}</p>
                 <p className="text-xs text-foreground/80 text-center">
@@ -610,65 +615,28 @@ const Auth = () => {
                 {verificationLoading ? t('verification.verifying') : t('mfa.verify')}
               </RainbowButton>
 
-              <button type="button" onClick={() => { setMfaRequired(false); setMfaCode(""); }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
+              <button type="button" onClick={() => {
+            setMfaRequired(false);
+            setMfaCode("");
+          }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
                 {t('resetPassword.backToLogin')}
               </button>
-            </div>
-          ) : (
-            <form onSubmit={handleEmailAuth} className="space-y-5">
+            </div> : <form onSubmit={handleEmailAuth} className="space-y-5">
               {/* Account Lockout Warning */}
-              {lockoutMessage && (
-                <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+              {lockoutMessage && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                   <AlertDescription className="text-sm font-medium text-destructive">
                     {lockoutMessage}
                   </AlertDescription>
-                </Alert>
-              )}
+                </Alert>}
 
-              {!isLogin && (
-                <Input
-                  type="text"
-                  placeholder={t('signup.fullName')}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="h-14 rounded-2xl"
-                  required
-                />
-              )}
+              {!isLogin && <Input type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-2xl" required />}
 
-              <Input
-                type="email"
-                placeholder={t('login.email')}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-14 rounded-2xl"
-                required
-              />
+              <Input type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-2xl" required />
 
-              {isLogin ? (
-                <Input
-                  type="password"
-                  placeholder={t('login.password')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-14 rounded-2xl"
-                  required
-                />
-              ) : (
-                <AssistedPasswordConfirmation
-                  password={password}
-                  confirmPassword={confirmPassword}
-                  onPasswordChange={setPassword}
-                  onConfirmPasswordChange={setConfirmPassword}
-                />
-              )}
+              {isLogin ? <Input type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-2xl" required /> : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
 
-              <RainbowButton
-                type="submit"
-                disabled={isLoading || (!isLogin && inviteValid !== true)}
-                className="w-full h-16 rounded-2xl font-bold text-lg"
-              >
+              <RainbowButton type="submit" disabled={isLoading || !isLogin && inviteValid !== true} className="w-full h-16 rounded-2xl font-bold text-lg">
                 {isLoading ? tCommon('actions.loading') : isLogin ? t('login.signIn') : t('signup.createAccount')}
               </RainbowButton>
 
@@ -682,79 +650,48 @@ const Auth = () => {
               </div>
 
               <div className="space-y-3">
-                <Button
-                  type="button"
-                  onClick={handleGoogleAuth}
-                  variant="outline"
-                  className="w-full h-14 rounded-2xl font-semibold"
-                >
+                <Button type="button" onClick={handleGoogleAuth} variant="outline" className="w-full h-14 rounded-2xl font-semibold">
                   <GoogleIcon />
-                  {t('signInWith', { provider: t('oauth.google') })}
+                  {t('signInWith', {
+                provider: t('oauth.google')
+              })}
                 </Button>
 
-                {/* Apple - Coming Soon */}
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled
-                    className="w-full h-14 rounded-2xl font-semibold opacity-40 cursor-not-allowed"
-                  >
-                    <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                    </svg>
-                    {t('signInWith', { provider: t('oauth.apple') })}
-                  </Button>
-                  <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
-                    <Lock className="h-2.5 w-2.5" />
-                    Coming Soon
-                  </div>
-                </div>
+                <Button type="button" onClick={handleAppleAuth} variant="outline" className="w-full h-14 rounded-2xl font-semibold">
+                  <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                  </svg>
+                  {t('signInWith', {
+                provider: t('oauth.apple')
+              })}
+                </Button>
 
-                {/* LinkedIn - Coming Soon */}
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled
-                    className="w-full h-14 rounded-2xl font-semibold opacity-40 cursor-not-allowed"
-                  >
-                    <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                    </svg>
-                    {t('signInWith', { provider: t('oauth.linkedin') })}
-                  </Button>
-                  <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
-                    <Lock className="h-2.5 w-2.5" />
-                    Coming Soon
-                  </div>
-                </div>
+                <Button type="button" onClick={handleLinkedInAuth} variant="outline" className="w-full h-14 rounded-2xl font-semibold">
+                  <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                  </svg>
+                  {t('signInWith', {
+                provider: t('oauth.linkedin')
+              })}
+                </Button>
               </div>
 
               <div className="text-center pt-2">
-                <Link
-                  to="/onboarding"
-                  className="text-foreground/80 hover:text-foreground text-sm"
-                >
+                <Link to="/onboarding" className="text-foreground/80 hover:text-foreground text-sm">
                   Request Access
                 </Link>
               </div>
 
-              {isLogin && (
-                <div className="text-center">
+              {isLogin && <div className="text-center">
                   <Link to="/forgot-password" className="text-sm text-foreground/70 hover:text-foreground">
                     {t('login.forgotPassword')}
                   </Link>
-                </div>
-              )}
-            </form>
-          )}
+                </div>}
+            </form>}
         </CardContent>
       </Card>
 
       {resolvedTheme === 'dark' && <OAuthDiagnostics />}
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
