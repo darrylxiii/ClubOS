@@ -55,7 +55,7 @@ interface Application {
   };
 }
 
-export default function Applications() {
+export default function Applications({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
   const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
   const isMobile = useIsMobile();
