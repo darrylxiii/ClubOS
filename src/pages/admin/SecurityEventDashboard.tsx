@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AppLayout } from '@/components/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -38,31 +37,18 @@ export default function SecurityEventDashboard() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<SecurityEvent[]>([]);
   const [stats, setStats] = useState({
-    total: 0,
-    critical: 0,
-    high: 0,
-    medium: 0,
-    low: 0,
-    unresolved: 0,
+    total: 0, critical: 0, high: 0, medium: 0, low: 0, unresolved: 0,
   });
 
-  useEffect(() => {
-    loadSecurityEvents();
-  }, []);
+  useEffect(() => { loadSecurityEvents(); }, []);
 
   const loadSecurityEvents = async () => {
     try {
       const { data, error } = await (supabase as any)
-        .from('security_events')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
+        .from('security_events').select('*').order('created_at', { ascending: false }).limit(100);
       if (error) throw error;
-
       const eventData = data || [];
       setEvents(eventData);
-
       setStats({
         total: eventData.length,
         critical: eventData.filter((e: SecurityEvent) => e.severity === 'critical').length,
@@ -73,9 +59,7 @@ export default function SecurityEventDashboard() {
       });
     } catch (error) {
       console.error('Error loading security events:', error);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const severityData = [
@@ -87,142 +71,72 @@ export default function SecurityEventDashboard() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-8 space-y-6">
-          <Skeleton className="h-10 w-64" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
-          </div>
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-8 w-8" /> Security Events
-          </h1>
-          <p className="text-muted-foreground">Monitor security incidents and threats</p>
-        </div>
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Total Events</p><p className="text-2xl font-bold">{stats.total}</p></CardContent></Card>
+        <Card className="border-red-500/50"><CardContent className="pt-6"><p className="text-sm text-red-500">Critical</p><p className="text-2xl font-bold text-red-500">{stats.critical}</p></CardContent></Card>
+        <Card className="border-orange-500/50"><CardContent className="pt-6"><p className="text-sm text-orange-500">High</p><p className="text-2xl font-bold text-orange-500">{stats.high}</p></CardContent></Card>
+        <Card className="border-yellow-500/50"><CardContent className="pt-6"><p className="text-sm text-yellow-500">Medium</p><p className="text-2xl font-bold text-yellow-500">{stats.medium}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Unresolved</p><p className="text-2xl font-bold">{stats.unresolved}</p></CardContent></Card>
+      </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Total Events</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-red-500/50">
-            <CardContent className="pt-6">
-              <p className="text-sm text-red-500">Critical</p>
-              <p className="text-2xl font-bold text-red-500">{stats.critical}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-orange-500/50">
-            <CardContent className="pt-6">
-              <p className="text-sm text-orange-500">High</p>
-              <p className="text-2xl font-bold text-orange-500">{stats.high}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-yellow-500/50">
-            <CardContent className="pt-6">
-              <p className="text-sm text-yellow-500">Medium</p>
-              <p className="text-2xl font-bold text-yellow-500">{stats.medium}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Unresolved</p>
-              <p className="text-2xl font-bold">{stats.unresolved}</p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader><CardTitle>Severity Distribution</CardTitle></CardHeader>
+          <CardContent>
+            {severityData.length > 0 ? (
+              <DynamicChart type="pie" data={severityData} height={250} config={{ pie: { dataKey: 'value', nameKey: 'name', outerRadius: 80, colors: [SEVERITY_COLORS.critical, SEVERITY_COLORS.high, SEVERITY_COLORS.medium, SEVERITY_COLORS.low] }, showTooltip: true }} />
+            ) : (
+              <div className="h-[250px] flex flex-col items-center justify-center text-center px-4">
+                <Shield className="h-12 w-12 text-muted-foreground/30 mb-3" />
+                <p className="text-muted-foreground font-medium">All Clear</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">No security incidents detected.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Severity Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Severity Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {severityData.length > 0 ? (
-                <DynamicChart
-                  type="pie"
-                  data={severityData}
-                  height={250}
-                  config={{
-                    pie: {
-                      dataKey: 'value',
-                      nameKey: 'name',
-                      outerRadius: 80,
-                      colors: [
-                        SEVERITY_COLORS.critical,
-                        SEVERITY_COLORS.high,
-                        SEVERITY_COLORS.medium,
-                        SEVERITY_COLORS.low,
-                      ],
-                    },
-                    showTooltip: true,
-                  }}
-                />
+        <Card>
+          <CardHeader><CardTitle>Recent Events</CardTitle><CardDescription>Latest security incidents</CardDescription></CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[250px]">
+              {events.length > 0 ? (
+                <div className="space-y-3">
+                  {events.slice(0, 10).map(event => {
+                    const Icon = SEVERITY_ICONS[event.severity];
+                    return (
+                      <div key={event.id} className="flex items-start gap-3 p-2 border rounded-lg">
+                        <Icon className="h-5 w-5 mt-0.5" style={{ color: SEVERITY_COLORS[event.severity] }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{event.event_type}</p>
+                          <p className="text-xs text-muted-foreground">{format(new Date(event.created_at), 'MMM d, HH:mm')}</p>
+                        </div>
+                        <Badge variant={event.resolved_at ? 'secondary' : 'destructive'}>{event.resolved_at ? 'Resolved' : 'Open'}</Badge>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="h-[250px] flex flex-col items-center justify-center text-center px-4">
-                  <Shield className="h-12 w-12 text-muted-foreground/30 mb-3" />
-                  <p className="text-muted-foreground font-medium">All Clear</p>
-                  <p className="text-sm text-muted-foreground/70 mt-1">
-                    No security incidents detected. Events are logged automatically.
-                  </p>
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <CheckCircle className="h-10 w-10 text-green-500/50 mb-3" />
+                  <p className="text-muted-foreground font-medium">No Incidents</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Events */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Events</CardTitle>
-              <CardDescription>Latest security incidents</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[250px]">
-                {events.length > 0 ? (
-                  <div className="space-y-3">
-                    {events.slice(0, 10).map(event => {
-                      const Icon = SEVERITY_ICONS[event.severity];
-                      return (
-                        <div key={event.id} className="flex items-start gap-3 p-2 border rounded-lg">
-                          <Icon className="h-5 w-5 mt-0.5" style={{ color: SEVERITY_COLORS[event.severity] }} />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{event.event_type}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(event.created_at), 'MMM d, HH:mm')}
-                            </p>
-                          </div>
-                          <Badge variant={event.resolved_at ? 'secondary' : 'destructive'}>
-                            {event.resolved_at ? 'Resolved' : 'Open'}
-                          </Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center">
-                    <CheckCircle className="h-10 w-10 text-green-500/50 mb-3" />
-                    <p className="text-muted-foreground font-medium">No Incidents</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1 max-w-[200px]">
-                      Security events appear here when suspicious activity is detected
-                    </p>
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
-    </AppLayout>
+    </div>
   );
 }

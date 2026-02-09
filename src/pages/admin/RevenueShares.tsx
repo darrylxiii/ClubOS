@@ -1,5 +1,3 @@
-import { RoleGate } from "@/components/RoleGate";
-import { AppLayout } from "@/components/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LayoutDashboard, Briefcase, Gift, Settings } from "lucide-react";
 import { RevenueDistributionSummary } from "@/components/admin/revenue/RevenueDistributionSummary";
@@ -11,7 +9,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function RevenueSharesPage() {
-  // Fetch revenue shares for earnings table
   const { data: revenueShares = [] } = useQuery({
     queryKey: ['revenue-shares-page'],
     queryFn: async () => {
@@ -42,62 +39,49 @@ export default function RevenueSharesPage() {
   });
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
-          <h1 className="text-3xl font-bold mb-2">Revenue Distribution</h1>
-          <p className="text-muted-foreground mb-6">
-            Track all revenue shares, recruiter commissions, and referral payouts
-          </p>
+    <div className="space-y-6">
+      <RevenueDistributionSummary />
 
-          {/* Comprehensive summary */}
-          <RevenueDistributionSummary />
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="commissions" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" />
+            Recruiter Commissions
+          </TabsTrigger>
+          <TabsTrigger value="referrals" className="flex items-center gap-2">
+            <Gift className="h-4 w-4" />
+            Referral Payouts
+          </TabsTrigger>
+          <TabsTrigger value="configuration" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Configuration
+          </TabsTrigger>
+        </TabsList>
 
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <LayoutDashboard className="h-4 w-4" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="commissions" className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
-                Recruiter Commissions
-              </TabsTrigger>
-              <TabsTrigger value="referrals" className="flex items-center gap-2">
-                <Gift className="h-4 w-4" />
-                Referral Payouts
-              </TabsTrigger>
-              <TabsTrigger value="configuration" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Configuration
-              </TabsTrigger>
-            </TabsList>
+        <TabsContent value="overview" className="space-y-6">
+          <RevenueShareEarningsTable revenueShares={revenueShares} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RecruiterCommissionsTable />
+            <ReferralPayoutsTable />
+          </div>
+        </TabsContent>
 
-            <TabsContent value="overview" className="space-y-6">
-              {/* Show earnings from configured revenue shares */}
-              <RevenueShareEarningsTable revenueShares={revenueShares} />
-              
-              {/* Quick view of recent commissions and payouts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RecruiterCommissionsTable />
-                <ReferralPayoutsTable />
-              </div>
-            </TabsContent>
+        <TabsContent value="commissions">
+          <RecruiterCommissionsTable />
+        </TabsContent>
 
-            <TabsContent value="commissions">
-              <RecruiterCommissionsTable />
-            </TabsContent>
+        <TabsContent value="referrals">
+          <ReferralPayoutsTable />
+        </TabsContent>
 
-            <TabsContent value="referrals">
-              <ReferralPayoutsTable />
-            </TabsContent>
-
-            <TabsContent value="configuration">
-              <AdminRevenueShareManager />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </RoleGate>
-    </AppLayout>
+        <TabsContent value="configuration">
+          <AdminRevenueShareManager />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

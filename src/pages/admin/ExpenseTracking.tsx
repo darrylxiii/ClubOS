@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
-import { RoleGate } from "@/components/RoleGate";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,237 +165,154 @@ export default function ExpenseTracking() {
   };
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin']} showLoading>
-        <div className="container mx-auto py-8 px-4">
-          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Expense Tracking</h1>
-              <p className="text-muted-foreground">
-                Track operating expenses for accurate profit calculations
-              </p>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Expense
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Expense</DialogTitle>
-                  <DialogDescription>
-                    Record a new operating expense
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={newExpense.expense_date}
-                        onChange={(e) => setNewExpense({ ...newExpense, expense_date: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Amount (EUR)</Label>
-                      <Input
-                        id="amount"
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={newExpense.amount}
-                        onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select
-                      value={newExpense.category_name}
-                      onValueChange={(value) => setNewExpense({ ...newExpense, category_name: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories?.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Input
-                      id="description"
-                      placeholder="What was this expense for?"
-                      value={newExpense.description}
-                      onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="vendor">Vendor (optional)</Label>
-                    <Input
-                      id="vendor"
-                      placeholder="Company/vendor name"
-                      value={newExpense.vendor}
-                      onChange={(e) => setNewExpense({ ...newExpense, vendor: e.target.value })}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" disabled={addExpense.isPending}>
-                      {addExpense.isPending ? 'Adding...' : 'Add Expense'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Euro className="h-4 w-4" />
-                  YTD Expenses
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-destructive">
-                  {formatCurrency(totalExpenses)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {expenses?.length || 0} transactions
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <TrendingDown className="h-4 w-4" />
-                  Monthly Average
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(totalExpenses / 12)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Based on YTD
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Recurring Expenses
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(recurringTotal)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Subscriptions & fixed costs
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Category Breakdown */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-base">Expenses by Category</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {Object.entries(expensesByCategory)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([category, amount]) => (
-                    <div key={category} className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${categoryColors[category] || 'bg-gray-500'}`} />
-                      <span className="flex-1 text-sm">{category}</span>
-                      <span className="font-medium">{formatCurrency(amount)}</span>
-                      <span className="text-xs text-muted-foreground w-12 text-right">
-                        {((amount / totalExpenses) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Expenses Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Expenses</CardTitle>
-              <CardDescription>All operating expenses for {currentYear}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <p className="text-muted-foreground">
+          Track operating expenses for accurate profit calculations
+        </p>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Expense
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Expense</DialogTitle>
+              <DialogDescription>Record a new operating expense</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+                  <Label htmlFor="date">Date</Label>
+                  <Input id="date" type="date" value={newExpense.expense_date} onChange={(e) => setNewExpense({ ...newExpense, expense_date: e.target.value })} />
                 </div>
-              ) : expenses?.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No expenses recorded yet</p>
-                  <p className="text-sm">Add your first expense to start tracking</p>
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount (EUR)</Label>
+                  <Input id="amount" type="number" step="0.01" placeholder="0.00" value={newExpense.amount} onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })} />
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Vendor</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {expenses?.map((expense) => (
-                      <TableRow key={expense.id}>
-                        <TableCell>{format(new Date(expense.expense_date), 'dd MMM yyyy')}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="font-normal">
-                            {expense.category_name}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{expense.description}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {expense.vendor || '-'}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(expense.amount)}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteExpense.mutate(expense.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </RoleGate>
-    </AppLayout>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={newExpense.category_name} onValueChange={(value) => setNewExpense({ ...newExpense, category_name: value })}>
+                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                  <SelectContent>
+                    {categories?.map((cat) => (<SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Input id="description" placeholder="What was this expense for?" value={newExpense.description} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vendor">Vendor (optional)</Label>
+                <Input id="vendor" placeholder="Company/vendor name" value={newExpense.vendor} onChange={(e) => setNewExpense({ ...newExpense, vendor: e.target.value })} />
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={addExpense.isPending}>{addExpense.isPending ? 'Adding...' : 'Add Expense'}</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Euro className="h-4 w-4" />YTD Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-destructive">{formatCurrency(totalExpenses)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{expenses?.length || 0} transactions</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><TrendingDown className="h-4 w-4" />Monthly Average</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{formatCurrency(totalExpenses / 12)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Based on YTD</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" />Recurring Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{formatCurrency(recurringTotal)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Subscriptions & fixed costs</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Category Breakdown */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Expenses by Category</CardTitle></CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {Object.entries(expensesByCategory).sort(([, a], [, b]) => b - a).map(([category, amount]) => (
+              <div key={category} className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${categoryColors[category] || 'bg-gray-500'}`} />
+                <span className="flex-1 text-sm">{category}</span>
+                <span className="font-medium">{formatCurrency(amount)}</span>
+                <span className="text-xs text-muted-foreground w-12 text-right">{((amount / totalExpenses) * 100).toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Expenses Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Expenses</CardTitle>
+          <CardDescription>All operating expenses for {currentYear}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">{[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : expenses?.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No expenses recorded yet</p>
+              <p className="text-sm">Add your first expense to start tracking</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Vendor</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expenses?.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell>{format(new Date(expense.expense_date), 'dd MMM yyyy')}</TableCell>
+                    <TableCell><Badge variant="secondary" className="font-normal">{expense.category_name}</Badge></TableCell>
+                    <TableCell>{expense.description}</TableCell>
+                    <TableCell className="text-muted-foreground">{expense.vendor || '-'}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(expense.amount)}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" onClick={() => deleteExpense.mutate(expense.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
