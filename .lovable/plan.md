@@ -1,32 +1,34 @@
 
 
-# Fix: "Google OAuth is not configured: Popup was blocked" Error
+# Fix: Two Issues — Build Error + Google OAuth ERR_BLOCKED_BY_RESPONSE
 
-## Root Cause
+## Issue 1: Build Error (ENOENT @mantine/core/styles/ScrollArea.css)
 
-The `OAuthDiagnostics` component calls `lovable.auth.signInWithOAuth("google", ...)` inside a `useEffect` on page load. This triggers an actual OAuth popup (or redirect) without any user gesture. Browsers block popups not initiated by user clicks, so the call fails with "Popup was blocked", and the component displays a false error: "Google OAuth is not configured."
+**Root Cause:** `@blocknote/mantine` internally imports `@mantine/core/styles/ScrollArea.css`, but `@mantine/core` is not listed as a dependency in `package.json`. It was likely installed as a transitive dependency but is missing or at an incompatible version.
 
-Google OAuth IS configured. The diagnostic is simply testing it incorrectly.
+**Fix:** Install `@mantine/core` as an explicit dependency. This provides the CSS files that `@blocknote/mantine` needs.
 
-## The Fix
+## Issue 2: Google OAuth ERR_BLOCKED_BY_RESPONSE
 
-Remove the `OAuthDiagnostics` component entirely. It provides no value -- it cannot reliably test OAuth without a user click, and its false-positive error message actively confuses users.
+**Root Cause:** The `ERR_BLOCKED_BY_RESPONSE` error from `accounts.google.com` means Google is refusing to render in an iframe or popup because of its `X-Frame-Options` / CSP headers. This happens when the managed auth library tries to open Google sign-in inside a popup or iframe within the Lovable preview environment.
 
-Also remove the similar auto-test from `AuthDiagnostics.tsx` if it does the same thing.
+The preview iframe at `*.lovableproject.com` is already embedded in the Lovable editor, creating a nested context. When the managed auth tries to open a popup from inside this iframe, the browser blocks it.
 
-### Changes
+**This is a preview-environment issue, not a production bug.** On the published site (`os.thequantumclub.com`), the page is top-level and the popup will work. However, we should ensure the flow degrades gracefully.
+
+**Fix:** No code changes needed for the OAuth flow itself — it is correctly configured. To verify it works, test on the published URL (`os.thequantumclub.com`) rather than the preview iframe. The `ERR_BLOCKED_BY_RESPONSE` will not occur there.
+
+## Changes
 
 | File | Change |
 |---|---|
-| `src/components/OAuthDiagnostics.tsx` | Delete the file (or gut it to a no-op) |
-| `src/components/AuthDiagnostics.tsx` | Remove the auto-fire OAuth test if present |
-| Any file importing `OAuthDiagnostics` | Remove the import and usage |
+| `package.json` | Add `@mantine/core` as explicit dependency to fix the build error |
 
-### Why not fix the diagnostic instead of removing it?
+## Technical Details
 
-There is no browser-safe way to passively test whether OAuth is configured without triggering an actual sign-in flow. The only reliable test is a real user click. A diagnostic that cannot run without user interaction is not a useful automatic diagnostic.
+### Build fix
+Add `@mantine/core` (matching the version range compatible with `@blocknote/mantine@^0.44.2`). The BlockNote 0.44.x series uses Mantine 7.x, so we install `@mantine/core@^7.0.0`.
 
-## Build Error (TS2307)
-
-The `@lovable.dev/cloud-auth-js` package needs to be reinstalled. This will be done as part of the implementation step. The package and `src/integrations/lovable/index.ts` are correct -- it is purely a dependency resolution issue.
+### OAuth verification
+After the build is fixed and deployed, test Google sign-in on `https://os.thequantumclub.com/auth` to confirm the redirect stays on the custom domain. The preview environment cannot be used to test OAuth popups due to iframe nesting restrictions.
 
