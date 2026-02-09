@@ -75,9 +75,11 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
     }
   }, [user, applications.length]);
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   if (isLoading) {
     return (
-      <AppLayout>
+      <Wrapper>
         <div className="container mx-auto px-4 py-8 space-y-6">
           <div className="space-y-2">
             <Skeleton className="h-10 w-64" />
@@ -89,7 +91,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
             <Skeleton className="h-96 w-full" />
           </div>
         </div>
-      </AppLayout>
+      </Wrapper>
     );
   }
 
