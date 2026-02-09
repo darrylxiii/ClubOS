@@ -74,8 +74,10 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
     }
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   return (
-    <AppLayout>
+    <Wrapper>
       <RoleGate allowedRoles={["admin", "strategist"]} showLoading>
         <div className="container mx-auto py-8 max-w-7xl">
           <div className="mb-8">

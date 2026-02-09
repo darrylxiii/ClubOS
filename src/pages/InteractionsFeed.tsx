@@ -99,8 +99,10 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
     );
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   return (
-    <AppLayout>
+    <Wrapper>
       <div className="container mx-auto py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>

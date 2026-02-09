@@ -460,7 +460,6 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
         </Tabs>
       </div>
 
-
-    </AppLayout>
+    </Wrapper>
   );
 }

@@ -193,13 +193,15 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
     }
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   if (loading) {
     return (
-      <AppLayout>
+      <Wrapper>
         <div className="container mx-auto py-6">
           <p className="text-center text-muted-foreground">Loading intelligence hub...</p>
         </div>
-      </AppLayout>
+      </Wrapper>
     );
   }
 
