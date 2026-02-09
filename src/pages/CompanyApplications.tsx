@@ -23,7 +23,7 @@ import { ApplicationsAnalytics } from "@/components/partner/ApplicationsAnalytic
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function CompanyApplications() {
+export default function CompanyApplications({ embedded = false }: { embedded?: boolean }) {
   const [applications, setApplications] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
