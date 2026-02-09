@@ -17,7 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState } from '@/components/EmptyState';
 
-export default function JobAnalyticsIndex() {
+export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
 
   const { data: jobs, isLoading } = useQuery({
