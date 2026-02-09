@@ -349,17 +349,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
       ],
     },
-    // === SECURITY & COMPLIANCE ===
+    // === SECURITY & COMPLIANCE (consolidated into Security Hub) ===
     {
       title: "Security & Monitoring",
       icon: Shield,
       items: [
-        { name: "Security Events", icon: Shield, path: "/admin/security-events" },
-        { name: "Anti-Hacking Center", icon: Shield, path: "/admin/anti-hacking" },
-        { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
-        { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
-        { name: "God Mode", icon: Shield, path: "/admin/god-mode" },
-        { name: "Disaster Recovery", icon: Shield, path: "/admin/disaster-recovery" },
+        { name: "Security Hub", icon: Shield, path: "/admin/security" },
       ],
     },
     // === ANALYTICS (moved from Operations) ===
