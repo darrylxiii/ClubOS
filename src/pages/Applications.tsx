@@ -55,7 +55,7 @@ interface Application {
   };
 }
 
-export default function Applications() {
+export default function Applications({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
   const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
   const isMobile = useIsMobile();
@@ -75,9 +75,11 @@ export default function Applications() {
     }
   }, [user, applications.length]);
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   if (isLoading) {
     return (
-      <AppLayout>
+      <Wrapper>
         <div className="container mx-auto px-4 py-8 space-y-6">
           <div className="space-y-2">
             <Skeleton className="h-10 w-64" />
@@ -89,12 +91,12 @@ export default function Applications() {
             <Skeleton className="h-96 w-full" />
           </div>
         </div>
-      </AppLayout>
+      </Wrapper>
     );
   }
 
   return (
-    <AppLayout>
+    <Wrapper>
       {/* Background refetch indicator */}
       {isFetching && !isLoading && (
         <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right-2 duration-300">
@@ -178,7 +180,7 @@ export default function Applications() {
         currentPage="/applications"
         contextData={{ applicationsCount: activeApplications.length }}
       />
-    </AppLayout>
+    </Wrapper>
   );
 }
 

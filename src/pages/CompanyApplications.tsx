@@ -23,7 +23,7 @@ import { ApplicationsAnalytics } from "@/components/partner/ApplicationsAnalytic
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function CompanyApplications() {
+export default function CompanyApplications({ embedded = false }: { embedded?: boolean }) {
   const [applications, setApplications] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -312,18 +312,20 @@ export default function CompanyApplications() {
     toast.success("Applications exported");
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   if (loading) {
     return (
-      <AppLayout>
+      <Wrapper>
         <div className="container mx-auto px-4 py-8">
           <p className="text-center text-muted-foreground">Loading applications...</p>
         </div>
-      </AppLayout>
+      </Wrapper>
     );
   }
 
   return (
-    <AppLayout>
+    <Wrapper>
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -458,7 +460,6 @@ export default function CompanyApplications() {
         </Tabs>
       </div>
 
-
-    </AppLayout>
+    </Wrapper>
   );
 }

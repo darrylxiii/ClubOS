@@ -26,7 +26,7 @@ const CLOSURE_TYPE_CONFIG = {
   on_hold: { label: "On Hold", icon: Pause, color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
 };
 
-export default function ClosedJobs() {
+export default function ClosedJobs({ embedded = false }: { embedded?: boolean }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [selectedClosure, setSelectedClosure] = useState<any>(null);
@@ -115,8 +115,10 @@ export default function ClosedJobs() {
     );
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   return (
-    <AppLayout>
+    <Wrapper>
       <div className="container mx-auto py-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -517,6 +519,6 @@ export default function ClosedJobs() {
           </SheetContent>
         </Sheet>
       </div>
-    </AppLayout>
+    </Wrapper>
   );
 }

@@ -17,7 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState } from '@/components/EmptyState';
 
-export default function JobAnalyticsIndex() {
+export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
 
   const { data: jobs, isLoading } = useQuery({
@@ -74,8 +74,10 @@ export default function JobAnalyticsIndex() {
     }
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   return (
-    <AppLayout>
+    <Wrapper>
       <RoleGate allowedRoles={["admin", "strategist"]} showLoading>
         <div className="container mx-auto py-8 max-w-7xl">
           <div className="mb-8">
@@ -202,6 +204,6 @@ export default function JobAnalyticsIndex() {
           </Card>
         </div>
       </RoleGate>
-    </AppLayout>
+    </Wrapper>
   );
 }

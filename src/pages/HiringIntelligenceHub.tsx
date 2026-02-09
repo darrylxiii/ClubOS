@@ -63,7 +63,7 @@ function PredictionsTabContent({
   );
 }
 
-export default function HiringIntelligenceHub() {
+export default function HiringIntelligenceHub({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const [stats, setStats] = useState<any>({ activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 });
   const [jobs, setJobs] = useState<any[]>([]);
@@ -193,13 +193,15 @@ export default function HiringIntelligenceHub() {
     }
   };
 
+  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+
   if (loading) {
     return (
-      <AppLayout>
+      <Wrapper>
         <div className="container mx-auto py-6">
           <p className="text-center text-muted-foreground">Loading intelligence hub...</p>
         </div>
-      </AppLayout>
+      </Wrapper>
     );
   }
 
@@ -225,7 +227,7 @@ export default function HiringIntelligenceHub() {
   );
 
   return (
-    <AppLayout>
+    <Wrapper>
       <div className="container mx-auto py-6 space-y-6">
         {/* Hero Header */}
         <div className="flex items-center justify-between">
@@ -542,6 +544,6 @@ export default function HiringIntelligenceHub() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </Wrapper>
   );
 }
