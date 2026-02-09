@@ -53,17 +53,19 @@ export default function FinanceHub() {
 
           {/* Tab Navigation */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="h-auto flex flex-wrap gap-1 bg-muted/50 p-1">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>
-              <TabsTrigger value="revenue-ladder">Revenue Ladder</TabsTrigger>
-              <TabsTrigger value="fees">Company Fees</TabsTrigger>
-              <TabsTrigger value="revenue-shares">Revenue Shares</TabsTrigger>
-              <TabsTrigger value="expenses">Expenses</TabsTrigger>
-              <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
-              <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
-              <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-1 px-1">
+              <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 h-auto gap-1 bg-muted/50 p-1">
+                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>
+                <TabsTrigger value="revenue-ladder">Revenue Ladder</TabsTrigger>
+                <TabsTrigger value="fees">Company Fees</TabsTrigger>
+                <TabsTrigger value="revenue-shares">Revenue Shares</TabsTrigger>
+                <TabsTrigger value="expenses">Expenses</TabsTrigger>
+                <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
+                <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
+                <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
+              </TabsList>
+            </div>
 
             <Suspense fallback={<PageLoader />}>
               <TabsContent value="dashboard"><FinancialDashboard /></TabsContent>

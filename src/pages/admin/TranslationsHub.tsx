@@ -47,14 +47,16 @@ export default function TranslationsHub() {
 
           {/* Tab Navigation */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="flex-wrap">
-              <TabsTrigger value="manager">Manager</TabsTrigger>
-              <TabsTrigger value="editor">Editor</TabsTrigger>
-              <TabsTrigger value="coverage">Coverage</TabsTrigger>
-              <TabsTrigger value="brand-terms">Brand Terms</TabsTrigger>
-              <TabsTrigger value="audit">Audit Log</TabsTrigger>
-              <TabsTrigger value="languages">Languages</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-1 px-1">
+              <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1">
+                <TabsTrigger value="manager">Manager</TabsTrigger>
+                <TabsTrigger value="editor">Editor</TabsTrigger>
+                <TabsTrigger value="coverage">Coverage</TabsTrigger>
+                <TabsTrigger value="brand-terms">Brand Terms</TabsTrigger>
+                <TabsTrigger value="audit">Audit Log</TabsTrigger>
+                <TabsTrigger value="languages">Languages</TabsTrigger>
+              </TabsList>
+            </div>
 
             <Suspense fallback={<PageLoader />}>
               <TabsContent value="manager"><TranslationManagerContent /></TabsContent>
