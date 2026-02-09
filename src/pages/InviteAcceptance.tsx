@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MinimalHeader } from "@/components/MinimalHeader";
@@ -65,8 +65,11 @@ export default function InviteAcceptance() {
       }
 
       if (provider === 'google' || provider === 'apple') {
-        const { error: oauthError } = await lovable.auth.signInWithOAuth(provider, {
-          redirect_uri: `${window.location.origin}/invite/${token}/complete`,
+        const { error: oauthError } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: `${window.location.origin}/invite/${token}/complete`,
+          }
         });
         if (oauthError) throw oauthError;
         return;

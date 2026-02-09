@@ -15,7 +15,7 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useLoginLockout } from "@/hooks/useLoginLockout";
-import { lovable } from "@/integrations/lovable/index";
+
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 
@@ -380,12 +380,12 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Use managed auth for correct custom domain redirect
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: redirectUrl,
-        extraParams: {
-          access_type: 'offline',
-          prompt: 'consent'
+      // Full-page redirect — no popup to block
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: { access_type: 'offline', prompt: 'consent' }
         }
       });
 
@@ -405,9 +405,12 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Use managed auth for correct custom domain redirect
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: redirectUrl,
+      // Full-page redirect — no popup to block
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: redirectUrl,
+        }
       });
 
       if (error) throw error;
