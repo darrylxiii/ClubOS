@@ -180,7 +180,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
         currentPage="/applications"
         contextData={{ applicationsCount: activeApplications.length }}
       />
-    </AppLayout>
+    </Wrapper>
   );
 }
 
