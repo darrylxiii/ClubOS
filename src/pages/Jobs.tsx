@@ -435,8 +435,11 @@ const Jobs = () => {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8">
+          <h1 className="text-2xl text-foreground font-black uppercase tracking-tight mb-4">
+            Jobs
+          </h1>
           <Tabs value={activeHubTab} onValueChange={setActiveHubTab} className="space-y-6">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="sticky top-14 sm:top-16 z-30 bg-background/95 backdrop-blur-lg py-3 -mx-4 px-4 border-b border-border/20">
               <TabsList className="h-auto flex-wrap">
                 <TabsTrigger value="all" className="gap-1.5">
                   <Briefcase className="w-3.5 h-3.5" />
