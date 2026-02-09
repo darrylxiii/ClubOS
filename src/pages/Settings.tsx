@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
@@ -422,13 +423,10 @@ const Settings = () => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
 
-      // Full-page redirect — no popup to block
+      // Managed auth with redirect — uses pre-authorized callback URL
       if (provider === 'google' || provider === 'apple') {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: {
-            redirectTo,
-          }
+        const { error } = await lovable.auth.signInWithOAuth(provider, {
+          redirect_uri: window.location.origin,
         });
         if (error) throw error;
         toast.success(`Redirecting to ${provider} login...`);
