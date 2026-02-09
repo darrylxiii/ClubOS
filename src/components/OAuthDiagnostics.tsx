@@ -13,24 +13,17 @@ export const OAuthDiagnostics = () => {
 
   const checkOAuthConfig = async () => {
     try {
-      // Test OAuth URL generation (doesn't actually redirect)
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-          skipBrowserRedirect: true
-        }
+      // Test OAuth via managed auth
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
 
-      if (error) {
+      if ((result as any)?.error) {
         setStatus('error');
-        setMessage(`Google OAuth is not configured: ${error.message}`);
-      } else if (data?.url) {
-        setStatus('ok');
-        setMessage('Google OAuth is configured correctly');
+        setMessage(`Google OAuth is not configured: ${(result as any).error.message}`);
       } else {
-        setStatus('error');
-        setMessage('Unable to generate OAuth URL - check backend settings');
+        setStatus('ok');
+        setMessage('Google OAuth is configured correctly (managed auth)');
       }
     } catch (error: any) {
       setStatus('error');

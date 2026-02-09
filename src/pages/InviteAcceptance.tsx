@@ -64,8 +64,16 @@ export default function InviteAcceptance() {
         sessionStorage.setItem('expected_invitation_email', candidate.email);
       }
 
+      if (provider === 'google' || provider === 'apple') {
+        const { error: oauthError } = await lovable.auth.signInWithOAuth(provider, {
+          redirect_uri: `${window.location.origin}/invite/${token}/complete`,
+        });
+        if (oauthError) throw oauthError;
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
-        provider,
+        provider: provider as any,
         options: {
           redirectTo: `${window.location.origin}/invite/${token}/complete`,
           scopes: provider === 'linkedin' ? 'r_emailaddress r_liteprofile' : undefined

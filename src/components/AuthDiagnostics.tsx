@@ -60,22 +60,20 @@ export const AuthDiagnostics = () => {
         };
       }
 
-      // Test Google OAuth URL generation
+      // Test Google OAuth via managed auth
       try {
-        const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/auth`,
-            skipBrowserRedirect: true,
-          }
+        const oauthResult = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: `${window.location.origin}/auth`,
         });
         
         results.oauth = {
-          googleUrl: oauthData?.url,
-          error: oauthError?.message,
+          managed: true,
+          redirected: (oauthResult as any)?.redirected,
+          error: (oauthResult as any)?.error?.message,
         };
       } catch (e: any) {
         results.oauth = {
+          managed: true,
           error: e.message,
         };
       }
