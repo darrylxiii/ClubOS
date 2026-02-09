@@ -369,25 +369,17 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],
     },
-    // === FINANCE (merged: Revenue & Finance + Inventory & Assets) ===
+    // === FINANCE (consolidated into Finance Hub) ===
     {
       title: "Finance",
       icon: DollarSign,
       items: [
-        { name: "Revenue Ladder", icon: Trophy, path: "/admin/revenue-ladder", badge: "New" },
-        { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
-        { name: "Deal Pipeline", icon: Target, path: "/admin/deals-pipeline" },
-        { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
-        { name: "Revenue Shares", icon: Percent, path: "/admin/revenue-shares" },
-        { name: "Expense Tracking", icon: Receipt, path: "/admin/expenses" },
-        { name: "Invoice Reconciliation", icon: FileCheck, path: "/admin/reconciliation" },
-        { name: "Moneybird", icon: CreditCard, path: "/admin/moneybird" },
+        { name: "Finance Hub", icon: DollarSign, path: "/admin/finance" },
         { name: "Inventory Dashboard", icon: LayoutDashboard, path: "/admin/inventory/dashboard" },
         { name: "Asset Register", icon: Database, path: "/admin/inventory" },
         { name: "Depreciation Schedule", icon: TrendingUp, path: "/admin/inventory/depreciation" },
         { name: "Intangible Assets", icon: Briefcase, path: "/admin/inventory/intangible" },
         { name: "KIA Optimization", icon: DollarSign, path: "/admin/inventory/kia" },
-        { name: "Deal Pipeline Settings", icon: Cog, path: "/admin/deal-pipeline-settings" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
     },
