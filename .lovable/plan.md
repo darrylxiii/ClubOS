@@ -1,64 +1,51 @@
 
 
-# Lock Apple and LinkedIn Login Buttons with "Coming Soon"
+# Fix Auth Page: Hardcode "INVITE-ONLY" Text + Bold Uppercase Title
 
-## What Changes
+## Problem
+1. The badge text shows the raw translation key `signup.inviteOnly` instead of the expected text
+2. The user wants the text to read **"INVITE-ONLY"** (with hyphen) -- not "INVITE ONLY"
+3. The "Welcome Back" title needs to be **Inter Bold, ALL CAPS** to match brand identity
 
-The Apple and LinkedIn sign-in buttons on the Auth page (`src/pages/Auth.tsx`, lines 695-717) will be visually locked with a professional, luxury-styled treatment:
+## Changes (2 files)
 
-- Buttons become non-clickable (disabled state)
-- Reduced opacity with a subtle locked appearance
-- A small "Coming Soon" badge overlaid on each button
-- A lock icon replaces or supplements the existing icon
-- No toast or error if clicked -- simply inert
+### File 1: `src/pages/Auth.tsx` (line 524, 529)
 
-## Design Approach
+**Title (line 524):** Change font class from `font-semibold` to `font-black uppercase`
 
-Each button gets wrapped in a `relative` container. The button itself receives `opacity-50 cursor-not-allowed pointer-events-none` styling. A small badge positioned at the top-right corner reads "Coming Soon" with a lock icon, styled with `bg-muted text-muted-foreground text-[10px] font-semibold uppercase tracking-wider` and a subtle border -- consistent with the refined luxury aesthetic.
-
-## Technical Details (1 file)
-
-### `src/pages/Auth.tsx`
-
-**Lines 695-717** -- Replace the two active buttons with locked versions:
-
-```tsx
-{/* Apple - Coming Soon */}
-<div className="relative">
-  <Button
-    type="button"
-    variant="outline"
-    disabled
-    className="w-full h-14 rounded-2xl font-semibold opacity-40 cursor-not-allowed"
-  >
-    <svg ...>{/* Apple icon */}</svg>
-    {t('signInWith', { provider: t('oauth.apple') })}
-  </Button>
-  <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
-    <Lock className="h-2.5 w-2.5" />
-    Coming Soon
-  </div>
-</div>
-
-{/* LinkedIn - Coming Soon */}
-<div className="relative">
-  <Button
-    type="button"
-    variant="outline"
-    disabled
-    className="w-full h-14 rounded-2xl font-semibold opacity-40 cursor-not-allowed"
-  >
-    <svg ...>{/* LinkedIn icon */}</svg>
-    {t('signInWith', { provider: t('oauth.linkedin') })}
-  </Button>
-  <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
-    <Lock className="h-2.5 w-2.5" />
-    Coming Soon
-  </div>
-</div>
+```
+Before: text-4xl tracking-tight text-foreground font-semibold
+After:  text-4xl tracking-tight text-foreground font-black uppercase
 ```
 
-- Add `Lock` to the existing lucide-react import
-- Remove `onClick={handleAppleAuth}` and `onClick={handleLinkedInAuth}` from the buttons
-- The `handleAppleAuth` and `handleLinkedInAuth` functions remain in code (no deletion) so they are ready to re-enable later
+**Badge text (line 529):** Hardcode "INVITE-ONLY" instead of using the translation function, to guarantee it always renders correctly regardless of i18n loading state
 
+```
+Before: {t('signup.inviteOnly')}
+After:  INVITE-ONLY
+```
+
+### File 2: `src/i18n/locales/en/auth.json` (line 27)
+
+Update the translation value to include the hyphen for consistency:
+
+```
+Before: "inviteOnly": "INVITE ONLY"
+After:  "inviteOnly": "INVITE-ONLY"
+```
+
+### File 3: `src/i18n/locales/nl/auth.json` (line 26)
+
+Same update for Dutch:
+
+```
+Before: "inviteOnly": "ALLEEN OP UITNODIGING"
+After:  "inviteOnly": "INVITE-ONLY"
+```
+
+(Keep it as "INVITE-ONLY" in Dutch too since it is a brand term)
+
+## Result
+
+- Title renders as **"WELCOME BACK"** (or **"JOIN THE QUANTUM CLUB"** for signup) in heavy bold uppercase
+- Badge always shows **"INVITE-ONLY"** with lock icon, no translation flicker
