@@ -227,7 +227,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
   );
 
   return (
-    <AppLayout>
+    <Wrapper>
       <div className="container mx-auto py-6 space-y-6">
         {/* Hero Header */}
         <div className="flex items-center justify-between">
