@@ -53,7 +53,7 @@ export default function FinanceHub() {
 
           {/* Tab Navigation */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="flex-wrap">
+            <TabsList className="h-auto flex flex-wrap gap-1 bg-muted/50 p-1">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>
               <TabsTrigger value="revenue-ladder">Revenue Ladder</TabsTrigger>
