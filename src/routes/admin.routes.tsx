@@ -416,53 +416,11 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/revenue-ladder"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <RevenueLadderPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/company-fees"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CompanyFeeConfiguration />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/deal-pipeline-settings"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <DealPipelineSettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/moneybird"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MoneybirdSettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+    {/* Finance Hub redirects */}
+    <Route path="/admin/revenue-ladder" element={<Navigate to="/admin/finance?tab=revenue-ladder" replace />} />
+    <Route path="/admin/company-fees" element={<Navigate to="/admin/finance?tab=fees" replace />} />
+    <Route path="/admin/deal-pipeline-settings" element={<Navigate to="/admin/finance?tab=pipeline-settings" replace />} />
+    <Route path="/admin/moneybird" element={<Navigate to="/admin/finance?tab=moneybird" replace />} />
     />
     {/* Security Hub redirects */}
     <Route path="/admin/anti-hacking" element={<Navigate to="/admin/security" replace />} />
