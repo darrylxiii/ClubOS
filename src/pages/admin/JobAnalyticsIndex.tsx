@@ -204,6 +204,6 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
           </Card>
         </div>
       </RoleGate>
-    </AppLayout>
+    </Wrapper>
   );
 }

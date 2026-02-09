@@ -519,6 +519,6 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
           </SheetContent>
         </Sheet>
       </div>
-    </AppLayout>
+    </Wrapper>
   );
 }

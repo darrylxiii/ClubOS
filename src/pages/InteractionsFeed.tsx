@@ -250,6 +250,6 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
         </CardContent>
       </Card>
       </div>
-    </AppLayout>
+    </Wrapper>
   );
 }

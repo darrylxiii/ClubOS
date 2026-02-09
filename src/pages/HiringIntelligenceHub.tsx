@@ -544,6 +544,6 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </Wrapper>
   );
 }
