@@ -1,64 +1,55 @@
 
-# Fix: Tab Navigation Visibility + Page Titles (Site-Wide)
 
-## Root Causes Identified
+# Fix: Remove Tab Border + Eliminate Dead Space Above Tabs
 
-### 1. Tabs are invisible in dark mode
-The `TabsList` component uses `bg-card/30` (30% opacity of `hsl(0 0% 15%)`) which is nearly transparent on dark backgrounds. Combined with `text-muted-foreground` at 65% lightness, the tab labels blend into the background -- exactly what the screenshot shows.
+## Issues
 
-### 2. No page title on the Jobs Command Center
-The admin/partner view at `/jobs` jumps straight into the `<TabsList>` with no heading. There is no "Jobs" title visible.
+1. **Ugly black border behind tabs**: The `TabsList` component has `border border-border/40` and `shadow-[var(--shadow-glass-sm)]` which creates a visible dark border around the tab bar on the dark background.
 
-### 3. Tabs not sticky -- scroll under header
-The tab bar inside `/jobs` is inside the scrollable `<main>` area. When content is long, tabs scroll away and can end up underneath the fixed header (z-header: 100).
+2. **Dead space above admin tabs**: The admin view has `py-8` (32px top padding) on the container plus a title "Jobs" that only shows on the "All Jobs" tab context -- the other tabs have no title relevance. The sticky wrapper also adds `py-3` padding. Combined, this creates ~100px of dead space above the tabs.
 
-## Fix Plan (2 files)
+3. **Only "Jobs" shown as title**: The `<h1>Jobs</h1>` is static and does not change per tab.
 
-### File 1: `src/components/ui/tabs.tsx` (site-wide fix)
+## Changes
 
-**TabsList** -- Increase background opacity and ensure proper contrast:
+### File 1: `src/components/ui/tabs.tsx` (site-wide)
+
+Remove the border and shadow from `TabsList` so it blends cleanly into its container:
 
 ```
-Before: bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20
-After:  bg-card/80 backdrop-blur-[var(--blur-glass)] border border-border/40
+Before: bg-card/80 backdrop-blur-[var(--blur-glass)] border border-border/40 p-1 text-muted-foreground shadow-[var(--shadow-glass-sm)]
+After:  bg-card/80 backdrop-blur-[var(--blur-glass)] p-1 text-muted-foreground
 ```
 
-This changes the background from 30% to 80% opacity site-wide, making tab labels readable on every page in both light and dark mode. The border also gets bumped from 20% to 40% for definition.
+This removes `border border-border/40` and `shadow-[var(--shadow-glass-sm)]`.
 
-**TabsTrigger** -- Increase active state opacity:
+### File 2: `src/pages/Jobs.tsx` (admin/partner view, lines 437-442)
 
-```
-Before: data-[state=active]:bg-card/60
-After:  data-[state=active]:bg-card
-```
+1. **Remove the static "Jobs" title** -- the active tab already communicates context
+2. **Reduce container padding** from `py-8` to `pt-2 pb-8` to eliminate the dead space
+3. **Add a dynamic title** that changes based on the active tab, integrated into the sticky bar alongside the tabs
 
-Active tab gets a solid background for clear selection indication.
-
-### File 2: `src/pages/Jobs.tsx` (admin command center)
-
-**Add page title** above the tabs for the admin/partner view:
+The sticky wrapper becomes:
 
 ```tsx
-<h1 className="text-heading-2xl text-foreground font-black uppercase tracking-tight">
-  Jobs
-</h1>
-```
-
-**Make the tab bar sticky** so it stays visible when scrolling:
-
-```tsx
-<div className="sticky top-14 sm:top-16 z-30 bg-background/95 backdrop-blur-lg py-3 -mx-4 px-4 border-b border-border/20">
-  <TabsList className="h-auto flex-wrap">
-    ...
-  </TabsList>
+<div className="sticky top-14 sm:top-16 z-30 bg-background/95 backdrop-blur-lg pt-3 pb-2 -mx-4 px-4 border-b border-border/10">
+  <div className="flex items-center justify-between mb-2">
+    <h1 className="text-lg text-foreground font-bold uppercase tracking-tight">
+      {dynamic title based on activeHubTab}
+    </h1>
+  </div>
+  <TabsList>...</TabsList>
 </div>
 ```
 
-This pins the tabs below the fixed header, with a backdrop blur background so content scrolls behind it cleanly.
+Dynamic titles: All Jobs, Applications, Closed Jobs, Analytics, Intelligence, Interactions.
+
+This puts the title inside the sticky bar so it scrolls with the tabs and eliminates the dead space above.
 
 ## Result
 
-- Tab labels visible in both light and dark mode across the entire platform
-- Jobs page has a clear "JOBS" title matching brand typography
-- Tab navigation stays pinned and accessible while scrolling
-- No z-index conflicts with the header (tabs use z-30, header uses z-header/100)
+- No black border around tabs (site-wide)
+- Zero dead space above admin tabs
+- Each tab shows its own contextual title
+- Clean, tight layout matching the "Calm Command Center" aesthetic
+
