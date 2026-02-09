@@ -464,30 +464,9 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/anti-hacking"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AntiHacking />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/audit-log"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AdminAuditLog />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Security Hub redirects */}
+    <Route path="/admin/anti-hacking" element={<Navigate to="/admin/security" replace />} />
+    <Route path="/admin/audit-log" element={<Navigate to="/admin/security?tab=audit-log" replace />} />
     {/* /admin/employees consolidated into /admin/employee-management */}
     <Route
       path="/admin/employees/:employeeId"
