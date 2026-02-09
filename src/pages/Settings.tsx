@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
