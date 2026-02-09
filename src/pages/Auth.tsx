@@ -381,13 +381,9 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Full-page redirect — no popup to block
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: { access_type: 'offline', prompt: 'consent' }
-        }
+      // Managed auth with redirect — uses pre-authorized callback URL
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
 
       if (error) throw error;
