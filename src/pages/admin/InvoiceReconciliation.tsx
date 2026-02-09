@@ -465,8 +465,8 @@ export default function InvoiceReconciliation() {
 
       {selectedInvoice && (
         <ReconciliationModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
           invoice={selectedInvoice}
         />
       )}
