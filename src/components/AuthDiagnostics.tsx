@@ -59,10 +59,25 @@ export const AuthDiagnostics = () => {
         };
       }
 
-      // OAuth config check removed — cannot passively test without triggering a real sign-in flow
-      results.oauth = {
-        note: "OAuth health is verified on actual sign-in attempt",
-      };
+      // Test Google OAuth URL generation
+      try {
+        const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/auth`,
+            skipBrowserRedirect: true,
+          }
+        });
+        
+        results.oauth = {
+          googleUrl: oauthData?.url,
+          error: oauthError?.message,
+        };
+      } catch (e: any) {
+        results.oauth = {
+          error: e.message,
+        };
+      }
 
       setDiagnostics(results);
     } catch (error: any) {

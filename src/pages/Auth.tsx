@@ -15,12 +15,11 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useLoginLockout } from "@/hooks/useLoginLockout";
-import { lovable } from "@/integrations/lovable/index";
-
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 
 // Lazy load heavy components to reduce initial bundle
+const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
 
 // Inline Google icon SVG to avoid react-icons bundle size
 const GoogleIcon = () => (
@@ -381,9 +380,16 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Managed auth with redirect — uses pre-authorized callback URL
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      // Let Supabase handle PKCE and state internally - don't override state
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
       });
 
       if (error) throw error;
@@ -402,9 +408,12 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Managed auth with redirect — uses pre-authorized callback URL
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: window.location.origin,
+      // Let Supabase handle PKCE and state internally - don't override state
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: redirectUrl
+        }
       });
 
       if (error) throw error;
@@ -729,7 +738,7 @@ const Auth = () => {
         </CardContent>
       </Card>
 
-      
+      {resolvedTheme === 'dark' && <OAuthDiagnostics />}
     </div>
   );
 };
