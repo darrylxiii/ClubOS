@@ -535,54 +535,11 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/translation-editor"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TranslationEditor />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/translation-coverage"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TranslationCoverage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/brand-terms"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <BrandTermManager />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/translation-audit"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TranslationAuditLog />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Translations Hub redirects (old routes) */}
+    <Route path="/admin/translation-editor" element={<Navigate to="/admin/translations?tab=editor" replace />} />
+    <Route path="/admin/translation-coverage" element={<Navigate to="/admin/translations?tab=coverage" replace />} />
+    <Route path="/admin/brand-terms" element={<Navigate to="/admin/translations?tab=brand-terms" replace />} />
+    <Route path="/admin/translation-audit" element={<Navigate to="/admin/translations?tab=audit" replace />} />
     <Route
       path="/admin/templates"
       element={
