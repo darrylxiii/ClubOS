@@ -732,7 +732,7 @@ const Auth = () => {
         </CardContent>
       </Card>
 
-      {resolvedTheme === 'dark' && <OAuthDiagnostics />}
+      
     </div>
   );
 };
