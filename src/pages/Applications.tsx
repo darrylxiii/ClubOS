@@ -96,7 +96,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
   }
 
   return (
-    <AppLayout>
+    <Wrapper>
       {/* Background refetch indicator */}
       {isFetching && !isLoading && (
         <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right-2 duration-300">
