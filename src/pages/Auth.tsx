@@ -20,7 +20,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { logger } from "@/lib/logger";
 
 // Lazy load heavy components to reduce initial bundle
-const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
 
 // Inline Google icon SVG to avoid react-icons bundle size
 const GoogleIcon = () => (
