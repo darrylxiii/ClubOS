@@ -11,7 +11,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { CompanyInteraction } from '@/types/interaction';
 import { AppLayout } from '@/components/AppLayout';
 
-export default function InteractionsFeed() {
+export default function InteractionsFeed({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const [interactions, setInteractions] = useState<CompanyInteraction[]>([]);
   const [loading, setLoading] = useState(true);
