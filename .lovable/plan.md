@@ -1,34 +1,56 @@
 
 
-# Fix: Two Issues — Build Error + Google OAuth ERR_BLOCKED_BY_RESPONSE
+# Fix: Build Error + Google OAuth on Production Domain
 
-## Issue 1: Build Error (ENOENT @mantine/core/styles/ScrollArea.css)
+## Two Issues to Resolve
 
-**Root Cause:** `@blocknote/mantine` internally imports `@mantine/core/styles/ScrollArea.css`, but `@mantine/core` is not listed as a dependency in `package.json`. It was likely installed as a transitive dependency but is missing or at an incompatible version.
+### Issue 1: Build Error — Missing `@mantine/core` styles
 
-**Fix:** Install `@mantine/core` as an explicit dependency. This provides the CSS files that `@blocknote/mantine` needs.
+The `@blocknote/mantine` package imports `@mantine/core/styles/ScrollArea.css`, but `@mantine/core` is not installed. The previous attempt to add it did not take effect.
 
-## Issue 2: Google OAuth ERR_BLOCKED_BY_RESPONSE
+**Fix:** Add `@mantine/core@^7.0.0` as a dependency. If the package manager still fails to resolve it, add a Vite alias to suppress the missing CSS import as a fallback.
 
-**Root Cause:** The `ERR_BLOCKED_BY_RESPONSE` error from `accounts.google.com` means Google is refusing to render in an iframe or popup because of its `X-Frame-Options` / CSP headers. This happens when the managed auth library tries to open Google sign-in inside a popup or iframe within the Lovable preview environment.
+### Issue 2: Google OAuth — `ERR_BLOCKED_BY_RESPONSE` on production domain too
 
-The preview iframe at `*.lovableproject.com` is already embedded in the Lovable editor, creating a nested context. When the managed auth tries to open a popup from inside this iframe, the browser blocks it.
+You confirmed this error also occurs on `os.thequantumclub.com`, not just in the preview. This means the managed auth library (`@lovable.dev/cloud-auth-js`) is trying to open a **popup** for Google sign-in, and the popup is being blocked — either by the browser's popup blocker or by Google's response headers on the popup window.
 
-**This is a preview-environment issue, not a production bug.** On the published site (`os.thequantumclub.com`), the page is top-level and the popup will work. However, we should ensure the flow degrades gracefully.
+**Fix:** Switch from popup mode to **redirect mode**. Instead of opening a popup (which browsers aggressively block), redirect the full page to Google's consent screen. The user authenticates there and gets redirected back to your app. This is more reliable and the standard approach for production apps.
 
-**Fix:** No code changes needed for the OAuth flow itself — it is correctly configured. To verify it works, test on the published URL (`os.thequantumclub.com`) rather than the preview iframe. The `ERR_BLOCKED_BY_RESPONSE` will not occur there.
+The `lovable.auth.signInWithOAuth` function should handle this automatically when called from a top-level page context, but the popup may be the library's default behavior. We need to check if the library supports a `mode: "redirect"` option, or fall back to using `supabase.auth.signInWithOAuth()` with `redirectTo` pointing to the custom domain — which does a full-page redirect and avoids popup issues entirely.
+
+**Approach:** Revert Google and Apple OAuth to use `supabase.auth.signInWithOAuth()` with explicit `redirectTo: window.location.origin + "/auth"`. This performs a full-page redirect (no popup) and works reliably on custom domains. The managed auth module is not needed if the Supabase project's redirect allow list includes the custom domain.
 
 ## Changes
 
 | File | Change |
 |---|---|
-| `package.json` | Add `@mantine/core` as explicit dependency to fix the build error |
+| `package.json` | Add `@mantine/core@^7.0.0` dependency |
+| `src/pages/Auth.tsx` | Revert Google + Apple handlers to `supabase.auth.signInWithOAuth()` with full-page redirect using `window.location.origin` |
+| `src/pages/InviteAcceptance.tsx` | Same — revert Google + Apple to direct Supabase calls |
+| `src/pages/Settings.tsx` | Same — revert Google + Apple to direct Supabase calls |
 
 ## Technical Details
 
-### Build fix
-Add `@mantine/core` (matching the version range compatible with `@blocknote/mantine@^0.44.2`). The BlockNote 0.44.x series uses Mantine 7.x, so we install `@mantine/core@^7.0.0`.
+### OAuth handler pattern (Auth.tsx)
 
-### OAuth verification
-After the build is fixed and deployed, test Google sign-in on `https://os.thequantumclub.com/auth` to confirm the redirect stays on the custom domain. The preview environment cannot be used to test OAuth popups due to iframe nesting restrictions.
+```typescript
+// Google — full-page redirect, no popup
+const { error } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: `${window.location.origin}/auth`,
+    queryParams: { access_type: 'offline', prompt: 'consent' }
+  }
+});
+```
+
+This uses a standard full-page redirect flow. Google renders on its own tab/page (not in a popup), the user consents, and Google redirects back to `os.thequantumclub.com/auth`. No popup to block.
+
+### Why revert from managed auth?
+
+The managed auth library uses a popup-based flow that is being blocked both in the Lovable preview and on the production domain. The standard Supabase redirect flow is more reliable and achieves the same custom-domain redirect as long as `redirectTo` uses `window.location.origin`.
+
+### Build fix
+
+Install `@mantine/core@^7.0.0` to provide the CSS files that `@blocknote/mantine` requires at build time.
 
