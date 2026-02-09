@@ -123,9 +123,10 @@ export const sharedRoutes = (
     <Route path="/compliance/data-classification" element={<Navigate to="/compliance?tab=classification" replace />} />
     <Route path="/compliance/audit-requests" element={<Navigate to="/compliance?tab=audits" replace />} />
 
-    {/* Financial & Billing Routes */}
-    <Route path="/admin/financial" element={<ProtectedRoute><FinancialDashboard /></ProtectedRoute>} />
-    <Route path="/admin/deals-pipeline" element={<ProtectedRoute><DealsPipeline /></ProtectedRoute>} />
+    {/* Finance Hub - Consolidated */}
+    <Route path="/admin/finance" element={<ProtectedRoute><FinanceHub /></ProtectedRoute>} />
+    <Route path="/admin/financial" element={<Navigate to="/admin/finance" replace />} />
+    <Route path="/admin/deals-pipeline" element={<Navigate to="/admin/finance?tab=pipeline" replace />} />
     <Route path="/partner/billing" element={<ProtectedRoute><PartnerBilling /></ProtectedRoute>} />
   </>
 );
