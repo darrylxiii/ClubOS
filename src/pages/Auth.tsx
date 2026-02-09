@@ -15,6 +15,7 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useLoginLockout } from "@/hooks/useLoginLockout";
+import { lovable } from "@/integrations/lovable/index";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 
