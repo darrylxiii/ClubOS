@@ -26,7 +26,7 @@ const CLOSURE_TYPE_CONFIG = {
   on_hold: { label: "On Hold", icon: Pause, color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
 };
 
-export default function ClosedJobs() {
+export default function ClosedJobs({ embedded = false }: { embedded?: boolean }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [selectedClosure, setSelectedClosure] = useState<any>(null);
