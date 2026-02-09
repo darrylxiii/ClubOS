@@ -381,15 +381,12 @@ const Auth = () => {
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
 
-      // Let Supabase handle PKCE and state internally - don't override state
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
+      // Use managed auth for correct custom domain redirect
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: redirectUrl,
+        extraParams: {
+          access_type: 'offline',
+          prompt: 'consent'
         }
       });
 
