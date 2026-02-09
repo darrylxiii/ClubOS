@@ -66,11 +66,8 @@ export default function InviteAcceptance() {
       }
 
       if (provider === 'google' || provider === 'apple') {
-        const { error: oauthError } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: {
-            redirectTo: `${window.location.origin}/invite/${token}/complete`,
-          }
+        const { error: oauthError } = await lovable.auth.signInWithOAuth(provider, {
+          redirect_uri: window.location.origin,
         });
         if (oauthError) throw oauthError;
         return;
