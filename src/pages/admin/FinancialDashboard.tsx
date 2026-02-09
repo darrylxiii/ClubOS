@@ -1,10 +1,8 @@
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RoleGate } from "@/components/RoleGate";
-import { RefreshCw } from "lucide-react";
-import { SectionLoader, InlineLoader } from "@/components/ui/unified-loader";
-import { useFinancialStats, usePlacementFees, usePartnerInvoices, useReferralPayouts } from "@/hooks/useFinancialData";
+import { InlineLoader } from "@/components/ui/unified-loader";
+import { SectionLoader } from "@/components/ui/unified-loader";
+import { usePlacementFees, usePartnerInvoices, useReferralPayouts } from "@/hooks/useFinancialData";
 import { PlacementFeesTable } from "@/components/financial/PlacementFeesTable";
 import { InvoicesTable } from "@/components/financial/InvoicesTable";
 import { PayoutApprovalQueue } from "@/components/financial/PayoutApprovalQueue";
@@ -40,194 +38,160 @@ export default function FinancialDashboard() {
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin']} showLoading>
-        <div className="container mx-auto py-8 px-4">
-          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Financial Dashboard</h1>
-              <p className="text-muted-foreground flex items-center gap-2">
-                Real-time revenue tracking powered by Moneybird
-                {isSyncing && (
-                  <InlineLoader text="Syncing..." className="text-primary" />
-                )}
-              </p>
-            </div>
-            <YearSelector
-              selectedYear={selectedYear}
-              onYearChange={setSelectedYear}
-              yearOptions={yearOptions}
-              availableYears={availableYears}
-            />
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <p className="text-muted-foreground flex items-center gap-2">
+          Real-time revenue tracking powered by Moneybird
+          {isSyncing && (
+            <InlineLoader text="Syncing..." className="text-primary" />
+          )}
+        </p>
+        <YearSelector
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          yearOptions={yearOptions}
+          availableYears={availableYears}
+        />
+      </div>
 
-          {/* Reconciliation & Missing Fees Alerts */}
-          <ReconciliationAlert year={selectedYear} />
-          <MissingFeesAlert />
+      <ReconciliationAlert year={selectedYear} />
+      <MissingFeesAlert />
 
-          {/* Invoice Status Summary */}
-          <div className="mb-6">
-            <InvoiceStatusSummary year={selectedYear} />
-          </div>
+      <InvoiceStatusSummary year={selectedYear} />
 
-          {/* Revenue Summary Cards */}
-          <div className="mb-8">
-            <RevenueSummaryCards metrics={metrics} isLoading={metricsLoading} />
-          </div>
+      <RevenueSummaryCards metrics={metrics} isLoading={metricsLoading} />
 
-          {/* Financial Overview Chart */}
-          <Card className="mb-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Overview</CardTitle>
+          <CardDescription>Monthly invoiced vs collected revenue</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FinancialOverviewChart year={selectedYear} />
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top Clients</CardTitle>
+            <CardDescription>Highest revenue partners this year</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TopClientsTable year={selectedYear} limit={5} />
+          </CardContent>
+        </Card>
+        <PaymentAgingChart year={selectedYear} />
+      </div>
+
+      <CashFlowProjection year={selectedYear} />
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <ProfitLossCard year={selectedYear} />
+        <FinancialEventsTimeline />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Moneybird Invoices</CardTitle>
+          <CardDescription>Individual invoice records synced from Moneybird</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MoneybirdInvoicesTable year={selectedYear} limit={20} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Cash Flow Pipeline</CardTitle>
+          <CardDescription>Visual pipeline of expected revenue by collection status</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CashFlowPipeline year={selectedYear} />
+        </CardContent>
+      </Card>
+
+      <PlacementFeeHealth />
+
+      <Tabs defaultValue="fees" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="fees">Placement Fees</TabsTrigger>
+          <TabsTrigger value="commissions">Commissions</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
+          <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+          <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="fees" className="space-y-4">
+          <Card>
             <CardHeader>
-              <CardTitle>Revenue Overview</CardTitle>
-              <CardDescription>Monthly invoiced vs collected revenue</CardDescription>
+              <CardTitle>Placement Fees</CardTitle>
+              <CardDescription>Track and manage placement fees generated from hires</CardDescription>
             </CardHeader>
             <CardContent>
-              <FinancialOverviewChart year={selectedYear} />
+              {feesLoading ? (
+                <SectionLoader text="Loading Fees..." className="min-h-[200px]" />
+              ) : (
+                <PlacementFeesTable fees={fees || []} />
+              )}
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Top Clients and Payment Aging */}
-          <div className="grid gap-6 md:grid-cols-2 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Top Clients</CardTitle>
-                <CardDescription>Highest revenue partners this year</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TopClientsTable year={selectedYear} limit={5} />
-              </CardContent>
-            </Card>
-            <PaymentAgingChart year={selectedYear} />
-          </div>
+        <TabsContent value="commissions" className="space-y-4">
+          <EmployeeCommissionsTable year={selectedYear} />
+        </TabsContent>
 
-          {/* Cash Flow Projection */}
-          <div className="mb-8">
-            <CashFlowProjection year={selectedYear} />
-          </div>
-
-          {/* P&L and Events Timeline */}
-          <div className="grid gap-6 md:grid-cols-2 mb-8">
-            <ProfitLossCard year={selectedYear} />
-            <FinancialEventsTimeline />
-          </div>
-
-          {/* Moneybird Invoices Table */}
-          <Card className="mb-8">
+        <TabsContent value="invoices" className="space-y-4">
+          <Card>
             <CardHeader>
-              <CardTitle>Moneybird Invoices</CardTitle>
-              <CardDescription>Individual invoice records synced from Moneybird</CardDescription>
+              <CardTitle>Partner Invoices</CardTitle>
+              <CardDescription>Generate and manage invoices for partner companies</CardDescription>
             </CardHeader>
             <CardContent>
-              <MoneybirdInvoicesTable year={selectedYear} limit={20} />
+              {invoicesLoading ? (
+                <SectionLoader text="Loading Invoices..." className="min-h-[200px]" />
+              ) : (
+                <InvoicesTable invoices={invoices || []} />
+              )}
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Cash Flow Pipeline */}
-          <Card className="mb-8">
+        <TabsContent value="payouts" className="space-y-4">
+          <Card>
             <CardHeader>
-              <CardTitle>Cash Flow Pipeline</CardTitle>
-              <CardDescription>Visual pipeline of expected revenue by collection status</CardDescription>
+              <CardTitle>Referral Payouts</CardTitle>
+              <CardDescription>Review and approve referral reward payouts</CardDescription>
             </CardHeader>
             <CardContent>
-              <CashFlowPipeline year={selectedYear} />
+              {payoutsLoading ? (
+                <SectionLoader text="Loading Payouts..." className="min-h-[200px]" />
+              ) : (
+                <PayoutApprovalQueue payouts={payouts || []} />
+              )}
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Placement Fee Health */}
-          <div className="mb-8">
-            <PlacementFeeHealth />
-          </div>
+        <TabsContent value="subscriptions" className="space-y-4">
+          <SubscriptionsTab />
+        </TabsContent>
 
-          {/* Detailed Tables */}
-          <Tabs defaultValue="fees" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="fees">Placement Fees</TabsTrigger>
-              <TabsTrigger value="commissions">Commissions</TabsTrigger>
-              <TabsTrigger value="invoices">Invoices</TabsTrigger>
-              <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
-              <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-              <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="fees" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Placement Fees</CardTitle>
-                  <CardDescription>
-                    Track and manage placement fees generated from hires
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {feesLoading ? (
-                    <SectionLoader text="Loading Fees..." className="min-h-[200px]" />
-                  ) : (
-                    <PlacementFeesTable fees={fees || []} />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="commissions" className="space-y-4">
-              <EmployeeCommissionsTable year={selectedYear} />
-            </TabsContent>
-
-            <TabsContent value="invoices" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Partner Invoices</CardTitle>
-                  <CardDescription>
-                    Generate and manage invoices for partner companies
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {invoicesLoading ? (
-                    <SectionLoader text="Loading Invoices..." className="min-h-[200px]" />
-                  ) : (
-                    <InvoicesTable invoices={invoices || []} />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="payouts" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Referral Payouts</CardTitle>
-                  <CardDescription>
-                    Review and approve referral reward payouts
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {payoutsLoading ? (
-                    <SectionLoader text="Loading Payouts..." className="min-h-[200px]" />
-                  ) : (
-                    <PayoutApprovalQueue payouts={payouts || []} />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="subscriptions" className="space-y-4">
-              <SubscriptionsTab />
-            </TabsContent>
-
-            <TabsContent value="vat" className="space-y-6">
-              <VATLiabilityCard year={selectedYear} />
-              <Card>
-                <CardHeader>
-                  <CardTitle>VAT Register</CardTitle>
-                  <CardDescription>
-                    Quarterly VAT breakdown for BTW-aangifte filing
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <VATRegisterTable year={selectedYear} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </RoleGate>
-    </AppLayout>
+        <TabsContent value="vat" className="space-y-6">
+          <VATLiabilityCard year={selectedYear} />
+          <Card>
+            <CardHeader>
+              <CardTitle>VAT Register</CardTitle>
+              <CardDescription>Quarterly VAT breakdown for BTW-aangifte filing</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <VATRegisterTable year={selectedYear} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

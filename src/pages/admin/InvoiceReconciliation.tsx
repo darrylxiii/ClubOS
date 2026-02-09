@@ -23,7 +23,6 @@ export default function InvoiceReconciliation() {
   const [modalOpen, setModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch all invoices with company info
   const { data: invoices, isLoading } = useQuery({
     queryKey: ['reconciliation-invoices', year],
     queryFn: async () => {
@@ -42,7 +41,6 @@ export default function InvoiceReconciliation() {
 
       if (error) throw error;
       
-      // Fetch company names for matched invoices
       const companyIds = data?.filter(i => i.company_id).map(i => i.company_id) || [];
       let companiesMap: Record<string, { id: string; name: string }> = {};
       
@@ -65,7 +63,6 @@ export default function InvoiceReconciliation() {
     },
   });
 
-  // Auto-reconcile mutation
   const reconcileMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke('reconcile-invoices', {
@@ -83,7 +80,6 @@ export default function InvoiceReconciliation() {
     },
   });
 
-  // Unlink mutation
   const unlinkMutation = useMutation({
     mutationFn: async (invoiceId: string) => {
       const { data, error } = await supabase.functions.invoke('reconcile-invoices', {
@@ -164,7 +160,7 @@ export default function InvoiceReconciliation() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">Invoice Reconciliation</h1>
@@ -191,7 +187,6 @@ export default function InvoiceReconciliation() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
@@ -235,7 +230,6 @@ export default function InvoiceReconciliation() {
         </Card>
       </div>
 
-      {/* Search */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -441,13 +435,15 @@ export default function InvoiceReconciliation() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {invoice.variance_amount ? (
-                          <span className="text-amber-600">
+                        {invoice.variance_amount && invoice.variance_amount !== 0 ? (
+                          <span className="text-red-500 font-medium">
                             {formatCurrency(invoice.variance_amount)}
                           </span>
-                        ) : '-'}
+                        ) : (
+                          <span className="text-green-500 text-sm">0.00</span>
+                        )}
                       </TableCell>
-                      <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                      <TableCell className="max-w-[200px] truncate text-muted-foreground text-sm">
                         {invoice.reconciliation_notes || '-'}
                       </TableCell>
                       <TableCell>
@@ -455,7 +451,6 @@ export default function InvoiceReconciliation() {
                           size="sm"
                           onClick={() => handleOpenReconcileModal(invoice)}
                         >
-                          <Edit2 className="h-4 w-4 mr-2" />
                           Review
                         </Button>
                       </TableCell>
@@ -468,12 +463,13 @@ export default function InvoiceReconciliation() {
         </TabsContent>
       </Tabs>
 
-      {/* Reconciliation Modal */}
-      <ReconciliationModal
-        invoice={selectedInvoice}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-      />
+      {selectedInvoice && (
+        <ReconciliationModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          invoice={selectedInvoice}
+        />
+      )}
     </div>
   );
 }
