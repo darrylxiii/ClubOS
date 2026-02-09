@@ -245,19 +245,21 @@ export const adminRoutes = (
     />
     {/* Translations Hub redirects */}
     <Route path="/admin/languages" element={<Navigate to="/admin/translations?tab=languages" replace />} />
+    {/* SECURITY HUB */}
     <Route
-      path="/admin/disaster-recovery"
+      path="/admin/security"
       element={
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <DisasterRecoveryPage />
+              <SecurityHub />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
-    {/* /admin/dr-runbooks and /admin/comprehensive-dr consolidated into /admin/disaster-recovery */}
+    {/* Security Hub redirects */}
+    <Route path="/admin/disaster-recovery" element={<Navigate to="/admin/security?tab=disaster-recovery" replace />} />
     <Route
       path="/admin/member-requests"
       element={
