@@ -230,30 +230,21 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* TRANSLATIONS HUB */}
     <Route
       path="/admin/translations"
       element={
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <TranslationManager />
+              <TranslationsHub />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/languages"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <LanguageManager />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Translations Hub redirects */}
+    <Route path="/admin/languages" element={<Navigate to="/admin/translations?tab=languages" replace />} />
     <Route
       path="/admin/disaster-recovery"
       element={
