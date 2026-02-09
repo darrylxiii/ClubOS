@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
@@ -417,9 +418,19 @@ const Settings = () => {
     debouncedSave();
   };
 
-  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
+  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github' | 'google' | 'apple') => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
+
+      // Route Google/Apple through managed auth for correct custom domain redirect
+      if (provider === 'google' || provider === 'apple') {
+        const { error } = await lovable.auth.signInWithOAuth(provider, {
+          redirect_uri: redirectTo,
+        });
+        if (error) throw error;
+        toast.success(`Redirecting to ${provider} login...`);
+        return;
+      }
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as any,
