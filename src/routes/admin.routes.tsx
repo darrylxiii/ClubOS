@@ -7,6 +7,11 @@ import { PageLoader } from "@/components/PageLoader";
 // Admin Pages
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
+
+// Hub Pages (Phase 1 consolidation)
+const TranslationsHub = lazy(() => import("@/pages/admin/TranslationsHub"));
+const SecurityHub = lazy(() => import("@/pages/admin/SecurityHub"));
+const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
@@ -225,43 +230,36 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* TRANSLATIONS HUB */}
     <Route
       path="/admin/translations"
       element={
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <TranslationManager />
+              <TranslationsHub />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
+    {/* Translations Hub redirects */}
+    <Route path="/admin/languages" element={<Navigate to="/admin/translations?tab=languages" replace />} />
+    {/* SECURITY HUB */}
     <Route
-      path="/admin/languages"
+      path="/admin/security"
       element={
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <LanguageManager />
+              <SecurityHub />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/disaster-recovery"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <DisasterRecoveryPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* /admin/dr-runbooks and /admin/comprehensive-dr consolidated into /admin/disaster-recovery */}
+    {/* Security Hub redirects */}
+    <Route path="/admin/disaster-recovery" element={<Navigate to="/admin/security?tab=disaster-recovery" replace />} />
     <Route
       path="/admin/member-requests"
       element={
@@ -418,78 +416,14 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/revenue-ladder"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <RevenueLadderPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/company-fees"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CompanyFeeConfiguration />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/deal-pipeline-settings"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <DealPipelineSettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/moneybird"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MoneybirdSettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/anti-hacking"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AntiHacking />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/audit-log"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AdminAuditLog />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Finance Hub redirects */}
+    <Route path="/admin/revenue-ladder" element={<Navigate to="/admin/finance?tab=revenue-ladder" replace />} />
+    <Route path="/admin/company-fees" element={<Navigate to="/admin/finance?tab=fees" replace />} />
+    <Route path="/admin/deal-pipeline-settings" element={<Navigate to="/admin/finance?tab=pipeline-settings" replace />} />
+    <Route path="/admin/moneybird" element={<Navigate to="/admin/finance?tab=moneybird" replace />} />
+    {/* Security Hub redirects */}
+    <Route path="/admin/anti-hacking" element={<Navigate to="/admin/security" replace />} />
+    <Route path="/admin/audit-log" element={<Navigate to="/admin/security?tab=audit-log" replace />} />
     {/* /admin/employees consolidated into /admin/employee-management */}
     <Route
       path="/admin/employees/:employeeId"
@@ -539,54 +473,11 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/translation-editor"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TranslationEditor />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/translation-coverage"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TranslationCoverage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/brand-terms"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <BrandTermManager />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/translation-audit"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TranslationAuditLog />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Translations Hub redirects (old routes) */}
+    <Route path="/admin/translation-editor" element={<Navigate to="/admin/translations?tab=editor" replace />} />
+    <Route path="/admin/translation-coverage" element={<Navigate to="/admin/translations?tab=coverage" replace />} />
+    <Route path="/admin/brand-terms" element={<Navigate to="/admin/translations?tab=brand-terms" replace />} />
+    <Route path="/admin/translation-audit" element={<Navigate to="/admin/translations?tab=audit" replace />} />
     <Route
       path="/admin/templates"
       element={
@@ -761,21 +652,17 @@ export const adminRoutes = (
     <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/job-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsIndex /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/conversation-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ConversationAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/security-events" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SecurityEventDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/user-engagement" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><UserEngagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Security Hub redirects */}
+    <Route path="/admin/security-events" element={<Navigate to="/admin/security?tab=events" replace />} />
 
-    {/* Missing Operations Routes */}
-    <Route path="/admin/god-mode" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><GodMode /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/error-logs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ErrorLogs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Security Hub redirects */}
+    <Route path="/admin/god-mode" element={<Navigate to="/admin/security?tab=god-mode" replace />} />
+    <Route path="/admin/error-logs" element={<Navigate to="/admin/security?tab=error-logs" replace />} />
 
-    {/* Revenue Shares */}
-    <Route path="/admin/revenue-shares" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RevenueSharesPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Invoice Reconciliation */}
-    <Route path="/admin/reconciliation" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InvoiceReconciliationPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Expense Tracking */}
-    <Route path="/admin/expenses" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ExpenseTrackingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Finance Hub redirects */}
+    <Route path="/admin/revenue-shares" element={<Navigate to="/admin/finance?tab=revenue-shares" replace />} />
+    <Route path="/admin/reconciliation" element={<Navigate to="/admin/finance?tab=reconciliation" replace />} />
+    <Route path="/admin/expenses" element={<Navigate to="/admin/finance?tab=expenses" replace />} />
 
     {/* Closed Jobs */}
     <Route path="/admin/closed-jobs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClosedJobs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
@@ -809,5 +696,8 @@ export const adminRoutes = (
 
     {/* WhatsApp Booking Admin */}
     <Route path="/admin/whatsapp-booking" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><WhatsAppBookingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* User Engagement - standalone for Phase 2 Analytics Hub */}
+    <Route path="/admin/user-engagement" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><UserEngagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );

@@ -349,17 +349,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
       ],
     },
-    // === SECURITY & COMPLIANCE ===
+    // === SECURITY & COMPLIANCE (consolidated into Security Hub) ===
     {
       title: "Security & Monitoring",
       icon: Shield,
       items: [
-        { name: "Security Events", icon: Shield, path: "/admin/security-events" },
-        { name: "Anti-Hacking Center", icon: Shield, path: "/admin/anti-hacking" },
-        { name: "Admin Audit Log", icon: FileCheck, path: "/admin/audit-log" },
-        { name: "Error Logs", icon: AlertTriangle, path: "/admin/error-logs" },
-        { name: "God Mode", icon: Shield, path: "/admin/god-mode" },
-        { name: "Disaster Recovery", icon: Shield, path: "/admin/disaster-recovery" },
+        { name: "Security Hub", icon: Shield, path: "/admin/security" },
       ],
     },
     // === ANALYTICS (moved from Operations) ===
@@ -374,29 +369,21 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],
     },
-    // === FINANCE (merged: Revenue & Finance + Inventory & Assets) ===
+    // === FINANCE (consolidated into Finance Hub) ===
     {
       title: "Finance",
       icon: DollarSign,
       items: [
-        { name: "Revenue Ladder", icon: Trophy, path: "/admin/revenue-ladder", badge: "New" },
-        { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
-        { name: "Deal Pipeline", icon: Target, path: "/admin/deals-pipeline" },
-        { name: "Company Fees", icon: DollarSign, path: "/admin/company-fees" },
-        { name: "Revenue Shares", icon: Percent, path: "/admin/revenue-shares" },
-        { name: "Expense Tracking", icon: Receipt, path: "/admin/expenses" },
-        { name: "Invoice Reconciliation", icon: FileCheck, path: "/admin/reconciliation" },
-        { name: "Moneybird", icon: CreditCard, path: "/admin/moneybird" },
+        { name: "Finance Hub", icon: DollarSign, path: "/admin/finance" },
         { name: "Inventory Dashboard", icon: LayoutDashboard, path: "/admin/inventory/dashboard" },
         { name: "Asset Register", icon: Database, path: "/admin/inventory" },
         { name: "Depreciation Schedule", icon: TrendingUp, path: "/admin/inventory/depreciation" },
         { name: "Intangible Assets", icon: Briefcase, path: "/admin/inventory/intangible" },
         { name: "KIA Optimization", icon: DollarSign, path: "/admin/inventory/kia" },
-        { name: "Deal Pipeline Settings", icon: Cog, path: "/admin/deal-pipeline-settings" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
     },
-    // === GOVERNANCE & COMPLIANCE (merged: Translations + Compliance + Enterprise & Valuation) ===
+    // === GOVERNANCE & COMPLIANCE (consolidated: Translations into Translations Hub) ===
     {
       title: "Governance & Compliance",
       icon: FileCheck,
@@ -409,12 +396,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Subprocessors", icon: Building2, path: "/compliance/subprocessors" },
         { name: "Data Classification", icon: Database, path: "/compliance/data-classification" },
         { name: "Audit Requests", icon: AlertTriangle, path: "/compliance/audit-requests" },
-        { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
-        { name: "Translation Editor", icon: Edit, path: "/admin/translation-editor" },
-        { name: "Translation Coverage", icon: BarChart3, path: "/admin/translation-coverage" },
-        { name: "Brand Terms", icon: Shield, path: "/admin/brand-terms" },
-        { name: "Translation Audit", icon: FileCheck, path: "/admin/translation-audit" },
-        { name: "Language Manager", icon: Globe, path: "/admin/languages" },
+        { name: "Translations Hub", icon: Languages, path: "/admin/translations" },
       ],
     },
     // === CLUB PROJECTS (kept separate - distinct domain) ===
