@@ -383,7 +383,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
     },
-    // === GOVERNANCE & COMPLIANCE (merged: Translations + Compliance + Enterprise & Valuation) ===
+    // === GOVERNANCE & COMPLIANCE (consolidated: Translations into Translations Hub) ===
     {
       title: "Governance & Compliance",
       icon: FileCheck,
@@ -396,12 +396,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Subprocessors", icon: Building2, path: "/compliance/subprocessors" },
         { name: "Data Classification", icon: Database, path: "/compliance/data-classification" },
         { name: "Audit Requests", icon: AlertTriangle, path: "/compliance/audit-requests" },
-        { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
-        { name: "Translation Editor", icon: Edit, path: "/admin/translation-editor" },
-        { name: "Translation Coverage", icon: BarChart3, path: "/admin/translation-coverage" },
-        { name: "Brand Terms", icon: Shield, path: "/admin/brand-terms" },
-        { name: "Translation Audit", icon: FileCheck, path: "/admin/translation-audit" },
-        { name: "Language Manager", icon: Globe, path: "/admin/languages" },
+        { name: "Translations Hub", icon: Languages, path: "/admin/translations" },
       ],
     },
     // === CLUB PROJECTS (kept separate - distinct domain) ===

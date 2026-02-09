@@ -696,5 +696,8 @@ export const adminRoutes = (
 
     {/* WhatsApp Booking Admin */}
     <Route path="/admin/whatsapp-booking" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><WhatsAppBookingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+
+    {/* User Engagement - standalone for Phase 2 Analytics Hub */}
+    <Route path="/admin/user-engagement" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><UserEngagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
   </>
 );
