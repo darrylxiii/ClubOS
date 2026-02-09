@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
-import { Search, SlidersHorizontal, Check, Zap } from "lucide-react";
+import { Search, SlidersHorizontal, Check, Zap, Map, FileText, Briefcase, Archive, BarChart3, Brain, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralDialog } from "@/components/ReferralDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,18 +17,28 @@ import { useRole } from "@/contexts/RoleContext";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { HorizontalFilters } from "@/components/jobs/HorizontalFilters";
 import type { JobFilters } from "@/components/jobs/JobFilterSidebar";
 import { cn } from "@/lib/utils";
 import { JobsForYouSection } from "@/components/jobs/JobsForYouSection";
 import { ClubSyncConfirmationDialog } from "@/components/clubsync";
 
+// Lazy-loaded tab content components
+import { MapTabContent } from "@/components/jobs/tabs/MapTabContent";
+import { ApplicationsTabContent } from "@/components/jobs/tabs/ApplicationsTabContent";
+import { CompanyApplicationsTabContent } from "@/components/jobs/tabs/CompanyApplicationsTabContent";
+import { ClosedJobsTabContent } from "@/components/jobs/tabs/ClosedJobsTabContent";
+import { AnalyticsTabContent } from "@/components/jobs/tabs/AnalyticsTabContent";
+import { IntelligenceTabContent } from "@/components/jobs/tabs/IntelligenceTabContent";
+import { InteractionsTabContent } from "@/components/jobs/tabs/InteractionsTabContent";
+
 type SortOption = "match" | "newest" | "salary";
 
 const Jobs = () => {
   const { user } = useAuth();
   const { currentRole: role, companyId: userCompanyId } = useRole();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
@@ -56,9 +66,21 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [userCurrency, setUserCurrency] = useState<Currency>('EUR');
   const [clubSyncDialogOpen, setClubSyncDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("all");
   const [matchFilterActive, setMatchFilterActive] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
+
+  // URL-based tab state
+  const urlTab = searchParams.get('tab');
+  const isAdminOrPartner = (role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin');
+  
+  // Default tabs per role
+  const defaultCandidateTab = "opportunities";
+  const defaultAdminTab = "all";
+  const activeHubTab = urlTab || (isAdminOrPartner ? defaultAdminTab : defaultCandidateTab);
+
+  const setActiveHubTab = (tab: string) => {
+    setSearchParams({ tab }, { replace: true });
+  };
 
   // Fetch user's preferred currency and settings
   useEffect(() => {
@@ -193,18 +215,13 @@ const Jobs = () => {
       const jobsNeedingScores = jobs.filter(job => job.matchScore === null);
       if (jobsNeedingScores.length === 0) return;
 
-      console.log(`Calculating match scores for ${jobsNeedingScores.length} jobs...`);
-
       for (const job of jobsNeedingScores.slice(0, 5)) {
         try {
           const { data, error } = await supabase.functions.invoke('calculate-enhanced-match', {
             body: { jobId: job.id }
           });
 
-          if (error) {
-            console.error('Error calculating match score for job:', job.id, error);
-            continue;
-          }
+          if (error) continue;
 
           if (data?.score) {
             setJobs(prevJobs =>
@@ -298,8 +315,7 @@ const Jobs = () => {
 
   const handleViewAllTopMatches = () => {
     setMatchFilterActive(true);
-    setActiveTab("all");
-    // Scroll to tabs section
+    setActiveHubTab("opportunities");
     tabsRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -412,18 +428,75 @@ const Jobs = () => {
 
   const navigate = useNavigate();
 
-  // If user is Partner or Admin, show Partner-specific view
-  if ((role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin')) {
+  // ═══════════════════════════════════════════════
+  // ADMIN / PARTNER: Jobs Command Center
+  // ═══════════════════════════════════════════════
+  if (isAdminOrPartner) {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8">
-          <PartnerJobsHome companyId={userCompanyId || null} />
+          <Tabs value={activeHubTab} onValueChange={setActiveHubTab} className="space-y-6">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <TabsList className="h-auto flex-wrap">
+                <TabsTrigger value="all" className="gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  All Jobs
+                </TabsTrigger>
+                <TabsTrigger value="applications" className="gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  Applications
+                </TabsTrigger>
+                <TabsTrigger value="closed" className="gap-1.5">
+                  <Archive className="w-3.5 h-3.5" />
+                  Closed
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="gap-1.5">
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="intelligence" className="gap-1.5">
+                  <Brain className="w-3.5 h-3.5" />
+                  Intelligence
+                </TabsTrigger>
+                <TabsTrigger value="interactions" className="gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Interactions
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="all">
+              <PartnerJobsHome companyId={userCompanyId || null} />
+            </TabsContent>
+
+            <TabsContent value="applications">
+              <CompanyApplicationsTabContent />
+            </TabsContent>
+
+            <TabsContent value="closed">
+              <ClosedJobsTabContent />
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <AnalyticsTabContent />
+            </TabsContent>
+
+            <TabsContent value="intelligence">
+              <IntelligenceTabContent />
+            </TabsContent>
+
+            <TabsContent value="interactions">
+              <InteractionsTabContent />
+            </TabsContent>
+          </Tabs>
         </div>
       </AppLayout>
     );
   }
 
-  // Candidate view (default) - NEW ELITE ARCHITECTURE
+  // ═══════════════════════════════════════════════
+  // CANDIDATE: Jobs Hub
+  // ═══════════════════════════════════════════════
   return (
     <AppLayout>
       <OceanBackgroundVideo />
@@ -482,206 +555,229 @@ const Jobs = () => {
                 }
                 
                 if (checked) {
-                  // Open confirmation dialog when enabling
                   setClubSyncDialogOpen(true);
                 } else {
-                  // Disable directly
                   handleClubSyncToggle(false);
                 }
               }} 
             />
           </div>
 
-          {/* Horizontal Filters Bar */}
-          <HorizontalFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            onReset={() => setFilters({
-              locations: [],
-              salaryMin: 0,
-              salaryMax: 500000,
-              employmentTypes: [],
-              remoteOnly: false,
-              hybridIncluded: false,
-              experienceYears: [0, 20],
-              companies: [],
-              departments: [],
-            })}
-            totalJobs={jobs.length}
-            filteredJobsCount={filteredJobs.length}
-            availableCompanies={availableCompanies}
-            availableDepartments={availableDepartments}
-            isExpanded={filtersExpanded}
-            onToggleExpanded={setFiltersExpanded}
-          />
-
-          {/* Jobs For You Section */}
-          {!loading && user && (
-            <JobsForYouSection
-              jobs={filteredJobs}
-              savedJobIds={savedJobIds}
-              onApply={handleApply}
-              onRefer={handleRefer}
-              onClubSync={handleClubSync}
-              onToggleSave={toggleSaveJob}
-              onViewAll={handleViewAllTopMatches}
-              matchThreshold={85}
-              maxJobs={5}
-            />
-          )}
-
-          {/* Tabs */}
+          {/* Hub Tabs */}
           <div ref={tabsRef}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <div className="flex items-center justify-between">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="all">
-                  All Jobs ({filteredJobs.length})
-                </TabsTrigger>
-                <TabsTrigger value="saved">
-                  Saved Jobs ({savedJobs.length})
-                </TabsTrigger>
-              </TabsList>
+            <Tabs value={activeHubTab} onValueChange={setActiveHubTab} className="space-y-6">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <TabsList className="h-auto flex-wrap">
+                  <TabsTrigger value="opportunities" className="gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5" />
+                    Opportunities ({filteredJobs.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="applications" className="gap-1.5">
+                    <FileText className="w-3.5 h-3.5" />
+                    My Applications
+                  </TabsTrigger>
+                  <TabsTrigger value="saved" className="gap-1.5">
+                    Saved ({savedJobs.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="map" className="gap-1.5">
+                    <Map className="w-3.5 h-3.5" />
+                    Map
+                  </TabsTrigger>
+                </TabsList>
 
-              {/* Sort Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <SlidersHorizontal className="w-4 h-4" />
-                    Sort: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-card/95 backdrop-blur-xl border-border z-50" align="end">
-                  <DropdownMenuItem onClick={() => setSortBy("match")} className="cursor-pointer">
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
-                    Match %
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
-                    Newest
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy("salary")} className="cursor-pointer">
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
-                    Salary (High to Low)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                {/* Sort Dropdown - only for job browsing tabs */}
+                {(activeHubTab === "opportunities" || activeHubTab === "saved") && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <SlidersHorizontal className="w-4 h-4" />
+                        Sort: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-card/95 backdrop-blur-xl border-border z-50" align="end">
+                      <DropdownMenuItem onClick={() => setSortBy("match")} className="cursor-pointer">
+                        <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
+                        Match %
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
+                        <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
+                        Newest
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSortBy("salary")} className="cursor-pointer">
+                        <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
+                        Salary (High to Low)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
 
-            <TabsContent value="all" className="space-y-6">
-              {loading ? (
-                <div className={cn(
-                  "grid gap-6 transition-all duration-300",
-                  filtersExpanded 
-                    ? "grid-cols-1 md:grid-cols-2" 
-                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                )}>
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="h-80 rounded-2xl bg-card/10 backdrop-blur-sm animate-pulse" />
-                  ))}
-                </div>
-              ) : (
-                <div className={cn(
-                  "grid gap-6 transition-all duration-300",
-                  filtersExpanded 
-                    ? "grid-cols-1 md:grid-cols-2" 
-                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                )}>
-                  {filteredJobs
-                    .filter(job => 
-                      job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-                    )
-                    .map(job => (
-                      <JobCard 
-                        key={job.id} 
-                        id={job.id} 
-                        title={job.title} 
-                        company={job.company} 
-                        companyLogo={job.companyLogo} 
-                        companySlug={job.companySlug} 
-                        location={job.location} 
-                        type={job.type} 
-                        postedDate={job.postedDate} 
-                        tags={job.tags} 
-                        salary={job.convertedSalary || undefined} 
-                        matchScore={job.matchScore ?? undefined} 
-                        isSaved={savedJobIds.includes(job.id)}
-                        isContinuous={job.isContinuous}
-                        hiredCount={job.hiredCount}
-                        targetHireCount={job.targetHireCount}
-                        onApply={() => handleApply(job.title)} 
-                        onRefer={() => handleRefer(job.id, job.title, job.company)} 
-                        onClubSync={() => handleClubSync(job.title)} 
-                        onToggleSave={() => toggleSaveJob(job.id, job.title)} 
-                      />
-                    ))}
-                </div>
+              {/* Horizontal Filters - only for browsing tabs */}
+              {(activeHubTab === "opportunities" || activeHubTab === "saved") && (
+                <HorizontalFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  onReset={() => setFilters({
+                    locations: [],
+                    salaryMin: 0,
+                    salaryMax: 500000,
+                    employmentTypes: [],
+                    remoteOnly: false,
+                    hybridIncluded: false,
+                    experienceYears: [0, 20],
+                    companies: [],
+                    departments: [],
+                  })}
+                  totalJobs={jobs.length}
+                  filteredJobsCount={filteredJobs.length}
+                  availableCompanies={availableCompanies}
+                  availableDepartments={availableDepartments}
+                  isExpanded={filtersExpanded}
+                  onToggleExpanded={setFiltersExpanded}
+                />
               )}
-            </TabsContent>
 
-            <TabsContent value="saved" className="space-y-6">
-              {loadingSavedJobs ? (
-                <div className={cn(
-                  "grid gap-6 transition-all duration-300",
-                  filtersExpanded 
-                    ? "grid-cols-1 md:grid-cols-2" 
-                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                )}>
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-80 rounded-2xl bg-card/10 backdrop-blur-sm animate-pulse" />
-                  ))}
-                </div>
-              ) : savedJobs.length === 0 ? (
-                <div className="text-center py-24">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted/20 flex items-center justify-center">
-                    <Search className="w-12 h-12 text-muted-foreground" />
+              {/* Jobs For You Section - only on opportunities tab */}
+              {activeHubTab === "opportunities" && !loading && user && (
+                <JobsForYouSection
+                  jobs={filteredJobs}
+                  savedJobIds={savedJobIds}
+                  onApply={handleApply}
+                  onRefer={handleRefer}
+                  onClubSync={handleClubSync}
+                  onToggleSave={toggleSaveJob}
+                  onViewAll={handleViewAllTopMatches}
+                  matchThreshold={85}
+                  maxJobs={5}
+                />
+              )}
+
+              {/* ── Opportunities Tab ── */}
+              <TabsContent value="opportunities" className="space-y-6">
+                {loading ? (
+                  <div className={cn(
+                    "grid gap-6 transition-all duration-300",
+                    filtersExpanded 
+                      ? "grid-cols-1 md:grid-cols-2" 
+                      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                  )}>
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="h-80 rounded-2xl bg-card/10 backdrop-blur-sm animate-pulse" />
+                    ))}
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">No saved jobs yet</h3>
-                  <p className="text-muted-foreground">Start exploring and save opportunities that interest you</p>
-                </div>
-              ) : (
-                <div className={cn(
-                  "grid gap-6 transition-all duration-300",
-                  filtersExpanded 
-                    ? "grid-cols-1 md:grid-cols-2" 
-                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                )}>
-                  {savedJobs
-                    .filter(job => 
-                      job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-                    )
-                    .map(job => (
-                      <JobCard 
-                        key={job.id} 
-                        id={job.id} 
-                        title={job.title} 
-                        company={job.company} 
-                        companyLogo={job.companyLogo} 
-                        companySlug={job.companySlug} 
-                        location={job.location} 
-                        type={job.type} 
-                        postedDate={job.postedDate} 
-                        tags={job.tags} 
-                        salary={job.convertedSalary || undefined} 
-                        matchScore={job.matchScore ?? undefined} 
-                        isSaved={true}
-                        isContinuous={job.isContinuous}
-                        hiredCount={job.hiredCount}
-                        targetHireCount={job.targetHireCount}
-                        onApply={() => handleApply(job.title)} 
-                        onRefer={() => handleRefer(job.id, job.title, job.company)} 
-                        onClubSync={() => handleClubSync(job.title)} 
-                        onToggleSave={() => toggleSaveJob(job.id, job.title)} 
-                      />
+                ) : (
+                  <div className={cn(
+                    "grid gap-6 transition-all duration-300",
+                    filtersExpanded 
+                      ? "grid-cols-1 md:grid-cols-2" 
+                      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                  )}>
+                    {filteredJobs
+                      .filter(job => 
+                        job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        job.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                      )
+                      .map(job => (
+                        <JobCard 
+                          key={job.id} 
+                          id={job.id} 
+                          title={job.title} 
+                          company={job.company} 
+                          companyLogo={job.companyLogo} 
+                          companySlug={job.companySlug} 
+                          location={job.location} 
+                          type={job.type} 
+                          postedDate={job.postedDate} 
+                          tags={job.tags} 
+                          salary={job.convertedSalary || undefined} 
+                          matchScore={job.matchScore ?? undefined} 
+                          isSaved={savedJobIds.includes(job.id)}
+                          isContinuous={job.isContinuous}
+                          hiredCount={job.hiredCount}
+                          targetHireCount={job.targetHireCount}
+                          onApply={() => handleApply(job.title)} 
+                          onRefer={() => handleRefer(job.id, job.title, job.company)} 
+                          onClubSync={() => handleClubSync(job.title)} 
+                          onToggleSave={() => toggleSaveJob(job.id, job.title)} 
+                        />
+                      ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* ── Applications Tab ── */}
+              <TabsContent value="applications">
+                <ApplicationsTabContent />
+              </TabsContent>
+
+              {/* ── Saved Tab ── */}
+              <TabsContent value="saved" className="space-y-6">
+                {loadingSavedJobs ? (
+                  <div className={cn(
+                    "grid gap-6 transition-all duration-300",
+                    filtersExpanded 
+                      ? "grid-cols-1 md:grid-cols-2" 
+                      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                  )}>
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="h-80 rounded-2xl bg-card/10 backdrop-blur-sm animate-pulse" />
                     ))}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+                  </div>
+                ) : savedJobs.length === 0 ? (
+                  <div className="text-center py-24">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted/20 flex items-center justify-center">
+                      <Search className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2">No saved jobs yet</h3>
+                    <p className="text-muted-foreground">Start exploring and save opportunities that interest you</p>
+                  </div>
+                ) : (
+                  <div className={cn(
+                    "grid gap-6 transition-all duration-300",
+                    filtersExpanded 
+                      ? "grid-cols-1 md:grid-cols-2" 
+                      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                  )}>
+                    {savedJobs
+                      .filter(job => 
+                        job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        job.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                      )
+                      .map(job => (
+                        <JobCard 
+                          key={job.id} 
+                          id={job.id} 
+                          title={job.title} 
+                          company={job.company} 
+                          companyLogo={job.companyLogo} 
+                          companySlug={job.companySlug} 
+                          location={job.location} 
+                          type={job.type} 
+                          postedDate={job.postedDate} 
+                          tags={job.tags} 
+                          salary={job.convertedSalary || undefined} 
+                          matchScore={job.matchScore ?? undefined} 
+                          isSaved={true}
+                          isContinuous={job.isContinuous}
+                          hiredCount={job.hiredCount}
+                          targetHireCount={job.targetHireCount}
+                          onApply={() => handleApply(job.title)} 
+                          onRefer={() => handleRefer(job.id, job.title, job.company)} 
+                          onClubSync={() => handleClubSync(job.title)} 
+                          onToggleSave={() => toggleSaveJob(job.id, job.title)} 
+                        />
+                      ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* ── Map Tab ── */}
+              <TabsContent value="map">
+                <MapTabContent />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
