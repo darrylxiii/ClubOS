@@ -1,81 +1,70 @@
 
 
-# Fix: Tabs Not Visible in Finance Hub (and Security/Translations Hubs)
+# Fix: Invisible Tab Triggers in Finance, Security, and Translations Hubs
 
 ## Root Cause
 
-The `TabsList` base component in `src/components/ui/tabs.tsx` hardcodes `inline-flex h-10`. This creates two problems:
+The tabs ARE rendering in a grid layout. The problem is a **contrast/visibility issue**, not a layout issue:
 
-1. **`h-10`** constrains the container to exactly 40px tall -- any tabs that wrap to a second row are clipped/invisible.
-2. **`inline-flex`** conflicts with the `sm:grid` override. While `tailwind-merge` should handle this, the combination with `items-center justify-center` from the base creates layout conflicts where grid children collapse.
+- Inactive tab triggers use `text-muted-foreground` (from the base `TabsTrigger` component)
+- The `TabsList` wrapper uses `bg-muted/50` as its background
+- On the dark theme, these two colors are nearly identical, making inactive tabs invisible
+- Only the active tab ("Dashboard") is visible because it receives `data-[state=active]:bg-card` + `data-[state=active]:text-foreground` which provide contrast
 
-The result: only the first tab ("Dashboard") is visible; the remaining 8 are rendered but hidden by the fixed height.
+Additionally, the `overflow-x-auto -mx-1 px-1` wrapper div adds unnecessary complexity. Working hubs (AssessmentsHub, HiringIntelligenceHub, BulkOperationsHub) use a simple pattern without this wrapper.
 
 ## Solution
 
-Two-part fix:
+1. **Remove the wrapper div** -- Use the exact same simple pattern as working hubs
+2. **Add explicit text color to inactive tabs** -- Ensure `text-foreground/70` on the `TabsTrigger` elements so they are readable against the muted background
+3. **Apply consistently** across all three broken hubs
 
-### 1. Update `src/components/ui/tabs.tsx` -- Remove rigid height constraint
+## Changes
 
-Change the base `TabsList` styles from:
-```
-inline-flex h-10 items-center justify-center rounded-md p-1 text-muted-foreground
-```
-To:
-```
-inline-flex items-center rounded-md p-1 text-muted-foreground
-```
+### File 1: `src/pages/admin/FinanceHub.tsx`
 
-Removing `h-10` and `justify-center` ensures the list can grow to fit wrapped content and does not fight with grid layouts.
-
-### 2. Rewrite all three Hub `TabsList` sections for maximum clarity
-
-Use explicit, non-conflicting class names that do not rely on tailwind-merge resolving conflicts with the base component.
-
-**FinanceHub.tsx** (9 tabs):
+Replace the entire tab navigation block (lines 55-68) with:
 ```tsx
-<div className="overflow-x-auto -mx-1 px-1">
-  <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
-    <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-    ...all 9 triggers...
+<Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+  <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 bg-muted/50 p-1 rounded-lg h-auto gap-1">
+    <TabsTrigger value="dashboard" className="text-foreground/70 data-[state=active]:text-foreground">Dashboard</TabsTrigger>
+    <TabsTrigger value="pipeline" className="text-foreground/70 data-[state=active]:text-foreground">Deal Pipeline</TabsTrigger>
+    <TabsTrigger value="revenue-ladder" className="text-foreground/70 data-[state=active]:text-foreground">Revenue Ladder</TabsTrigger>
+    <TabsTrigger value="fees" className="text-foreground/70 data-[state=active]:text-foreground">Company Fees</TabsTrigger>
+    <TabsTrigger value="revenue-shares" className="text-foreground/70 data-[state=active]:text-foreground">Revenue Shares</TabsTrigger>
+    <TabsTrigger value="expenses" className="text-foreground/70 data-[state=active]:text-foreground">Expenses</TabsTrigger>
+    <TabsTrigger value="reconciliation" className="text-foreground/70 data-[state=active]:text-foreground">Reconciliation</TabsTrigger>
+    <TabsTrigger value="moneybird" className="text-foreground/70 data-[state=active]:text-foreground">Moneybird</TabsTrigger>
+    <TabsTrigger value="pipeline-settings" className="text-foreground/70 data-[state=active]:text-foreground">Pipeline Settings</TabsTrigger>
   </TabsList>
-</div>
-```
-
-**SecurityHub.tsx** (6 tabs):
-```tsx
-<div className="overflow-x-auto -mx-1 px-1">
-  <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
-    ...6 triggers...
-  </TabsList>
-</div>
-```
-
-**TranslationsHub.tsx** (6 tabs):
-```tsx
-<div className="overflow-x-auto -mx-1 px-1">
-  <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
-    ...6 triggers...
-  </TabsList>
-</div>
+  ...TabsContent stays the same...
+</Tabs>
 ```
 
 Key changes:
-- Use `grid` directly (not `sm:grid`) so it applies at all breakpoints -- no `inline-flex` conflict
-- `w-full` ensures full width at all sizes
-- `h-auto` lets the grid expand for wrapped rows
-- `grid-cols-3` on mobile gives a clean 3-column layout; scales up at wider breakpoints
+- Remove the `<div className="overflow-x-auto -mx-1 px-1">` wrapper entirely
+- Add `className="space-y-6"` to `Tabs` root for spacing (matches working hubs)
+- Add `text-foreground/70 data-[state=active]:text-foreground` to every `TabsTrigger` so inactive tabs are visible at 70% opacity
 
-## Files Changed (4 total)
+### File 2: `src/pages/admin/SecurityHub.tsx`
 
-1. `src/components/ui/tabs.tsx` -- Remove `h-10` and `justify-center` from base `TabsList`
-2. `src/pages/admin/FinanceHub.tsx` -- Explicit grid classes on `TabsList`
-3. `src/pages/admin/SecurityHub.tsx` -- Same pattern
-4. `src/pages/admin/TranslationsHub.tsx` -- Same pattern
+Same pattern applied -- remove wrapper, add trigger text classes:
+```tsx
+<TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-muted/50 p-1 rounded-lg h-auto gap-1">
+```
 
-## Why This Fixes It
+### File 3: `src/pages/admin/TranslationsHub.tsx`
 
-- `grid` as the display mode at all breakpoints means there is zero conflict with the base `inline-flex` (tailwind-merge cleanly replaces it)
-- `h-auto` with no competing `h-10` means the container grows to fit all tab rows
-- No reliance on breakpoint-conditional display switching (`sm:grid`) that was failing to override the base styles
+Same pattern applied.
 
+## Why This Works
+
+- The working hubs (AssessmentsHub, BulkOperationsHub, HiringIntelligenceHub) all use `grid w-full grid-cols-N` directly on `TabsList` without any wrapper div
+- Adding `text-foreground/70` ensures inactive tab text is always visible regardless of theme, while `data-[state=active]:text-foreground` makes the active tab stand out at full opacity
+- Removing the scroll wrapper eliminates any potential clipping or layout collapse
+
+## Files Changed (3 total)
+
+1. `src/pages/admin/FinanceHub.tsx`
+2. `src/pages/admin/SecurityHub.tsx`
+3. `src/pages/admin/TranslationsHub.tsx`
