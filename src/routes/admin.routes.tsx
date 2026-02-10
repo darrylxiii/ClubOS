@@ -599,8 +599,15 @@ export const adminRoutes = (
     {/* RAG Analytics Dashboard */}
     <Route path="/admin/rag-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RAGAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
 
-    {/* Archived Candidates */}
-    <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Talent Hub (Phase 2 Round 6) */}
+    <Route path="/admin/talent-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TalentHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Legacy redirects to Talent Hub */}
+    <Route path="/admin/member-requests" element={<Navigate to="/admin/talent-hub" replace />} />
+    <Route path="/admin/merge" element={<Navigate to="/admin/talent-hub?tab=merge" replace />} />
+    <Route path="/archived-candidates" element={<Navigate to="/admin/talent-hub?tab=archived" replace />} />
+    <Route path="/admin/club-sync-requests" element={<Navigate to="/admin/talent-hub?tab=sync" replace />} />
+    <Route path="/admin/rejections" element={<Navigate to="/admin/talent-hub?tab=rejections" replace />} />
+    <Route path="/admin/email-templates" element={<Navigate to="/admin/talent-hub?tab=emails" replace />} />
 
     {/* Hidden one-time exports (no navigation) */}
     <Route path="/admin/exports" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminExports /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
