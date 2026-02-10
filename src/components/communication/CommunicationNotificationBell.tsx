@@ -159,7 +159,7 @@ export function CommunicationNotificationBell() {
             className="w-full text-xs"
             onClick={() => {
               setOpen(false);
-              navigate('/communication-intelligence');
+              navigate('/admin/communication-hub');
             }}
           >
             View all communication insights
