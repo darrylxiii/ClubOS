@@ -12,6 +12,7 @@ const CommunicationAnalyticsDashboard = lazy(() =>
 );
 const ConversationAnalytics = lazy(() => import('@/pages/admin/ConversationAnalytics'));
 const MessagingAnalytics = lazy(() => import('@/pages/MessagingAnalytics'));
+const FeedbackDatabase = lazy(() => import('@/pages/FeedbackDatabase'));
 
 const TAB_MAP: Record<string, string> = {
   intelligence: 'intelligence',
