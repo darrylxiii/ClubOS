@@ -13,6 +13,7 @@ const TranslationsHub = lazy(() => import("@/pages/admin/TranslationsHub"));
 const SecurityHub = lazy(() => import("@/pages/admin/SecurityHub"));
 const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
 const CommunicationHub = lazy(() => import("@/pages/admin/CommunicationHub"));
+const EngagementHub = lazy(() => import("@/pages/admin/EngagementHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
@@ -638,7 +639,9 @@ export const adminRoutes = (
     {/* WhatsApp Booking Admin */}
     <Route path="/admin/whatsapp-booking" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><WhatsAppBookingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
 
-    {/* User Engagement - standalone for Phase 2 Analytics Hub */}
-    <Route path="/admin/user-engagement" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><UserEngagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Engagement Hub (Phase 2 Round 5b) */}
+    <Route path="/admin/engagement-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EngagementHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Legacy redirects */}
+    <Route path="/admin/user-engagement" element={<Navigate to="/admin/engagement-hub?tab=engagement" replace />} />
   </>
 );

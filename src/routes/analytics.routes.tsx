@@ -7,7 +7,7 @@ import { PageLoader } from "@/components/PageLoader";
 // Analytics Pages
 const Analytics = lazy(() => import("@/pages/Analytics"));
 const CandidateAnalytics = lazy(() => import("@/pages/CandidateAnalytics"));
-const FunnelAnalytics = lazy(() => import("@/pages/FunnelAnalytics"));
+// FunnelAnalytics consolidated into Engagement Hub
 const RevenueAnalytics = lazy(() => import("@/pages/RevenueAnalytics"));
 // MLDashboard consolidated into EnhancedMLDashboard
 const EnhancedMLDashboard = lazy(() => import("@/pages/EnhancedMLDashboard"));
@@ -47,15 +47,7 @@ export const analyticsRoutes = (
     />
     <Route
       path="/funnel-analytics"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <FunnelAnalytics />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+      element={<Navigate to="/admin/engagement-hub?tab=funnel" replace />}
     />
     <Route
       path="/revenue-analytics"
