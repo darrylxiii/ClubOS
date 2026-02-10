@@ -351,18 +351,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/performance-matrix"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <QuantumPerformanceMatrixPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* performance-matrix redirects to Performance Hub */}
     <Route
       path="/admin/website-kpis"
       element={
