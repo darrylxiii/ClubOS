@@ -1,54 +1,81 @@
 
-# Fix: Finance Hub Tab Navigation Not Accessible
+
+# Fix: Tabs Not Visible in Finance Hub (and Security/Translations Hubs)
 
 ## Root Cause
 
-The `TabsList` component's base class includes `inline-flex h-10` which constrains the tab container to a single fixed-height row. Although the FinanceHub override adds `h-auto flex flex-wrap`, the 9 tab triggers are either being clipped or not rendering visibly due to layout conflicts between the base inline-flex behavior and the flex-wrap override.
+The `TabsList` base component in `src/components/ui/tabs.tsx` hardcodes `inline-flex h-10`. This creates two problems:
+
+1. **`h-10`** constrains the container to exactly 40px tall -- any tabs that wrap to a second row are clipped/invisible.
+2. **`inline-flex`** conflicts with the `sm:grid` override. While `tailwind-merge` should handle this, the combination with `items-center justify-center` from the base creates layout conflicts where grid children collapse.
+
+The result: only the first tab ("Dashboard") is visible; the remaining 8 are rendered but hidden by the fixed height.
 
 ## Solution
 
-Replace the current `flex-wrap` approach with a **CSS Grid layout**, which is the proven pattern used across the codebase for multi-tab navigation (used in `CandidateAnalytics`, `JobDashboard`, `DealsPipeline`, etc.). Grid layout explicitly allocates space for every tab, eliminating any overflow/clipping issues.
+Two-part fix:
 
-Additionally, wrap the `TabsList` in a horizontally scrollable container as a fallback for very narrow screens.
+### 1. Update `src/components/ui/tabs.tsx` -- Remove rigid height constraint
 
-## Changes
-
-### File: `src/pages/admin/FinanceHub.tsx`
-
-Update the TabsList from:
-```tsx
-<TabsList className="h-auto flex flex-wrap gap-1 bg-muted/50 p-1">
+Change the base `TabsList` styles from:
+```
+inline-flex h-10 items-center justify-center rounded-md p-1 text-muted-foreground
+```
+To:
+```
+inline-flex items-center rounded-md p-1 text-muted-foreground
 ```
 
-To:
+Removing `h-10` and `justify-center` ensures the list can grow to fit wrapped content and does not fight with grid layouts.
+
+### 2. Rewrite all three Hub `TabsList` sections for maximum clarity
+
+Use explicit, non-conflicting class names that do not rely on tailwind-merge resolving conflicts with the base component.
+
+**FinanceHub.tsx** (9 tabs):
 ```tsx
 <div className="overflow-x-auto -mx-1 px-1">
-  <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 h-auto gap-1 bg-muted/50 p-1">
-    ...tabs...
+  <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
+    <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+    ...all 9 triggers...
   </TabsList>
 </div>
 ```
 
-This ensures:
-- On small screens: horizontal scroll with all tabs visible
-- On medium screens: 3-column then 5-column grid wrapping
-- On large screens: all 9 tabs in a single row via 9-column grid
-
-### File: `src/pages/admin/SecurityHub.tsx`
-
-Apply the same fix (currently only has `flex-wrap` with no `h-auto` or `flex` override, making it even more broken):
+**SecurityHub.tsx** (6 tabs):
 ```tsx
-<TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1">
+<div className="overflow-x-auto -mx-1 px-1">
+  <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
+    ...6 triggers...
+  </TabsList>
+</div>
 ```
 
-### File: `src/pages/admin/TranslationsHub.tsx`
+**TranslationsHub.tsx** (6 tabs):
+```tsx
+<div className="overflow-x-auto -mx-1 px-1">
+  <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
+    ...6 triggers...
+  </TabsList>
+</div>
+```
 
-Same pattern applied for consistency across all 3 hubs.
+Key changes:
+- Use `grid` directly (not `sm:grid`) so it applies at all breakpoints -- no `inline-flex` conflict
+- `w-full` ensures full width at all sizes
+- `h-auto` lets the grid expand for wrapped rows
+- `grid-cols-3` on mobile gives a clean 3-column layout; scales up at wider breakpoints
 
-## Technical Detail
+## Files Changed (4 total)
 
-The CSS Grid approach works because:
-- `grid` is an explicit display mode that overrides `inline-flex` cleanly via tailwind-merge
-- `grid-cols-N` allocates exact space per tab -- no overflow/clipping possible
-- `h-auto` lets multi-row grids expand vertically on smaller screens
-- The `overflow-x-auto` wrapper provides a fallback for edge-case screen widths
+1. `src/components/ui/tabs.tsx` -- Remove `h-10` and `justify-center` from base `TabsList`
+2. `src/pages/admin/FinanceHub.tsx` -- Explicit grid classes on `TabsList`
+3. `src/pages/admin/SecurityHub.tsx` -- Same pattern
+4. `src/pages/admin/TranslationsHub.tsx` -- Same pattern
+
+## Why This Fixes It
+
+- `grid` as the display mode at all breakpoints means there is zero conflict with the base `inline-flex` (tailwind-merge cleanly replaces it)
+- `h-auto` with no competing `h-10` means the container grows to fit all tab rows
+- No reliance on breakpoint-conditional display switching (`sm:grid`) that was failing to override the base styles
+
