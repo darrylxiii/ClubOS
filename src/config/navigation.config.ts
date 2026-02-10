@@ -364,12 +364,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],
     },
-    // === FINANCE (consolidated into Finance Hub — inventory absorbed) ===
+    // === FINANCE ===
     {
       title: "Finance",
       icon: DollarSign,
       items: [
         { name: "Finance Hub", icon: DollarSign, path: "/admin/finance" },
+        { name: "Inventory Hub", icon: Package, path: "/admin/inventory" },
       ],
     },
     // === GOVERNANCE & COMPLIANCE (consolidated: Translations into Translations Hub) ===
