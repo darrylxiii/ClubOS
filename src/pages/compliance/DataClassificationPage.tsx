@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/lib/notify";
 import { Database, Shield, Lock, Eye, AlertTriangle } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
-
 export default function DataClassificationPage() {
   const [rules, setRules] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
