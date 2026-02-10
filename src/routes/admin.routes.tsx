@@ -591,7 +591,8 @@ export const adminRoutes = (
     {/* Phase 5: Analytics Dashboards */}
     <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/job-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsIndex /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/conversation-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ConversationAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/conversation-analytics" element={<Navigate to="/admin/communication-hub?tab=conversations" replace />} />
+    <Route path="/admin/communication-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CommunicationHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     {/* Security Hub redirects */}
     <Route path="/admin/security-events" element={<Navigate to="/admin/security?tab=events" replace />} />
 
