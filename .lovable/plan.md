@@ -1,70 +1,62 @@
 
 
-# Fix: Invisible Tab Triggers in Finance, Security, and Translations Hubs
+# Fix: Hub Tab Navigation -- Match Working Jobs Hub Pattern
 
-## Root Cause
+## Root Cause (confirmed by comparing working vs broken code)
 
-The tabs ARE rendering in a grid layout. The problem is a **contrast/visibility issue**, not a layout issue:
+The **Jobs Hub tabs work** because they use `TabsList className="h-auto flex-wrap"`, which cooperates with the base component's `inline-flex` display mode.
 
-- Inactive tab triggers use `text-muted-foreground` (from the base `TabsTrigger` component)
-- The `TabsList` wrapper uses `bg-muted/50` as its background
-- On the dark theme, these two colors are nearly identical, making inactive tabs invisible
-- Only the active tab ("Dashboard") is visible because it receives `data-[state=active]:bg-card` + `data-[state=active]:text-foreground` which provide contrast
+The **Assessments, Finance, Security, and Translations Hubs are broken** because they use `TabsList className="grid w-full grid-cols-N"`. The `grid` display mode is supposed to override `inline-flex` through tailwind-merge, but in practice this combination produces invisible or collapsed tabs.
 
-Additionally, the `overflow-x-auto -mx-1 px-1` wrapper div adds unnecessary complexity. Working hubs (AssessmentsHub, HiringIntelligenceHub, BulkOperationsHub) use a simple pattern without this wrapper.
+## Fix
 
-## Solution
+Rewrite all four broken hubs to use the exact same pattern as the working Jobs Hub: `h-auto flex-wrap` on `TabsList`, no custom `className` on `TabsTrigger`.
 
-1. **Remove the wrapper div** -- Use the exact same simple pattern as working hubs
-2. **Add explicit text color to inactive tabs** -- Ensure `text-foreground/70` on the `TabsTrigger` elements so they are readable against the muted background
-3. **Apply consistently** across all three broken hubs
+## Files Changed (4)
 
-## Changes
+### 1. `src/pages/admin/AssessmentsHub.tsx`
 
-### File 1: `src/pages/admin/FinanceHub.tsx`
-
-Replace the entire tab navigation block (lines 55-68) with:
+Change line 32 from:
 ```tsx
-<Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-  <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 bg-muted/50 p-1 rounded-lg h-auto gap-1">
-    <TabsTrigger value="dashboard" className="text-foreground/70 data-[state=active]:text-foreground">Dashboard</TabsTrigger>
-    <TabsTrigger value="pipeline" className="text-foreground/70 data-[state=active]:text-foreground">Deal Pipeline</TabsTrigger>
-    <TabsTrigger value="revenue-ladder" className="text-foreground/70 data-[state=active]:text-foreground">Revenue Ladder</TabsTrigger>
-    <TabsTrigger value="fees" className="text-foreground/70 data-[state=active]:text-foreground">Company Fees</TabsTrigger>
-    <TabsTrigger value="revenue-shares" className="text-foreground/70 data-[state=active]:text-foreground">Revenue Shares</TabsTrigger>
-    <TabsTrigger value="expenses" className="text-foreground/70 data-[state=active]:text-foreground">Expenses</TabsTrigger>
-    <TabsTrigger value="reconciliation" className="text-foreground/70 data-[state=active]:text-foreground">Reconciliation</TabsTrigger>
-    <TabsTrigger value="moneybird" className="text-foreground/70 data-[state=active]:text-foreground">Moneybird</TabsTrigger>
-    <TabsTrigger value="pipeline-settings" className="text-foreground/70 data-[state=active]:text-foreground">Pipeline Settings</TabsTrigger>
-  </TabsList>
-  ...TabsContent stays the same...
-</Tabs>
+<TabsList className="grid w-full grid-cols-5">
+```
+To:
+```tsx
+<TabsList className="h-auto flex-wrap">
 ```
 
-Key changes:
-- Remove the `<div className="overflow-x-auto -mx-1 px-1">` wrapper entirely
-- Add `className="space-y-6"` to `Tabs` root for spacing (matches working hubs)
-- Add `text-foreground/70 data-[state=active]:text-foreground` to every `TabsTrigger` so inactive tabs are visible at 70% opacity
+### 2. `src/pages/admin/FinanceHub.tsx`
 
-### File 2: `src/pages/admin/SecurityHub.tsx`
-
-Same pattern applied -- remove wrapper, add trigger text classes:
+- Remove the `triggerClass` constant (line 31)
+- Change the `TabsList` (line 56) from:
 ```tsx
-<TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-muted/50 p-1 rounded-lg h-auto gap-1">
+<TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 bg-muted/50 p-1 rounded-lg h-auto gap-1">
 ```
+To:
+```tsx
+<TabsList className="h-auto flex-wrap">
+```
+- Remove all `className={triggerClass}` from the 9 `TabsTrigger` elements (plain triggers, no custom class)
 
-### File 3: `src/pages/admin/TranslationsHub.tsx`
+### 3. `src/pages/admin/SecurityHub.tsx`
 
-Same pattern applied.
+- Remove the `triggerClass` constant (line 25)
+- Change `TabsList` (line 50) to `className="h-auto flex-wrap"`
+- Remove all `className={triggerClass}` from the 6 triggers
+
+### 4. `src/pages/admin/TranslationsHub.tsx`
+
+- Remove the `triggerClass` constant (line 29)
+- Change `TabsList` (line 55) to `className="h-auto flex-wrap"`
+- Remove all `className={triggerClass}` from the 6 triggers
 
 ## Why This Works
 
-- The working hubs (AssessmentsHub, BulkOperationsHub, HiringIntelligenceHub) all use `grid w-full grid-cols-N` directly on `TabsList` without any wrapper div
-- Adding `text-foreground/70` ensures inactive tab text is always visible regardless of theme, while `data-[state=active]:text-foreground` makes the active tab stand out at full opacity
-- Removing the scroll wrapper eliminates any potential clipping or layout collapse
+The Jobs Hub uses `h-auto flex-wrap` and it works. This pattern:
+- Keeps the base `inline-flex` display mode (no conflict)
+- `h-auto` removes any height constraint so tabs can wrap to multiple lines
+- `flex-wrap` allows wrapping on smaller screens
+- No `bg-muted/50` or custom trigger classes that create contrast issues
 
-## Files Changed (3 total)
+This is a copy-the-working-pattern fix, not a guess.
 
-1. `src/pages/admin/FinanceHub.tsx`
-2. `src/pages/admin/SecurityHub.tsx`
-3. `src/pages/admin/TranslationsHub.tsx`
