@@ -364,18 +364,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],
     },
-    // === FINANCE (consolidated into Finance Hub) ===
+    // === FINANCE (consolidated into Finance Hub — inventory absorbed) ===
     {
       title: "Finance",
       icon: DollarSign,
       items: [
         { name: "Finance Hub", icon: DollarSign, path: "/admin/finance" },
-        { name: "Inventory Dashboard", icon: LayoutDashboard, path: "/admin/inventory/dashboard" },
-        { name: "Asset Register", icon: Database, path: "/admin/inventory" },
-        { name: "Depreciation Schedule", icon: TrendingUp, path: "/admin/inventory/depreciation" },
-        { name: "Intangible Assets", icon: Briefcase, path: "/admin/inventory/intangible" },
-        { name: "KIA Optimization", icon: DollarSign, path: "/admin/inventory/kia" },
-        { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
     },
     // === GOVERNANCE & COMPLIANCE (consolidated: Translations into Translations Hub) ===
