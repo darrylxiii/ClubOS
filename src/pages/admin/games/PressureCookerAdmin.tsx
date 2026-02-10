@@ -57,7 +57,7 @@ export default function PressureCookerAdmin() {
         ? data.reduce((sum, r) => sum + (r.score || 0), 0) / data.length
         : 0;
       const avgTime = data?.length
-        ? data.reduce((sum, r) => sum + (r.time_spent_seconds || 0) / data.length
+        ? data.reduce((sum, r) => sum + (r.time_spent_seconds || 0), 0) / data.length
         : 0;
 
       return { totalCompletions, avgScore, avgTime };
