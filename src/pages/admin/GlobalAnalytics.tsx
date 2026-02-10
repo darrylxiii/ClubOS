@@ -10,7 +10,7 @@ import {
 import { Visual1 } from "@/components/ui/visual-1";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Building2, Users, Briefcase, TrendingUp, Clock, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
