@@ -278,7 +278,6 @@ const GlobalAnalytics = () => {
                     lines: [{ dataKey: 'applications', stroke: 'hsl(var(--primary))', strokeWidth: 2 }],
                     showGrid: true,
                     showTooltip: true,
-                    showLegend: true,
                   }}
                 />
               </CardContent>
