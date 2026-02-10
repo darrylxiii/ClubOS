@@ -29,7 +29,7 @@ const AssessmentsHub = memo(() => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="h-auto flex-wrap">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="send">Send Assessments</TabsTrigger>
             <TabsTrigger value="results">Results Dashboard</TabsTrigger>

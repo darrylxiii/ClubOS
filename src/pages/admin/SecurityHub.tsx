@@ -22,38 +22,14 @@ const TAB_MAP: Record<string, string> = {
   'disaster-recovery': 'disaster-recovery',
 };
 
-const triggerClass = "text-foreground/70 data-[state=active]:text-foreground";
 
-export default function SecurityHub() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'anti-hacking';
-
-  const handleTabChange = (value: string) => {
-    setSearchParams(value === 'anti-hacking' ? {} : { tab: value }, { replace: true });
-  };
-
-  return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'company_admin']}>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">SECURITY HUB</h1>
-            </div>
-            <p className="text-muted-foreground">
-              Threat monitoring, audit trails, and incident response
-            </p>
-          </div>
-
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-muted/50 p-1 rounded-lg h-auto gap-1">
-              <TabsTrigger value="anti-hacking" className={triggerClass}>Anti-Hacking</TabsTrigger>
-              <TabsTrigger value="events" className={triggerClass}>Security Events</TabsTrigger>
-              <TabsTrigger value="audit-log" className={triggerClass}>Audit Log</TabsTrigger>
-              <TabsTrigger value="error-logs" className={triggerClass}>Error Logs</TabsTrigger>
-              <TabsTrigger value="god-mode" className={triggerClass}>God Mode</TabsTrigger>
-              <TabsTrigger value="disaster-recovery" className={triggerClass}>Disaster Recovery</TabsTrigger>
+            <TabsList className="h-auto flex-wrap">
+              <TabsTrigger value="anti-hacking">Anti-Hacking</TabsTrigger>
+              <TabsTrigger value="events">Security Events</TabsTrigger>
+              <TabsTrigger value="audit-log">Audit Log</TabsTrigger>
+              <TabsTrigger value="error-logs">Error Logs</TabsTrigger>
+              <TabsTrigger value="god-mode">God Mode</TabsTrigger>
+              <TabsTrigger value="disaster-recovery">Disaster Recovery</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>
