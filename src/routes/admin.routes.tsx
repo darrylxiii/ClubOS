@@ -176,30 +176,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/merge"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MergeDashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/club-sync-requests"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <ClubSyncRequestsPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Merge Dashboard, Club Sync, Member Requests — now in Talent Hub (redirects below) */}
     {/* Company Management consolidated into /companies page */}
     <Route
       path="/admin/global-analytics"
