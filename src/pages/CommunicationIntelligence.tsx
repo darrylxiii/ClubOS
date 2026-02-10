@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Brain, Activity, Workflow, RefreshCw, Filter, TrendingUp, AlertTriangle, Users, MessageSquare } from 'lucide-react';
 import { PageTitle } from '@/components/ui/typography';
-import { PageTitle } from '@/components/ui/typography';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
