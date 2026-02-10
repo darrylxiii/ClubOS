@@ -210,10 +210,12 @@ export default function FunnelAnalytics() {
             data={statusData}
             height={300}
             config={{
-              dataKey: 'value',
-              nameKey: 'name',
+              pie: {
+                dataKey: 'value',
+                nameKey: 'name',
+                label: true,
+              },
               showTooltip: true,
-              showLabels: true,
             }}
           />
         </Card>
