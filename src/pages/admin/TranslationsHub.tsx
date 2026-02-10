@@ -48,7 +48,7 @@ export default function TranslationsHub() {
           {/* Tab Navigation */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <div className="overflow-x-auto -mx-1 px-1">
-              <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1">
+              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
                 <TabsTrigger value="manager">Manager</TabsTrigger>
                 <TabsTrigger value="editor">Editor</TabsTrigger>
                 <TabsTrigger value="coverage">Coverage</TabsTrigger>
