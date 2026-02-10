@@ -128,7 +128,7 @@ export const adminRoutes = (
     {R("/admin/jobs/:jobId/analytics", JobAnalyticsDashboard)}
     {R("/admin/job-analytics", JobAnalyticsIndex)}
     {R("/admin/agent-brain", AgentBrain)}
-    {R("/admin/rag-analytics", RAGAnalyticsDashboard)}
+    
     {R("/talent-pool", TalentPool)}
     {R("/admin/talent-pool/lists", TalentPoolLists)}
     {R("/admin/talent-pool/lists/:listId", TalentPoolListDetail)}
