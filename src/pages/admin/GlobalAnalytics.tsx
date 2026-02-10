@@ -300,7 +300,6 @@ const GlobalAnalytics = () => {
                     bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
                     showGrid: true,
                     showTooltip: true,
-                    showLegend: true,
                   }}
                 />
               </CardContent>

@@ -29,8 +29,6 @@ const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
 
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
-const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
-const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
 const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
 const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
 const EmployeeDetailPage = lazy(() => import("@/pages/admin/EmployeeDetailPage"));
