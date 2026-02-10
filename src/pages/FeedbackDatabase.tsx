@@ -999,7 +999,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
           <span />
         </CreateUnifiedTaskDialog>
       </div>
-    </AppLayout>
+    </div>
   );
 };
 
