@@ -82,12 +82,7 @@ const ErrorLogs = lazy(() => import("@/pages/admin/ErrorLogs"));
 const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
 const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
 
-// Inventory Pages
-const AssetRegister = lazy(() => import("@/pages/admin/inventory/AssetRegister"));
-const InventoryDashboard = lazy(() => import("@/pages/admin/inventory/InventoryDashboard"));
-const DepreciationSchedule = lazy(() => import("@/pages/admin/inventory/DepreciationSchedule"));
-const IntangibleAssets = lazy(() => import("@/pages/admin/inventory/IntangibleAssets"));
-const KIAOptimization = lazy(() => import("@/pages/admin/inventory/KIAOptimization"));
+// Inventory Pages — now embedded in Finance Hub (redirects below)
 
 // Bulk Operations
 const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
