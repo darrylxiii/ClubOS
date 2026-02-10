@@ -85,7 +85,7 @@ export default function ConversationAnalytics() {
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
           </div>
         </div>
-      </AppLayout>
+    );
     );
   }
 
