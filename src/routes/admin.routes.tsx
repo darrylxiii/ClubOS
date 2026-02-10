@@ -232,30 +232,7 @@ export const adminRoutes = (
     />
     {/* Security Hub redirects */}
     <Route path="/admin/disaster-recovery" element={<Navigate to="/admin/security?tab=disaster-recovery" replace />} />
-    <Route
-      path="/admin/member-requests"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MemberRequestsPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/email-templates"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <EmailTemplateManager />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Member Requests + Email Templates — now in Talent Hub */}
     <Route
       path="/admin/email-notifications"
       element={
