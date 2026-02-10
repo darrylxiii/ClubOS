@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notify";
 import { FileText, Search, Download, Send } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
-
 export default function LegalAgreementsPage() {
   const [agreements, setAgreements] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
@@ -50,8 +48,7 @@ export default function LegalAgreementsPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Legal Agreements</h1>
@@ -154,6 +151,5 @@ export default function LegalAgreementsPage() {
           )}
         </div>
       </div>
-    </AppLayout>
   );
 }

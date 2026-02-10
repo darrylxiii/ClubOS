@@ -374,19 +374,15 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Inventory Hub", icon: Package, path: "/admin/inventory" },
       ],
     },
-    // === GOVERNANCE & COMPLIANCE (consolidated: Translations into Translations Hub) ===
+    // === GOVERNANCE (consolidated: 5 compliance pages into Compliance Hub) ===
     {
-      title: "Governance & Compliance",
+      title: "Governance",
       icon: FileCheck,
       items: [
-        { name: "Compliance Dashboard", icon: Shield, path: "/compliance/dashboard" },
+        { name: "Compliance Hub", icon: Shield, path: "/compliance" },
         { name: "Enterprise Management", icon: Building2, path: "/admin/enterprise" },
         { name: "Due Diligence Center", icon: FileCheck, path: "/admin/due-diligence" },
         { name: "Risk Management", icon: Shield, path: "/admin/risk-management" },
-        { name: "Legal Agreements", icon: FileSignature, path: "/compliance/legal-agreements" },
-        { name: "Subprocessors", icon: Building2, path: "/compliance/subprocessors" },
-        { name: "Data Classification", icon: Database, path: "/compliance/data-classification" },
-        { name: "Audit Requests", icon: AlertTriangle, path: "/compliance/audit-requests" },
         { name: "Translations Hub", icon: Languages, path: "/admin/translations" },
       ],
     },

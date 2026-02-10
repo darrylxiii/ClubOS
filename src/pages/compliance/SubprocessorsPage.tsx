@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notify";
 import { Shield, Search, Plus, MapPin, CheckCircle2 } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
-
 export default function SubprocessorsPage() {
   const [subprocessors, setSubprocessors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,8 +48,7 @@ export default function SubprocessorsPage() {
   );
 
   return (
-    <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Subprocessors</h1>
@@ -150,6 +147,5 @@ export default function SubprocessorsPage() {
           )}
         </div>
       </div>
-    </AppLayout>
   );
 }

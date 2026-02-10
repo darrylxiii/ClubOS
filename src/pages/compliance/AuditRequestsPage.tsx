@@ -11,8 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AppLayout } from "@/components/AppLayout";
-
 interface AuditRequest {
   id: string;
   request_number: string;
@@ -171,8 +169,7 @@ export default function AuditRequestsPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Audit Requests</h1>
@@ -357,7 +354,6 @@ export default function AuditRequestsPage() {
           )}
         </div>
       </div>
-    </AppLayout>
   );
 }
 
