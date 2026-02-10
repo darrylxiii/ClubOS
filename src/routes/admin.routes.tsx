@@ -101,7 +101,7 @@ export const adminRoutes = (
     {R("/admin/candidates", AdminCandidates)}
     {R("/admin/global-analytics", GlobalAnalytics)}
     {R("/admin/ai-configuration", AIConfiguration)}
-    {R("/admin/feedback", FeedbackDatabase)}
+    
     {R("/admin/system-health", SystemHealth)}
     {R("/admin/data-health", DataHealthPage)}
     {R("/admin/website-kpis", WebsiteKPIDashboardPage)}
