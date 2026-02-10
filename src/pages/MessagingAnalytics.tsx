@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { MessageSquare, Send, Download, Clock, TrendingUp, Users } from 'lucide-react';
 import { format, subDays } from 'date-fns';
-import { AppLayout } from '@/components/AppLayout';
+
 
 export default function MessagingAnalytics() {
   const { user } = useAuth();
