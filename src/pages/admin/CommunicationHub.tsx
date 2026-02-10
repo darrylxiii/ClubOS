@@ -19,6 +19,7 @@ const TAB_MAP: Record<string, string> = {
   analytics: 'analytics',
   conversations: 'conversations',
   messaging: 'messaging',
+  feedback: 'feedback',
 };
 
 export default function CommunicationHub() {
