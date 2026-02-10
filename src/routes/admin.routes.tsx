@@ -433,17 +433,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/team-performance"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TeamPerformance />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+    {/* team-performance redirects to Performance Hub */}
     />
     {/* Translations Hub redirects (old routes) */}
     <Route path="/admin/translation-editor" element={<Navigate to="/admin/translations?tab=editor" replace />} />
