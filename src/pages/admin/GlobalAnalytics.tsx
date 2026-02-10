@@ -269,16 +269,18 @@ const GlobalAnalytics = () => {
                 <CardDescription>Track application volume over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={analytics.applicationsPerWeek}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="line"
+                  data={analytics.applicationsPerWeek}
+                  height={400}
+                  config={{
+                    xAxisKey: 'week',
+                    lines: [{ dataKey: 'applications', stroke: 'hsl(var(--primary))', strokeWidth: 2 }],
+                    showGrid: true,
+                    showTooltip: true,
+                    showLegend: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
