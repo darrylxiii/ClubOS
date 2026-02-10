@@ -257,16 +257,28 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     },
   ],
   admin: [
-    // === BUSINESS DEVELOPMENT (merged: WhatsApp + CRM & Outreach + Company Relationships) ===
+    // === CRM & SALES (pipeline, inbox, analytics, settings) ===
     {
-      title: "Business Development",
+      title: "CRM & Sales",
       icon: Contact,
-      badge: "New",
       items: [
         { name: "CRM Dashboard", icon: LayoutDashboard, path: "/crm" },
         { name: "Prospect Pipeline", icon: Target, path: "/crm/prospects" },
         { name: "Focus View", icon: Target, path: "/crm/focus" },
         { name: "Reply Inbox", icon: Mail, path: "/crm/inbox" },
+        { name: "CRM Analytics", icon: BarChart3, path: "/crm/analytics" },
+        { name: "Automations", icon: Zap, path: "/crm/automations" },
+        { name: "Integrations", icon: Link2, path: "/crm/integrations" },
+        { name: "CRM Settings", icon: Settings, path: "/crm/settings" },
+      ],
+      roles: ['admin', 'strategist'],
+    },
+    // === OUTREACH & PARTNERSHIPS (campaigns, WhatsApp, sequencing, partners) ===
+    {
+      title: "Outreach & Partnerships",
+      icon: Zap,
+      badge: "New",
+      items: [
         { name: "WhatsApp Hub", icon: Phone, path: "/admin/whatsapp", badge: "New" },
         { name: "WhatsApp Booking", icon: Calendar, path: "/admin/whatsapp-booking" },
         { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
@@ -275,10 +287,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Partner Funnel", icon: Target, path: "/partner-funnel" },
         { name: "Partner Relationships", icon: Link2, path: "/partner/relationships" },
         { name: "Relationships Dashboard", icon: Building2, path: "/admin/company-relationships" },
-        { name: "CRM Analytics", icon: BarChart3, path: "/crm/analytics" },
-        { name: "Automations", icon: Zap, path: "/crm/automations" },
-        { name: "Integrations", icon: Link2, path: "/crm/integrations" },
-        { name: "CRM Settings", icon: Settings, path: "/crm/settings" },
       ],
       roles: ['admin', 'strategist'],
     },
