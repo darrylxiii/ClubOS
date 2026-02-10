@@ -16,13 +16,6 @@ const InvoiceReconciliationPage = lazy(() => import('@/pages/admin/InvoiceReconc
 const MoneybirdSettings = lazy(() => import('@/pages/admin/MoneybirdSettings'));
 const DealPipelineSettings = lazy(() => import('@/pages/admin/DealPipelineSettings'));
 
-// Inventory tabs
-const InventoryDashboard = lazy(() => import('@/pages/admin/inventory/InventoryDashboard'));
-const AssetRegister = lazy(() => import('@/pages/admin/inventory/AssetRegister'));
-const DepreciationSchedule = lazy(() => import('@/pages/admin/inventory/DepreciationSchedule'));
-const IntangibleAssets = lazy(() => import('@/pages/admin/inventory/IntangibleAssets'));
-const KIAOptimization = lazy(() => import('@/pages/admin/inventory/KIAOptimization'));
-
 const TAB_MAP: Record<string, string> = {
   dashboard: 'dashboard',
   pipeline: 'pipeline',
@@ -33,12 +26,6 @@ const TAB_MAP: Record<string, string> = {
   reconciliation: 'reconciliation',
   moneybird: 'moneybird',
   'pipeline-settings': 'pipeline-settings',
-  // Inventory tabs
-  inventory: 'inventory',
-  assets: 'assets',
-  depreciation: 'depreciation',
-  intangible: 'intangible',
-  kia: 'kia',
 };
 
 export default function FinanceHub() {
