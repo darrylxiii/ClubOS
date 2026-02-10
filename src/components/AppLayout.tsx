@@ -189,7 +189,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         id="main-content"
         tabIndex={-1}
         className={cn(
-          "flex-1 w-full md:ml-20",
+          "flex-1 w-full md:ml-20 relative z-10",
           (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
             ? 'overflow-hidden'
             : 'overflow-y-auto'
