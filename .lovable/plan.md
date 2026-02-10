@@ -1,62 +1,60 @@
 
+# Nuclear Fix: Force Visibility on Hub Pages with Explicit Styles
 
-# Fix: Hub Tab Navigation -- Match Working Jobs Hub Pattern
+## Problem Identified
 
-## Root Cause (confirmed by comparing working vs broken code)
+After multiple fix attempts, the hub tab bars and page titles remain invisible despite the code being structurally correct. The tab content (e.g., Anti-Hacking dashboard) renders fine, but everything above it (title, subtitle, tab navigation) is not visible.
 
-The **Jobs Hub tabs work** because they use `TabsList className="h-auto flex-wrap"`, which cooperates with the base component's `inline-flex` display mode.
+The root cause is a **stacking context / background issue**: the `DynamicBackground` component renders a full-screen fixed overlay at `z-0`, and the `<main>` content area has NO z-index or background, so the title and tab bar -- which have transparent backgrounds -- become invisible against the background overlay. Tab content is visible because individual cards/components inside it have their own `bg-card` backgrounds.
 
-The **Assessments, Finance, Security, and Translations Hubs are broken** because they use `TabsList className="grid w-full grid-cols-N"`. The `grid` display mode is supposed to override `inline-flex` through tailwind-merge, but in practice this combination produces invisible or collapsed tabs.
+## Solution: 3-Part Fix
 
-## Fix
+### Part 1: Give `<main>` a relative z-index in `AppLayout.tsx`
 
-Rewrite all four broken hubs to use the exact same pattern as the working Jobs Hub: `h-auto flex-wrap` on `TabsList`, no custom `className` on `TabsTrigger`.
+Add `relative z-10` to the `<main>` element so all page content sits above the DynamicBackground overlay. This is a one-line change that fixes the stacking issue site-wide.
 
-## Files Changed (4)
-
-### 1. `src/pages/admin/AssessmentsHub.tsx`
-
-Change line 32 from:
 ```tsx
-<TabsList className="grid w-full grid-cols-5">
-```
-To:
-```tsx
-<TabsList className="h-auto flex-wrap">
+// Line ~191: Add relative z-10
+className={cn(
+  "flex-1 w-full md:ml-20 relative z-10",
+  ...
+)}
 ```
 
-### 2. `src/pages/admin/FinanceHub.tsx`
+### Part 2: Rewrite the base `TabsTrigger` in `tabs.tsx` for guaranteed visibility
 
-- Remove the `triggerClass` constant (line 31)
-- Change the `TabsList` (line 56) from:
+The inactive trigger has NO explicit text color -- it relies on inheriting `text-muted-foreground` from the parent `TabsList`. This inheritance chain is fragile. Add an explicit inactive text color directly on the trigger:
+
 ```tsx
-<TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 bg-muted/50 p-1 rounded-lg h-auto gap-1">
+// TabsTrigger base classes -- add text-foreground/70 for inactive state
+"inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium text-foreground/70 ring-offset-background transition-all data-[state=active]:bg-card ... data-[state=active]:text-foreground ..."
 ```
-To:
+
+### Part 3: Add background context to hub tab navigation
+
+Give each hub's `TabsList` an explicit semi-transparent background so the tabs are always readable regardless of what's behind them:
+
+All three hub files (Finance, Security, Translations) plus Assessments:
+
 ```tsx
-<TabsList className="h-auto flex-wrap">
+<TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
 ```
-- Remove all `className={triggerClass}` from the 9 `TabsTrigger` elements (plain triggers, no custom class)
 
-### 3. `src/pages/admin/SecurityHub.tsx`
+This matches the approach used successfully in other parts of the platform (e.g., `SalesKPIDashboard` uses `bg-muted/50`).
 
-- Remove the `triggerClass` constant (line 25)
-- Change `TabsList` (line 50) to `className="h-auto flex-wrap"`
-- Remove all `className={triggerClass}` from the 6 triggers
+## Files Changed (6)
 
-### 4. `src/pages/admin/TranslationsHub.tsx`
+1. **`src/components/AppLayout.tsx`** -- Add `relative z-10` to `<main>` (1 line)
+2. **`src/components/ui/tabs.tsx`** -- Add `text-foreground/70` to `TabsTrigger` base
+3. **`src/pages/admin/FinanceHub.tsx`** -- Add background to `TabsList`
+4. **`src/pages/admin/SecurityHub.tsx`** -- Add background to `TabsList`
+5. **`src/pages/admin/TranslationsHub.tsx`** -- Add background to `TabsList`
+6. **`src/pages/admin/AssessmentsHub.tsx`** -- Add background to `TabsList`
 
-- Remove the `triggerClass` constant (line 29)
-- Change `TabsList` (line 55) to `className="h-auto flex-wrap"`
-- Remove all `className={triggerClass}` from the 6 triggers
+## Why This Will Work
 
-## Why This Works
+- Part 1 (z-index on main) ensures ALL page content -- titles, text, tabs -- renders ABOVE the DynamicBackground overlay. This is likely the core fix for the "no titles appear on any page" issue.
+- Part 2 (explicit trigger color) eliminates reliance on CSS inheritance for tab text visibility.
+- Part 3 (tab bar background) gives the tab navigation a visible container so it stands out from whatever is behind it.
 
-The Jobs Hub uses `h-auto flex-wrap` and it works. This pattern:
-- Keeps the base `inline-flex` display mode (no conflict)
-- `h-auto` removes any height constraint so tabs can wrap to multiple lines
-- `flex-wrap` allows wrapping on smaller screens
-- No `bg-muted/50` or custom trigger classes that create contrast issues
-
-This is a copy-the-working-pattern fix, not a guess.
-
+This is a belt-and-suspenders approach: even if one fix is redundant, the combination guarantees visibility across all themes and background configurations.
