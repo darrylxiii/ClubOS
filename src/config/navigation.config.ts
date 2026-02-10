@@ -320,6 +320,8 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Communication Hub", icon: MessageSquare, path: "/admin/communication-hub" },
         { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
         { name: "Engagement Hub", icon: TrendingUp, path: "/admin/engagement-hub" },
+        { name: "Candidate Analytics", icon: BarChart3, path: "/candidate-analytics" },
+        { name: "Meeting Analytics", icon: Video, path: "/meeting-intelligence" },
         { name: "Feedback Database", icon: MessagesSquare, path: "/admin/feedback" },
         { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
         { name: "Knowledge Base", icon: BookOpen, path: "/help" },
