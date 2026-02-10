@@ -82,7 +82,8 @@ const ErrorLogs = lazy(() => import("@/pages/admin/ErrorLogs"));
 const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
 const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
 
-// Inventory Pages — now embedded in Finance Hub (redirects below)
+// Inventory Hub — standalone page
+const InventoryHub = lazy(() => import("@/pages/admin/InventoryHub"));
 
 // Bulk Operations
 const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
@@ -577,12 +578,13 @@ export const adminRoutes = (
     <Route path="/admin/games/blind-spot" element={<Navigate to="/admin/assessments-hub?tab=blind-spot" replace />} />
     <Route path="/admin/games/miljoenenjacht" element={<Navigate to="/admin/assessments-hub?tab=miljoenenjacht" replace />} />
     <Route path="/admin/assessments" element={<Navigate to="/admin/assessments-hub" replace />} />
-    {/* Inventory — redirects to Finance Hub tabs */}
-    <Route path="/admin/inventory" element={<Navigate to="/admin/finance?tab=assets" replace />} />
-    <Route path="/admin/inventory/dashboard" element={<Navigate to="/admin/finance?tab=inventory" replace />} />
-    <Route path="/admin/inventory/depreciation" element={<Navigate to="/admin/finance?tab=depreciation" replace />} />
-    <Route path="/admin/inventory/intangible" element={<Navigate to="/admin/finance?tab=intangible" replace />} />
-    <Route path="/admin/inventory/kia" element={<Navigate to="/admin/finance?tab=kia" replace />} />
+    {/* Inventory Hub — standalone page */}
+    <Route path="/admin/inventory" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InventoryHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Inventory legacy redirects */}
+    <Route path="/admin/inventory/dashboard" element={<Navigate to="/admin/inventory" replace />} />
+    <Route path="/admin/inventory/depreciation" element={<Navigate to="/admin/inventory?tab=depreciation" replace />} />
+    <Route path="/admin/inventory/intangible" element={<Navigate to="/admin/inventory?tab=intangible" replace />} />
+    <Route path="/admin/inventory/kia" element={<Navigate to="/admin/inventory?tab=kia" replace />} />
     <Route path="/admin/bulk-operations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><BulkOperationsHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
 
     {/* Phase 5: Analytics Dashboards */}
