@@ -156,15 +156,7 @@ export const analyticsRoutes = (
     />
     <Route
       path="/messaging-analytics"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MessagingAnalytics />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+      element={<Navigate to="/admin/communication-hub?tab=messaging" replace />}
     />
   </>
 );
