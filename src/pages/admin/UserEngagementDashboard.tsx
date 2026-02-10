@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AppLayout } from '@/components/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Activity, Clock, MousePointer } from 'lucide-react';
@@ -47,7 +46,6 @@ export default function UserEngagementDashboard() {
         const totalViews = engagementData.reduce((sum: number, d: any) => sum + (d.page_views || 0), 0);
         const totalActs = engagementData.reduce((sum: number, d: any) => sum + (d.actions_performed || 0), 0);
 
-        // Aggregate by date
         const byDate = engagementData.reduce((acc: any, d: any) => {
           const date = d.date;
           if (!acc[date]) {
@@ -66,7 +64,6 @@ export default function UserEngagementDashboard() {
           pageViews: data.pageViews,
         }));
 
-        // Aggregate feature usage
         const featureMap: Record<string, number> = {};
         engagementData.forEach((d: any) => {
           const usage = d.feature_usage || {};
@@ -98,128 +95,123 @@ export default function UserEngagementDashboard() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-8 space-y-6">
-          <Skeleton className="h-10 w-64" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
-          </div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">User Engagement</h1>
-          <p className="text-muted-foreground">Platform usage and engagement metrics</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">User Engagement</h2>
+        <p className="text-muted-foreground">Platform usage and engagement metrics</p>
+      </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg"><Users className="h-6 w-6" /></div>
-                <div>
-                  <p className="text-2xl font-bold">{metrics.totalUsers}</p>
-                  <p className="text-sm text-muted-foreground">Active Users (30d)</p>
-                </div>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg"><Users className="h-6 w-6" /></div>
+              <div>
+                <p className="text-2xl font-bold">{metrics.totalUsers}</p>
+                <p className="text-sm text-muted-foreground">Active Users (30d)</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg"><Clock className="h-6 w-6" /></div>
-                <div>
-                  <p className="text-2xl font-bold">{metrics.avgSessionTime}m</p>
-                  <p className="text-sm text-muted-foreground">Avg Session Time</p>
-                </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg"><Clock className="h-6 w-6" /></div>
+              <div>
+                <p className="text-2xl font-bold">{metrics.avgSessionTime}m</p>
+                <p className="text-sm text-muted-foreground">Avg Session Time</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg"><Activity className="h-6 w-6" /></div>
-                <div>
-                  <p className="text-2xl font-bold">{metrics.totalPageViews.toLocaleString()}</p>
-                  <p className="text-sm text-muted-foreground">Page Views</p>
-                </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg"><Activity className="h-6 w-6" /></div>
+              <div>
+                <p className="text-2xl font-bold">{metrics.totalPageViews.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Page Views</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg"><MousePointer className="h-6 w-6" /></div>
-                <div>
-                  <p className="text-2xl font-bold">{metrics.totalActions.toLocaleString()}</p>
-                  <p className="text-sm text-muted-foreground">Actions Performed</p>
-                </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg"><MousePointer className="h-6 w-6" /></div>
+              <div>
+                <p className="text-2xl font-bold">{metrics.totalActions.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Actions Performed</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Charts */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Daily Active Users</CardTitle>
-              <CardDescription>User activity trend over time</CardDescription>
-            </CardHeader>
-            <CardContent>
+      {/* Charts */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Daily Active Users</CardTitle>
+            <CardDescription>User activity trend over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DynamicChart
+              type="line"
+              data={metrics.dailyTrend}
+              height={300}
+              config={{
+                xAxisKey: 'date',
+                lines: [
+                  { dataKey: 'users', stroke: 'hsl(var(--primary))', name: 'Active Users' },
+                  { dataKey: 'sessions', stroke: 'hsl(var(--secondary))', name: 'Sessions' },
+                ],
+                showTooltip: true,
+                legend: true,
+              }}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Features</CardTitle>
+            <CardDescription>Most used platform features</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {metrics.featureUsage.length > 0 ? (
               <DynamicChart
-                type="line"
-                data={metrics.dailyTrend}
+                type="bar"
+                data={metrics.featureUsage}
                 height={300}
                 config={{
-                  xAxisKey: 'date',
-                  lines: [
-                    { dataKey: 'users', stroke: 'hsl(var(--primary))', name: 'Active Users' },
-                    { dataKey: 'sessions', stroke: 'hsl(var(--secondary))', name: 'Sessions' },
-                  ],
+                  layout: 'vertical',
+                  xAxisKey: 'feature',
+                  bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
                   showTooltip: true,
-                  legend: true,
                 }}
               />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Features</CardTitle>
-              <CardDescription>Most used platform features</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {metrics.featureUsage.length > 0 ? (
-                <DynamicChart
-                  type="bar"
-                  data={metrics.featureUsage}
-                  height={300}
-                  config={{
-                    layout: 'vertical',
-                    xAxisKey: 'feature',
-                    bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
-                    showTooltip: true,
-                  }}
-                />
-              ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                  No feature usage data
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No feature usage data
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </AppLayout>
+    </div>
   );
 }
