@@ -318,9 +318,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Meeting Analytics", icon: Video, path: "/meeting-intelligence" },
         { name: "RAG Analytics", icon: Brain, path: "/admin/rag-analytics" },
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
-        { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
-        { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
-        { name: "Feedback Database", icon: MessagesSquare, path: "/admin/feedback" },
       ],
     },
     // === OPERATIONS - Core (streamlined for efficiency) ===
