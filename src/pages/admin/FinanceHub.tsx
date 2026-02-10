@@ -28,6 +28,8 @@ const TAB_MAP: Record<string, string> = {
   'pipeline-settings': 'pipeline-settings',
 };
 
+const triggerClass = "text-foreground/70 data-[state=active]:text-foreground";
+
 export default function FinanceHub() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'dashboard';
@@ -40,7 +42,6 @@ export default function FinanceHub() {
     <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          {/* Hub Header */}
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <DollarSign className="h-8 w-8 text-primary" />
@@ -51,21 +52,18 @@ export default function FinanceHub() {
             </p>
           </div>
 
-          {/* Tab Navigation */}
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <div className="overflow-x-auto -mx-1 px-1">
-              <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 h-auto gap-1 bg-muted/50 p-1 rounded-lg">
-                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>
-                <TabsTrigger value="revenue-ladder">Revenue Ladder</TabsTrigger>
-                <TabsTrigger value="fees">Company Fees</TabsTrigger>
-                <TabsTrigger value="revenue-shares">Revenue Shares</TabsTrigger>
-                <TabsTrigger value="expenses">Expenses</TabsTrigger>
-                <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
-                <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
-                <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
-              </TabsList>
-            </div>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 bg-muted/50 p-1 rounded-lg h-auto gap-1">
+              <TabsTrigger value="dashboard" className={triggerClass}>Dashboard</TabsTrigger>
+              <TabsTrigger value="pipeline" className={triggerClass}>Deal Pipeline</TabsTrigger>
+              <TabsTrigger value="revenue-ladder" className={triggerClass}>Revenue Ladder</TabsTrigger>
+              <TabsTrigger value="fees" className={triggerClass}>Company Fees</TabsTrigger>
+              <TabsTrigger value="revenue-shares" className={triggerClass}>Revenue Shares</TabsTrigger>
+              <TabsTrigger value="expenses" className={triggerClass}>Expenses</TabsTrigger>
+              <TabsTrigger value="reconciliation" className={triggerClass}>Reconciliation</TabsTrigger>
+              <TabsTrigger value="moneybird" className={triggerClass}>Moneybird</TabsTrigger>
+              <TabsTrigger value="pipeline-settings" className={triggerClass}>Pipeline Settings</TabsTrigger>
+            </TabsList>
 
             <Suspense fallback={<PageLoader />}>
               <TabsContent value="dashboard"><FinancialDashboard /></TabsContent>
