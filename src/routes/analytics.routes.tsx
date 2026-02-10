@@ -17,7 +17,7 @@ const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
 const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
 const InvestorDashboard = lazy(() => import("@/pages/admin/InvestorDashboard"));
-const MessagingAnalytics = lazy(() => import("@/pages/MessagingAnalytics"));
+// MessagingAnalytics consolidated into Communication Hub
 
 export const analyticsRoutes = (
   <>
