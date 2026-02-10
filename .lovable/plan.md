@@ -1,232 +1,179 @@
 
 
-# Phase 2: Elite Navigation Consolidation -- Audit and Refined Plan
+# Phase 2 Remaining Rounds: Revised Audit
 
-## Audit of Previous Plan -- Score: 58/100
+## Problem with the Original Plan
 
-### What was wrong (deductions)
+The original plan proposed cramming pages that are already full-featured hubs (with their own internal tabs) into mega-hubs. This creates a "tabs inside tabs" anti-pattern and makes navigation worse, not better.
 
-| Issue | Impact | Points Lost |
-|---|---|---|
-| **Wrong link count**: Plan said "13 groups, ~85 links". Reality is **18 groups, ~114 links** (admin sees base groups too: Communication, Learning, AI & Tools, Quantum OS, Settings, Support) | Misrepresents scope | -8 |
-| **"Before vs After" math wrong**: Claimed reduction to ~42 links. Did not account for base groups (Communication 5, Learning 1, AI & Tools 4, Quantum OS 3, Settings 7, Support 3 = 23 untouched links) | Misleading result | -5 |
-| **Games into Assessments Hub**: Correct idea, but games pages all wrap `AppLayout` + `RoleGate` -- plan did not mention stripping these. Will cause double sidebars. | Missing critical step | -8 |
-| **Inventory into Finance Hub**: Same issue -- all 5 inventory pages wrap `AppLayout` + `RoleGate`. Plus `InventoryDashboard.tsx` directly imports `recharts` (violates DynamicChart pattern). | Missing critical steps | -8 |
-| **Compliance Hub**: Plan says "wire up real tabs" but `ComplianceHub.tsx` currently uses clickable cards, not Tabs. Needs a full rewrite to the tab pattern, not just "wire up". | Underestimated effort | -3 |
-| **Intelligence Hub (21 pages)**: Many of these are shared routes (e.g., `/candidate-analytics`, `/communication-intelligence`, `/company-intelligence`) used by partner and candidate roles too. Merging them into an admin-only hub would break non-admin access. Plan did not address this. | Architectural risk | -5 |
-| **No implementation detail**: Plan listed file counts but no actual code patterns, no specific `TabsList` class, no mention of the `DynamicChart` pattern for charts, no redirect examples. | Too vague to implement | -5 |
+Pages that are already complex standalone hubs and should NOT be embedded as tabs:
 
-### What was right (kept points)
-
-| Strength | Points |
-|---|---|
-| Correct consolidation targets identified | +15 |
-| Correct "start small, expand" sequencing | +10 |
-| Correct use of URL query params (`?tab=`) | +10 |
-| Correct use of `Navigate` for legacy redirects | +10 |
-| Matches proven hub pattern (Finance/Security/Translations) | +13 |
-
----
-
-## Refined Plan -- Score: 100/100
-
-### Accurate Current State
-
-```text
-Admin Sidebar: 18 groups, 114 links
-  - Overview: 4
-  - Business Development: 16
-  - Talent Management: 12
-  - Assessments & Games: 6
-  - Intelligence Center: 16
-  - Operations: 6
-  - Security & Monitoring: 1 (already a hub)
-  - Performance Analytics: 5
-  - Finance: 7
-  - Governance & Compliance: 9
-  - Club Projects: 7
-  - Social: 2
-  - Communication: 5
-  - Learning: 1
-  - AI & Tools: 4
-  - Quantum OS: 3
-  - Settings: 7
-  - Support: 3
-```
-
-### Target State
-
-```text
-Admin Sidebar: 18 groups -> 14 groups, 114 links -> ~62 links
-  - Overview: 4 (unchanged)
-  - Business Development: 16 (Phase 3 candidate)
-  - Talent Management: 1 (new Talent Hub)
-  - Assessments & Games: 1 (absorb games into Assessments Hub)
-  - Intelligence Hub: 1 (merge Intelligence Center + Performance Analytics)
-  - Operations Hub: 1 (collapse 6 into hub)
-  - Security & Monitoring: 1 (already done)
-  - (Performance Analytics: removed, merged into Intelligence)
-  - Finance: 1 (absorb inventory, drop Referral link)
-  - Governance & Compliance: 2 (Compliance Hub + Translations Hub)
-  - Club Projects: 7 (unchanged, Phase 3)
-  - Social: 2 (unchanged)
-  - Communication: 5 (unchanged)
-  - Learning: 1 (unchanged)
-  - AI & Tools: 4 (unchanged)
-  - Quantum OS: 3 (unchanged)
-  - Settings: 7 (unchanged)
-  - Support: 3 (unchanged)
-```
-
-Net reduction: **52 links removed, 4 groups removed**.
-
----
-
-### Implementation Rounds (6 rounds, ordered by risk)
-
-#### Round 1: Games into Assessments Hub (lowest risk)
-
-**What**: Add 5 game admin pages as tabs in existing `AssessmentsHub.tsx`.
-
-**Steps**:
-1. Strip `AppLayout` and `RoleGate` wrappers from all 5 game files (`ValuesPokerAdmin.tsx`, `SwipeGameAdmin.tsx`, `PressureCookerAdmin.tsx`, `BlindSpotAdmin.tsx`, `MiljoenenjachtAdmin.tsx`). Return just the content div.
-2. Add lazy imports to `AssessmentsHub.tsx` for all 5 games.
-3. Add 5 new `TabsTrigger` + `TabsContent` entries.
-4. Switch from `useState` to `useSearchParams` for URL-persisted tab state (matching Finance/Security pattern).
-5. Add `TAB_MAP` validation.
-6. Update `navigation.config.ts`: replace 6 "Assessments & Games" items with 1 link to `/admin/assessments-hub`.
-7. Add 5 `Navigate` redirects in route config for legacy game URLs.
-
-**Files**: ~8 modified (5 games + hub + nav config + routes)
-
-#### Round 2: Inventory into Finance Hub (low risk)
-
-**What**: Move 5 inventory pages into existing Finance Hub as additional tabs.
-
-**Steps**:
-1. Strip `AppLayout` and `RoleGate` from all 5 inventory files.
-2. Fix `InventoryDashboard.tsx`: replace direct `recharts` import with `DynamicChart` wrapper (mandatory per architecture rules).
-3. Add lazy imports + tabs to `FinanceHub.tsx`.
-4. Move "Referral Program" link out of Finance group (it belongs in a shared section or Talent).
-5. Update `navigation.config.ts`: Finance group becomes 1 link.
-6. Add 5 `Navigate` redirects for legacy inventory URLs.
-
-**Files**: ~8 modified (5 inventory + hub + nav config + routes)
-
-#### Round 3: Compliance Hub rewrite (medium risk)
-
-**What**: Convert `ComplianceHub.tsx` from card-grid navigation to real tabbed content.
-
-**Steps**:
-1. Rewrite `ComplianceHub.tsx` to use `Tabs`/`TabsList`/`TabsContent` with lazy-loaded sub-pages (same pattern as Finance Hub).
-2. Add tabs: Dashboard, Enterprise, Due Diligence, Risk, Legal, Subprocessors, Data Classification, Audits.
-3. Strip `AppLayout`/`RoleGate` from each sub-page that has it.
-4. Update `navigation.config.ts`: "Governance & Compliance" drops from 9 items to 2 (Compliance Hub + Translations Hub).
-5. Add 7 `Navigate` redirects.
-
-**Files**: ~10 modified (hub + 8 sub-pages + nav config + routes)
-
-#### Round 4: Operations Hub (medium risk)
-
-**What**: Create new `OperationsHub.tsx` merging 6 operations pages.
-
-**Steps**:
-1. Create `src/pages/admin/OperationsHub.tsx` following the Finance Hub template.
-2. Tabs: KPI Command Center, Employee Management, System Health, Bulk Operations, Templates, AI Config.
-3. Strip `AppLayout`/`RoleGate` from 6 sub-pages.
-4. Add route + redirects.
-5. Update `navigation.config.ts`: 6 items become 1.
-
-**Files**: 1 new + ~8 modified
-
-#### Round 5: Intelligence Hub (high complexity)
-
-**What**: Merge Intelligence Center (16) + Performance Analytics (5) = 21 pages into one hub.
-
-**Critical consideration**: Several pages (`/candidate-analytics`, `/communication-intelligence`, `/company-intelligence`, `/meeting-intelligence`, `/funnel-analytics`, `/messaging-analytics`, `/communication-analytics`) are shared routes accessible to partner/candidate roles. These MUST keep their standalone routes alive for non-admin users. The admin sidebar link changes, but the pages themselves remain accessible at their original URLs for other roles.
-
-**Steps**:
-1. Create `src/pages/admin/IntelligenceHub.tsx`.
-2. Group 21 pages into logical tab categories (Overview, ML/RAG, Communication, Company, Candidate, Funnel, Performance, KPIs, Feedback).
-3. Strip layout wrappers from sub-pages.
-4. Keep original routes alive (do NOT redirect shared routes -- only add admin-specific redirects).
-5. Update `navigation.config.ts`: remove both "Intelligence Center" (16) and "Performance Analytics" (5) groups, replace with 1 "Intelligence Hub" link.
-
-**Files**: 1 new + ~22 modified
-
-#### Round 6: Talent Hub (high complexity)
-
-**What**: Merge 12 Talent Management links into one hub.
-
-**Steps**:
-1. Create `src/pages/admin/TalentHub.tsx`.
-2. Tabs: Talent Pool, Lists, All Candidates, Jobs, Companies, Target Companies, Member Requests, Merge, Rejections, Archived, Club Sync, Email Templates.
-3. Note: "All Jobs" (`/jobs`) and "All Companies" (`/companies`) are shared routes. Like Intelligence Hub, keep original routes for non-admin access.
-4. Strip layout wrappers from admin-only sub-pages.
-5. Update nav config.
-
-**Files**: 1 new + ~13 modified
-
----
-
-### Navigation Config Changes (single file: `src/config/navigation.config.ts`)
-
-All rounds update the admin section of `roleSpecificGroups`. Final admin sidebar structure:
-
-```text
-Business Development: 16 items (unchanged -- Phase 3 candidate for CRM Hub)
-Talent Hub: 1 item -> /admin/talent
-Assessments Hub: 1 item -> /admin/assessments-hub
-Intelligence Hub: 1 item -> /admin/intelligence
-Operations Hub: 1 item -> /admin/operations
-Security Hub: 1 item -> /admin/security (already done)
-Finance Hub: 1 item -> /admin/finance
-Compliance Hub + Translations: 2 items
-Club Projects: 7 items (unchanged -- Phase 3 candidate)
-Social: 2 items (unchanged)
-```
-
-### Pattern Every Hub Must Follow
-
-```tsx
-// 1. Parent provides layout + role gate
-<AppLayout>
-  <RoleGate allowedRoles={['admin', 'strategist']}>
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Title */}
-      <h1 className="text-3xl font-bold">Hub Name</h1>
-
-      {/* Tabs with proven pattern */}
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-          <TabsTrigger value="tab1">Tab 1</TabsTrigger>
-        </TabsList>
-
-        <Suspense fallback={<PageLoader />}>
-          <TabsContent value="tab1"><LazyComponent /></TabsContent>
-        </Suspense>
-      </Tabs>
-    </div>
-  </RoleGate>
-</AppLayout>
-
-// 2. Embedded sub-pages: NO AppLayout, NO RoleGate, NO container mx-auto
-// 3. Tab state via useSearchParams (URL-persisted)
-// 4. TAB_MAP for validation
-// 5. Charts use DynamicChart, never direct recharts imports
-```
-
-### Estimated Total
-
-| | New Files | Modified Files | Redirects |
+| Page | Lines | Already Has Internal Tabs? | Verdict |
 |---|---|---|---|
-| Round 1 (Games) | 0 | 8 | 5 |
-| Round 2 (Inventory) | 0 | 8 | 5 |
-| Round 3 (Compliance) | 0 | 10 | 7 |
-| Round 4 (Operations) | 1 | 8 | 6 |
-| Round 5 (Intelligence) | 1 | 22 | ~15 |
-| Round 6 (Talent) | 1 | 13 | ~10 |
-| **Total** | **3** | **~69** | **~48** |
+| Employee Management | 217 | Yes (8 tabs: Leaderboard, Targets, Commissions, etc.) | Standalone |
+| Bulk Operations Hub | 164 | Yes (6 tabs: Email, Assessment, Scheduling, etc.) | Standalone |
+| System Health | 110 | Yes (Metrics, Functions, Errors) | Standalone |
+| AI Configuration | 661 | Yes (multiple sections) | Standalone |
+| Template Management | 300 | Yes (tabs + editor) | Standalone |
+| Enterprise Management | 62 | Yes (4 tabs: Compliance, SLA, White Label, DR) | Standalone |
+| Due Diligence Center | 53 | Yes (3 tabs: Metrics, Data Room, Tech Stack) | Standalone |
+| Risk Management | 53 | Yes (3 tabs: Capacity, Risk Registry, Scaling) | Standalone |
+| Global Analytics | 345 | Yes (tabs + charts) | Standalone |
+| KPI Command Center | Large | Yes (complex dashboard) | Standalone |
 
-### Recommended start: Rounds 1 + 2 together (Games + Inventory) -- 16 files, low risk, immediate sidebar impact (11 links removed).
+---
+
+## Revised Rounds (what actually makes sense)
+
+### Round 3: Compliance Hub (revised -- fewer tabs)
+
+The original plan proposed 8 tabs. But Enterprise, Due Diligence, and Risk Management are each already mini-hubs with their own internal tabs. Embedding them creates tabs-in-tabs.
+
+**Revised approach**: The Compliance Hub should only absorb the 5 closely-related compliance pages. Enterprise, Due Diligence, and Risk stay as standalone sidebar links but move into a renamed "Governance" group.
+
+**Compliance Hub tabs** (5 -- all simple, single-purpose pages):
+- Dashboard (Compliance Dashboard)
+- Legal Agreements
+- Subprocessors
+- Data Classification
+- Audit Requests
+
+**Governance sidebar group** (4 links instead of 9):
+- Compliance Hub (contains 5 above)
+- Enterprise Management (standalone -- has own tabs)
+- Due Diligence Center (standalone -- has own tabs)
+- Risk Management (standalone -- has own tabs)
+- Translations Hub (standalone -- already done)
+
+Reduction: 9 links to 5
+
+### Round 4: Operations Hub (revised -- split into 2 groups)
+
+The original plan crammed 6 unrelated pages into one hub. But Employee Management (8 tabs, 217 lines), Bulk Operations (6 tabs, 164 lines), AI Configuration (661 lines), and System Health (110 lines, tabs) are all substantial standalone pages. Forcing them into a single hub would create a 6-tab container where every tab opens another multi-tab page. That is terrible UX.
+
+**Revised approach**: Keep Operations as a sidebar group with reduced items, no new hub needed. The links are already well-organized; the problem is not that they need a hub, it is that there are too many sidebar groups overall.
+
+**Operations sidebar group** (6 links -- unchanged):
+- KPI Command Center
+- Employee Dashboard
+- System Health
+- Bulk Operations
+- Page Templates
+- AI Configuration
+
+These 6 links are functionally distinct (HR vs DevOps vs content vs AI). Merging them adds no value. The sidebar reduction comes from the other rounds.
+
+### Round 5: Intelligence Hub (revised -- group reduction only)
+
+The original plan proposed squeezing 21 pages into a single hub with ~15 tabs. That is absurd -- 15 tabs breaks usability worse than 15 sidebar links.
+
+**Revised approach**: Merge the two sidebar groups (Intelligence Center + Performance Analytics) into ONE sidebar group called "Analytics & Intelligence" but keep individual page links. Then consolidate only the truly related, simple pages.
+
+**"Analytics & Intelligence" group** (consolidated from 21 links to ~10):
+
+Merge candidates (pages that are simple, single-purpose, and thematically identical):
+- "Communication Intelligence" + "Communication Analytics" + "Conversation Analytics" + "Messaging Analytics" = **Communication Hub** (new, 4 pages merged)
+- "Candidate Analytics" + "Funnel Analytics" + "User Engagement" = **Engagement Hub** (new, 3 pages merged)
+- "Performance Matrix" + "Team Performance" + "User Activity" = **Performance Hub** (new, 3 pages merged)
+
+Keep standalone (already complex or distinct):
+- Global Analytics (345 lines, tabs)
+- RAG Analytics
+- ML Dashboard
+- Company Intelligence
+- Meeting Analytics
+- Website KPIs / Sales KPIs (could merge these 2 into one "KPI Dashboard" tab page)
+- Feedback Database
+- Expert Marketplace / Knowledge Base (these are not analytics -- move to a different group)
+
+**Result**: 21 links become ~10 links in one group, with 3 small new hubs created for genuinely related simple pages.
+
+### Round 6: Talent Hub (revised -- partial consolidation)
+
+The original plan crammed 12 pages into one mega-hub. Some of these are complex standalone pages, and some are shared routes.
+
+**Revised approach**: Create a Talent Hub but only for the closely-related candidate management pages. Keep shared routes (Jobs, Companies) as standalone.
+
+**Talent Hub tabs** (7 -- all admin-only, single-purpose):
+- Talent Pool
+- Talent Lists
+- All Candidates
+- Member Requests
+- Merge Dashboard
+- Global Rejections
+- Archived Candidates
+
+**Keep standalone** (shared routes or distinct domain):
+- All Jobs (shared route /jobs -- used by all roles)
+- All Companies (shared route /companies -- used by all roles)
+- Target Companies (distinct enough)
+- Club Sync Requests (distinct workflow)
+- Email Templates (content management, not talent)
+
+**Talent Management sidebar group** (6 links instead of 12):
+- Talent Hub (contains 7 above)
+- Target Companies
+- Club Sync Requests
+- Email Templates
+- All Jobs
+- All Companies
+
+Reduction: 12 links to 6
+
+---
+
+## Revised Before/After
+
+```text
+BEFORE                              AFTER
+=================================   =================================
+Talent Management: 12 links         Talent Management: 6 links
+Assessments & Games: 6 links        Assessments & Games: 1 link
+Intelligence Center: 16 links       Analytics & Intelligence: ~10 links
+Performance Analytics: 5 links      (merged into above)
+Operations: 6 links                 Operations: 6 links (unchanged)
+Finance: 2 links                    Finance: 2 links (unchanged)
+Governance & Compliance: 9 links    Governance: 5 links
+
+Subtotal changed: 56 links          Subtotal changed: 30 links
+```
+
+**Net reduction: 26 links removed, 1 group removed** (Performance Analytics merges into Intelligence).
+
+Combined with Phase 1 + Rounds 1-2 already done (~16 links removed), total platform reduction is **~42 links**.
+
+---
+
+## Implementation Order
+
+1. **Round 3: Compliance Hub** -- Rewrite to tabbed content with 5 simple pages; restructure Governance nav group. ~7 files.
+2. **Round 5a: Communication Hub** -- New small hub merging 4 communication analytics pages. ~5 files.
+3. **Round 5b: Engagement Hub** -- New small hub merging 3 funnel/candidate analytics pages. ~4 files.
+4. **Round 5c: Performance Hub** -- New small hub merging 3 performance pages. ~4 files.
+5. **Round 5d: Nav restructure** -- Merge Intelligence Center + Performance Analytics into one "Analytics & Intelligence" sidebar group. Move Expert Marketplace + Knowledge Base elsewhere. ~1 file.
+6. **Round 6: Talent Hub** -- New hub with 7 admin-only talent pages; restructure Talent Management nav group. ~9 files.
+
+Operations (Round 4) is skipped -- no consolidation needed; those 6 pages are functionally distinct standalone hubs.
+
+---
+
+## Technical Pattern (unchanged)
+
+All new hubs follow the proven pattern:
+- `AppLayout` + `RoleGate` on parent only
+- `useSearchParams` + `TAB_MAP` for URL state
+- `lazy()` + `Suspense` + `PageLoader` for tab content
+- `TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1"`
+- Embedded sub-pages stripped of `AppLayout`, `RoleGate`, `container mx-auto`
+- Charts use `DynamicChart`, never direct recharts imports
+- Legacy route redirects via `Navigate`
+
+## Key Principle
+
+A hub should only contain pages that:
+1. Share the same domain (e.g., all compliance, all talent management)
+2. Are simple, single-purpose pages (no internal tabs of their own)
+3. Benefit from side-by-side context (switching between them is a common workflow)
+
+Pages that are already multi-tab hubs themselves should remain standalone sidebar links. Nesting hubs inside hubs is an anti-pattern.
 
