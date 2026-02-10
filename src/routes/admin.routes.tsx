@@ -70,7 +70,7 @@ const RiskManagementDashboard = lazy(() => import("@/pages/admin/RiskManagementD
 
 // Phase 5: Analytics Dashboards
 const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
-const ConversationAnalytics = lazy(() => import("@/pages/admin/ConversationAnalytics"));
+// ConversationAnalytics consolidated into Communication Hub
 const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDashboard"));
 const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
 // Phase 6: Agent Brain
