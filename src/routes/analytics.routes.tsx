@@ -60,18 +60,7 @@ export const analyticsRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/ml-dashboard"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <EnhancedMLDashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    <Route path="/ml-dashboard" element={<Navigate to="/admin/ai-analytics?tab=ml" replace />} />
     {/* /enhanced-ml consolidated into /ml-dashboard */}
     <Route
       path="/hiring-intelligence"
