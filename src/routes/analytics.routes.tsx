@@ -47,15 +47,7 @@ export const analyticsRoutes = (
     />
     <Route
       path="/funnel-analytics"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <FunnelAnalytics />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+      element={<Navigate to="/admin/engagement-hub?tab=funnel" replace />}
     />
     <Route
       path="/revenue-analytics"
