@@ -168,6 +168,7 @@ export const adminRoutes = (
 
     {/* Communication Hub */}
     <Route path="/admin/conversation-analytics" element={<Navigate to="/admin/communication-hub?tab=conversations" replace />} />
+    <Route path="/admin/feedback" element={<Navigate to="/admin/communication-hub?tab=feedback" replace />} />
 
     {/* Engagement Hub */}
     <Route path="/admin/user-engagement" element={<Navigate to="/admin/engagement-hub?tab=engagement" replace />} />
