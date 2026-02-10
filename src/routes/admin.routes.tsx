@@ -26,7 +26,7 @@ const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
 // ──────────────────────────────────────────────
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
-const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
+
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
 const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
