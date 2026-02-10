@@ -50,6 +50,7 @@ export default function CommunicationHub() {
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="conversations">Conversations</TabsTrigger>
               <TabsTrigger value="messaging">Messaging</TabsTrigger>
+              <TabsTrigger value="feedback">Feedback</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>
