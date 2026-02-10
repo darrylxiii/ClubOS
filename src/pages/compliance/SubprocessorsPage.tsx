@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notify";
 import { Shield, Search, Plus, MapPin, CheckCircle2 } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
-
 export default function SubprocessorsPage() {
   const [subprocessors, setSubprocessors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
