@@ -48,6 +48,7 @@ import {
   FileSignature,
   Database,
   AlertTriangle,
+  Package,
   Contact,
   NotebookPen,
   Star,
