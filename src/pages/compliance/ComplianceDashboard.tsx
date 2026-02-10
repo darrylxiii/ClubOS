@@ -13,8 +13,6 @@ import {
   Clock,
   TrendingUp
 } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
-
 export default function ComplianceDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
