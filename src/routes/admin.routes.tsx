@@ -58,7 +58,7 @@ const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
 
 // Agent Brain
 const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
-const RAGAnalyticsDashboard = lazy(() => import("@/pages/admin/RAGAnalyticsDashboard"));
+
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
