@@ -224,7 +224,5 @@ export default function CommunicationIntelligence() {
           {/* Club AI Advisor Widget */}
           <ClubAIAdvisorWidget context="general" />
         </div>
-      </RoleGate>
-    </AppLayout>
   );
 }
