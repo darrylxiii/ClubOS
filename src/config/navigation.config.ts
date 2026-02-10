@@ -349,14 +349,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Security Hub", icon: Shield, path: "/admin/security" },
       ],
     },
-    // === ANALYTICS (moved from Operations) ===
+    // === PERFORMANCE ANALYTICS (consolidated into Performance Hub) ===
     {
       title: "Performance Analytics",
       icon: BarChart3,
       items: [
-        { name: "Performance Matrix", icon: LayoutDashboard, path: "/admin/performance-matrix" },
-        { name: "Team Performance", icon: BarChart3, path: "/team-performance" },
-        { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
+        { name: "Performance Hub", icon: BarChart3, path: "/admin/performance-hub" },
         { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
         { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],

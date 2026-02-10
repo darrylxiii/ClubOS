@@ -1,13 +1,11 @@
-import { AppLayout } from "@/components/AppLayout";
-import { RoleGate } from "@/components/RoleGate";
-import { TeamOverviewDashboard } from "@/components/employees/TeamOverviewDashboard";
-import { TeamPerformanceComparison } from "@/components/employees/TeamPerformanceComparison";
-import { TeamCommissionsApproval } from "@/components/employees/TeamCommissionsApproval";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TeamOverviewDashboard } from "@/components/employees/TeamOverviewDashboard";
+import { TeamPerformanceComparison } from "@/components/employees/TeamPerformanceComparison";
+import { TeamCommissionsApproval } from "@/components/employees/TeamCommissionsApproval";
 import { 
   useEmployeeProfile, 
   useDirectReports,
@@ -22,7 +20,6 @@ export default function TeamPerformance() {
   const { data: employee, isLoading: employeeLoading, refetch } = useEmployeeProfile();
   const { data: directReports, isLoading: reportsLoading } = useDirectReports(employee?.id);
 
-  // Get metrics for each direct report
   const { data: teamMetrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['team-metrics', directReports?.map(r => r.id)],
     queryFn: async () => {
@@ -62,7 +59,7 @@ export default function TeamPerformance() {
           revenue,
           placements,
           targetProgress,
-          hoursThisMonth: 0, // Would need time_entries query
+          hoursThisMonth: 0,
         };
       }
 
@@ -71,7 +68,6 @@ export default function TeamPerformance() {
     enabled: !!directReports?.length,
   });
 
-  // Get pending commissions for approval
   const { data: pendingCommissions, isLoading: pendingLoading } = useQuery({
     queryKey: ['pending-commissions', directReports?.map(r => r.id)],
     queryFn: async () => {
@@ -86,7 +82,6 @@ export default function TeamPerformance() {
 
       if (error) throw error;
 
-      // Enrich with employee names
       return (data || []).map(commission => {
         const report = directReports.find(r => r.id === commission.employee_id);
         const profileData = report?.profile as { full_name?: string; avatar_url?: string | null } | undefined;
@@ -100,7 +95,6 @@ export default function TeamPerformance() {
     enabled: !!directReports?.length,
   });
 
-  // Build performance data for comparison chart
   const performanceData = (directReports || []).map(report => {
     const metrics = teamMetrics?.[report.id];
     const profileData = report.profile as { full_name?: string; avatar_url?: string | null } | undefined;
@@ -110,7 +104,7 @@ export default function TeamPerformance() {
       avatar: profileData?.avatar_url || undefined,
       revenue: metrics?.revenue || 0,
       placements: metrics?.placements || 0,
-      trend: [], // Would need historical data
+      trend: [],
     };
   });
 
@@ -118,108 +112,101 @@ export default function TeamPerformance() {
   const isManager = employee && directReports && directReports.length > 0;
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Team Performance</h1>
-              <p className="text-muted-foreground">
-                Manage and track your team's performance and commissions
-              </p>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => refetch()}
-              className="gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
-          </div>
-
-          {/* Not a Manager Alert */}
-          {!isLoading && !isManager && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                You don't have any direct reports. This page is for managers to track their team's performance.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Loading State */}
-          {isLoading && (
-            <div className="grid gap-6 md:grid-cols-2">
-              {[...Array(4)].map((_, i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-32" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-48 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Main Content */}
-          {!isLoading && isManager && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList>
-                  <TabsTrigger value="overview" className="gap-2">
-                    <Users className="h-4 w-4" />
-                    Team Overview
-                  </TabsTrigger>
-                  <TabsTrigger value="comparison" className="gap-2">
-                    <BarChart3 className="h-4 w-4" />
-                    Performance Comparison
-                  </TabsTrigger>
-                  <TabsTrigger value="approvals" className="gap-2">
-                    <ClipboardCheck className="h-4 w-4" />
-                    Commission Approvals
-                    {(pendingCommissions?.length || 0) > 0 && (
-                      <span className="ml-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
-                        {pendingCommissions?.length}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview">
-                  <TeamOverviewDashboard
-                    directReports={directReports || []}
-                    teamMetrics={teamMetrics || {}}
-                    isLoading={metricsLoading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="comparison">
-                  <TeamPerformanceComparison
-                    directReports={directReports || []}
-                    performanceData={performanceData}
-                    isLoading={metricsLoading}
-                  />
-                </TabsContent>
-
-                <TabsContent value="approvals">
-                  <TeamCommissionsApproval
-                    pendingCommissions={pendingCommissions || []}
-                    isLoading={pendingLoading}
-                  />
-                </TabsContent>
-              </Tabs>
-            </motion.div>
-          )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Team Performance</h2>
+          <p className="text-muted-foreground">
+            Manage and track your team's performance and commissions
+          </p>
         </div>
-      </RoleGate>
-    </AppLayout>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => refetch()}
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
+      </div>
+
+      {!isLoading && !isManager && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You don't have any direct reports. This page is for managers to track their team's performance.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isLoading && (
+        <div className="grid gap-6 md:grid-cols-2">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-48 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && isManager && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="overview" className="gap-2">
+                <Users className="h-4 w-4" />
+                Team Overview
+              </TabsTrigger>
+              <TabsTrigger value="comparison" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Performance Comparison
+              </TabsTrigger>
+              <TabsTrigger value="approvals" className="gap-2">
+                <ClipboardCheck className="h-4 w-4" />
+                Commission Approvals
+                {(pendingCommissions?.length || 0) > 0 && (
+                  <span className="ml-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                    {pendingCommissions?.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              <TeamOverviewDashboard
+                directReports={directReports || []}
+                teamMetrics={teamMetrics || {}}
+                isLoading={metricsLoading}
+              />
+            </TabsContent>
+
+            <TabsContent value="comparison">
+              <TeamPerformanceComparison
+                directReports={directReports || []}
+                performanceData={performanceData}
+                isLoading={metricsLoading}
+              />
+            </TabsContent>
+
+            <TabsContent value="approvals">
+              <TeamCommissionsApproval
+                pendingCommissions={pendingCommissions || []}
+                isLoading={pendingLoading}
+              />
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      )}
+    </div>
   );
 }
