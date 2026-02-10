@@ -93,6 +93,7 @@ export const adminRoutes = (
     {R("/admin/performance-hub", PerformanceHub)}
     {R("/admin/assessments", AssessmentsHub)}
     {R("/admin/talent-hub", TalentHub)}
+    {R("/admin/finance", FinanceHub)}
 
     {/* ════════════════════════════════════════════ */}
     {/* STANDALONE ROUTES                            */}
