@@ -643,5 +643,12 @@ export const adminRoutes = (
     <Route path="/admin/engagement-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EngagementHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     {/* Legacy redirects */}
     <Route path="/admin/user-engagement" element={<Navigate to="/admin/engagement-hub?tab=engagement" replace />} />
+
+    {/* Performance Hub (Phase 2 Round 5c) */}
+    <Route path="/admin/performance-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><PerformanceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Legacy redirects to Performance Hub */}
+    <Route path="/admin/performance-matrix" element={<Navigate to="/admin/performance-hub?tab=matrix" replace />} />
+    <Route path="/team-performance" element={<Navigate to="/admin/performance-hub?tab=team" replace />} />
+    <Route path="/admin/user-activity" element={<Navigate to="/admin/performance-hub?tab=activity" replace />} />
   </>
 );
