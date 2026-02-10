@@ -312,7 +312,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments-hub" },
       ],
     },
-    // === ANALYTICS & INTELLIGENCE (merged: Intelligence Center + Performance Analytics) ===
+    // === ANALYTICS & INTELLIGENCE (streamlined: RAG + ML merged into AI Analytics Hub) ===
     {
       title: "Analytics & Intelligence",
       icon: Brain,
@@ -324,8 +324,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
         { name: "Candidate Analytics", icon: BarChart3, path: "/candidate-analytics" },
         { name: "Meeting Analytics", icon: Video, path: "/meeting-intelligence" },
-        { name: "RAG Analytics", icon: Brain, path: "/admin/rag-analytics" },
-        { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
+        { name: "AI Analytics Hub", icon: Brain, path: "/admin/ai-analytics" },
       ],
     },
     // === OPERATIONS - Core (streamlined for efficiency) ===
