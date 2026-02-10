@@ -45,7 +45,7 @@ export default function TranslationsHub() {
           </div>
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsList className="h-auto flex-wrap">
+            <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
               <TabsTrigger value="manager">Manager</TabsTrigger>
               <TabsTrigger value="editor">Editor</TabsTrigger>
               <TabsTrigger value="coverage">Coverage</TabsTrigger>
