@@ -16,6 +16,13 @@ const InvoiceReconciliationPage = lazy(() => import('@/pages/admin/InvoiceReconc
 const MoneybirdSettings = lazy(() => import('@/pages/admin/MoneybirdSettings'));
 const DealPipelineSettings = lazy(() => import('@/pages/admin/DealPipelineSettings'));
 
+// Inventory tabs
+const InventoryDashboard = lazy(() => import('@/pages/admin/inventory/InventoryDashboard'));
+const AssetRegister = lazy(() => import('@/pages/admin/inventory/AssetRegister'));
+const DepreciationSchedule = lazy(() => import('@/pages/admin/inventory/DepreciationSchedule'));
+const IntangibleAssets = lazy(() => import('@/pages/admin/inventory/IntangibleAssets'));
+const KIAOptimization = lazy(() => import('@/pages/admin/inventory/KIAOptimization'));
+
 const TAB_MAP: Record<string, string> = {
   dashboard: 'dashboard',
   pipeline: 'pipeline',
@@ -26,6 +33,12 @@ const TAB_MAP: Record<string, string> = {
   reconciliation: 'reconciliation',
   moneybird: 'moneybird',
   'pipeline-settings': 'pipeline-settings',
+  // Inventory tabs
+  inventory: 'inventory',
+  assets: 'assets',
+  depreciation: 'depreciation',
+  intangible: 'intangible',
+  kia: 'kia',
 };
 
 export default function FinanceHub() {
@@ -46,7 +59,7 @@ export default function FinanceHub() {
               <h1 className="text-3xl font-bold tracking-tight">FINANCE HUB</h1>
             </div>
             <p className="text-muted-foreground">
-              Revenue, fees, expenses, invoicing, and pipeline management
+              Revenue, fees, expenses, invoicing, inventory, and pipeline management
             </p>
           </div>
 
@@ -59,6 +72,11 @@ export default function FinanceHub() {
               <TabsTrigger value="revenue-shares">Revenue Shares</TabsTrigger>
               <TabsTrigger value="expenses">Expenses</TabsTrigger>
               <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
+              <TabsTrigger value="inventory">Inventory</TabsTrigger>
+              <TabsTrigger value="assets">Assets</TabsTrigger>
+              <TabsTrigger value="depreciation">Depreciation</TabsTrigger>
+              <TabsTrigger value="intangible">Intangible</TabsTrigger>
+              <TabsTrigger value="kia">KIA</TabsTrigger>
               <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
               <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
             </TabsList>
@@ -71,6 +89,11 @@ export default function FinanceHub() {
               <TabsContent value="revenue-shares"><RevenueSharesPage /></TabsContent>
               <TabsContent value="expenses"><ExpenseTrackingPage /></TabsContent>
               <TabsContent value="reconciliation"><InvoiceReconciliationPage /></TabsContent>
+              <TabsContent value="inventory"><InventoryDashboard /></TabsContent>
+              <TabsContent value="assets"><AssetRegister /></TabsContent>
+              <TabsContent value="depreciation"><DepreciationSchedule /></TabsContent>
+              <TabsContent value="intangible"><IntangibleAssets /></TabsContent>
+              <TabsContent value="kia"><KIAOptimization /></TabsContent>
               <TabsContent value="moneybird"><MoneybirdSettings /></TabsContent>
               <TabsContent value="pipeline-settings"><DealPipelineSettings /></TabsContent>
             </Suspense>
