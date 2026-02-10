@@ -26,7 +26,7 @@ const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
 // ──────────────────────────────────────────────
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
-const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
+
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
 const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
@@ -101,7 +101,7 @@ export const adminRoutes = (
     {R("/admin/candidates", AdminCandidates)}
     {R("/admin/global-analytics", GlobalAnalytics)}
     {R("/admin/ai-configuration", AIConfiguration)}
-    {R("/admin/feedback", FeedbackDatabase)}
+    
     {R("/admin/system-health", SystemHealth)}
     {R("/admin/data-health", DataHealthPage)}
     {R("/admin/website-kpis", WebsiteKPIDashboardPage)}
