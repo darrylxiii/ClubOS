@@ -58,6 +58,7 @@ export default function CommunicationHub() {
               <TabsContent value="analytics"><CommunicationAnalyticsDashboard /></TabsContent>
               <TabsContent value="conversations"><ConversationAnalytics /></TabsContent>
               <TabsContent value="messaging"><MessagingAnalytics /></TabsContent>
+              <TabsContent value="feedback"><FeedbackDatabase /></TabsContent>
             </Suspense>
           </Tabs>
         </div>
