@@ -9,8 +9,7 @@ const Analytics = lazy(() => import("@/pages/Analytics"));
 const CandidateAnalytics = lazy(() => import("@/pages/CandidateAnalytics"));
 // FunnelAnalytics consolidated into Engagement Hub
 const RevenueAnalytics = lazy(() => import("@/pages/RevenueAnalytics"));
-// MLDashboard consolidated into EnhancedMLDashboard
-const EnhancedMLDashboard = lazy(() => import("@/pages/EnhancedMLDashboard"));
+// MLDashboard consolidated into AI Analytics Hub
 const HiringIntelligenceHub = lazy(() => import("@/pages/HiringIntelligenceHub"));
 const CompanyIntelligence = lazy(() => import("@/pages/CompanyIntelligence"));
 const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
