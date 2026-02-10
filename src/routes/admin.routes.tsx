@@ -21,6 +21,7 @@ const PerformanceHub = lazy(() => import("@/pages/admin/PerformanceHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
 const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
+const AIAnalyticsHub = lazy(() => import("@/pages/admin/AIAnalyticsHub"));
 
 // ──────────────────────────────────────────────
 // Standalone Admin Pages
