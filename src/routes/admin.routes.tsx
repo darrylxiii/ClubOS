@@ -17,6 +17,7 @@ const EngagementHub = lazy(() => import("@/pages/admin/EngagementHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
+const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
 // CompanyManagement removed - consolidated into /companies page
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
