@@ -7,7 +7,7 @@ import { PageLoader } from "@/components/PageLoader";
 // Analytics Pages
 const Analytics = lazy(() => import("@/pages/Analytics"));
 const CandidateAnalytics = lazy(() => import("@/pages/CandidateAnalytics"));
-const FunnelAnalytics = lazy(() => import("@/pages/FunnelAnalytics"));
+// FunnelAnalytics consolidated into Engagement Hub
 const RevenueAnalytics = lazy(() => import("@/pages/RevenueAnalytics"));
 // MLDashboard consolidated into EnhancedMLDashboard
 const EnhancedMLDashboard = lazy(() => import("@/pages/EnhancedMLDashboard"));
