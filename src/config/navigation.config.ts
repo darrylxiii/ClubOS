@@ -300,17 +300,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
       ],
     },
-    // === ASSESSMENTS & GAMES (kept separate - distinct domain) ===
+    // === ASSESSMENTS & GAMES (consolidated into single hub) ===
     {
       title: "Assessments & Games",
       icon: Gamepad2,
       items: [
-        { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments" },
-        { name: "Values Poker", icon: Trophy, path: "/admin/games/values-poker" },
-        { name: "Swipe Game", icon: Play, path: "/admin/games/swipe-game" },
-        { name: "Pressure Cooker", icon: Flame, path: "/admin/games/pressure-cooker" },
-        { name: "Blind Spot Detector", icon: Eye, path: "/admin/games/blind-spot" },
-        { name: "Miljoenenjacht", icon: DollarSign, path: "/admin/games/miljoenenjacht" },
+        { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments-hub" },
       ],
     },
     // === INTELLIGENCE CENTER (merged: Intelligence & ML + Analytics) ===

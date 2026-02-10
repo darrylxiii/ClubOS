@@ -92,12 +92,7 @@ const KIAOptimization = lazy(() => import("@/pages/admin/inventory/KIAOptimizati
 // Bulk Operations
 const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
 
-// Game Admin Pages
-const ValuesPokerAdmin = lazy(() => import("@/pages/admin/games/ValuesPokerAdmin"));
-const SwipeGameAdmin = lazy(() => import("@/pages/admin/games/SwipeGameAdmin"));
-const PressureCookerAdmin = lazy(() => import("@/pages/admin/games/PressureCookerAdmin"));
-const BlindSpotAdmin = lazy(() => import("@/pages/admin/games/BlindSpotAdmin"));
-const MiljoenenjachtAdmin = lazy(() => import("@/pages/admin/games/MiljoenenjachtAdmin"));
+// Game Admin Pages — now embedded in AssessmentsHub (redirects below)
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
@@ -580,66 +575,13 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/games/values-poker"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <ValuesPokerAdmin />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/games/swipe-game"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <SwipeGameAdmin />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/games/pressure-cooker"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <PressureCookerAdmin />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/games/blind-spot"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <BlindSpotAdmin />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/games/miljoenenjacht"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MiljoenenjachtAdmin />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Game Admin — redirects to Assessments Hub tabs */}
+    <Route path="/admin/games/values-poker" element={<Navigate to="/admin/assessments-hub?tab=values-poker" replace />} />
+    <Route path="/admin/games/swipe-game" element={<Navigate to="/admin/assessments-hub?tab=swipe-game" replace />} />
+    <Route path="/admin/games/pressure-cooker" element={<Navigate to="/admin/assessments-hub?tab=pressure-cooker" replace />} />
+    <Route path="/admin/games/blind-spot" element={<Navigate to="/admin/assessments-hub?tab=blind-spot" replace />} />
+    <Route path="/admin/games/miljoenenjacht" element={<Navigate to="/admin/assessments-hub?tab=miljoenenjacht" replace />} />
+    <Route path="/admin/assessments" element={<Navigate to="/admin/assessments-hub" replace />} />
     {/* Inventory Routes */}
     <Route path="/admin/inventory" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AssetRegister /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/inventory/dashboard" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InventoryDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
