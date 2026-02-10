@@ -328,6 +328,27 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Feedback Database", icon: MessagesSquare, path: "/admin/feedback" },
       ],
     },
+    // === OPERATIONS - Core (streamlined for efficiency) ===
+    {
+      title: "Operations",
+      icon: Shield,
+      items: [
+        { name: "KPI Command Center", icon: BarChart3, path: "/admin/kpi-command-center" },
+        { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
+        { name: "System Health", icon: Heart, path: "/admin/system-health" },
+        { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
+        { name: "Page Templates", icon: FileText, path: "/admin/templates" },
+        { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
+      ],
+    },
+    // === SECURITY & MONITORING (consolidated into Security Hub) ===
+    {
+      title: "Security & Monitoring",
+      icon: Shield,
+      items: [
+        { name: "Security Hub", icon: Shield, path: "/admin/security" },
+      ],
+    },
     // === FINANCE ===
     {
       title: "Finance",
