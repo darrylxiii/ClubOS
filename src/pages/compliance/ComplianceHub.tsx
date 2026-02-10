@@ -34,7 +34,7 @@ export default function ComplianceHub() {
 
   return (
     <AppLayout>
-      <RoleGate allowedRoles={["admin", "super_admin"]}>
+      <RoleGate allowedRoles={["admin"]}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <div>
