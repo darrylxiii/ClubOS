@@ -165,6 +165,5 @@ export default function DataClassificationPage() {
           )}
         </div>
       </div>
-    </AppLayout>
   );
 }

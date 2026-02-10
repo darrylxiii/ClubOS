@@ -147,6 +147,5 @@ export default function SubprocessorsPage() {
           )}
         </div>
       </div>
-    </AppLayout>
   );
 }

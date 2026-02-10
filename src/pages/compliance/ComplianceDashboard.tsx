@@ -248,6 +248,5 @@ export default function ComplianceDashboard() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
   );
 }

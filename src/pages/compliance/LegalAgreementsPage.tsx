@@ -151,6 +151,5 @@ export default function LegalAgreementsPage() {
           )}
         </div>
       </div>
-    </AppLayout>
   );
 }
