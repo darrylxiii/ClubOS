@@ -309,23 +309,23 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments-hub" },
       ],
     },
-    // === INTELLIGENCE CENTER (merged: Intelligence & ML + Analytics) ===
+    // === ANALYTICS & INTELLIGENCE (merged: Intelligence Center + Performance Analytics) ===
     {
-      title: "Intelligence Center",
+      title: "Analytics & Intelligence",
       icon: Brain,
       items: [
         { name: "Global Analytics", icon: BarChart3, path: "/admin/global-analytics" },
-        { name: "RAG Analytics", icon: Brain, path: "/admin/rag-analytics", badge: "New" },
-        { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
+        { name: "Performance Hub", icon: BarChart3, path: "/admin/performance-hub" },
         { name: "Communication Hub", icon: MessageSquare, path: "/admin/communication-hub" },
-        { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
         { name: "Engagement Hub", icon: TrendingUp, path: "/admin/engagement-hub" },
+        { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
         { name: "Candidate Analytics", icon: BarChart3, path: "/candidate-analytics" },
         { name: "Meeting Analytics", icon: Video, path: "/meeting-intelligence" },
+        { name: "RAG Analytics", icon: Brain, path: "/admin/rag-analytics" },
+        { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
+        { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
+        { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
         { name: "Feedback Database", icon: MessagesSquare, path: "/admin/feedback" },
-        { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
-        { name: "Knowledge Base", icon: BookOpen, path: "/help" },
-        { name: "Leaderboard", icon: Trophy, path: "/admin/website-kpis" },
       ],
     },
     // === OPERATIONS - Core (streamlined for efficiency) ===
@@ -341,22 +341,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
       ],
     },
-    // === SECURITY & COMPLIANCE (consolidated into Security Hub) ===
+    // === SECURITY & MONITORING (consolidated into Security Hub) ===
     {
       title: "Security & Monitoring",
       icon: Shield,
       items: [
         { name: "Security Hub", icon: Shield, path: "/admin/security" },
-      ],
-    },
-    // === PERFORMANCE ANALYTICS (consolidated into Performance Hub) ===
-    {
-      title: "Performance Analytics",
-      icon: BarChart3,
-      items: [
-        { name: "Performance Hub", icon: BarChart3, path: "/admin/performance-hub" },
-        { name: "Website KPIs", icon: Globe, path: "/admin/website-kpis" },
-        { name: "Sales KPIs", icon: TrendingUp, path: "/admin/sales-kpis" },
       ],
     },
     // === FINANCE ===
