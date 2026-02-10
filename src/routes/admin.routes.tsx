@@ -581,6 +581,7 @@ export const adminRoutes = (
     <Route path="/admin/games/pressure-cooker" element={<Navigate to="/admin/assessments-hub?tab=pressure-cooker" replace />} />
     <Route path="/admin/games/blind-spot" element={<Navigate to="/admin/assessments-hub?tab=blind-spot" replace />} />
     <Route path="/admin/games/miljoenenjacht" element={<Navigate to="/admin/assessments-hub?tab=miljoenenjacht" replace />} />
+    <Route path="/admin/assessments" element={<Navigate to="/admin/assessments-hub" replace />} />
     {/* Inventory Routes */}
     <Route path="/admin/inventory" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AssetRegister /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/inventory/dashboard" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InventoryDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
