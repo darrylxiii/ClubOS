@@ -4,523 +4,188 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
 
-// Admin Pages
+// ──────────────────────────────────────────────
+// Admin Core Pages
+// ──────────────────────────────────────────────
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 
-// Hub Pages (Phase 1 consolidation)
+// ──────────────────────────────────────────────
+// Hub Pages (consolidated)
+// ──────────────────────────────────────────────
 const TranslationsHub = lazy(() => import("@/pages/admin/TranslationsHub"));
 const SecurityHub = lazy(() => import("@/pages/admin/SecurityHub"));
-const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
 const CommunicationHub = lazy(() => import("@/pages/admin/CommunicationHub"));
 const EngagementHub = lazy(() => import("@/pages/admin/EngagementHub"));
+const PerformanceHub = lazy(() => import("@/pages/admin/PerformanceHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
-const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
-const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
 const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
-// CompanyManagement removed - consolidated into /companies page
+
+// ──────────────────────────────────────────────
+// Standalone Admin Pages
+// ──────────────────────────────────────────────
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
-const TranslationManager = lazy(() => import("@/pages/admin/TranslationManager"));
-const LanguageManager = lazy(() => import("@/pages/admin/LanguageManager"));
-const DisasterRecoveryPage = lazy(() => import("@/pages/admin/DisasterRecoveryPage"));
-// DRRunbooks and ComprehensiveDRPage consolidated into DisasterRecoveryPage
-const MemberRequestsPage = lazy(() => import("@/pages/admin/MemberRequestsPage"));
-const EmailTemplateManager = lazy(() => import("@/pages/admin/EmailTemplateManager"));
-const EmailNotificationManagement = lazy(() => import("@/pages/admin/EmailNotificationManagement"));
-const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
-const AdminRejections = lazy(() => import("@/pages/AdminRejections"));
 const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
-const UserActivity = lazy(() => import("@/pages/admin/UserActivity"));
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
-const QuantumPerformanceMatrixPage = lazy(() => import("@/pages/QuantumPerformanceMatrixPage"));
-const PerformanceHub = lazy(() => import("@/pages/admin/PerformanceHub"));
+const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
 const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
 const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
 const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
-const CompanyFeeConfiguration = lazy(() => import("@/pages/admin/CompanyFeeConfiguration"));
-const DealPipelineSettings = lazy(() => import("@/pages/admin/DealPipelineSettings"));
-const MoneybirdSettings = lazy(() => import("@/pages/admin/MoneybirdSettings"));
-const AntiHacking = lazy(() => import("@/pages/admin/AntiHacking"));
-const AdminAuditLog = lazy(() => import("@/pages/admin/AdminAuditLog"));
-// AdminEmployees removed - consolidated into EmployeeManagement
+const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
 const EmployeeDetailPage = lazy(() => import("@/pages/admin/EmployeeDetailPage"));
 const EmployeeManagement = lazy(() => import("@/pages/admin/EmployeeManagement"));
 const MyPerformance = lazy(() => import("@/pages/MyPerformance"));
-const TeamPerformance = lazy(() => import("@/pages/TeamPerformance"));
-const TranslationEditor = lazy(() => import("@/pages/admin/TranslationEditor"));
-const TranslationCoverage = lazy(() => import("@/pages/admin/TranslationCoverage"));
-const BrandTermManager = lazy(() => import("@/pages/admin/BrandTermManager"));
-const TranslationAuditLog = lazy(() => import("@/pages/admin/TranslationAuditLog"));
 const TemplateManagement = lazy(() => import("@/pages/admin/TemplateManagement"));
-// WhatsApp pages consolidated into WhatsAppHub
 const WhatsAppHub = lazy(() => import("@/pages/admin/WhatsAppHub"));
 const WhatsAppBookingPage = lazy(() => import("@/pages/admin/WhatsAppBookingPage"));
 const CompanyRelationships = lazy(() => import("@/pages/admin/CompanyRelationships"));
-const RevenueSharesPage = lazy(() => import("@/pages/admin/RevenueShares"));
-const InvoiceReconciliationPage = lazy(() => import("@/pages/admin/InvoiceReconciliation"));
+const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
+const AdminExports = lazy(() => import("@/pages/admin/AdminExports"));
 const StrategistProjectsDashboard = lazy(() => import("@/pages/admin/StrategistProjectsDashboard"));
 const MarketplaceAnalytics = lazy(() => import("@/pages/admin/MarketplaceAnalytics"));
-const ExpenseTrackingPage = lazy(() => import("@/pages/admin/ExpenseTracking"));
-const ClosedJobs = lazy(() => import("@/pages/admin/ClosedJobs"));
-const RevenueLadderPage = lazy(() => import("@/pages/admin/RevenueLadderPage"));
-const AdminExports = lazy(() => import("@/pages/admin/AdminExports"));
+const InventoryHub = lazy(() => import("@/pages/admin/InventoryHub"));
+const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
 
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
 const DueDiligenceDashboard = lazy(() => import("@/pages/admin/DueDiligenceDashboard"));
 const RiskManagementDashboard = lazy(() => import("@/pages/admin/RiskManagementDashboard"));
 
-// Phase 5: Analytics Dashboards
+// Analytics Dashboards
 const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
-// ConversationAnalytics consolidated into Communication Hub
-const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDashboard"));
-const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
-// Phase 6: Agent Brain
+const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
+
+// Agent Brain
 const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
 const RAGAnalyticsDashboard = lazy(() => import("@/pages/admin/RAGAnalyticsDashboard"));
-
-// Missing Operations Pages
-const GodMode = lazy(() => import("@/pages/admin/GodMode"));
-const ErrorLogs = lazy(() => import("@/pages/admin/ErrorLogs"));
-const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
-const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
-
-// Inventory Hub — standalone page
-const InventoryHub = lazy(() => import("@/pages/admin/InventoryHub"));
-
-// Bulk Operations
-const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
-
-// Game Admin Pages — now embedded in AssessmentsHub (redirects below)
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
 const TalentPoolLists = lazy(() => import("@/pages/TalentPoolLists"));
 const TalentPoolListDetail = lazy(() => import("@/pages/TalentPoolListDetail"));
 
-// Missing Routes
-const ArchivedCandidates = lazy(() => import("@/pages/ArchivedCandidates"));
+// Helper to wrap routes consistently
+const R = (path: string, Component: React.LazyExoticComponent<any>) => (
+  <Route
+    path={path}
+    element={
+      <ProtectedRoute>
+        <RouteErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Component />
+          </Suspense>
+        </RouteErrorBoundary>
+      </ProtectedRoute>
+    }
+  />
+);
 
 export const adminRoutes = (
   <>
-    <Route
-      path="/admin"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <Admin />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/talent-pool"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TalentPool />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/talent-pool/lists"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TalentPoolLists />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/talent-pool/lists/:listId"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TalentPoolListDetail />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/candidates"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AdminCandidates />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/assessments"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AssessmentsHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* Merge Dashboard, Club Sync, Member Requests — now in Talent Hub (redirects below) */}
-    {/* Company Management consolidated into /companies page */}
-    <Route
-      path="/admin/global-analytics"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <GlobalAnalytics />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/ai-configuration"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AIConfiguration />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* TRANSLATIONS HUB */}
-    <Route
-      path="/admin/translations"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TranslationsHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* Translations Hub redirects */}
+    {/* ════════════════════════════════════════════ */}
+    {/* HUB ROUTES                                  */}
+    {/* ════════════════════════════════════════════ */}
+    {R("/admin", Admin)}
+    {R("/admin/translations", TranslationsHub)}
+    {R("/admin/security", SecurityHub)}
+    {R("/admin/communication-hub", CommunicationHub)}
+    {R("/admin/engagement-hub", EngagementHub)}
+    {R("/admin/performance-hub", PerformanceHub)}
+    {R("/admin/assessments", AssessmentsHub)}
+    {R("/admin/talent-hub", TalentHub)}
+
+    {/* ════════════════════════════════════════════ */}
+    {/* STANDALONE ROUTES                            */}
+    {/* ════════════════════════════════════════════ */}
+    {R("/admin/candidates", AdminCandidates)}
+    {R("/admin/global-analytics", GlobalAnalytics)}
+    {R("/admin/ai-configuration", AIConfiguration)}
+    {R("/admin/feedback", FeedbackDatabase)}
+    {R("/admin/system-health", SystemHealth)}
+    {R("/admin/data-health", DataHealthPage)}
+    {R("/admin/website-kpis", WebsiteKPIDashboardPage)}
+    {R("/admin/sales-kpis", SalesKPIDashboardPage)}
+    {R("/admin/kpi-command-center", UnifiedKPICommandCenterPage)}
+    {R("/admin/employees/:employeeId", EmployeeDetailPage)}
+    {R("/admin/employee-management", EmployeeManagement)}
+    {R("/my-performance", MyPerformance)}
+    {R("/admin/templates", TemplateManagement)}
+    {R("/admin/company-relationships", CompanyRelationships)}
+    {R("/admin/closed-jobs", ClosedJobs)}
+    {R("/admin/exports", AdminExports)}
+    {R("/admin/whatsapp-booking", WhatsAppBookingPage)}
+    {R("/admin/marketplace/strategist", StrategistProjectsDashboard)}
+    {R("/admin/marketplace/analytics", MarketplaceAnalytics)}
+    {R("/admin/inventory", InventoryHub)}
+    {R("/admin/bulk-operations", BulkOperationsHub)}
+    {R("/admin/enterprise", EnterpriseDashboard)}
+    {R("/admin/due-diligence", DueDiligenceDashboard)}
+    {R("/admin/risk-management", RiskManagementDashboard)}
+    {R("/admin/jobs/:jobId/analytics", JobAnalyticsDashboard)}
+    {R("/admin/job-analytics", JobAnalyticsIndex)}
+    {R("/admin/agent-brain", AgentBrain)}
+    {R("/admin/rag-analytics", RAGAnalyticsDashboard)}
+    {R("/talent-pool", TalentPool)}
+    {R("/admin/talent-pool/lists", TalentPoolLists)}
+    {R("/admin/talent-pool/lists/:listId", TalentPoolListDetail)}
+
+    {/* WhatsApp Hub (multi-route) */}
+    {R("/admin/whatsapp", WhatsAppHub)}
+    {R("/admin/whatsapp/analytics", WhatsAppHub)}
+    {R("/admin/whatsapp/campaigns", WhatsAppHub)}
+    {R("/admin/whatsapp/automations", WhatsAppHub)}
+    {R("/admin/whatsapp/import", WhatsAppHub)}
+    {R("/admin/whatsapp/settings", WhatsAppHub)}
+
+    {/* ════════════════════════════════════════════ */}
+    {/* LEGACY REDIRECTS                             */}
+    {/* ════════════════════════════════════════════ */}
+
+    {/* Translations Hub */}
     <Route path="/admin/languages" element={<Navigate to="/admin/translations?tab=languages" replace />} />
-    {/* SECURITY HUB */}
-    <Route
-      path="/admin/security"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <SecurityHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* Security Hub redirects */}
-    <Route path="/admin/disaster-recovery" element={<Navigate to="/admin/security?tab=disaster-recovery" replace />} />
-    {/* Member Requests + Email Templates — now in Talent Hub */}
-    {/* Rejections — now in Talent Hub */}
-    <Route
-      path="/admin/feedback"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <FeedbackDatabase />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* user-activity redirects to Performance Hub */}
-    <Route
-      path="/admin/system-health"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <SystemHealth />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/data-health"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <DataHealthPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* performance-matrix redirects to Performance Hub */}
-    <Route
-      path="/admin/website-kpis"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WebsiteKPIDashboardPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/sales-kpis"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <SalesKPIDashboardPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/kpi-command-center"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <UnifiedKPICommandCenterPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* Finance Hub redirects */}
-    <Route path="/admin/revenue-ladder" element={<Navigate to="/admin/finance?tab=revenue-ladder" replace />} />
-    <Route path="/admin/company-fees" element={<Navigate to="/admin/finance?tab=fees" replace />} />
-    <Route path="/admin/deal-pipeline-settings" element={<Navigate to="/admin/finance?tab=pipeline-settings" replace />} />
-    <Route path="/admin/moneybird" element={<Navigate to="/admin/finance?tab=moneybird" replace />} />
-    {/* Security Hub redirects */}
-    <Route path="/admin/anti-hacking" element={<Navigate to="/admin/security" replace />} />
-    <Route path="/admin/audit-log" element={<Navigate to="/admin/security?tab=audit-log" replace />} />
-    {/* /admin/employees consolidated into /admin/employee-management */}
-    <Route
-      path="/admin/employees/:employeeId"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <EmployeeDetailPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/employee-management"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <EmployeeManagement />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/my-performance"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MyPerformance />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* team-performance redirects to Performance Hub */}
-    {/* Translations Hub redirects (old routes) */}
     <Route path="/admin/translation-editor" element={<Navigate to="/admin/translations?tab=editor" replace />} />
     <Route path="/admin/translation-coverage" element={<Navigate to="/admin/translations?tab=coverage" replace />} />
     <Route path="/admin/brand-terms" element={<Navigate to="/admin/translations?tab=brand-terms" replace />} />
     <Route path="/admin/translation-audit" element={<Navigate to="/admin/translations?tab=audit" replace />} />
-    <Route
-      path="/admin/templates"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TemplateManagement />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* WhatsApp Hub - consolidated workspace with nested routes */}
-    <Route
-      path="/admin/whatsapp"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WhatsAppHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/whatsapp/analytics"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WhatsAppHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/whatsapp/campaigns"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WhatsAppHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/whatsapp/automations"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WhatsAppHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/whatsapp/import"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WhatsAppHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/whatsapp/settings"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <WhatsAppHub />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* Redirects from old WhatsApp routes and legacy query params */}
-    <Route path="/admin/whatsapp-analytics" element={<Navigate to="/admin/whatsapp/analytics" replace />} />
-    <Route path="/admin/whatsapp-settings" element={<Navigate to="/admin/whatsapp/settings" replace />} />
-    {/* Catch dead admin/dashboard route */}
-    <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
-    <Route
-      path="/admin/company-relationships"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CompanyRelationships />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    {/* Game Admin — redirects to Assessments Hub tabs */}
+
+    {/* Security Hub */}
+    <Route path="/admin/anti-hacking" element={<Navigate to="/admin/security" replace />} />
+    <Route path="/admin/audit-log" element={<Navigate to="/admin/security?tab=audit-log" replace />} />
+    <Route path="/admin/disaster-recovery" element={<Navigate to="/admin/security?tab=disaster-recovery" replace />} />
+    <Route path="/admin/security-events" element={<Navigate to="/admin/security?tab=events" replace />} />
+    <Route path="/admin/god-mode" element={<Navigate to="/admin/security?tab=god-mode" replace />} />
+    <Route path="/admin/error-logs" element={<Navigate to="/admin/security?tab=error-logs" replace />} />
+
+    {/* Finance Hub */}
+    <Route path="/admin/revenue-ladder" element={<Navigate to="/admin/finance?tab=revenue-ladder" replace />} />
+    <Route path="/admin/company-fees" element={<Navigate to="/admin/finance?tab=fees" replace />} />
+    <Route path="/admin/deal-pipeline-settings" element={<Navigate to="/admin/finance?tab=pipeline-settings" replace />} />
+    <Route path="/admin/moneybird" element={<Navigate to="/admin/finance?tab=moneybird" replace />} />
+    <Route path="/admin/revenue-shares" element={<Navigate to="/admin/finance?tab=revenue-shares" replace />} />
+    <Route path="/admin/reconciliation" element={<Navigate to="/admin/finance?tab=reconciliation" replace />} />
+    <Route path="/admin/expenses" element={<Navigate to="/admin/finance?tab=expenses" replace />} />
+
+    {/* Communication Hub */}
+    <Route path="/admin/conversation-analytics" element={<Navigate to="/admin/communication-hub?tab=conversations" replace />} />
+
+    {/* Engagement Hub */}
+    <Route path="/admin/user-engagement" element={<Navigate to="/admin/engagement-hub?tab=engagement" replace />} />
+
+    {/* Performance Hub */}
+    <Route path="/admin/performance-matrix" element={<Navigate to="/admin/performance-hub?tab=matrix" replace />} />
+    <Route path="/team-performance" element={<Navigate to="/admin/performance-hub?tab=team" replace />} />
+    <Route path="/admin/user-activity" element={<Navigate to="/admin/performance-hub?tab=activity" replace />} />
+
+    {/* Assessments Hub */}
     <Route path="/admin/games/values-poker" element={<Navigate to="/admin/assessments-hub?tab=values-poker" replace />} />
     <Route path="/admin/games/swipe-game" element={<Navigate to="/admin/assessments-hub?tab=swipe-game" replace />} />
     <Route path="/admin/games/pressure-cooker" element={<Navigate to="/admin/assessments-hub?tab=pressure-cooker" replace />} />
     <Route path="/admin/games/blind-spot" element={<Navigate to="/admin/assessments-hub?tab=blind-spot" replace />} />
     <Route path="/admin/games/miljoenenjacht" element={<Navigate to="/admin/assessments-hub?tab=miljoenenjacht" replace />} />
     <Route path="/admin/assessments" element={<Navigate to="/admin/assessments-hub" replace />} />
-    {/* Inventory Hub — standalone page */}
-    <Route path="/admin/inventory" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><InventoryHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    {/* Inventory legacy redirects */}
-    <Route path="/admin/inventory/dashboard" element={<Navigate to="/admin/inventory" replace />} />
-    <Route path="/admin/inventory/depreciation" element={<Navigate to="/admin/inventory?tab=depreciation" replace />} />
-    <Route path="/admin/inventory/intangible" element={<Navigate to="/admin/inventory?tab=intangible" replace />} />
-    <Route path="/admin/inventory/kia" element={<Navigate to="/admin/inventory?tab=kia" replace />} />
-    <Route path="/admin/bulk-operations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><BulkOperationsHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
 
-    {/* Phase 5: Analytics Dashboards */}
-    <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/job-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsIndex /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/conversation-analytics" element={<Navigate to="/admin/communication-hub?tab=conversations" replace />} />
-    <Route path="/admin/communication-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CommunicationHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    {/* Security Hub redirects */}
-    <Route path="/admin/security-events" element={<Navigate to="/admin/security?tab=events" replace />} />
-
-    {/* Security Hub redirects */}
-    <Route path="/admin/god-mode" element={<Navigate to="/admin/security?tab=god-mode" replace />} />
-    <Route path="/admin/error-logs" element={<Navigate to="/admin/security?tab=error-logs" replace />} />
-
-    {/* Finance Hub redirects */}
-    <Route path="/admin/revenue-shares" element={<Navigate to="/admin/finance?tab=revenue-shares" replace />} />
-    <Route path="/admin/reconciliation" element={<Navigate to="/admin/finance?tab=reconciliation" replace />} />
-    <Route path="/admin/expenses" element={<Navigate to="/admin/finance?tab=expenses" replace />} />
-
-    {/* Closed Jobs */}
-    <Route path="/admin/closed-jobs" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClosedJobs /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Enterprise Management */}
-    <Route path="/admin/enterprise" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EnterpriseDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Due Diligence Center */}
-    <Route path="/admin/due-diligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DueDiligenceDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Risk & Scale Management */}
-    <Route path="/admin/risk-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RiskManagementDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Marketplace Strategist Dashboard */}
-    <Route path="/admin/marketplace/strategist" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><StrategistProjectsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Marketplace Analytics */}
-    <Route path="/admin/marketplace/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MarketplaceAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Agent Brain */}
-    <Route path="/admin/agent-brain" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AgentBrain /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* RAG Analytics Dashboard */}
-    <Route path="/admin/rag-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RAGAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-
-    {/* Talent Hub (Phase 2 Round 6) */}
-    <Route path="/admin/talent-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TalentHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    {/* Legacy redirects to Talent Hub */}
+    {/* Talent Hub */}
     <Route path="/admin/member-requests" element={<Navigate to="/admin/talent-hub" replace />} />
     <Route path="/admin/merge" element={<Navigate to="/admin/talent-hub?tab=merge" replace />} />
     <Route path="/archived-candidates" element={<Navigate to="/admin/talent-hub?tab=archived" replace />} />
@@ -528,22 +193,17 @@ export const adminRoutes = (
     <Route path="/admin/rejections" element={<Navigate to="/admin/talent-hub?tab=rejections" replace />} />
     <Route path="/admin/email-templates" element={<Navigate to="/admin/talent-hub?tab=emails" replace />} />
 
-    {/* Hidden one-time exports (no navigation) */}
-    <Route path="/admin/exports" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminExports /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Inventory Hub */}
+    <Route path="/admin/inventory/dashboard" element={<Navigate to="/admin/inventory" replace />} />
+    <Route path="/admin/inventory/depreciation" element={<Navigate to="/admin/inventory?tab=depreciation" replace />} />
+    <Route path="/admin/inventory/intangible" element={<Navigate to="/admin/inventory?tab=intangible" replace />} />
+    <Route path="/admin/inventory/kia" element={<Navigate to="/admin/inventory?tab=kia" replace />} />
 
-    {/* WhatsApp Booking Admin */}
-    <Route path="/admin/whatsapp-booking" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><WhatsAppBookingPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* WhatsApp */}
+    <Route path="/admin/whatsapp-analytics" element={<Navigate to="/admin/whatsapp/analytics" replace />} />
+    <Route path="/admin/whatsapp-settings" element={<Navigate to="/admin/whatsapp/settings" replace />} />
 
-    {/* Engagement Hub (Phase 2 Round 5b) */}
-    <Route path="/admin/engagement-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EngagementHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    {/* Legacy redirects */}
-    <Route path="/admin/user-engagement" element={<Navigate to="/admin/engagement-hub?tab=engagement" replace />} />
-
-    {/* Performance Hub (Phase 2 Round 5c) */}
-    <Route path="/admin/performance-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><PerformanceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    {/* Legacy redirects to Performance Hub */}
-    <Route path="/admin/performance-matrix" element={<Navigate to="/admin/performance-hub?tab=matrix" replace />} />
-    <Route path="/team-performance" element={<Navigate to="/admin/performance-hub?tab=team" replace />} />
-    <Route path="/admin/user-activity" element={<Navigate to="/admin/performance-hub?tab=activity" replace />} />
+    {/* Misc */}
+    <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
   </>
 );
