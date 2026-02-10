@@ -21,6 +21,7 @@ const PerformanceHub = lazy(() => import("@/pages/admin/PerformanceHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
 const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
+const AIAnalyticsHub = lazy(() => import("@/pages/admin/AIAnalyticsHub"));
 
 // ──────────────────────────────────────────────
 // Standalone Admin Pages
@@ -57,7 +58,7 @@ const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
 
 // Agent Brain
 const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
-const RAGAnalyticsDashboard = lazy(() => import("@/pages/admin/RAGAnalyticsDashboard"));
+
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
@@ -94,6 +95,7 @@ export const adminRoutes = (
     {R("/admin/assessments", AssessmentsHub)}
     {R("/admin/talent-hub", TalentHub)}
     {R("/admin/finance", FinanceHub)}
+    {R("/admin/ai-analytics", AIAnalyticsHub)}
 
     {/* ════════════════════════════════════════════ */}
     {/* STANDALONE ROUTES                            */}
@@ -126,7 +128,7 @@ export const adminRoutes = (
     {R("/admin/jobs/:jobId/analytics", JobAnalyticsDashboard)}
     {R("/admin/job-analytics", JobAnalyticsIndex)}
     {R("/admin/agent-brain", AgentBrain)}
-    {R("/admin/rag-analytics", RAGAnalyticsDashboard)}
+    
     {R("/talent-pool", TalentPool)}
     {R("/admin/talent-pool/lists", TalentPoolLists)}
     {R("/admin/talent-pool/lists/:listId", TalentPoolListDetail)}
@@ -204,6 +206,10 @@ export const adminRoutes = (
     {/* WhatsApp */}
     <Route path="/admin/whatsapp-analytics" element={<Navigate to="/admin/whatsapp/analytics" replace />} />
     <Route path="/admin/whatsapp-settings" element={<Navigate to="/admin/whatsapp/settings" replace />} />
+
+    {/* AI Analytics Hub */}
+    <Route path="/admin/rag-analytics" element={<Navigate to="/admin/ai-analytics?tab=rag" replace />} />
+    <Route path="/ml-dashboard" element={<Navigate to="/admin/ai-analytics?tab=ml" replace />} />
 
     {/* Misc */}
     <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
