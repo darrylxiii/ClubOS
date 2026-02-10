@@ -92,12 +92,7 @@ const KIAOptimization = lazy(() => import("@/pages/admin/inventory/KIAOptimizati
 // Bulk Operations
 const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
 
-// Game Admin Pages
-const ValuesPokerAdmin = lazy(() => import("@/pages/admin/games/ValuesPokerAdmin"));
-const SwipeGameAdmin = lazy(() => import("@/pages/admin/games/SwipeGameAdmin"));
-const PressureCookerAdmin = lazy(() => import("@/pages/admin/games/PressureCookerAdmin"));
-const BlindSpotAdmin = lazy(() => import("@/pages/admin/games/BlindSpotAdmin"));
-const MiljoenenjachtAdmin = lazy(() => import("@/pages/admin/games/MiljoenenjachtAdmin"));
+// Game Admin Pages — now embedded in AssessmentsHub (redirects below)
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
