@@ -335,6 +335,5 @@ export default function MessagingAnalytics() {
         </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 }
