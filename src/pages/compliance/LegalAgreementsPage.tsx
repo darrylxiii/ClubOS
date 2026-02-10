@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notify";
 import { FileText, Search, Download, Send } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
-
 export default function LegalAgreementsPage() {
   const [agreements, setAgreements] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
