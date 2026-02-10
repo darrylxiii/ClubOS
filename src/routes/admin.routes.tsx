@@ -12,6 +12,7 @@ const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 const TranslationsHub = lazy(() => import("@/pages/admin/TranslationsHub"));
 const SecurityHub = lazy(() => import("@/pages/admin/SecurityHub"));
 const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
+const CommunicationHub = lazy(() => import("@/pages/admin/CommunicationHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
