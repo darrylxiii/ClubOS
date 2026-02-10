@@ -122,10 +122,7 @@ import ResetPasswordNew from "./pages/ResetPasswordNew";
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));
-const CommunicationIntelligence = lazy(() => import("./pages/CommunicationIntelligence"));
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
-const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
-const CommunicationAnalyticsPage = lazy(() => import("./pages/CommunicationAnalyticsPage"));
 
 // PageLoader is now imported from @/components/PageLoader
 
