@@ -203,6 +203,5 @@ export default function ConversationAnalytics() {
           </Card>
         </div>
       </div>
-    </AppLayout>
   );
 }
