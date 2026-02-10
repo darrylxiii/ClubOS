@@ -47,7 +47,7 @@ export function CommunicationNotificationBell() {
     } else if (notification.entityType === 'company') {
       navigate(`/companies/${notification.entityId}`);
     } else {
-      navigate('/communication-intelligence');
+      navigate('/admin/communication-hub');
     }
   };
 
