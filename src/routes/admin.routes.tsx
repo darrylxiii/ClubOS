@@ -17,6 +17,7 @@ const EngagementHub = lazy(() => import("@/pages/admin/EngagementHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
+const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
 // CompanyManagement removed - consolidated into /companies page
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
@@ -175,30 +176,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/admin/merge"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MergeDashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/club-sync-requests"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <ClubSyncRequestsPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Merge Dashboard, Club Sync, Member Requests — now in Talent Hub (redirects below) */}
     {/* Company Management consolidated into /companies page */}
     <Route
       path="/admin/global-analytics"
@@ -254,66 +232,8 @@ export const adminRoutes = (
     />
     {/* Security Hub redirects */}
     <Route path="/admin/disaster-recovery" element={<Navigate to="/admin/security?tab=disaster-recovery" replace />} />
-    <Route
-      path="/admin/member-requests"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MemberRequestsPage />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/email-templates"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <EmailTemplateManager />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/email-notifications"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <EmailNotificationManagement />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/target-companies"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <TargetCompaniesOverview />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/rejections"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AdminRejections />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* Member Requests + Email Templates — now in Talent Hub */}
+    {/* Rejections — now in Talent Hub */}
     <Route
       path="/admin/feedback"
       element={
@@ -598,8 +518,15 @@ export const adminRoutes = (
     {/* RAG Analytics Dashboard */}
     <Route path="/admin/rag-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RAGAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
 
-    {/* Archived Candidates */}
-    <Route path="/archived-candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ArchivedCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Talent Hub (Phase 2 Round 6) */}
+    <Route path="/admin/talent-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TalentHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Legacy redirects to Talent Hub */}
+    <Route path="/admin/member-requests" element={<Navigate to="/admin/talent-hub" replace />} />
+    <Route path="/admin/merge" element={<Navigate to="/admin/talent-hub?tab=merge" replace />} />
+    <Route path="/archived-candidates" element={<Navigate to="/admin/talent-hub?tab=archived" replace />} />
+    <Route path="/admin/club-sync-requests" element={<Navigate to="/admin/talent-hub?tab=sync" replace />} />
+    <Route path="/admin/rejections" element={<Navigate to="/admin/talent-hub?tab=rejections" replace />} />
+    <Route path="/admin/email-templates" element={<Navigate to="/admin/talent-hub?tab=emails" replace />} />
 
     {/* Hidden one-time exports (no navigation) */}
     <Route path="/admin/exports" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminExports /></Suspense></RouteErrorBoundary></ProtectedRoute>} />

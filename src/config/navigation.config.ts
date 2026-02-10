@@ -293,12 +293,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
         { name: "All Companies", icon: Building, path: "/companies" },
         { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
-        { name: "Member Requests", icon: Users, path: "/admin/member-requests" },
-        { name: "Merge Dashboard", icon: Link2, path: "/admin/merge" },
-        { name: "Global Rejections", icon: TrendingUp, path: "/admin/rejections" },
-        { name: "Archived Candidates", icon: Archive, path: "/archived-candidates" },
-        { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },
-        { name: "Email Templates", icon: Mail, path: "/admin/email-templates" },
+        { name: "Talent Hub", icon: Users, path: "/admin/talent-hub" },
       ],
     },
     // === ASSESSMENTS & GAMES (consolidated into single hub) ===
