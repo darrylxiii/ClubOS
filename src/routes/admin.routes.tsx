@@ -207,6 +207,10 @@ export const adminRoutes = (
     <Route path="/admin/whatsapp-analytics" element={<Navigate to="/admin/whatsapp/analytics" replace />} />
     <Route path="/admin/whatsapp-settings" element={<Navigate to="/admin/whatsapp/settings" replace />} />
 
+    {/* AI Analytics Hub */}
+    <Route path="/admin/rag-analytics" element={<Navigate to="/admin/ai-analytics?tab=rag" replace />} />
+    <Route path="/ml-dashboard" element={<Navigate to="/admin/ai-analytics?tab=ml" replace />} />
+
     {/* Misc */}
     <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
   </>
