@@ -414,7 +414,7 @@ const candidateSpecificItems: NavigationItem[] = [
 export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   // Normalize role - default to candidate if invalid
   const normalizedRole: 'candidate' | 'partner' | 'admin' = 
-    role === 'company_admin' || role === 'recruiter' ? 'admin' : 
+    role === 'company_admin' ? 'admin' : 
     (role === 'candidate' || role === 'partner' || role === 'admin') ? role : 
     'candidate';
   

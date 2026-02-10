@@ -20,6 +20,7 @@ const EngagementHub = lazy(() => import("@/pages/admin/EngagementHub"));
 const PerformanceHub = lazy(() => import("@/pages/admin/PerformanceHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
+const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
 
 // ──────────────────────────────────────────────
 // Standalone Admin Pages
@@ -29,8 +30,6 @@ const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
 
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
-const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
-const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
 const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
 const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
 const EmployeeDetailPage = lazy(() => import("@/pages/admin/EmployeeDetailPage"));
@@ -94,6 +93,7 @@ export const adminRoutes = (
     {R("/admin/performance-hub", PerformanceHub)}
     {R("/admin/assessments", AssessmentsHub)}
     {R("/admin/talent-hub", TalentHub)}
+    {R("/admin/finance", FinanceHub)}
 
     {/* ════════════════════════════════════════════ */}
     {/* STANDALONE ROUTES                            */}
@@ -104,8 +104,9 @@ export const adminRoutes = (
     
     {R("/admin/system-health", SystemHealth)}
     {R("/admin/data-health", DataHealthPage)}
-    {R("/admin/website-kpis", WebsiteKPIDashboardPage)}
-    {R("/admin/sales-kpis", SalesKPIDashboardPage)}
+    {/* KPI routes redirect to unified command center */}
+    <Route path="/admin/website-kpis" element={<Navigate to="/admin/kpi-command-center" replace />} />
+    <Route path="/admin/sales-kpis" element={<Navigate to="/admin/kpi-command-center" replace />} />
     {R("/admin/kpi-command-center", UnifiedKPICommandCenterPage)}
     {R("/admin/employees/:employeeId", EmployeeDetailPage)}
     {R("/admin/employee-management", EmployeeManagement)}

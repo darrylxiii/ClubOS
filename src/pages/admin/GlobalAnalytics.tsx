@@ -10,7 +10,7 @@ import {
 import { Visual1 } from "@/components/ui/visual-1";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
+import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Building2, Users, Briefcase, TrendingUp, Clock, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -158,7 +158,7 @@ const GlobalAnalytics = () => {
   if (loading) {
     return (
       <AppLayout>
-        <div className="container mx-auto py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <Skeleton className="h-10 w-64 mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             {[...Array(4)].map((_, i) => (
@@ -175,7 +175,7 @@ const GlobalAnalytics = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Global Analytics</h1>
           <p className="text-muted-foreground">
@@ -269,16 +269,17 @@ const GlobalAnalytics = () => {
                 <CardDescription>Track application volume over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={analytics.applicationsPerWeek}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="line"
+                  data={analytics.applicationsPerWeek}
+                  height={400}
+                  config={{
+                    xAxisKey: 'week',
+                    lines: [{ dataKey: 'applications', stroke: 'hsl(var(--primary))', strokeWidth: 2 }],
+                    showGrid: true,
+                    showTooltip: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -290,16 +291,17 @@ const GlobalAnalytics = () => {
                 <CardDescription>Candidate progression through pipeline stages</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={analytics.conversionFunnel}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="stage" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="bar"
+                  data={analytics.conversionFunnel}
+                  height={400}
+                  config={{
+                    xAxisKey: 'stage',
+                    bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
+                    showGrid: true,
+                    showTooltip: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>

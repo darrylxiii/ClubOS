@@ -7,9 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageLoader } from '@/components/PageLoader';
 
 const CommunicationIntelligence = lazy(() => import('@/pages/CommunicationIntelligence'));
-const CommunicationAnalyticsDashboard = lazy(() =>
-  import('@/components/communication/CommunicationAnalyticsDashboard').then(m => ({ default: m.CommunicationAnalyticsDashboard }))
-);
+const CommunicationAnalyticsDashboard = lazy(() => import('@/components/communication/CommunicationAnalyticsDashboard'));
 const ConversationAnalytics = lazy(() => import('@/pages/admin/ConversationAnalytics'));
 const MessagingAnalytics = lazy(() => import('@/pages/MessagingAnalytics'));
 const FeedbackDatabase = lazy(() => import('@/pages/FeedbackDatabase'));

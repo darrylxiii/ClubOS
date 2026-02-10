@@ -39,8 +39,7 @@ const WorkspacePage = lazy(() => import("@/pages/WorkspacePage"));
 // Compliance Hub - Unified page with tabs
 const ComplianceHub = lazy(() => import("@/pages/compliance/ComplianceHub"));
 
-// Financial & Billing Pages - Financial routes consolidated into FinanceHub in admin.routes.tsx
-const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
+// Financial & Billing Pages - Finance Hub route moved to admin.routes.tsx
 const PartnerBilling = lazy(() => import("@/pages/partner/PartnerBilling"));
 
 /**
@@ -123,8 +122,7 @@ export const sharedRoutes = (
     <Route path="/compliance/data-classification" element={<Navigate to="/compliance?tab=classification" replace />} />
     <Route path="/compliance/audit-requests" element={<Navigate to="/compliance?tab=audits" replace />} />
 
-    {/* Finance Hub - Consolidated */}
-    <Route path="/admin/finance" element={<ProtectedRoute><FinanceHub /></ProtectedRoute>} />
+    {/* Finance Hub legacy redirects */}
     <Route path="/admin/financial" element={<Navigate to="/admin/finance" replace />} />
     <Route path="/admin/deals-pipeline" element={<Navigate to="/admin/finance?tab=pipeline" replace />} />
     <Route path="/partner/billing" element={<ProtectedRoute><PartnerBilling /></ProtectedRoute>} />
