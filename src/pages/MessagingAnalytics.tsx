@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { MessageSquare, Send, Download, Clock, TrendingUp, Users } from 'lucide-react';
 import { format, subDays } from 'date-fns';
-import { AppLayout } from '@/components/AppLayout';
+
 
 export default function MessagingAnalytics() {
   const { user } = useAuth();
@@ -181,8 +181,7 @@ export default function MessagingAnalytics() {
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondary))', 'hsl(var(--muted))'];
 
   return (
-    <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Messaging Analytics</h1>
         <p className="text-muted-foreground">Insights into your communication patterns</p>
@@ -336,6 +335,5 @@ export default function MessagingAnalytics() {
         </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 }

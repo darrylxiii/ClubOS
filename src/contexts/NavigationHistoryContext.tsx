@@ -30,7 +30,7 @@ const getPageTitle = (pathname: string): string => {
     '/companies': 'Companies',
     '/achievements': 'Achievements',
     '/club-ai': 'Club AI',
-    '/communication-intelligence': 'Communication Intelligence',
+    '/admin/communication-hub': 'Communication Hub',
     '/unified-tasks': 'Tasks',
     '/scheduling': 'Scheduling',
     '/analytics': 'Analytics',

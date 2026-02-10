@@ -12,6 +12,7 @@ const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 const TranslationsHub = lazy(() => import("@/pages/admin/TranslationsHub"));
 const SecurityHub = lazy(() => import("@/pages/admin/SecurityHub"));
 const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
+const CommunicationHub = lazy(() => import("@/pages/admin/CommunicationHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
@@ -69,7 +70,7 @@ const RiskManagementDashboard = lazy(() => import("@/pages/admin/RiskManagementD
 
 // Phase 5: Analytics Dashboards
 const JobAnalyticsDashboard = lazy(() => import("@/pages/admin/JobAnalyticsDashboard"));
-const ConversationAnalytics = lazy(() => import("@/pages/admin/ConversationAnalytics"));
+// ConversationAnalytics consolidated into Communication Hub
 const SecurityEventDashboard = lazy(() => import("@/pages/admin/SecurityEventDashboard"));
 const UserEngagementDashboard = lazy(() => import("@/pages/admin/UserEngagementDashboard"));
 // Phase 6: Agent Brain
@@ -590,7 +591,8 @@ export const adminRoutes = (
     {/* Phase 5: Analytics Dashboards */}
     <Route path="/admin/jobs/:jobId/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/admin/job-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><JobAnalyticsIndex /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/admin/conversation-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ConversationAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/admin/conversation-analytics" element={<Navigate to="/admin/communication-hub?tab=conversations" replace />} />
+    <Route path="/admin/communication-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CommunicationHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     {/* Security Hub redirects */}
     <Route path="/admin/security-events" element={<Navigate to="/admin/security?tab=events" replace />} />
 

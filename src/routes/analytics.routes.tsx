@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -17,7 +17,7 @@ const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
 const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
 const InvestorDashboard = lazy(() => import("@/pages/admin/InvestorDashboard"));
-const MessagingAnalytics = lazy(() => import("@/pages/MessagingAnalytics"));
+// MessagingAnalytics consolidated into Communication Hub
 
 export const analyticsRoutes = (
   <>
@@ -156,15 +156,7 @@ export const analyticsRoutes = (
     />
     <Route
       path="/messaging-analytics"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <MessagingAnalytics />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
+      element={<Navigate to="/admin/communication-hub?tab=messaging" replace />}
     />
   </>
 );

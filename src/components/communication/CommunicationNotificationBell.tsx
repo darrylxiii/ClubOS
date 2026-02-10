@@ -47,7 +47,7 @@ export function CommunicationNotificationBell() {
     } else if (notification.entityType === 'company') {
       navigate(`/companies/${notification.entityId}`);
     } else {
-      navigate('/communication-intelligence');
+      navigate('/admin/communication-hub');
     }
   };
 
@@ -159,7 +159,7 @@ export function CommunicationNotificationBell() {
             className="w-full text-xs"
             onClick={() => {
               setOpen(false);
-              navigate('/communication-intelligence');
+              navigate('/admin/communication-hub');
             }}
           >
             View all communication insights

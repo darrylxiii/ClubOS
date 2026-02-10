@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { Brain, Activity, Workflow, RefreshCw, Filter, TrendingUp, AlertTriangle, Users, MessageSquare } from 'lucide-react';
-import { AppLayout } from '@/components/AppLayout';
-import { RoleGate } from '@/components/RoleGate';
 import { PageTitle } from '@/components/ui/typography';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,9 +30,7 @@ export default function CommunicationIntelligence() {
   };
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -226,7 +222,5 @@ export default function CommunicationIntelligence() {
           {/* Club AI Advisor Widget */}
           <ClubAIAdvisorWidget context="general" />
         </div>
-      </RoleGate>
-    </AppLayout>
   );
 }

@@ -122,10 +122,8 @@ import ResetPasswordNew from "./pages/ResetPasswordNew";
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));
-const CommunicationIntelligence = lazy(() => import("./pages/CommunicationIntelligence"));
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
-const CommunicationAnalyticsPage = lazy(() => import("./pages/CommunicationAnalyticsPage"));
 
 // PageLoader is now imported from @/components/PageLoader
 
@@ -323,9 +321,9 @@ const App = () => {
                   <Route path="/partner/relationships" element={<PartnerRelationships />} />
                   <Route path="/live-hub" element={<LiveHub />} />
                   <Route path="/club-ai" element={<ClubAI />} />
-                  <Route path="/communication-intelligence" element={<CommunicationIntelligence />} />
+                  <Route path="/communication-intelligence" element={<Navigate to="/admin/communication-hub?tab=intelligence" replace />} />
                   <Route path="/my-communications" element={<MyCommunications />} />
-                  <Route path="/communication-analytics" element={<CommunicationAnalyticsPage />} />
+                  <Route path="/communication-analytics" element={<Navigate to="/admin/communication-hub?tab=analytics" replace />} />
                   <Route path="/social-management" element={<SocialManagement />} />
                   <Route path="/partner-onboarding" element={<PartnerOnboarding />} />
                   <Route path="/whatsapp-import" element={<Navigate to="/admin/whatsapp?tab=import" replace />} />

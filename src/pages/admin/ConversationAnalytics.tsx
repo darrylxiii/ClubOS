@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AppLayout } from '@/components/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageSquare, Clock, TrendingUp, Smile, Meh, Frown } from 'lucide-react';
@@ -79,20 +78,17 @@ export default function ConversationAnalytics() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-8 space-y-6">
+        <div className="space-y-6">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
           </div>
         </div>
-      </AppLayout>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Conversation Analytics</h1>
           <p className="text-muted-foreground">Messaging metrics and communication insights</p>
@@ -205,6 +201,5 @@ export default function ConversationAnalytics() {
           </Card>
         </div>
       </div>
-    </AppLayout>
   );
 }
