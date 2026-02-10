@@ -29,7 +29,7 @@ const CHANNEL_COLORS = {
   phone: '#FFD93D',
 };
 
-export function CommunicationAnalyticsDashboard() {
+export default function CommunicationAnalyticsDashboard() {
   const { loading, analytics, fetchAnalytics } = useCommunicationAnalytics();
   const [dateRange, setDateRange] = useState('30d');
 

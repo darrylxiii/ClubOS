@@ -292,16 +292,18 @@ const GlobalAnalytics = () => {
                 <CardDescription>Candidate progression through pipeline stages</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={analytics.conversionFunnel}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="stage" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <DynamicChart
+                  type="bar"
+                  data={analytics.conversionFunnel}
+                  height={400}
+                  config={{
+                    xAxisKey: 'stage',
+                    bars: [{ dataKey: 'count', fill: 'hsl(var(--primary))' }],
+                    showGrid: true,
+                    showTooltip: true,
+                    showLegend: true,
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>

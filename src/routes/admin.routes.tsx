@@ -104,8 +104,9 @@ export const adminRoutes = (
     
     {R("/admin/system-health", SystemHealth)}
     {R("/admin/data-health", DataHealthPage)}
-    {R("/admin/website-kpis", WebsiteKPIDashboardPage)}
-    {R("/admin/sales-kpis", SalesKPIDashboardPage)}
+    {/* KPI routes redirect to unified command center */}
+    <Route path="/admin/website-kpis" element={<Navigate to="/admin/kpi-command-center" replace />} />
+    <Route path="/admin/sales-kpis" element={<Navigate to="/admin/kpi-command-center" replace />} />
     {R("/admin/kpi-command-center", UnifiedKPICommandCenterPage)}
     {R("/admin/employees/:employeeId", EmployeeDetailPage)}
     {R("/admin/employee-management", EmployeeManagement)}
