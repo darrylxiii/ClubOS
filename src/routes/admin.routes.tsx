@@ -33,6 +33,7 @@ const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
 const UserActivity = lazy(() => import("@/pages/admin/UserActivity"));
 const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 const QuantumPerformanceMatrixPage = lazy(() => import("@/pages/QuantumPerformanceMatrixPage"));
+const PerformanceHub = lazy(() => import("@/pages/admin/PerformanceHub"));
 const WebsiteKPIDashboardPage = lazy(() => import("@/pages/WebsiteKPIDashboardPage"));
 const SalesKPIDashboardPage = lazy(() => import("@/pages/SalesKPIDashboardPage"));
 const UnifiedKPICommandCenterPage = lazy(() => import("@/pages/UnifiedKPICommandCenterPage"));
