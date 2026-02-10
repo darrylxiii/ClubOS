@@ -28,7 +28,29 @@ const TAB_MAP: Record<string, string> = {
   'pipeline-settings': 'pipeline-settings',
 };
 
+export default function FinanceHub() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'dashboard';
 
+  const handleTabChange = (value: string) => {
+    setSearchParams(value === 'dashboard' ? {} : { tab: value }, { replace: true });
+  };
+
+  return (
+    <AppLayout>
+      <RoleGate allowedRoles={['admin', 'strategist']}>
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <DollarSign className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold tracking-tight">FINANCE HUB</h1>
+            </div>
+            <p className="text-muted-foreground">
+              Revenue, fees, expenses, invoicing, and pipeline management
+            </p>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>

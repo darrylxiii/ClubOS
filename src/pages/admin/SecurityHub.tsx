@@ -22,7 +22,29 @@ const TAB_MAP: Record<string, string> = {
   'disaster-recovery': 'disaster-recovery',
 };
 
+export default function SecurityHub() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'anti-hacking';
 
+  const handleTabChange = (value: string) => {
+    setSearchParams(value === 'anti-hacking' ? {} : { tab: value }, { replace: true });
+  };
+
+  return (
+    <AppLayout>
+      <RoleGate allowedRoles={['admin', 'company_admin']}>
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <Shield className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold tracking-tight">SECURITY HUB</h1>
+            </div>
+            <p className="text-muted-foreground">
+              Threat monitoring, audit trails, and incident response
+            </p>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap">
               <TabsTrigger value="anti-hacking">Anti-Hacking</TabsTrigger>
               <TabsTrigger value="events">Security Events</TabsTrigger>
