@@ -90,8 +90,7 @@ export default function ConversationAnalytics() {
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Conversation Analytics</h1>
           <p className="text-muted-foreground">Messaging metrics and communication insights</p>
