@@ -434,7 +434,6 @@ export const adminRoutes = (
       }
     />
     {/* team-performance redirects to Performance Hub */}
-    />
     {/* Translations Hub redirects (old routes) */}
     <Route path="/admin/translation-editor" element={<Navigate to="/admin/translations?tab=editor" replace />} />
     <Route path="/admin/translation-coverage" element={<Navigate to="/admin/translations?tab=coverage" replace />} />
