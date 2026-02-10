@@ -82,7 +82,8 @@ const ErrorLogs = lazy(() => import("@/pages/admin/ErrorLogs"));
 const JobAnalyticsIndex = lazy(() => import("@/pages/admin/JobAnalyticsIndex"));
 const DataHealthPage = lazy(() => import("@/pages/admin/DataHealthPage"));
 
-// Inventory Pages — now embedded in Finance Hub (redirects below)
+// Inventory Hub — standalone page
+const InventoryHub = lazy(() => import("@/pages/admin/InventoryHub"));
 
 // Bulk Operations
 const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
