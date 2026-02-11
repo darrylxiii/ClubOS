@@ -1,97 +1,42 @@
 
 
-# Fix: LinkedIn Sync Failing to Save Data
+# Fix: LinkedIn Sync Fails Due to Missing `location` Column
 
-## Root Cause Analysis
+## Root Cause
 
-After a comprehensive audit of the scraper, client code, database, and logs, here is what is happening:
+The scraper succeeds (HTTP 200), but the **client-side database update** fails with:
 
-### The scraper works perfectly
-The edge function logs confirm successful runs. For example, the most recent sync for "Lilian K." at 23:23:55 correctly returned:
-- Profile picture URL (persisted to storage)
-- 5 work history entries with dates
-- 2 education entries
-- Full name "Lilian K."
-
-### The database was never updated
-Despite the scraper succeeding, the database still shows:
-- `avatar_url`: null
-- `full_name`: "Liliankalman" (URL-extracted fallback, not "Lilian K.")
-- `enrichment_last_run`: 23:18:20 (from an earlier attempt, not the 23:23 run)
-
-### Bug: Response key mismatch in CandidateQuickActions
-
-The scraper returns:
-```text
-{ success: true, data: { full_name: "...", avatar_url: "...", ... } }
+```
+PGRST204: Could not find the 'location' column of 'candidate_profiles' in the schema cache
 ```
 
-But `CandidateQuickActions.tsx` (line 50) checks for `data?.candidateData` which does NOT exist in the response. The correct key is `data.data`. This causes the entire update block to be silently skipped -- no error is thrown, no toast is shown, and the profile data is never saved to the database.
-
-### Other entry points are correct
-- `CandidateHeroSection.tsx` -- uses `data.data` (correct)
-- `CandidateProfile.tsx` -- uses `data.data` (correct)
-- `AddCandidateDialog.tsx` -- uses `data.data` (correct)
-
-So if the user is triggering the sync from the "Import LinkedIn" button in `CandidateQuickActions`, it will always silently fail. If using "Sync LinkedIn" in the hero section, it should work -- unless the deployed frontend code was stale.
+The `candidate_profiles` table has no `location` column. The correct column is `desired_locations`. Three files attempt to write `updates.location = d.location`, which causes the entire `.update()` call to fail.
 
 ## Fix
 
-### File: `src/components/partner/CandidateQuickActions.tsx`
+Remove the `location` line from all three files. The location data from LinkedIn is already stored inside `linkedin_profile_data`, so no data is lost.
 
-Update the response handling to match the actual scraper response format and use the same null-safe update pattern as the other entry points:
+### File 1: `src/components/candidate-profile/CandidateHeroSection.tsx` (line 71)
+- **Delete**: `if (d.location) updates.location = d.location;`
 
-**Line 50**: Change `data?.candidateData` to `data?.data`
+### File 2: `src/components/partner/CandidateQuickActions.tsx` (line 58)
+- **Delete**: `if (d.location) updates.location = d.location;`
 
-**Lines 50-73**: Replace the entire update block:
-- Read from `data.data` instead of `data.candidateData`
-- Use null-safe field-by-field updates (matching the pattern in CandidateHeroSection)
-- Add `enrichment_last_run` and `linkedin_profile_data` to the update
-- Add `source_metadata`, `enrichment_data` timestamps
+### File 3: `src/pages/CandidateProfile.tsx` (line 172)
+- **Delete**: `if (d.location) updates.location = d.location;`
 
-### Before (broken):
-```text
-if (data?.candidateData) {
-  const { error: updateError } = await supabase
-    .from("candidate_profiles")
-    .update({
-      full_name: data.candidateData.full_name || undefined,
-      ...
-    })
-    .eq("id", candidateId);
-```
+## Technical Details
 
-### After (fixed):
-```text
-if (data?.success && data?.data) {
-  const d = data.data;
-  const updates: Record<string, unknown> = {};
-
-  if (d.full_name) updates.full_name = d.full_name;
-  if (d.current_title) updates.current_title = d.current_title;
-  if (d.current_company) updates.current_company = d.current_company;
-  if (d.avatar_url) updates.avatar_url = d.avatar_url;
-  if (d.location) updates.location = d.location;
-  if (d.years_of_experience) updates.years_of_experience = d.years_of_experience;
-  if (d.work_history?.length) updates.work_history = d.work_history;
-  if (d.education?.length) updates.education = d.education;
-  if (d.skills?.length) updates.skills = d.skills;
-  if (d.ai_summary) updates.ai_summary = d.ai_summary;
-  if (d.linkedin_profile_data) updates.linkedin_profile_data = d.linkedin_profile_data;
-  updates.linkedin_url = linkedinUrl;
-  updates.enrichment_last_run = new Date().toISOString();
-
-  const { error: updateError } = await supabase
-    .from("candidate_profiles")
-    .update(updates)
-    .eq("id", candidateId);
-```
+- The column `desired_locations` exists but stores an array of preferred work locations (candidate preference), not LinkedIn profile location. Writing a single string there would be semantically wrong, so the correct fix is simply to remove the invalid write.
+- The LinkedIn location string is preserved in the `linkedin_profile_data` JSONB column and can be displayed from there if needed.
 
 ## Summary
 
-| File | Issue | Fix |
-|------|-------|-----|
-| `src/components/partner/CandidateQuickActions.tsx` | Reads `data.candidateData` (does not exist) | Change to `data.data` with null-safe updates |
+| File | Line | Change |
+|------|------|--------|
+| `CandidateHeroSection.tsx` | 71 | Remove `updates.location` line |
+| `CandidateQuickActions.tsx` | 58 | Remove `updates.location` line |
+| `CandidateProfile.tsx` | 172 | Remove `updates.location` line |
 
-This is a one-file fix. No scraper changes needed -- the scraper is working correctly. After this fix, clicking "Import LinkedIn" from CandidateQuickActions will correctly save the profile picture, name, work history, education, and all other fields to the database.
+One-line removal in three files. After this fix, LinkedIn sync will save all profile data (picture, name, work history, education, skills) without the column-not-found error.
 
