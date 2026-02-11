@@ -260,11 +260,11 @@ export function useE2EEncryption(meetingId: string) {
 
       console.log(`[E2EE] Encryption enabled for peer ${peerId}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[E2EE] Failed to enable encryption:', error);
       setState(prev => ({
         ...prev,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Encryption failed'
       }));
       return false;
     }

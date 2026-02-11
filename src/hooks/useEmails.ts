@@ -125,9 +125,9 @@ export function useEmails(filter: string = "inbox") {
         return newEmails;
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading emails:", error);
-      notify.error("Error loading emails", { description: error.message });
+      notify.error("Error loading emails", { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -150,7 +150,7 @@ export function useEmails(filter: string = "inbox") {
 
       if (error) throw error;
       setLabels(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading labels:", error);
     }
   }, []);
@@ -197,9 +197,10 @@ export function useEmails(filter: string = "inbox") {
           if (error) throw error;
 
           totalSynced += data?.emailsSynced || 0;
-        } catch (error: any) {
+        } catch (error: unknown) {
           clearTimeout(timeoutId);
-          if (error.name === 'AbortError') {
+          const err = error as { name?: string };
+          if (err.name === 'AbortError') {
             console.error(`${connection.provider} sync timed out after 60s`);
           } else {
             console.error(`Error syncing ${connection.provider}:`, error);
@@ -253,9 +254,9 @@ export function useEmails(filter: string = "inbox") {
 
         console.log(`[useEmails] AI processing complete`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error syncing emails:", error);
-      notify.error("Sync failed", { description: error.message });
+      notify.error("Sync failed", { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setSyncing(false);
     }
@@ -279,7 +280,7 @@ export function useEmails(filter: string = "inbox") {
         .eq("id", emailId);
 
       if (error) throw error;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating email:", error);
       // Reload emails on error to revert optimistic update
       await loadEmails();
@@ -304,8 +305,8 @@ export function useEmails(filter: string = "inbox") {
   const toggleStar = async (emailId: string, starred: boolean) => {
     try {
       await updateEmail(emailId, { is_starred: starred } as Partial<Email>);
-    } catch (error: any) {
-      notify.error("Failed to update", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Failed to update", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 

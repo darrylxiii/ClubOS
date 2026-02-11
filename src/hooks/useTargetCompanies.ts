@@ -83,7 +83,7 @@ export const useTargetCompanies = (companyId?: string | null) => {
       );
 
       setCompanies(enrichedData as any);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading target companies:', error);
       toast.error('Failed to load target companies');
     } finally {
@@ -132,7 +132,7 @@ export const useTargetCompanies = (companyId?: string | null) => {
 
       toast.success('Target company deleted');
       loadTargetCompanies();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting target company:', error);
       toast.error('Failed to delete target company');
     }
@@ -164,7 +164,7 @@ export const useTargetCompanies = (companyId?: string | null) => {
       }
 
       loadTargetCompanies();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error voting:', error);
       toast.error('Failed to update vote');
     }

@@ -81,9 +81,9 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
 
       toast.success("Share link generated!");
       await loadActiveLinks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error generating share link:", error);
-      toast.error(error.message || "Failed to generate share link");
+      toast.error(error instanceof Error ? error.message : "Failed to generate share link");
     } finally {
       setGenerating(false);
     }
@@ -108,7 +108,7 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
 
       toast.success("Share link deleted");
       await loadActiveLinks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting share link:", error);
       toast.error("Failed to delete share link");
     }

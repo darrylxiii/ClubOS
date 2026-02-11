@@ -264,15 +264,11 @@ export const useMessages = (conversationId?: string) => {
       })) || [];
 
       setConversations(conversationsWithDetails as unknown as Conversation[]);
-    } catch (error: any) {
-      console.error('Error loading conversations:', {
-        message: error?.message,
-        code: error?.code,
-        hint: error?.hint,
-        details: error,
-      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error loading conversations:', { message: msg, error });
       toast.error('Failed to load conversations', {
-        description: error?.message || 'Please try refreshing the page',
+        description: msg || 'Please try refreshing the page',
       });
     } finally {
       setLoading(false);
@@ -354,7 +350,7 @@ export const useMessages = (conversationId?: string) => {
           .eq('user_id', user.id)
           .in('message_id', messageIds);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading messages:', error);
       toast.error('Failed to load messages');
     } finally {
@@ -433,10 +429,10 @@ export const useMessages = (conversationId?: string) => {
         toast.success('Message sent', {
           description: 'Your message has been delivered',
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error sending message:', error);
         toast.error('Failed to send message', {
-          description: error.message || 'Please try again',
+          description: error instanceof Error ? error.message : 'Please try again',
         });
       } finally {
         setSending(false);

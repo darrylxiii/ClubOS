@@ -325,7 +325,7 @@ export function useCompositorRecording({
         recordingId,
         attempt
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`Transcription trigger attempt ${attempt} failed`, {
         componentName: 'CompositorRecording',
         error,
@@ -350,7 +350,7 @@ export function useCompositorRecording({
           .from('meeting_recordings_extended')
           .update({
             processing_status: 'failed',
-            processing_error: error.message || 'Transcription trigger failed after 3 attempts'
+            processing_error: error instanceof Error ? error.message : 'Transcription trigger failed after 3 attempts'
           })
           .eq('id', recordingId);
       }

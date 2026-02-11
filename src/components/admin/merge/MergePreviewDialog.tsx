@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { AlertCircle, CheckCircle2, Link2, Loader2 } from "lucide-react";
 import { mergeService } from "@/services/mergeService";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface MergePreviewDialogProps {
   candidateId: string;
@@ -16,8 +17,29 @@ interface MergePreviewDialogProps {
   onSuccess: () => void;
 }
 
+interface MergeField {
+  name: string;
+  candidateValue: string | null;
+  userValue: string | null;
+  willMerge: boolean;
+  conflict: boolean;
+}
+
+interface MergePreview {
+  candidate: { full_name: string; email: string };
+  user: { full_name: string; email: string };
+  applicationCount?: number;
+  interactionCount?: number;
+  fieldsToMerge?: MergeField[];
+  conflicts?: MergeField[];
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function MergePreviewDialog({ candidateId, userId, open, onClose, onSuccess }: MergePreviewDialogProps) {
-  const [preview, setPreview] = useState<any>(null);
+  const [preview, setPreview] = useState<MergePreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [executing, setExecuting] = useState(false);
 
@@ -29,26 +51,17 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
 
   const loadPreview = async () => {
     setLoading(true);
-    console.log('[MergePreviewDialog] Loading preview for:', { candidateId, userId });
     try {
       const previewData = await mergeService.previewMerge(candidateId, userId);
-      console.log('[MergePreviewDialog] Preview loaded:', previewData);
       
       if (!previewData) {
         throw new Error('Preview returned null - check service logs for details');
       }
       
-      setPreview(previewData);
-    } catch (error: any) {
-      const errorMessage = error?.message || 'Failed to load merge preview';
-      console.error('[MergePreviewDialog] Preview error:', {
-        message: errorMessage,
-        candidateId,
-        userId,
-        error,
-        timestamp: new Date().toISOString()
-      });
-      
+      setPreview(previewData as unknown as MergePreview);
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error, 'Failed to load merge preview');
+      logger.error('Merge preview error', { candidateId, userId, error });
       toast.error(errorMessage);
       onClose();
     } finally {
@@ -58,10 +71,8 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
 
   const executeMerge = async () => {
     setExecuting(true);
-    console.log('[MergePreviewDialog] Executing merge:', { candidateId, userId });
     try {
       const result = await mergeService.executeMerge(candidateId, userId, 'manual');
-      console.log('[MergePreviewDialog] Merge result:', result);
       
       if (result.success) {
         toast.success('Profiles merged successfully!');
@@ -69,23 +80,16 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
       } else {
         throw new Error(result.error || 'Merge failed');
       }
-    } catch (error: any) {
-      const errorMessage = error?.message || 'Failed to execute merge';
-      console.error('[MergePreviewDialog] Execute error:', {
-        message: errorMessage,
-        candidateId,
-        userId,
-        error,
-        timestamp: new Date().toISOString()
-      });
-      
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error, 'Failed to execute merge');
+      logger.error('Merge execute error', { candidateId, userId, error });
       toast.error(errorMessage);
     } finally {
       setExecuting(false);
     }
   };
 
-  const renderFieldComparison = (field: any) => {
+  const renderFieldComparison = (field: MergeField) => {
     const { name, candidateValue, userValue, willMerge, conflict } = field;
     
     let badgeVariant: "default" | "secondary" | "destructive" = "secondary";
@@ -194,7 +198,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
             <div>
               <h3 className="font-semibold mb-4">Field Comparison</h3>
               <div className="space-y-1">
-                {preview.fieldsToMerge?.map((field: any) => renderFieldComparison(field))}
+                {preview.fieldsToMerge?.map((field) => renderFieldComparison(field))}
               </div>
             </div>
 

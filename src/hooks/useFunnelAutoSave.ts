@@ -61,8 +61,9 @@ export function useFunnelAutoSave<T = any>(options: AutoSaveOptions) {
 
                 localStorage.setItem(storageKey, JSON.stringify(saveData));
                 console.log(`[AutoSave] Data saved at step ${currentStep}`);
-            } catch (error: any) {
-                if (error.name === 'QuotaExceededError') {
+            } catch (error: unknown) {
+                const err = error as { name?: string };
+                if (err.name === 'QuotaExceededError') {
                     console.error('[AutoSave] localStorage quota exceeded');
                 } else {
                     console.error('[AutoSave] Save failed:', error);
