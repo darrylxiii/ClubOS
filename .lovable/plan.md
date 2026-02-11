@@ -1,161 +1,167 @@
 
 
-# LinkedIn Profile Picture Scraping -- Full Audit and Fix
+# Add Company/School Logos and LinkedIn-style Grouped Experience
 
-## Current State Audit
+## Overview
 
-| Area | Status | Issue |
-|------|--------|-------|
-| Scraper extracts image URL | Working | `linkedin-scraper` maps `profilePicture` / `profile_pic_url` to `imageUrl`, which becomes `avatar_url` |
-| Batch enrichment saves avatar | Working | `batch-linkedin-enrich` sets `avatar_url` if currently empty |
-| Hero section displays avatar | Working | `CandidateHeroSection` renders `candidate.avatar_url` in a 128x128 Avatar |
-| Actual candidate data | Broken | Most candidates have `avatar_url = NULL` despite having LinkedIn URLs |
-| LinkedIn CDN URLs | Fundamental flaw | LinkedIn image URLs expire within hours/days -- even if saved, they break |
-| Storage bucket | Exists | `avatars` bucket (public) is already set up |
+Three visual improvements to the candidate profile's Experience and Education sections:
 
-**Root cause**: LinkedIn profile picture URLs are temporary CDN links that expire. Storing them directly in `avatar_url` means they work briefly, then 404. The fix is to **download and re-upload** to the `avatars` storage bucket during scraping.
+1. Company logos next to work experience entries
+2. Group consecutive roles at the same employer into a single "company stack" (like LinkedIn)
+3. Make Education full-width (same size as Experience) with school logos
 
 ---
 
-## Solution: Download and Persist LinkedIn Photos
+## Part 1: Capture Logo URLs During Scraping
 
-### Change 1: Add image download helper to `linkedin-scraper`
+### File: `supabase/functions/linkedin-scraper/index.ts`
 
-**File:** `supabase/functions/linkedin-scraper/index.ts`
+The scrapers return company and school logo URLs that are currently discarded. Capture them into the normalized data:
 
-Add a helper function `downloadAndStoreAvatar` that:
-
-1. Takes the LinkedIn image URL and candidate ID
-2. Fetches the image bytes from the LinkedIn CDN
-3. Detects the content type (JPEG/PNG/WebP)
-4. Uploads to `avatars/{candidateId}/linkedin.jpg` in the `avatars` storage bucket
-5. Returns the permanent public URL from storage
-6. If download fails (expired URL, 403, etc.), returns `null` silently -- never blocks the scrape
-
-After the candidate profile data is assembled (around line 348), call this helper to replace the raw LinkedIn URL with a permanent storage URL:
-
+**apimaestro mapper (line 187-200):** Add `companyLogo` field:
 ```text
-// After candidateData is built:
-if (candidateData.avatar_url) {
-  const permanentUrl = await downloadAndStoreAvatar(
-    candidateData.avatar_url,
-    candidateData.linkedin_url,
-    supabase
-  );
-  if (permanentUrl) {
-    candidateData.avatar_url = permanentUrl;
-  }
-  // If download failed, keep the LinkedIn URL as a fallback
-}
+experience: rawExp.map((exp: any) => ({
+  title: exp.title || exp.role || exp.position || '',
+  company: exp.company || exp.companyName || exp.organization || '',
+  companyLogo: exp.companyLogo || exp.companyLogoUrl || exp.logo || exp.company_logo_url || '',
+  ...
+}))
 ```
 
-The helper function:
-
+**Proxycurl mapper (line 270-277):** Add `companyLogo`:
 ```text
-async function downloadAndStoreAvatar(
-  imageUrl: string,
-  linkedinUrl: string,
-  supabaseClient: any
-): Promise<string | null> {
-  try {
-    const response = await fetch(imageUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    if (!response.ok) return null;
-
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    const ext = contentType.includes('png') ? 'png'
-              : contentType.includes('webp') ? 'webp' : 'jpg';
-
-    const arrayBuffer = await response.arrayBuffer();
-    if (arrayBuffer.byteLength < 1000) return null; // Skip placeholder images
-
-    // Generate a stable path using a hash of the LinkedIn URL
-    const encoder = new TextEncoder();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(linkedinUrl));
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b =>
-      b.toString(16).padStart(2, '0')).join('').substring(0, 12);
-    const filePath = `linkedin/${hashHex}.${ext}`;
-
-    const { error } = await supabaseClient.storage
-      .from('avatars')
-      .upload(filePath, arrayBuffer, {
-        contentType,
-        upsert: true,
-      });
-
-    if (error) {
-      console.warn('[linkedin-scraper] Avatar upload failed:', error.message);
-      return null;
-    }
-
-    const { data: urlData } = supabaseClient.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-
-    return urlData?.publicUrl || null;
-  } catch (err) {
-    console.warn('[linkedin-scraper] Avatar download failed:', err);
-    return null;
-  }
-}
+experience: (data.experiences || []).map((exp: any) => ({
+  ...existing fields...
+  companyLogo: exp.logo_url || exp.company_linkedin_profile_url || '',
+}))
 ```
 
-Key design decisions:
-- Uses a SHA-256 hash of the LinkedIn URL as the filename, so re-scraping the same profile overwrites the old image (no duplicates)
-- Stores in `avatars/linkedin/` subfolder to separate from user-uploaded avatars
-- Skips images under 1KB (likely placeholder/default LinkedIn avatars)
-- Uses `upsert: true` so re-syncs update the photo
-- Never blocks the scrape if image download fails
-
-### Change 2: Same logic in `batch-linkedin-enrich`
-
-**File:** `supabase/functions/batch-linkedin-enrich/index.ts`
-
-The batch enrichment function also receives `avatar_url` from the scraper response. Apply the same download-and-store pattern:
-
-Around line 165-168 where avatar is set, add:
-
+**Education mappers:** Add `schoolLogo`:
 ```text
-if (!candidate.avatar_url && data.avatar_url) {
-  // Download and persist to storage
-  const permanentUrl = await downloadAndStoreAvatar(
-    data.avatar_url, candidate.linkedin_url, supabase
-  );
-  updateObj.avatar_url = permanentUrl || data.avatar_url;
-  fieldsUpdated.push('avatar_url');
-}
+education: rawEdu.map((edu: any) => ({
+  ...existing fields...
+  schoolLogo: edu.logo || edu.logoUrl || edu.school_logo || '',
+}))
 ```
 
-Extract the `downloadAndStoreAvatar` helper into a shared import or duplicate it in this function (edge functions can't share code easily, so duplication is the pragmatic approach).
-
-### Change 3: Same logic in `CandidateHeroSection` sync button
-
-**File:** `src/components/candidate-profile/CandidateHeroSection.tsx`
-
-The "Sync LinkedIn" button (line 48-121) currently saves the raw LinkedIn image URL. Since the scraper will now return a storage URL, this is automatically fixed. No additional changes needed here -- the scraper response already contains the permanent URL.
-
-### Change 4: Handle existing candidates with expired/null avatars
-
-**File:** `supabase/functions/batch-linkedin-enrich/index.ts`
-
-Currently, the enrichment only sets `avatar_url` if the candidate has none. Change the condition to also re-download if the current `avatar_url` is a LinkedIn CDN URL (starts with `https://media.licdn.com`):
-
+**Normalizer (line 333-341):** Pass through the logo fields:
 ```text
-const needsAvatarUpdate = !candidate.avatar_url
-  || candidate.avatar_url.includes('media.licdn.com')
-  || candidate.avatar_url.includes('licdn.com');
+const normalizedWorkHistory = (profile.experience || []).map(exp => ({
+  ...existing fields...
+  company_logo: emptyToNull(exp.companyLogo),
+}));
 
-if (needsAvatarUpdate && data.avatar_url) {
-  const permanentUrl = await downloadAndStoreAvatar(...);
-  if (permanentUrl) {
-    updateObj.avatar_url = permanentUrl;
-    fieldsUpdated.push('avatar_url');
-  }
-}
+const normalizedEducation = (profile.education || []).map(edu => ({
+  ...existing fields...
+  school_logo: emptyToNull(edu.schoolLogo),
+}));
 ```
 
-This means running a batch enrichment on existing candidates will fix their expired photos.
+### File: `supabase/functions/batch-linkedin-enrich/index.ts`
+
+Same logo field mapping applied to the batch enrichment response processing.
+
+---
+
+## Part 2: Map Logo Fields to UI
+
+### File: `src/pages/UnifiedCandidateProfile.tsx`
+
+Pass `company_logo` and `school_logo` through the mapped arrays:
+
+```text
+const mappedExperiences = ((candidateData)?.work_history || []).map((job, idx) => ({
+  ...existing fields...
+  company_logo: job.company_logo || null,
+}));
+
+const mappedEducation = ((candidateData)?.education || []).map((edu, idx) => ({
+  ...existing fields...
+  school_logo: edu.school_logo || null,
+}));
+```
+
+---
+
+## Part 3: Redesign ExperienceTimeline Component
+
+### File: `src/components/candidate-profile/ExperienceTimeline.tsx`
+
+Major visual overhaul with three changes:
+
+### 3a. Company Logo Display
+
+Add a logo/avatar next to each experience entry. Uses a fallback chain:
+1. Stored `company_logo` from scraper
+2. Google Favicon API: `https://www.google.com/s2/favicons?domain={company}.com&sz=64`
+3. Initial letter fallback (colored circle with first letter of company name)
+
+Same pattern for school logos in education.
+
+### 3b. LinkedIn-style Company Grouping
+
+Group consecutive experiences at the same company into a stacked view:
+
+```text
+Before (flat list):
+  - Senior Engineer at Google
+  - Engineer at Google
+  - Junior Engineer at Google
+  - Developer at Meta
+
+After (grouped):
+  [Google logo]  Google -- 5 yrs 2 mos (total)
+    |-- Senior Engineer (2022-Present)
+    |-- Engineer (2020-2022)
+    |-- Junior Engineer (2018-2020)
+
+  [Meta logo]  Meta -- 2 yrs
+    |-- Developer (2016-2018)
+```
+
+Implementation: A `groupExperiencesByCompany` utility that:
+- Iterates through experiences in order
+- Groups consecutive entries with the same company name (case-insensitive)
+- Calculates total duration for the group
+- Single-entry companies render as before (no nesting)
+
+### 3c. Full-Width Education Section
+
+Remove the `grid grid-cols-1 lg:grid-cols-2` wrapper (line 167) that puts Education and Certifications side by side. Instead:
+
+- Education gets its own full-width Card (same width as Experience)
+- Each education entry gets a timeline layout matching the experience section
+- School logo displayed the same way as company logo
+- Certifications remain in a separate card below
+
+---
+
+## Updated Interface
+
+```text
+interface Experience {
+  id: string;
+  title: string;
+  company: string;
+  company_logo?: string | null;  // NEW
+  location?: string;
+  start_date: string;
+  end_date?: string;
+  current: boolean;
+  description?: string;
+  skills?: string[];
+}
+
+interface Education {
+  id: string;
+  degree: string;
+  institution: string;
+  field?: string;
+  school_logo?: string | null;  // NEW
+  start_date?: string;
+  end_date?: string;
+}
+```
 
 ---
 
@@ -163,24 +169,68 @@ This means running a batch enrichment on existing candidates will fix their expi
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/linkedin-scraper/index.ts` | Add `downloadAndStoreAvatar` helper; call it before returning candidateData |
-| `supabase/functions/batch-linkedin-enrich/index.ts` | Add same helper; update avatar logic to re-download expired LinkedIn CDN URLs |
+| `supabase/functions/linkedin-scraper/index.ts` | Capture `companyLogo` and `schoolLogo` from scraper responses; pass through normalizer |
+| `supabase/functions/batch-linkedin-enrich/index.ts` | Same logo field mapping |
+| `src/pages/UnifiedCandidateProfile.tsx` | Map `company_logo` and `school_logo` fields to component props |
+| `src/components/candidate-profile/ExperienceTimeline.tsx` | Add company/school logos, group experiences by company, make education full-width |
 
-No database migrations needed. The `avatars` storage bucket already exists and is public.
+No database migrations needed. Logo URLs are stored inside the existing `work_history` and `education` JSONB columns.
 
 ---
 
-## Security Considerations
+## Logo Fallback Strategy
 
-- Images are stored in the existing public `avatars` bucket -- same security model as user avatars
-- The LinkedIn CDN URL is fetched server-side (edge function), so no CORS issues
-- SHA-256 hash prevents path injection from malicious LinkedIn URLs
-- File size is implicitly bounded by LinkedIn (profile photos are typically under 500KB)
-- No PII is exposed beyond what's already in the candidate profile
+Since LinkedIn CDN logo URLs also expire (same problem as profile pictures), the approach uses a multi-tier fallback:
 
-## What This Fixes
+1. **Stored logo** from scraper (may expire)
+2. **Google Favicon API** as a reliable, permanent fallback: `https://www.google.com/s2/favicons?domain={companyDomain}&sz=64`. This works well for most established companies.
+3. **Initial letter** in a styled circle as the final fallback
 
-1. New scrapes will persist the profile photo permanently in storage
-2. Re-syncing via "Sync LinkedIn" button will update the photo
-3. Batch enrichment will fix existing candidates with expired/null photos
-4. The `CandidateHeroSection` avatar display requires zero changes -- it already renders `avatar_url`
+This avoids the complexity of downloading and storing hundreds of company/school logos while still providing a good visual experience. The Google Favicon API is free, fast, and doesn't expire.
+
+---
+
+## Visual Result
+
+The final layout for the Experience section:
+
+```text
++--------------------------------------------------+
+| [Briefcase icon]  Work Experience                 |
+|--------------------------------------------------|
+|                                                  |
+| [G logo]  Google -- 5 yrs 2 mos                  |
+|   |                                              |
+|   +-- Senior Software Engineer                   |
+|   |   Jan 2022 - Present -- 3 yrs 1 mo           |
+|   |                                              |
+|   +-- Software Engineer                          |
+|   |   Mar 2020 - Dec 2021 -- 1 yr 10 mos         |
+|   |                                              |
+|   +-- Junior Engineer                            |
+|       Jun 2018 - Feb 2020 -- 1 yr 9 mos          |
+|                                                  |
+| [M logo]  Meta                                   |
+|   |                                              |
+|   +-- Frontend Developer                         |
+|       Jan 2016 - May 2018 -- 2 yrs 5 mos         |
++--------------------------------------------------+
+
++--------------------------------------------------+
+| [GraduationCap]  Education                        |
+|--------------------------------------------------|
+|                                                  |
+| [MIT logo]  Massachusetts Institute of Technology |
+|   |   M.S. Computer Science                      |
+|   |   2014 - 2016                                |
+|                                                  |
+| [Stanford logo]  Stanford University              |
+|       B.S. Computer Science                      |
+|       2010 - 2014                                |
++--------------------------------------------------+
+
++--------------------------------------------------+
+| [Award icon]  Certifications                      |
+|   ...                                            |
++--------------------------------------------------+
+```
