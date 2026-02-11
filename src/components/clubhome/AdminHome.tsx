@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { 
-  Users, 
+  UserPlus, 
   Building2, 
-  Shield,
+  AlertTriangle,
   Settings,
-  Activity,
+  CheckCircle,
   BarChart3
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -61,39 +61,39 @@ const AdminHomeContent = () => {
             </p>
           </div>
           <div className="space-y-2 sm:space-y-3">
-            <Button className="w-full justify-start text-sm" variant="glass" asChild>
-              <Link to="/admin">
-                <Users className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline"><T k="common:admin.manageUsers" fallback="Manage Users & Roles" /></span>
-                <span className="sm:hidden"><T k="common:roles.user" fallback="Users & Roles" /></span>
+            <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+              <Link to="/admin?tab=users">
+                <UserPlus className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Invite New Member</span>
+                <span className="sm:hidden">Invite</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start text-sm" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="ghost" asChild>
               <Link to="/admin?tab=companies">
                 <Building2 className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline"><T k="common:admin.manageCompanies" fallback="Manage Companies" /></span>
-                <span className="sm:hidden"><T k="common:navigation.admin" fallback="Companies" /></span>
+                <span className="hidden sm:inline">Onboard Partner</span>
+                <span className="sm:hidden">Onboard</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start text-sm" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="ghost" asChild>
               <Link to="/admin/anti-hacking">
-                <Shield className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline"><T k="common:admin.securitySettings" fallback="Security Settings" /></span>
-                <span className="sm:hidden"><T k="common:settings.tabs.security" fallback="Security" /></span>
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Review Flagged Items</span>
+                <span className="sm:hidden">Flagged</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start text-sm" variant="glass" asChild>
-              <Link to="/admin/audit-log">
-                <Activity className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline"><T k="common:admin.viewLogs" fallback="View System Logs" /></span>
-                <span className="sm:hidden"><T k="common:navigation.analytics" fallback="System Logs" /></span>
+            <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+              <Link to="/jobs?status=pending">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Approve Pending Jobs</span>
+                <span className="sm:hidden">Approve</span>
               </Link>
             </Button>
-            <Button className="w-full justify-start text-sm" variant="glass" asChild>
+            <Button className="w-full justify-start text-sm" variant="ghost" asChild>
               <Link to="/admin/kpi-command-center">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline"><T k="common:admin.kpiCenter" fallback="KPI Command Center" /></span>
-                <span className="sm:hidden"><T k="common:navigation.analytics" fallback="KPIs" /></span>
+                <span className="hidden sm:inline">View KPI Dashboard</span>
+                <span className="sm:hidden">KPIs</span>
               </Link>
             </Button>
           </div>
