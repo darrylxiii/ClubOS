@@ -1,4 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -51,17 +50,17 @@ const AdminHomeContent = () => {
 
       {/* Quick Management & Platform Growth */}
       <DashboardSection columns={2}>
-        <Card className="glass-card">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+        <div className="glass-subtle rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div>
+            <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
               <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               <T k="common:dashboard.quickManagement.title" fallback="Quick Management" />
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               <T k="common:dashboard.quickManagement.description" fallback="Common admin tasks" />
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 sm:space-y-3">
+            </p>
+          </div>
+          <div className="space-y-2 sm:space-y-3">
             <Button className="w-full justify-start text-sm" variant="glass" asChild>
               <Link to="/admin">
                 <Users className="h-4 w-4 mr-2" />
@@ -97,8 +96,8 @@ const AdminHomeContent = () => {
                 <span className="sm:hidden"><T k="common:navigation.analytics" fallback="KPIs" /></span>
               </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
         <PlatformGrowthCard />
       </DashboardSection>
 

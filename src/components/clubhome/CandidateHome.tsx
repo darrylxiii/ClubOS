@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
@@ -171,7 +170,7 @@ export const CandidateHome = () => {
             exit={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="glass-strong hover:glass transition-all duration-300 relative" role="region" aria-label="Club Projects announcement">
+            <div className="glass-subtle rounded-2xl relative" role="region" aria-label="Club Projects announcement">
               <Button
                 variant="ghost"
                 size="icon"
@@ -181,7 +180,7 @@ export const CandidateHome = () => {
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <CardContent className="p-4 sm:p-6">
+              <div className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                   <div className="flex-1 pr-8">
                     <div className="flex items-center gap-2 mb-2">
@@ -214,8 +213,8 @@ export const CandidateHome = () => {
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

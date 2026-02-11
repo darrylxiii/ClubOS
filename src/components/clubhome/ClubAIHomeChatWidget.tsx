@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Mic, X, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { useClubAIHomeChat } from '@/hooks/useClubAIHomeChat';
 import { useClubAIVoice } from '@/hooks/useClubAIVoice';
 import { cn } from '@/lib/utils';
@@ -57,7 +56,7 @@ export function ClubAIHomeChatWidget() {
   };
 
   return (
-    <Card className="glass-card overflow-hidden border-primary/10 hover:border-primary/20 transition-colors">
+    <div className="glass-subtle rounded-2xl overflow-hidden">
       {/* Collapsed / Input Bar */}
       <div className="p-3 sm:p-4">
         <div className="flex items-center gap-2">
@@ -241,6 +240,6 @@ export function ClubAIHomeChatWidget() {
           </motion.div>
         )}
       </AnimatePresence>
-    </Card>
+    </div>
   );
 }
