@@ -1104,3 +1104,12 @@ verify_jwt = true
 [functions.generate-cover-letter]
 verify_jwt = true
 
+# =============================================================================
+# Candidate Intelligence (Phase 2)
+# =============================================================================
+[functions.auto-match-candidates]
+verify_jwt = true
+
+[functions.enrich-candidate-profile]
+verify_jwt = true
+
