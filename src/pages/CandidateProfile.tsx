@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,6 +39,10 @@ import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { AssessmentHistory } from "@/components/candidate/AssessmentHistory";
 import { TalentPoolTags } from "@/components/candidates/TalentPoolTags";
 import { CandidateNotesPanel } from "@/components/candidates/CandidateNotesPanel";
+import { TalentIntelligenceBanner } from "@/components/candidate-profile/TalentIntelligenceBanner";
+import { AIInsightsCard } from "@/components/candidate-profile/AIInsightsCard";
+import { CompensationCard } from "@/components/candidate-profile/CompensationCard";
+import { AvailabilityCard } from "@/components/candidate-profile/AvailabilityCard";
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>();
@@ -602,6 +607,78 @@ export default function CandidateProfile() {
                 </Card>
               )}
 
+              {/* Talent Intelligence Banner */}
+              {isTeamView && (
+                <TalentIntelligenceBanner candidate={candidate} />
+              )}
+
+              {/* AI Insights Card */}
+              {isTeamView && (
+                <AIInsightsCard candidate={candidate} />
+              )}
+
+              {/* Compensation & Interview Intelligence - Two Column Grid (Team Only) */}
+              {isTeamView && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <CompensationCard candidate={candidate} />
+                  {/* Interview Intelligence inline */}
+                  {candidate.interview_score_avg != null && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1], delay: 0.1 }}
+                      className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-xl p-4 sm:p-5 shadow-sm"
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <Star className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-semibold tracking-tight">Interview Intelligence</h3>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[11px] text-muted-foreground">Avg Score</span>
+                            <span className="text-sm font-semibold tabular-nums">{candidate.interview_score_avg}/10</span>
+                          </div>
+                          <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${(candidate.interview_score_avg / 10) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                        {candidate.interview_count != null && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Interviews</span>
+                            <span className="font-medium">{candidate.interview_count}</span>
+                          </div>
+                        )}
+                        {candidate.last_interview_at && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Last Interview</span>
+                            <span className="font-medium">{new Date(candidate.last_interview_at).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                        {candidate.key_strengths_aggregated && (
+                          <div>
+                            <p className="text-[11px] text-muted-foreground mb-1">Strengths</p>
+                            <p className="text-xs break-words">{candidate.key_strengths_aggregated}</p>
+                          </div>
+                        )}
+                        {candidate.key_weaknesses_aggregated && (
+                          <div>
+                            <p className="text-[11px] text-muted-foreground mb-1">Areas to Develop</p>
+                            <p className="text-xs break-words">{candidate.key_weaknesses_aggregated}</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              )}
+
+              {/* Availability & Preferences */}
+              <AvailabilityCard candidate={candidate} />
+
               {/* Skills */}
               {candidate.skills && candidate.skills.length > 0 && (
                 <Card>
@@ -637,35 +714,6 @@ export default function CandidateProfile() {
                   </CardContent>
                 </Card>
               )}
-
-              {/* Career Preferences */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg sm:text-xl">Career Preferences</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 sm:space-y-4">
-                  {candidate.desired_salary_min && candidate.desired_salary_max && (
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium mb-1">Salary Expectations</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                        {candidate.preferred_currency || 'EUR'} {candidate.desired_salary_min.toLocaleString()} - {candidate.desired_salary_max.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-                  {candidate.notice_period && (
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium mb-1">Notice Period</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground break-words">{candidate.notice_period}</p>
-                    </div>
-                  )}
-                  {candidate.remote_preference && (
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium mb-1">Remote Preference</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground capitalize break-words">{candidate.remote_preference}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
 
               {/* Source Information - For Team Only */}
               {isTeamView && (
