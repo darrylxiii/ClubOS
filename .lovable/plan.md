@@ -1,92 +1,174 @@
 
 
-# Candidate Profile Enhancement: Executive Intelligence Dossier
+# Comprehensive Candidate Intelligence Pipeline
 
-Transform the candidate profile from a basic data display into a comprehensive intelligence hub that gives partners instant, actionable clarity on every candidate.
+Build a multi-source enrichment system that automatically discovers and aggregates public information about candidates from across the internet, using data you already have (name, email, LinkedIn, resume) as starting points.
 
-## What Gets Added (6 New Sections)
+## What Data You Already Have (Starting Points)
 
-### 1. Talent Intelligence Banner (Overview Tab)
-A prominent card right below the AI Summary that surfaces the most critical decision-making data at a glance:
-- **Talent Tier** badge (hot/warm/strategic/passive) with tier score
-- **Move Probability** gauge (percentage likelihood of accepting)
-- **Actively Looking** indicator
-- **Ghost Mode** status (if enabled)
-- **AI Recommendation** (strong_hire/hire/maybe/no_hire) with color coding
+From LinkedIn scraper + resume parser, you typically have:
+- Full name
+- Email address
+- LinkedIn URL
+- Current company + title
+- Skills list
+- Portfolio URL (if provided)
 
-This data already exists in the database columns: `talent_tier`, `tier_score`, `move_probability`, `actively_looking`, `ghost_mode_enabled`, `ai_recommendation`.
+## New Enrichment Sources (4 Edge Functions)
 
-### 2. AI Strengths & Concerns Card (Overview Tab)
-Replaces the plain-text AI Summary with a structured intelligence card:
-- **Key Strengths** (from `ai_strengths` JSONB) displayed as green-tinted chips
-- **Key Concerns** (from `ai_concerns` JSONB) displayed as amber-tinted chips
-- **Personality Insights** (from `personality_insights` JSONB) as a traits breakdown
-- Powered-by-QUIN attribution
+### 1. Google Search Intelligence (`enrich-public-presence`)
+**API**: Apify `apify/google-search-scraper` (uses existing `APIFY_API_KEY`)
+**Input**: Candidate's full name + current company
+**Discovers**:
+- Conference talks and speaking engagements
+- Published articles (Medium, Substack, industry blogs)
+- Podcast appearances
+- Press mentions and interviews
+- Awards and recognitions
+- Court/regulatory filings (public record only)
 
-### 3. Compensation Intelligence Card (Overview Tab, Team View Only)
-Partners always want to know salary fit. Surfaces existing data:
-- **Current Compensation** range (from `current_salary_min`/`current_salary_max`)
-- **Desired Compensation** range (from `desired_salary_min`/`desired_salary_max`)
-- Visual comparison bar showing overlap
-- Currency display from `preferred_currency`
-- Respects `salary_preference_hidden` flag (hides if candidate opted out)
+**Cost**: ~EUR 0.01 per candidate
 
-### 4. Interview Intelligence Summary (Overview Tab, Team View Only)
-Aggregated interview performance (data already in DB):
-- **Average Interview Score** (from `interview_score_avg`) with visual progress bar
-- **Interview Count** (from `interview_count`)
-- **Last Interview** date (from `last_interview_at`)
-- **Aggregated Strengths** (from `key_strengths_aggregated`)
-- **Aggregated Weaknesses** (from `key_weaknesses_aggregated`)
+### 2. GitHub / GitLab Technical Footprint (`enrich-github-profile`)
+**API**: Apify GitHub scraper (uses existing `APIFY_API_KEY`)
+**Input**: GitHub username (from LinkedIn, resume, or email-based GitHub search)
+**Discovers**:
+- Public repositories, stars, contributions
+- Top programming languages
+- Contribution streak and activity patterns
+- Open-source involvement
+- README quality and documentation habits
 
-### 5. Availability & Preferences Card (Overview Tab)
-Quick-scan card for practical logistics:
-- **Notice Period** (already shown but buried)
-- **Available Hours/Week** (from `available_hours_per_week`)
-- **Industry Preference** (from `industry_preference`)
-- **Company Size Preference** (from `company_size_preference`)
-- **Remote Aspiration** (from `remote_work_aspiration`)
-- **Preferred Language** (from `preferred_language`)
-- **Desired Locations** (from `desired_locations`) as location chips
+**Cost**: ~EUR 0.005 per candidate
 
-### 6. Candidate Signals Sidebar (Header Area)
-Subtle signal indicators in the header area:
-- **Enrichment freshness** ("Synced 2 days ago" vs "Stale -- last sync 3 months ago")
-- **Profile Completeness** micro progress ring
-- **Data source** indicator (LinkedIn/CV/Manual)
+### 3. Portfolio and Personal Site Scraper (`enrich-portfolio`)
+**API**: Firecrawl connector (needs setup -- free tier available)
+**Input**: Portfolio URL from profile, or discovered personal site from Google search
+**Works for**:
+- Behance portfolios (designers)
+- Dribbble profiles (designers)
+- Personal websites and blogs
+- Medium/Substack profiles
+- Speaker decks and slide shares
+- Any public URL the candidate lists
 
-## Technical Approach
+**Cost**: Free tier covers initial usage
 
-All data already exists in the `candidate_profiles` table. No database changes or new edge functions needed. This is purely a frontend enhancement.
+### 4. AI-Powered 360-Degree Brief (`generate-candidate-brief`)
+**API**: Lovable AI (no extra cost, uses existing `LOVABLE_API_KEY`)
+**Input**: All enriched data combined
+**Generates**:
+- 3-sentence executive summary
+- Top 3 unique differentiators
+- Risk factors (job hopping, skill gaps, notice concerns)
+- Recommended interview angles
+- Skill verification scores (cross-referencing claimed skills against GitHub repos, articles, work history)
+- Overall confidence rating
 
-### New Components (4 files)
-| Component | Location |
-|-----------|----------|
-| `TalentIntelligenceBanner.tsx` | `src/components/candidate-profile/` |
-| `AIInsightsCard.tsx` | `src/components/candidate-profile/` |
-| `CompensationCard.tsx` | `src/components/candidate-profile/` |
-| `AvailabilityCard.tsx` | `src/components/candidate-profile/` |
+## Database Changes (1 Migration)
 
-### Modified Files (1 file)
+Add 5 new columns to `candidate_profiles`:
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `public_mentions` | jsonb | Google search results, articles, talks |
+| `portfolio_data` | jsonb | Scraped portfolio/Behance/Dribbble content |
+| `candidate_brief` | jsonb | AI-synthesized 360 brief |
+| `skill_verification` | jsonb | Per-skill confidence with evidence links |
+| `enrichment_sources` | text[] | Tracks which sources have run (e.g., `['linkedin', 'github', 'google', 'portfolio']`) |
+
+Note: `github_profile_data`, `github_username`, `github_connected`, and `portfolio_url` columns already exist.
+
+## New UI Components (3 Cards)
+
+### Technical Footprint Card
+- GitHub stats: repos, stars, top languages, contribution graph
+- Shows "No GitHub profile found" gracefully for non-technical candidates
+- Links to actual repos
+
+### Public Presence Card
+- Published articles with titles and sources
+- Conference talks with event names
+- Press mentions grouped by recency
+- "No public presence found" fallback
+
+### Candidate Brief Card (The Crown Jewel)
+- AI executive summary
+- Differentiators as highlighted chips
+- Risk factors as amber warnings
+- Skill verification: each claimed skill with a confidence bar and evidence count
+- "Powered by QUIN" attribution
+
+## Enrichment Flow
+
+```text
+User clicks "Deep Enrich" on candidate profile
+                    |
+                    v
+       linkedin-scraper (existing, if not already done)
+                    |
+                    v
+       enrich-github-profile (new)
+       -- Tries GitHub username from LinkedIn/resume
+       -- Falls back to email-based GitHub search
+                    |
+                    v
+       enrich-public-presence (new)
+       -- Searches "Full Name" + "Company" on Google
+       -- Extracts articles, talks, mentions
+                    |
+                    v
+       enrich-portfolio (new, requires Firecrawl)
+       -- Scrapes portfolio_url if present
+       -- Scrapes any personal sites found in Google results
+                    |
+                    v
+       generate-candidate-brief (new)
+       -- Feeds ALL data into Lovable AI
+       -- Generates brief, verification scores, risk factors
+                    |
+                    v
+       Profile refreshes with full intelligence
+```
+
+## Modified Files
+
 | File | Change |
 |------|--------|
-| `src/pages/CandidateProfile.tsx` | Import and place new components in the Overview tab |
+| `src/pages/CandidateProfile.tsx` | Add 3 new cards to Overview tab |
+| `src/components/candidate-profile/CandidateHeroSection.tsx` | Add "Deep Enrich" button + enrichment freshness indicator |
 
-### Layout in Overview Tab (top to bottom)
-1. AI Summary (existing)
-2. **Talent Intelligence Banner** (new) -- full width
-3. **AI Insights Card** (new) -- strengths, concerns, personality
-4. Two-column grid:
-   - Left: **Compensation Card** (new, team-only)
-   - Right: **Interview Intelligence** (new, team-only)
-5. **Availability & Preferences** (new) -- replaces the current sparse Career Preferences card
-6. Skills (existing)
-7. Languages (existing)
+## Implementation Phases
 
-### Design Standards
-- Follows existing `candidateProfileTokens` design system
-- Glass card styling consistent with ExperienceTimeline and DecisionDashboard
-- Gold accent for talent tier, standard color coding for scores
-- Respects `isTeamView` gating for sensitive fields (salary, ratings)
-- Respects `salary_preference_hidden` -- shows "Hidden by candidate" if opted out
-- "Powered by QUIN" attribution on AI-generated sections
+**Phase 1** (immediate, no new APIs needed):
+- Database migration for new columns
+- `enrich-github-profile` edge function (Apify)
+- `enrich-public-presence` edge function (Apify)
+- `generate-candidate-brief` edge function (Lovable AI)
+- All 3 new UI cards
+- "Deep Enrich" button on hero section
+
+**Phase 2** (requires Firecrawl connector setup):
+- `enrich-portfolio` edge function
+- Portfolio card enhancement with scraped content
+
+## Privacy and Consent Safeguards
+
+- Only scrapes publicly available information (no private data)
+- All enrichment logged in `audit_logs`
+- Candidates can see what was discovered about them in their own profile
+- Ghost mode disables all enrichment activity
+- Enrichment cooldown: max once per 24 hours per candidate
+- All data stored server-side, never exposed to unauthorized roles
+
+## Cost Per Full Enrichment
+
+| Source | Cost |
+|--------|------|
+| LinkedIn (existing) | ~EUR 0.01 |
+| GitHub (Apify) | ~EUR 0.005 |
+| Google Search (Apify) | ~EUR 0.01 |
+| Portfolio (Firecrawl) | Free tier |
+| AI Brief (Lovable AI) | Included |
+| **Total per candidate** | **~EUR 0.025** |
+
