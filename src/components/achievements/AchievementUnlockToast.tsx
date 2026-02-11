@@ -72,7 +72,7 @@ export const AchievementUnlockToast = () => {
   };
 
   const getConfettiConfig = (rarity: string) => {
-    const configs: Record<string, any> = {
+    const configs: Record<string, Record<string, unknown>> = {
       common: {
         particleCount: 50,
         spread: 50,

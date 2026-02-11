@@ -37,7 +37,7 @@ interface PendingAction {
   confidenceScore: number;
   createdAt: string;
   expiresAt?: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 export function AgentApprovalQueue() {

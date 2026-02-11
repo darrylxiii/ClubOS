@@ -11,7 +11,7 @@ interface Props {
   };
 }
 
-const channelIcons: Record<string, any> = {
+const channelIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   whatsapp: MessageSquare,
   email: Mail,
   phone: Phone,

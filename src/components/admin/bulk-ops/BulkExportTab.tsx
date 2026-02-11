@@ -105,7 +105,7 @@ export const BulkExportTab = () => {
 
       // Format data
       const exportData = candidates?.map((c: any) => {
-        const row: Record<string, any> = {};
+        const row: Record<string, unknown> = {};
         selectedFields.forEach((field) => {
           if (field === "current_salary") {
             row[field] = c.current_salary_min ? `${c.current_salary_min}-${c.current_salary_max}` : "";
@@ -132,7 +132,7 @@ export const BulkExportTab = () => {
 
       if (result.format === "csv") {
         const headers = selectedFields.join(",");
-        const rows = result.data.map((row: Record<string, any>) =>
+        const rows = result.data.map((row: Record<string, unknown>) =>
           selectedFields.map((f) => `"${String(row[f] || "").replace(/"/g, '""')}"`).join(",")
         );
         content = [headers, ...rows].join("\n");

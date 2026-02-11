@@ -24,7 +24,7 @@ interface ActivityItem {
   title: string;
   description: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export function OutreachActivityFeed() {
@@ -221,7 +221,7 @@ export function OutreachActivityFeed() {
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-sm font-medium truncate">{activity.title}</p>
                         {activity.metadata?.classification && 
-                          getClassificationBadge(activity.metadata.classification)
+                          getClassificationBadge(activity.metadata.classification as string)
                         }
                       </div>
                       <p className="text-xs text-muted-foreground truncate">

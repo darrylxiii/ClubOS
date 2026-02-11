@@ -34,7 +34,7 @@ function formatTimeRemaining(timeStr: string | null): string {
   return "Ending soon";
 }
 
-const challengeTypeIcons: Record<string, any> = {
+const challengeTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   volume: Zap,
   speed: Clock,
   company_specific: Target,

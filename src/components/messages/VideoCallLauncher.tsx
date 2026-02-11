@@ -9,7 +9,7 @@ interface VideoCallLauncherProps {
   conversationId: string;
   participantName: string;
   participantAvatar?: string;
-  onSendMessage: (content: string, metadata?: Record<string, any>) => Promise<void>;
+  onSendMessage: (content: string, metadata?: Record<string, unknown>) => Promise<void>;
 }
 
 export function VideoCallLauncher({

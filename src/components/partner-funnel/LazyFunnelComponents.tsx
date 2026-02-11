@@ -75,7 +75,7 @@ export function LazyComponent({
 }: {
   factory: () => Promise<{ default: ComponentType<any> }>;
   fallback?: React.ReactNode;
-  componentProps?: Record<string, any>;
+  componentProps?: Record<string, unknown>;
 }) {
   const [Component, setComponent] = useState<ComponentType<any> | null>(null);
   const [error, setError] = useState<Error | null>(null);

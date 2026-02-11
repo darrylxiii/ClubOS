@@ -20,7 +20,7 @@ interface ApplicationLog {
   id: string;
   action: string;
   actor_id: string | null;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
   actor?: {
     full_name: string;
@@ -109,7 +109,7 @@ export function ApplicationLogViewer({ candidateId, limit = 20 }: ApplicationLog
 
       const logsWithActors = (data || []).map(log => ({
         ...log,
-        details: log.details as Record<string, any>,
+        details: log.details as Record<string, unknown>,
         actor: log.actor_id ? { full_name: actorMap.get(log.actor_id) || "System" } : undefined,
       }));
 
@@ -200,12 +200,12 @@ export function ApplicationLogViewer({ candidateId, limit = 20 }: ApplicationLog
                         {log.details?.job_title && (
                           <Badge variant="outline" className="text-xs">
                             <Briefcase className="h-3 w-3 mr-1" />
-                            {log.details.job_title}
+                            {String(log.details.job_title)}
                           </Badge>
                         )}
                         {log.details?.match_score && (
                           <Badge variant="secondary" className="text-xs">
-                            {log.details.match_score}% match
+                            {String(log.details.match_score)}% match
                           </Badge>
                         )}
                       </div>
@@ -228,12 +228,12 @@ export function ApplicationLogViewer({ candidateId, limit = 20 }: ApplicationLog
                       {/* Additional details */}
                       {log.details?.reason && (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Reason: {log.details.reason}
+                          Reason: {String(log.details.reason)}
                         </p>
                       )}
                       {log.details?.skills_extracted && (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Extracted {log.details.skills_extracted} skills, {log.details.experience_entries || 0} experiences
+                          Extracted {String(log.details.skills_extracted)} skills, {String(log.details.experience_entries || 0)} experiences
                         </p>
                       )}
                     </div>

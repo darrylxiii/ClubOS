@@ -7,7 +7,7 @@ export interface ExportOptions {
   format: 'csv' | 'json';
 }
 
-export function exportToCSV<T extends Record<string, any>>(
+export function exportToCSV<T extends Record<string, unknown>>(
   data: T[],
   headers: { key: keyof T; label: string }[],
   filename: string
