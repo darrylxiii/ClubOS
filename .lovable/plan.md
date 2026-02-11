@@ -2,7 +2,7 @@
 
 # Road to 100/100 -- Comprehensive System Hardening Plan
 
-## Current Score: 35/100
+## Current Score: 42/100 (was 35)
 
 Based on a deep audit of the entire codebase, here is a breakdown of every deficit and a phased plan to close each gap.
 
@@ -12,7 +12,7 @@ Based on a deep audit of the entire codebase, here is a breakdown of every defic
 
 | Category | Weight | Current | Target | Gap |
 |---|---|---|---|---|
-| Security (RLS/Auth) | 25% | 40 | 95 | 73 permissive RLS policies, 3 mutable function search paths |
+| Security (RLS/Auth) | 25% | 65 | 95 | ~~73~~ 59 remaining INSERT-only policies (all intentional logging), 0 mutable search paths |
 | Testing | 20% | 5 | 90 | 1 unit test for 180+ pages, E2E specs exist but no unit coverage |
 | Type Safety | 15% | 20 | 90 | 7,379 `any` usages across 722 files, 2,025 untyped catch blocks |
 | Code Hygiene | 10% | 25 | 90 | 3,404 console.logs, 186 TODOs, 118 "Coming Soon" placeholders |
