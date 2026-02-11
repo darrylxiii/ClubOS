@@ -27,6 +27,7 @@ import { ArrowLeft, Settings, Activity, Edit, ExternalLink, PenLine } from "luci
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CoverLetterBuilder } from "@/components/applications/CoverLetterBuilder";
+import { MatchedCandidatesTab } from "@/components/jobs/MatchedCandidatesTab";
 
 export default function JobDetail() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -414,9 +415,10 @@ export default function JobDetail() {
         {/* Tab Navigation and Content */}
         <div className="container mx-auto px-6 py-6 max-w-6xl space-y-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="matches">Matches</TabsTrigger>
               <TabsTrigger value="company">Company</TabsTrigger>
               {canManageJob(role) && (
                 <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -537,6 +539,11 @@ export default function JobDetail() {
                 jobPipelineStages={job.pipeline_stages}
                 currentStage={isApplied ? 0 : undefined}
               />
+            </TabsContent>
+
+            {/* Matched Candidates Tab */}
+            <TabsContent value="matches" className="space-y-6 mt-6">
+              <MatchedCandidatesTab jobId={jobId || ''} />
             </TabsContent>
 
             {/* Company Tab */}
