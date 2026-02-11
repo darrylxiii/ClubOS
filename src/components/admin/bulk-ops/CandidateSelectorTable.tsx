@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Users, Filter, CheckSquare, Square } from "lucide-react";
+import { CompletenessIndicator } from "@/components/candidates/CompletenessIndicator";
 
 interface Candidate {
   id: string;
