@@ -59,7 +59,7 @@ export const InterviewTodayWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-40" />
         </CardHeader>
@@ -90,7 +90,7 @@ export const InterviewTodayWidget = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">

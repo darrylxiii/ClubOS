@@ -75,7 +75,7 @@ export const ClubPilotTasksWidget = () => {
 
   if (loading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-40" />
         </CardHeader>
@@ -87,7 +87,7 @@ export const ClubPilotTasksWidget = () => {
   }
 
   return (
-    <Card className="glass-card">
+    <Card className="glass-subtle rounded-2xl">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Sparkles className="h-5 w-5 text-primary" />

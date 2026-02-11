@@ -83,7 +83,7 @@ export const KPISummaryWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card h-full flex flex-col">
+      <Card className="glass-subtle rounded-2xl h-full flex flex-col">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -97,7 +97,7 @@ export const KPISummaryWidget = () => {
   // Show empty state if no data
   if (!stats?.hasData) {
     return (
-      <Card className="glass-card h-full flex flex-col">
+      <Card className="glass-subtle rounded-2xl h-full flex flex-col">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <BarChart3 className="h-5 w-5 text-primary" />
@@ -121,7 +121,7 @@ export const KPISummaryWidget = () => {
   }
 
   return (
-    <Card className="glass-card h-full flex flex-col">
+    <Card className="glass-subtle rounded-2xl h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <BarChart3 className="h-5 w-5 text-primary" />

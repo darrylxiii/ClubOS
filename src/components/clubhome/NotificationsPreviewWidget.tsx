@@ -30,7 +30,7 @@ export const NotificationsPreviewWidget = () => {
 
   if (loading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-48" />
@@ -45,7 +45,7 @@ export const NotificationsPreviewWidget = () => {
   }
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className="glass-subtle rounded-2xl overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">

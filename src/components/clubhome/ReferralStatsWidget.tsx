@@ -21,7 +21,7 @@ export const ReferralStatsWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-48" />
@@ -37,7 +37,7 @@ export const ReferralStatsWidget = () => {
   const hasReferrals = (stats?.activePipelines || 0) > 0 || (stats?.yourEarnings || 0) > 0;
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className="glass-subtle rounded-2xl overflow-hidden">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Share2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
