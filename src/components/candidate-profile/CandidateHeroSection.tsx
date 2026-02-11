@@ -60,13 +60,53 @@ export const CandidateHeroSection = ({
       if (error) throw error;
 
       if (data.success) {
-        // Update the candidate profile with new data
+        // Null-safe field-by-field update — never overwrite existing data with empty values
+        const d = data.data;
+        const updates: Record<string, unknown> = {};
+
+        if (d.full_name) updates.full_name = d.full_name;
+        if (d.current_title) updates.current_title = d.current_title;
+        if (d.current_company) updates.current_company = d.current_company;
+        if (d.avatar_url) updates.avatar_url = d.avatar_url;
+        if (d.location) updates.location = d.location;
+        if (d.years_of_experience) updates.years_of_experience = d.years_of_experience;
+        if (d.work_history?.length) updates.work_history = d.work_history;
+        if (d.education?.length) updates.education = d.education;
+        if (d.ai_summary) updates.ai_summary = d.ai_summary;
+        if (d.linkedin_profile_data) updates.linkedin_profile_data = d.linkedin_profile_data;
+
+        // Merge skills (union, no duplicates)
+        if (d.skills?.length) {
+          const existing = Array.isArray(candidate.skills) ? candidate.skills : [];
+          const merged = [...new Set([...existing, ...d.skills])];
+          updates.skills = merged;
+        }
+
+        // Always update timestamps & enrichment metadata
+        updates.enrichment_last_run = new Date().toISOString();
+        updates.last_profile_update = new Date().toISOString();
+        updates.enrichment_data = {
+          source: 'linkedin',
+          api_used: d.source_metadata?.api_used || 'unknown',
+          enriched_at: new Date().toISOString(),
+          fields_updated: Object.keys(updates),
+        };
+
         const { error: updateError } = await supabase
           .from('candidate_profiles')
-          .update(data.data)
+          .update(updates)
           .eq('id', candidate.id);
 
         if (updateError) throw updateError;
+
+        // Trigger enrichment to recalculate completeness, AI summary, talent tier
+        try {
+          await supabase.functions.invoke('enrich-candidate-profile', {
+            body: { candidateId: candidate.id }
+          });
+        } catch (enrichErr) {
+          console.warn('[linkedin-sync] Post-sync enrichment failed (non-blocking):', enrichErr);
+        }
 
         toast.success("LinkedIn profile synced successfully");
         onRefresh?.();

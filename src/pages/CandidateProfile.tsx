@@ -143,23 +143,52 @@ export default function CandidateProfile() {
       if (error) throw error;
 
       if (data.success) {
-        // Update candidate profile with imported data
+        // Null-safe update — only populate fields that have real values
+        const d = data.data;
+        const updates: Record<string, unknown> = {};
+
+        if (d.full_name) updates.full_name = d.full_name;
+        if (d.current_title) updates.current_title = d.current_title;
+        if (d.current_company) updates.current_company = d.current_company;
+        if (d.avatar_url) updates.avatar_url = d.avatar_url;
+        if (d.location) updates.location = d.location;
+        if (d.years_of_experience) updates.years_of_experience = d.years_of_experience;
+        if (d.work_history?.length) updates.work_history = d.work_history;
+        if (d.education?.length) updates.education = d.education;
+        if (d.ai_summary) updates.ai_summary = d.ai_summary;
+        if (d.linkedin_profile_data) updates.linkedin_profile_data = d.linkedin_profile_data;
+
+        // Merge skills (union, no duplicates)
+        if (d.skills?.length) {
+          const existing = Array.isArray(candidate.skills) ? candidate.skills : [];
+          updates.skills = [...new Set([...existing, ...d.skills])];
+        }
+
+        // Always update timestamps & enrichment metadata
+        updates.enrichment_last_run = new Date().toISOString();
+        updates.last_profile_update = new Date().toISOString();
+        updates.enrichment_data = {
+          source: 'linkedin',
+          api_used: d.source_metadata?.api_used || 'unknown',
+          enriched_at: new Date().toISOString(),
+          fields_updated: Object.keys(updates),
+        };
+
         const { error: updateError } = await supabase
           .from("candidate_profiles")
-          .update({
-            full_name: data.data.full_name || candidate.full_name,
-            current_title: data.data.current_title || candidate.current_title,
-            current_company: data.data.current_company || candidate.current_company,
-            years_of_experience: data.data.years_of_experience || candidate.years_of_experience,
-            skills: data.data.skills || candidate.skills,
-            work_history: data.data.work_history || candidate.work_history,
-            education: data.data.education || candidate.education,
-            ai_summary: data.data.ai_summary || candidate.ai_summary,
-            last_profile_update: new Date().toISOString()
-          })
+          .update(updates)
           .eq("id", id);
 
         if (updateError) throw updateError;
+
+        // Trigger enrichment to recalculate completeness, AI summary, talent tier
+        try {
+          await supabase.functions.invoke('enrich-candidate-profile', {
+            body: { candidateId: id }
+          });
+        } catch (enrichErr) {
+          console.warn('[linkedin-sync] Post-sync enrichment failed (non-blocking):', enrichErr);
+        }
 
         toast.success("Profile imported successfully", { id: toastId });
         loadCandidate();
