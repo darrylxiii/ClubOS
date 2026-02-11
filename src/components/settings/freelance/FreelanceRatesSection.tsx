@@ -56,7 +56,7 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
       if (error) throw error;
       toast.success("Rate settings saved");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving rates:", error);
       toast.error("Failed to save rate settings");
     } finally {

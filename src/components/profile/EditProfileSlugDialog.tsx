@@ -73,7 +73,7 @@ export default function EditProfileSlugDialog({
       toast.success("Profile URL updated successfully!");
       onSuccess(slug);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating slug:', error);
       toast.error("Failed to update profile URL");
     } finally {

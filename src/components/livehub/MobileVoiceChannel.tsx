@@ -75,9 +75,9 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
         onConnect?.(channelId, channel.name);
       }
       toast.success('Connected to voice channel');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error joining channel:', error);
-      toast.error(error?.message || 'Failed to connect');
+      toast.error(error instanceof Error ? error.message : 'Failed to connect');
     } finally {
       setIsJoining(false);
     }

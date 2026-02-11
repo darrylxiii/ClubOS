@@ -57,9 +57,9 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
                 setResult(data.scores);
                 toast.success("Analysis complete - AI insights generated successfully.");
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Analysis failed:', error);
-            toast.error(error.message || "Analysis failed - could not generate insights.");
+            toast.error(error instanceof Error ? error.message : "Analysis failed - could not generate insights.");
         } finally {
             setIsAnalyzing(false);
         }

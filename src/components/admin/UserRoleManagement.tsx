@@ -230,10 +230,10 @@ export function UserRoleManagement() {
       setEditingUser(null);
       setSelectedRoles([]);
       fetchUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating roles:', error);
       toast.error("Failed to update user roles", {
-        description: error.message || "An unexpected error occurred"
+        description: error instanceof Error ? error.message : "An unexpected error occurred"
       });
     }
   };

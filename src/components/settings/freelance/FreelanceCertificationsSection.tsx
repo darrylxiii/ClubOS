@@ -113,7 +113,7 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
       resetForm();
       toast.success(editingCert ? "Certification updated" : "Certification added");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving certification:", error);
       toast.error("Failed to save certification");
     } finally {
@@ -139,7 +139,7 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
       setCertifications(updatedCerts);
       toast.success("Certification deleted");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting certification:", error);
       toast.error("Failed to delete certification");
     } finally {

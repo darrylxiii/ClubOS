@@ -83,9 +83,9 @@ export function CreateCourseDialog({
       notify.success("Course generated", {
         description: "Review and customize the AI-generated course details",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error("AI generation failed", {
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     } finally {
       setAiLoading(false);
@@ -116,9 +116,9 @@ export function CreateCourseDialog({
       notify.success("Description enhanced", {
         description: "AI has improved your course description",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error("Enhancement failed", {
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     } finally {
       setAiLoading(false);
@@ -149,9 +149,9 @@ export function CreateCourseDialog({
       notify.success("Modules suggested", {
         description: `AI has generated ${modules.length} module suggestions`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error("Suggestion failed", {
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     } finally {
       setAiLoading(false);
@@ -236,9 +236,9 @@ export function CreateCourseDialog({
       });
       setSuggestedModules([]);
       setAiPrompt("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error("Error creating course", {
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     } finally {
       setLoading(false);
