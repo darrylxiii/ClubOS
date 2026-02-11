@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2, Mail } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2, Mail, Shield } from "lucide-react";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
@@ -250,6 +250,13 @@ export default function JobDashboard() {
       if (!sessionStorage.getItem(sessionKey)) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Fetch profile for audit metadata
+          const { data: viewerProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .maybeSingle();
+
           await supabase.from('pipeline_audit_logs').insert({
             job_id: jobId,
             user_id: user.id,
@@ -260,7 +267,9 @@ export default function JobDashboard() {
             },
             metadata: {
               referrer: document.referrer || 'direct',
-              user_agent: navigator.userAgent.substring(0, 200)
+              user_agent: navigator.userAgent.substring(0, 200),
+              viewer_role: role,
+              viewer_name: viewerProfile?.full_name || 'Unknown',
             }
           });
           sessionStorage.setItem(sessionKey, 'true');
@@ -915,7 +924,7 @@ export default function JobDashboard() {
 
         {/* Consolidated Tabs - Reduced from 8 to 3 */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Intelligence
             </TabsTrigger>
@@ -937,6 +946,12 @@ export default function JobDashboard() {
             <TabsTrigger value="rejected" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Rejected ({rejectedCount})
             </TabsTrigger>
+            {(role === 'admin' || role === 'strategist') && (
+              <TabsTrigger value="audit-log" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+                <Shield className="h-4 w-4 mr-1 inline" />
+                Audit Log
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
@@ -1046,6 +1061,12 @@ export default function JobDashboard() {
               stages={stages}
             />
           </TabsContent>
+
+          {(role === 'admin' || role === 'strategist') && (
+            <TabsContent value="audit-log" className="space-y-4 mt-6">
+              <PipelineAuditLog jobId={job.id} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 

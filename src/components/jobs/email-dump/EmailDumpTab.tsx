@@ -137,6 +137,23 @@ export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImporte
         const candidatesWithDupes = await checkDuplicates(data.candidates, jobId);
         setExtractedCandidates(candidatesWithDupes);
         toast.success(`Extracted ${data.candidates.length} candidate${data.candidates.length !== 1 ? "s" : ""}`);
+
+        // Log email_dump_created to audit log
+        try {
+          await supabase.from('pipeline_audit_logs').insert({
+            job_id: jobId,
+            user_id: user.id,
+            action: 'email_dump_created',
+            stage_data: {
+              dump_id: dumpId,
+              candidate_count: data.candidates.length,
+              linkedin_count: detectedLinks.filter(l => l.url.toLowerCase().includes('linkedin.com')).length,
+            },
+            metadata: { content_length: enrichedContent.length },
+          });
+        } catch (auditErr) {
+          console.error('Failed to log email dump audit:', auditErr);
+        }
       } else {
         toast.info("No candidates found in the email content");
         setExtractedCandidates([]);
