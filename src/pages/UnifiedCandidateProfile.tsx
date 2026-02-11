@@ -95,6 +95,7 @@ export default function UnifiedCandidateProfile() {
         id: job.id || `work-${idx}`,
         title: job.title || job.position || 'Untitled Role',
         company: job.company || 'Unknown Company',
+        company_logo: job.company_logo || null,
         location: job.location || null,
         start_date: normalizeDate(job.start_date) || '2000-01-01',
         end_date: normalizeDate(job.end_date),
@@ -108,6 +109,7 @@ export default function UnifiedCandidateProfile() {
         degree: edu.degree || edu.field_of_study || 'Degree',
         institution: edu.institution || edu.school || 'Institution',
         field: edu.field_of_study || edu.field || null,
+        school_logo: edu.school_logo || null,
         start_date: normalizeDate(edu.start_date || edu.start_year) || '2000-01-01',
         end_date: normalizeDate(edu.end_date || edu.end_year) || undefined,
       }));
