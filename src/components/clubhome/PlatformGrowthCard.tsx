@@ -1,4 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Users, Building2, Briefcase, FileText } from "lucide-react";
 import { usePlatformGrowth } from "@/hooks/usePlatformGrowth";
@@ -9,40 +8,37 @@ export function PlatformGrowthCard() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="glass-subtle rounded-2xl p-6">
+        <div className="mb-4">
+          <h3 className="flex items-center gap-2 font-semibold">
             <TrendingUp className="h-5 w-5" />
             Platform Growth
-          </CardTitle>
-          <CardDescription>30-day performance trends</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">30-day performance trends</p>
+        </div>
+        <div className="space-y-6">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-8 w-20" />
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (!metrics) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <div className="glass-subtle rounded-2xl p-6">
+      <div className="mb-4">
+        <h3 className="flex items-center gap-2 font-semibold">
           <TrendingUp className="h-5 w-5" />
           Platform Growth
-        </CardTitle>
-        <CardDescription>30-day performance trends</CardDescription>
-      </CardHeader>
-      <CardContent>
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">30-day performance trends</p>
+      </div>
         <div className="space-y-6">
           
           {/* User Growth */}
@@ -141,7 +137,6 @@ export function PlatformGrowthCard() {
           </div>
 
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

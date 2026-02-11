@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 
 interface DashboardSectionProps {
   children: ReactNode;
@@ -30,10 +29,7 @@ export const DashboardSection = ({
   }[columns];
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+    <section
       className={cn("space-y-3 sm:space-y-4", className)}
     >
       {(title || description) && (
@@ -52,6 +48,6 @@ export const DashboardSection = ({
       <div className={cn("grid gap-4 sm:gap-6 items-stretch", gridClass)}>
         {children}
       </div>
-    </motion.section>
+    </section>
   );
 };

@@ -265,12 +265,9 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
           }}
           className="relative group"
         >
-          {/* Subtle hover glow for premium feel */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
-          
           <Link 
             to={stat.link || '#'} 
-            className="relative block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-xl"
+            className="block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-xl"
             aria-label={stat.ariaLabel}
           >
             <MetricCard
