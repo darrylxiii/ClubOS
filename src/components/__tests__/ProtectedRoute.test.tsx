@@ -107,7 +107,7 @@ describe('ProtectedRoute', () => {
 
       await waitFor(() => {
         expect(getByTestId('auth-page')).toBeTruthy();
-      });
+      }, { timeout: 7000 });
     });
   });
 

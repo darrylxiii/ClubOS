@@ -88,6 +88,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     if (user && !loading) {
       checkAccountStatus();
+    } else if (!user && !loading) {
+      setCheckingStatus(false);
     }
   }, [user, loading]);
 

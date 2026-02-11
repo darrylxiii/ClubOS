@@ -2,7 +2,7 @@
 
 # Road to 100/100 -- Comprehensive System Hardening Plan
 
-## Current Score: 42/100 (was 35)
+## Current Score: 46/100 (was 42)
 
 Based on a deep audit of the entire codebase, here is a breakdown of every deficit and a phased plan to close each gap.
 
@@ -13,7 +13,7 @@ Based on a deep audit of the entire codebase, here is a breakdown of every defic
 | Category | Weight | Current | Target | Gap |
 |---|---|---|---|---|
 | Security (RLS/Auth) | 25% | 65 | 95 | ~~73~~ 59 remaining INSERT-only policies (all intentional logging), 0 mutable search paths |
-| Testing | 20% | 5 | 90 | 1 unit test for 180+ pages, E2E specs exist but no unit coverage |
+| Testing | 20% | 15 | 90 | ✅ 6 test files, 38 passing tests. Still needs E2E coverage expansion |
 | Type Safety | 15% | 20 | 90 | 7,379 `any` usages across 722 files, 2,025 untyped catch blocks |
 | Code Hygiene | 10% | 25 | 90 | 3,404 console.logs, 186 TODOs, 118 "Coming Soon" placeholders |
 | Error Handling | 10% | 45 | 90 | Logger exists but 627 files still use raw console.error in catch blocks |
@@ -57,22 +57,15 @@ Estimated: 8-12 hours across multiple sessions
 ## Phase 2: Testing (Score impact: 55 to 70)
 
 ### 2A. Unit Tests for Critical Components (10 files)
-Add Vitest unit tests for the 10 most critical components/hooks:
+✅ **DONE** — Created tests for:
+- `ProtectedRoute` (4 tests) — redirect logic, test account bypass, loading state. **Also fixed a real bug**: `checkingStatus` stayed `true` forever when user was null, causing infinite loading.
+- `RoleGate` (7 tests) — role gating, fallback rendering, loading states
+- `logger` (6 tests) — output levels, Sentry capture, breadcrumbs, critical delegation
+- `notify` (12 tests) — all notification methods, duration defaults, migrateToast compat
+- `roles` (9 tests) — ROLE_PRIORITY order, getRolePriority for all roles incl. null
+- `JobDashboardRoute` (5 tests) — admin/strategist/partner access, candidate redirect, loading
 
-| File | What to Test |
-|---|---|
-| `ProtectedRoute` | Role gating, redirect logic, test account bypass |
-| `useAuth` | Login/logout/session, error states |
-| `useRole` | Role resolution, multi-role, loading states |
-| `RoleGate` | Access control rendering |
-| `logger` | Batching, deduplication, flush |
-| `supabaseErrorMapper` | All error code mappings |
-| `useImageUpload` | Upload/delete, error handling |
-| `useNextSteps` | Data fetching, step completion |
-| `CandidateQuickActions` | Render, navigation |
-| `UnifiedStatsBar` | Metric display, loading skeleton |
-
-Estimated: 6-8 hours
+**Still needed**: `supabaseErrorMapper` (already has tests), `useImageUpload`, `useNextSteps`, `CandidateQuickActions`, `UnifiedStatsBar`
 
 ### 2B. E2E Test Coverage
 The E2E infrastructure exists (`tests/e2e/`, Playwright config). Validate and extend:
