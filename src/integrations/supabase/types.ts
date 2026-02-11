@@ -7537,6 +7537,92 @@ export type Database = {
           },
         ]
       }
+      candidate_tag_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          candidate_id: string
+          id: string
+          tag_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          candidate_id: string
+          id?: string
+          tag_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          candidate_id?: string
+          id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_tag_assignments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_tag_assignments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_tag_assignments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_tag_assignments_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_tag_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_tag_definitions: {
+        Row: {
+          category: string
+          color: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+        }
+        Insert: {
+          category: string
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+        }
+        Update: {
+          category?: string
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       capacity_metrics: {
         Row: {
           created_at: string
@@ -53636,6 +53722,10 @@ export type Database = {
       calculate_activity_level: {
         Args: { last_activity: string }
         Returns: string
+      }
+      calculate_candidate_completeness: {
+        Args: { p_candidate_id: string }
+        Returns: number
       }
       calculate_churn_rate: {
         Args: { end_date: string; start_date: string }
