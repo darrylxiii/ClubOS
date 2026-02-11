@@ -1,94 +1,97 @@
 
 
-# Fix: LinkedIn Profile Pictures, School Logos, and Data Mapping
+# Fix: LinkedIn Sync Failing to Save Data
 
-## Root Cause
+## Root Cause Analysis
 
-The apimaestro API returns data in a **nested structure**, not flat. The scraper assumes flat fields but the actual response looks like:
+After a comprehensive audit of the scraper, client code, database, and logs, here is what is happening:
 
+### The scraper works perfectly
+The edge function logs confirm successful runs. For example, the most recent sync for "Lilian K." at 23:23:55 correctly returned:
+- Profile picture URL (persisted to storage)
+- 5 work history entries with dates
+- 2 education entries
+- Full name "Lilian K."
+
+### The database was never updated
+Despite the scraper succeeding, the database still shows:
+- `avatar_url`: null
+- `full_name`: "Liliankalman" (URL-extracted fallback, not "Lilian K.")
+- `enrichment_last_run`: 23:18:20 (from an earlier attempt, not the 23:23 run)
+
+### Bug: Response key mismatch in CandidateQuickActions
+
+The scraper returns:
 ```text
-{
-  "basic_info": {
-    "fullname": "Lilian K.",
-    "profile_picture_url": "https://media.licdn.com/...",
-    "headline": "...",
-    "about": "..."
-  },
-  "experience": [...],
-  "education": [...],
-  "languages": [...]
-}
+{ success: true, data: { full_name: "...", avatar_url: "...", ... } }
 ```
 
-The scraper currently does `data.profilePicture` which is `undefined` because the actual field is `data.basic_info.profile_picture_url`. This is why:
+But `CandidateQuickActions.tsx` (line 50) checks for `data?.candidateData` which does NOT exist in the response. The correct key is `data.data`. This causes the entire update block to be silently skipped -- no error is thrown, no toast is shown, and the profile data is never saved to the database.
 
-1. **Profile pictures are always empty** -- the URL exists at `basic_info.profile_picture_url` but is never read
-2. **School logos may be empty** -- the API might store them under a different education sub-field
-3. **Name, headline, location, summary** are also partially broken -- they work only because the fallback chain (`data.fullName || ... || extractNameFromUrl()`) eventually catches something
+### Other entry points are correct
+- `CandidateHeroSection.tsx` -- uses `data.data` (correct)
+- `CandidateProfile.tsx` -- uses `data.data` (correct)
+- `AddCandidateDialog.tsx` -- uses `data.data` (correct)
 
-## Fix: Flatten `basic_info` before mapping
+So if the user is triggering the sync from the "Import LinkedIn" button in `CandidateQuickActions`, it will always silently fail. If using "Sync LinkedIn" in the hero section, it should work -- unless the deployed frontend code was stale.
 
-**File:** `supabase/functions/linkedin-scraper/index.ts`
+## Fix
 
-After line 215 (`const data = ...`), flatten `basic_info` into the top-level data object so all existing field mappings work, plus add the new field names:
+### File: `src/components/partner/CandidateQuickActions.tsx`
 
+Update the response handling to match the actual scraper response format and use the same null-safe update pattern as the other entry points:
+
+**Line 50**: Change `data?.candidateData` to `data?.data`
+
+**Lines 50-73**: Replace the entire update block:
+- Read from `data.data` instead of `data.candidateData`
+- Use null-safe field-by-field updates (matching the pattern in CandidateHeroSection)
+- Add `enrichment_last_run` and `linkedin_profile_data` to the update
+- Add `source_metadata`, `enrichment_data` timestamps
+
+### Before (broken):
 ```text
-// Flatten basic_info into data for unified field access
-const basicInfo = data.basic_info || {};
-const flatData = { ...basicInfo, ...data };
+if (data?.candidateData) {
+  const { error: updateError } = await supabase
+    .from("candidate_profiles")
+    .update({
+      full_name: data.candidateData.full_name || undefined,
+      ...
+    })
+    .eq("id", candidateId);
 ```
 
-Then replace all `data.` references in the mapper (lines 220-265) with `flatData.`:
-
-### Profile picture fix (most critical):
+### After (fixed):
 ```text
-imageUrl: flatData.profile_picture_url || flatData.profilePicture 
-  || flatData.profilePictureUrl || flatData.image || flatData.avatar 
-  || flatData.profile_pic_url || flatData.profileImage || '',
+if (data?.success && data?.data) {
+  const d = data.data;
+  const updates: Record<string, unknown> = {};
+
+  if (d.full_name) updates.full_name = d.full_name;
+  if (d.current_title) updates.current_title = d.current_title;
+  if (d.current_company) updates.current_company = d.current_company;
+  if (d.avatar_url) updates.avatar_url = d.avatar_url;
+  if (d.location) updates.location = d.location;
+  if (d.years_of_experience) updates.years_of_experience = d.years_of_experience;
+  if (d.work_history?.length) updates.work_history = d.work_history;
+  if (d.education?.length) updates.education = d.education;
+  if (d.skills?.length) updates.skills = d.skills;
+  if (d.ai_summary) updates.ai_summary = d.ai_summary;
+  if (d.linkedin_profile_data) updates.linkedin_profile_data = d.linkedin_profile_data;
+  updates.linkedin_url = linkedinUrl;
+  updates.enrichment_last_run = new Date().toISOString();
+
+  const { error: updateError } = await supabase
+    .from("candidate_profiles")
+    .update(updates)
+    .eq("id", candidateId);
 ```
 
-### Name fix:
-```text
-const fullName = flatData.fullname || flatData.fullName || flatData.full_name 
-  || flatData.name || (flatData.first_name && flatData.last_name 
-    ? `${flatData.first_name} ${flatData.last_name}` : null) 
-  || extractNameFromUrl(linkedinUrl);
-```
+## Summary
 
-### Other basic fields:
-```text
-headline: flatData.headline || flatData.title || flatData.occupation || '',
-location: flatData.location || flatData.addressLocality || flatData.city || '',
-summary: flatData.about || flatData.summary || flatData.description || '',
-email: flatData.email || flatData.personal_email || '',
-```
+| File | Issue | Fix |
+|------|-------|-----|
+| `src/components/partner/CandidateQuickActions.tsx` | Reads `data.candidateData` (does not exist) | Change to `data.data` with null-safe updates |
 
-### Education school logos:
-Add more logo field names to the education mapper:
-```text
-schoolLogo: edu.logo || edu.logoUrl || edu.schoolLogo || edu.school_logo 
-  || edu.school_logo_url || edu.schoolLogoUrl || edu.companyLogo || '',
-```
-
-## Fix: Data Repair for existing candidates
-
-Run a one-time SQL update to set `avatar_url` from the raw `linkedin_profile_data` for candidates where the profile picture was captured but never saved:
-
-Since the raw data already has `imageUrl: ""` for current candidates (the profile picture URL was never captured in the first place), the fix primarily prevents this from happening on the **next sync**. After deploying the scraper fix, a re-sync via "Sync LinkedIn" will correctly capture the profile picture.
-
-However, to avoid requiring manual re-syncs, also write a small migration that calls the scraper for all candidates with `avatar_url IS NULL AND linkedin_url IS NOT NULL`. This is optional -- a manual "Sync LinkedIn" click per candidate would also work.
-
-## Summary of Changes
-
-| File | Change |
-|------|--------|
-| `supabase/functions/linkedin-scraper/index.ts` | Flatten `basic_info` into `flatData` before mapping; add `profile_picture_url` and `fullname` to field chains; add more education logo field names |
-
-After deployment, clicking "Sync LinkedIn" on any candidate will:
-1. Correctly capture their profile picture from `basic_info.profile_picture_url`
-2. Download and store it in the avatars bucket
-3. Save the permanent URL as `avatar_url`
-4. Capture school/university logos if available from the API
-
-No UI changes needed -- the `CandidateHeroSection` and `ExperienceTimeline` components already render `avatar_url`, `company_logo`, and `school_logo` correctly. The issue was purely that the scraper never extracted these values from the API response.
+This is a one-file fix. No scraper changes needed -- the scraper is working correctly. After this fix, clicking "Import LinkedIn" from CandidateQuickActions will correctly save the profile picture, name, work history, education, and all other fields to the database.
 
