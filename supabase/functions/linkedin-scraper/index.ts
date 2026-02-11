@@ -67,6 +67,7 @@ interface LinkedInProfile {
   experience?: Array<{
     title: string;
     company: string;
+    companyLogo?: string;
     location?: string;
     startDate?: string;
     endDate?: string;
@@ -74,6 +75,7 @@ interface LinkedInProfile {
   }>;
   education?: Array<{
     school: string;
+    schoolLogo?: string;
     degree?: string;
     field?: string;
     startYear?: string;
@@ -187,6 +189,7 @@ Deno.serve(async (req) => {
             experience: rawExp.map((exp: any) => ({
               title: exp.title || exp.role || exp.position || '',
               company: exp.company || exp.companyName || exp.organization || exp.companyTitle || '',
+              companyLogo: exp.companyLogo || exp.companyLogoUrl || exp.logo || exp.company_logo_url || exp.logoUrl || '',
               location: exp.location || exp.locationName || '',
               startDate: exp.startDate || exp.start_date || exp.dateRange?.start ||
                 (exp.starts_at ? `${exp.starts_at.year}-${String(exp.starts_at.month || 1).padStart(2, '0')}` : undefined) ||
@@ -200,6 +203,7 @@ Deno.serve(async (req) => {
             })),
             education: rawEdu.map((edu: any) => ({
               school: edu.school || edu.schoolName || edu.institution || edu.university || edu.schoolId || '',
+              schoolLogo: edu.logo || edu.logoUrl || edu.schoolLogo || edu.school_logo || '',
               degree: edu.degree || edu.degreeName || edu.degree_name || '',
               field: edu.field || edu.fieldOfStudy || edu.field_of_study || edu.major || '',
               startYear: (edu.startYear || edu.start_year || edu.starts_at?.year || edu.start?.year || edu.timePeriod?.startDate?.year)?.toString(),
@@ -270,6 +274,7 @@ Deno.serve(async (req) => {
           experience: (data.experiences || []).map((exp: any) => ({
             title: exp.title,
             company: exp.company,
+            companyLogo: exp.logo_url || '',
             location: exp.location,
             startDate: exp.starts_at ? `${exp.starts_at.year}-${String(exp.starts_at.month || 1).padStart(2, '0')}` : undefined,
             endDate: exp.ends_at ? `${exp.ends_at.year}-${String(exp.ends_at.month || 1).padStart(2, '0')}` : undefined,
@@ -277,6 +282,7 @@ Deno.serve(async (req) => {
           })),
           education: (data.education || []).map((edu: any) => ({
             school: edu.school,
+            schoolLogo: edu.logo_url || '',
             degree: edu.degree_name,
             field: edu.field_of_study,
             startYear: edu.starts_at?.year?.toString(),
@@ -334,15 +340,17 @@ Deno.serve(async (req) => {
       title: emptyToNull(exp.title),
       position: emptyToNull(exp.title),
       company: emptyToNull(exp.company),
+      company_logo: emptyToNull(exp.companyLogo),
       location: emptyToNull(exp.location),
       start_date: emptyToNull(exp.startDate),
       end_date: emptyToNull(exp.endDate),
       description: emptyToNull(exp.description),
-    })).filter(e => e.title || e.company); // Drop entries with no title AND no company
+    })).filter(e => e.title || e.company);
 
     const normalizedEducation = (profile.education || []).map(edu => ({
       institution: emptyToNull(edu.school),
       school: emptyToNull(edu.school),
+      school_logo: emptyToNull(edu.schoolLogo),
       degree: emptyToNull(edu.degree),
       field_of_study: emptyToNull(edu.field),
       start_year: emptyToNull(edu.startYear),
