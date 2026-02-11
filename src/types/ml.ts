@@ -44,7 +44,7 @@ export interface MLFeatures {
   hiring_manager_style_match: number;
   hiring_manager_cultural_priorities_match: number;
   
-  [key: string]: any; // Allow additional features
+  [key: string]: string | number | boolean | undefined; // Allow additional features
 }
 
 export interface MLModel {
@@ -52,7 +52,7 @@ export interface MLModel {
   version: number;
   model_type: 'xgboost' | 'lightgbm' | 'neural_net' | 'ensemble' | 'baseline';
   model_storage_path: string;
-  training_config?: Record<string, any>;
+  training_config?: Record<string, unknown>;
   metrics: {
     auc_roc?: number;
     precision_at_10?: number;
@@ -78,8 +78,8 @@ export interface MLABTest {
   traffic_split: number; // 0.0 - 1.0
   target_metric: string;
   hypothesis?: string;
-  metrics_a?: Record<string, any>;
-  metrics_b?: Record<string, any>;
+  metrics_a?: Record<string, unknown>;
+  metrics_b?: Record<string, unknown>;
   statistical_significance?: number; // p-value
   winner?: 'model_a' | 'model_b' | 'no_difference' | 'pending';
   sample_size_a: number;
@@ -109,7 +109,7 @@ export interface MLPrediction {
 
 export interface ShapExplanation {
   feature_name: string;
-  feature_value: any;
+  feature_value: string | number | boolean;
   shap_value: number; // Contribution to prediction
   impact_direction: 'positive' | 'negative';
   human_readable: string; // e.g., "+15% skills overlap"
@@ -123,7 +123,7 @@ export interface MLFeedback {
   feedback_type: 'boost' | 'block' | 'great_match' | 'not_relevant' | 'wrong_skills' | 'wrong_culture' | 'wrong_salary';
   feedback_score?: number; // 1-5 stars
   feedback_text?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at: string;
 }
 

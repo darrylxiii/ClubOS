@@ -12,7 +12,7 @@ export interface UnifiedCalendarEvent {
   is_quantum_club: boolean;
   has_club_ai: boolean;
   meeting_id?: string;
-  bot_session?: any;
+  bot_session?: Record<string, unknown> | null;
   insights_available?: boolean;
   color: string;
 }

@@ -32,9 +32,9 @@ export interface FreelanceProfile {
   completion_rate_percentage: number;
   avg_delivery_time_vs_estimate: number;
   active_projects_count: number;
-  certifications: any[];
+  certifications: Record<string, unknown>[];
   timezone_preference: string | null;
-  language_proficiencies: any[];
+  language_proficiencies: Record<string, unknown>[];
   is_open_to_retainers: boolean;
   min_project_value: number | null;
   created_at: string;
@@ -57,7 +57,7 @@ export interface Project {
   posted_by: string | null;
   title: string;
   description: string | null;
-  detailed_scope: any;
+  detailed_scope: Record<string, unknown> | null;
   category: string | null;
   subcategory: string | null;
   skills_required: string[];
@@ -73,8 +73,8 @@ export interface Project {
   end_date_target: string | null;
   remote_policy: 'remote' | 'hybrid' | 'onsite' | null;
   timezone_requirement: string | null;
-  deliverables: any[];
-  success_criteria: any[];
+  deliverables: string[];
+  success_criteria: string[];
   status: ProjectStatus;
   visibility: ProjectVisibility;
   priority_level: number;
@@ -90,7 +90,7 @@ export interface Project {
   contract_id: string | null;
   related_job_id: string | null;
   crm_deal_id: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   published_at: string | null;
@@ -105,13 +105,13 @@ export interface ProjectProposal {
   proposal_type: ProposalType;
   proposed_rate: number | null;
   proposed_timeline_weeks: number | null;
-  proposed_deliverables: any[];
-  portfolio_highlights: any[];
+  proposed_deliverables: string[];
+  portfolio_highlights: Record<string, unknown>[];
   availability_statement: string | null;
-  relevant_experience: any[];
+  relevant_experience: Record<string, unknown>[];
   questions_for_client: string[];
   match_score: number | null;
-  match_factors: any;
+  match_factors: Record<string, unknown> | null;
   match_explanation: string | null;
   status: ProposalStatus;
   club_ai_confidence: number | null;
@@ -138,8 +138,8 @@ export interface ProjectContract {
   total_budget: number | null;
   currency: string;
   payment_schedule: 'weekly' | 'biweekly' | 'milestone' | 'upon_completion' | null;
-  milestones: any[];
-  payment_terms: any;
+  milestones: Record<string, unknown>[];
+  payment_terms: Record<string, unknown> | null;
   start_date: string | null;
   end_date: string | null;
   actual_end_date: string | null;
@@ -170,7 +170,7 @@ export interface ProjectMilestone {
   status: MilestoneStatus;
   started_at: string | null;
   submitted_at: string | null;
-  submitted_files: any[];
+  submitted_files: Record<string, unknown>[];
   revision_count: number;
   approved_at: string | null;
   paid_at: string | null;
@@ -221,7 +221,7 @@ export interface ProjectReview {
 
 export interface FreelancerMatch {
   freelancer_id: string;
-  profile: any;
+  profile: FreelanceProfile;
   match_score: number;
   match_factors: {
     skillsOverlap: number;
@@ -233,7 +233,7 @@ export interface FreelancerMatch {
     completionRate: number;
   };
   match_explanation: string;
-  portfolio_highlights: any[];
+  portfolio_highlights: PortfolioItem[];
   estimated_response_time: string;
   risk_level: 'low' | 'medium' | 'higher';
 }
