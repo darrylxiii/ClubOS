@@ -27,6 +27,29 @@ interface Props {
   onAction?: (action: string) => void;
 }
 
+const ExpandableSummary = ({ summary }: { summary: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="space-y-2">
+      <h4 className="font-semibold flex items-center gap-2 text-sm">
+        <Zap className="w-4 h-4" />
+        Executive Summary
+      </h4>
+      <p className={`text-sm text-muted-foreground transition-all ${!expanded ? 'line-clamp-4' : ''}`}>
+        {summary}
+      </p>
+      {summary.length > 200 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-primary hover:underline mt-1"
+        >
+          {expanded ? 'Show less' : 'Read more'}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const CandidateDecisionDashboard = ({ candidate, applications, jobId, applicationId, onAction }: Props) => {
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
@@ -350,13 +373,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
               <div className="grid grid-cols-2 gap-4">
                 {/* AI Summary */}
                 {candidate.ai_summary && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold flex items-center gap-2 text-sm">
-                      <Zap className="w-4 h-4" />
-                      Executive Summary
-                    </h4>
-                    <p className="text-sm text-muted-foreground line-clamp-4">{candidate.ai_summary}</p>
-                  </div>
+                  <ExpandableSummary summary={candidate.ai_summary} />
                 )}
 
                 {/* Strengths */}
