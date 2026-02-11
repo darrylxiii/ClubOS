@@ -248,9 +248,9 @@ export const useJobAnalytics = (jobId: string | undefined) => {
         activeApplications: activeApps.length,
         totalHires: hiredApps.length
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching job analytics:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }

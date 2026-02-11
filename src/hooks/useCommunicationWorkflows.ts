@@ -22,7 +22,7 @@ export function useCommunicationWorkflows() {
 
       if (error) throw error;
       setWorkflows(data || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching workflows:', err);
     } finally {
       setLoading(false);
@@ -44,7 +44,7 @@ export function useCommunicationWorkflows() {
       const { data, error } = await query;
       if (error) throw error;
       setExecutions(data || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching executions:', err);
     }
   }, []);
@@ -67,8 +67,8 @@ export function useCommunicationWorkflows() {
       
       notify.success('Workflow created', { description: `"${workflow.name}" is now active` });
       return data;
-    } catch (err: any) {
-      notify.error('Failed to create workflow', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Failed to create workflow', { description: err instanceof Error ? err.message : 'Unknown error' });
       return null;
     }
   }, [fetchWorkflows]);
@@ -84,8 +84,8 @@ export function useCommunicationWorkflows() {
       await fetchWorkflows();
       
       notify.success('Workflow updated');
-    } catch (err: any) {
-      notify.error('Failed to update', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Failed to update', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, [fetchWorkflows]);
 
@@ -100,8 +100,8 @@ export function useCommunicationWorkflows() {
       await fetchWorkflows();
       
       notify.success('Workflow deleted');
-    } catch (err: any) {
-      notify.error('Failed to delete', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Failed to delete', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, [fetchWorkflows]);
 
@@ -120,8 +120,8 @@ export function useCommunicationWorkflows() {
       
       notify.success('Workflow executed', { description: 'Actions have been triggered' });
       return data;
-    } catch (err: any) {
-      notify.error('Execution failed', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Execution failed', { description: err instanceof Error ? err.message : 'Unknown error' });
       return null;
     }
   }, [fetchExecutions]);

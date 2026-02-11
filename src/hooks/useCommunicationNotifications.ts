@@ -54,7 +54,7 @@ export function useCommunicationNotifications() {
 
       setNotifications(notifs);
       setUnreadCount(notifs.filter(n => !n.read).length);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching notifications:', err);
     } finally {
       setLoading(false);
@@ -79,8 +79,8 @@ export function useCommunicationNotifications() {
         prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err: any) {
-      notify.error('Error', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Error', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, []);
 
@@ -104,8 +104,8 @@ export function useCommunicationNotifications() {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
       notify.success('All notifications marked as read');
-    } catch (err: any) {
-      notify.error('Error', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Error', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, [notifications]);
 
@@ -126,8 +126,8 @@ export function useCommunicationNotifications() {
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err: any) {
-      notify.error('Error', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Error', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, []);
 

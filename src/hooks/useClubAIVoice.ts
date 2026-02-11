@@ -239,9 +239,9 @@ export const useClubAIVoice = (): UseClubAIVoiceReturn => {
         }
       }
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       console.error('ClubAI error:', err);
-      setError(typeof err === 'string' ? err : err?.message || 'An error occurred');
+      setError(typeof err === 'string' ? err : err instanceof Error ? err.message : 'An error occurred');
       setConnectionStatus('error');
     },
   });

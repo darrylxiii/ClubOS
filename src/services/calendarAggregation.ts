@@ -157,8 +157,8 @@ async function fetchGoogleCalendarEvents(
       }));
 
       allEvents.push(...events);
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
         console.error('Google calendar sync timed out after 30s');
       } else {
         console.error('Failed to fetch Google calendar events:', err);
@@ -222,8 +222,8 @@ async function fetchMicrosoftCalendarEvents(
       }));
 
       allEvents.push(...events);
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
         console.error('Microsoft calendar sync timed out after 30s');
       } else {
         console.error('Failed to fetch Microsoft calendar events:', err);

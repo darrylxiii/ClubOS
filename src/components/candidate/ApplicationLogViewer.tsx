@@ -114,9 +114,9 @@ export function ApplicationLogViewer({ candidateId, limit = 20 }: ApplicationLog
       }));
 
       setLogs(logsWithActors);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error loading application logs:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }

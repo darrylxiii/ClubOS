@@ -175,8 +175,8 @@ const ParticipantGrid = ({
           setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
         }
         return true;
-      } catch (err: any) {
-        logger.warn('Video play failed', { componentName: 'ParticipantGrid', participantId, error: err.message });
+      } catch (err: unknown) {
+        logger.warn('Video play failed', { componentName: 'ParticipantGrid', participantId, error: err instanceof Error ? err.message : 'Unknown error' });
         return false;
       }
     };

@@ -31,7 +31,7 @@ export function useCrossChannelPatterns(entityType?: string, entityId?: string) 
       const typedData = data || [];
       setPatterns(typedData);
       setActiveAlerts(typedData.filter(p => p.is_active));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching patterns:', err);
     } finally {
       setLoading(false);
@@ -49,8 +49,8 @@ export function useCrossChannelPatterns(entityType?: string, entityId?: string) 
       
       notify.success('Analysis complete', { description: `Found ${data?.patterns_detected || 0} patterns` });
       return data;
-    } catch (err: any) {
-      notify.error('Analysis failed', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Analysis failed', { description: err instanceof Error ? err.message : 'Unknown error' });
       return null;
     }
   }, [fetchPatterns]);
@@ -72,8 +72,8 @@ export function useCrossChannelPatterns(entityType?: string, entityId?: string) 
       await fetchPatterns();
       
       notify.success('Pattern resolved', { description: 'Alert has been dismissed' });
-    } catch (err: any) {
-      notify.error('Failed to resolve', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Failed to resolve', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, [fetchPatterns]);
 

@@ -304,7 +304,7 @@ export function RemoteAudioPlayer({
         // This is okay - HTML Audio is primary, AudioContext is optional
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`[RemoteAudio] Error setting up audio for ${userId}:`, err);
     }
   }, [stream, userId, volume, isDeafened, cleanupAudioNodes, hasSetup, onAudioLevelChange, isPlaying, attemptPlay]);

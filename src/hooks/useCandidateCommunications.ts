@@ -89,7 +89,7 @@ export function useCandidateCommunications() {
           lastContactDate: comms[0]?.original_timestamp || null
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching communications:', err);
     } finally {
       setLoading(false);
@@ -157,7 +157,7 @@ export function useCandidateCommunications() {
           max_messages_per_day: 10,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn('Error fetching preferences:', err);
     }
   }, []);
@@ -195,7 +195,7 @@ export function useCandidateCommunications() {
           last_contact: (relationship as any).last_communication_at || null
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching strategist:', err);
     }
   }, []);
@@ -237,8 +237,8 @@ export function useCandidateCommunications() {
 
       await fetchPreferences();
       notify.success('Preferences updated');
-    } catch (err: any) {
-      notify.error('Failed to update preferences', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Failed to update preferences', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, [preferences, fetchPreferences]);
 

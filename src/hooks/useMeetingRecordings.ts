@@ -98,9 +98,9 @@ export function useMeetingRecordings(options: UseMeetingRecordingsOptions = {}) 
       }
 
       setRecordings((data || []) as MeetingRecordingExtended[]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[useMeetingRecordings] Error loading recordings:', err);
-      setError(err.message || 'Failed to load recordings');
+      setError(err instanceof Error ? err.message : 'Failed to load recordings');
       setRecordings([]);
     } finally {
       setIsLoading(false);
@@ -154,7 +154,7 @@ export function useMeetingRecordings(options: UseMeetingRecordingsOptions = {}) 
       // Update local state
       setRecordings(prev => prev.filter(r => r.id !== recordingId));
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[useMeetingRecordings] Error deleting recording:', err);
       return false;
     }
@@ -186,7 +186,7 @@ export function useMeetingRecordings(options: UseMeetingRecordingsOptions = {}) 
       // Update local state
       setRecordings(prev => prev.filter(r => r.id !== recordingId));
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[useMeetingRecordings] Error permanently deleting recording:', err);
       return false;
     }
@@ -209,7 +209,7 @@ export function useMeetingRecordings(options: UseMeetingRecordingsOptions = {}) 
 
       loadRecordings();
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[useMeetingRecordings] Error restoring recording:', err);
       return false;
     }

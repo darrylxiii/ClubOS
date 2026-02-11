@@ -61,7 +61,7 @@ export function useEngagementTracking({
           .then(() => {
             console.log(`Tracked ${duration}s view on post ${postId}`);
           })
-          .catch((err: any) => console.error('Error updating view duration:', err));
+          .catch((err: unknown) => console.error('Error updating view duration:', err));
       }
     };
   }, [user, postId]);

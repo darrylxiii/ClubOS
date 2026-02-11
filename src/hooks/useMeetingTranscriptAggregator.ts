@@ -104,9 +104,9 @@ export function useMeetingTranscriptAggregator({
 
         setTranscripts(enriched);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[TranscriptAggregator] Error fetching transcripts:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsLoading(false);
     }

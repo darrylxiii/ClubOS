@@ -86,9 +86,9 @@ export const BulkAssessmentTab = () => {
           
           if (error) throw error;
           successCount++;
-        } catch (err: any) {
+        } catch (err: unknown) {
           failureCount++;
-          errors.push({ candidate_id: candidateId, error: err.message });
+          errors.push({ candidate_id: candidateId, error: err instanceof Error ? err.message : 'Unknown error' });
         }
       }
 

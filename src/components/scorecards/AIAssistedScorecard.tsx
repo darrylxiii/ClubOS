@@ -138,8 +138,8 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
 
       toast.success('Scorecard submitted successfully');
       onSubmitted?.();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to submit scorecard');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to submit scorecard');
     } finally {
       setLoading(false);
     }

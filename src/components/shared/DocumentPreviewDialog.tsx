@@ -89,9 +89,9 @@ export function DocumentPreviewDialog({
         } else {
           throw new Error('No signed URL returned');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('[DocumentPreview] Error generating signed URL:', err);
-        setError(err.message || 'Failed to load document');
+        setError(err instanceof Error ? err.message : 'Failed to load document');
       } finally {
         setLoading(false);
       }
