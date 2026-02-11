@@ -105,9 +105,9 @@ export default function UnifiedCandidateProfile() {
         company: job.company || 'Unknown Company',
         company_logo: job.company_logo || null,
         location: job.location || null,
-        start_date: normalizeDate(job.start_date) || '2000-01-01',
-        end_date: normalizeDate(job.end_date),
-        current: !job.end_date,
+        start_date: normalizeDate(job.start_date) || '',
+        end_date: normalizeDate(job.end_date) || undefined,
+        current: !normalizeDate(job.end_date),
         description: job.description || null,
         skills: job.skills || [],
       }));
@@ -118,7 +118,7 @@ export default function UnifiedCandidateProfile() {
         institution: edu.institution || edu.school || 'Institution',
         field: edu.field_of_study || edu.field || null,
         school_logo: edu.school_logo || null,
-        start_date: normalizeDate(edu.start_date || edu.start_year) || '2000-01-01',
+        start_date: normalizeDate(edu.start_date || edu.start_year) || '',
         end_date: normalizeDate(edu.end_date || edu.end_year) || undefined,
       }));
 

@@ -184,9 +184,9 @@ export const ExperienceTimeline = ({ experiences, education, certifications }: P
                         <OrgLogo name={group.company} logoUrl={group.company_logo} />
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-base truncate">{group.company}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {group.totalDuration}
-                          </p>
+                          {group.totalDuration && (
+                            <p className="text-sm text-muted-foreground">{group.totalDuration}</p>
+                          )}
                         </div>
                         {group.isCurrent && (
                           <Badge className={candidateProfileTokens.badges.success}>Current</Badge>
