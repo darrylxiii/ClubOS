@@ -83,11 +83,25 @@ export default function UnifiedCandidateProfile() {
         .maybeSingle();
 
       // Map JSONB data from candidate_profiles into structured arrays
+      const monthNameMap: Record<string, number> = {
+        jan:1, feb:2, mar:3, apr:4, may:5, jun:6,
+        jul:7, aug:8, sep:9, oct:10, nov:11, dec:12,
+      };
+      const parseMonth = (m: any): number => {
+        if (typeof m === 'number') return m;
+        if (typeof m === 'string') {
+          const mapped = monthNameMap[m.toLowerCase().substring(0, 3)];
+          if (mapped) return mapped;
+          const parsed = parseInt(m, 10);
+          if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) return parsed;
+        }
+        return 1;
+      };
       const normalizeDate = (d: any): string | undefined => {
         if (!d) return undefined;
         if (typeof d === 'number') return `${d}-01-01`;
         if (typeof d === 'object' && d !== null && !(d instanceof String)) {
-          if (d.year) return `${d.year}-${String(d.month || 1).padStart(2, '0')}-01`;
+          if (d.year) return `${d.year}-${String(parseMonth(d.month)).padStart(2, '0')}-01`;
           return undefined;
         }
         if (typeof d === 'string') {
