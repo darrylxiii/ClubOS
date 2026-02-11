@@ -19,6 +19,7 @@ interface Candidate {
   avatar_url: string | null;
   current_title: string | null;
   user_id: string | null;
+  profile_completeness: number | null;
 }
 
 interface CandidateSelectorTableProps {
@@ -41,7 +42,7 @@ export const CandidateSelectorTable = ({
     queryFn: async () => {
       let query = supabase
         .from("candidate_profiles")
-        .select("id, full_name, email, avatar_url, current_title, user_id")
+        .select("id, full_name, email, avatar_url, current_title, user_id, profile_completeness")
         .order("full_name");
 
       if (jobFilter !== "all") {
@@ -279,6 +280,7 @@ function VirtualizedCandidateList({
                   </p>
                 </div>
                 <div className="hidden sm:flex items-center gap-2">
+                  <CompletenessIndicator score={candidate.profile_completeness || 0} size="sm" />
                   {candidate.current_title && (
                     <span className="text-sm text-muted-foreground truncate max-w-[150px]">
                       {candidate.current_title}

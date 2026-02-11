@@ -1113,3 +1113,9 @@ verify_jwt = true
 [functions.enrich-candidate-profile]
 verify_jwt = true
 
+[functions.auto-tag-candidate]
+verify_jwt = true
+
+[functions.generate-candidate-embedding]
+verify_jwt = true
+
