@@ -348,9 +348,9 @@ export const AdminAchievementsManager = () => {
       setShowCreateDialog(false);
       resetCreateForm();
       loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating achievement:', error);
-      toast({ title: "Error creating achievement", description: error.message, variant: "destructive" });
+      toast({ title: "Error creating achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -380,8 +380,8 @@ export const AdminAchievementsManager = () => {
       setEditCompanyDialogOpen(false);
       setSelectedCompanyAchievement(null);
       loadCompanyAchievements();
-    } catch (error: any) {
-      toast({ title: "Error updating achievement", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Error updating achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
     }
   };
 
@@ -405,8 +405,8 @@ export const AdminAchievementsManager = () => {
       setEditQuantumDialogOpen(false);
       setSelectedQuantumAchievement(null);
       loadQuantumAchievements();
-    } catch (error: any) {
-      toast({ title: "Error updating achievement", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Error updating achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
     }
   };
 
@@ -427,8 +427,8 @@ export const AdminAchievementsManager = () => {
       setGrantDialogOpen(false);
       setGrantForm({ achievementId: "", userId: "", companyId: "" });
       loadData();
-    } catch (error: any) {
-      toast({ title: "Error granting achievement", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Error granting achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
     }
   };
 
@@ -447,8 +447,8 @@ export const AdminAchievementsManager = () => {
       setGrantQuantumDialogOpen(false);
       setGrantQuantumForm({ achievementId: "", userId: "" });
       loadData();
-    } catch (error: any) {
-      toast({ title: "Error granting achievement", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Error granting achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
     }
   };
 

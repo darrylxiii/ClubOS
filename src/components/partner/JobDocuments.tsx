@@ -137,9 +137,9 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       setJobDescriptionUrl(fileName);
       toast.success('Job description uploaded successfully');
       onUpdate?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading job description:', error);
-      toast.error(error.message || 'Failed to upload job description');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload job description');
     } finally {
       setUploadingJobDesc(false);
       if (jobDescInputRef.current) jobDescInputRef.current.value = '';
@@ -217,9 +217,9 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
         toast.success(`${newDocs.length} document(s) uploaded successfully`);
         onUpdate?.();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading supporting documents:', error);
-      toast.error(error.message || 'Failed to upload documents');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload documents');
     } finally {
       setUploadingFiles([]);
       if (supportingInputRef.current) supportingInputRef.current.value = '';

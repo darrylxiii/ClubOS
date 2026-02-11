@@ -117,9 +117,9 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
 
       setOpen(false);
       onTaskCreated?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating task:', error);
-      toast.error(error.message || 'Failed to create task');
+      toast.error(error instanceof Error ? error.message : 'Failed to create task');
     } finally {
       setLoading(false);
     }

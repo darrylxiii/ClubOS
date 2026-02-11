@@ -132,9 +132,9 @@ export function ManualInterviewEntryDialog({
       setDuration('60');
       setMeetingLink('');
       setNotes('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding interview:', error);
-      toast.error(error.message || 'Failed to add interview');
+      toast.error(error instanceof Error ? error.message : 'Failed to add interview');
     } finally {
       setIsSubmitting(false);
     }
