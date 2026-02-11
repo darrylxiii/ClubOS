@@ -1,167 +1,176 @@
 
 
-# Add Company/School Logos and LinkedIn-style Grouped Experience
+# Fix: Invalid Dates and Missing Profile Pictures
 
-## Overview
+## Root Cause Analysis
 
-Three visual improvements to the candidate profile's Experience and Education sections:
+### Issue 1: "Invalid Date" and "NaN yrs NaN mos" everywhere
 
-1. Company logos next to work experience entries
-2. Group consecutive roles at the same employer into a single "company stack" (like LinkedIn)
-3. Make Education full-width (same size as Experience) with school logos
+The database contains `start_date: [object Object]` for work history entries. This happens because:
+
+1. The LinkedIn API sometimes returns dates as objects (e.g., `{year: 2020, month: 3}`) rather than strings
+2. The scraper's `emptyToNull()` helper only handles strings and null -- when it receives a date object, it passes it through unchanged
+3. This object gets serialized to `"[object Object]"` when stored as JSONB text
+4. The UI's `normalizeDate()` receives `"[object Object]"` which produces `Invalid Date` from `new Date()`
+5. `calculateDuration()` then produces `NaN yrs NaN mos`
+
+The same issue affects education dates (`start_year`, `end_year` stored as objects).
+
+### Issue 2: Profile pictures not showing
+
+All checked candidates have `avatar_url = NULL`. The `downloadAndStoreAvatar` function in the scraper creates a Supabase client to upload, but the LinkedIn CDN likely rejects the server-side fetch (403/expired URLs). Additionally, apimaestro may not return a `profilePicture` field at all for some profiles.
 
 ---
 
-## Part 1: Capture Logo URLs During Scraping
+## Fix 1: Scraper Date Normalization (prevents future bad data)
 
-### File: `supabase/functions/linkedin-scraper/index.ts`
+**File:** `supabase/functions/linkedin-scraper/index.ts`
 
-The scrapers return company and school logo URLs that are currently discarded. Capture them into the normalized data:
+Replace `emptyToNull()` calls for date fields in the normalizer (lines 339-358) with a proper `normalizeDateField()` helper that handles all formats:
 
-**apimaestro mapper (line 187-200):** Add `companyLogo` field:
 ```text
-experience: rawExp.map((exp: any) => ({
-  title: exp.title || exp.role || exp.position || '',
-  company: exp.company || exp.companyName || exp.organization || '',
-  companyLogo: exp.companyLogo || exp.companyLogoUrl || exp.logo || exp.company_logo_url || '',
-  ...
-}))
+function normalizeDateField(val: unknown): string | null {
+  if (!val) return null;
+  if (typeof val === 'string') {
+    if (val.trim() === '' || val === '[object Object]') return null;
+    return val;
+  }
+  if (typeof val === 'number') return `${val}-01-01`;
+  if (typeof val === 'object' && val !== null) {
+    const obj = val as Record<string, any>;
+    if (obj.year) {
+      return `${obj.year}-${String(obj.month || 1).padStart(2, '0')}-01`;
+    }
+  }
+  return null;
+}
 ```
 
-**Proxycurl mapper (line 270-277):** Add `companyLogo`:
-```text
-experience: (data.experiences || []).map((exp: any) => ({
-  ...existing fields...
-  companyLogo: exp.logo_url || exp.company_linkedin_profile_url || '',
-}))
-```
+Then update the normalizer to use it:
 
-**Education mappers:** Add `schoolLogo`:
-```text
-education: rawEdu.map((edu: any) => ({
-  ...existing fields...
-  schoolLogo: edu.logo || edu.logoUrl || edu.school_logo || '',
-}))
-```
-
-**Normalizer (line 333-341):** Pass through the logo fields:
 ```text
 const normalizedWorkHistory = (profile.experience || []).map(exp => ({
-  ...existing fields...
+  title: emptyToNull(exp.title),
+  position: emptyToNull(exp.title),
+  company: emptyToNull(exp.company),
   company_logo: emptyToNull(exp.companyLogo),
-}));
+  location: emptyToNull(exp.location),
+  start_date: normalizeDateField(exp.startDate),  // was emptyToNull
+  end_date: normalizeDateField(exp.endDate),       // was emptyToNull
+  description: emptyToNull(exp.description),
+})).filter(e => e.title || e.company);
 
 const normalizedEducation = (profile.education || []).map(edu => ({
-  ...existing fields...
+  institution: emptyToNull(edu.school),
+  school: emptyToNull(edu.school),
   school_logo: emptyToNull(edu.schoolLogo),
-}));
+  degree: emptyToNull(edu.degree),
+  field_of_study: emptyToNull(edu.field),
+  start_year: normalizeDateField(edu.startYear),   // was emptyToNull
+  end_year: normalizeDateField(edu.endYear),        // was emptyToNull
+})).filter(e => e.institution || e.degree);
 ```
 
-### File: `supabase/functions/batch-linkedin-enrich/index.ts`
+## Fix 2: UI Date Normalization (handles existing bad data)
 
-Same logo field mapping applied to the batch enrichment response processing.
+**File:** `src/pages/UnifiedCandidateProfile.tsx`
 
----
-
-## Part 2: Map Logo Fields to UI
-
-### File: `src/pages/UnifiedCandidateProfile.tsx`
-
-Pass `company_logo` and `school_logo` through the mapped arrays:
+Harden the `normalizeDate` helper (line 86-92) to handle `"[object Object]"` strings and other edge cases:
 
 ```text
-const mappedExperiences = ((candidateData)?.work_history || []).map((job, idx) => ({
-  ...existing fields...
-  company_logo: job.company_logo || null,
-}));
-
-const mappedEducation = ((candidateData)?.education || []).map((edu, idx) => ({
-  ...existing fields...
-  school_logo: edu.school_logo || null,
-}));
+const normalizeDate = (d: any): string | undefined => {
+  if (!d) return undefined;
+  if (typeof d === 'number') return `${d}-01-01`;
+  if (typeof d === 'object' && d !== null && !(d instanceof String)) {
+    if (d.year) return `${d.year}-${String(d.month || 1).padStart(2, '0')}-01`;
+    return undefined;
+  }
+  if (typeof d === 'string') {
+    if (d.trim() === '' || d.includes('[object') || d === 'undefined' || d === 'null') return undefined;
+    // If it's just a year like "2020"
+    if (/^\d{4}$/.test(d)) return `${d}-01-01`;
+    // If it's year-month like "2020-03"
+    if (/^\d{4}-\d{1,2}$/.test(d)) return `${d}-01`;
+    return d;
+  }
+  return undefined;
+};
 ```
 
----
+**File:** `src/components/candidate-profile/ExperienceTimeline.tsx`
 
-## Part 3: Redesign ExperienceTimeline Component
-
-### File: `src/components/candidate-profile/ExperienceTimeline.tsx`
-
-Major visual overhaul with three changes:
-
-### 3a. Company Logo Display
-
-Add a logo/avatar next to each experience entry. Uses a fallback chain:
-1. Stored `company_logo` from scraper
-2. Google Favicon API: `https://www.google.com/s2/favicons?domain={company}.com&sz=64`
-3. Initial letter fallback (colored circle with first letter of company name)
-
-Same pattern for school logos in education.
-
-### 3b. LinkedIn-style Company Grouping
-
-Group consecutive experiences at the same company into a stacked view:
+Harden `formatDate` (line 84-86) and `calculateDuration` (line 72-82) to guard against invalid dates:
 
 ```text
-Before (flat list):
-  - Senior Engineer at Google
-  - Engineer at Google
-  - Junior Engineer at Google
-  - Developer at Meta
-
-After (grouped):
-  [Google logo]  Google -- 5 yrs 2 mos (total)
-    |-- Senior Engineer (2022-Present)
-    |-- Engineer (2020-2022)
-    |-- Junior Engineer (2018-2020)
-
-  [Meta logo]  Meta -- 2 yrs
-    |-- Developer (2016-2018)
-```
-
-Implementation: A `groupExperiencesByCompany` utility that:
-- Iterates through experiences in order
-- Groups consecutive entries with the same company name (case-insensitive)
-- Calculates total duration for the group
-- Single-entry companies render as before (no nesting)
-
-### 3c. Full-Width Education Section
-
-Remove the `grid grid-cols-1 lg:grid-cols-2` wrapper (line 167) that puts Education and Certifications side by side. Instead:
-
-- Education gets its own full-width Card (same width as Experience)
-- Each education entry gets a timeline layout matching the experience section
-- School logo displayed the same way as company logo
-- Certifications remain in a separate card below
-
----
-
-## Updated Interface
-
-```text
-interface Experience {
-  id: string;
-  title: string;
-  company: string;
-  company_logo?: string | null;  // NEW
-  location?: string;
-  start_date: string;
-  end_date?: string;
-  current: boolean;
-  description?: string;
-  skills?: string[];
+function formatDate(date: string): string {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-interface Education {
-  id: string;
-  degree: string;
-  institution: string;
-  field?: string;
-  school_logo?: string | null;  // NEW
-  start_date?: string;
-  end_date?: string;
+function calculateDuration(start: string, end?: string): string {
+  if (!start) return '';
+  const startDate = new Date(start);
+  if (isNaN(startDate.getTime())) return '';
+  const endDate = end ? new Date(end) : new Date();
+  if (isNaN(endDate.getTime())) return '';
+  const months = Math.max(0, Math.round(
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+  ));
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+
+  if (years === 0 && remainingMonths === 0) return 'Less than a month';
+  if (years === 0) return `${remainingMonths} mos`;
+  if (remainingMonths === 0) return `${years} yrs`;
+  return `${years} yrs ${remainingMonths} mos`;
 }
 ```
+
+Also guard the render calls to skip showing date/duration when empty:
+
+```text
+// In SingleRoleCard and grouped role rendering:
+{formatDate(exp.start_date) && (
+  <span>{formatDate(exp.start_date)} – {exp.current ? 'Present' : formatDate(exp.end_date!)}</span>
+)}
+{calculateDuration(exp.start_date, exp.end_date) && (
+  <>
+    <span>·</span>
+    <span>{calculateDuration(exp.start_date, exp.end_date)}</span>
+  </>
+)}
+```
+
+Same guards for education date display (line 279-281).
+
+## Fix 3: Avatar Display -- Re-sync and Fallback
+
+**File:** `supabase/functions/linkedin-scraper/index.ts`
+
+The `downloadAndStoreAvatar` function silently fails when LinkedIn CDN blocks the fetch. Two improvements:
+
+1. If download fails, keep the raw LinkedIn URL as `avatar_url` anyway (it may work temporarily and is better than nothing)
+2. Log more detail about why it failed
+
+This is already the current behavior (the scraper keeps the URL on failure), but the issue is apimaestro may not return any image URL at all. Add broader field mapping:
+
+```text
+imageUrl: data.profilePicture || data.profilePictureUrl || data.image 
+  || data.avatar || data.profile_pic_url || data.profileImage 
+  || data.profilePictureOriginal || data.profilePictures?.[0] || '',
+```
+
+**File:** `src/components/candidate-profile/CandidateHeroSection.tsx`
+
+The hero section already renders `candidate.avatar_url` in an Avatar with a fallback to initials (line 148-153). This works correctly -- the issue is simply that `avatar_url` is NULL in the database. The sync button (line 70) correctly saves `avatar_url` from the scraper response.
+
+No changes needed to the hero section display logic.
+
+**File:** `supabase/functions/batch-linkedin-enrich/index.ts`
+
+Ensure the batch enrichment also re-downloads avatars for candidates with NULL `avatar_url` (already implemented per the earlier plan). Verify the avatar update condition catches all cases.
 
 ---
 
@@ -169,68 +178,19 @@ interface Education {
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/linkedin-scraper/index.ts` | Capture `companyLogo` and `schoolLogo` from scraper responses; pass through normalizer |
-| `supabase/functions/batch-linkedin-enrich/index.ts` | Same logo field mapping |
-| `src/pages/UnifiedCandidateProfile.tsx` | Map `company_logo` and `school_logo` fields to component props |
-| `src/components/candidate-profile/ExperienceTimeline.tsx` | Add company/school logos, group experiences by company, make education full-width |
+| `supabase/functions/linkedin-scraper/index.ts` | Add `normalizeDateField()` helper; use it for all date fields in the normalizer; broaden image URL field mapping |
+| `src/pages/UnifiedCandidateProfile.tsx` | Harden `normalizeDate` to handle `"[object Object]"`, year-only strings, year-month strings |
+| `src/components/candidate-profile/ExperienceTimeline.tsx` | Guard `formatDate` and `calculateDuration` against invalid dates; conditional rendering to hide "Invalid Date" and "NaN" |
 
-No database migrations needed. Logo URLs are stored inside the existing `work_history` and `education` JSONB columns.
-
----
-
-## Logo Fallback Strategy
-
-Since LinkedIn CDN logo URLs also expire (same problem as profile pictures), the approach uses a multi-tier fallback:
-
-1. **Stored logo** from scraper (may expire)
-2. **Google Favicon API** as a reliable, permanent fallback: `https://www.google.com/s2/favicons?domain={companyDomain}&sz=64`. This works well for most established companies.
-3. **Initial letter** in a styled circle as the final fallback
-
-This avoids the complexity of downloading and storing hundreds of company/school logos while still providing a good visual experience. The Google Favicon API is free, fast, and doesn't expire.
+No database migrations needed. Existing bad data (`[object Object]`) will be handled gracefully by the UI fixes. Future scrapes will produce clean date strings.
 
 ---
 
-## Visual Result
+## What This Fixes
 
-The final layout for the Experience section:
-
-```text
-+--------------------------------------------------+
-| [Briefcase icon]  Work Experience                 |
-|--------------------------------------------------|
-|                                                  |
-| [G logo]  Google -- 5 yrs 2 mos                  |
-|   |                                              |
-|   +-- Senior Software Engineer                   |
-|   |   Jan 2022 - Present -- 3 yrs 1 mo           |
-|   |                                              |
-|   +-- Software Engineer                          |
-|   |   Mar 2020 - Dec 2021 -- 1 yr 10 mos         |
-|   |                                              |
-|   +-- Junior Engineer                            |
-|       Jun 2018 - Feb 2020 -- 1 yr 9 mos          |
-|                                                  |
-| [M logo]  Meta                                   |
-|   |                                              |
-|   +-- Frontend Developer                         |
-|       Jan 2016 - May 2018 -- 2 yrs 5 mos         |
-+--------------------------------------------------+
-
-+--------------------------------------------------+
-| [GraduationCap]  Education                        |
-|--------------------------------------------------|
-|                                                  |
-| [MIT logo]  Massachusetts Institute of Technology |
-|   |   M.S. Computer Science                      |
-|   |   2014 - 2016                                |
-|                                                  |
-| [Stanford logo]  Stanford University              |
-|       B.S. Computer Science                      |
-|       2010 - 2014                                |
-+--------------------------------------------------+
-
-+--------------------------------------------------+
-| [Award icon]  Certifications                      |
-|   ...                                            |
-+--------------------------------------------------+
-```
+1. All "Invalid Date" labels will disappear -- entries with bad dates show no date instead
+2. All "NaN yrs NaN mos" labels will disappear -- entries with bad dates show no duration
+3. Future LinkedIn scrapes will produce proper date strings (e.g., `"2020-03-01"`) instead of `[object Object]`
+4. Re-syncing a candidate via "Sync LinkedIn" will overwrite the bad dates with clean ones
+5. Avatar URLs will be captured more broadly from API responses
+6. Education dates (`start_year`, `end_year`) are also fixed at both scraper and UI level
