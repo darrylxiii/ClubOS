@@ -111,11 +111,11 @@ export const ErrorLogsTab = () => {
       
       setErrors(errorsWithProfiles);
       setFilteredErrors(errorsWithProfiles);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading error logs:', error);
       toast({
         title: 'Failed to load error logs',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
         variant: 'destructive',
       });
     } finally {
@@ -189,11 +189,11 @@ export const ErrorLogsTab = () => {
         title: resolved ? 'Marked as resolved' : 'Marked as unresolved',
       });
       loadErrors();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating error log:', error);
       toast({
         title: 'Failed to update',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
         variant: 'destructive',
       });
     }

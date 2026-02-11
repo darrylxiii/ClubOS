@@ -150,9 +150,10 @@ export const InviteSystem = () => {
       });
 
       loadInviteCodes();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error generating invite code:", error);
-      if (error.message?.includes("Maximum of 5")) {
+      const errMsg = error instanceof Error ? error.message : '';
+      if (errMsg.includes("Maximum of 5")) {
         toast.error("Invite limit reached", {
           description: "You can only have 5 active invite codes at a time.",
         });

@@ -123,9 +123,9 @@ export function TrackUploader() {
 
       toast.success('Audio downloaded from YouTube!');
       setUploadMode('file'); // Switch to file mode to show the downloaded track
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('YouTube download error:', error);
-      toast.error(error.message || 'Failed to download from YouTube');
+      toast.error(error instanceof Error ? error.message : 'Failed to download from YouTube');
     } finally {
       setLoading(false);
     }
@@ -237,8 +237,8 @@ export function TrackUploader() {
       
       queryClient.invalidateQueries({ queryKey: ['tracks'] });
       queryClient.invalidateQueries({ queryKey: ['playlists'] });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to upload track');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to upload track');
     } finally {
       setLoading(false);
     }

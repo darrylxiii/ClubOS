@@ -725,8 +725,9 @@ export function CandidateOnboardingSteps() {
         navigate("/pending-approval");
       }, 2000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[Onboarding] Account creation error:', error);
+      const err = error as { message?: string; code?: string; details?: string; hint?: string };
       
       try {
         await supabase.from('funnel_analytics').insert({
@@ -735,10 +736,10 @@ export function CandidateOnboardingSteps() {
           step_name: 'account_creation_error',
           action: 'error',
           error_details: {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint,
+            message: err.message,
+            code: err.code,
+            details: err.details,
+            hint: err.hint,
             step: 'handleSubmit',
             formData: {
               email: formData.email,
@@ -753,11 +754,11 @@ export function CandidateOnboardingSteps() {
 
       toast({ 
         title: t('candidate.messages.accountCreationFailed', 'Account creation failed'), 
-        description: error.message?.includes('already linked') 
+        description: err.message?.includes('already linked') 
           ? t('candidate.messages.emailAlreadyLinked', 'This email is already associated with another account. Please contact support@thequantumclub.com')
-          : error.message?.includes('link your profile')
+          : err.message?.includes('link your profile')
           ? t('candidate.messages.profileMergeFailed', "We found your profile but couldn't complete the merge. Please try again or contact support.")
-          : error.message || t('candidate.messages.unexpectedError', 'An unexpected error occurred. Please try again or contact support.'), 
+          : err.message || t('candidate.messages.unexpectedError', 'An unexpected error occurred. Please try again or contact support.'), 
         variant: "destructive" 
       });
     } finally {
@@ -818,7 +819,7 @@ export function CandidateOnboardingSteps() {
 
         toast({ title: t('candidate.messages.resumeUploaded', 'Resume uploaded successfully') });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
     }
   };
