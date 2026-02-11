@@ -62,7 +62,7 @@ export default function ImportHistory() {
       setImports((data || []).map(item => ({
         id: item.id,
         campaign_id: item.campaign_id,
-        campaign_name: (item.campaign as any)?.name,
+        campaign_name: (item.campaign as Record<string, any> | null)?.name,
         file_name: item.file_name || 'Unknown file',
         total_rows: item.total_rows || 0,
         imported_rows: item.imported_rows || 0,
@@ -71,7 +71,7 @@ export default function ImportHistory() {
         errors: item.errors,
         error_message: item.error_message,
         imported_by: item.imported_by,
-        imported_by_name: (item.importer as any)?.full_name,
+        imported_by_name: (item.importer as Record<string, any> | null)?.full_name,
         created_at: item.created_at,
         completed_at: item.completed_at,
       })));

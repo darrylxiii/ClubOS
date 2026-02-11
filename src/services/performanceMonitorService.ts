@@ -33,7 +33,7 @@ export const queueMetric = (metric: PerformanceMetric): void => {
   metricsBuffer.push({
     ...metric,
     user_agent: navigator.userAgent,
-    connection_type: (navigator as any).connection?.effectiveType || 'unknown',
+    connection_type: (navigator as unknown as { connection?: { effectiveType?: string } }).connection?.effectiveType || 'unknown',
   });
 
   // Check for SLA violations immediately
@@ -56,7 +56,7 @@ export const queueMetric = (metric: PerformanceMetric): void => {
  */
 const checkForViolation = (metric: PerformanceMetric): SLAViolation | null => {
   const thresholdKey = metric.metric_type.toUpperCase().replace(/-/g, '_');
-  const threshold = (PERFORMANCE_THRESHOLDS as any)[thresholdKey];
+  const threshold = (PERFORMANCE_THRESHOLDS as Record<string, { warning: number; critical: number }>)[thresholdKey];
   
   if (!threshold) return null;
 

@@ -126,7 +126,7 @@ export default function ProspectDetail() {
 
       if (error) throw error;
 
-      setProspect({ ...prospect, stage: newStage as any });
+      setProspect({ ...prospect, stage: newStage as typeof prospect.stage });
       toast.success(`Stage updated to ${newStage}`);
     } catch (error) {
       console.error('Error updating stage:', error);

@@ -132,7 +132,7 @@ function ProspectPipelineContent() {
 
   // Group prospects by stage
   const prospectsByStage = useMemo(() => {
-    const grouped: Record<ProspectStage, CRMProspect[]> = {} as any;
+    const grouped = {} as Record<ProspectStage, CRMProspect[]>;
     PROSPECT_STAGES.forEach(stage => {
       grouped[stage.value] = [];
     });

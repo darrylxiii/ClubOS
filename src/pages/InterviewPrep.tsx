@@ -73,10 +73,10 @@ export default function InterviewPrep() {
       const formatted = data?.map(app => ({
         id: app.id,
         job: {
-          title: (app.jobs as any)?.title || 'Unknown Position',
-          company: {
-            id: (app.jobs as any)?.companies?.id || '',
-            name: (app.jobs as any)?.companies?.name || 'Unknown Company'
+        title: (app.jobs as Record<string, any> | null)?.title || 'Unknown Position',
+        company: {
+            id: (app.jobs as Record<string, any> | null)?.companies?.id || '',
+            name: (app.jobs as Record<string, any> | null)?.companies?.name || 'Unknown Company'
           }
         }
       })) || [];

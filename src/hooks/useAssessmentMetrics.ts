@@ -16,7 +16,7 @@ export const useAssessmentMetrics = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_assessment_metrics');
       if (error) throw error;
-      return data as any as AssessmentMetrics;
+      return data as unknown as AssessmentMetrics;
     },
     refetchInterval: 60000,
   });

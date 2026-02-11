@@ -28,7 +28,7 @@ export function useNotificationTriggers() {
           table: 'messages',
         },
         async (payload) => {
-          const message = payload.new as any;
+          const message = payload.new as Record<string, any>;
           
           // Don't notify for own messages
           if (message.sender_id === user.id) return;
@@ -75,8 +75,8 @@ export function useNotificationTriggers() {
           filter: `user_id=eq.${user.id}`,
         },
         async (payload) => {
-          const oldApp = payload.old as any;
-          const newApp = payload.new as any;
+          const oldApp = payload.old as Record<string, any>;
+          const newApp = payload.new as Record<string, any>;
 
           // Only notify if status changed
           if (oldApp.status === newApp.status) return;
