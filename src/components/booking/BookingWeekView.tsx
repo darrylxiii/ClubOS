@@ -82,9 +82,9 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
       });
       
       setSlots(weekSlots);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading week slots:", error);
-      const errorMsg = error.message?.includes("timeout")
+      const errorMsg = (error instanceof Error && error.message?.includes("timeout"))
         ? "Request timed out. Please try again."
         : "Failed to load week view. Please refresh the page.";
       toast.error(errorMsg);

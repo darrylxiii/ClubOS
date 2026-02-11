@@ -40,7 +40,7 @@ export function ArchivedCandidatesView() {
 
       if (error) throw error;
       setArchived(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading archived candidates:', error);
       toast.error('Failed to load archived candidates');
     } finally {
@@ -89,9 +89,9 @@ export function ArchivedCandidatesView() {
 
       toast.success(`${candidateName} restored successfully`);
       loadArchived();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error restoring candidate:', error);
-      toast.error('Failed to restore candidate: ' + error.message);
+      toast.error('Failed to restore candidate: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setRestoring(null);
     }

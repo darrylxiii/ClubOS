@@ -111,9 +111,9 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
       const defaultType = userRole === 'partner' ? 'partner_shared' : 'tqc_internal';
       setNewNote({ type: defaultType as any, title: '', content: '', tags: [] });
       loadNotes();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving note:', error);
-      toast.error(error.message || 'Failed to save note');
+      toast.error(error instanceof Error ? error.message : 'Failed to save note');
     } finally {
       setSaving(false);
     }

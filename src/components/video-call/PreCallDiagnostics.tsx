@@ -87,9 +87,10 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
       stream.getTracks().forEach(track => track.stop());
 
       updateCheck(0, 'passed', `Camera: ${settings.width}x${settings.height}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const tip = getTroubleshootingTip(0, 'failed');
-      updateCheck(0, 'failed', error.name === 'NotAllowedError' ? 'Permission denied' : 'Camera unavailable');
+      const err = error as { name?: string };
+      updateCheck(0, 'failed', err.name === 'NotAllowedError' ? 'Permission denied' : 'Camera unavailable');
       setTroubleshooting(prev => ({ ...prev, 0: tip }));
     }
     setOverallProgress(25);
@@ -130,9 +131,10 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
       updateLevel();
 
       updateCheck(1, 'passed', 'Microphone active - say something!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       const tip = getTroubleshootingTip(1, 'failed');
-      updateCheck(1, 'failed', error.name === 'NotAllowedError' ? 'Permission denied' : 'Microphone unavailable');
+      const err = error as { name?: string };
+      updateCheck(1, 'failed', err.name === 'NotAllowedError' ? 'Permission denied' : 'Microphone unavailable');
       setTroubleshooting(prev => ({ ...prev, 1: tip }));
     }
     setOverallProgress(50);

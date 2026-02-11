@@ -102,9 +102,9 @@ export function DeleteCandidateDialog({
       onDeleted();
       onOpenChange(false);
       setReason('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error archiving candidate:', error);
-      toast.error('Failed to archive candidate: ' + error.message);
+      toast.error('Failed to archive candidate: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -149,9 +149,9 @@ export function DeleteCandidateDialog({
       onOpenChange(false);
       setReason('');
       setConfirmText('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting candidate:', error);
-      toast.error('Failed to delete candidate: ' + error.message);
+      toast.error('Failed to delete candidate: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setLoading(false);
     }

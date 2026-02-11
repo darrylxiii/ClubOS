@@ -220,10 +220,10 @@ export function AdminApplicationHub() {
 
       loadApplications();
       setDetailDrawerOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Approval failed:', error);
       toast.error('Failed to approve application', {
-        description: error.message
+        description: error instanceof Error ? error.message : undefined
       });
     }
   };
@@ -256,10 +256,10 @@ export function AdminApplicationHub() {
 
       loadApplications();
       setDetailDrawerOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Rejection failed:', error);
       toast.error('Failed to reject application', {
-        description: error.message
+        description: error instanceof Error ? error.message : undefined
       });
     }
   };

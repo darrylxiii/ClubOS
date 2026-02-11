@@ -110,7 +110,7 @@ export function PresetGallery() {
       });
 
       toast.success('Custom background uploaded');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading background:', error);
       toast.error('Failed to upload background');
     } finally {
