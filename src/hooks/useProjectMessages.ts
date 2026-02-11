@@ -11,8 +11,8 @@ export interface ProjectMessage {
   recipient_id: string;
   message: string;
   message_type: string;
-  attachments: any[];
-  metadata: Record<string, any>;
+  attachments: unknown[];
+  metadata: Record<string, unknown>;
   is_read: boolean;
   read_at: string | null;
   created_at: string;

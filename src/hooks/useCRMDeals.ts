@@ -154,7 +154,7 @@ export function useCRMDeals(options: UseDealsOptions = {}) {
   const updateDeal = async (dealId: string, updates: Partial<CRMDeal>) => {
     try {
       // Map deal updates back to prospect fields
-      const prospectUpdates: Record<string, any> = {};
+      const prospectUpdates: Record<string, unknown> = {};
       if (updates.value !== undefined) prospectUpdates.deal_value = updates.value;
       if (updates.probability !== undefined) prospectUpdates.close_probability = updates.probability;
       if (updates.expected_close_date !== undefined) prospectUpdates.expected_close_date = updates.expected_close_date;

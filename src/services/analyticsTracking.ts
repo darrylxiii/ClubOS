@@ -51,7 +51,7 @@ export async function trackPageView(userId: string, pagePath: string, category?:
 export async function trackJobSearch(
   userId: string,
   searchQuery: string,
-  filters: Record<string, any>,
+  filters: Record<string, unknown>,
   resultsCount: number
 ) {
   try {

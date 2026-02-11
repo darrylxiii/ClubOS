@@ -78,7 +78,7 @@ function addFooter(doc: JsPDFType) {
  * Export data to a branded PDF with tables
  */
 export async function exportTableToPDF(
-  data: Record<string, any>[],
+  data: Record<string, unknown>[],
   columns: { header: string; key: string }[],
   filename: string,
   options: PDFExportOptions
@@ -142,7 +142,7 @@ export async function exportReportToPDF(
   reportData: {
     sections: Array<{
       title: string;
-      content: string | Record<string, any>[];
+      content: string | Record<string, unknown>[];
       type: 'text' | 'table' | 'metrics';
     }>;
   },
@@ -227,7 +227,7 @@ export async function exportReportToPDF(
       
     } else if (section.type === 'table' && Array.isArray(section.content)) {
       // Table content
-      const tableData = section.content as Record<string, any>[];
+      const tableData = section.content as Record<string, unknown>[];
       if (tableData.length > 0) {
         const columns = Object.keys(tableData[0]).map(key => ({
           header: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '),
@@ -345,7 +345,7 @@ export async function exportMeetingToPDF(
 ) {
   const sections: Array<{
     title: string;
-    content: string | Record<string, any>[];
+    content: string | Record<string, unknown>[];
     type: 'text' | 'table' | 'metrics';
   }> = [
     {

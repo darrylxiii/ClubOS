@@ -28,19 +28,19 @@ export function useKPIAuditLog() {
     action: AuditAction,
     kpiName?: string,
     domain?: string,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, unknown> = {}
   ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.rpc('log_kpi_access', {
+      await supabase.rpc('log_kpi_access' as never, {
         p_user_id: user.id,
         p_action_type: action,
         p_kpi_name: kpiName || null,
         p_domain: domain || null,
-        p_metadata: metadata
-      });
+        p_metadata: metadata as unknown
+      } as never);
     } catch (error) {
       console.error('Failed to log KPI access:', error);
     }

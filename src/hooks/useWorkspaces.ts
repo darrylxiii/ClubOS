@@ -14,7 +14,7 @@ export interface Workspace {
   type: 'personal' | 'team' | 'company';
   company_id: string | null;
   created_by: string | null;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -131,7 +131,7 @@ export function useWorkspaces() {
     }) => {
       const { data, error } = await supabase
         .from('workspaces')
-        .update(params.updates)
+        .update(params.updates as Record<string, unknown>)
         .eq('id', params.id)
         .select()
         .single();
