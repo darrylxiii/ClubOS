@@ -100,9 +100,9 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
       setPreviewUrl(publicUrl);
       onAvatarChange(publicUrl);
       toast.success('Profile picture updated');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading avatar:', error);
-      toast.error(error.message || 'Failed to upload profile picture');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload profile picture');
     } finally {
       setUploading(false);
       if (selectedImage) {
@@ -137,7 +137,7 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
       setPreviewUrl(null);
       onAvatarChange('');
       toast.success('Profile picture removed');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error removing avatar:', error);
       toast.error('Failed to remove profile picture');
     } finally {

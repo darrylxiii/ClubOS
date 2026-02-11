@@ -55,7 +55,7 @@ export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted 
       if (optionsError) throw optionsError;
 
       setTimeOptions((optionsData as any) || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading poll:", error);
       toast.error("Failed to load meeting poll");
     } finally {
@@ -91,7 +91,7 @@ export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted 
       setHasVoted(true);
       loadPoll(); // Reload to see updated vote counts
       onVoteSubmitted?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error submitting votes:", error);
       toast.error("Failed to submit votes");
     } finally {

@@ -136,9 +136,9 @@ export const FeedbackButton = () => {
       if (rating <= 5) {
         console.log('Low rating alert:', { rating, page: location.pathname, user: user.email });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting feedback:', error);
-      notify.error('Failed to submit feedback', { description: error.message || 'Please try again later.' });
+      notify.error('Failed to submit feedback', { description: error instanceof Error ? error.message : 'Please try again later.' });
     } finally {
       setIsSubmitting(false);
     }

@@ -118,7 +118,7 @@ export function CalendarInterviewLinker({
       );
 
       setCalendarEvents(enrichedEvents);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to load calendar data:', error);
       toast.error('Failed to load calendar events');
     } finally {
@@ -274,7 +274,7 @@ export function CalendarInterviewLinker({
         toast.info('No new interviews detected');
       }
       await loadData(); // Reload data to show new detections
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Calendar scan failed:', error);
       toast.error('Failed to scan calendar');
     } finally {
@@ -347,7 +347,7 @@ export function CalendarInterviewLinker({
       setNotes("");
       await loadData();
       onInterviewLinked?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to link interview:', error);
       toast.error('Failed to link interview');
     } finally {
@@ -367,7 +367,7 @@ export function CalendarInterviewLinker({
       toast.success('Interview confirmed!');
       await loadData();
       onInterviewLinked?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to confirm interview:', error);
       toast.error('Failed to confirm interview');
     }
@@ -384,7 +384,7 @@ export function CalendarInterviewLinker({
 
       toast.success('Interview dismissed');
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to dismiss interview:', error);
       toast.error('Failed to dismiss interview');
     }

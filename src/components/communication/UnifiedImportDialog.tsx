@@ -125,8 +125,8 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
             setOpen(false);
             resetForm();
             toast.success('Communication imported successfully');
-        } catch (error: any) {
-            toast.error(`Import failed: ${error.message}`);
+        } catch (error: unknown) {
+            toast.error(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsSubmitting(false);
         }

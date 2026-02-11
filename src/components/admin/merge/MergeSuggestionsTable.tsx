@@ -57,9 +57,9 @@ export function MergeSuggestionsTable() {
       } else {
         throw new Error(result.error || 'Merge failed');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error approving merge:', error);
-      toast.error(error.message || 'Failed to approve merge');
+      toast.error(error instanceof Error ? error.message : 'Failed to approve merge');
     }
   };
 

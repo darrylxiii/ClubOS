@@ -62,7 +62,7 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
       if (error) throw error;
       toast.success("Availability settings saved");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving availability:", error);
       toast.error("Failed to save availability settings");
     } finally {

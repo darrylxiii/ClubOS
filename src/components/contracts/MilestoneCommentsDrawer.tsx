@@ -94,7 +94,7 @@ export function MilestoneCommentsDrawer({
         throw error;
       }
       setComments(data && Array.isArray(data) ? data as unknown as Comment[] : []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading comments:", error);
       toast.error("Failed to load comments");
     } finally {
@@ -122,7 +122,7 @@ export function MilestoneCommentsDrawer({
       setNewComment("");
       // Comments will be added via real-time subscription
       toast.success("Comment added");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error adding comment:", error);
       toast.error("Failed to add comment");
     } finally {

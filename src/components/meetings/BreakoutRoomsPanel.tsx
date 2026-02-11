@@ -138,8 +138,9 @@ export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: Br
 
       if (error) throw error;
       toast.success("Joined breakout room");
-    } catch (error: any) {
-      if (error.code === '23505') {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === '23505') {
         toast.info("You're already in this room");
       } else {
         toast.error("Failed to join room");

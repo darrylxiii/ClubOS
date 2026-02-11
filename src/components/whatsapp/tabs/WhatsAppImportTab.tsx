@@ -134,9 +134,9 @@ export function WhatsAppImportTab() {
       setParsing(false);
       setStep(4);
       toast.success('WhatsApp chat imported successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to import chat');
+      toast.error(error instanceof Error ? error.message : 'Failed to import chat');
       setParsing(false);
     } finally {
       setUploading(false);

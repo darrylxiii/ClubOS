@@ -54,7 +54,7 @@ export function CompanyEnrichment() {
         });
         toast.success("Company data enriched successfully");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Enrichment error:', error);
       toast.error("Failed to enrich company data");
     } finally {
