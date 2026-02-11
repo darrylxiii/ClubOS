@@ -48,9 +48,9 @@ export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistP
 
       toast.success("You've been added to the waitlist!");
       setSubmitted(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error joining waitlist:", error);
-      toast.error(error.message || "Failed to join waitlist");
+      toast.error(error instanceof Error ? error.message : "Failed to join waitlist");
     } finally {
       setLoading(false);
     }

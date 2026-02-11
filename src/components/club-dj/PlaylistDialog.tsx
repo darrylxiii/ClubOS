@@ -165,9 +165,9 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
       }
 
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Playlist save error:', error);
-      toast.error(error.message || 'Failed to save playlist');
+      toast.error(error instanceof Error ? error.message : 'Failed to save playlist');
     } finally {
       setLoading(false);
     }

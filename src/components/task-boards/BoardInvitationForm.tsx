@@ -84,9 +84,9 @@ export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
       setCurrentEmail('');
       setMessage('');
       setRole('editor');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to send invitations:', error);
-      if (error.message?.includes('duplicate')) {
+      if (error instanceof Error && error.message?.includes('duplicate')) {
         toast.error('Some emails already have pending invitations');
       } else {
         toast.error('Failed to send invitations');

@@ -48,13 +48,13 @@ export function AudioCallInterface({
 
       setLocalStream(stream);
       toast.success('Microphone access granted');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error accessing microphone:', error);
       setPermissionDenied(true);
-      
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      const err = error as { name?: string };
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         toast.error('Microphone access denied. Please allow permissions in your browser.');
-      } else if (error.name === 'NotFoundError') {
+      } else if (err.name === 'NotFoundError') {
         toast.error('No microphone found on your device.');
       } else {
         toast.error('Failed to access microphone. Please check your device.');

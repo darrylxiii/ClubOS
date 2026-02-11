@@ -20,9 +20,9 @@ export function SeedCRMDataButton({ onSuccess }: SeedCRMDataButtonProps) {
       
       toast.success(`Seeded ${data.data.prospects} prospects, ${data.data.campaigns} campaigns, and ${data.data.replies} replies`);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Seed error:', error);
-      toast.error(error.message || 'Failed to seed CRM data');
+      toast.error(error instanceof Error ? error.message : 'Failed to seed CRM data');
     } finally {
       setLoading(false);
     }

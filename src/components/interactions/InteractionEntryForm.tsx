@@ -162,9 +162,9 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
 
       toast.success('Interaction logged successfully');
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating interaction:', error);
-      toast.error(error.message || 'Failed to log interaction');
+      toast.error(error instanceof Error ? error.message : 'Failed to log interaction');
     } finally {
       setIsSubmitting(false);
     }

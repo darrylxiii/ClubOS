@@ -103,11 +103,11 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
           description: 'Latest company intelligence has been analyzed.',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error generating report:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to generate intelligence report',
+        description: error instanceof Error ? error.message : 'Failed to generate intelligence report',
         variant: 'destructive',
       });
     } finally {

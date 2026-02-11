@@ -168,8 +168,8 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
       }
 
       toast.success("Vote recorded");
-    } catch (error: any) {
-      if (error.code === '23505') {
+    } catch (error: unknown) {
+      if ((error as { code?: string }).code === '23505') {
         toast.info("You've already voted on this poll");
       } else {
         toast.error("Failed to vote");
