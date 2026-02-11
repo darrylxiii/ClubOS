@@ -21,8 +21,8 @@ import {
   Trash2,
   UserPlus
 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
+import { CompletenessIndicator } from "@/components/candidates/CompletenessIndicator";
 import { getActivityColor, getActivityLabel, ActivityThresholds } from "./ActivitySettingsDialog";
 import { DeleteCandidateDialog } from "./DeleteCandidateDialog";
 import { MatchScoreInline } from "@/components/partner/MatchScoreInline";
@@ -76,11 +76,7 @@ export function UnifiedCandidateCard({
     }
   };
 
-  const getCompletenessColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 50) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+
 
   return (
     <Card className="glass-card hover:shadow-glass-lg hover:-translate-y-1 transition-all duration-300 group">
@@ -272,14 +268,9 @@ export function UnifiedCandidateCard({
             )}
 
             {/* Completeness Score */}
-            <div className="space-y-1 mt-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Data Completeness</span>
-                <span className={`font-medium ${getCompletenessColor(candidate.profile_completeness || 0)}`}>
-                  {candidate.profile_completeness || 0}%
-                </span>
-              </div>
-              <Progress value={candidate.profile_completeness || 0} className="h-2" />
+            <div className="flex items-center gap-2 mt-3">
+              <CompletenessIndicator score={candidate.profile_completeness || 0} size="md" showLabel />
+              <span className="text-xs text-muted-foreground">Data Completeness</span>
             </div>
 
             {/* Quick Actions */}
