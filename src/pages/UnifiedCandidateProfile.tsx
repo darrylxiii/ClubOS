@@ -85,9 +85,17 @@ export default function UnifiedCandidateProfile() {
       // Map JSONB data from candidate_profiles into structured arrays
       const normalizeDate = (d: any): string | undefined => {
         if (!d) return undefined;
-        if (typeof d === 'string') return d;
         if (typeof d === 'number') return `${d}-01-01`;
-        if (d.year) return `${d.year}-${String(d.month || 1).padStart(2, '0')}-01`;
+        if (typeof d === 'object' && d !== null && !(d instanceof String)) {
+          if (d.year) return `${d.year}-${String(d.month || 1).padStart(2, '0')}-01`;
+          return undefined;
+        }
+        if (typeof d === 'string') {
+          if (d.trim() === '' || d.includes('[object') || d === 'undefined' || d === 'null') return undefined;
+          if (/^\d{4}$/.test(d)) return `${d}-01-01`;
+          if (/^\d{4}-\d{1,2}$/.test(d)) return `${d}-01`;
+          return d;
+        }
         return undefined;
       };
 
