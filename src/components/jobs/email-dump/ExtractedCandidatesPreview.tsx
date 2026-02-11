@@ -64,94 +64,103 @@ export function ExtractedCandidatesPreview({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      let importedCount = 0;
+      // Batch: resolve all candidate profile IDs in parallel
+      const profileResults = await Promise.allSettled(
+        toImport.map(async (candidate) => {
+          let candidateProfileId: string | null = null;
 
-      for (const candidate of toImport) {
-        // 1. Check for existing candidate_profile by email or linkedin
-        let candidateProfileId: string | null = null;
-
-        if (candidate.email) {
-          const { data: existing } = await supabase
-            .from("candidate_profiles")
-            .select("id")
-            .ilike("email", candidate.email)
-            .maybeSingle();
-          if (existing) candidateProfileId = existing.id;
-        }
-
-        if (!candidateProfileId && candidate.linkedin_url) {
-          const { data: existing } = await supabase
-            .from("candidate_profiles")
-            .select("id")
-            .ilike("linkedin_url", candidate.linkedin_url)
-            .maybeSingle();
-          if (existing) candidateProfileId = existing.id;
-        }
-
-        // 2. Create candidate_profile if not exists
-        if (!candidateProfileId) {
-          const { data: newProfile, error: profileErr } = await supabase
-            .from("candidate_profiles")
-            .insert({
-              full_name: candidate.full_name,
-              email: candidate.email || null,
-              phone: candidate.phone || null,
-              current_title: candidate.current_title || null,
-              current_company: candidate.current_company || null,
-              linkedin_url: candidate.linkedin_url || null,
-              source_channel: "email_dump",
-              created_by: user.id,
-              admin_notes: candidate.notes || null,
-            })
-            .select("id")
-            .single();
-
-          if (profileErr) {
-            console.error("Failed to create profile for", candidate.full_name, profileErr);
-            continue;
+          // Check existing by email
+          if (candidate.email) {
+            const { data: existing } = await supabase
+              .from("candidate_profiles")
+              .select("id")
+              .ilike("email", candidate.email)
+              .maybeSingle();
+            if (existing) candidateProfileId = existing.id;
           }
-          candidateProfileId = newProfile.id;
-        }
 
-        // 3. Check if application already exists for this job + candidate
-        const { data: existingApp } = await supabase
-          .from("applications")
-          .select("id")
-          .eq("job_id", jobId)
-          .eq("candidate_id", candidateProfileId)
-          .maybeSingle();
+          // Check existing by LinkedIn
+          if (!candidateProfileId && candidate.linkedin_url) {
+            const { data: existing } = await supabase
+              .from("candidate_profiles")
+              .select("id")
+              .ilike("linkedin_url", candidate.linkedin_url)
+              .maybeSingle();
+            if (existing) candidateProfileId = existing.id;
+          }
 
-        if (existingApp) {
-          // Already in pipeline, skip
-          continue;
-        }
+          // Create if not exists
+          if (!candidateProfileId) {
+            const { data: newProfile, error: profileErr } = await supabase
+              .from("candidate_profiles")
+              .insert({
+                full_name: candidate.full_name,
+                email: candidate.email || null,
+                phone: candidate.phone || null,
+                current_title: candidate.current_title || null,
+                current_company: candidate.current_company || null,
+                linkedin_url: candidate.linkedin_url || null,
+                source_channel: "email_dump",
+                created_by: user.id,
+                admin_notes: candidate.notes || null,
+              })
+              .select("id")
+              .single();
 
-        // 4. Create application
-        const { error: appErr } = await supabase.from("applications").insert({
-          job_id: jobId,
-          candidate_id: candidateProfileId,
-          candidate_full_name: candidate.full_name,
-          candidate_email: candidate.email || null,
-          candidate_linkedin_url: candidate.linkedin_url || null,
-          candidate_title: candidate.current_title || null,
-          candidate_company: candidate.current_company || null,
-          candidate_phone: candidate.phone || null,
-          application_source: "sourced" as any,
-          current_stage_index: 0,
-          status: "active",
-          position: jobTitle,
-          company_name: companyName,
-          sourced_by: user.id,
-          user_id: null,
-        });
+            if (profileErr) throw profileErr;
+            candidateProfileId = newProfile.id;
+          }
 
-        if (appErr) {
-          console.error("Failed to create application for", candidate.full_name, appErr);
-          continue;
-        }
+          return { candidate, candidateProfileId };
+        })
+      );
 
-        importedCount++;
-      }
+      // Filter successful profile resolutions
+      const resolved = profileResults
+        .filter((r): r is PromiseFulfilledResult<{ candidate: ExtractedCandidate; candidateProfileId: string }> =>
+          r.status === "fulfilled"
+        )
+        .map((r) => r.value);
+
+      // Batch: create applications in parallel
+      const appResults = await Promise.allSettled(
+        resolved.map(async ({ candidate, candidateProfileId }) => {
+          // Check if application already exists
+          const { data: existingApp } = await supabase
+            .from("applications")
+            .select("id")
+            .eq("job_id", jobId)
+            .eq("candidate_id", candidateProfileId)
+            .maybeSingle();
+
+          if (existingApp) return false; // skip duplicate
+
+          const { error: appErr } = await supabase.from("applications").insert({
+            job_id: jobId,
+            candidate_id: candidateProfileId,
+            candidate_full_name: candidate.full_name,
+            candidate_email: candidate.email || null,
+            candidate_linkedin_url: candidate.linkedin_url || null,
+            candidate_title: candidate.current_title || null,
+            candidate_company: candidate.current_company || null,
+            candidate_phone: candidate.phone || null,
+            application_source: "other",
+            current_stage_index: 0,
+            status: "active",
+            position: jobTitle,
+            company_name: companyName,
+            sourced_by: user.id,
+            user_id: null,
+          });
+
+          if (appErr) throw appErr;
+          return true;
+        })
+      );
+
+      const importedCount = appResults.filter(
+        (r) => r.status === "fulfilled" && r.value === true
+      ).length;
 
       // Update dump status
       if (dumpId) {

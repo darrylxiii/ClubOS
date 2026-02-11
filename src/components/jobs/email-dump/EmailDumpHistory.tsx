@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { History, FileText, User, CheckCircle, XCircle, Clock } from "lucide-react";
+import { History, FileText, CheckCircle, XCircle, Clock, RotateCw, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface EmailDump {
   id: string;
@@ -14,6 +16,7 @@ interface EmailDump {
   processed_at: string | null;
   created_by: string | null;
   extracted_candidates: any[];
+  job_id: string;
 }
 
 interface EmailDumpHistoryProps {
@@ -23,6 +26,7 @@ interface EmailDumpHistoryProps {
 export function EmailDumpHistory({ jobId }: EmailDumpHistoryProps) {
   const [dumps, setDumps] = useState<EmailDump[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reprocessingId, setReprocessingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDumps();
@@ -39,6 +43,25 @@ export function EmailDumpHistory({ jobId }: EmailDumpHistoryProps) {
       setDumps(data as any[]);
     }
     setLoading(false);
+  };
+
+  const handleReprocess = async (dump: EmailDump) => {
+    setReprocessingId(dump.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("parse-email-candidates", {
+        body: { raw_content: dump.raw_content, job_id: dump.job_id, dump_id: dump.id },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Re-processed: ${data?.count || 0} candidates extracted`);
+      await fetchDumps();
+    } catch (error: any) {
+      console.error("Reprocess error:", error);
+      toast.error(error.message || "Failed to re-process dump");
+    } finally {
+      setReprocessingId(null);
+    }
   };
 
   const statusConfig: Record<string, { icon: any; color: string; label: string }> = {
@@ -81,6 +104,8 @@ export function EmailDumpHistory({ jobId }: EmailDumpHistoryProps) {
           const status = statusConfig[dump.import_status] || statusConfig.pending;
           const StatusIcon = status.icon;
           const candidateCount = Array.isArray(dump.extracted_candidates) ? dump.extracted_candidates.length : 0;
+          const isReprocessing = reprocessingId === dump.id;
+          const canReprocess = dump.import_status === "failed" || dump.import_status === "pending";
 
           return (
             <div
@@ -106,6 +131,22 @@ export function EmailDumpHistory({ jobId }: EmailDumpHistoryProps) {
                   <StatusIcon className="h-3 w-3 mr-1" />
                   {status.label}
                 </Badge>
+                {canReprocess && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleReprocess(dump)}
+                    disabled={isReprocessing}
+                    className="h-7 px-2 gap-1 text-xs"
+                  >
+                    {isReprocessing ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <RotateCw className="h-3 w-3" />
+                    )}
+                    Re-process
+                  </Button>
+                )}
               </div>
             </div>
           );
