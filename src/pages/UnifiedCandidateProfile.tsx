@@ -82,18 +82,42 @@ export default function UnifiedCandidateProfile() {
         .eq('id', candidateId)
         .maybeSingle();
 
-      // Load additional data - cast to any to bypass strict types
-      const experienceQuery = await (supabase as any)
-        .from('experience')
-        .select('*')
-        .eq('user_id', candidateId)
-        .order('start_date', { ascending: false });
+      // Map JSONB data from candidate_profiles into structured arrays
+      const normalizeDate = (d: any): string | undefined => {
+        if (!d) return undefined;
+        if (typeof d === 'string') return d;
+        if (typeof d === 'number') return `${d}-01-01`;
+        if (d.year) return `${d.year}-${String(d.month || 1).padStart(2, '0')}-01`;
+        return undefined;
+      };
 
-      const educationQuery = await (supabase as any)
-        .from('education')
-        .select('*')
-        .eq('user_id', candidateId)
-        .order('start_date', { ascending: false });
+      const mappedExperiences = ((candidateData as any)?.work_history || []).map((job: any, idx: number) => ({
+        id: job.id || `work-${idx}`,
+        title: job.title || job.position || 'Untitled Role',
+        company: job.company || 'Unknown Company',
+        location: job.location || null,
+        start_date: normalizeDate(job.start_date) || '2000-01-01',
+        end_date: normalizeDate(job.end_date),
+        current: !job.end_date,
+        description: job.description || null,
+        skills: job.skills || [],
+      }));
+
+      const mappedEducation = ((candidateData as any)?.education || []).map((edu: any, idx: number) => ({
+        id: edu.id || `edu-${idx}`,
+        degree: edu.degree || edu.field_of_study || 'Degree',
+        institution: edu.institution || edu.school || 'Institution',
+        field: edu.field_of_study || edu.field || null,
+        start_date: normalizeDate(edu.start_date || edu.start_year) || '2000-01-01',
+        end_date: normalizeDate(edu.end_date || edu.end_year) || undefined,
+      }));
+
+      const mappedCertifications = ((candidateData as any)?.certifications || []).map((cert: any, idx: number) => ({
+        id: cert.id || `cert-${idx}`,
+        name: cert.name || 'Certification',
+        issuer: cert.issuer || cert.authority || 'Unknown',
+        issued_date: normalizeDate(cert.issue_date || cert.start_date),
+      }));
 
       const skillsQuery = await (supabase as any)
         .from('candidate_skills')
@@ -126,9 +150,9 @@ export default function UnifiedCandidateProfile() {
 
       setCandidate(mergedData);
       setProfile(profileData);
-      setExperiences(experienceQuery.data || []);
-      setEducation(educationQuery.data || []);
-      setCertifications([]);
+      setExperiences(mappedExperiences);
+      setEducation(mappedEducation);
+      setCertifications(mappedCertifications);
       setPortfolioItems(portfolioData || []);
       setSkills(skillsQuery.data || []);
       setApplication(applicationData);

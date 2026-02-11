@@ -54,8 +54,32 @@ export const ExperienceTimeline = ({ experiences, education, certifications }: P
     });
   };
 
+  const hasNoData = (!experiences || experiences.length === 0) && (!education || education.length === 0) && (!certifications || certifications.length === 0);
+
   return (
     <div className="space-y-6">
+      {/* Empty state for work experience */}
+      {(!experiences || experiences.length === 0) && (
+        <Card className={candidateProfileTokens.glass.card}>
+          <CardContent className="py-8 text-center">
+            <Briefcase className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+            <p className="text-sm font-medium text-muted-foreground">No work experience recorded</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Sync from LinkedIn or add manually</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty state for education */}
+      {(!education || education.length === 0) && (
+        <Card className={candidateProfileTokens.glass.card}>
+          <CardContent className="py-8 text-center">
+            <GraduationCap className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+            <p className="text-sm font-medium text-muted-foreground">No education recorded</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Sync from LinkedIn or add manually</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Work Experience */}
       {experiences && experiences.length > 0 && (
         <Card className={candidateProfileTokens.glass.card}>
