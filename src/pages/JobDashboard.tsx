@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2 } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2, Mail } from "lucide-react";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
@@ -60,6 +60,7 @@ import {
   JobPerformanceScorecard
 } from "@/components/job-dashboard";
 import { motion } from "framer-motion";
+import { EmailDumpTab } from "@/components/jobs/email-dump";
 import {
   DndContext,
   closestCenter,
@@ -914,7 +915,7 @@ export default function JobDashboard() {
 
         {/* Consolidated Tabs - Reduced from 8 to 3 */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Intelligence
             </TabsTrigger>
@@ -927,6 +928,12 @@ export default function JobDashboard() {
             <TabsTrigger value="analytics" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Analytics
             </TabsTrigger>
+            {(role === 'admin' || role === 'strategist') && (
+              <TabsTrigger value="email-dump" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+                <Mail className="h-4 w-4 mr-1 inline" />
+                Email Dump
+              </TabsTrigger>
+            )}
             <TabsTrigger value="rejected" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Rejected ({rejectedCount})
             </TabsTrigger>
@@ -1021,6 +1028,17 @@ export default function JobDashboard() {
           <TabsContent value="analytics" className="space-y-4 mt-6">
             <JobAnalytics jobId={job.id} />
           </TabsContent>
+
+          {(role === 'admin' || role === 'strategist') && (
+            <TabsContent value="email-dump" className="space-y-4 mt-6">
+              <EmailDumpTab
+                jobId={job.id}
+                jobTitle={job.title}
+                companyName={job.companies?.name || ''}
+                onCandidatesImported={fetchJobDetails}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="rejected" className="space-y-4 mt-6">
             <RejectedCandidatesTab

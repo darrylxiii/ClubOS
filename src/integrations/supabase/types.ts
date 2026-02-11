@@ -23291,6 +23291,71 @@ export type Database = {
           },
         ]
       }
+      job_email_dumps: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          extracted_candidates: Json | null
+          id: string
+          import_status: string
+          imported_count: number | null
+          job_id: string
+          processed_at: string | null
+          raw_content: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          extracted_candidates?: Json | null
+          id?: string
+          import_status?: string
+          imported_count?: number | null
+          job_id: string
+          processed_at?: string | null
+          raw_content: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          extracted_candidates?: Json | null
+          id?: string
+          import_status?: string
+          imported_count?: number | null
+          job_id?: string
+          processed_at?: string | null
+          raw_content?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_email_dumps_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "job_email_dumps_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_email_dumps_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_email_dumps_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_favorites: {
         Row: {
           created_at: string
