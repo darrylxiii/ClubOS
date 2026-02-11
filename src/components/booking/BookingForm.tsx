@@ -197,21 +197,22 @@ export function BookingForm({
       trackStep("confirmation"); // Phase 7: Track successful booking
       toast.success("Booking confirmed! Check your email for details.");
       onComplete(data.booking.id);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Booking error:", error);
 
       // Parse the actual error from edge function response
       let errorMsg = "Failed to create booking. Please try again.";
 
-      if (error.context?.body) {
+      const err = error as { context?: { body?: string }; message?: string };
+      if (err.context?.body) {
         try {
-          const errorBody = JSON.parse(error.context.body);
+          const errorBody = JSON.parse(err.context.body);
           errorMsg = errorBody.error || errorMsg;
         } catch {
           // Keep default message if parsing fails
         }
-      } else if (error.message) {
-        errorMsg = error.message;
+      } else if (err.message) {
+        errorMsg = err.message;
       }
 
       // Phase 5: Improved error messages

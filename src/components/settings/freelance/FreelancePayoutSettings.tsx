@@ -41,7 +41,7 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
       if (error) throw error;
       toast.success("Payout settings saved");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving payout settings:", error);
       toast.error("Failed to save payout settings");
     } finally {

@@ -28,7 +28,7 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
       if (error) throw error;
       setPrep(data.prepMaterial);
       toast.success("AI interview prep ready");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading prep:', error);
       toast.error("Failed to generate prep material");
     } finally {

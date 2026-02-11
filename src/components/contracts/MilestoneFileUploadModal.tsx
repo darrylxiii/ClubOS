@@ -116,9 +116,9 @@ export function MilestoneFileUploadModal({
       setUploadProgress(0);
       onOpenChange(false);
       onUploadComplete();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error uploading file:", error);
-      toast.error(error.message || "Failed to upload file");
+      toast.error(error instanceof Error ? error.message : "Failed to upload file");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

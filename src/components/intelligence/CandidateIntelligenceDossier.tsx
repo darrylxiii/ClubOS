@@ -26,7 +26,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
       if (error) throw error;
       setDossier(data.dossier);
       toast.success("Intelligence dossier generated");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading dossier:', error);
       toast.error("Failed to generate dossier");
     } finally {

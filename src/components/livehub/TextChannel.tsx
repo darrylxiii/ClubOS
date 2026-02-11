@@ -288,7 +288,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
       if (pollError) throw pollError;
 
       toast.success('Poll created');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating poll:', error);
       toast.error('Failed to create poll');
     }

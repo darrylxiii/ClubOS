@@ -121,7 +121,7 @@ export function MeetingDetailsPanel({
       setSearchOpen(false);
       setSearchQuery('');
       loadParticipants();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error inviting member:', error);
       toast.error('Failed to send invitation');
     } finally {

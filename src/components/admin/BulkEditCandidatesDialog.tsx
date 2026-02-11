@@ -133,9 +133,9 @@ export function BulkEditCandidatesDialog({
       setSelectedField('');
       setNewValue('');
       setReason('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Bulk edit error:', error);
-      toast.error('Bulk edit failed: ' + error.message);
+      toast.error('Bulk edit failed: ' + (error instanceof Error ? error.message : 'An unexpected error occurred'));
     } finally {
       setLoading(false);
     }

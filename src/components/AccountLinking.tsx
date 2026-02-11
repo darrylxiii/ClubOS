@@ -53,9 +53,9 @@ export const AccountLinking = () => {
       });
       if (error) throw error;
       toast.success("Redirecting to Google...");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error linking Google:", error);
-      toast.error(error.message || "Failed to link Google account");
+      toast.error(error instanceof Error ? error.message : "Failed to link Google account");
     }
   };
 
@@ -71,9 +71,9 @@ export const AccountLinking = () => {
       
       toast.success(`${provider} account disconnected`);
       await loadIdentities();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error unlinking identity:", error);
-      toast.error(error.message || "Failed to disconnect account");
+      toast.error(error instanceof Error ? error.message : "Failed to disconnect account");
     }
   };
 
@@ -101,9 +101,9 @@ export const AccountLinking = () => {
       setNewPassword("");
       setConfirmPassword("");
       await loadIdentities();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error setting password:", error);
-      toast.error(error.message || "Failed to set password");
+      toast.error(error instanceof Error ? error.message : "Failed to set password");
     } finally {
       setIsSettingPassword(false);
     }
