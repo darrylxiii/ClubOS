@@ -114,7 +114,7 @@ export const MessagesPreviewWidget = () => {
 
   if (loading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -126,7 +126,7 @@ export const MessagesPreviewWidget = () => {
   }
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className="glass-subtle rounded-2xl overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <MessageSquare className="h-5 w-5 text-primary" />

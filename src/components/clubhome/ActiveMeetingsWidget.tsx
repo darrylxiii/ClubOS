@@ -76,7 +76,7 @@ export const ActiveMeetingsWidget = () => {
 
   if (loading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -88,7 +88,7 @@ export const ActiveMeetingsWidget = () => {
   }
 
   return (
-    <Card className="glass-card">
+    <Card className="glass-subtle rounded-2xl">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Video className="h-5 w-5 text-primary" />

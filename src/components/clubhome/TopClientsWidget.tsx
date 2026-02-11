@@ -58,7 +58,7 @@ export const TopClientsWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card h-full flex flex-col">
+      <Card className="glass-subtle rounded-2xl h-full flex flex-col">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -73,7 +73,7 @@ export const TopClientsWidget = () => {
 
   if (!hasData) {
     return (
-      <Card className="glass-card h-full flex flex-col">
+      <Card className="glass-subtle rounded-2xl h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Building2 className="h-4 w-4 text-primary" />
@@ -103,7 +103,7 @@ export const TopClientsWidget = () => {
       transition={{ duration: 0.3 }}
       className="h-full"
     >
-      <Card className="glass-card h-full flex flex-col">
+      <Card className="glass-subtle rounded-2xl h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">

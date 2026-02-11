@@ -80,7 +80,7 @@ export const AuditLogSummaryWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Shield className="h-4 w-4 text-primary" />
@@ -115,7 +115,7 @@ export const AuditLogSummaryWidget = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.4 }}
     >
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base">

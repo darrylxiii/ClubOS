@@ -84,7 +84,7 @@ export const AchievementsPreviewWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-48" />
@@ -104,7 +104,7 @@ export const AchievementsPreviewWidget = () => {
   const progressToNext = data ? (data.totalCount / data.nextMilestone) * 100 : 0;
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className="glass-subtle rounded-2xl overflow-hidden">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />

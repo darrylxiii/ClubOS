@@ -9,7 +9,7 @@ export function RecentActivityFeed() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
@@ -37,7 +37,7 @@ export function RecentActivityFeed() {
 
   if (!activities || activities.length === 0) {
     return (
-      <Card>
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
@@ -55,7 +55,7 @@ export function RecentActivityFeed() {
   }
 
   return (
-    <Card>
+    <Card className="glass-subtle rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Activity className="h-5 w-5" />

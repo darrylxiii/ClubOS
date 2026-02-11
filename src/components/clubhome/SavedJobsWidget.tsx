@@ -115,7 +115,7 @@ export function SavedJobsWidget() {
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Bookmark className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -133,7 +133,7 @@ export function SavedJobsWidget() {
 
   if (!savedJobs?.length) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Bookmark className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -161,7 +161,7 @@ export function SavedJobsWidget() {
   }
 
   return (
-    <Card className="glass-card" role="region" aria-label="Saved jobs">
+    <Card className="glass-subtle rounded-2xl" role="region" aria-label="Saved jobs">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">

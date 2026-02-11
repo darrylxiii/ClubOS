@@ -13,7 +13,7 @@ export const PipelineVelocityWidget = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-card h-full">
+      <Card className="glass-subtle rounded-2xl h-full">
         <CardHeader className="pb-2">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -36,7 +36,7 @@ export const PipelineVelocityWidget = () => {
       transition={{ duration: 0.3 }}
       className="h-full"
     >
-      <Card className="glass-card h-full flex flex-col">
+      <Card className="glass-subtle rounded-2xl h-full flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">

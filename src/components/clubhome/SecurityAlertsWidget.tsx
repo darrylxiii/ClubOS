@@ -109,7 +109,7 @@ export const SecurityAlertsWidget = () => {
 
   if (loading) {
     return (
-      <Card className="glass-card">
+      <Card className="glass-subtle rounded-2xl">
         <CardHeader>
           <Skeleton className="h-5 w-36" />
           <Skeleton className="h-4 w-52" />
@@ -125,7 +125,7 @@ export const SecurityAlertsWidget = () => {
   const StatusIcon = overallStatus.icon;
 
   return (
-    <Card className="glass-card overflow-hidden">
+    <Card className="glass-subtle rounded-2xl overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="flex items-center gap-2">
