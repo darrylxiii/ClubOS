@@ -1,5 +1,54 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
+async function downloadAndStoreAvatar(
+  imageUrl: string,
+  linkedinUrl: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(imageUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+    });
+    if (!response.ok) return null;
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const ext = contentType.includes('png') ? 'png'
+              : contentType.includes('webp') ? 'webp' : 'jpg';
+
+    const arrayBuffer = await response.arrayBuffer();
+    if (arrayBuffer.byteLength < 1000) return null; // Skip placeholder images
+
+    const encoder = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(linkedinUrl));
+    const hashHex = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+      .substring(0, 12);
+    const filePath = `linkedin/${hashHex}.${ext}`;
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const storageClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { error } = await storageClient.storage
+      .from('avatars')
+      .upload(filePath, arrayBuffer, { contentType, upsert: true });
+
+    if (error) {
+      console.warn('[linkedin-scraper] Avatar upload failed:', error.message);
+      return null;
+    }
+
+    const { data: urlData } = storageClient.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return urlData?.publicUrl || null;
+  } catch (err) {
+    console.warn('[linkedin-scraper] Avatar download failed:', err);
+    return null;
+  }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
@@ -347,6 +396,18 @@ Deno.serve(async (req) => {
       linkedin_profile_data: linkedinProfileData,
       ai_summary: generateAiSummary(profile, normalizedPosts),
     };
+
+    // Download and persist avatar to storage if available
+    if (candidateData.avatar_url) {
+      const permanentUrl = await downloadAndStoreAvatar(
+        candidateData.avatar_url,
+        linkedinUrl,
+      );
+      if (permanentUrl) {
+        candidateData.avatar_url = permanentUrl;
+        console.log('[linkedin-scraper] Avatar persisted to storage:', permanentUrl);
+      }
+    }
 
     console.log('[linkedin-scraper] Final output — work_history:', normalizedWorkHistory.length, '| education:', normalizedEducation.length, '| skills:', candidateData.skills.length, '| api:', apiUsed);
 
