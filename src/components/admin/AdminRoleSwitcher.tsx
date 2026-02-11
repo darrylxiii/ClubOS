@@ -61,10 +61,10 @@ export const AdminRoleSwitcher = () => {
       toast.success(`Switched to ${roleOptions[newRole as UserRole]?.label || newRole} view`, {
         description: "Your dashboard has been updated"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[AdminRoleSwitcher] Role switch error:', error);
       toast.error("Failed to switch roles", {
-        description: error?.message || "Please try again or contact support if the issue persists"
+        description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists"
       });
     }
   };

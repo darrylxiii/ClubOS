@@ -398,17 +398,18 @@ export function EnhancedCandidateActionDialog({
       onComplete();
       onOpenChange(false);
       resetForm();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string; details?: string; hint?: string; code?: string };
       console.error('[Pipeline] Error submitting feedback:', {
         error,
-        message: error?.message,
-        details: error?.details,
-        hint: error?.hint,
-        code: error?.code
+        message: err?.message,
+        details: err?.details,
+        hint: err?.hint,
+        code: err?.code
       });
       
       // Only show error if we haven't already shown one
-      if (!error?.message?.includes('Failed to')) {
+      if (!err?.message?.includes('Failed to')) {
         toast.error(
           actionType === 'advance'
             ? "Failed to advance candidate. Please check permissions and try again."

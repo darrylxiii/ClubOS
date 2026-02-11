@@ -157,8 +157,9 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
       }
 
       loadQuestions();
-    } catch (error: any) {
-      if (error.code !== '23505') {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code !== '23505') {
         toast.error("Failed to upvote");
       }
     }

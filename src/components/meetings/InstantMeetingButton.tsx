@@ -108,10 +108,10 @@ export function InstantMeetingButton({
           navigate(`/meetings/${data.meeting.meeting_code}`);
         }, 500);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating meeting:', error);
       toast.error('Failed to create meeting', {
-        description: error.message,
+        description: error instanceof Error ? error.message : undefined,
       });
     } finally {
       setLoading(false);

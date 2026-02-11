@@ -59,7 +59,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
       });
       setLogoPreview(data.logo_url || "");
       setCoverPreview(data.cover_image_url || "");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading company:", error);
       toast.error("Failed to load company data");
     }
@@ -185,9 +185,9 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
       toast.success("Company updated successfully");
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating company:", error);
-      toast.error(error.message || "Failed to update company");
+      toast.error(error instanceof Error ? error.message : "Failed to update company");
     } finally {
       setLoading(false);
       setUploading(false);

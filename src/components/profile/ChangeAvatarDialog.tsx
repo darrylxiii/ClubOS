@@ -87,7 +87,7 @@ export function ChangeAvatarDialog({
       setAvatarUrl(cacheBustedUrl);
       toast.success('Profile picture updated');
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating avatar:', error);
       toast.error('Failed to update profile picture');
     } finally {

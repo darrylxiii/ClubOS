@@ -103,9 +103,9 @@ export function RescheduleMeetingDialog({
       setSelectedTime("");
       onOpenChange(false);
       onRescheduled();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error rescheduling meeting:", error);
-      toast.error(error.message || "Failed to reschedule meeting");
+      toast.error(error instanceof Error ? error.message : "Failed to reschedule meeting");
     } finally {
       setIsSubmitting(false);
     }
