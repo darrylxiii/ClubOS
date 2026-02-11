@@ -47,30 +47,37 @@ export const CandidateQuickActions = ({
 
       if (error) throw error;
 
-      if (data?.candidateData) {
-        // Update candidate profile with scraped data
+      if (data?.success && data?.data) {
+        const d = data.data;
+        const updates: Record<string, unknown> = {};
+
+        if (d.full_name) updates.full_name = d.full_name;
+        if (d.current_title) updates.current_title = d.current_title;
+        if (d.current_company) updates.current_company = d.current_company;
+        if (d.avatar_url) updates.avatar_url = d.avatar_url;
+        if (d.location) updates.location = d.location;
+        if (d.years_of_experience) updates.years_of_experience = d.years_of_experience;
+        if (d.work_history?.length) updates.work_history = d.work_history;
+        if (d.education?.length) updates.education = d.education;
+        if (d.skills?.length) updates.skills = d.skills;
+        if (d.ai_summary) updates.ai_summary = d.ai_summary;
+        if (d.linkedin_profile_data) updates.linkedin_profile_data = d.linkedin_profile_data;
+        updates.linkedin_url = linkedinUrl;
+        updates.enrichment_last_run = new Date().toISOString();
+
         const { error: updateError } = await supabase
           .from("candidate_profiles")
-          .update({
-            full_name: data.candidateData.full_name || undefined,
-            current_title: data.candidateData.current_title || undefined,
-            current_company: data.candidateData.current_company || undefined,
-            linkedin_url: linkedinUrl,
-            avatar_url: data.candidateData.avatar_url || undefined,
-            years_of_experience: data.candidateData.years_of_experience || undefined,
-            skills: data.candidateData.skills || undefined,
-            work_history: data.candidateData.work_history || undefined,
-            education: data.candidateData.education || undefined,
-            ai_summary: data.candidateData.ai_summary || undefined,
-          })
+          .update(updates)
           .eq("id", candidateId);
 
         if (updateError) throw updateError;
 
-        toast.success("LinkedIn profile imported successfully!");
+        toast.success("LinkedIn profile imported successfully.");
         setLinkedinDialogOpen(false);
         setLinkedinUrl("");
         onRefresh();
+      } else {
+        throw new Error(data?.error || "Scraper returned no data");
       }
     } catch (error) {
       console.error("Error scraping LinkedIn:", error);
