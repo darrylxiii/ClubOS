@@ -83,7 +83,7 @@ export default function SupportTicketNew() {
       });
 
       navigate(`/support/tickets/${data.ticket.id}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating ticket:', error);
       toast({
         title: "Error",

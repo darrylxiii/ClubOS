@@ -110,7 +110,7 @@ export default function GuestBookingPage() {
       } else {
         setBooking(bookingData as BookingDetails);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading booking:", error);
       toast.error("Could not find this booking");
     } finally {
@@ -145,9 +145,9 @@ export default function GuestBookingPage() {
       toast.success("Booking cancelled successfully");
       setShowCancel(false);
       loadBooking();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Cancel error:", error);
-      toast.error(error.message || "Failed to cancel booking");
+      toast.error(error instanceof Error ? error.message : "Failed to cancel booking");
     } finally {
       setActionLoading(false);
     }

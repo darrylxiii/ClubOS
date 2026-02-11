@@ -54,9 +54,9 @@ export default function ResetPasswordNew() {
         toast.success("Password changed successfully!");
         setTimeout(() => navigate('/auth'), 2000);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password reset error:', error);
-      toast.error(error.message || "Failed to reset password");
+      toast.error(error instanceof Error ? error.message : "Failed to reset password");
     } finally {
       setIsLoading(false);
     }

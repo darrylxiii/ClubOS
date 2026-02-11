@@ -87,8 +87,8 @@ export default function ModuleManagement() {
       notify.success("Module deleted", { description: "The module has been removed successfully" });
 
       loadData();
-    } catch (error: any) {
-      notify.error("Error deleting module", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error deleting module", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -115,8 +115,8 @@ export default function ModuleManagement() {
 
       await Promise.all(promises);
 
-    } catch (error: any) {
-      notify.error("Error reordering modules", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error reordering modules", { description: error instanceof Error ? error.message : 'Unknown error' });
       // Revert to original order (reload data)
       loadData();
     }

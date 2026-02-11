@@ -284,7 +284,7 @@ const Settings = () => {
           appleMusicPlaylists: (data as any).apple_music_playlists || [],
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading profile:', error);
       toast.error('Failed to load profile');
     } finally {
@@ -360,7 +360,7 @@ const Settings = () => {
       if (error) throw error;
 
       toast.success('Settings saved successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving profile:', error);
       toast.error('Failed to save settings');
     } finally {
@@ -388,7 +388,7 @@ const Settings = () => {
       if (error) throw error;
 
       toast.success("Data export requested. You'll receive an email when ready.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error requesting export:', error);
       toast.error('Failed to request data export');
     }
