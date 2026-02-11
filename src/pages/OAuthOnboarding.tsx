@@ -44,7 +44,6 @@ export default function OAuthOnboarding() {
   const {
     sendOTP,
     verifyOTP,
-    resetVerification,
     otpSent,
     isVerifying,
     isSendingOtp,
@@ -77,7 +76,7 @@ export default function OAuthOnboarding() {
           console.log('[OAuthOnboarding] Onboarding already completed, redirecting');
           // Redirect based on account status
           if (data.account_status === 'approved') {
-            navigate('/home', { replace: true });
+            navigate('/club-home', { replace: true });
           } else {
             navigate('/pending-approval', { replace: true });
           }
@@ -576,38 +575,22 @@ export default function OAuthOnboarding() {
                     )}
                   </Button>
 
-                  <div className="flex gap-2">
-                    {resendCooldown > 0 ? (
-                      <p className="text-xs text-center text-muted-foreground flex-1 py-2">
-                        Resend code in {resendCooldown}s
-                      </p>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => sendOTP(phoneNumber)}
-                        disabled={isSendingOtp}
-                        className="flex-1"
-                      >
-                        Resend Code
-                      </Button>
-                    )}
+                  {resendCooldown > 0 ? (
+                    <p className="text-xs text-center text-muted-foreground">
+                      Resend code in {resendCooldown}s
+                    </p>
+                  ) : (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        resetVerification();
-                        setVerificationCode("");
-                        setPhoneVerified(false);
-                        setPhoneNumber("");
-                      }}
-                      className="flex-1"
+                      onClick={() => sendOTP(phoneNumber)}
+                      disabled={isSendingOtp}
+                      className="w-full"
                     >
-                      Change Number
+                      Resend Code
                     </Button>
-                  </div>
+                  )}
                 </div>
               )}
 

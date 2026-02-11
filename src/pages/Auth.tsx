@@ -2,7 +2,6 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +13,15 @@ import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
-
+import { useTheme } from "next-themes";
 import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
+
+// Lazy load heavy components to reduce initial bundle
+const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
+  default: m.OAuthDiagnostics
+})));
 
 // Inline Google icon SVG to avoid react-icons bundle size
 const GoogleIcon = () => <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
@@ -36,6 +40,9 @@ const Auth = () => {
     loading,
     session
   } = useAuth();
+  const {
+    resolvedTheme
+  } = useTheme();
   const {
     t
   } = useTranslation('auth');
@@ -61,28 +68,116 @@ const Auth = () => {
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
-  const [resendingEmail, setResendingEmail] = useState(false);
+  const [oauthProcessing, setOauthProcessing] = useState(false);
   const {
     checkLockout,
     recordAttempt
   } = useLoginLockout();
   const navigate = useNavigate();
 
-  // Managed OAuth handles callbacks automatically via @lovable.dev/cloud-auth-js
-  // No manual polling loop needed
+  // OAuth callback handler - exchanges code for session BEFORE cleaning URL
+  // Also handles pre-linking for pre-provisioned partners
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const error = params.get('error');
-    const errorDescription = params.get('error_description');
-    if (error) {
-      logger.error('OAuth error', new Error(errorDescription || error), {
-        componentName: 'Auth',
-        error
-      });
-      toast.error(`Sign in failed: ${errorDescription || error}`);
-      localStorage.removeItem('pending_invite_code');
-      window.history.replaceState({}, '', '/auth');
-    }
+    const handleOAuthCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error');
+      const errorDescription = params.get('error_description');
+      const code = params.get('code');
+
+      // Handle OAuth errors first
+      if (error) {
+        logger.error('OAuth error', new Error(errorDescription || error), {
+          componentName: 'Auth',
+          error
+        });
+        toast.error(`Sign in failed: ${errorDescription || error}`);
+        localStorage.removeItem('pending_invite_code');
+        window.history.replaceState({}, '', '/auth');
+        return;
+      }
+
+      // If we have a code parameter, this is an OAuth callback that needs processing
+      if (code) {
+        logger.debug('OAuth callback detected with code', {
+          componentName: 'Auth'
+        });
+        setOauthProcessing(true);
+        try {
+          // Let Supabase's detectSessionInUrl handle the exchange automatically
+          // Just wait for the session to be established
+          let attempts = 0;
+          const maxAttempts = 20; // 10 seconds max wait
+
+          while (attempts < maxAttempts) {
+            const {
+              data: {
+                session: currentSession
+              }
+            } = await supabase.auth.getSession();
+            if (currentSession?.user) {
+              logger.debug('OAuth session established successfully', {
+                componentName: 'Auth'
+              });
+
+              // Check if this is a pre-provisioned partner account that needs identity linking
+              try {
+                const userEmail = currentSession.user.email;
+                if (userEmail) {
+                  const {
+                    data: profile
+                  } = await supabase.from('profiles').select('id, preferred_auth_method').eq('email', userEmail).single();
+                  if (profile?.preferred_auth_method === 'oauth_only') {
+                    // Link Google identity for seamless OAuth login
+                    const googleIdentities = currentSession.user.identities?.filter(i => i.provider === 'google') || [];
+                    if (googleIdentities.length === 0) {
+                      logger.debug('Pre-provisioned partner: linking Google identity', {
+                        componentName: 'Auth'
+                      });
+                      // Identity should already be linked by Supabase auth system
+                      // Just confirm the preference is set
+                      await supabase.from('profiles').update({
+                        preferred_auth_method: 'oauth_only'
+                      }).eq('id', profile.id);
+                    }
+                  }
+                }
+              } catch (err) {
+                logger.warn('Failed to check pre-provisioning status', {
+                  componentName: 'Auth',
+                  err
+                });
+                // Continue anyway - this is non-critical
+              }
+
+              // Clean up URL only after session is confirmed
+              window.history.replaceState({}, '', '/auth');
+              setOauthProcessing(false);
+              return;
+            }
+
+            // Wait 500ms before checking again
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+          }
+
+          // If we get here, session wasn't established in time
+          logger.warn('OAuth session not established after waiting', {
+            componentName: 'Auth'
+          });
+          toast.error('Sign in timed out. Please try again.');
+          window.history.replaceState({}, '', '/auth');
+        } catch (err) {
+          logger.error('OAuth callback processing error', err instanceof Error ? err : new Error(String(err)), {
+            componentName: 'Auth'
+          });
+          toast.error('Sign in failed. Please try again.');
+          window.history.replaceState({}, '', '/auth');
+        } finally {
+          setOauthProcessing(false);
+        }
+      }
+    };
+    handleOAuthCallback();
   }, []);
   useEffect(() => {
     const pendingInvite = localStorage.getItem('pending_invite_code');
@@ -94,19 +189,48 @@ const Auth = () => {
       validateInviteCode(pendingInvite);
     }
   }, []);
-  // Centralized redirect: just go to /home, let ProtectedRoute handle onboarding/approval checks
   useEffect(() => {
-    if (!loading && user && session && !mfaRequired) {
-      // Honor saved redirect from workspace invites etc.
-      const savedRedirect = sessionStorage.getItem('postLoginRedirect');
-      if (savedRedirect) {
-        sessionStorage.removeItem('postLoginRedirect');
-        navigate(savedRedirect, { replace: true });
-      } else {
-        navigate("/home", { replace: true });
+    const checkOnboardingStatus = async () => {
+      // Don't navigate while OAuth is still processing
+      if (oauthProcessing) return;
+      if (!loading && user && session && !mfaRequired) {
+        try {
+          // Check if user has completed onboarding
+          const {
+            data: profile,
+            error
+          } = await supabase.from('profiles').select('onboarding_completed_at').eq('id', user.id).single();
+          if (error) {
+            logger.warn('Failed to fetch profile for onboarding check', {
+              componentName: 'Auth',
+              error
+            });
+            // Safe default: route to onboarding
+            navigate("/oauth-onboarding");
+            return;
+          }
+          if (!profile?.onboarding_completed_at) {
+            logger.debug('User needs to complete onboarding', {
+              componentName: 'Auth'
+            });
+            navigate("/oauth-onboarding");
+          } else {
+            logger.debug('User authenticated, navigating to /home', {
+              componentName: 'Auth'
+            });
+            navigate("/home");
+          }
+        } catch (err) {
+          logger.error('Error checking onboarding status', err instanceof Error ? err : new Error(String(err)), {
+            componentName: 'Auth'
+          });
+          // Safe default: route to onboarding
+          navigate("/oauth-onboarding");
+        }
       }
-    }
-  }, [loading, user, session, mfaRequired, navigate]);
+    };
+    checkOnboardingStatus();
+  }, [loading, user, session, mfaRequired, oauthProcessing, navigate]);
   useEffect(() => {
     if (inviteCode) {
       validateInviteCode(inviteCode);
@@ -263,11 +387,19 @@ const Auth = () => {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: {
-          access_type: 'offline',
-          prompt: 'consent'
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
+
+      // Let Supabase handle PKCE and state internally - don't override state
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         }
       });
       if (error) throw error;
@@ -282,8 +414,16 @@ const Auth = () => {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: window.location.origin,
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
+
+      // Let Supabase handle PKCE and state internally - don't override state
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: redirectUrl
+        }
       });
       if (error) throw error;
     } catch (error: any) {
@@ -292,8 +432,29 @@ const Auth = () => {
       }));
     }
   };
-  const handleLinkedInAuth = () => {
-    toast.info(t('oauth.comingSoon') || 'LinkedIn sign-in is coming soon.');
+  const handleLinkedInAuth = async () => {
+    try {
+      if (inviteCode) {
+        localStorage.setItem('pending_invite_code', inviteCode);
+      }
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
+
+      // Let Supabase handle PKCE and state internally - don't override state
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: redirectUrl,
+          scopes: 'openid profile email'
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || t('errors.failedToInitiate', {
+        provider: t('oauth.linkedin')
+      }));
+    }
   };
   const handleVerifyEmail = async () => {
     if (emailVerificationCode.length !== 6) {
@@ -355,7 +516,7 @@ const Auth = () => {
       setVerificationLoading(false);
     }
   };
-  if (loading) {
+  if (loading || oauthProcessing) {
     return <UnifiedLoader variant="page" showBranding />;
   }
   return <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -422,22 +583,6 @@ const Auth = () => {
               <RainbowButton onClick={handleVerifyEmail} disabled={emailVerificationCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
                 {verificationLoading ? t('verification.verifying') : t('verification.verify')}
               </RainbowButton>
-
-              <button type="button" onClick={async () => {
-                setResendingEmail(true);
-                try {
-                  await supabase.functions.invoke('send-email-verification', {
-                    body: { email }
-                  });
-                  toast.success(t('verification.codeSent') || 'Verification code resent');
-                } catch {
-                  toast.error(t('errors.generic') || 'Failed to resend code');
-                } finally {
-                  setResendingEmail(false);
-                }
-              }} disabled={resendingEmail} className="text-primary hover:text-primary/80 text-sm w-full text-center font-medium">
-                {resendingEmail ? (t('verification.resending') || 'Resending...') : (t('verification.resendCode') || 'Resend Code')}
-              </button>
 
               <button type="button" onClick={() => {
             setNeedsEmailVerification(false);
@@ -546,10 +691,7 @@ const Auth = () => {
         </CardContent>
       </Card>
 
-      {import.meta.env.DEV && <Suspense fallback={null}><LazyOAuthDiagnostics /></Suspense>}
+      {resolvedTheme === 'dark' && <OAuthDiagnostics />}
     </div>;
 };
-
-const LazyOAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
-
 export default Auth;
