@@ -403,8 +403,8 @@ const Auth = () => {
         }
       });
       if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || t('errors.failedToInitiate', {
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.google')
       }));
     }
@@ -426,8 +426,8 @@ const Auth = () => {
         }
       });
       if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || t('errors.failedToInitiate', {
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.apple')
       }));
     }
@@ -450,8 +450,8 @@ const Auth = () => {
         }
       });
       if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || t('errors.failedToInitiate', {
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.linkedin')
       }));
     }
@@ -478,8 +478,8 @@ const Auth = () => {
       setNeedsEmailVerification(false);
       setEmailVerificationCode("");
       setIsLogin(true);
-    } catch (error: any) {
-      toast.error(error.message || t('mfa.invalidCode'));
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('mfa.invalidCode'));
     } finally {
       setVerificationLoading(false);
     }
@@ -509,8 +509,8 @@ const Auth = () => {
         setMfaRequired(false);
         navigate("/home");
       }
-    } catch (error: any) {
-      toast.error(error.message || t('errors.invalid2FACode'));
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('errors.invalid2FACode'));
       setMfaCode("");
     } finally {
       setVerificationLoading(false);

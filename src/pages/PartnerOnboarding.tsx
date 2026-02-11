@@ -127,9 +127,9 @@ const PartnerOnboarding = () => {
 
       toast.success("Company profile created successfully!");
       navigate('/company-jobs');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating company:', error);
-      toast.error(error.message || "Failed to create company profile");
+      toast.error(error instanceof Error ? error.message : "Failed to create company profile");
     } finally {
       setLoading(false);
     }

@@ -85,11 +85,11 @@ export default function ProjectApplyPage() {
           description: "Review and edit the proposal before submitting",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error generating proposal:", error);
       toast({
         title: "Generation Failed",
-        description: error.message || "Failed to generate AI proposal",
+        description: error instanceof Error ? error.message : "Failed to generate AI proposal",
         variant: "destructive",
       });
     } finally {

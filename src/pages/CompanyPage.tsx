@@ -307,9 +307,9 @@ export default function CompanyPage() {
 
       toast.success("Cover image updated!");
       loadCompany();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error uploading cover:", error);
-      toast.error(error.message || "Failed to upload cover image");
+      toast.error(error instanceof Error ? error.message : "Failed to upload cover image");
     }
   };
 

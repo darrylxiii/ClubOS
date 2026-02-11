@@ -57,14 +57,14 @@ export default function ForgotPassword() {
       toast.success("If an account exists, you'll receive reset instructions", {
         description: "Check your email inbox and spam folder"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password reset error:', error);
-      
-      if (error.message?.includes('timeout')) {
+      const msg = error instanceof Error ? error.message : '';
+      if (msg.includes('timeout')) {
         toast.error("Request timed out. Please try again.");
-      } else if (error.message?.includes('rate limit')) {
+      } else if (msg.includes('rate limit')) {
         toast.error("Too many requests. Please try again in 15 minutes.");
-      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      } else if (msg.includes('network') || msg.includes('fetch')) {
         toast.error("Network error. Please check your connection and try again.");
       } else {
         toast.error("Something went wrong. Please try again.");

@@ -149,7 +149,7 @@ export default function BookingPage() {
       setProfile((data.host ?? null) as Profile | null);
       setHostTimezone((data.host?.work_timezone ?? null) as string | null);
       setHasGoogleCalendar(!!data.hasGoogleCalendar);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading booking link:", error);
       setLoadError(classifyError(error));
     } finally {
