@@ -154,7 +154,7 @@ export function MeetingAnalyticsDashboard() {
         invitationMethods,
         joinRate: Math.round(joinRate * 10) / 10,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading analytics:', error);
     } finally {
       setLoading(false);

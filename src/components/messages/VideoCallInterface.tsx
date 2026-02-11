@@ -97,10 +97,11 @@ export function VideoCallInterface({ conversationId, participantName, participan
         toast.warning('Joined without camera/microphone. You can try reconnecting from settings.');
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error initializing call:', error);
       
-      if (error.code === '42P17') {
+      const err = error as { code?: string; message?: string };
+      if (err.code === '42P17') {
         toast.error('Database error. Retrying...');
         // Auto-retry once for database errors
         setTimeout(() => {
@@ -111,7 +112,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
       
       setPermissionDenied(true);
       
-      if (error.message?.includes('Failed to create session')) {
+      if (err.message?.includes('Failed to create session')) {
         toast.error('Could not connect to meeting room. Please try again.');
       } else {
         toast.error('Failed to join call. Please try again.');
@@ -131,7 +132,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
         localVideoRef.current.srcObject = localStream;
       }
       toast.success('Camera and microphone reconnected');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Media retry failed:', error);
       toast.error('Failed to connect media. Please check your permissions.');
     }

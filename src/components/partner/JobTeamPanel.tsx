@@ -162,7 +162,7 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
       if (error) throw error;
       toast.success('Team member removed');
       fetchTeamMembers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error removing member:', error);
       toast.error('Failed to remove team member');
     }

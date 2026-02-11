@@ -42,7 +42,7 @@ export function FreelanceVideoIntro({ userId, freelanceProfile, onUpdate }: Free
       setVideoUrl(inputUrl.trim());
       toast.success("Video intro saved");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving video intro:", error);
       toast.error("Failed to save video intro");
     } finally {
@@ -67,7 +67,7 @@ export function FreelanceVideoIntro({ userId, freelanceProfile, onUpdate }: Free
       setInputUrl("");
       toast.success("Video intro removed");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error removing video intro:", error);
       toast.error("Failed to remove video intro");
     } finally {

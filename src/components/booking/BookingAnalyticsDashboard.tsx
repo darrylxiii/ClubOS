@@ -101,7 +101,7 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
         topBookingDays,
         topBookingTimes,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading analytics:", error);
     } finally {
       setLoading(false);

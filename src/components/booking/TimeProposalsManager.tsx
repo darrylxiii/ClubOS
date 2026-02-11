@@ -76,8 +76,8 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
       toast.success(action === 'accept' ? 'Proposal accepted! Meeting rescheduled.' : 'Proposal declined.');
       setResponseMessage("");
       onUpdate();
-    } catch (error: any) {
-      toast.error(error.message || `Failed to ${action} proposal`);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : `Failed to ${action} proposal`);
     } finally {
       setResponding(null);
     }
@@ -115,8 +115,8 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
       setResponseMessage("");
       setSelectedProposal(null);
       onUpdate();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send counter-proposal');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to send counter-proposal');
     } finally {
       setResponding(null);
     }

@@ -112,17 +112,18 @@ export function PreJoinPreview({
       
       // Update device lists after permission granted
       await enumerateDevices();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[PreJoin] Media initialization failed:', error);
       
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      const err = error as { name?: string; message?: string };
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setPermissionError('Camera and microphone access was denied. Please allow access in your browser settings.');
-      } else if (error.name === 'NotFoundError') {
+      } else if (err.name === 'NotFoundError') {
         setPermissionError('No camera or microphone found. Please connect a device and try again.');
-      } else if (error.name === 'NotReadableError') {
+      } else if (err.name === 'NotReadableError') {
         setPermissionError('Camera or microphone is being used by another application.');
       } else {
-        setPermissionError(`Failed to access media: ${error.message}`);
+        setPermissionError(`Failed to access media: ${err.message || 'Unknown error'}`);
       }
     } finally {
       setIsLoading(false);

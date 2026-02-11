@@ -84,8 +84,8 @@ export function PilotTaskTimerIntegration() {
       }
 
       toast.success(`Started timer for: ${task.title}`);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to start timer');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to start timer');
     } finally {
       setStartingTaskId(null);
     }
