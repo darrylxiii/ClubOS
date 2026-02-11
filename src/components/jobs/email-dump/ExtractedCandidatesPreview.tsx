@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Users, Upload, ArrowLeft, Loader2, AlertTriangle, ExternalLink, CheckCircle2, UserCheck, Copy, HelpCircle } from "lucide-react";
+import { Users, Upload, ArrowLeft, Loader2, AlertTriangle, ExternalLink, CheckCircle2, UserCheck, Copy, HelpCircle, Sparkles } from "lucide-react";
 import { AIConfidenceScore } from "@/components/ai/AIConfidenceScore";
+import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
+import { LinkedInEnrichmentProgress, type EnrichmentResult } from "./LinkedInEnrichmentProgress";
 import type { ExtractedCandidate, DuplicateMatchType } from "./EmailDumpTab";
 
 interface ExtractedCandidatesPreviewProps {
@@ -70,6 +72,11 @@ export function ExtractedCandidatesPreview({
   onImportComplete,
 }: ExtractedCandidatesPreviewProps) {
   const [importing, setImporting] = useState(false);
+  const [importedCandidateIds, setImportedCandidateIds] = useState<string[]>([]);
+  const [enrichResults, setEnrichResults] = useState<EnrichmentResult[]>([]);
+  const [enriching, setEnriching] = useState(false);
+  const [showEnrichConfirm, setShowEnrichConfirm] = useState(false);
+  const [importComplete, setImportComplete] = useState(false);
 
   const selectedCount = candidates.filter((c) => c.selected).length;
   const newCount = candidates.filter((c) => c.match_type === 'new').length;
@@ -104,6 +111,7 @@ export function ExtractedCandidatesPreview({
     setImporting(true);
     let importedCount = 0;
     let skippedCount = 0;
+    const newImportedIds: string[] = [];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -228,6 +236,7 @@ export function ExtractedCandidatesPreview({
             continue;
           }
 
+          if (candidateProfileId) newImportedIds.push(candidateProfileId);
           importedCount++;
         } catch (err) {
           console.error("Error processing candidate:", candidate.full_name, err);
@@ -251,6 +260,8 @@ export function ExtractedCandidatesPreview({
         : `Imported ${importedCount} candidate${importedCount !== 1 ? "s" : ""} to pipeline`;
 
       toast.success(msg);
+      setImportedCandidateIds(newImportedIds);
+      setImportComplete(true);
       onImportComplete();
     } catch (error: any) {
       console.error("Import error:", error);
@@ -258,6 +269,114 @@ export function ExtractedCandidatesPreview({
     } finally {
       setImporting(false);
     }
+  };
+  // Enrichment logic
+  const linkedInCandidateCount = candidates.filter(c => c.linkedin_url).length;
+  const enrichableCandidateIds = importedCandidateIds.filter(id => {
+    const c = candidates.find(cand => cand.existing_profile_id === id || true); // all imported IDs are enrichable
+    return true;
+  });
+
+  const runEnrichment = useCallback(async (candidateIds: string[]) => {
+    if (candidateIds.length === 0) return;
+    setEnriching(true);
+
+    // Initialize results as pending
+    const initialResults: EnrichmentResult[] = candidateIds.map(id => {
+      const c = candidates.find(cand => cand.existing_profile_id === id);
+      return { id, name: c?.full_name || 'Unknown', status: 'pending' as const };
+    });
+    setEnrichResults(initialResults);
+
+    const CHUNK_SIZE = 5;
+    const chunks: string[][] = [];
+    for (let i = 0; i < candidateIds.length; i += CHUNK_SIZE) {
+      chunks.push(candidateIds.slice(i, i + CHUNK_SIZE));
+    }
+
+    const allResults: EnrichmentResult[] = [...initialResults];
+
+    for (const chunk of chunks) {
+      // Mark chunk as enriching
+      for (const id of chunk) {
+        const idx = allResults.findIndex(r => r.id === id);
+        if (idx >= 0) allResults[idx] = { ...allResults[idx], status: 'enriching' };
+      }
+      setEnrichResults([...allResults]);
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/batch-linkedin-enrich`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token || ''}`,
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ candidate_ids: chunk }),
+          }
+        );
+
+        if (!response.ok) {
+          // Mark all in chunk as failed
+          for (const id of chunk) {
+            const idx = allResults.findIndex(r => r.id === id);
+            if (idx >= 0) allResults[idx] = { ...allResults[idx], status: 'failed', reason: `HTTP ${response.status}` };
+          }
+        } else {
+          const result = await response.json();
+          for (const r of result.results || []) {
+            const idx = allResults.findIndex(ar => ar.id === r.id);
+            if (idx >= 0) {
+              allResults[idx] = { ...allResults[idx], ...r };
+            }
+          }
+        }
+      } catch (err) {
+        for (const id of chunk) {
+          const idx = allResults.findIndex(r => r.id === id);
+          if (idx >= 0) allResults[idx] = { ...allResults[idx], status: 'failed', reason: 'Network error' };
+        }
+      }
+
+      setEnrichResults([...allResults]);
+
+      // Delay between chunks
+      if (chunks.indexOf(chunk) < chunks.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    const enrichedCount = allResults.filter(r => r.status === 'enriched').length;
+    const failedCount = allResults.filter(r => r.status === 'failed').length;
+
+    if (enrichedCount > 0) {
+      toast.success(`Enriched ${enrichedCount} profile${enrichedCount !== 1 ? 's' : ''} from LinkedIn`);
+    }
+    if (failedCount > 0) {
+      toast.error(`${failedCount} profile${failedCount !== 1 ? 's' : ''} failed to enrich`);
+    }
+
+    setEnriching(false);
+  }, [candidates]);
+
+  const handleEnrichClick = () => {
+    if (importedCandidateIds.length > 25) {
+      toast.warning("Maximum 25 candidates per enrichment run. Only the first 25 will be processed.");
+    }
+    setShowEnrichConfirm(true);
+  };
+
+  const handleEnrichConfirm = () => {
+    const ids = importedCandidateIds.slice(0, 25);
+    runEnrichment(ids);
+  };
+
+  const handleRetryFailed = () => {
+    const failedIds = enrichResults.filter(r => r.status === 'failed').map(r => r.id);
+    runEnrichment(failedIds);
   };
 
   return (
@@ -429,7 +548,47 @@ export function ExtractedCandidatesPreview({
             );
           })}
         </div>
+
+        {/* Post-import LinkedIn Enrichment */}
+        {importComplete && linkedInCandidateCount > 0 && enrichResults.length === 0 && (
+          <div className="mt-4 flex items-center justify-between border border-border/30 rounded-lg p-3 bg-card/50">
+            <div className="text-sm">
+              <span className="font-medium">{importedCandidateIds.length} candidate{importedCandidateIds.length !== 1 ? 's' : ''}</span>
+              <span className="text-muted-foreground"> imported. Enrich profiles from LinkedIn?</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEnrichClick}
+              disabled={enriching}
+              className="gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Enrich from LinkedIn
+            </Button>
+          </div>
+        )}
+
+        {enrichResults.length > 0 && (
+          <div className="mt-4">
+            <LinkedInEnrichmentProgress
+              results={enrichResults}
+              isRunning={enriching}
+              onRetryFailed={handleRetryFailed}
+              onDismiss={() => setEnrichResults([])}
+            />
+          </div>
+        )}
       </CardContent>
+
+      <ConfirmDialog
+        open={showEnrichConfirm}
+        onOpenChange={setShowEnrichConfirm}
+        title="Enrich profiles from LinkedIn"
+        description={`This will scrape LinkedIn data for ${Math.min(importedCandidateIds.length, 25)} candidate${importedCandidateIds.length !== 1 ? 's' : ''} using Apify (~€0.01/profile). Profiles enriched in the last 24h will be skipped. Continue?`}
+        confirmText="Enrich"
+        onConfirm={handleEnrichConfirm}
+      />
     </Card>
   );
 }

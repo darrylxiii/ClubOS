@@ -1125,3 +1125,10 @@ verify_jwt = true
 [functions.parse-email-candidates]
 verify_jwt = false
 
+# =============================================================================
+# Batch LinkedIn Enrichment (Auth validated in code)
+# =============================================================================
+[functions.batch-linkedin-enrich]
+verify_jwt = false
+
+
