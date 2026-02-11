@@ -1,198 +1,145 @@
 
+# Email Dump for Jobs -- Comprehensive Plan
 
-# Candidate Data Completeness Audit
+## Problem
+Recruiters send emails to partners with candidate information. When partners don't use the OS, recruiters must manually enter each candidate into the system -- double work. We need a way to dump raw email content (forwarded emails, copy-pasted text) per job and have AI extract all candidates automatically into the pipeline.
 
-## Current Score: 100 / 100 ✓✓✓ COMPLETE
-
-> Phase 1–7: Core data pipeline, tags, embeddings, batch processing, auto-match UI ✓
-> Phase 3.1: Interview-to-profile aggregation trigger ✓
-> Phase 3.2: Company history auto-tracking trigger ✓
-> Phase 3.3: Skills taxonomy seeded (200+ skills) ✓
-> Phase 3.4: Re-engagement automation function ✓
-> Phase 4: Demand trend aggregation + completeness audit table ✓
-> Phase 4.1: DataCompletenessBoard UI dashboard ✓
-
-**🎯 PROJECT 100% COMPLETE - SYSTEM READY FOR PRODUCTION**
-
-The database schema is surprisingly rich -- you have the right columns and tables for a world-class talent platform. The problem is that almost none of them are being populated. The infrastructure exists but the data pipeline is hollow.
+## Solution Overview
+Build an "Email Dump" feature on each Job Dashboard where strategists can:
+1. Paste raw email text (or multiple emails) into a text area
+2. AI parses the content and extracts every candidate mentioned (name, email, phone, title, company, LinkedIn URL)
+3. Review extracted candidates in a preview table with edit capability
+4. Batch-import all confirmed candidates into the pipeline as applications + candidate_profiles in one click
 
 ---
 
-## Scorecard Breakdown
+## Architecture
 
-| Category | Max | Current | Status |
-|---|---|---|---|
-| **A. Core Identity** (name, email, phone, avatar, LinkedIn) | 10 | 7 | Most candidates have name + email. Phone and LinkedIn sparse. |
-| **B. Professional Context** (title, company, years of exp) | 10 | 5 | 101/130 have title, 70 have company, 0 have years_of_experience. |
-| **C. Skills & Competencies** | 10 | 1 | Only 1/130 candidate_profiles has skills populated. 9 rows total in profile_skills. Skills taxonomy table is empty. |
-| **D. Work History & Education** | 10 | 1 | 0/130 have work_history or education in candidate_profiles. 17 rows in profile_experience, 6 in profile_education (user-managed profiles only). |
-| **E. Compensation & Preferences** | 10 | 2 | Only 25/130 have salary data. 0 have industry_preference. Notice period sparse. |
-| **F. Tagging & Categorization** | 10 | 2 | 104/130 have tags but they are all just "manually_added" -- no meaningful categorization. No tag taxonomy or management UI for strategists. |
-| **G. CV / Documents** | 8 | 2 | Only 24/130 have a resume_url. 9 total documents stored. No CV parsing pipeline filling fields. |
-| **H. AI Enrichment & Scoring** | 10 | 1 | 0 AI summaries, 0 embeddings generated, 0 enrichment data. Talent tier is "pool" for all 130. Tier score and move_probability exist but aren't differentiated. |
-| **I. Interview Intelligence** | 7 | 0 | candidate_interview_performance has 0 rows. Scorecards exist in schema but no data flows from meetings to candidate profiles. |
-| **J. Auto-Matching for New Jobs** | 10 | 3 | talent_matches table exists, generate_talent_matches RPC exists, profile_embedding column exists -- but 0 embeddings generated, 0 talent_matches created, 253 match_scores exist (from user-side). No trigger on job creation. |
-| **K. Re-engagement & Recall** | 5 | 1 | auto_reengagement_enabled defaults to true for all. But no actual re-engagement logic runs. candidate_company_history is empty. |
+### 1. Database: `job_email_dumps` table
+Stores every raw email dump per job for audit trail and re-processing.
 
----
+| Column | Type | Purpose |
+|--------|------|---------|
+| id | uuid PK | |
+| job_id | uuid FK -> jobs | Which job this dump belongs to |
+| raw_content | text | The pasted/forwarded email text |
+| extracted_candidates | jsonb | AI-parsed candidate array |
+| import_status | text | pending / imported / partial / failed |
+| imported_count | int | How many were imported |
+| created_by | uuid FK -> profiles | Who pasted it |
+| created_at | timestamptz | |
+| processed_at | timestamptz | When AI extraction completed |
 
-## What the Schema Has (Well Designed)
+RLS: Only admins and strategists (via user_roles) can read/write.
 
-The database architecture is actually very solid. Here is what already exists:
+### 2. Edge Function: `parse-email-candidates`
+- Receives `{ raw_content, job_id }`
+- Sends the raw text to Lovable AI (gemini-3-flash-preview) with a structured extraction prompt
+- Uses **tool calling** to extract an array of candidates with fields: `full_name`, `email`, `phone`, `current_title`, `current_company`, `linkedin_url`, `notes`
+- Returns the structured array to the frontend
+- Handles rate limit (429) and payment (402) errors gracefully
 
-- **candidate_profiles**: 80+ columns covering identity, comp, AI fields, tiering, embeddings, ghost mode, re-engagement
-- **profile_skills**: Structured skill tracking with proficiency, years, endorsements, AI verification
-- **profile_experience / profile_education**: Full structured work and education history
-- **skills_taxonomy**: Hierarchical skill dictionary with industry relevance scores and demand trends
-- **candidate_interview_performance**: Per-meeting AI scores (clarity, confidence, competence, cultural fit, red/green flags)
-- **candidate_company_history**: Historical interaction tracking with companies (stage reached, could_revisit, revisit_after)
-- **candidate_assessment_profiles**: Soft skills assessment (stress resilience, coachability, blind spots, culture fit)
-- **talent_matches**: Job-to-candidate recommendations with match_factors
-- **candidate_documents**: Versioned, typed document storage with parsing results
-- **candidate_notes**: Typed, tagged strategist notes
-- **profile_embedding (vector)**: Ready for semantic matching
-- **job_embedding (vector)**: Ready on the jobs side too
+### 3. Frontend Components
 
----
+**A. `EmailDumpTab.tsx`** (new tab on JobDashboard)
+- Large text area for pasting email content
+- "Extract Candidates" button that calls the edge function
+- Support for pasting multiple emails at once (separator detection)
 
-## What is Missing (Why the Score is 34)
+**B. `ExtractedCandidatesPreview.tsx`**
+- Table showing all AI-extracted candidates
+- Editable inline fields (name, email, LinkedIn, title, company)
+- Duplicate detection: checks against existing `candidate_profiles` by email/LinkedIn
+- Checkboxes to select/deselect individual candidates
+- Confidence indicator per candidate (from AI)
 
-### 1. No Data Ingestion Pipeline (biggest gap)
-When a candidate is added manually or via LinkedIn, almost nothing gets populated beyond name, email, and title. There is no:
-- CV parsing that fills skills, work_history, education, certifications, languages
-- LinkedIn data enrichment that fills current_company, years_of_experience, work history
-- Profile completeness calculation (all 130 candidates show 0% completeness)
+**C. `EmailDumpHistory.tsx`**
+- List of previous dumps for this job with timestamp, who created, count imported
+- Re-process button for failed dumps
 
-### 2. No Meaningful Tagging System
-Tags exist as a JSONB array, but every candidate just has "manually_added". There is no:
-- Tag taxonomy (seniority level, function, industry, availability, quality tier)
-- Tag management UI for strategists to add/remove structured tags
-- Auto-tagging based on parsed CV data or job interactions
-- Filterable tag-based search for "show me all Senior Product Managers in fintech"
+### 4. Import Logic (on "Import to Pipeline")
+For each confirmed candidate:
+1. Check if `candidate_profiles` already exists (match by email or linkedin_url)
+2. If exists: link existing profile; if not: create new `candidate_profiles` row with `source_channel = 'email_dump'`
+3. Create `applications` row linked to the job with:
+   - `candidate_id` -> the profile
+   - `candidate_full_name`, `candidate_email`, `candidate_linkedin_url`, etc. denormalized
+   - `application_source` = 'sourced' (or appropriate enum value)
+   - `current_stage_index` = 0 (Applied stage)
+   - `status` = 'active'
+4. Update the `job_email_dumps` row with `import_status = 'imported'` and count
+5. Optionally trigger auto-tagging and enrichment for new profiles
 
-### 3. No Embedding Generation
-Both candidate_profiles.profile_embedding and jobs.job_embedding columns exist, but 0 embeddings have been generated. This means:
-- No semantic matching when a new job is created
-- No "find similar candidates" capability
-- The generate_talent_matches RPC cannot produce quality results
-
-### 4. No Auto-Match on Job Creation
-There is no trigger or workflow that fires when a new job is created to:
-- Generate embeddings for the job description
-- Run vector similarity against candidate_profiles.profile_embedding
-- Create talent_matches recommendations
-- Notify strategists of strong matches
-
-### 5. No Interview-to-Profile Feedback Loop
-Interview performance data (scorecards, AI analysis) does not flow back to the candidate_profiles aggregate fields (interview_score_avg, key_strengths_aggregated, etc.)
+### 5. JobDashboard Integration
+- Add "Email Dump" tab to the existing TabsList in `JobDashboard.tsx`
+- Only visible to admin/strategist roles
+- Badge showing number of pending dumps
 
 ---
 
-## Implementation Plan
+## Implementation Phases
 
-### Phase 1: Data Foundation (Score impact: +20 points, target: 54/100)
+### Phase 1: Database + Edge Function
+- Create `job_email_dumps` table with RLS
+- Build `parse-email-candidates` edge function using Lovable AI tool calling
+- Register in config.toml
 
-**1.1 Profile Completeness Engine**
-- Create a database function `calculate_candidate_completeness()` that scores based on filled fields
-- Add trigger on candidate_profiles UPDATE to recalculate
-- Fields weighted: name (5), email (5), phone (3), title (5), company (5), skills (10), work_history (10), education (5), salary (8), resume (10), LinkedIn (5), languages (3), certifications (3), notice_period (5), location prefs (5), work_authorization (3), tags (5), AI summary (5)
+### Phase 2: Frontend -- Email Dump Tab
+- Create `EmailDumpTab.tsx` with paste area and extraction flow
+- Create `ExtractedCandidatesPreview.tsx` with editable table
+- Create `EmailDumpHistory.tsx` for audit trail
+- Add tab to `JobDashboard.tsx`
 
-**1.2 Structured Tag Taxonomy**
-- Create `candidate_tag_definitions` table with: id, name, category (seniority, function, industry, availability, quality, custom), color, created_by
-- Create `candidate_tag_assignments` table with: candidate_id, tag_id, assigned_by, assigned_at
-- Migrate existing JSONB tags to the relational model
-- Build tag management UI: autocomplete tag input on candidate detail, bulk tagging in list view
-- Seed with standard tags:
-  - **Seniority**: Junior, Mid, Senior, Lead, Director, VP, C-Level
-  - **Function**: Engineering, Product, Design, Marketing, Sales, Operations, Finance, HR, Legal
-  - **Industry**: Fintech, Fashion, Beauty, Tech, Healthcare, SaaS, E-commerce
-  - **Availability**: Immediately Available, 1-Month Notice, 3-Month Notice, Passive, Not Looking
-  - **Quality**: Star Candidate, Strong, Needs Development, Archive
-  - **Source**: Referral, LinkedIn, Direct Apply, Sourced, Agency
-
-**1.3 CV Parse Data Extraction**
-- Enhance existing CV upload to extract and fill: skills[], work_history[], education[], certifications[], languages[], years_of_experience
-- On parse completion, auto-assign function and seniority tags based on extracted data
-
-### Phase 2: Intelligence Layer (Score impact: +25 points, target: 79/100)
-
-**2.1 Embedding Generation Pipeline**
-- Create edge function `generate-candidate-embedding` that generates vector embeddings from: skills + title + work_history summary + AI summary
-- Create edge function `generate-job-embedding` from: title + description + requirements
-- Trigger embedding generation on candidate profile update and job creation
-- Store in existing profile_embedding and job_embedding columns
-
-**2.2 Auto-Match on Job Creation**
-- Create database trigger `on_job_published` that calls an edge function
-- Edge function: query top-N candidates by vector similarity, considering filters (location, salary range, work authorization)
-- Insert results into talent_matches with match_factors explaining why
-- Notify assigned strategist with "QUIN found 12 potential matches for [Job Title]"
-
-**2.3 AI Enrichment**
-- Generate ai_summary for each candidate from their aggregated data
-- Calculate differentiated talent_tier (star / strong / pool / archive) based on: completeness, skills match history, interview performance, engagement
-- Calculate move_probability from: notice_period, actively_looking, last_activity recency, contract_end_date
-
-### Phase 3: Feedback Loops (Score impact: +21 points, target: 100/100)
-
-**3.1 Interview-to-Profile Aggregation**
-- After scorecard submission, aggregate scores into candidate_profiles: interview_score_avg, interview_count, key_strengths_aggregated, key_weaknesses_aggregated
-- Update talent_tier based on interview performance
-
-**3.2 Company History Tracking**
-- When an application reaches a terminal state (hired, rejected, withdrawn), auto-create a candidate_company_history record
-- Track could_revisit and revisit_after for silver-medalist re-engagement
-
-**3.3 Skills Taxonomy Population**
-- Seed skills_taxonomy with 200+ skills across tech, business, creative categories
-- Link profile_skills to taxonomy for standardization
-- Track demand trends from active job requirements
-
-**3.4 Re-engagement Automation**
-- Scheduled function that checks: candidates with could_revisit=true AND revisit_after < now()
-- Checks if any new jobs match their profile
-- Creates pilot task for strategist: "Re-engage [Name] -- new role at [Company] matches their profile"
+### Phase 3: Import Pipeline
+- Implement deduplication logic (email + LinkedIn matching)
+- Batch create `candidate_profiles` + `applications`
+- Trigger `auto-tag-candidate` and `enrich-candidate-profile` for new profiles
+- Update dump status
 
 ---
 
 ## Technical Details
 
-### New Tables
-```text
-candidate_tag_definitions
-  - id (uuid, PK)
-  - name (text, unique per category)
-  - category (text: seniority, function, industry, availability, quality, source, custom)
-  - color (text)
-  - description (text, nullable)
-  - is_system (boolean, default false)
-  - created_by (uuid)
-  - created_at (timestamptz)
+### AI Extraction Prompt Strategy
+The edge function will use tool calling with this schema:
 
-candidate_tag_assignments
-  - id (uuid, PK)
-  - candidate_id (uuid, FK -> candidate_profiles)
-  - tag_id (uuid, FK -> candidate_tag_definitions)
-  - assigned_by (uuid)
-  - assigned_at (timestamptz)
-  - UNIQUE(candidate_id, tag_id)
+```text
+Function: extract_candidates
+Parameters:
+  candidates: array of {
+    full_name: string (required)
+    email: string
+    phone: string
+    current_title: string
+    current_company: string
+    linkedin_url: string
+    notes: string (any extra context from the email)
+    confidence: number (0-1, how confident the extraction is)
+  }
 ```
 
-### New Edge Functions
-- `generate-candidate-embedding` -- vectorize candidate profile data
-- `generate-job-embedding` -- vectorize job description
-- `auto-match-candidates` -- run on job publish, find top matches
-- `enrich-candidate-profile` -- AI summary, tier calculation, move probability
+System prompt will instruct the model to:
+- Extract ALL people mentioned as candidates (not senders/recruiters)
+- Normalize LinkedIn URLs to standard format
+- Parse phone numbers with country codes
+- Identify titles and companies from context
+- Flag low-confidence extractions
 
-### New Database Functions
-- `calculate_candidate_completeness(p_candidate_id uuid)` -- returns integer 0-100
-- `aggregate_interview_performance(p_candidate_id uuid)` -- updates avg scores
-- `record_company_history()` -- trigger on application status change
+### Deduplication Strategy
+1. First match by email (exact, case-insensitive)
+2. Then match by LinkedIn URL (normalized)
+3. Then fuzzy match by full_name + current_company (flag for review, don't auto-merge)
 
-### UI Changes
-- Tag management component on candidate detail page (autocomplete + chips)
-- Bulk tag assignment in candidate list view
-- Tag filter sidebar in candidate search
-- Completeness score badge on candidate cards
-- "Matched Candidates" tab auto-populated when a job is published
+### Edge Cases Handled
+- Multiple emails pasted at once (detect "From:" / "Subject:" separators)
+- Forwarded email chains (extract only candidates, not email metadata people)
+- Non-English names and international phone formats
+- Candidates with partial info (name only is sufficient)
+- Duplicate candidates within the same dump
+- Candidates already in the pipeline for this specific job
 
+### Security
+- RLS on `job_email_dumps`: only admins/strategists via user_roles
+- Edge function validates auth token
+- Raw email content stored for audit but not exposed to candidates/partners
+- No PII leakage to unauthorized roles
