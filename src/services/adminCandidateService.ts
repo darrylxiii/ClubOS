@@ -223,7 +223,7 @@ export const adminCandidateService = {
       }
 
       return { data: strategists || [], error: null };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching strategists:', error);
       return { data: [], error };
     }

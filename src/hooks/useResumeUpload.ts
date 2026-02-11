@@ -147,10 +147,10 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
 
       return { url: publicUrl, filename: file.name, path: fileName };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload resume');
-      options.onError?.(error);
+      toast.error(error instanceof Error ? error.message : 'Failed to upload resume');
+      options.onError?.(error instanceof Error ? error : new Error('Upload failed'));
     } finally {
       setIsUploading(false);
     }

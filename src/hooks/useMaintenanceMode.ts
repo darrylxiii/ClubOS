@@ -28,7 +28,7 @@ export function useMaintenanceMode() {
       if (data) {
         setConfig(data as unknown as MaintenanceModeConfig);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching maintenance mode:', error);
     } finally {
       setIsLoading(false);
@@ -57,9 +57,9 @@ export function useMaintenanceMode() {
       toast.success(enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled');
       await fetchConfig();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error toggling maintenance mode:', error);
-      toast.error(error.message || 'Failed to toggle maintenance mode');
+      toast.error(error instanceof Error ? error.message : 'Failed to toggle maintenance mode');
       return false;
     } finally {
       setIsLoading(false);

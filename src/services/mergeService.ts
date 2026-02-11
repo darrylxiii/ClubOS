@@ -205,14 +205,14 @@ export const mergeService = {
         applicationCount: appsCount || 0,
         interactionCount: interactionsCount || 0,
       };
-    } catch (error: any) {
-      const errorMessage = error?.message || 'Failed to preview merge';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to preview merge';
       console.error('[MergeService] Preview error:', {
         message: errorMessage,
         candidateId,
         userId,
         timestamp: new Date().toISOString(),
-        stack: error?.stack
+        stack: error instanceof Error ? error.stack : undefined
       });
       
       notify.error("Preview Error", { description: errorMessage });
@@ -248,9 +248,9 @@ export const mergeService = {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error executing merge:', error);
-      const errorMessage = error?.message || 'Failed to merge candidate profile';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to merge candidate profile';
       
       notify.error("Error", { description: errorMessage });
 

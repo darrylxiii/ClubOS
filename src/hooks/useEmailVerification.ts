@@ -243,9 +243,9 @@ export const useEmailVerification = (): VerificationHookReturn => {
       }
       onSuccess?.();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error verifying email:', error);
-      toast.error(error.message || 'Invalid or expired verification code');
+      toast.error(error instanceof Error ? error.message : 'Invalid or expired verification code');
       return false;
     } finally {
       setIsVerifying(false);

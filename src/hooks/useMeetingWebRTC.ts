@@ -264,20 +264,21 @@ export function useMeetingWebRTC({
       }
 
       return stream;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[WebRTC] ❌ Media initialization failed:', error);
       setChannelStatus('error');
 
       // Specific error messages
-      const recoverable = error.name !== 'NotAllowedError' && error.name !== 'PermissionDeniedError';
+      const err = error as { name?: string; message?: string };
+      const recoverable = err.name !== 'NotAllowedError' && err.name !== 'PermissionDeniedError';
       setError({
-        message: error.name === 'NotFoundError'
+        message: err.name === 'NotFoundError'
           ? 'No camera or microphone detected'
-          : error.name === 'NotAllowedError'
+          : err.name === 'NotAllowedError'
             ? 'Camera/microphone access denied. Click "Allow" in browser.'
-            : error.name === 'NotReadableError'
+            : err.name === 'NotReadableError'
               ? 'Camera/microphone is being used by another app'
-              : `Failed to access media: ${error.message}`,
+              : `Failed to access media: ${err.message || 'Unknown error'}`,
         recoverable
       });
 

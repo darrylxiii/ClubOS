@@ -490,15 +490,16 @@ export const memberApprovalService = {
             );
 
             candidateId = mergeAction.candidateId;
-          } catch (error: any) {
-            errors.push(`Merge failed: ${error.message}`);
+          } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : 'Unknown error';
+            errors.push(`Merge failed: ${msg}`);
             await this.logApprovalAction(
               workflowData.requestId,
               workflowData.adminId,
               'merge',
               { candidateId: mergeAction.candidateId, userId: mergeAction.userId },
               'failed',
-              error.message
+              msg
             );
           }
         }
@@ -521,15 +522,16 @@ export const memberApprovalService = {
               'success'
             );
           }
-        } catch (error: any) {
-          errors.push(`Profile creation failed: ${error.message}`);
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : 'Unknown error';
+          errors.push(`Profile creation failed: ${msg}`);
           await this.logApprovalAction(
             workflowData.requestId,
             workflowData.adminId,
             'create_profile',
             {},
             'failed',
-            error.message
+            msg
           );
         }
       }
@@ -567,15 +569,16 @@ export const memberApprovalService = {
               'success'
             );
           }
-        } catch (error: any) {
-          errors.push(`Role assignment failed: ${error.message}`);
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : 'Unknown error';
+          errors.push(`Role assignment failed: ${msg}`);
           await this.logApprovalAction(
             workflowData.requestId,
             workflowData.adminId,
             'assign_role',
             { role: workflowData.staffAssignment?.role },
             'failed',
-            error.message
+            msg
           );
         }
       }
@@ -612,15 +615,16 @@ export const memberApprovalService = {
           } else {
             errors.push('Could not create candidate profile for pipeline assignment');
           }
-        } catch (error: any) {
-          errors.push(`Pipeline assignment failed: ${error.message}`);
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : 'Unknown error';
+          errors.push(`Pipeline assignment failed: ${msg}`);
           await this.logApprovalAction(
             workflowData.requestId,
             workflowData.adminId,
             'assign_to_job',
             { candidateId, jobId: pipelineAssignment.jobId },
             'failed',
-            error.message
+            msg
           );
         }
       }
@@ -644,8 +648,8 @@ export const memberApprovalService = {
               'success'
             );
           }
-        } catch (error: any) {
-          errors.push(`Job assignment failed: ${error.message}`);
+        } catch (error: unknown) {
+          errors.push(`Job assignment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
 
@@ -671,15 +675,16 @@ export const memberApprovalService = {
         );
 
         console.log('[MemberApproval] Member approved successfully:', workflowData.requestId);
-      } catch (error: any) {
-        errors.push(`Approval failed: ${error.message}`);
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : 'Unknown error';
+        errors.push(`Approval failed: ${msg}`);
         await this.logApprovalAction(
           workflowData.requestId,
           workflowData.adminId,
           'approve',
           {},
           'failed',
-          error.message
+          msg
         );
       }
 
@@ -692,12 +697,12 @@ export const memberApprovalService = {
         applicationId: applicationId || undefined,
         errors: errors.length > 0 ? errors : undefined,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[MemberApproval] Workflow error:', error);
       return {
         success: false,
         message: 'Approval workflow failed',
-        errors: [error.message],
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
   },
