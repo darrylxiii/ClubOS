@@ -112,9 +112,9 @@ export const InterviewFeedbackDialog = ({
       toast.success('Feedback submitted successfully');
       onSubmitted();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting feedback:', error);
-      toast.error(error.message || 'Failed to submit feedback');
+      toast.error(error instanceof Error ? error.message : 'Failed to submit feedback');
     } finally {
       setSubmitting(false);
     }

@@ -80,8 +80,8 @@ export const AuthDiagnostics = () => {
       }
 
       setDiagnostics(results);
-    } catch (error: any) {
-      toast.error(`Diagnostics failed: ${error.message}`);
+    } catch (error: unknown) {
+      toast.error(`Diagnostics failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }

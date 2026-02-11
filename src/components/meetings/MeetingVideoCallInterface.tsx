@@ -396,10 +396,10 @@ export function MeetingVideoCallInterface({
 
       // Show consent modal after joining
       setShowConsentModal(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[Meeting] ❌ Failed to initialize media:', error);
-
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      const err = error as { name?: string };
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
         toast.error('Camera/microphone access denied');
       } else {

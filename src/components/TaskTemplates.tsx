@@ -290,9 +290,9 @@ export const TaskTemplates = () => {
         `${template.tasks.length} tasks created from "${template.name}"! AI will schedule them automatically.`,
         { duration: 4000 }
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error applying template:', error);
-      toast.error(error.message || 'Failed to create tasks from template');
+      toast.error(error instanceof Error ? error.message : 'Failed to create tasks from template');
     } finally {
       setLoading(null);
     }

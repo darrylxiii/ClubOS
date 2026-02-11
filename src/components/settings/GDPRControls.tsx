@@ -37,8 +37,8 @@ export const GDPRControls = () => {
           description: 'Your data has been exported. The download will start shortly.' 
         });
       }
-    } catch (error: any) {
-      notify.error('Export Failed', { description: error.message || 'Failed to export data' });
+    } catch (error: unknown) {
+      notify.error('Export Failed', { description: error instanceof Error ? error.message : 'Failed to export data' });
     } finally {
       setExporting(false);
     }
@@ -58,9 +58,9 @@ export const GDPRControls = () => {
         description: `Your account will be deleted on ${new Date(data.scheduled_for).toLocaleDateString()}. You can cancel this anytime before then.` 
       });
       setDeletionReason('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error('Deletion Request Failed', { 
-        description: error.message || 'Failed to schedule account deletion' 
+        description: error instanceof Error ? error.message : 'Failed to schedule account deletion' 
       });
     } finally {
       setDeleting(false);
@@ -77,8 +77,8 @@ export const GDPRControls = () => {
 
       setPendingDeletion(null);
       notify.success('Deletion Cancelled', { description: 'Your account deletion has been cancelled.' });
-    } catch (error: any) {
-      notify.error('Cancellation Failed', { description: error.message || 'Failed to cancel deletion' });
+    } catch (error: unknown) {
+      notify.error('Cancellation Failed', { description: error instanceof Error ? error.message : 'Failed to cancel deletion' });
     }
   };
 
