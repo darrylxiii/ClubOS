@@ -81,9 +81,9 @@ export default function ResetPasswordVerify() {
         }
         setOtp("");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OTP verification error:', error);
-      toast.error(error.message || "Verification failed");
+      toast.error(error instanceof Error ? error.message : "Verification failed");
       setOtp("");
     } finally {
       setIsVerifying(false);
@@ -109,7 +109,7 @@ export default function ResetPasswordVerify() {
       setTimeRemaining(600); // Reset to 10 minutes
       setAttemptsRemaining(5);
       setOtp("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Resend error:', error);
       toast.error("Failed to resend code");
     } finally {

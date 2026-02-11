@@ -190,11 +190,11 @@ export default function InterviewPrepChat() {
       }
 
       setIsLoading(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error in streamChat:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to communicate with AI",
+        description: error instanceof Error ? error.message : "Failed to communicate with AI",
         variant: "destructive",
       });
       setIsLoading(false);

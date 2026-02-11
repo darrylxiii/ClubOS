@@ -287,11 +287,11 @@ function ProspectPipelineContent() {
       } else {
         toast.info('All leads are up to date');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId);
-
+      const err = error as { name?: string; message?: string };
       // Check if it was a timeout
-      if (error?.name === 'AbortError' || controller.signal.aborted) {
+      if (err.name === 'AbortError' || controller.signal.aborted) {
         toast.info('Sync is still running in the background. Results will appear after refresh.');
         // Still refetch in case some data came through
         setTimeout(() => {
@@ -300,7 +300,7 @@ function ProspectPipelineContent() {
         }, 5000);
       } else {
         console.error('Error syncing from Instantly:', error);
-        toast.error(error.message || 'Failed to sync from Instantly');
+        toast.error(error instanceof Error ? error.message : 'Failed to sync from Instantly');
       }
     } finally {
       setSyncingInstantly(false);

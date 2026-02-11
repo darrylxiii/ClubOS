@@ -40,7 +40,7 @@ export default function SharedProfile() {
       }
 
       setUserId(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error validating token:", error);
       setError("Failed to load shared profile");
     } finally {

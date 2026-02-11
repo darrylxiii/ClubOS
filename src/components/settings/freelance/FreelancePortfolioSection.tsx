@@ -108,7 +108,7 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
       resetForm();
       toast.success(editingItem ? "Portfolio item updated" : "Portfolio item added");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving portfolio item:", error);
       toast.error("Failed to save portfolio item");
     } finally {
@@ -134,7 +134,7 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
       setPortfolioItems(updatedItems);
       toast.success("Portfolio item deleted");
       onUpdate();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting portfolio item:", error);
       toast.error("Failed to delete portfolio item");
     } finally {

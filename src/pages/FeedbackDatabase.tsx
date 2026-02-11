@@ -157,11 +157,11 @@ const FeedbackDatabase = () => {
       
       setFeedback(feedbackWithResolvers);
       setFilteredFeedback(feedbackWithResolvers);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading feedback:', error);
       toast({
         title: 'Failed to load feedback',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
     } finally {
@@ -344,11 +344,11 @@ const FeedbackDatabase = () => {
         title: isReviewed ? 'Marked as reviewed' : 'Marked as unreviewed',
       });
       loadFeedback();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating feedback:', error);
       toast({
         title: 'Failed to update',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
     }
@@ -375,11 +375,11 @@ const FeedbackDatabase = () => {
       });
       setSelectedFeedback(null);
       loadFeedback();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving notes:', error);
       toast({
         title: 'Failed to save notes',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
     } finally {
@@ -502,11 +502,11 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
       setResolutionMessage('');
       setSelectedFeedback(null);
       loadFeedback();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error resolving feedback:', error);
       toast({
         title: 'Failed to resolve',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
     } finally {

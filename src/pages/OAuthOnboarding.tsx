@@ -244,7 +244,7 @@ export default function OAuthOnboarding() {
 
         toast.success("Resume uploaded successfully!");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading resume:', error);
       // Hook handles toast error for upload, but logic error might happen
     }
@@ -466,9 +466,9 @@ export default function OAuthOnboarding() {
       setTimeout(() => {
         navigate("/home", { replace: true });
       }, 500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[OAuth Onboarding] Error:', error);
-      toast.error(error.message || "Failed to complete onboarding");
+      toast.error(error instanceof Error ? error.message : "Failed to complete onboarding");
     } finally {
       setIsLoading(false);
     }

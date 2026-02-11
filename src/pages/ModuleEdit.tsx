@@ -67,10 +67,10 @@ export default function ModuleEdit() {
         title: "Suggestions ready",
         description: "AI has found some content ideas for you",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "AI suggestion failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: "destructive",
       });
     } finally {
@@ -127,10 +127,10 @@ export default function ModuleEdit() {
         video_url: moduleData.video_url || "",
         image_url: moduleData.image_url || "",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error loading module",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: "destructive",
       });
       navigate("/academy/creator");
@@ -172,10 +172,10 @@ export default function ModuleEdit() {
         title: "Upload successful",
         description: `${type} has been uploaded successfully`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Upload failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: "destructive",
       });
     } finally {
@@ -246,10 +246,10 @@ export default function ModuleEdit() {
       });
 
       await loadModuleData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error saving module",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: "destructive",
       });
     } finally {

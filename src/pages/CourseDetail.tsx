@@ -105,8 +105,8 @@ export default function CourseDetail() {
           }
         }
       }
-    } catch (error: any) {
-      notify.error("Error loading course", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error loading course", { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }
@@ -129,8 +129,8 @@ export default function CourseDetail() {
       );
 
       setCourse({ ...course, is_published: !course.is_published });
-    } catch (error: any) {
-      notify.error("Error updating course", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error updating course", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 

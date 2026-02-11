@@ -89,9 +89,9 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
       resetForm();
       setDetailedCreateOpen(false);
       onDocumentCreated();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating text document:', error);
-      toast.error(error.message || 'Failed to create document');
+      toast.error(error instanceof Error ? error.message : 'Failed to create document');
     } finally {
       setCreating(false);
     }

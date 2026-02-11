@@ -125,9 +125,9 @@ export default function SuppressionList() {
 
       toast.success(`Imported ${data.imported} entries from Instantly (${data.total} total in Instantly)`);
       fetchEntries();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error syncing from Instantly:', error);
-      toast.error(error.message || 'Failed to sync from Instantly');
+      toast.error(error instanceof Error ? error.message : 'Failed to sync from Instantly');
     } finally {
       setSyncing(false);
     }
@@ -144,9 +144,9 @@ export default function SuppressionList() {
 
       toast.success(`Pushed ${data.pushed} entries to Instantly`);
       fetchEntries();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error pushing to Instantly:', error);
-      toast.error(error.message || 'Failed to push to Instantly');
+      toast.error(error instanceof Error ? error.message : 'Failed to push to Instantly');
     } finally {
       setSyncing(false);
     }
@@ -163,9 +163,9 @@ export default function SuppressionList() {
 
       toast.success(`Synced: ${data.pull.imported} imported, ${data.push.pushed} pushed`);
       fetchEntries();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error syncing:', error);
-      toast.error(error.message || 'Failed to sync with Instantly');
+      toast.error(error instanceof Error ? error.message : 'Failed to sync with Instantly');
     } finally {
       setSyncing(false);
     }
@@ -206,9 +206,9 @@ export default function SuppressionList() {
       setShowAddDialog(false);
       setNewEntry({ type: 'email', value: '', reason: '' });
       fetchEntries();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding suppression:', error);
-      toast.error(error.message || 'Failed to add suppression');
+      toast.error(error instanceof Error ? error.message : 'Failed to add suppression');
     } finally {
       setAdding(false);
     }

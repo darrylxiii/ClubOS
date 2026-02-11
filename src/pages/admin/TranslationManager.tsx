@@ -55,7 +55,7 @@ export default function TranslationManager() {
       if (error) throw error;
       if (data && data.length > 0) { addLog('info', `✓ Cleaned up ${data.length} stuck jobs`, undefined, 'cleanup'); toast.success(`Cleaned up ${data.length} stuck jobs`); queryClient.invalidateQueries({ queryKey: ['translation-jobs'] }); } 
       else { addLog('info', 'No stuck jobs found', undefined, 'cleanup'); toast.info('No stuck jobs to clean up'); }
-    } catch (error: any) { addLog('error', 'Cleanup failed', error.message, 'cleanup'); toast.error(`Cleanup failed: ${error.message}`); } finally { setIsCleaningJobs(false); }
+    } catch (error: unknown) { const msg = error instanceof Error ? error.message : 'Unknown error'; addLog('error', 'Cleanup failed', msg, 'cleanup'); toast.error(`Cleanup failed: ${msg}`); } finally { setIsCleaningJobs(false); }
   };
 
   const namespacesQuery = useQuery({
@@ -132,7 +132,7 @@ export default function TranslationManager() {
       if (data?.jobId) { addLog('info', `Translation job started for "${namespace}"`, `Job ID: ${data.jobId}`, 'generate'); toast.success(`Translation job started for "${namespace}"!`); } 
       else if (data?.summary) { const { successCount, errorCount } = data.summary; if (errorCount > 0) { addLog('warn', `Completed with ${errorCount} errors`, JSON.stringify(data.errors, null, 2), 'generate'); toast.warning(`Completed with ${errorCount} errors for "${namespace}"`); } else { addLog('info', `✓ Generated ${successCount} translations for "${namespace}"`, undefined, 'generate'); toast.success(`✓ Generated ${successCount} translations for "${namespace}"`); } }
       queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
-    } catch (error: any) { addLog('error', 'Unexpected error', error.message, 'generate'); toast.error(error.message || 'Unexpected error'); } finally { setGeneratingNamespace(null); }
+    } catch (error: unknown) { const msg = error instanceof Error ? error.message : 'Unexpected error'; addLog('error', 'Unexpected error', msg, 'generate'); toast.error(msg); } finally { setGeneratingNamespace(null); }
   };
 
   const generateEverything = async () => {
@@ -147,7 +147,7 @@ export default function TranslationManager() {
       if (data?.jobId) { addLog('info', 'Translation job started', `Job ID: ${data.jobId}`, 'generate'); toast.success('Translation job started! Check the progress below.'); } 
       else if (data?.summary) { const { successCount, errorCount, status, jobId } = data.summary; addLog('info', `Generation complete: ${status}`, `Success: ${successCount}, Errors: ${errorCount}, Job: ${jobId}`, 'generate'); if (status === 'completed') { toast.success(`✓ Generated ${successCount} translations across all namespaces`); } else if (status === 'partial') { toast.warning(`Completed with ${errorCount} failures. ${successCount} succeeded.`); } else { toast.error(`Generation failed with ${errorCount} errors`); } }
       queryClient.invalidateQueries({ queryKey: ['translation-coverage'] }); queryClient.invalidateQueries({ queryKey: ['translation-coverage-analysis'] });
-    } catch (error: any) { addLog('error', 'Fatal error during generation', error.message, 'generate'); toast.error(`Error: ${error.message}`); } finally { setIsGeneratingAll(false); }
+    } catch (error: unknown) { const msg = error instanceof Error ? error.message : 'Unknown error'; addLog('error', 'Fatal error during generation', msg, 'generate'); toast.error(`Error: ${msg}`); } finally { setIsGeneratingAll(false); }
   };
 
   const handleJobComplete = () => { queryClient.invalidateQueries({ queryKey: ['translation-coverage'] }); queryClient.invalidateQueries({ queryKey: ['translation-coverage-analysis'] }); refetchCoverage(); };
