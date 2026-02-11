@@ -76,8 +76,8 @@ export const CreateModuleDialog = ({
         video_url: "",
         image_url: "",
       });
-    } catch (error: any) {
-      notify.error('Error creating module', { description: error.message });
+    } catch (error: unknown) {
+      notify.error('Error creating module', { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }

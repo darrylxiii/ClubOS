@@ -116,9 +116,9 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
         setBody(data.suggestion);
         toast.success("AI suggestion applied");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("AI assist failed:", error);
-      toast.error(error.message || "Failed to generate AI suggestion");
+      toast.error(error instanceof Error ? error.message : "Failed to generate AI suggestion");
     } finally {
       setAiGenerating(false);
     }
@@ -154,9 +154,9 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
       setBody("");
       setAttachments([]);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to send email:", error);
-      toast.error(error.message || "Failed to send email");
+      toast.error(error instanceof Error ? error.message : "Failed to send email");
     } finally {
       setSending(false);
     }

@@ -69,9 +69,9 @@ export const MatchScoreDialog = ({
           });
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching match breakdown:', error);
-      notify.error(error.message || "Failed to load match breakdown");
+      notify.error(error instanceof Error ? error.message : "Failed to load match breakdown");
     } finally {
       setLoading(false);
     }

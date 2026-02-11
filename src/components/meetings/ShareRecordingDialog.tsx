@@ -69,9 +69,9 @@ export function ShareRecordingDialog({
       const link = `${baseUrl}/shared-recording/${(data as any).share_token}`;
       setShareLink(link);
       toast.success('Share link created successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating share link:', error);
-      toast.error(error.message || 'Failed to create share link');
+      toast.error(error instanceof Error ? error.message : 'Failed to create share link');
     } finally {
       setIsCreating(false);
     }

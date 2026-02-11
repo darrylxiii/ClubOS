@@ -32,9 +32,9 @@ export const OAuthDiagnostics = () => {
         setStatus('error');
         setMessage('Unable to generate OAuth URL - check backend settings');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setStatus('error');
-      setMessage(`OAuth check failed: ${error.message}`);
+      setMessage(`OAuth check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

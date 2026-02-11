@@ -524,9 +524,9 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
       setFeedbackText('');
       // Trigger refresh
       window.location.reload();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting feedback:', error);
-      toast.error(error.message || 'Failed to submit feedback');
+      toast.error(error instanceof Error ? error.message : 'Failed to submit feedback');
     } finally {
       setIsSubmittingFeedback(false);
     }

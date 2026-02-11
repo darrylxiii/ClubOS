@@ -65,8 +65,8 @@ export const AssessmentResultsManager = () => {
       })) || [];
 
       setResults(enrichedResults);
-    } catch (error: any) {
-      notify.error('Error', { description: error.message });
+    } catch (error: unknown) {
+      notify.error('Error', { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }

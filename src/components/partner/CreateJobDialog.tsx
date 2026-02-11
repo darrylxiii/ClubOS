@@ -323,7 +323,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       }
 
       return { jobDescriptionUrl, supportingDocsUrls };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('File upload error:', error);
       throw error;
     }
@@ -517,7 +517,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         }, 1500);
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Job creation error:', error);
       setSubmitStep("idle");
       toast.error(
@@ -525,7 +525,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-medium">Failed to create job</p>
-            <p className="text-sm text-muted-foreground">{error.message}</p>
+            <p className="text-sm text-muted-foreground">{error instanceof Error ? error.message : 'An unexpected error occurred'}</p>
           </div>
         </div>
       );
