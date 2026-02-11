@@ -38,12 +38,12 @@ export interface VerificationAttempt {
   verification_type: VerificationType;
   action: VerificationAction;
   created_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface VerificationResponse {
   success: boolean;
   message?: string;
   error?: string;
-  data?: any;
+  data?: unknown;
 }

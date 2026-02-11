@@ -7,7 +7,7 @@ export interface CRMContact {
   lead_score: number;
   engagement_score: number;
   tags: string[];
-  custom_fields: Record<string, any>;
+  custom_fields: Record<string, unknown>;
   owner_id: string | null;
   created_at: string;
   updated_at: string;
@@ -37,7 +37,7 @@ export interface CRMDeal {
   owner_id: string | null;
   source: string | null;
   tags: string[];
-  custom_fields: Record<string, any>;
+  custom_fields: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   closed_at: string | null;
@@ -63,8 +63,8 @@ export interface CRMActivity {
   direction: 'inbound' | 'outbound' | null;
   duration_minutes: number | null;
   created_by: string | null;
-  participants: any[];
-  metadata: Record<string, any>;
+  participants: string[];
+  metadata: Record<string, unknown>;
   scheduled_at: string | null;
   completed_at: string | null;
   created_at: string;
@@ -92,7 +92,7 @@ export interface PipelineStage {
   name: string;
   order: number;
   probability: number;
-  automation_rules?: any[];
+  automation_rules?: Record<string, unknown>[];
 }
 
 export interface LeadScoreBreakdown {

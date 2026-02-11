@@ -19,7 +19,7 @@ export interface ReferralMetadata {
   friend_current_role?: string;
   friend_linkedin?: string;
   referred_by?: string;
-  [key: string]: any; // Allow additional fields
+  [key: string]: string | undefined; // Allow additional string fields
 }
 
 export interface InviteCodeData {

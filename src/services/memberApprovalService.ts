@@ -143,7 +143,7 @@ export const memberApprovalService = {
 
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .insert(insertData)
+        .insert(insertData as any) // eslint-disable-line @typescript-eslint/no-explicit-any -- dynamic shape from CandidateProfileData
         .select('id')
         .single();
 

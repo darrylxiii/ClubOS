@@ -52,7 +52,7 @@ export interface CandidateProfileData {
   remote_preference?: 'remote' | 'hybrid' | 'on-site' | null;
   notice_period?: string;
   source_channel: string;
-  source_metadata?: any;
+  source_metadata?: Record<string, unknown>;
   created_by: string;
 }
 
