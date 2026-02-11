@@ -48,7 +48,7 @@ export function useGenerateInsights(companyId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ['smart-alerts', companyId] });
       queryClient.invalidateQueries({ queryKey: ['daily-briefing', companyId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Failed to generate insights', {
         description: error.message
       });
@@ -109,7 +109,7 @@ export function useTalentMatches(companyId: string | undefined, jobId?: string) 
       toast.success('New talent matches generated');
       queryClient.invalidateQueries({ queryKey: ['talent-matches', companyId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Failed to generate matches', {
         description: error.message
       });

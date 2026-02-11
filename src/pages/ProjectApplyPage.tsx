@@ -126,7 +126,7 @@ export default function ProjectApplyPage() {
       });
       navigate(`/projects/${projectId}`);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Submission Failed",
         description: error.message || "Failed to submit proposal",

@@ -119,7 +119,7 @@ export default function ContractSignaturePage() {
       toast.success("Contract signed successfully!");
       navigate(`/contracts/${contractId}`);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to sign contract");
     }
   });

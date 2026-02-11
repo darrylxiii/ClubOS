@@ -222,7 +222,7 @@ export function ExternalContentImportModal({
       queryClient.invalidateQueries({ queryKey: ['external-imports'] });
       handleClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Failed to import content', {
         description: error.message,
       });

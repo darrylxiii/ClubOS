@@ -146,8 +146,9 @@ export function useCreateCompanyContact() {
       queryClient.invalidateQueries({ queryKey: ['company-contacts'] });
       toast.success('Contact added');
     },
-    onError: (error: any) => {
-      if (error.code === '23505') {
+    onError: (error: Error) => {
+      const err = error as Error & { code?: string };
+      if (err.code === '23505') {
         toast.error('This contact already exists for this company');
       } else {
         toast.error('Failed to add contact');
@@ -221,8 +222,9 @@ export function useCreateCompanyDomain() {
       queryClient.invalidateQueries({ queryKey: ['company-domains'] });
       toast.success('Domain added');
     },
-    onError: (error: any) => {
-      if (error.code === '23505') {
+    onError: (error: Error) => {
+      const err = error as Error & { code?: string };
+      if (err.code === '23505') {
         toast.error('This domain is already registered');
       } else {
         toast.error('Failed to add domain');
