@@ -23,7 +23,7 @@ interface ChurnRiskUser {
 interface ReengagementCampaign {
   type: 'email' | 'in_app' | 'push';
   templateId: string;
-  personalization: Record<string, any>;
+  personalization: Record<string, unknown>;
 }
 
 export function useChurnPrevention() {
@@ -236,7 +236,7 @@ export function useChurnPrevention() {
 // Get personalized content based on user profile
 function getPersonalizedContent(user: ChurnRiskUser): {
   templateId: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 } {
   // Candidate-specific messaging
   if (user.role === 'candidate') {

@@ -27,8 +27,8 @@ export function usePlatformSettings() {
 
       if (error) throw error;
 
-      const settingsMap: Record<string, any> = {};
-      data?.forEach((setting: { key: string; value: any }) => {
+      const settingsMap: Record<string, unknown> = {};
+      data?.forEach((setting: { key: string; value: unknown }) => {
         settingsMap[setting.key] = setting.value;
       });
 

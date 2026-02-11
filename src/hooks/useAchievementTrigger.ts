@@ -30,7 +30,7 @@ export type AchievementEventType =
 
 interface AchievementEvent {
   eventType: AchievementEventType;
-  eventData?: Record<string, any>;
+  eventData?: Record<string, unknown>;
 }
 
 export const useAchievementTrigger = () => {

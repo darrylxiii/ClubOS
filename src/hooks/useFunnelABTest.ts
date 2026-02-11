@@ -17,7 +17,7 @@ export type FunnelExperiment =
 interface ExperimentVariant {
   id: string;
   name: string;
-  value: string | Record<string, any>;
+  value: string | Record<string, unknown>;
   weight: number; // 0-100 percentage
 }
 
@@ -62,7 +62,7 @@ const EXPERIMENTS: ExperimentConfig[] = [
 
 interface UseFunnelABTestResult {
   variant: string;
-  variantValue: string | Record<string, any>;
+  variantValue: string | Record<string, unknown>;
   isLoading: boolean;
   trackConversion: (conversionType?: string) => Promise<void>;
   trackExposure: () => Promise<void>;
@@ -76,7 +76,7 @@ export function useFunnelABTest(
   sessionId: string
 ): UseFunnelABTestResult {
   const [variant, setVariant] = useState<string>('control');
-  const [variantValue, setVariantValue] = useState<string | Record<string, any>>('');
+  const [variantValue, setVariantValue] = useState<string | Record<string, unknown>>('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasTrackedExposure, setHasTrackedExposure] = useState(false);
   

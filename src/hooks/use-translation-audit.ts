@@ -12,7 +12,7 @@ export interface TranslationAuditEntry {
   action: string;
   changed_by: string | null;
   changed_at: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 interface AuditFilters {
@@ -65,12 +65,13 @@ export function useLogTranslationChange() {
     mutationFn: async (entry: Omit<TranslationAuditEntry, 'id' | 'changed_at' | 'changed_by'>) => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { data, error } = await supabase
-        .from('translation_audit_log')
-        .insert({
+      const insertPayload = {
           ...entry,
           changed_by: user?.id,
-        })
+        };
+      const { data, error } = await supabase
+        .from('translation_audit_log')
+        .insert(insertPayload as typeof insertPayload & { metadata: Record<string, string> })
         .select()
         .single();
       

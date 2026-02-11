@@ -19,10 +19,10 @@ export interface MergeSuggestion {
 }
 
 export interface MergePreview {
-  candidate: Record<string, any>;
-  user: Record<string, any>;
+  candidate: Record<string, unknown>;
+  user: Record<string, unknown>;
   fieldsToMerge: string[];
-  conflicts: Array<{ field: string; candidateValue: any; profileValue: any }>;
+  conflicts: Array<{ field: string; candidateValue: unknown; profileValue: unknown }>;
   applicationCount: number;
   interactionCount: number;
 }
@@ -54,7 +54,7 @@ export interface MergeLog {
   profile_id: string;
   merged_by: string;
   merge_type: 'auto' | 'manual' | 'invitation';
-  merged_fields: Record<string, any>;
+  merged_fields: Record<string, unknown>;
   merge_status: 'pending' | 'completed' | 'failed' | 'reverted';
   error_message: string | null;
   confidence_score: number | null;

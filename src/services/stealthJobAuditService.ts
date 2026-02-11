@@ -25,7 +25,7 @@ interface AuditLogEntry {
   performed_by_email?: string;
   performed_by_name?: string;
   reason?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

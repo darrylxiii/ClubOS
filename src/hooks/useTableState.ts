@@ -31,8 +31,8 @@ export interface TableState<TColumn extends string = string> {
   // Filtering
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  filters: Record<string, any>;
-  setFilter: (key: string, value: any) => void;
+  filters: Record<string, unknown>;
+  setFilter: (key: string, value: unknown) => void;
   clearFilters: () => void;
   
   // Pagination
@@ -61,7 +61,7 @@ export function useTableState<TColumn extends string = string>(
   
   // Search & filter state
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
   
   // Pagination state
   const [pagination, setPagination] = useState<PaginationConfig>({
@@ -167,7 +167,7 @@ export function applyTableState<T, TColumn extends string>(
   state: TableState<TColumn>,
   options: {
     sortFn?: (a: T, b: T, column: TColumn, direction: 'asc' | 'desc') => number;
-    filterFn?: (item: T, searchTerm: string, filters: Record<string, any>) => boolean;
+    filterFn?: (item: T, searchTerm: string, filters: Record<string, unknown>) => boolean;
   } = {}
 ): T[] {
   let result = [...data];

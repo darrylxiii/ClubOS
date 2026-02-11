@@ -67,7 +67,7 @@ export const paginatedQuery = async <T = any>(
  */
 export const getCount = async (
   table: string,
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 ): Promise<number> => {
   let query = (supabase as any)
     .from(table)

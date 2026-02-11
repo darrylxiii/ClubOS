@@ -12,7 +12,7 @@ interface TrackingEvent {
   scrollDepthPercent?: number;
   scrollDirection?: string;
   timeOnElementMs?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface PageEntry {
@@ -31,13 +31,13 @@ interface PageExit {
 
 interface FrustrationSignal {
   signalType: 'rage_click' | 'dead_click' | 'error_encountered' | 'slow_network' | 'form_error' | 'repeated_action';
-  elementInfo: Record<string, any>;
+  elementInfo: Record<string, unknown>;
   count?: number;
 }
 
 interface SearchAnalytics {
   searchQuery: string;
-  searchFilters?: Record<string, any>;
+  searchFilters?: Record<string, unknown>;
   resultsCount: number;
   searchCategory: 'jobs' | 'candidates' | 'companies' | 'global' | 'knowledge';
   clickedResultPosition?: number;
@@ -260,7 +260,7 @@ class TrackingService {
 
     try {
       // Build insert data with only required fields first
-      const insertData: Record<string, any> = {
+      const insertData: Record<string, unknown> = {
         user_id: userId,
         session_id: this.sessionId,
         page_path: entry.pagePath,
@@ -323,30 +323,30 @@ class TrackingService {
     const userId = await this.getUserId();
     if (!userId) return;
 
-    await supabase.from('user_frustration_signals').insert({
+    await supabase.from('user_frustration_signals').insert([{
       user_id: userId,
       session_id: this.sessionId,
       page_path: window.location.pathname,
       signal_type: signal.signalType,
-      element_info: signal.elementInfo,
+      element_info: signal.elementInfo as unknown as Record<string, string>,
       count: signal.count || 1,
-    });
+    }]);
   }
 
   async trackSearch(search: SearchAnalytics) {
     const userId = await this.getUserId();
     if (!userId) return;
 
-    await supabase.from('user_search_analytics').insert({
+    await supabase.from('user_search_analytics').insert([{
       user_id: userId,
       session_id: this.sessionId,
       search_query: search.searchQuery,
-      search_filters: search.searchFilters || {},
+      search_filters: (search.searchFilters || {}) as unknown as Record<string, string>,
       results_count: search.resultsCount,
       clicked_result_position: search.clickedResultPosition,
       time_to_first_click_ms: search.timeToFirstClick,
       search_category: search.searchCategory,
-    });
+    }]);
   }
 
   async trackJourneyStep(step: JourneyStep) {

@@ -16,7 +16,7 @@ const ADDITIONAL_NAMESPACES = [
 
 // Minimal English translations for additional namespaces
 const getDefaultTranslations = (namespace: string) => {
-  const defaults: Record<string, Record<string, any>> = {
+  const defaults: Record<string, Record<string, unknown>> = {
     admin: {
       title: "Admin Dashboard",
       users: { title: "Users", manage: "Manage Users" },

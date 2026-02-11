@@ -168,7 +168,7 @@ export const useMessages = (conversationId?: string) => {
       const profilesById = participantProfiles?.reduce((acc, profile) => {
         acc[profile.id] = profile;
         return acc;
-      }, {} as Record<string, any>) || {};
+      }, {} as Record<string, { full_name: string; avatar_url: string }>) || {};
 
       // Batch fetch all last messages
       const { data: allLastMessages } = await supabase
@@ -187,7 +187,7 @@ export const useMessages = (conversationId?: string) => {
       const sendersById = senderProfiles?.reduce((acc, profile) => {
         acc[profile.id] = profile;
         return acc;
-      }, {} as Record<string, any>) || {};
+      }, {} as Record<string, { full_name: string; avatar_url: string }>) || {};
 
       // Batch fetch all unread counts
       const { data: allUnreadNotifications } = await supabase
@@ -223,7 +223,7 @@ export const useMessages = (conversationId?: string) => {
           } : null
         });
         return acc;
-      }, {} as Record<string, any[]>) || {};
+      }, {} as Record<string, unknown[]>) || {};
 
       const lastMessageByConvo = allLastMessages?.reduce((acc, msg) => {
         if (!acc[msg.conversation_id]) {
@@ -234,7 +234,7 @@ export const useMessages = (conversationId?: string) => {
           };
         }
         return acc;
-      }, {} as Record<string, any>) || {};
+      }, {} as Record<string, unknown>) || {};
 
       const unreadCountByConvo = allUnreadNotifications?.reduce((acc, notif) => {
         const convoId = (notif as any).messages?.conversation_id;
@@ -370,7 +370,7 @@ export const useMessages = (conversationId?: string) => {
   }, [loadingMore, hasMoreMessages, loadMessages]);
 
   const sendMessage = useCallback(
-    async (content: string, files?: File[], metadata?: Record<string, any>) => {
+    async (content: string, files?: File[], metadata?: Record<string, unknown>) => {
       if (!conversationId || !user?.id || (!content.trim() && !files?.length && !metadata?.media_url && !metadata?.gif_url && !metadata?.sticker_url)) return;
 
       setSending(true);
@@ -378,19 +378,19 @@ export const useMessages = (conversationId?: string) => {
         // Insert message
         const { data: newMessage, error: messageError } = await supabase
           .from('messages')
-          .insert({
+          .insert([{
             conversation_id: conversationId,
             sender_id: user.id,
             content: content.trim() || '',
             message_type: 'text',
-            media_type: metadata?.media_type || 'text',
-            media_url: metadata?.media_url,
-            media_duration: metadata?.media_duration,
-            gif_url: metadata?.gif_url,
-            sticker_url: metadata?.sticker_url,
-            priority: metadata?.priority || 'normal',
-            is_urgent: metadata?.is_urgent || false,
-          })
+            media_type: (metadata?.media_type as string) || 'text',
+            media_url: metadata?.media_url as string | undefined,
+            media_duration: metadata?.media_duration as number | undefined,
+            gif_url: metadata?.gif_url as string | undefined,
+            sticker_url: metadata?.sticker_url as string | undefined,
+            priority: (metadata?.priority as string) || 'normal',
+            is_urgent: (metadata?.is_urgent as boolean) || false,
+          }])
           .select()
           .single();
 

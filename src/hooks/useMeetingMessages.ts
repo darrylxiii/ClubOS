@@ -7,7 +7,7 @@ interface CreateMeetingMessageParams {
   meetingId: string;
   systemMessageType: 'meeting_created' | 'meeting_scheduled' | 'meeting_started' | 'meeting_ended' | 'call_started' | 'call_ended' | 'participant_joined' | 'participant_left';
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export const useMeetingMessages = () => {

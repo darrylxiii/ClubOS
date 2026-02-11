@@ -59,7 +59,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
       profileIds.length > 0 ? supabase.from('profiles').select('id, full_name, avatar_url, email').in('id', profileIds) : { data: [] }
     ]);
 
-    const nameMap: Record<string, any> = {};
+    const nameMap: Record<string, { name: string | null; avatar?: string | null; email?: string | null }> = {};
     (candidatesRes.data || []).forEach(c => { nameMap[c.id] = { name: c.full_name, avatar: c.avatar_url }; });
     (prospectsRes.data || []).forEach(p => { nameMap[p.id] = { name: p.full_name, email: p.email }; });
     (companiesRes.data || []).forEach(c => { nameMap[c.id] = { name: c.name, avatar: c.logo_url }; });
@@ -81,7 +81,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
     }
 
     return data.map(r => {
-      const details = nameMap[r.entity_id] || {};
+      const details = nameMap[r.entity_id] || { name: null, avatar: null, email: null };
       let fallbackName = 'Unknown Entity';
 
       // Smart fallback with ID fragment if resolution fails
