@@ -122,8 +122,8 @@ export function EnhancedClubAIAdvisor({
 
       if (error) throw error;
       setDraftReply(data?.reply || data?.message || 'Unable to generate reply');
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
     } finally {
       setIsDraftingReply(false);
     }
@@ -167,8 +167,8 @@ export function EnhancedClubAIAdvisor({
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, assistantMessage]);
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }

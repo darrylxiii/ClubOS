@@ -64,8 +64,8 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
             setResults(data?.matches || []);
             setThoughtProcess(data?.thought_process || null);
 
-        } catch (err: any) {
-            toast.error(`Search failed: ${err.message}`);
+        } catch (err: unknown) {
+            toast.error(`Search failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
         } finally {
             setIsSearching(false);
         }
@@ -213,8 +213,8 @@ export default function AgentBrain() {
                 setSelectedCompany(companyId);
             }
 
-        } catch (err: any) {
-            toast.error(`Ingestion failed: ${err.message || "Unknown error"}`);
+        } catch (err: unknown) {
+            toast.error(`Ingestion failed: ${err instanceof Error ? err.message : "Unknown error"}`);
         } finally {
             setIsIngesting(false);
         }

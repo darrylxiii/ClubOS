@@ -197,9 +197,9 @@ export function useCompanyRelationships(selectedCompanyId?: string | null) {
           : 0
       };
       setStats(statsData);
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error('Error fetching company relationships:', err);
-      notify.error('Failed to load relationships', { description: err.message });
+      notify.error('Failed to load relationships', { description: err instanceof Error ? err.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }

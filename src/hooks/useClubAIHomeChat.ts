@@ -177,8 +177,8 @@ export function useClubAIHomeChat(): UseClubAIHomeChatReturn {
           } catch {}
         }
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       console.error('Club AI chat error:', err);
       if (!assistantContent) {
         setMessages(prev => [

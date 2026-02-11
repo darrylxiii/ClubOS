@@ -58,9 +58,9 @@ export function LinkedInJobImport({ companyId }: LinkedInJobImportProps) {
           }
         }, 500);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('LinkedIn auth error:', err);
-      setError(err.message || 'Failed to initiate LinkedIn authorization');
+      setError(err instanceof Error ? err.message : 'Failed to initiate LinkedIn authorization');
     } finally {
       setLoading(false);
     }
@@ -83,9 +83,9 @@ export function LinkedInJobImport({ companyId }: LinkedInJobImportProps) {
       } else if (data?.status === 'failed') {
         setError(data.errorMessage || 'Import failed');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Status check error:', err);
-      setError(err.message || 'Failed to check import status');
+      setError(err instanceof Error ? err.message : 'Failed to check import status');
     }
   };
 

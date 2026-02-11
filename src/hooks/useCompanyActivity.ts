@@ -71,9 +71,9 @@ export function useCompanyActivity(options: UseCompanyActivityOptions) {
       }
       
       setHasMore(hasMoreItems);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[useCompanyActivity] Error loading events:', err);
-      setError(err.message || 'Failed to load activity');
+      setError(err instanceof Error ? err.message : 'Failed to load activity');
       setEvents([]);
     } finally {
       setIsLoading(false);

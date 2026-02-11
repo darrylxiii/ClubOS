@@ -106,9 +106,9 @@ export const BulkSchedulingTab = () => {
           });
           if (error) throw error;
           successCount++;
-        } catch (err: any) {
+        } catch (err: unknown) {
           failureCount++;
-          errors.push({ candidate_id: candidate.id, error: err.message });
+          errors.push({ candidate_id: candidate.id, error: err instanceof Error ? err.message : 'Unknown error' });
         }
       }
 

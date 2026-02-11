@@ -28,8 +28,8 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
 
       if (fetchError) throw fetchError;
       setCommunications(data || []);
-    } catch (err: any) {
-      setError(err);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err : new Error('Unknown error'));
       console.error('Error fetching unified communications:', err);
     } finally {
       setLoading(false);
@@ -50,8 +50,8 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
       await fetchCommunications();
       
       notify.success('Communication synced', { description: 'Successfully added to unified timeline' });
-    } catch (err: any) {
-      notify.error('Sync failed', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Sync failed', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, [fetchCommunications]);
 
@@ -66,7 +66,7 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
 
       if (error) throw error;
       return data || [];
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching entity timeline:', err);
       return [];
     }
@@ -89,7 +89,7 @@ export function useUnifiedCommunications(entityType?: string, entityId?: string)
       const { data, error } = await query.limit(50);
       if (error) throw error;
       return data || [];
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching key moments:', err);
       return [];
     }

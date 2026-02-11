@@ -79,18 +79,19 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
             await video.play();
             console.log(`[ParticipantTile] ✅ Video playing for ${participant.display_name}`);
             setIsLoading(false);
-          } catch (err: any) {
-            if (err.name === 'NotAllowedError' && retryCount < maxRetries) {
+          } catch (err: unknown) {
+            const e = err as { name?: string; message?: string };
+            if (e.name === 'NotAllowedError' && retryCount < maxRetries) {
               retryCount++;
               console.warn(`[ParticipantTile] ⚠️ Autoplay blocked for ${participant.display_name}, retry ${retryCount}/${maxRetries}`);
               // Retry after increasing delay
               await new Promise(resolve => setTimeout(resolve, 300 * retryCount));
               return attemptPlay();
-            } else if (err.name === 'AbortError') {
+            } else if (e.name === 'AbortError') {
               // AbortError usually means the element was removed or src changed - not critical
               console.log(`[ParticipantTile] Play aborted for ${participant.display_name} (likely element removed)`);
             } else {
-              console.error(`[ParticipantTile] ❌ Video play failed for ${participant.display_name}:`, err.message);
+              console.error(`[ParticipantTile] ❌ Video play failed for ${participant.display_name}:`, e.message);
             }
             setIsLoading(false);
           }

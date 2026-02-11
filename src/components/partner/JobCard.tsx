@@ -45,8 +45,8 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
       } else {
         toast.info("Agent finished search but found no new strong matches.");
       }
-    } catch (err: any) {
-      toast.error(`Agent failed: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Agent failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsRecruiting(false);
     }

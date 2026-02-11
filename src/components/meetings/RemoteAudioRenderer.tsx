@@ -36,12 +36,13 @@ export function RemoteAudioRenderer({
         volume: audio.volume
       });
       return true;
-    } catch (err: any) {
-      if (err.name === 'NotAllowedError' && playAttemptRef.current < maxRetries) {
+    } catch (err: unknown) {
+      const e = err as { name?: string; message?: string };
+      if (e.name === 'NotAllowedError' && playAttemptRef.current < maxRetries) {
         playAttemptRef.current++;
         logger.warn(`[RemoteAudio] ⚠️ Autoplay blocked for ${participantName}, retry ${playAttemptRef.current}/${maxRetries}`, {
           componentName: 'RemoteAudioRenderer',
-          error: err.message
+          error: e.message
         });
         // Retry after a short delay - user interaction may unlock audio
         await new Promise(resolve => setTimeout(resolve, 500 * playAttemptRef.current));
@@ -50,7 +51,7 @@ export function RemoteAudioRenderer({
       
       logger.warn(`[RemoteAudio] ⚠️ Failed to play audio for ${participantName}:`, {
         componentName: 'RemoteAudioRenderer',
-        error: err.message,
+        error: e.message,
         attempts: playAttemptRef.current
       });
       return false;

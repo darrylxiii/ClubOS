@@ -173,9 +173,9 @@ export function usePartnerRelationships() {
         avgEngagement: Math.round(avgEng * 10) / 10
       });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching relationships:', err);
-      notify.error('Error', { description: err.message });
+      notify.error('Error', { description: err instanceof Error ? err.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }

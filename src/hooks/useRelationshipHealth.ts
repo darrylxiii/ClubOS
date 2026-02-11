@@ -156,7 +156,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
       setRelationships(deduped);
       updateStats(deduped);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching relationship health:', err);
       // Even in error, clear loading state
     } finally {
@@ -177,7 +177,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
 
       if (error && error.code !== 'PGRST116') throw error;
       return data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching relationship score:', err);
       return null;
     }
@@ -192,8 +192,8 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
       if (error) throw error;
       notify.success('Insights generated', { description: 'AI analysis complete' });
       return data;
-    } catch (err: any) {
-      notify.error('Failed to generate insights', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Failed to generate insights', { description: err instanceof Error ? err.message : 'Unknown error' });
       return null;
     }
   }, []);
@@ -206,8 +206,8 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
 
       await fetchRelationships();
       notify.success('Score updated', { description: 'Relationship score recalculated' });
-    } catch (err: any) {
-      notify.error('Recalculation failed', { description: err.message });
+    } catch (err: unknown) {
+      notify.error('Recalculation failed', { description: err instanceof Error ? err.message : 'Unknown error' });
     }
   }, [fetchRelationships]);
 
