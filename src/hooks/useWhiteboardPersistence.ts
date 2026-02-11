@@ -40,7 +40,7 @@ export function useWhiteboardPersistence({
             }
 
             return data?.state_data || null;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error loading whiteboard state:', error);
             toast.error('Failed to load whiteboard state');
             return null;
@@ -73,7 +73,7 @@ export function useWhiteboardPersistence({
             if (error) throw error;
 
             lastSavedStateRef.current = stateString;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error saving whiteboard state:', error);
             toast.error('Failed to save whiteboard state');
         }
@@ -114,7 +114,7 @@ export function useWhiteboardPersistence({
                     operation_data: operationData,
                     user_id: user.id
                 } as any) as any);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error logging whiteboard operation:', error);
         }
     }, [enabled, channelId, user]);
@@ -167,7 +167,7 @@ export function useWhiteboardPersistence({
 
             lastSavedStateRef.current = null;
             toast.success('Whiteboard cleared');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error clearing whiteboard:', error);
             toast.error('Failed to clear whiteboard');
         }
@@ -192,7 +192,7 @@ export function useWhiteboardPersistence({
             await saveWhiteboardState(stateData);
             toast.success('Whiteboard imported');
             return stateData;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error importing whiteboard:', error);
             toast.error('Invalid whiteboard data');
             return null;

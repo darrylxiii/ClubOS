@@ -65,9 +65,9 @@ export function useImpersonation() {
 
       toast.success('Impersonation started - viewing as user (read-only)');
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error starting impersonation:', error);
-      toast.error(error.message || 'Failed to start impersonation');
+      toast.error(error instanceof Error ? error.message : 'Failed to start impersonation');
       return false;
     } finally {
       setIsLoading(false);
@@ -91,9 +91,9 @@ export function useImpersonation() {
 
       toast.success('Impersonation ended');
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error ending impersonation:', error);
-      toast.error(error.message || 'Failed to end impersonation');
+      toast.error(error instanceof Error ? error.message : 'Failed to end impersonation');
       return false;
     } finally {
       setIsLoading(false);

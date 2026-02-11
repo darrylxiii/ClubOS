@@ -51,10 +51,10 @@ export const useAssessmentResults = () => {
       if (error) throw error;
 
       return { success: true, data };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving assessment result:', error);
       notify.error('Failed to save assessment results. Please try again.');
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   };
 
@@ -77,9 +77,9 @@ export const useAssessmentResults = () => {
       if (error) throw error;
 
       return { success: true, data: data || [] };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching assessment results:', error);
-      return { success: false, data: [], error: error.message };
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Unknown error' };
     }
   };
 

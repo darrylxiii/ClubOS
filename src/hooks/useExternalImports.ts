@@ -95,8 +95,8 @@ export function useExternalImports(options: UseExternalImportsOptions = {}) {
       toast.success('Reprocessing started');
       queryClient.invalidateQueries({ queryKey: ['external-imports'] });
     },
-    onError: (error: any) => {
-      toast.error('Failed to reprocess', { description: error.message });
+    onError: (error: unknown) => {
+      toast.error('Failed to reprocess', { description: error instanceof Error ? error.message : 'Unknown error' });
     },
   });
 
@@ -113,8 +113,8 @@ export function useExternalImports(options: UseExternalImportsOptions = {}) {
       toast.success('Import deleted');
       queryClient.invalidateQueries({ queryKey: ['external-imports'] });
     },
-    onError: (error: any) => {
-      toast.error('Failed to delete', { description: error.message });
+    onError: (error: unknown) => {
+      toast.error('Failed to delete', { description: error instanceof Error ? error.message : 'Unknown error' });
     },
   });
 
@@ -206,9 +206,9 @@ export function useExternalImports(options: UseExternalImportsOptions = {}) {
         queryClient.invalidateQueries({ queryKey: ['external-imports'] });
         return importRecord;
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Upload import error:', error);
-        toast.error('Failed to upload import', { description: error.message });
+        toast.error('Failed to upload import', { description: error instanceof Error ? error.message : 'Unknown error' });
         throw error;
       }
     }

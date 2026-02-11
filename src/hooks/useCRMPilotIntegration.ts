@@ -60,7 +60,7 @@ ${prospect.reply_sentiment === 'hot' ? '🔥 Hot lead - respond quickly!' : pros
 
       toast.success('Task created in Club Pilot');
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create pilot task:', error);
       toast.error('Failed to create task');
       return false;

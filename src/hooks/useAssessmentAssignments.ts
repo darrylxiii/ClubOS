@@ -44,9 +44,10 @@ export const useAssessmentAssignments = () => {
       });
 
       return { success: true, data };
-    } catch (error: any) {
-      notify.error('Error', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error', { description: msg });
+      return { success: false, error: msg };
     } finally {
       setLoading(false);
     }
@@ -82,9 +83,10 @@ export const useAssessmentAssignments = () => {
       if (error) throw error;
 
       return { success: true, data: data as AssessmentAssignment[] };
-    } catch (error: any) {
-      notify.error('Error loading assignments', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error loading assignments', { description: msg });
+      return { success: false, error: msg };
     }
   };
 
@@ -110,9 +112,10 @@ export const useAssessmentAssignments = () => {
       if (error) throw error;
 
       return { success: true };
-    } catch (error: any) {
-      notify.error('Error updating assignment', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error updating assignment', { description: msg });
+      return { success: false, error: msg };
     }
   };
 
@@ -130,9 +133,10 @@ export const useAssessmentAssignments = () => {
       });
 
       return { success: true };
-    } catch (error: any) {
-      notify.error('Error sending reminder', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error sending reminder', { description: msg });
+      return { success: false, error: msg };
     }
   };
 
