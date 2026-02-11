@@ -1,145 +1,90 @@
 
-# Email Dump for Jobs -- Comprehensive Plan
 
-## Problem
-Recruiters send emails to partners with candidate information. When partners don't use the OS, recruiters must manually enter each candidate into the system -- double work. We need a way to dump raw email content (forwarded emails, copy-pasted text) per job and have AI extract all candidates automatically into the pipeline.
+# Email Dump Audit and Fix Plan
 
-## Solution Overview
-Build an "Email Dump" feature on each Job Dashboard where strategists can:
-1. Paste raw email text (or multiple emails) into a text area
-2. AI parses the content and extracts every candidate mentioned (name, email, phone, title, company, LinkedIn URL)
-3. Review extracted candidates in a preview table with edit capability
-4. Batch-import all confirmed candidates into the pipeline as applications + candidate_profiles in one click
+## Current Score: 45/100
 
----
+### Issues Found
 
-## Architecture
-
-### 1. Database: `job_email_dumps` table
-Stores every raw email dump per job for audit trail and re-processing.
-
-| Column | Type | Purpose |
-|--------|------|---------|
-| id | uuid PK | |
-| job_id | uuid FK -> jobs | Which job this dump belongs to |
-| raw_content | text | The pasted/forwarded email text |
-| extracted_candidates | jsonb | AI-parsed candidate array |
-| import_status | text | pending / imported / partial / failed |
-| imported_count | int | How many were imported |
-| created_by | uuid FK -> profiles | Who pasted it |
-| created_at | timestamptz | |
-| processed_at | timestamptz | When AI extraction completed |
-
-RLS: Only admins and strategists (via user_roles) can read/write.
-
-### 2. Edge Function: `parse-email-candidates`
-- Receives `{ raw_content, job_id }`
-- Sends the raw text to Lovable AI (gemini-3-flash-preview) with a structured extraction prompt
-- Uses **tool calling** to extract an array of candidates with fields: `full_name`, `email`, `phone`, `current_title`, `current_company`, `linkedin_url`, `notes`
-- Returns the structured array to the frontend
-- Handles rate limit (429) and payment (402) errors gracefully
-
-### 3. Frontend Components
-
-**A. `EmailDumpTab.tsx`** (new tab on JobDashboard)
-- Large text area for pasting email content
-- "Extract Candidates" button that calls the edge function
-- Support for pasting multiple emails at once (separator detection)
-
-**B. `ExtractedCandidatesPreview.tsx`**
-- Table showing all AI-extracted candidates
-- Editable inline fields (name, email, LinkedIn, title, company)
-- Duplicate detection: checks against existing `candidate_profiles` by email/LinkedIn
-- Checkboxes to select/deselect individual candidates
-- Confidence indicator per candidate (from AI)
-
-**C. `EmailDumpHistory.tsx`**
-- List of previous dumps for this job with timestamp, who created, count imported
-- Re-process button for failed dumps
-
-### 4. Import Logic (on "Import to Pipeline")
-For each confirmed candidate:
-1. Check if `candidate_profiles` already exists (match by email or linkedin_url)
-2. If exists: link existing profile; if not: create new `candidate_profiles` row with `source_channel = 'email_dump'`
-3. Create `applications` row linked to the job with:
-   - `candidate_id` -> the profile
-   - `candidate_full_name`, `candidate_email`, `candidate_linkedin_url`, etc. denormalized
-   - `application_source` = 'sourced' (or appropriate enum value)
-   - `current_stage_index` = 0 (Applied stage)
-   - `status` = 'active'
-4. Update the `job_email_dumps` row with `import_status = 'imported'` and count
-5. Optionally trigger auto-tagging and enrichment for new profiles
-
-### 5. JobDashboard Integration
-- Add "Email Dump" tab to the existing TabsList in `JobDashboard.tsx`
-- Only visible to admin/strategist roles
-- Badge showing number of pending dumps
+| # | Issue | Severity |
+|---|-------|----------|
+| 1 | Edge function NOT registered in config.toml -- will not deploy | Critical |
+| 2 | Calls non-existent `ai-proxy` instead of Lovable AI Gateway directly | Critical |
+| 3 | `application_source: "sourced"` is not a valid enum value -- imports fail | Critical |
+| 4 | Plain textarea strips HTML on paste -- LinkedIn hyperlinks are lost | Critical (your reported issue) |
+| 5 | Sequential N+1 import queries -- slow for batch imports | Medium |
+| 6 | No re-process button for failed dumps | Low |
+| 7 | `as any` type casts for `job_email_dumps` (cosmetic but error-prone) | Low |
 
 ---
 
-## Implementation Phases
+## Fixes
 
-### Phase 1: Database + Edge Function
-- Create `job_email_dumps` table with RLS
-- Build `parse-email-candidates` edge function using Lovable AI tool calling
-- Register in config.toml
+### Fix 1: Rich Paste Support (hyperlink extraction)
 
-### Phase 2: Frontend -- Email Dump Tab
-- Create `EmailDumpTab.tsx` with paste area and extraction flow
-- Create `ExtractedCandidatesPreview.tsx` with editable table
-- Create `EmailDumpHistory.tsx` for audit trail
-- Add tab to `JobDashboard.tsx`
+Replace the plain `<textarea>` with a paste handler that intercepts `onPaste`, reads `clipboardData.getData('text/html')`, and extracts all `<a href="...">` URLs alongside the plain text.
 
-### Phase 3: Import Pipeline
-- Implement deduplication logic (email + LinkedIn matching)
-- Batch create `candidate_profiles` + `applications`
-- Trigger `auto-tag-candidate` and `enrich-candidate-profile` for new profiles
-- Update dump status
+The edge function prompt will be updated to receive BOTH the plain text AND a list of extracted hyperlinks, so the AI can match names to LinkedIn URLs even when the email used hyperlinked names.
+
+Frontend logic:
+- On paste: grab HTML from clipboard, extract all anchor tags with `href` containing "linkedin.com"
+- Prepend a "Detected hyperlinks" section to the raw content sent to the AI
+- Keep the textarea for display (plain text) but store the enriched content
+
+### Fix 2: Register function in config.toml
+
+Add `[functions.parse-email-candidates]` with `verify_jwt = false` (auth is validated in code).
+
+### Fix 3: Use Lovable AI Gateway directly
+
+Replace the `ai-proxy` URL with the correct gateway: `https://ai.gateway.lovable.dev/v1/chat/completions` using `LOVABLE_API_KEY`.
+
+### Fix 4: Fix application_source enum
+
+Change `"sourced"` to `"other"` (closest valid enum value).
+
+### Fix 5: Batch import optimization
+
+Replace the sequential loop with parallel processing using `Promise.allSettled` for candidate profile creation and application insertion.
+
+### Fix 6: Re-process button on failed dumps
+
+Add a button in `EmailDumpHistory` that re-sends the raw_content to the edge function.
 
 ---
+
+## Target Score: 100/100
+
+After all fixes:
+- Rich paste preserves hyperlinks (LinkedIn URLs extracted from HTML)
+- Edge function deploys correctly and calls the right AI gateway
+- Batch import works for 10+ candidates at once without errors
+- Failed dumps can be re-processed
+- Valid enum values used throughout
 
 ## Technical Details
 
-### AI Extraction Prompt Strategy
-The edge function will use tool calling with this schema:
+### Files to modify:
+1. `supabase/config.toml` -- add function entry
+2. `supabase/functions/parse-email-candidates/index.ts` -- fix AI gateway URL, use LOVABLE_API_KEY, update prompt to handle hyperlinks
+3. `src/components/jobs/email-dump/EmailDumpTab.tsx` -- add HTML paste handler, extract hyperlinks from clipboard
+4. `src/components/jobs/email-dump/ExtractedCandidatesPreview.tsx` -- fix `application_source` enum, batch import
+5. `src/components/jobs/email-dump/EmailDumpHistory.tsx` -- add re-process button
+
+### Paste Handler Design
 
 ```text
-Function: extract_candidates
-Parameters:
-  candidates: array of {
-    full_name: string (required)
-    email: string
-    phone: string
-    current_title: string
-    current_company: string
-    linkedin_url: string
-    notes: string (any extra context from the email)
-    confidence: number (0-1, how confident the extraction is)
-  }
+onPaste event:
+  1. e.clipboardData.getData('text/html') -> parse with DOMParser
+  2. querySelectorAll('a[href]') -> extract all href values
+  3. Filter for linkedin.com URLs, map to { text: anchor.textContent, url: href }
+  4. e.clipboardData.getData('text/plain') -> set as textarea value
+  5. Append extracted links metadata to content sent to AI
 ```
 
-System prompt will instruct the model to:
-- Extract ALL people mentioned as candidates (not senders/recruiters)
-- Normalize LinkedIn URLs to standard format
-- Parse phone numbers with country codes
-- Identify titles and companies from context
-- Flag low-confidence extractions
+### Updated AI Prompt
 
-### Deduplication Strategy
-1. First match by email (exact, case-insensitive)
-2. Then match by LinkedIn URL (normalized)
-3. Then fuzzy match by full_name + current_company (flag for review, don't auto-merge)
+The system prompt will instruct the model:
+- "HYPERLINKS section contains URLs extracted from the email HTML. Match these to candidate names."
+- This ensures names like "John Smith" that were hyperlinked to their LinkedIn profile get properly associated.
 
-### Edge Cases Handled
-- Multiple emails pasted at once (detect "From:" / "Subject:" separators)
-- Forwarded email chains (extract only candidates, not email metadata people)
-- Non-English names and international phone formats
-- Candidates with partial info (name only is sufficient)
-- Duplicate candidates within the same dump
-- Candidates already in the pipeline for this specific job
-
-### Security
-- RLS on `job_email_dumps`: only admins/strategists via user_roles
-- Edge function validates auth token
-- Raw email content stored for audit but not exposed to candidates/partners
-- No PII leakage to unauthorized roles
