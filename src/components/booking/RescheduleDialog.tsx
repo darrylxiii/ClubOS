@@ -83,9 +83,9 @@ export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onR
       setSelectedDate(null);
       setSelectedTime("");
       setReason("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error rescheduling:", error);
-      toast.error(error.message || "Failed to reschedule booking");
+      toast.error(error instanceof Error ? error.message : "Failed to reschedule booking");
     } finally {
       setLoading(false);
     }

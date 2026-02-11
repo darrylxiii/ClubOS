@@ -131,7 +131,7 @@ export function InviteParticipantsDialog({
           toast.error(`Some invitations failed: ${result.errors[0]}`);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to send invitations:', error);
       setEmails(prev => prev.map(e => ({ ...e, status: 'error', error: 'Failed to send' })));
       toast.error('Failed to send invitations');

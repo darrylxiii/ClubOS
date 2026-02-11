@@ -171,9 +171,9 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
       // }
 
       toast.success('Connected to voice channel');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error joining channel:', error);
-      const errorMessage = error?.message || 'Failed to connect to voice channel';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to voice channel';
       toast.error(errorMessage);
     } finally {
       setIsJoining(false);

@@ -120,8 +120,8 @@ export function ConnectionTroubleshooter({
         message: `Camera ready: ${track.label}`,
         details: `Resolution: ${settings.width}x${settings.height}`
       };
-    } catch (error: any) {
-      if (error.name === 'NotAllowedError') {
+    } catch (error: unknown) {
+      if ((error as { name?: string }).name === 'NotAllowedError') {
         return {
           status: 'fail',
           message: 'Camera access denied',
@@ -130,7 +130,7 @@ export function ConnectionTroubleshooter({
       }
       return {
         status: 'fail',
-        message: 'Camera error: ' + error.message,
+        message: 'Camera error: ' + (error instanceof Error ? error.message : 'Unknown error'),
         suggestion: 'Make sure no other app is using your camera'
       };
     }
@@ -156,8 +156,8 @@ export function ConnectionTroubleshooter({
         status: 'pass',
         message: `Microphone ready: ${track.label}`
       };
-    } catch (error: any) {
-      if (error.name === 'NotAllowedError') {
+    } catch (error: unknown) {
+      if ((error as { name?: string }).name === 'NotAllowedError') {
         return {
           status: 'fail',
           message: 'Microphone access denied',
@@ -166,7 +166,7 @@ export function ConnectionTroubleshooter({
       }
       return {
         status: 'fail',
-        message: 'Microphone error: ' + error.message,
+        message: 'Microphone error: ' + (error instanceof Error ? error.message : 'Unknown error'),
         suggestion: 'Make sure no other app is using your microphone'
       };
     }
@@ -403,13 +403,13 @@ export function ConnectionTroubleshooter({
         ...prev,
         [step.id]: result
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       setResults(prev => ({
         ...prev,
         [step.id]: {
           status: 'fail',
           message: 'Test failed unexpectedly',
-          details: error.message
+          details: error instanceof Error ? error.message : 'Unknown error'
         }
       }));
     }

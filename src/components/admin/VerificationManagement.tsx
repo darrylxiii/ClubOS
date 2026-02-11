@@ -66,7 +66,7 @@ export const VerificationManagement = () => {
         
         setAttempts(enrichedData as any);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching attempts:', error);
       toast.error('Failed to load verification attempts');
     } finally {
@@ -85,7 +85,7 @@ export const VerificationManagement = () => {
 
       toast.success('Email manually verified');
       fetchAttempts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error:', error);
       toast.error('Failed to verify email');
     }
@@ -102,7 +102,7 @@ export const VerificationManagement = () => {
 
       toast.success('Phone manually verified');
       fetchAttempts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error:', error);
       toast.error('Failed to verify phone');
     }

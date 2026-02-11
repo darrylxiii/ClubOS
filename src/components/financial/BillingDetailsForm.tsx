@@ -101,8 +101,8 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
       if (error) throw error;
 
       notify.success("Billing details saved successfully");
-    } catch (error: any) {
-      notify.error(error.message);
+    } catch (error: unknown) {
+      notify.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
