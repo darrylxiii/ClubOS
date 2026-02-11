@@ -1,82 +1,57 @@
 
-# Home Pages Elite UI/UX Overhaul -- All Three Roles
+# Quick Actions Button & Content Revamp
 
 ## Problem
+1. **Buttons too dark**: Admin Quick Management and Partner Quick Actions use `variant="glass"` buttons (`bg-card/30 + border-border/40 + shadow-glass-md`) sitting inside `glass-subtle` containers (`bg-card/50`). The stacked opacity creates visually heavy, dark buttons that clash with the lighter glass aesthetic of surrounding widgets.
+2. **Dull actions**: The current Quick Management links (Manage Users, Manage Companies, Security Settings, View System Logs, KPI Command Center) are generic navigation items -- they feel like a sidebar menu copy-pasted into a card rather than high-impact executive shortcuts.
 
-The screenshot confirms the issue: every section is wrapped in multiple card layers. The root cause is `ClubHome.tsx` line 56 which wraps all role content in a `glass-card` div (adds opaque bg, border, padding, blur). Then each widget inside (UnifiedStatsBar, ClubAIHomeChatWidget, Quick Management, Platform Growth, etc.) also uses `Card` or `glass-card` -- creating cards-inside-cards. The result: no breathing room, zero background visibility, and a "cheap dashboard" feel.
+## Fix 1: Lighter Button Styling
 
-## Root Fix: ClubHome.tsx Wrapper
+Change all Quick Action buttons from `variant="glass"` to `variant="ghost"` across Admin and Partner home pages. The `ghost` variant (`hover:bg-card/20, text-muted-foreground`) is nearly transparent at rest and only shows a subtle hover state -- matching the "floating on glass" aesthetic.
 
-Remove the `glass-card` wrapper from `ClubHome.tsx`. The role views should float directly on the background, not sit inside a giant card container. Change line 56 from `<div className="glass-card">` to just render `{renderRoleView()}` without any wrapping card.
+Also change the one `variant="outline"` button in PartnerHome (Messages) to `ghost` for consistency.
 
-## Fix 1: ClubHomeHeader -- Borderless Glass
+**Files**: `AdminHome.tsx` (5 buttons), `PartnerHome.tsx` (4 buttons)
 
-**Current**: `bg-card rounded-lg border p-6` (opaque card with hard border)
-**Target**: `glass-subtle rounded-2xl p-6` (translucent glass, no hard border, matches platform aesthetic)
+## Fix 2: Admin Quick Management -- Better Actions
 
-Also remove the skeleton fallback border: change from `bg-card rounded-lg border p-6` to `glass-subtle rounded-2xl p-6`.
+Replace the current generic nav links with higher-impact executive actions:
 
-## Fix 2: UnifiedStatsBar -- Remove Hover Glow Layer
+| Current (dull) | New (actionable) | Icon | Route |
+|---|---|---|---|
+| Manage Users & Roles | Invite New Member | UserPlus | /admin?tab=users |
+| Manage Companies | Onboard Partner | Building2 | /admin?tab=companies |
+| Security Settings | Review Flagged Items | AlertTriangle | /admin/anti-hacking |
+| View System Logs | Approve Pending Jobs | CheckCircle | /jobs?status=pending |
+| KPI Command Center | View KPI Dashboard | BarChart3 | /admin/kpi-command-center |
 
-**Current**: Each stat card has a `<div className="absolute -inset-0.5 bg-gradient-to-r ... blur-sm" />` overlay that creates the visible "bigger card behind" effect from the screenshot. The `MetricCard` itself uses `Card` with `glass-subtle` override.
+These feel like actions an admin would take right now rather than places to navigate.
 
-**Target**: Remove the outer glow div entirely. Keep the `MetricCard` with `glass-subtle` but without the absolute-positioned glow wrapper. This eliminates the "card behind card" look.
+**File**: `AdminHome.tsx`
 
-## Fix 3: AdminHome -- Glass-ify All Widgets
+## Fix 3: Partner Quick Actions -- Better Actions
 
-- **Quick Management**: Change `Card className="glass-card"` to `div className="glass-subtle rounded-2xl"`. Remove `CardHeader`/`CardContent` wrappers, use simple padding.
-- **PlatformGrowthCard**: Replace `Card` with `div className="glass-subtle rounded-2xl p-6"`. Remove `CardHeader`/`CardContent`, use inline heading.
-- **ClubAIHomeChatWidget**: Change `Card className="glass-card overflow-hidden border-primary/10"` to `div className="glass-subtle rounded-2xl overflow-hidden"`.
-- All `DashboardSection` children that use `Card` or `glass-card` will be updated to use `glass-subtle rounded-2xl` instead.
+| Current (dull) | New (actionable) | Icon | Route |
+|---|---|---|---|
+| Post New Job | Create New Role | Plus | /company-jobs/new |
+| Review Applications | Review Shortlist | Users | /company-applications |
+| Update Company Profile | Schedule Interview | Calendar | /meetings |
+| Message Candidates | Message Candidates | MessageSquare | /messages |
 
-## Fix 4: CandidateHome -- De-layer All Widgets
+**File**: `PartnerHome.tsx`
 
-- Remove `DashboardSection` wrappers where they add unnecessary nesting (keep grid utility only).
-- **Club Projects Banner**: Change `Card className="glass-strong"` to `div className="glass-subtle rounded-2xl"`.
-- Ensure `NextBestActionCard`, `ApplicationStatusTracker`, `CandidateQuickActions` (already updated in prior round) stay on `glass-subtle`.
+## Fix 4: Candidate Quick Actions -- Consistent Ghost Styling
 
-## Fix 5: PartnerHome -- Glass-ify Quick Actions Card
+The `CandidateQuickActions` buttons currently use `variant={action.variant}` which alternates between `"default"` and `"outline"`. Standardize all to use the `ghost` variant with `glass-subtle border-0` so they match Admin/Partner.
 
-- **Quick Actions Card** (line 176): Change `Card className="glass-card group hover:border-primary/30"` to `div className="glass-subtle rounded-2xl"`. Remove `CardHeader`/`CardContent` chrome. Use simple padding + text heading.
-- Same pattern for all partner widgets using `Card`.
+**File**: `CandidateQuickActions.tsx`
 
-## Fix 6: DashboardSection -- Remove Motion Wrapper
+## Summary
 
-`DashboardSection` wraps every section in a `motion.section` with `initial/animate` -- this causes a staggered bounce that slows perceived load. Simplify to a plain `section` tag. The individual widgets can animate themselves.
+| File | Changes |
+|---|---|
+| `src/components/clubhome/AdminHome.tsx` | 5 buttons: `variant="glass"` to `variant="ghost"`, update labels/icons/routes |
+| `src/components/clubhome/PartnerHome.tsx` | 4 buttons: `variant="glass"`/`"outline"` to `variant="ghost"`, update labels/icons/routes |
+| `src/components/candidate/CandidateQuickActions.tsx` | Standardize all button variants to `ghost` |
 
-## Summary of Files Changed
-
-| File | Change |
-|------|--------|
-| `src/pages/ClubHome.tsx` | Remove `glass-card` wrapper div |
-| `src/components/clubhome/ClubHomeHeader.tsx` | `bg-card rounded-lg border` to `glass-subtle rounded-2xl` |
-| `src/components/clubhome/UnifiedStatsBar.tsx` | Remove glow overlay div, simplify hover |
-| `src/components/clubhome/AdminHome.tsx` | Quick Management: Card to glass-subtle div |
-| `src/components/clubhome/PlatformGrowthCard.tsx` | Card to glass-subtle div |
-| `src/components/clubhome/ClubAIHomeChatWidget.tsx` | Card to glass-subtle div |
-| `src/components/clubhome/CandidateHome.tsx` | Banner Card to glass-subtle div |
-| `src/components/clubhome/PartnerHome.tsx` | Quick Actions Card to glass-subtle div |
-| `src/components/clubhome/DashboardSection.tsx` | motion.section to plain section |
-
-Total: 9 files. All changes are class swaps and wrapper removal -- zero logic changes, zero breaking changes.
-
-## Visual Result
-
-```text
-Before:                              After:
-+=[GLASS-CARD WRAPPER]==========+   +--[transparent]--+
-| +=[CARD: Header]=============+ |   | ~glass~ Header   |
-| | Avatar + Welcome           | |   |                  |
-| +============================+ |   | stat stat stat    |
-| +=[CARD: Stats]==============+ |   |   (no glow box)   |
-| | +=[CARD]+=[CARD]+=[CARD]+  | |   |                  |
-| | | 101  || 17   || 34   |   | |   | ~glass~ AI Chat  |
-| | +=====++======++======+    | |   |                  |
-| +============================+ |   | ~glass~ Mgmt     |
-| +=[CARD: AI Chat]============+ |   |   btn btn btn    |
-| +============================+ |   |                  |
-| +=[CARD: Quick Mgmt]========+ |   | ~glass~ Growth   |
-| +============================+ |   +------------------+
-+================================+   background visible
-  3-4 nested card layers              0 nested layers
-```
+Total: 3 files, ~30 lines changed. Zero new dependencies.
