@@ -38,9 +38,9 @@ export function AIInterviewCoach({ applicationId, companyName, roleName }: AIInt
 
       setCurrentQuestion("Tell me about a time when you had to overcome a significant challenge.");
       toast.success("Practice session started!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error starting practice:', error);
-      if (error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === 'AbortError') {
         toast.error("Request timed out after 30s");
       } else {
         toast.error("Failed to start practice");

@@ -166,10 +166,10 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
       toast.success(`${request.guest_name} has been admitted to the meeting`);
       setRequests(prev => prev.filter(r => r.id !== requestId));
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[HostApproval] ❌ Failed to approve:', error);
       toast.error('Failed to approve guest', {
-        description: error.message || 'Please try again',
+        description: error instanceof Error ? error.message : 'Please try again',
         action: {
           label: 'Retry',
           onClick: () => handleApprove(requestId)

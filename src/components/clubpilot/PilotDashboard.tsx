@@ -116,7 +116,7 @@ export const PilotDashboard = () => {
       setTasks(tasksRes.data || []);
       setGoals(goalsRes.data || []);
       setDelegations(delegationsRes.data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading data:", error);
       toast.error("Failed to load dashboard data");
     } finally {
@@ -180,9 +180,9 @@ export const PilotDashboard = () => {
       });
 
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error running orchestrator:", error);
-      toast.error(error.message || "Failed to run Club Pilot");
+      toast.error(error instanceof Error ? error.message : "Failed to run Club Pilot");
     } finally {
       setOrchestrating(false);
     }
@@ -203,7 +203,7 @@ export const PilotDashboard = () => {
 
       toast.success(status === "completed" ? "Task completed!" : "Task updated");
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating task:", error);
       toast.error("Failed to update task");
     }

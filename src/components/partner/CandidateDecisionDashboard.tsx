@@ -118,7 +118,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
       toast.success("Candidate moved to Offer stage");
       setShowOfferDialog(false);
       onAction?.("offer");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error moving to offer:", error);
       toast.error("Failed to move candidate to offer stage");
     } finally {
@@ -162,7 +162,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
       setShowVerdictDialog(false);
       setVerdictNotes("");
       onAction?.(verdict);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error logging verdict:", error);
       toast.error("Failed to log verdict");
     } finally {

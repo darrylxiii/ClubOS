@@ -44,8 +44,8 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
             const courseData = JSON.parse(data.content);
             setGeneratedCourse(courseData);
             setStep('preview');
-        } catch (error: any) {
-            notify.error("Generation failed", { description: error.message });
+        } catch (error: unknown) {
+            notify.error("Generation failed", { description: error instanceof Error ? error.message : 'Unknown error' });
         } finally {
             setLoading(false);
         }
@@ -102,8 +102,8 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
             onOpenChange(false);
             navigate(`/courses/${course.slug}/edit`);
 
-        } catch (error: any) {
-            notify.error("Creation failed", { description: error.message });
+        } catch (error: unknown) {
+            notify.error("Creation failed", { description: error instanceof Error ? error.message : 'Unknown error' });
         } finally {
             setLoading(false);
         }

@@ -96,7 +96,7 @@ export function EnhancedMLDashboard() {
       }
 
       setInsights(filteredData as LiveInsight[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading insights:', error);
       toast({
         title: 'Error',
