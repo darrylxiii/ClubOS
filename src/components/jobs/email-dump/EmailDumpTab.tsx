@@ -262,7 +262,6 @@ export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImporte
 function normalizeLinkedIn(url: string): string {
   try {
     const lower = url.toLowerCase().trim().replace(/\/+$/, '');
-    // Extract the path part after linkedin.com/in/
     const match = lower.match(/linkedin\.com\/in\/([^/?#]+)/);
     return match ? match[1] : lower;
   } catch {
@@ -270,11 +269,52 @@ function normalizeLinkedIn(url: string): string {
   }
 }
 
+function normalizeName(name: string): string {
+  return name.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+// Fuzzy name match: handles "Lillian" vs "Lilian", minor typos
+function fuzzyNameMatch(a: string, b: string): boolean {
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
+  if (na === nb) return true;
+
+  // Check Levenshtein distance ≤ 2 for short names
+  if (Math.abs(na.length - nb.length) > 2) return false;
+
+  let dist = 0;
+  const longer = na.length >= nb.length ? na : nb;
+  const shorter = na.length < nb.length ? na : nb;
+
+  // Simple edit distance check (optimized for short strings)
+  const matrix: number[][] = [];
+  for (let i = 0; i <= shorter.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= longer.length; j++) {
+    matrix[0][j] = j;
+  }
+  for (let i = 1; i <= shorter.length; i++) {
+    for (let j = 1; j <= longer.length; j++) {
+      const cost = shorter[i - 1] === longer[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  dist = matrix[shorter.length][longer.length];
+
+  // Allow distance ≤ 2 for names > 5 chars, ≤ 1 for shorter
+  const threshold = na.length > 5 && nb.length > 5 ? 2 : 1;
+  return dist <= threshold;
+}
+
 async function checkDuplicates(
   candidates: ExtractedCandidate[],
   jobId: string
 ): Promise<ExtractedCandidate[]> {
-  // Ensure every candidate has the new fields
   const enriched: ExtractedCandidate[] = candidates.map((c) => ({
     ...c,
     match_type: 'new' as DuplicateMatchType,
@@ -285,8 +325,9 @@ async function checkDuplicates(
   }));
 
   // === Layer 1: Within-batch dedup ===
-  const emailSeen = new Map<string, number>(); // normalized email -> first index
-  const linkedinSeen = new Map<string, number>(); // normalized linkedin -> first index
+  const emailSeen = new Map<string, number>();
+  const linkedinSeen = new Map<string, number>();
+  const nameSeen = new Map<string, number>();
 
   enriched.forEach((c, i) => {
     if (c.email) {
@@ -311,18 +352,27 @@ async function checkDuplicates(
         linkedinSeen.set(key, i);
       }
     }
+    // Batch name dedup
+    if (c.full_name && c.match_type === 'new') {
+      const key = normalizeName(c.full_name);
+      if (nameSeen.has(key)) {
+        c.match_type = 'batch_duplicate';
+        c.duplicate_of = 'batch';
+        c.match_details = `Same name as #${(nameSeen.get(key)! + 1)}`;
+        c.selected = false;
+      } else {
+        nameSeen.set(key, i);
+      }
+    }
   });
 
-  // Collect lookup values (only for non-batch-dupes)
+  // Collect lookup values
   const emails = enriched
     .filter((c) => c.match_type === 'new' && c.email)
     .map((c) => c.email.toLowerCase().trim());
-  const linkedinUrls = enriched
+  const linkedinUsernames = enriched
     .filter((c) => c.match_type === 'new' && c.linkedin_url)
-    .map((c) => c.linkedin_url.toLowerCase().trim());
-  const nameOnlyCandidates = enriched.filter(
-    (c) => c.match_type === 'new' && !c.email && !c.linkedin_url && c.full_name
-  );
+    .map((c) => normalizeLinkedIn(c.linkedin_url));
 
   // === Layer 2: Global candidate_profiles check ===
   const profilesByEmail = new Map<string, { id: string; full_name: string }>();
@@ -339,14 +389,18 @@ async function checkDuplicates(
     });
   }
 
-  if (linkedinUrls.length > 0) {
-    const { data: linkedinMatches } = await supabase
+  // LinkedIn: fetch ALL profiles with linkedin_url and compare normalized usernames
+  if (linkedinUsernames.length > 0) {
+    const { data: allLinkedinProfiles } = await supabase
       .from("candidate_profiles")
       .select("id, full_name, linkedin_url")
-      .in("linkedin_url", linkedinUrls);
+      .not("linkedin_url", "is", null);
 
-    (linkedinMatches || []).forEach((p: any) => {
-      if (p.linkedin_url) profilesByLinkedIn.set(p.linkedin_url.toLowerCase().trim(), { id: p.id, full_name: p.full_name });
+    (allLinkedinProfiles || []).forEach((p: any) => {
+      if (p.linkedin_url) {
+        const normalized = normalizeLinkedIn(p.linkedin_url);
+        profilesByLinkedIn.set(normalized, { id: p.id, full_name: p.full_name });
+      }
     });
   }
 
@@ -360,12 +414,12 @@ async function checkDuplicates(
         c.match_type = 'existing_profile';
         c.existing_profile_id = match.id;
         c.match_details = `Existing profile: ${match.full_name}`;
-        // Keep selected — we'll link to existing profile during import
         return;
       }
     }
     if (c.linkedin_url) {
-      const match = profilesByLinkedIn.get(c.linkedin_url.toLowerCase().trim());
+      const normalizedKey = normalizeLinkedIn(c.linkedin_url);
+      const match = profilesByLinkedIn.get(normalizedKey);
       if (match) {
         c.match_type = 'existing_profile';
         c.existing_profile_id = match.id;
@@ -375,50 +429,96 @@ async function checkDuplicates(
     }
   });
 
-  // === Layer 2b: Name-based fuzzy matching for candidates without email/LinkedIn ===
-  for (const c of nameOnlyCandidates) {
-    if (c.match_type !== 'new') continue;
-
-    const { data: nameMatches } = await supabase
+  // === Layer 2b: Fuzzy name matching for ALL remaining 'new' candidates ===
+  const stillNew = enriched.filter((c) => c.match_type === 'new' && c.full_name);
+  if (stillNew.length > 0) {
+    // Fetch candidate names for fuzzy comparison
+    const { data: allProfiles } = await supabase
       .from("candidate_profiles")
-      .select("id, full_name, email")
-      .ilike("full_name", c.full_name.trim())
-      .limit(3);
+      .select("id, full_name, email, linkedin_url")
+      .not("full_name", "is", null)
+      .limit(2000);
 
-    if (nameMatches && nameMatches.length > 0) {
-      const best = nameMatches[0];
-      c.match_type = 'name_match';
-      c.existing_profile_id = best.id;
-      c.match_details = `Possible match: ${best.full_name}${best.email ? ` (${best.email})` : ''}`;
-      // Keep selected — user decides whether to confirm name match
+    if (allProfiles && allProfiles.length > 0) {
+      for (const c of stillNew) {
+        if (c.match_type !== 'new') continue;
+
+        for (const existing of allProfiles) {
+          if (fuzzyNameMatch(c.full_name, existing.full_name || '')) {
+            // If the existing profile also has a matching LinkedIn username, it's high confidence
+            const linkedinAlsoMatches = c.linkedin_url && existing.linkedin_url &&
+              normalizeLinkedIn(c.linkedin_url) === normalizeLinkedIn(existing.linkedin_url);
+
+            if (linkedinAlsoMatches) {
+              c.match_type = 'existing_profile';
+              c.existing_profile_id = existing.id;
+              c.match_details = `Existing profile: ${existing.full_name} (name + LinkedIn match)`;
+            } else {
+              c.match_type = 'name_match';
+              c.existing_profile_id = existing.id;
+              c.match_details = `Possible match: ${existing.full_name}${existing.email ? ` (${existing.email})` : ''}`;
+            }
+            break;
+          }
+        }
+      }
     }
   }
 
   // === Layer 3: Job-specific application check ===
   const { data: existingApps } = await supabase
     .from("applications")
-    .select("candidate_email, candidate_linkedin_url, candidate_id")
+    .select("candidate_email, candidate_linkedin_url, candidate_id, candidate_full_name")
     .eq("job_id", jobId)
     .eq("status", "active");
 
   const pipelineEmails = new Set(
     (existingApps || []).map((a: any) => a.candidate_email?.toLowerCase()).filter(Boolean)
   );
+  // Normalize pipeline LinkedIn URLs for proper comparison
   const pipelineLinkedIns = new Set(
-    (existingApps || []).map((a: any) => a.candidate_linkedin_url?.toLowerCase()).filter(Boolean)
+    (existingApps || []).map((a: any) => {
+      if (!a.candidate_linkedin_url) return null;
+      return normalizeLinkedIn(a.candidate_linkedin_url);
+    }).filter(Boolean)
   );
   const pipelineCandidateIds = new Set(
     (existingApps || []).map((a: any) => a.candidate_id).filter(Boolean)
   );
+  // Also build a name set for pipeline fuzzy matching
+  const pipelineNames = (existingApps || [])
+    .map((a: any) => a.candidate_full_name)
+    .filter(Boolean);
+
+  // Also check existing profile LinkedIn URLs in pipeline via candidate_profiles
+  const pipelineProfileIds = Array.from(pipelineCandidateIds);
+  let pipelineProfileLinkedIns = new Set<string>();
+  if (pipelineProfileIds.length > 0) {
+    const { data: pipelineProfiles } = await supabase
+      .from("candidate_profiles")
+      .select("id, linkedin_url")
+      .in("id", pipelineProfileIds)
+      .not("linkedin_url", "is", null);
+
+    (pipelineProfiles || []).forEach((p: any) => {
+      if (p.linkedin_url) {
+        pipelineProfileLinkedIns.add(normalizeLinkedIn(p.linkedin_url));
+      }
+    });
+  }
 
   enriched.forEach((c) => {
-    // If already marked as batch_duplicate, skip
     if (c.match_type === 'batch_duplicate') return;
+
+    const normalizedLinkedin = c.linkedin_url ? normalizeLinkedIn(c.linkedin_url) : null;
 
     const inPipeline =
       (c.email && pipelineEmails.has(c.email.toLowerCase())) ||
-      (c.linkedin_url && pipelineLinkedIns.has(c.linkedin_url.toLowerCase())) ||
-      (c.existing_profile_id && pipelineCandidateIds.has(c.existing_profile_id));
+      (normalizedLinkedin && pipelineLinkedIns.has(normalizedLinkedin)) ||
+      (normalizedLinkedin && pipelineProfileLinkedIns.has(normalizedLinkedin)) ||
+      (c.existing_profile_id && pipelineCandidateIds.has(c.existing_profile_id)) ||
+      // Fuzzy name match against pipeline
+      (c.full_name && pipelineNames.some((pn: string) => fuzzyNameMatch(c.full_name, pn)));
 
     if (inPipeline) {
       c.match_type = 'in_pipeline';
