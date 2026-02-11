@@ -85,9 +85,9 @@ export function AIBookingAssistant({ bookingLink, onBookingScheduled }: AIBookin
       if (data.booking && onBookingScheduled) {
         onBookingScheduled(new Date(data.booking.date), data.booking.time);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("AI assistant error:", error);
-      if (error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === 'AbortError') {
         toast.error("Request timed out after 30s");
       } else {
         toast.error("Failed to get response from AI assistant");

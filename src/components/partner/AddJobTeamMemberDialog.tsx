@@ -268,9 +268,9 @@ export const AddJobTeamMemberDialog = ({
       setJobRole('technical_interviewer');
       setIsPrimaryContact(false);
       setMode('company');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding team member:', error);
-      toast.error(error.message || 'Failed to add team member');
+      toast.error(error instanceof Error ? error.message : 'Failed to add team member');
     } finally {
       setSubmitting(false);
     }

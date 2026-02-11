@@ -60,12 +60,12 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       }, 1000);
       
       toast.success("Recording started");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error accessing microphone:", error);
-      
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      const err = error as { name?: string };
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         toast.error("Microphone access denied. Please allow microphone permissions in your browser settings.");
-      } else if (error.name === 'NotFoundError') {
+      } else if (err.name === 'NotFoundError') {
         toast.error("No microphone found on your device.");
       } else {
         toast.error("Could not access microphone. Please check your device settings.");

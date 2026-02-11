@@ -415,9 +415,9 @@ Keep it concise (3-4 sentences) and professional.`;
       }
 
       onInterviewCreated?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating interview:', error);
-      toast.error(error.message || 'Failed to schedule interview');
+      toast.error(error instanceof Error ? error.message : 'Failed to schedule interview');
     } finally {
       setSubmitting(false);
     }

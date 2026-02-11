@@ -26,7 +26,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
       if (error) throw error;
       setBriefing(data.briefing);
       toast.success("Executive briefing generated");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading briefing:', error);
       toast.error("Failed to generate briefing");
     } finally {

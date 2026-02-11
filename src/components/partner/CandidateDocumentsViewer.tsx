@@ -206,11 +206,12 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       setSelectedFile(null);
       setSelectedType('cv');
       setExpiryDate('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Failed to save document metadata';
       // Toast handled by hook for upload errors, but we catch DB errors here
-      if (!error.message?.includes('Upload failed')) { // Primitive check if not already toasted
-         toast.error(error.message || 'Failed to save document metadata');
+      if (!errorMsg.includes('Upload failed')) { // Primitive check if not already toasted
+         toast.error(errorMsg);
       }
     }
   };

@@ -56,9 +56,9 @@ export function MilestoneRevisionModal({
       setPriority("medium");
       onOpenChange(false);
       onRevisionRequested();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error requesting revision:", error);
-      toast.error(error.message || "Failed to request revision");
+      toast.error(error instanceof Error ? error.message : "Failed to request revision");
     } finally {
       setIsSubmitting(false);
     }

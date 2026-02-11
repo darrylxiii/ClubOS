@@ -136,9 +136,9 @@ export const MemberApprovalWorkflowDialog = ({
           description: result.errors?.join(', '),
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to approve member', {
-        description: error.message,
+        description: error instanceof Error ? error.message : undefined,
       });
     } finally {
       setIsSubmitting(false);

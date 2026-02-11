@@ -167,8 +167,8 @@ export const EnhancedInviteGate = () => {
           icon: <CheckCircle2 className="h-4 w-4" />,
         });
       }, 1500);
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong. Please try again.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
       setIsSuccess(false);
     } finally {
       setIsLoading(false);
