@@ -17,6 +17,13 @@ interface EmailDumpTabProps {
   onCandidatesImported?: () => void;
 }
 
+export type DuplicateMatchType =
+  | 'new'
+  | 'existing_profile'
+  | 'in_pipeline'
+  | 'name_match'
+  | 'batch_duplicate';
+
 export interface ExtractedCandidate {
   id: string;
   full_name: string;
@@ -29,6 +36,9 @@ export interface ExtractedCandidate {
   confidence: number;
   selected: boolean;
   duplicate_of: string | null;
+  match_type: DuplicateMatchType;
+  existing_profile_id: string | null;
+  match_details: string | null;
 }
 
 interface DetectedHyperlink {
@@ -47,7 +57,6 @@ export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImporte
   // Rich paste handler: extract hyperlinks from HTML clipboard data
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const html = e.clipboardData.getData("text/html");
-    const plain = e.clipboardData.getData("text/plain");
 
     if (html) {
       try {
@@ -75,9 +84,6 @@ export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImporte
         // Fallback: just use plain text
       }
     }
-
-    // Let the default paste behavior set the textarea value
-    // We just intercept to extract hyperlinks
   }, []);
 
   // Build enriched content with detected hyperlinks for the AI
@@ -251,30 +257,176 @@ export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImporte
   );
 }
 
+// ============= Three-Layer Deduplication =============
+
+function normalizeLinkedIn(url: string): string {
+  try {
+    const lower = url.toLowerCase().trim().replace(/\/+$/, '');
+    // Extract the path part after linkedin.com/in/
+    const match = lower.match(/linkedin\.com\/in\/([^/?#]+)/);
+    return match ? match[1] : lower;
+  } catch {
+    return url.toLowerCase().trim();
+  }
+}
+
 async function checkDuplicates(
   candidates: ExtractedCandidate[],
   jobId: string
 ): Promise<ExtractedCandidate[]> {
+  // Ensure every candidate has the new fields
+  const enriched: ExtractedCandidate[] = candidates.map((c) => ({
+    ...c,
+    match_type: 'new' as DuplicateMatchType,
+    existing_profile_id: null,
+    match_details: null,
+    duplicate_of: null,
+    selected: true,
+  }));
+
+  // === Layer 1: Within-batch dedup ===
+  const emailSeen = new Map<string, number>(); // normalized email -> first index
+  const linkedinSeen = new Map<string, number>(); // normalized linkedin -> first index
+
+  enriched.forEach((c, i) => {
+    if (c.email) {
+      const key = c.email.toLowerCase().trim();
+      if (emailSeen.has(key)) {
+        c.match_type = 'batch_duplicate';
+        c.duplicate_of = 'batch';
+        c.match_details = `Same email as #${(emailSeen.get(key)! + 1)}`;
+        c.selected = false;
+      } else {
+        emailSeen.set(key, i);
+      }
+    }
+    if (c.linkedin_url && c.match_type === 'new') {
+      const key = normalizeLinkedIn(c.linkedin_url);
+      if (linkedinSeen.has(key)) {
+        c.match_type = 'batch_duplicate';
+        c.duplicate_of = 'batch';
+        c.match_details = `Same LinkedIn as #${(linkedinSeen.get(key)! + 1)}`;
+        c.selected = false;
+      } else {
+        linkedinSeen.set(key, i);
+      }
+    }
+  });
+
+  // Collect lookup values (only for non-batch-dupes)
+  const emails = enriched
+    .filter((c) => c.match_type === 'new' && c.email)
+    .map((c) => c.email.toLowerCase().trim());
+  const linkedinUrls = enriched
+    .filter((c) => c.match_type === 'new' && c.linkedin_url)
+    .map((c) => c.linkedin_url.toLowerCase().trim());
+  const nameOnlyCandidates = enriched.filter(
+    (c) => c.match_type === 'new' && !c.email && !c.linkedin_url && c.full_name
+  );
+
+  // === Layer 2: Global candidate_profiles check ===
+  const profilesByEmail = new Map<string, { id: string; full_name: string }>();
+  const profilesByLinkedIn = new Map<string, { id: string; full_name: string }>();
+
+  if (emails.length > 0) {
+    const { data: emailMatches } = await supabase
+      .from("candidate_profiles")
+      .select("id, full_name, email")
+      .in("email", emails);
+
+    (emailMatches || []).forEach((p: any) => {
+      if (p.email) profilesByEmail.set(p.email.toLowerCase().trim(), { id: p.id, full_name: p.full_name });
+    });
+  }
+
+  if (linkedinUrls.length > 0) {
+    const { data: linkedinMatches } = await supabase
+      .from("candidate_profiles")
+      .select("id, full_name, linkedin_url")
+      .in("linkedin_url", linkedinUrls);
+
+    (linkedinMatches || []).forEach((p: any) => {
+      if (p.linkedin_url) profilesByLinkedIn.set(p.linkedin_url.toLowerCase().trim(), { id: p.id, full_name: p.full_name });
+    });
+  }
+
+  // Apply Layer 2 matches
+  enriched.forEach((c) => {
+    if (c.match_type !== 'new') return;
+
+    if (c.email) {
+      const match = profilesByEmail.get(c.email.toLowerCase().trim());
+      if (match) {
+        c.match_type = 'existing_profile';
+        c.existing_profile_id = match.id;
+        c.match_details = `Existing profile: ${match.full_name}`;
+        // Keep selected — we'll link to existing profile during import
+        return;
+      }
+    }
+    if (c.linkedin_url) {
+      const match = profilesByLinkedIn.get(c.linkedin_url.toLowerCase().trim());
+      if (match) {
+        c.match_type = 'existing_profile';
+        c.existing_profile_id = match.id;
+        c.match_details = `Existing profile: ${match.full_name}`;
+        return;
+      }
+    }
+  });
+
+  // === Layer 2b: Name-based fuzzy matching for candidates without email/LinkedIn ===
+  for (const c of nameOnlyCandidates) {
+    if (c.match_type !== 'new') continue;
+
+    const { data: nameMatches } = await supabase
+      .from("candidate_profiles")
+      .select("id, full_name, email")
+      .ilike("full_name", c.full_name.trim())
+      .limit(3);
+
+    if (nameMatches && nameMatches.length > 0) {
+      const best = nameMatches[0];
+      c.match_type = 'name_match';
+      c.existing_profile_id = best.id;
+      c.match_details = `Possible match: ${best.full_name}${best.email ? ` (${best.email})` : ''}`;
+      // Keep selected — user decides whether to confirm name match
+    }
+  }
+
+  // === Layer 3: Job-specific application check ===
   const { data: existingApps } = await supabase
     .from("applications")
-    .select("candidate_email, candidate_linkedin_url, candidate_full_name")
+    .select("candidate_email, candidate_linkedin_url, candidate_id")
     .eq("job_id", jobId)
     .eq("status", "active");
 
-  const existingEmails = new Set(
-    (existingApps || []).map((a) => a.candidate_email?.toLowerCase()).filter(Boolean)
+  const pipelineEmails = new Set(
+    (existingApps || []).map((a: any) => a.candidate_email?.toLowerCase()).filter(Boolean)
   );
-  const existingLinkedIns = new Set(
-    (existingApps || []).map((a) => a.candidate_linkedin_url?.toLowerCase()).filter(Boolean)
+  const pipelineLinkedIns = new Set(
+    (existingApps || []).map((a: any) => a.candidate_linkedin_url?.toLowerCase()).filter(Boolean)
+  );
+  const pipelineCandidateIds = new Set(
+    (existingApps || []).map((a: any) => a.candidate_id).filter(Boolean)
   );
 
-  return candidates.map((c) => {
-    let duplicate_of: string | null = null;
-    if (c.email && existingEmails.has(c.email.toLowerCase())) {
-      duplicate_of = "email";
-    } else if (c.linkedin_url && existingLinkedIns.has(c.linkedin_url.toLowerCase())) {
-      duplicate_of = "linkedin";
+  enriched.forEach((c) => {
+    // If already marked as batch_duplicate, skip
+    if (c.match_type === 'batch_duplicate') return;
+
+    const inPipeline =
+      (c.email && pipelineEmails.has(c.email.toLowerCase())) ||
+      (c.linkedin_url && pipelineLinkedIns.has(c.linkedin_url.toLowerCase())) ||
+      (c.existing_profile_id && pipelineCandidateIds.has(c.existing_profile_id));
+
+    if (inPipeline) {
+      c.match_type = 'in_pipeline';
+      c.duplicate_of = 'pipeline';
+      c.match_details = 'Already in this job\'s pipeline';
+      c.selected = false;
     }
-    return { ...c, duplicate_of, selected: !duplicate_of };
   });
+
+  return enriched;
 }
