@@ -133,14 +133,21 @@ export function ExtractedCandidatesPreview({
               if (existing) candidateProfileId = existing.id;
             }
 
-            // Check by LinkedIn
+            // Check by LinkedIn (normalized comparison)
             if (!candidateProfileId && candidate.linkedin_url) {
-              const { data: existing } = await supabase
-                .from("candidate_profiles")
-                .select("id")
-                .ilike("linkedin_url", candidate.linkedin_url)
-                .maybeSingle();
-              if (existing) candidateProfileId = existing.id;
+              const usernameMatch = candidate.linkedin_url.toLowerCase().match(/linkedin\.com\/in\/([^/?#]+)/);
+              const username = usernameMatch ? usernameMatch[1].replace(/\/+$/, '') : null;
+              if (username) {
+                const { data: linkedinProfiles } = await supabase
+                  .from("candidate_profiles")
+                  .select("id, linkedin_url")
+                  .not("linkedin_url", "is", null);
+                const existing = (linkedinProfiles || []).find((p: any) => {
+                  const pMatch = p.linkedin_url?.toLowerCase().match(/linkedin\.com\/in\/([^/?#]+)/);
+                  return pMatch && pMatch[1].replace(/\/+$/, '') === username;
+                });
+                if (existing) candidateProfileId = existing.id;
+              }
             }
 
             // Create new profile with graceful constraint handling
