@@ -212,13 +212,20 @@ Deno.serve(async (req) => {
           }
           
           const results = await response.json();
-          const data = Array.isArray(results) ? (results[0] || {}) : (results || {});
+          const rawData = Array.isArray(results) ? (results[0] || {}) : (results || {});
           
-          console.log('[linkedin-scraper] apimaestro raw response keys:', Object.keys(data));
-          console.log('[linkedin-scraper] apimaestro response sample:', JSON.stringify(data).substring(0, 500));
+          // Flatten basic_info into top-level for unified field access
+          // apimaestro nests profile_picture_url, fullname, headline, about under basic_info
+          const basicInfo = rawData.basic_info || {};
+          const data = { ...basicInfo, ...rawData };
           
-          const fullName = data.fullName || data.full_name || data.name || 
+          console.log('[linkedin-scraper] apimaestro raw response keys:', Object.keys(rawData));
+          console.log('[linkedin-scraper] apimaestro basic_info keys:', Object.keys(basicInfo));
+          console.log('[linkedin-scraper] apimaestro response sample:', JSON.stringify(rawData).substring(0, 500));
+          
+          const fullName = data.fullname || data.fullName || data.full_name || data.name || 
             (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : null) ||
+            (data.first_name && data.last_name ? `${data.first_name} ${data.last_name}` : null) ||
             extractNameFromUrl(linkedinUrl);
           
           // Map experience from various possible field structures
@@ -234,12 +241,12 @@ Deno.serve(async (req) => {
             headline: data.headline || data.title || data.occupation || data.tagline || '',
             location: data.location || data.addressLocality || data.city || data.geo || '',
             profileUrl: linkedinUrl,
-            imageUrl: data.profilePicture || data.profilePictureUrl || data.image || data.avatar || data.profile_pic_url || data.profileImage || data.profilePictureOriginal || data.profilePictures?.[0] || data.img || '',
-            summary: data.summary || data.about || data.description || '',
+            imageUrl: data.profile_picture_url || data.profilePicture || data.profilePictureUrl || data.image || data.avatar || data.profile_pic_url || data.profileImage || data.profilePictureOriginal || data.profilePictures?.[0] || data.img || '',
+            summary: data.about || data.summary || data.description || '',
             experience: rawExp.map((exp: any) => ({
               title: exp.title || exp.role || exp.position || '',
               company: exp.company || exp.companyName || exp.organization || exp.companyTitle || '',
-              companyLogo: exp.companyLogo || exp.companyLogoUrl || exp.logo || exp.company_logo_url || exp.logoUrl || '',
+              companyLogo: exp.companyLogo || exp.companyLogoUrl || exp.logo || exp.company_logo_url || exp.logoUrl || exp.logo_url || '',
               location: exp.location || exp.locationName || '',
               startDate: parseDateValue(exp.startDate) || parseDateValue(exp.start_date) || parseDateValue(exp.dateRange?.start) ||
                 parseDateValue(exp.starts_at) || parseDateValue(exp.start) || parseDateValue(exp.timePeriod?.startDate),
@@ -249,7 +256,7 @@ Deno.serve(async (req) => {
             })),
             education: rawEdu.map((edu: any) => ({
               school: edu.school || edu.schoolName || edu.institution || edu.university || edu.schoolId || '',
-              schoolLogo: edu.logo || edu.logoUrl || edu.schoolLogo || edu.school_logo || '',
+              schoolLogo: edu.logo || edu.logoUrl || edu.schoolLogo || edu.school_logo || edu.school_logo_url || edu.schoolLogoUrl || edu.companyLogo || edu.logo_url || '',
               degree: edu.degree || edu.degreeName || edu.degree_name || '',
               field: edu.field || edu.fieldOfStudy || edu.field_of_study || edu.major || '',
               startYear: parseDateValue(edu.startYear) || parseDateValue(edu.start_year) || parseDateValue(edu.starts_at) || parseDateValue(edu.start) || parseDateValue(edu.timePeriod?.startDate),
@@ -266,6 +273,7 @@ Deno.serve(async (req) => {
           };
           
           console.log('[linkedin-scraper] apimaestro succeeded:', profile.fullName, 
+            '| imageUrl:', profile.imageUrl?.substring(0, 80),
             '| experience:', profile.experience?.length, 
             '| education:', profile.education?.length, 
             '| skills:', profile.skills?.length,
