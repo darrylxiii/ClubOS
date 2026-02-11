@@ -1,73 +1,161 @@
 
-# Fix: Work Experience, Education, and Executive Summary on Candidate Profile
 
-## Root Cause Analysis
+# LinkedIn Profile Picture Scraping -- Full Audit and Fix
 
-Three issues found:
+## Current State Audit
 
-### Issue 1: Work Experience and Education sections are always empty
-The `UnifiedCandidateProfile` (line 86-96) queries `experience` and `education` **database tables** that do not exist. LinkedIn-scraped data is stored as JSONB arrays on `candidate_profiles.work_history` and `candidate_profiles.education` columns. The `ExperienceTimeline` component receives empty arrays and renders nothing.
+| Area | Status | Issue |
+|------|--------|-------|
+| Scraper extracts image URL | Working | `linkedin-scraper` maps `profilePicture` / `profile_pic_url` to `imageUrl`, which becomes `avatar_url` |
+| Batch enrichment saves avatar | Working | `batch-linkedin-enrich` sets `avatar_url` if currently empty |
+| Hero section displays avatar | Working | `CandidateHeroSection` renders `candidate.avatar_url` in a 128x128 Avatar |
+| Actual candidate data | Broken | Most candidates have `avatar_url = NULL` despite having LinkedIn URLs |
+| LinkedIn CDN URLs | Fundamental flaw | LinkedIn image URLs expire within hours/days -- even if saved, they break |
+| Storage bucket | Exists | `avatars` bucket (public) is already set up |
 
-### Issue 2: Executive Summary is truncated and not expandable
-In `CandidateDecisionDashboard.tsx` (line 358), the `ai_summary` is rendered with `line-clamp-4` CSS, cutting off anything beyond 4 lines with no way to expand it.
-
-### Issue 3: No fallback from table data to JSONB data
-Even if the `experience` table existed, scraped candidates would not have entries there. The page needs to use `candidate_profiles.work_history` and `candidate_profiles.education` JSONB fields as the primary data source.
+**Root cause**: LinkedIn profile picture URLs are temporary CDN links that expire. Storing them directly in `avatar_url` means they work briefly, then 404. The fix is to **download and re-upload** to the `avatars` storage bucket during scraping.
 
 ---
 
-## Fix 1: Feed JSONB data into ExperienceTimeline
+## Solution: Download and Persist LinkedIn Photos
 
-**File:** `src/pages/UnifiedCandidateProfile.tsx`
+### Change 1: Add image download helper to `linkedin-scraper`
 
-Replace the broken `experience`/`education` table queries (lines 86-96) with data from the candidate profile's JSONB columns. After loading `candidateData`, map `work_history` and `education` arrays into the format `ExperienceTimeline` expects.
+**File:** `supabase/functions/linkedin-scraper/index.ts`
+
+Add a helper function `downloadAndStoreAvatar` that:
+
+1. Takes the LinkedIn image URL and candidate ID
+2. Fetches the image bytes from the LinkedIn CDN
+3. Detects the content type (JPEG/PNG/WebP)
+4. Uploads to `avatars/{candidateId}/linkedin.jpg` in the `avatars` storage bucket
+5. Returns the permanent public URL from storage
+6. If download fails (expired URL, 403, etc.), returns `null` silently -- never blocks the scrape
+
+After the candidate profile data is assembled (around line 348), call this helper to replace the raw LinkedIn URL with a permanent storage URL:
 
 ```text
-// Remove: (supabase as any).from('experience')... and .from('education')...
-// Replace with:
-
-const mappedExperiences = (candidateData?.work_history || []).map((job: any, idx: number) => ({
-  id: job.id || `work-${idx}`,
-  title: job.title || job.position || 'Untitled Role',
-  company: job.company || 'Unknown Company',
-  location: job.location || null,
-  start_date: normalizeDate(job.start_date),
-  end_date: normalizeDate(job.end_date),
-  current: !job.end_date,
-  description: job.description || null,
-  skills: job.skills || [],
-}));
-
-const mappedEducation = (candidateData?.education || []).map((edu: any, idx: number) => ({
-  id: edu.id || `edu-${idx}`,
-  degree: edu.degree || edu.field_of_study || 'Degree',
-  institution: edu.institution || edu.school || 'Institution',
-  field: edu.field_of_study || edu.field || null,
-  start_date: normalizeDate(edu.start_date || edu.start_year),
-  end_date: normalizeDate(edu.end_date || edu.end_year),
-}));
+// After candidateData is built:
+if (candidateData.avatar_url) {
+  const permanentUrl = await downloadAndStoreAvatar(
+    candidateData.avatar_url,
+    candidateData.linkedin_url,
+    supabase
+  );
+  if (permanentUrl) {
+    candidateData.avatar_url = permanentUrl;
+  }
+  // If download failed, keep the LinkedIn URL as a fallback
+}
 ```
 
-A `normalizeDate` helper handles the various date formats from scrapers (year-only, object format like `{year, month}`, or ISO strings).
+The helper function:
 
-Also map `candidateData.certifications` from the JSONB column into the certifications array.
+```text
+async function downloadAndStoreAvatar(
+  imageUrl: string,
+  linkedinUrl: string,
+  supabaseClient: any
+): Promise<string | null> {
+  try {
+    const response = await fetch(imageUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    if (!response.ok) return null;
 
-### Fix 2: Make Executive Summary expandable
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const ext = contentType.includes('png') ? 'png'
+              : contentType.includes('webp') ? 'webp' : 'jpg';
 
-**File:** `src/components/partner/CandidateDecisionDashboard.tsx`
+    const arrayBuffer = await response.arrayBuffer();
+    if (arrayBuffer.byteLength < 1000) return null; // Skip placeholder images
 
-Replace the truncated `line-clamp-4` paragraph (line 358) with an expandable section:
+    // Generate a stable path using a hash of the LinkedIn URL
+    const encoder = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(linkedinUrl));
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b =>
+      b.toString(16).padStart(2, '0')).join('').substring(0, 12);
+    const filePath = `linkedin/${hashHex}.${ext}`;
 
-- Add `summaryExpanded` state (default `false`)
-- When collapsed: show `line-clamp-4` with a "Read more" button
-- When expanded: show full text with a "Show less" button
-- Smooth transition between states
+    const { error } = await supabaseClient.storage
+      .from('avatars')
+      .upload(filePath, arrayBuffer, {
+        contentType,
+        upsert: true,
+      });
 
-### Fix 3: ExperienceTimeline empty state
+    if (error) {
+      console.warn('[linkedin-scraper] Avatar upload failed:', error.message);
+      return null;
+    }
 
-**File:** `src/components/candidate-profile/ExperienceTimeline.tsx`
+    const { data: urlData } = supabaseClient.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
 
-Add empty state cards when both `experiences` and `education` arrays are empty, showing a "No work experience recorded" message with a Briefcase icon and a "No education recorded" message with a GraduationCap icon. This prevents the section from being invisible and signals that data can be added.
+    return urlData?.publicUrl || null;
+  } catch (err) {
+    console.warn('[linkedin-scraper] Avatar download failed:', err);
+    return null;
+  }
+}
+```
+
+Key design decisions:
+- Uses a SHA-256 hash of the LinkedIn URL as the filename, so re-scraping the same profile overwrites the old image (no duplicates)
+- Stores in `avatars/linkedin/` subfolder to separate from user-uploaded avatars
+- Skips images under 1KB (likely placeholder/default LinkedIn avatars)
+- Uses `upsert: true` so re-syncs update the photo
+- Never blocks the scrape if image download fails
+
+### Change 2: Same logic in `batch-linkedin-enrich`
+
+**File:** `supabase/functions/batch-linkedin-enrich/index.ts`
+
+The batch enrichment function also receives `avatar_url` from the scraper response. Apply the same download-and-store pattern:
+
+Around line 165-168 where avatar is set, add:
+
+```text
+if (!candidate.avatar_url && data.avatar_url) {
+  // Download and persist to storage
+  const permanentUrl = await downloadAndStoreAvatar(
+    data.avatar_url, candidate.linkedin_url, supabase
+  );
+  updateObj.avatar_url = permanentUrl || data.avatar_url;
+  fieldsUpdated.push('avatar_url');
+}
+```
+
+Extract the `downloadAndStoreAvatar` helper into a shared import or duplicate it in this function (edge functions can't share code easily, so duplication is the pragmatic approach).
+
+### Change 3: Same logic in `CandidateHeroSection` sync button
+
+**File:** `src/components/candidate-profile/CandidateHeroSection.tsx`
+
+The "Sync LinkedIn" button (line 48-121) currently saves the raw LinkedIn image URL. Since the scraper will now return a storage URL, this is automatically fixed. No additional changes needed here -- the scraper response already contains the permanent URL.
+
+### Change 4: Handle existing candidates with expired/null avatars
+
+**File:** `supabase/functions/batch-linkedin-enrich/index.ts`
+
+Currently, the enrichment only sets `avatar_url` if the candidate has none. Change the condition to also re-download if the current `avatar_url` is a LinkedIn CDN URL (starts with `https://media.licdn.com`):
+
+```text
+const needsAvatarUpdate = !candidate.avatar_url
+  || candidate.avatar_url.includes('media.licdn.com')
+  || candidate.avatar_url.includes('licdn.com');
+
+if (needsAvatarUpdate && data.avatar_url) {
+  const permanentUrl = await downloadAndStoreAvatar(...);
+  if (permanentUrl) {
+    updateObj.avatar_url = permanentUrl;
+    fieldsUpdated.push('avatar_url');
+  }
+}
+```
+
+This means running a batch enrichment on existing candidates will fix their expired photos.
 
 ---
 
@@ -75,47 +163,24 @@ Add empty state cards when both `experiences` and `education` arrays are empty, 
 
 | File | Changes |
 |------|---------|
-| `src/pages/UnifiedCandidateProfile.tsx` | Replace broken table queries with JSONB mapping from candidate_profiles; add normalizeDate helper |
-| `src/components/partner/CandidateDecisionDashboard.tsx` | Make Executive Summary expandable with Read more/Show less toggle |
-| `src/components/candidate-profile/ExperienceTimeline.tsx` | Add empty state cards for when no experience/education data exists |
+| `supabase/functions/linkedin-scraper/index.ts` | Add `downloadAndStoreAvatar` helper; call it before returning candidateData |
+| `supabase/functions/batch-linkedin-enrich/index.ts` | Add same helper; update avatar logic to re-download expired LinkedIn CDN URLs |
 
-No database migrations needed. All data already exists in the `candidate_profiles` table.
+No database migrations needed. The `avatars` storage bucket already exists and is public.
 
 ---
 
-## Technical Details
+## Security Considerations
 
-### Date Normalization Helper
+- Images are stored in the existing public `avatars` bucket -- same security model as user avatars
+- The LinkedIn CDN URL is fetched server-side (edge function), so no CORS issues
+- SHA-256 hash prevents path injection from malicious LinkedIn URLs
+- File size is implicitly bounded by LinkedIn (profile photos are typically under 500KB)
+- No PII is exposed beyond what's already in the candidate profile
 
-The LinkedIn scraper stores dates in inconsistent formats. The helper handles:
-- ISO strings: `"2023-01-01"` -- pass through
-- Year-only: `2023` or `"2023"` -- convert to `"2023-01-01"`
-- Object format: `{year: 2023, month: 6}` -- convert to `"2023-06-01"`
-- Null/undefined -- return undefined
+## What This Fixes
 
-```text
-function normalizeDate(d: any): string | undefined {
-  if (!d) return undefined;
-  if (typeof d === 'string') return d;
-  if (typeof d === 'number') return `${d}-01-01`;
-  if (d.year) return `${d.year}-${String(d.month || 1).padStart(2, '0')}-01`;
-  return undefined;
-}
-```
-
-### Expandable Summary Pattern
-
-```text
-const [summaryExpanded, setSummaryExpanded] = useState(false);
-
-// In render:
-<p className={`text-sm text-muted-foreground ${!summaryExpanded ? 'line-clamp-4' : ''}`}>
-  {candidate.ai_summary}
-</p>
-{candidate.ai_summary.length > 200 && (
-  <button onClick={() => setSummaryExpanded(!summaryExpanded)}
-    className="text-xs text-primary hover:underline mt-1">
-    {summaryExpanded ? 'Show less' : 'Read more'}
-  </button>
-)}
-```
+1. New scrapes will persist the profile photo permanently in storage
+2. Re-syncing via "Sync LinkedIn" button will update the photo
+3. Batch enrichment will fix existing candidates with expired/null photos
+4. The `CandidateHeroSection` avatar display requires zero changes -- it already renders `avatar_url`
