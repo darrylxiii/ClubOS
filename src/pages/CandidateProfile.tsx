@@ -169,7 +169,7 @@ export default function CandidateProfile() {
         if (d.current_title) updates.current_title = d.current_title;
         if (d.current_company) updates.current_company = d.current_company;
         if (d.avatar_url) updates.avatar_url = d.avatar_url;
-        if (d.location) updates.location = d.location;
+        
         if (d.years_of_experience) updates.years_of_experience = d.years_of_experience;
         if (d.work_history?.length) updates.work_history = d.work_history;
         if (d.education?.length) updates.education = d.education;
