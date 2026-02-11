@@ -1119,3 +1119,9 @@ verify_jwt = true
 [functions.generate-candidate-embedding]
 verify_jwt = true
 
+# =============================================================================
+# Email Dump Candidate Extraction (Auth validated in code)
+# =============================================================================
+[functions.parse-email-candidates]
+verify_jwt = false
+
