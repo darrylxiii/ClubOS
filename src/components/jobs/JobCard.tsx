@@ -29,7 +29,7 @@ export function JobCard({ job }: JobCardProps) {
   );
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="glass-subtle border-0 hover:bg-foreground/5 transition-all">
       <CardHeader className="space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-2">

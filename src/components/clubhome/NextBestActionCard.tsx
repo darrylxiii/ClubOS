@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   UserCircle, 
@@ -139,38 +138,30 @@ export const NextBestActionCard = () => {
 
   if (isLoading) {
     return (
-      <Card className="glass-strong border-primary/20">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-12 w-12 rounded-xl" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-48" />
-              <Skeleton className="h-4 w-64" />
-            </div>
-            <Skeleton className="h-10 w-24" />
+      <div className="glass-subtle rounded-2xl p-4">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-64" />
           </div>
-        </CardContent>
-      </Card>
+          <Skeleton className="h-10 w-24" />
+        </div>
+      </div>
     );
   }
 
   if (!nextAction) return null;
 
   const IconComponent = nextAction.icon;
-  const priorityColors = {
-    high: 'border-orange-500/30 bg-orange-500/5',
-    medium: 'border-primary/30 bg-primary/5',
-    low: 'border-green-500/30 bg-green-500/5',
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className={`glass-strong border-2 ${priorityColors[nextAction.priority]} overflow-hidden`}>
-        <CardContent className="p-4">
+      <div className="glass-subtle rounded-2xl overflow-hidden">
+        <div className="p-4">
           <div className="flex items-center gap-4">
             {/* Icon */}
             <div className={`p-3 rounded-xl bg-background/50 ${nextAction.color}`}>
@@ -201,8 +192,8 @@ export const NextBestActionCard = () => {
               </Link>
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 };

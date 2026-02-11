@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -105,22 +104,16 @@ export function CandidateQuickActions({
   const visibleActions = actions.filter(action => action.condition !== false).slice(0, 4);
 
   return (
-    <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
-          <div className="w-1 h-6 bg-foreground"></div>
-          Quick Actions
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="glass-subtle rounded-2xl p-6">
+      <h3 className="text-sm font-medium text-muted-foreground mb-4">Quick Actions</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {visibleActions.map((action) => {
             const Icon = action.icon;
             return (
               <Button
                 key={action.label}
                 variant={action.variant}
-                className="h-auto flex-col items-start p-4 text-left gap-2 relative overflow-hidden"
+                className="h-auto flex-col items-start p-4 text-left gap-2 relative overflow-hidden glass-subtle border-0 hover:bg-foreground/5"
                 onClick={() => navigate(action.path)}
               >
                 {action.badge && (
@@ -140,8 +133,7 @@ export function CandidateQuickActions({
               </Button>
             );
           })}
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

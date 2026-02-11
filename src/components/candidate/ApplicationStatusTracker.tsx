@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -61,14 +60,12 @@ export function ApplicationStatusTracker({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="glass-subtle rounded-2xl p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-muted rounded w-3/4"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+        </div>
+      </div>
     );
   }
 
@@ -77,35 +74,23 @@ export function ApplicationStatusTracker({ userId }: { userId: string }) {
 
   if (displayApps.length === 0) {
     return (
-      <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
-            <div className="w-1 h-6 bg-foreground"></div>
-            Application Pipeline
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 space-y-4">
-            <Briefcase className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">No active applications yet</p>
-            <Button onClick={() => navigate('/jobs')} variant="default">
-              Browse Jobs
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="glass-subtle rounded-2xl p-6">
+        <h3 className="text-sm font-medium text-muted-foreground mb-6">Application Pipeline</h3>
+        <div className="text-center py-8 space-y-4">
+          <Briefcase className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+          <p className="text-muted-foreground">No active applications yet</p>
+          <Button onClick={() => navigate('/jobs')} variant="default">
+            Browse Jobs
+          </Button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
-          <div className="w-1 h-6 bg-foreground"></div>
-          Application Pipeline
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="glass-subtle rounded-2xl p-6">
+      <h3 className="text-sm font-medium text-muted-foreground mb-4">Application Pipeline</h3>
+      <div className="space-y-3">
         {displayApps.map((app) => {
           const stageInfo = getStageInfo(app);
           const StageIcon = stageInfo.icon;
@@ -113,7 +98,7 @@ export function ApplicationStatusTracker({ userId }: { userId: string }) {
           return (
             <div
               key={app.id}
-              className="p-4 rounded-lg bg-background/30 border border-border/30 hover:bg-background/40 transition-all cursor-pointer"
+              className="p-4 rounded-xl glass-subtle hover:bg-foreground/5 transition-all cursor-pointer"
               onClick={() => navigate(`/applications/${app.id}`)}
             >
               <div className="flex items-start justify-between gap-4 mb-3">
@@ -151,14 +136,14 @@ export function ApplicationStatusTracker({ userId }: { userId: string }) {
 
         {applications.length >= 5 && (
           <Button
-            variant="outline"
-            className="w-full"
+            variant="ghost"
+            className="w-full text-muted-foreground"
             onClick={() => navigate('/applications')}
           >
             View All Applications
           </Button>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
