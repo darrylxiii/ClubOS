@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import {
-  Briefcase,
+  Plus,
   Users,
   MessageSquare,
-  FileText,
+  Calendar,
   PlusCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -183,32 +183,32 @@ export const PartnerHome = () => {
               </p>
             </div>
             <div className="space-y-2 sm:space-y-3">
-              <Button className="w-full justify-start text-sm" variant="glass" asChild>
-                <Link to="/company-jobs">
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline"><T k="common:partner.postJob" fallback="Post New Job" /></span>
-                  <span className="sm:hidden"><T k="common:navigation.jobs" fallback="New Job" /></span>
+              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+                <Link to="/company-jobs/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Create New Role</span>
+                  <span className="sm:hidden">New Role</span>
                 </Link>
               </Button>
-              <Button className="w-full justify-start text-sm" variant="glass" asChild>
+              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
                 <Link to="/company-applications">
                   <Users className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline"><T k="common:partner.reviewApplications" fallback="Review Applications" /></span>
-                  <span className="sm:hidden"><T k="common:navigation.applications" fallback="Applications" /></span>
+                  <span className="hidden sm:inline">Review Shortlist</span>
+                  <span className="sm:hidden">Shortlist</span>
                 </Link>
               </Button>
-              <Button className="w-full justify-start text-sm" variant="glass" asChild>
-                <Link to="/company-settings">
-                  <FileText className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline"><T k="common:partner.updateCompany" fallback="Update Company Profile" /></span>
-                  <span className="sm:hidden"><T k="common:navigation.profile" fallback="Company" /></span>
+              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+                <Link to="/meetings">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Schedule Interview</span>
+                  <span className="sm:hidden">Interview</span>
                 </Link>
               </Button>
-              <Button className="w-full justify-start text-sm" variant="outline" asChild>
+              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
                 <Link to="/messages">
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline"><T k="common:partner.messageCandidate" fallback="Message Candidates" /></span>
-                  <span className="sm:hidden"><T k="common:navigation.messages" fallback="Messages" /></span>
+                  <span className="hidden sm:inline">Message Candidates</span>
+                  <span className="sm:hidden">Messages</span>
                 </Link>
               </Button>
             </div>

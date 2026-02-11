@@ -112,7 +112,7 @@ export function CandidateQuickActions({
             return (
               <Button
                 key={action.label}
-                variant={action.variant}
+                variant="ghost"
                 className="h-auto flex-col items-start p-4 text-left gap-2 relative overflow-hidden glass-subtle border-0 hover:bg-foreground/5"
                 onClick={() => navigate(action.path)}
               >
