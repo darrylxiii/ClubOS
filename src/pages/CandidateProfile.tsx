@@ -60,6 +60,24 @@ export default function CandidateProfile() {
 
   const isTeamView = role === 'admin' || role === 'partner';
 
+  const calculateDuration = (startDate?: string, endDate?: string): string | null => {
+    if (!startDate) return null;
+    try {
+      const start = new Date(startDate);
+      const end = endDate ? new Date(endDate) : new Date();
+      let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      if (months < 0) return null;
+      const years = Math.floor(months / 12);
+      months = months % 12;
+      const parts: string[] = [];
+      if (years > 0) parts.push(`${years} yr${years > 1 ? 's' : ''}`);
+      if (months > 0) parts.push(`${months} mo${months > 1 ? 's' : ''}`);
+      return parts.length > 0 ? parts.join(' ') : 'Less than a month';
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     loadCandidate();
   }, [id]);
@@ -658,51 +676,142 @@ export default function CandidateProfile() {
             {/* Experience Tab - Combines Experience, Education, Social */}
             <TabsContent value="experience" className="space-y-4 sm:space-y-6">
               {/* Work History */}
-              {candidate.work_history && candidate.work_history.length > 0 && (
+              {candidate.work_history && candidate.work_history.length > 0 ? (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl">Work Experience</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                      <Briefcase className="w-5 h-5" />
+                      Work Experience
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4 sm:space-y-6">
-                    {candidate.work_history.map((job: any, index: number) => (
-                      <div key={index} className="space-y-2">
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-sm sm:text-base break-words">{job.title || job.position}</h4>
-                            <p className="text-xs sm:text-sm text-muted-foreground break-words">{job.company}</p>
-                          </div>
-                          <Badge variant="outline" className="text-xs sm:text-sm w-fit">
-                            {job.start_date} - {job.end_date || 'Present'}
-                          </Badge>
-                        </div>
-                        {job.description && (
-                          <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap break-words">
-                            {job.description}
-                          </p>
-                        )}
-                        {index < candidate.work_history.length - 1 && <Separator />}
+                  <CardContent>
+                    <div className="relative">
+                      {/* Timeline connector line */}
+                      <div className="absolute left-5 top-2 bottom-2 w-px bg-border hidden sm:block" />
+                      <div className="space-y-6">
+                        {candidate.work_history.map((job: any, index: number) => {
+                          const duration = calculateDuration(job.start_date, job.end_date);
+                          const companyInitial = (job.company || '?')[0].toUpperCase();
+                          return (
+                            <div key={index} className="flex gap-3 sm:gap-4 relative">
+                              {/* Company logo placeholder */}
+                              <div className="flex-shrink-0 z-10">
+                                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground border border-border">
+                                  {companyInitial}
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0 pb-2">
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-semibold text-sm sm:text-base break-words">{job.title || job.position}</h4>
+                                    <p className="text-xs sm:text-sm text-muted-foreground break-words">{job.company}</p>
+                                    {job.location && (
+                                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                        <MapPin className="w-3 h-3" />
+                                        {job.location}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-col items-start sm:items-end gap-0.5">
+                                    <Badge variant="outline" className="text-xs w-fit">
+                                      {job.start_date || '?'} – {job.end_date || 'Present'}
+                                    </Badge>
+                                    {duration && (
+                                      <span className="text-xs text-muted-foreground">{duration}</span>
+                                    )}
+                                  </div>
+                                </div>
+                                {job.description && (
+                                  <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap break-words mt-2">
+                                    {job.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center space-y-4">
+                    <div className="rounded-full bg-muted p-4">
+                      <Briefcase className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">No work experience on record</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        Sync this candidate's LinkedIn profile to import their work history automatically.
+                      </p>
+                    </div>
+                    {candidate.linkedin_url && (
+                      <Button onClick={handleLinkedInImport} disabled={isImporting} size="lg" className="mt-2 gap-2">
+                        <Linkedin className={cn("w-4 h-4", isImporting && "animate-pulse")} />
+                        {isImporting ? "Importing..." : "Sync LinkedIn"}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )}
 
               {/* Education */}
-              {candidate.education && candidate.education.length > 0 && (
+              {candidate.education && candidate.education.length > 0 ? (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl">Education</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      Education
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3 sm:space-y-4">
-                    {candidate.education.map((edu: any, index: number) => (
-                      <div key={index} className="space-y-1">
-                        <h4 className="font-semibold text-sm sm:text-base break-words">{edu.degree || edu.field_of_study}</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground break-words">{edu.institution || edu.school}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {edu.start_year} - {edu.end_year || 'Present'}
-                        </p>
-                      </div>
-                    ))}
+                  <CardContent className="space-y-4">
+                    {candidate.education.map((edu: any, index: number) => {
+                      const schoolInitial = (edu.institution || edu.school || '?')[0].toUpperCase();
+                      const degreeLine = [edu.degree, edu.field_of_study].filter(Boolean).join(' in ');
+                      return (
+                        <div key={index} className="flex gap-3 sm:gap-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground border border-border">
+                              {schoolInitial}
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm sm:text-base break-words">
+                              {degreeLine || 'Degree'}
+                            </h4>
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                              {edu.institution || edu.school}
+                            </p>
+                            {(edu.start_year || edu.end_year) && (
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {edu.start_year || '?'} – {edu.end_year || 'Present'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center space-y-4">
+                    <div className="rounded-full bg-muted p-4">
+                      <FileText className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">No education on record</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        Sync this candidate's LinkedIn profile to import their education history.
+                      </p>
+                    </div>
+                    {candidate.linkedin_url && (
+                      <Button onClick={handleLinkedInImport} disabled={isImporting} size="lg" variant="outline" className="mt-2 gap-2">
+                        <Linkedin className={cn("w-4 h-4", isImporting && "animate-pulse")} />
+                        {isImporting ? "Importing..." : "Sync LinkedIn"}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -711,15 +820,54 @@ export default function CandidateProfile() {
               {candidate.certifications && candidate.certifications.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Certifications</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">Certifications</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {candidate.certifications.map((cert: any, index: number) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <Badge variant="secondary">{cert.name || cert}</Badge>
-                        {cert.issuer && (
-                          <span className="text-sm text-muted-foreground">by {cert.issuer}</span>
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Star className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium break-words">{cert.name || cert}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {cert.issuer && <span>{cert.issuer}</span>}
+                            {cert.issue_date && <span>· {cert.issue_date}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* LinkedIn Activity Section */}
+              {candidate.linkedin_profile_data?.posts?.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                      <Activity className="w-5 h-5" />
+                      LinkedIn Activity ({candidate.linkedin_profile_data.posts.length} posts)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {candidate.linkedin_profile_data.posts.slice(0, 5).map((post: any, index: number) => (
+                      <div key={index} className="p-3 rounded-lg bg-muted/50 border border-border/50 space-y-2">
+                        {post.text && (
+                          <p className="text-sm text-foreground break-words">
+                            {post.text.length > 200 ? post.text.substring(0, 200) + '...' : post.text}
+                          </p>
                         )}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          {post.date && <span>{post.date}</span>}
+                          {post.likes > 0 && <span>👍 {post.likes}</span>}
+                          {post.comments > 0 && <span>💬 {post.comments}</span>}
+                          {post.url && (
+                            <a href={post.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-primary">
+                              View
+                            </a>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </CardContent>
