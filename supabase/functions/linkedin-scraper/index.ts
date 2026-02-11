@@ -76,27 +76,22 @@ Deno.serve(async (req) => {
     let apiUsed = 'url_extraction';
     
     if (APIFY_API_KEY) {
-      console.log('[linkedin-scraper] Trying Apify API with 15s timeout');
+      console.log('[linkedin-scraper] Trying Apify (crawlkit~best-linkedin-profile-scraper) with 30s timeout');
       apiUsed = 'apify';
       
       const apifyController = new AbortController();
-      const apifyTimeoutId = setTimeout(() => apifyController.abort(), APIFY_TIMEOUT);
+      const apifyTimeoutId = setTimeout(() => apifyController.abort(), 30000);
       
       try {
         const response = await fetch(
-          `https://api.apify.com/v2/acts/apify~linkedin-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}`,
+          `https://api.apify.com/v2/acts/crawlkit~best-linkedin-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             signal: apifyController.signal,
             body: JSON.stringify({
-              startUrls: [{ url: linkedinUrl }],
-              maxResults: 1,
-              getArticles: true,
-              proxy: {
-                useApifyProxy: true,
-                apifyProxyGroups: ['RESIDENTIAL']
-              }
+              url: linkedinUrl,
+              options: { timeout: 25000 }
             })
           }
         );
@@ -110,44 +105,50 @@ Deno.serve(async (req) => {
         }
         
         const results = await response.json();
-        const data = results?.[0] || {};
+        // crawlkit returns an array; take first item
+        const data = Array.isArray(results) ? (results[0] || {}) : (results || {});
+        
+        console.log('[linkedin-scraper] Apify raw response keys:', Object.keys(data));
+        
+        // Resilient field mapping — check multiple possible field names from various Apify actors
+        const fullName = data.fullName || data.full_name || data.name || 
+          (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : null) ||
+          extractNameFromUrl(linkedinUrl);
         
         profile = {
-          fullName: data.fullName || data.firstName && data.lastName 
-            ? `${data.firstName} ${data.lastName}` 
-            : extractNameFromUrl(linkedinUrl),
-          email: data.email || '',
-          headline: data.headline || data.title || '',
-          location: data.location || data.addressLocality || '',
+          fullName,
+          email: data.email || data.personal_email || '',
+          headline: data.headline || data.title || data.occupation || '',
+          location: data.location || data.addressLocality || data.city || '',
           profileUrl: linkedinUrl,
-          imageUrl: data.profilePicture || data.image || '',
-          summary: data.summary || data.description || '',
-          experience: (data.experience || data.positions || []).map((exp: any) => ({
-            title: exp.title || exp.role,
-            company: exp.company || exp.companyName,
+          imageUrl: data.profilePicture || data.profilePictureUrl || data.image || data.avatar || data.profile_pic_url || '',
+          summary: data.summary || data.about || data.description || '',
+          experience: (data.experience || data.experiences || data.positions || data.workExperience || []).map((exp: any) => ({
+            title: exp.title || exp.role || exp.position,
+            company: exp.company || exp.companyName || exp.organization,
             location: exp.location,
-            startDate: exp.startDate || exp.start?.year ? `${exp.start?.year}-${exp.start?.month || 1}` : undefined,
-            endDate: exp.endDate || exp.end?.year ? `${exp.end?.year}-${exp.end?.month || 1}` : undefined,
-            description: exp.description,
+            startDate: exp.startDate || exp.start_date || (exp.starts_at ? `${exp.starts_at.year}-${exp.starts_at.month || 1}` : undefined) || (exp.start?.year ? `${exp.start.year}-${exp.start.month || 1}` : undefined),
+            endDate: exp.endDate || exp.end_date || (exp.ends_at ? `${exp.ends_at.year}-${exp.ends_at.month || 1}` : undefined) || (exp.end?.year ? `${exp.end.year}-${exp.end.month || 1}` : undefined),
+            description: exp.description || exp.summary,
           })),
-          education: (data.education || []).map((edu: any) => ({
-            school: edu.school || edu.schoolName,
-            degree: edu.degree || edu.degreeName,
-            field: edu.field || edu.fieldOfStudy,
-            startYear: edu.startYear?.toString() || edu.start?.year?.toString(),
-            endYear: edu.endYear?.toString() || edu.end?.year?.toString(),
+          education: (data.education || data.educations || []).map((edu: any) => ({
+            school: edu.school || edu.schoolName || edu.institution || edu.university,
+            degree: edu.degree || edu.degreeName || edu.degree_name,
+            field: edu.field || edu.fieldOfStudy || edu.field_of_study,
+            startYear: (edu.startYear || edu.start_year || edu.starts_at?.year || edu.start?.year)?.toString(),
+            endYear: (edu.endYear || edu.end_year || edu.ends_at?.year || edu.end?.year)?.toString(),
           })),
-          skills: data.skills?.map((s: any) => typeof s === 'string' ? s : s.name) || [],
+          skills: (data.skills || []).map((s: any) => typeof s === 'string' ? s : (s.name || s.skill || '')).filter(Boolean),
           articles: data.articles || [],
           posts: data.posts || data.activities || [],
         };
         
-        console.log('[linkedin-scraper] Apify succeeded:', profile.fullName);
+        console.log('[linkedin-scraper] Apify succeeded:', profile.fullName, '| experience:', profile.experience?.length, '| education:', profile.education?.length, '| skills:', profile.skills?.length);
       } catch (apifyError: any) {
         clearTimeout(apifyTimeoutId);
         
         if (apifyError.name === 'AbortError') {
-          console.warn('[linkedin-scraper] Apify timed out after 15s, falling back to next provider');
+          console.warn('[linkedin-scraper] Apify timed out after 30s, falling back to next provider');
         } else {
           console.error('[linkedin-scraper] Apify failed:', apifyError.message);
         }
