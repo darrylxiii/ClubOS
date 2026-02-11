@@ -583,9 +583,9 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
       
       onOpenChange(false);
       onComplete();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error closing job:", error);
-      toast.error(error.message || "Failed to close job");
+      toast.error(error instanceof Error ? error.message : "Failed to close job");
     } finally {
       setLoading(false);
     }

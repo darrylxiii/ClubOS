@@ -164,14 +164,15 @@ export const AddCandidateDialog = ({
             : "Name extracted - please verify details"
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error scraping LinkedIn:", error);
+      const err = error as { message?: string; name?: string };
       
       // Check for timeout/network errors - use client-side fallback
-      const isTimeoutError = error?.message?.includes('Failed to fetch') || 
-                             error?.message?.includes('FunctionsFetchError') ||
-                             error?.message?.includes('timeout') ||
-                             error?.name === 'FunctionsFetchError';
+      const isTimeoutError = err.message?.includes('Failed to fetch') || 
+                             err.message?.includes('FunctionsFetchError') ||
+                             err.message?.includes('timeout') ||
+                             err.name === 'FunctionsFetchError';
       
       if (isTimeoutError) {
         // Fallback: Extract name from URL on client side
@@ -585,28 +586,29 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       setProceedWithDuplicate(false);
       setDuplicateCandidates([]);
       setShowDuplicateDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error adding candidate:", error);
+      const err = error as { message?: string; code?: string };
       
       // Set visible error message
       let errorMsg = "An unexpected error occurred. Please try again.";
       
-      if (error.message?.startsWith('DUPLICATE_IN_JOB:')) {
-        errorMsg = error.message.replace('DUPLICATE_IN_JOB: ', '');
-      } else if (error.message?.startsWith('PERMISSION_ERROR:')) {
-        errorMsg = error.message.replace('PERMISSION_ERROR: ', '');
-      } else if (error.message?.startsWith('FK_ERROR:')) {
-        errorMsg = error.message.replace('FK_ERROR: ', '');
-      } else if (error.message?.startsWith('DB_ERROR:')) {
-        errorMsg = error.message.replace('DB_ERROR: ', '');
-      } else if (error.message?.includes('duplicate') || error.code === '23505') {
+      if (err.message?.startsWith('DUPLICATE_IN_JOB:')) {
+        errorMsg = err.message.replace('DUPLICATE_IN_JOB: ', '');
+      } else if (err.message?.startsWith('PERMISSION_ERROR:')) {
+        errorMsg = err.message.replace('PERMISSION_ERROR: ', '');
+      } else if (err.message?.startsWith('FK_ERROR:')) {
+        errorMsg = err.message.replace('FK_ERROR: ', '');
+      } else if (err.message?.startsWith('DB_ERROR:')) {
+        errorMsg = err.message.replace('DB_ERROR: ', '');
+      } else if (err.message?.includes('duplicate') || err.code === '23505') {
         errorMsg = "A candidate with this information already exists.";
-      } else if (error.code === '23503') {
+      } else if (err.code === '23503') {
         errorMsg = "Unable to link candidate data. The job may no longer exist.";
-      } else if (error.message?.includes('permission') || error.message?.includes('RLS') || error.code === '42501') {
+      } else if (err.message?.includes('permission') || err.message?.includes('RLS') || err.code === '42501') {
         errorMsg = "You don't have permission to add candidates. Please contact an administrator to verify your account has been set up correctly.";
       } else {
-        errorMsg = error.message || "Failed to add candidate. Please try again.";
+        errorMsg = err.message || "Failed to add candidate. Please try again.";
       }
       
       setSubmitError(errorMsg);
@@ -691,33 +693,34 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         toast.dismiss(addingToast);
         throw error;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error in submission flow:", error);
+      const err = error as { message?: string; code?: string };
       
       // Provide specific, actionable error messages
-      if (error.message?.includes('email already exists') || error.message?.includes('duplicate') || error.code === '23505') {
+      if (err.message?.includes('email already exists') || err.message?.includes('duplicate') || err.code === '23505') {
         toast.error("Duplicate Email Detected", {
           description: "A candidate with this email already exists. Please search for the existing candidate or use a different email.",
           duration: 6000
         });
-      } else if (error.code === '23503') {
+      } else if (err.code === '23503') {
         toast.error("Database Error", {
           description: "Unable to link candidate data. Please try again or contact support if the issue persists.",
           duration: 5000
         });
-      } else if (error.message?.includes('permission') || error.message?.includes('RLS') || error.code === '42501') {
+      } else if (err.message?.includes('permission') || err.message?.includes('RLS') || err.code === '42501') {
         toast.error("Permission Denied", {
           description: "You don't have permission to add candidates. Please contact an administrator.",
           duration: 5000
         });
-      } else if (error.message?.includes('unique constraint')) {
+      } else if (err.message?.includes('unique constraint')) {
         toast.error("Duplicate Candidate", {
           description: "This candidate already exists in the system. Please check existing applications.",
           duration: 5000
         });
       } else {
         toast.error("Failed to Add Candidate", {
-          description: error.message || "An unexpected error occurred. Please try again or contact support.",
+          description: err.message || "An unexpected error occurred. Please try again or contact support.",
           duration: 5000
         });
       }

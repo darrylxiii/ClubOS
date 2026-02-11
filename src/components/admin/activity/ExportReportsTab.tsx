@@ -54,9 +54,9 @@ export function ExportReportsTab() {
       window.URL.revokeObjectURL(url);
       
       toast.success(`${filename} exported successfully`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Export error:', error);
-      toast.error(`Export failed: ${error.message}`);
+      toast.error(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

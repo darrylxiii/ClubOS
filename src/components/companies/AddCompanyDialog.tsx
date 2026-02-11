@@ -367,52 +367,53 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       setOpen(false);
       resetForm();
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { code?: string; message?: string; details?: string; hint?: string; stack?: string };
       console.error('[AddCompany] Error creating company:', error);
       console.error('[AddCompany] Error details:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        stack: error.stack
+        code: err.code,
+        message: err.message,
+        details: err.details,
+        hint: err.hint,
+        stack: err.stack
       });
       
       toast.dismiss(loadingToast);
       
       // 🔧 Improved: More specific error messages
-      if (error.code === '42703') {
+      if (err.code === '42703') {
         console.error('[AddCompany] Database schema error: Missing column referenced in trigger');
         toast.error("Database configuration issue was detected and should now be fixed. Please try again.", {
           duration: 6000
         });
-      } else if (error.code === '42501') {
+      } else if (err.code === '42501') {
         console.error('[AddCompany] RLS Policy Violation: User lacks required role');
         toast.error("Permission denied. You need Partner or Admin role to create companies. Please contact support.", {
           duration: 6000
         });
-      } else if (error.message?.includes('row-level security') || error.message?.includes('policy')) {
+      } else if (err.message?.includes('row-level security') || err.message?.includes('policy')) {
         console.error('[AddCompany] RLS Security Policy Error');
         toast.error("Access denied by security policy. Please contact an administrator.", {
           duration: 6000
         });
-      } else if (error.code === '23505') {
+      } else if (err.code === '23505') {
         // Unique constraint violation
         console.error('[AddCompany] Unique constraint violation');
-        if (error.message.includes('companies_name_key')) {
+        if (err.message?.includes('companies_name_key')) {
           toast.error("A company with this name already exists.");
-        } else if (error.message.includes('companies_slug_key')) {
+        } else if (err.message?.includes('companies_slug_key')) {
           toast.error("A company with a similar name already exists. Try a different name.");
         } else {
           toast.error("This company information conflicts with an existing company.");
         }
-      } else if (error.message?.includes('JWT') || error.message?.includes('auth')) {
+      } else if (err.message?.includes('JWT') || err.message?.includes('auth')) {
         console.error('[AddCompany] Authentication error');
         toast.error("Authentication error. Please refresh the page and try again.", {
           duration: 6000
         });
       } else {
         console.error('[AddCompany] Generic error');
-        toast.error(error.message || "Failed to create company. Please try again or contact support.", {
+        toast.error(err.message || "Failed to create company. Please try again or contact support.", {
           duration: 5000
         });
       }

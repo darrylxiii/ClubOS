@@ -149,8 +149,8 @@ export function DataRoomManager() {
       
       window.open(data.signedUrl, '_blank');
       queryClient.invalidateQueries({ queryKey: ['data-room-documents'] });
-    } catch (error: any) {
-      toast.error('Download failed: ' + error.message);
+    } catch (error: unknown) {
+      toast.error('Download failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 

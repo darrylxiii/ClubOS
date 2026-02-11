@@ -28,8 +28,8 @@ export function MLTrainingDashboard() {
       notify.success("Embeddings Generated", {
         description: `${candidateData.processed} candidates, ${jobData.processed} jobs`
       });
-    } catch (error: any) {
-      notify.error("Error", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error", { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     } finally {
       setGeneratingEmbeddings(false);
     }
@@ -47,8 +47,8 @@ export function MLTrainingDashboard() {
       notify.success("Training Data Prepared", {
         description: `Generated ${data.count} training samples with ${data.semantic_scores} semantic scores`,
       });
-    } catch (error: any) {
-      notify.error("Error", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error", { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     } finally {
       setPreparing(false);
     }
@@ -71,8 +71,8 @@ export function MLTrainingDashboard() {
       notify.success("Model Training Complete", {
         description: `Model v${data.model_version} trained with AUC: ${data.metrics.auc_roc.toFixed(3)}`,
       });
-    } catch (error: any) {
-      notify.error("Training Failed", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Training Failed", { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     } finally {
       setLoading(false);
     }

@@ -105,9 +105,9 @@ export const EntityKnowledgeProfile = ({
 
             toast.success("Knowledge Profile updated successfully!");
             loadProfile();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error saving profile:", error);
-            toast.error("Failed to save profile: " + error.message);
+            toast.error("Failed to save profile: " + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
             setIsSaving(false);
         }

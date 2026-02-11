@@ -77,7 +77,7 @@ export function RescheduleInterviewDialog({
 
             onRescheduled?.();
             onOpenChange(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error rescheduling interview:', error);
             toast.error('Failed to reschedule interview');
         } finally {
