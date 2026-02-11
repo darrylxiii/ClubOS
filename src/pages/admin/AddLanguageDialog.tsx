@@ -69,9 +69,9 @@ export function AddLanguageDialog({ open, onOpenChange, onLanguageAdded }: AddLa
 
       onOpenChange(false);
       onLanguageAdded?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding language:', error);
-      toast.error(error.message || 'Failed to add language');
+      toast.error(error instanceof Error ? error.message : 'Failed to add language');
     } finally {
       setIsAdding(false);
     }

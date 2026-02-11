@@ -166,9 +166,9 @@ export default function CandidateProfile() {
       } else {
         throw new Error(data.error || "Import failed");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error importing LinkedIn profile:", error);
-      toast.error(error.message || "Failed to import from LinkedIn", { id: toastId });
+      toast.error(error instanceof Error ? error.message : "Failed to import from LinkedIn", { id: toastId });
     } finally {
       setIsImporting(false);
     }

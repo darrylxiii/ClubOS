@@ -165,9 +165,9 @@ export default function MeetingRoom() {
 
       console.log('Meeting loaded successfully:', data);
       setMeeting(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading meeting:', error);
-      toast.error(error.message || 'Failed to load meeting. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to load meeting. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -266,14 +266,15 @@ export default function MeetingRoom() {
       }
 
       setInCall(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[MeetingRoom] ❌ Error joining meeting:', error);
       
       // Detect RLS policy violation (authorization error)
-      const isRLSError = error?.message?.includes('row-level security') || 
-                         error?.message?.includes('policy') ||
-                         error?.code === 'PGRST301' ||
-                         error?.code === '42501';
+      const err = error as { message?: string; code?: string };
+      const isRLSError = err?.message?.includes('row-level security') || 
+                         err?.message?.includes('policy') ||
+                         err?.code === 'PGRST301' ||
+                         err?.code === '42501';
       
       if (isRLSError) {
         toast.error('Not authorized to join', {

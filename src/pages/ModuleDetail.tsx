@@ -107,11 +107,11 @@ export default function ModuleDetail() {
           setLastSavedPosition(progressData.video_last_position_seconds || 0);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching module:', error);
       toast({
         title: "Error loading module",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: "destructive",
       });
     } finally {
@@ -139,10 +139,10 @@ export default function ModuleDetail() {
         title: "Module completed!",
         description: "Great job!",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: "destructive",
       });
     }
@@ -181,7 +181,7 @@ export default function ModuleDetail() {
         });
 
       setVideoWatchedPercentage(watchedPercentage);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving video progress:', error);
     }
   };

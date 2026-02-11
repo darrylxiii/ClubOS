@@ -89,8 +89,8 @@ export default function ContractDetailPage() {
 
       if (error) throw error;
       toast.success("Milestone started!");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
@@ -106,8 +106,8 @@ export default function ContractDetailPage() {
 
       if (error) throw error;
       toast.success("Milestone submitted for review!");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
@@ -139,8 +139,8 @@ export default function ContractDetailPage() {
         console.error('Payment release exception:', paymentErr);
         toast.warning("Milestone approved, but payment release failed. Please contact support.");
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 

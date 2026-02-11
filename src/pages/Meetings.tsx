@@ -96,7 +96,7 @@ export default function Meetings() {
       ).sort((a, b) => new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime());
 
       setMeetings(uniqueMeetings);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading meetings:', error);
       toast.error('Failed to load meetings');
     } finally {
@@ -162,7 +162,7 @@ export default function Meetings() {
       if (error) throw error;
       toast.success('Meeting deleted successfully');
       loadMeetings();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting meeting:', error);
       toast.error('Failed to delete meeting');
     }
