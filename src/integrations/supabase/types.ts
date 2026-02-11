@@ -6792,6 +6792,7 @@ export type Database = {
           actively_looking: boolean | null
           admin_notes: string | null
           ai_concerns: Json | null
+          ai_enrichment_data: Json | null
           ai_recommendation: string | null
           ai_strengths: Json | null
           ai_summary: string | null
@@ -6910,6 +6911,7 @@ export type Database = {
           actively_looking?: boolean | null
           admin_notes?: string | null
           ai_concerns?: Json | null
+          ai_enrichment_data?: Json | null
           ai_recommendation?: string | null
           ai_strengths?: Json | null
           ai_summary?: string | null
@@ -7028,6 +7030,7 @@ export type Database = {
           actively_looking?: boolean | null
           admin_notes?: string | null
           ai_concerns?: Json | null
+          ai_enrichment_data?: Json | null
           ai_recommendation?: string | null
           ai_strengths?: Json | null
           ai_summary?: string | null
@@ -53712,6 +53715,10 @@ export type Database = {
         Returns: Json
       }
       aggregate_daily_security_metrics: { Args: never; Returns: undefined }
+      aggregate_interview_performance: {
+        Args: { p_candidate_id: string }
+        Returns: undefined
+      }
       archive_expired_documents: { Args: never; Returns: undefined }
       auto_delete_old_audit_logs: { Args: never; Returns: undefined }
       backfill_deal_stages: { Args: never; Returns: number }
