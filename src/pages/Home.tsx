@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FeaturedJobs } from "@/components/jobs/FeaturedJobs";
-import { QuickStats } from "@/components/dashboard/QuickStats";
 import { NextBestActionCard } from "@/components/clubhome/NextBestActionCard";
 import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStatusTracker";
 import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
@@ -69,27 +68,21 @@ const Home = () => {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       {/* Welcome Header */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         <h1 className="text-3xl sm:text-4xl font-black uppercase">
           {t('home.welcomeBack', { name: profile?.full_name?.split(' ')[0] || 'Member' })}
         </h1>
         <p className="text-muted-foreground">{t('home.personalizedDashboard')}</p>
       </div>
 
-      {/* QUIN Next Best Action - P0 Priority */}
+      {/* QUIN Next Best Action */}
       <NextBestActionCard />
 
-      {/* Quick Stats */}
-      <QuickStats />
-
-      {/* Two Column Layout for Desktop */}
+      {/* Pipeline & Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Application Pipeline Tracker - P0 Priority */}
         {user && <ApplicationStatusTracker userId={user.id} />}
-
-        {/* Quick Actions */}
         <CandidateQuickActions
           profileCompletion={dashboardStats?.profileCompletion || 85}
           newMatches={dashboardStats?.newMatches || 0}

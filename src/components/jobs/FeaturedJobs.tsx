@@ -25,7 +25,7 @@ export const FeaturedJobs = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Featured Opportunities</h2>
+        <h3 className="text-sm font-medium text-muted-foreground">Featured Opportunities</h3>
         <Button variant="ghost" asChild>
           <Link to="/jobs">
             View All <ArrowRight className="ml-2 h-4 w-4" />
