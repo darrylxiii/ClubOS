@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate, useParams } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -125,5 +125,15 @@ export const profilesRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* Redirect /candidates/:id to /candidate/:id */}
+    <Route
+      path="/candidates/:id"
+      element={<CandidatesRedirect />}
+    />
   </>
 );
+
+function CandidatesRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/candidate/${id}`} replace />;
+}

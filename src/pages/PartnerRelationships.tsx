@@ -36,7 +36,7 @@ export default function PartnerRelationships() {
   };
 
   const handleViewProfile = (candidateId: string) => {
-    navigate(`/candidates/${candidateId}`);
+    navigate(`/candidate/${candidateId}`);
   };
 
   return (

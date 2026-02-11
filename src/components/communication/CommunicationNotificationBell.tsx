@@ -43,7 +43,7 @@ export function CommunicationNotificationBell() {
     
     // Navigate based on entity type
     if (notification.entityType === 'candidate') {
-      navigate(`/candidates/${notification.entityId}`);
+      navigate(`/candidate/${notification.entityId}`);
     } else if (notification.entityType === 'company') {
       navigate(`/companies/${notification.entityId}`);
     } else {

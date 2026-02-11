@@ -155,7 +155,7 @@ export const CandidateLeaderboard = memo(({
                     }`}
                   onClick={() => {
                     if (candidate.candidate_id) {
-                      navigate(`/candidates/${candidate.candidate_id}`);
+                      navigate(`/candidate/${candidate.candidate_id}`);
                     }
                   }}
                 >

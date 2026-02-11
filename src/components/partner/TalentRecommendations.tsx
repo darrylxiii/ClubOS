@@ -187,7 +187,7 @@ export function TalentRecommendations({ companyId }: { companyId: string }) {
                     onClick={() => handleViewCandidate(match)}
                     asChild
                   >
-                    <Link to={`/candidates/${match.candidate_id}`}>
+                    <Link to={`/candidate/${match.candidate_id}`}>
                       <Eye className="h-3 w-3 mr-1" />
                       View Profile
                     </Link>
