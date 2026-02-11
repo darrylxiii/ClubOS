@@ -1,149 +1,149 @@
 
 
-# Batch LinkedIn Enrichment -- Critical Audit and 100/100 Plan
+# Fix LinkedIn Sync: Data Not Populating on Candidate Profile
 
-## Previous Plan Score: 55/100
+## Score of Current Implementation: 30/100
 
-| # | Issue | Severity | Impact |
-|---|-------|----------|--------|
-| 1 | `profile_experience` and `profile_education` tables require `user_id` (NOT NULL) -- email dump candidates have NO `user_id` | Critical | Insert will crash with NOT NULL violation |
-| 2 | Plan proposes duplicating all Apify/Proxycurl mapping logic into a new function instead of reusing `linkedin-scraper` | High | Double maintenance burden, divergent field mappings |
-| 3 | Apify `run-sync-get-dataset-items` has a ~60s HTTP timeout -- batching 10 URLs in one actor run is unreliable | High | Partial results, timeouts, wasted Apify credits |
-| 4 | No cost confirmation -- recruiter could enrich 50+ profiles accidentally | Medium | Unexpected billing ($0.50+), no undo |
-| 5 | No enrichment status tracking on `candidate_profiles` | Medium | No way to know who was enriched, when, or if it failed |
-| 6 | No retry mechanism for individual failures | Medium | One Apify timeout blocks the whole batch |
-| 7 | Plan doesn't update `linkedin-scraper` CORS headers (same bug we just fixed on `parse-email-candidates`) | Medium | `linkedin-scraper` calls will also fail from browser |
-| 8 | No rate limiting / concurrency guard -- multiple clicks fire parallel batches | Low | Duplicate API spend, race conditions |
+### Root Cause Analysis
 
----
+There are **two separate "Sync LinkedIn" code paths** -- both broken differently:
 
-## Revised Architecture (100/100)
-
-### Core Insight: Don't Duplicate -- Orchestrate
-
-Instead of a new `batch-linkedin-enrich` edge function that copies all Apify logic, create a thin **orchestrator** edge function that calls the existing `linkedin-scraper` for each candidate. This keeps enrichment logic in one place.
-
-### Architecture
-
-```text
-User clicks "Enrich from LinkedIn"
-  |
-  v
-Frontend chunks candidate IDs (max 5 per call)
-  |
-  v
-batch-linkedin-enrich (orchestrator)
-  |-- For each candidate_id:
-  |   1. Fetch linkedin_url from candidate_profiles
-  |   2. Call linkedin-scraper internally (service-to-service, no CORS)
-  |   3. Update candidate_profiles with returned data
-  |   4. Set enrichment_last_run = now()
-  |-- Returns { enriched, failed, results[] }
-  v
-Frontend shows progress per chunk
-```
-
-### Why This is Better
-
-- Single source of truth for Apify/Proxycurl mapping (linkedin-scraper)
-- Each profile scraped independently (one Apify timeout doesn't block others)
-- Frontend controls concurrency (sequential chunks of 5)
-- Enrichment metadata stored on existing `candidate_profiles` columns (`enrichment_data`, `enrichment_last_run`) -- no schema changes needed
-- Skip `profile_experience`/`profile_education` for now (they require `user_id`) -- store work history in `work_history` JSON column and `linkedin_profile_data` JSON column on `candidate_profiles` instead
+| # | Bug | Location | Impact |
+|---|-----|----------|--------|
+| 1 | **CandidateHeroSection** does `.update(data.data)` -- dumps raw scraper response directly into DB. Fields like `source_metadata` (object) may conflict with column types, and no field mapping is applied. | `CandidateHeroSection.tsx:64-67` | Score jumps (completeness recalculates) but most fields don't actually persist due to column mismatches |
+| 2 | **Field name mismatch**: Scraper returns `{startDate, endDate}` for work history but the Experience tab renders `{start_date, end_date}`. Same for education: `{school, startYear, endYear}` vs `{institution, start_year, end_year}` | `linkedin-scraper/index.ts` vs `CandidateProfile.tsx:638-674` | Work history and education appear empty even after sync because field names don't match |
+| 3 | **CandidateProfile page** (the one the user is on) has its own `handleLinkedInImport` (line 129-174) that maps fields correctly BUT uses `||` fallback which means empty strings from the scraper are treated as truthy and override nothing | `CandidateProfile.tsx:150-157` | `avatar_url: ''` from URL-extraction prevents setting avatar even when scraper finds one |
+| 4 | No enrichment/completeness recalculation is triggered after sync | Both locations | Score stays at 22% even if data is written |
+| 5 | LinkedIn posts are never scraped -- Apify actor `apify~linkedin-profile-scraper` does not return posts | `linkedin-scraper/index.ts` | Missing feature entirely |
 
 ---
 
-## Detailed Changes
+## Fix Plan (100/100)
 
-### 1. New Edge Function: `batch-linkedin-enrich` (orchestrator only)
-
-**File:** `supabase/functions/batch-linkedin-enrich/index.ts`
-
-Accepts: `{ candidate_ids: string[] }` (max 10 per call)
-
-For each candidate:
-1. Fetch `linkedin_url` from `candidate_profiles` -- skip if empty
-2. Skip if `enrichment_last_run` is less than 24h old (prevents re-scraping)
-3. Internally call `linkedin-scraper` via fetch to `SUPABASE_URL/functions/v1/linkedin-scraper` using service role key
-4. On success: update `candidate_profiles` with:
-   - `current_title` (only if currently null)
-   - `current_company` (only if currently null)
-   - `skills` (merge with existing)
-   - `years_of_experience` (only if currently 0/null)
-   - `avatar_url` (only if currently null)
-   - `ai_summary` (always update)
-   - `linkedin_profile_data` (always update -- raw data)
-   - `work_history` (always update -- structured JSON)
-   - `education` (always update -- structured JSON)
-   - `enrichment_last_run` = now()
-   - `enrichment_data` = `{ source: 'linkedin', api_used, enriched_at, fields_updated[] }`
-5. On failure: log error, continue to next candidate
-6. Return `{ total, enriched, failed, skipped, results: [{ id, status, name }] }`
-
-### 2. Fix `linkedin-scraper` CORS Headers
+### Fix 1: Normalize field names in `linkedin-scraper` edge function
 
 **File:** `supabase/functions/linkedin-scraper/index.ts`
 
-Update CORS headers to match project standard (same fix applied to `parse-email-candidates`). This also makes `linkedin-scraper` callable from the frontend for single-profile enrichment in other parts of the app.
+Change the `candidateData` construction (lines 241-263) to output field names that match what the DB and UI expect:
 
-### 3. Register in config.toml
+- `work_history` items: use `start_date`/`end_date` instead of `startDate`/`endDate`, add `position` alias for `title`
+- `education` items: use `institution` instead of `school`, `start_year`/`end_year` instead of `startYear`/`endYear`, `field_of_study` instead of `field`
+- `certifications`: map to `{name, issuer, issue_date}` format
+- Filter out empty strings: return `null` instead of `''` for missing fields so `||` fallbacks work correctly in the UI
 
-**File:** `supabase/config.toml`
+### Fix 2: Fix CandidateHeroSection sync handler
 
-Add `[functions.batch-linkedin-enrich]` with `verify_jwt = false` (auth validated in code, same pattern as parse-email-candidates).
+**File:** `src/components/candidate-profile/CandidateHeroSection.tsx`
 
-### 4. Post-Import Enrichment UI
+Replace the blind `.update(data.data)` (line 64-67) with a proper field-by-field update that:
+- Only updates fields that have actual values (not empty strings or null)
+- Never overwrites manually edited data unless the new value is richer
+- Sets `enrichment_last_run` and `last_profile_update` timestamps
+- Merges skills arrays (union, no duplicates)
 
-**File:** `src/components/jobs/email-dump/ExtractedCandidatesPreview.tsx`
+### Fix 3: Fix CandidateProfile sync handler
 
-After successful import, show an "Enrich from LinkedIn" button:
-- Only appears if at least 1 imported candidate has a `linkedin_url`
-- Shows cost estimate: "Enrich X profiles (~$0.0X via Apify)"
-- Confirmation dialog before proceeding
-- Chunks candidate IDs into groups of 5
-- Sequential chunk processing with 2s delay between chunks
-- Per-candidate status: pending / enriching / done / failed
-- Summary toast on completion
+**File:** `src/pages/CandidateProfile.tsx`
 
-### 5. Enrichment Progress Component
+Update `handleLinkedInImport` (lines 147-158) to:
+- Use truthy checks that exclude empty strings: `data.data.avatar_url || null` patterns
+- Merge skills instead of replacing
+- Set `enrichment_last_run` timestamp
+- Trigger completeness recalculation after update (call `enrich-candidate-profile` or rely on DB trigger)
 
-**File:** `src/components/jobs/email-dump/LinkedInEnrichmentProgress.tsx`
+### Fix 4: Add LinkedIn posts scraping via Apify
 
-Displays:
-- Progress bar (X/Y)
-- Per-candidate row: name, status icon, fields enriched
-- Retry button for failed candidates
-- Auto-dismisses after 5s of completion
+**File:** `supabase/functions/linkedin-scraper/index.ts`
+
+The default `apify~linkedin-profile-scraper` actor does not return posts. Add a secondary Apify call to `apify~linkedin-posts-extractor` (or use `apify~linkedin-profile-scraper` with `fetchArticles: true` parameter if supported) to pull recent posts. Store them in `linkedin_profile_data.posts` and generate a posts summary in `ai_summary`.
+
+If the posts actor is separate, make it optional (fire-and-forget, don't block the main profile response). Store posts as:
+
+```text
+candidate_profiles.linkedin_profile_data = {
+  ...profile,
+  posts: [
+    { text, date, likes, comments, shares, url },
+    ...
+  ],
+  posts_scraped_at: timestamp
+}
+```
+
+### Fix 5: Trigger enrichment after sync
+
+**Files:** `CandidateHeroSection.tsx` and `CandidateProfile.tsx`
+
+After a successful LinkedIn sync + DB update:
+1. Call `enrich-candidate-profile` edge function to regenerate AI summary, talent tier, and embedding based on the new data
+2. This also recalculates `profile_completeness` via the existing DB trigger
+3. Show a second toast: "Profile enriched with updated data"
 
 ---
 
-## Files to Create/Modify
+## Files to Modify
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `supabase/functions/batch-linkedin-enrich/index.ts` | Create | Orchestrator that calls linkedin-scraper per candidate |
-| `supabase/config.toml` | Modify | Register batch-linkedin-enrich |
-| `supabase/functions/linkedin-scraper/index.ts` | Modify | Fix CORS headers to project standard |
-| `src/components/jobs/email-dump/ExtractedCandidatesPreview.tsx` | Modify | Add post-import enrich button with cost confirmation |
-| `src/components/jobs/email-dump/LinkedInEnrichmentProgress.tsx` | Create | Progress UI with per-candidate status and retry |
+| File | Changes |
+|------|---------|
+| `supabase/functions/linkedin-scraper/index.ts` | Normalize field names in `candidateData` output; add posts scraping; filter empty strings to null |
+| `src/components/candidate-profile/CandidateHeroSection.tsx` | Replace blind `.update(data.data)` with field-mapped null-safe update + enrichment trigger |
+| `src/pages/CandidateProfile.tsx` | Fix `handleLinkedInImport` with proper truthy checks, skill merging, and post-sync enrichment call |
 
-No database migrations needed -- all data fits in existing `candidate_profiles` columns (`enrichment_data`, `enrichment_last_run`, `linkedin_profile_data`, `work_history`, `education`, `skills`).
+No database migrations needed -- all data fits in existing JSONB columns (`work_history`, `education`, `linkedin_profile_data`, `skills`, `enrichment_data`).
 
 ---
 
-## Safety Guards
+## Technical Details
 
-1. **Cost confirmation**: Dialog shows "This will enrich X profiles using Apify (~$0.01/profile). Continue?"
-2. **24h cooldown**: Profiles enriched in the last 24h are auto-skipped (uses `enrichment_last_run`)
-3. **Max batch size**: Frontend caps at 25 candidates per enrichment run; shows warning for larger batches
-4. **Concurrency lock**: Disable enrich button while enrichment is in progress (prevents double-click)
-5. **Null-safe updates**: Never overwrite manually edited fields -- only populate empty/null fields
-6. **Graceful failures**: Each candidate processed independently; one failure doesn't block others
+### Normalized Field Mapping (linkedin-scraper output)
 
-## Future-Proofing
+```text
+work_history: [
+  {
+    title: "Software Engineer",      // kept
+    position: "Software Engineer",   // alias for UI compatibility
+    company: "Acme Corp",           // kept
+    location: "Amsterdam",          // kept
+    start_date: "2020-01",          // was: startDate
+    end_date: "2023-06",            // was: endDate
+    description: "Led team..."      // kept
+  }
+]
 
-- When candidates later sign up and get a `user_id`, the merge flow can populate `profile_experience`/`profile_education` from the `work_history`/`education` JSON already stored on `candidate_profiles`
-- The `enrichment_data` field enables a future "Data Freshness" dashboard showing when each profile was last enriched
-- The orchestrator pattern allows swapping Apify for any future provider without touching frontend code
-- Supports future "auto-enrich on import" toggle via a simple feature flag check in the import flow
+education: [
+  {
+    institution: "University of X",  // was: school
+    school: "University of X",       // kept for backward compat
+    degree: "BSc",                   // kept
+    field_of_study: "CS",            // was: field
+    start_year: "2016",              // was: startYear
+    end_year: "2020"                 // was: endYear
+  }
+]
+```
+
+### Null-Safe Update Pattern
+
+```text
+const updates: Record<string, any> = {};
+
+// Only set if scraper returned a real value
+if (data.data.current_title) updates.current_title = data.data.current_title;
+if (data.data.current_company) updates.current_company = data.data.current_company;
+if (data.data.avatar_url) updates.avatar_url = data.data.avatar_url;
+if (data.data.skills?.length) updates.skills = mergeSkills(candidate.skills, data.data.skills);
+if (data.data.work_history?.length) updates.work_history = data.data.work_history;
+if (data.data.education?.length) updates.education = data.data.education;
+// Always update these
+updates.linkedin_profile_data = data.data.linkedin_profile_data;
+updates.enrichment_last_run = new Date().toISOString();
+updates.last_profile_update = new Date().toISOString();
+```
+
+### Posts Scraping (Apify)
+
+The Apify `linkedin-profile-scraper` actor supports a `getArticles` parameter. We will enable this in the actor input to scrape recent posts/articles. The posts data will be:
+- Stored in `linkedin_profile_data.posts` (JSONB)
+- Summarized in `ai_summary` (e.g., "Active on LinkedIn: 12 posts in last 90 days. Topics: AI, recruitment, leadership.")
+- Used to calculate engagement signals for the candidate assessment radar chart
 
