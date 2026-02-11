@@ -104,6 +104,24 @@ function emptyToNull(val: unknown): string | null {
   return String(val);
 }
 
+function normalizeDateField(val: unknown): string | null {
+  if (!val) return null;
+  if (typeof val === 'string') {
+    if (val.trim() === '' || val === '[object Object]') return null;
+    if (/^\d{4}$/.test(val)) return `${val}-01-01`;
+    if (/^\d{4}-\d{1,2}$/.test(val)) return `${val}-01`;
+    return val;
+  }
+  if (typeof val === 'number') return `${val}-01-01`;
+  if (typeof val === 'object' && val !== null) {
+    const obj = val as Record<string, any>;
+    if (obj.year) {
+      return `${obj.year}-${String(obj.month || 1).padStart(2, '0')}-01`;
+    }
+  }
+  return null;
+}
+
 function extractUsernameFromUrl(url: string): string | null {
   const match = url.match(/linkedin\.com\/in\/([^\/\?#]+)/);
   return match ? match[1] : null;
@@ -184,7 +202,7 @@ Deno.serve(async (req) => {
             headline: data.headline || data.title || data.occupation || data.tagline || '',
             location: data.location || data.addressLocality || data.city || data.geo || '',
             profileUrl: linkedinUrl,
-            imageUrl: data.profilePicture || data.profilePictureUrl || data.image || data.avatar || data.profile_pic_url || data.profileImage || '',
+            imageUrl: data.profilePicture || data.profilePictureUrl || data.image || data.avatar || data.profile_pic_url || data.profileImage || data.profilePictureOriginal || data.profilePictures?.[0] || data.img || '',
             summary: data.summary || data.about || data.description || '',
             experience: rawExp.map((exp: any) => ({
               title: exp.title || exp.role || exp.position || '',
@@ -342,8 +360,8 @@ Deno.serve(async (req) => {
       company: emptyToNull(exp.company),
       company_logo: emptyToNull(exp.companyLogo),
       location: emptyToNull(exp.location),
-      start_date: emptyToNull(exp.startDate),
-      end_date: emptyToNull(exp.endDate),
+      start_date: normalizeDateField(exp.startDate),
+      end_date: normalizeDateField(exp.endDate),
       description: emptyToNull(exp.description),
     })).filter(e => e.title || e.company);
 
@@ -353,8 +371,8 @@ Deno.serve(async (req) => {
       school_logo: emptyToNull(edu.schoolLogo),
       degree: emptyToNull(edu.degree),
       field_of_study: emptyToNull(edu.field),
-      start_year: emptyToNull(edu.startYear),
-      end_year: emptyToNull(edu.endYear),
+      start_year: normalizeDateField(edu.startYear),
+      end_year: normalizeDateField(edu.endYear),
     })).filter(e => e.institution || e.degree);
 
     const normalizedCertifications = (profile.certifications || []).map(c => ({

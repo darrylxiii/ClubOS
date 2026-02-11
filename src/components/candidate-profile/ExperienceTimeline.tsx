@@ -70,19 +70,26 @@ function buildGroup(roles: Experience[]): CompanyGroup {
 }
 
 function calculateDuration(start: string, end?: string): string {
+  if (!start) return '';
   const startDate = new Date(start);
+  if (isNaN(startDate.getTime())) return '';
   const endDate = end ? new Date(end) : new Date();
+  if (isNaN(endDate.getTime())) return '';
   const months = Math.max(0, Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
   const years = Math.floor(months / 12);
   const remainingMonths = months % 12;
 
+  if (years === 0 && remainingMonths === 0) return 'Less than a month';
   if (years === 0) return `${remainingMonths} mos`;
   if (remainingMonths === 0) return `${years} yrs`;
   return `${years} yrs ${remainingMonths} mos`;
 }
 
 function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
 function getCompanyDomain(company: string): string {
@@ -199,12 +206,18 @@ export const ExperienceTimeline = ({ experiences, education, certifications }: P
 
                             <div className="hover:bg-muted/30 rounded-lg p-2 -ml-1 transition-colors">
                               <h5 className="font-medium text-sm">{role.title}</h5>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                                <span>
-                                  {formatDate(role.start_date)} – {role.current ? 'Present' : formatDate(role.end_date!)}
-                                </span>
-                                <span>·</span>
-                                <span>{calculateDuration(role.start_date, role.end_date)}</span>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                                {formatDate(role.start_date) && (
+                                  <span>
+                                    {formatDate(role.start_date)} – {role.current ? 'Present' : formatDate(role.end_date!)}
+                                  </span>
+                                )}
+                                {calculateDuration(role.start_date, role.end_date) && (
+                                  <>
+                                    {formatDate(role.start_date) && <span>·</span>}
+                                    <span>{calculateDuration(role.start_date, role.end_date)}</span>
+                                  </>
+                                )}
                                 {role.location && (
                                   <>
                                     <span>·</span>
@@ -276,9 +289,11 @@ export const ExperienceTimeline = ({ experiences, education, certifications }: P
                         {edu.degree}
                         {edu.field && `, ${edu.field}`}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatDate(edu.start_date)} – {edu.end_date ? formatDate(edu.end_date) : 'Present'}
-                      </p>
+                      {(formatDate(edu.start_date) || formatDate(edu.end_date)) && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatDate(edu.start_date) || '?'} – {edu.end_date ? formatDate(edu.end_date) : 'Present'}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -350,10 +365,16 @@ function SingleRoleCard({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-            <span>{formatDate(exp.start_date)} – {exp.current ? 'Present' : formatDate(exp.end_date!)}</span>
-            <span>·</span>
-            <span>{calculateDuration(exp.start_date, exp.end_date)}</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
+            {formatDate(exp.start_date) && (
+              <span>{formatDate(exp.start_date)} – {exp.current ? 'Present' : formatDate(exp.end_date!)}</span>
+            )}
+            {calculateDuration(exp.start_date, exp.end_date) && (
+              <>
+                {formatDate(exp.start_date) && <span>·</span>}
+                <span>{calculateDuration(exp.start_date, exp.end_date)}</span>
+              </>
+            )}
             {exp.location && (
               <>
                 <span>·</span>
