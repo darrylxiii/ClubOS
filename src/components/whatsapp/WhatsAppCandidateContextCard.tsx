@@ -122,7 +122,7 @@ export function WhatsAppCandidateContextCard({
           variant="ghost"
           size="sm"
           className="w-full text-xs h-8 justify-between"
-          onClick={() => navigate(`/candidates/${candidate.id}`)}
+          onClick={() => navigate(`/candidate/${candidate.id}`)}
         >
           View Full Profile
           <ChevronRight className="w-3 h-3" />

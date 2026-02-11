@@ -229,7 +229,7 @@ export default function TalentPoolListDetail() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/admin/candidates/${candidate.id}`)}>
+                          <DropdownMenuItem onClick={() => navigate(`/candidate/${candidate.id}`)}>
                             <ExternalLink className="w-4 h-4 mr-2" />
                             View Profile
                           </DropdownMenuItem>

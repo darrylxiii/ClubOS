@@ -149,7 +149,7 @@ export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
                       className="h-7 w-7 p-0"
                       asChild
                     >
-                      <Link to={`/candidates/${item.candidate_id}`}>
+                      <Link to={`/candidate/${item.candidate_id}`}>
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                     </Button>

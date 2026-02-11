@@ -151,7 +151,7 @@ export const CandidatesAtRiskPanel = memo(({
               className="flex items-center justify-between p-2.5 rounded-lg bg-background/50 hover:bg-background/80 transition-all group cursor-pointer border border-transparent hover:border-border/50"
               onClick={() => {
                 if (candidate.candidate_id) {
-                  navigate(`/candidates/${candidate.candidate_id}`);
+                  navigate(`/candidate/${candidate.candidate_id}`);
                 }
               }}
             >
