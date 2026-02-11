@@ -83,8 +83,8 @@ export default function AcademyCreatorHub() {
         totalStudents: 0, // Enrollment tracking will be implemented in Phase 2
       });
 
-    } catch (error: any) {
-      notify.error("Error loading creator data", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error loading creator data", { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }
@@ -105,8 +105,8 @@ export default function AcademyCreatorHub() {
       );
 
       loadCreatorData();
-    } catch (error: any) {
-      notify.error("Error updating course", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error updating course", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 

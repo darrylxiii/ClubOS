@@ -89,8 +89,8 @@ export default function CourseEdit() {
         course_image_url: courseData.course_image_url || "",
         course_video_url: courseData.course_video_url || "",
       });
-    } catch (error: any) {
-      notify.error("Error loading course", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error loading course", { description: error instanceof Error ? error.message : 'Unknown error' });
       navigate("/academy/creator");
     } finally {
       setLoading(false);
@@ -117,8 +117,8 @@ export default function CourseEdit() {
 
       setFormData({ ...formData, description: data.content });
       notify.success("Description enhanced", { description: "AI has improved your course description" });
-    } catch (error: any) {
-      notify.error("Enhancement failed", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Enhancement failed", { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setAiLoading(false);
     }
@@ -145,8 +145,8 @@ export default function CourseEdit() {
       );
 
       await Promise.all(promises);
-    } catch (error: any) {
-      notify.error("Error reordering modules", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error reordering modules", { description: error instanceof Error ? error.message : 'Unknown error' });
       loadCourseData();
     }
   };
@@ -165,8 +165,8 @@ export default function CourseEdit() {
       notify.success("Module deleted", { description: "The module has been removed successfully" });
 
       loadCourseData();
-    } catch (error: any) {
-      notify.error("Error deleting module", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error deleting module", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -208,8 +208,8 @@ export default function CourseEdit() {
 
       // Reload the course data to show updated values
       await loadCourseData();
-    } catch (error: any) {
-      notify.error("Error saving course", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error saving course", { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setSaving(false);
     }

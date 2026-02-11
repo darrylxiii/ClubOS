@@ -164,7 +164,7 @@ export default function TranslationManager() {
         if (genError) { addLog('error', 'Generation failed after sync', genError.message, 'sync'); toast.error(`Generation failed: ${genError.message}`); } else { addLog('info', '✓ Translation sync complete', undefined, 'sync'); toast.success(`Synced translations for ${incompleteCount} language/namespace combinations`); }
       } else { addLog('info', '✓ All translations are complete', undefined, 'sync'); toast.success('All translations are already synced!'); }
       queryClient.invalidateQueries({ queryKey: ['translation-coverage'] }); refetchCoverage();
-    } catch (error: any) { addLog('error', 'Sync error', error.message, 'sync'); toast.error(error.message); } finally { setIsSyncingKeys(false); }
+    } catch (error: unknown) { const msg = error instanceof Error ? error.message : 'Unknown error'; addLog('error', 'Sync error', msg, 'sync'); toast.error(msg); } finally { setIsSyncingKeys(false); }
   };
 
   const getCoverageForNamespace = (namespace: string) => {

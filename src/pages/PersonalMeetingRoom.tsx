@@ -114,7 +114,7 @@ export default function PersonalMeetingRoom() {
       if (error) throw error;
       toast.success('Personal meeting room created');
       loadPMR();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating PMR:', error);
       toast.error('Failed to create personal meeting room');
     }
@@ -136,7 +136,7 @@ export default function PersonalMeetingRoom() {
       if (error) throw error;
       toast.success('Settings updated');
       loadPMR();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating PMR:', error);
       toast.error('Failed to update settings');
     }
@@ -154,7 +154,7 @@ export default function PersonalMeetingRoom() {
       if (error) throw error;
       toast.success(pmr.is_active ? 'PMR deactivated' : 'PMR activated');
       loadPMR();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error toggling PMR:', error);
       toast.error('Failed to toggle PMR');
     }
@@ -191,7 +191,7 @@ export default function PersonalMeetingRoom() {
       if (data?.success) {
         navigate(`/meetings/${data.meeting.meeting_code}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error starting meeting:', error);
       toast.error('Failed to start meeting');
     }

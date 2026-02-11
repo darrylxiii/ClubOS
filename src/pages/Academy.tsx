@@ -204,8 +204,8 @@ export default function Academy() {
           }));
         }
       }
-    } catch (error: any) {
-      notify.error("Error loading academy", { description: error.message });
+    } catch (error: unknown) {
+      notify.error("Error loading academy", { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setLoading(false);
     }
