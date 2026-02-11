@@ -24,7 +24,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 interface ProgressSaverProps {
   sessionId: string;
   currentStep: number;
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   email?: string;
 }
 

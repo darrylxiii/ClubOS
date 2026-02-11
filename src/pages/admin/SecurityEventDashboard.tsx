@@ -14,7 +14,7 @@ interface SecurityEvent {
   severity: 'low' | 'medium' | 'high' | 'critical';
   user_id: string | null;
   ip_address: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   resolved_at: string | null;
   created_at: string;
 }

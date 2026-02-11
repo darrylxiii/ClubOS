@@ -60,29 +60,29 @@ export function PredictiveHiringPanel({
 
         const rec = recording as any;
         if (rec?.ai_summary) {
-          const aiSummary = rec.ai_summary as Record<string, any>;
-          const candidateEval = aiSummary.candidateEvaluation || {};
-          const decisionGuidance = aiSummary.decisionGuidance || {};
+          const aiSummary = rec.ai_summary as Record<string, unknown>;
+          const candidateEval = (aiSummary.candidateEvaluation || {}) as Record<string, unknown>;
+          const decisionGuidance = (aiSummary.decisionGuidance || {}) as Record<string, unknown>;
           
           // Build prediction from AI analysis
           const signals: HiringSignal[] = [
             {
               name: 'Technical Competence',
-              score: mapFitToScore(candidateEval.technicalFit || 'fair'),
+              score: mapFitToScore((candidateEval.technicalFit as string) || 'fair'),
               trend: 'stable',
               description: 'Based on technical discussion quality',
               weight: 0.25
             },
             {
               name: 'Communication',
-              score: mapFitToScore(candidateEval.communicationFit || 'fair'),
+              score: mapFitToScore((candidateEval.communicationFit as string) || 'fair'),
               trend: 'stable',
               description: 'Clarity and articulation of ideas',
               weight: 0.2
             },
             {
               name: 'Cultural Alignment',
-              score: mapFitToScore(candidateEval.cultureFit || 'fair'),
+              score: mapFitToScore((candidateEval.cultureFit as string) || 'fair'),
               trend: 'stable',
               description: 'Values and work style compatibility',
               weight: 0.2
@@ -96,7 +96,7 @@ export function PredictiveHiringPanel({
             },
             {
               name: 'Experience Match',
-              score: mapFitToScore(candidateEval.experienceFit || 'fair'),
+              score: mapFitToScore((candidateEval.experienceFit as string) || 'fair'),
               trend: 'stable',
               description: 'Relevant experience for the role',
               weight: 0.2
@@ -107,11 +107,11 @@ export function PredictiveHiringPanel({
           
           setPrediction({
             overallScore: Math.round(overallScore),
-            confidence: decisionGuidance.confidenceLevel || 0.7,
+            confidence: (decisionGuidance.confidenceLevel as number) || 0.7,
             recommendation: mapScoreToRecommendation(overallScore),
             signals,
-            riskFactors: candidateEval.areasForGrowth || [],
-            strengths: candidateEval.strengths || []
+            riskFactors: (candidateEval.areasForGrowth as string[]) || [],
+            strengths: (candidateEval.strengths as string[]) || []
           });
         }
       }

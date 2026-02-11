@@ -18,7 +18,7 @@ import {
 interface AssessmentRecommendationsProps {
   assessmentType: 'personality' | 'skills' | 'culture' | 'technical';
   assessmentName: string;
-  resultsData: Record<string, any>;
+  resultsData: Record<string, unknown>;
   score?: number;
 }
 

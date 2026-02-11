@@ -83,7 +83,7 @@ export const ConnectedAccounts = () => {
   };
 
   const getPlatformIcon = (platform: string) => {
-    const icons: Record<string, any> = {
+    const icons: Record<string, React.ComponentType<{ className?: string }>> = {
       instagram: Instagram,
       twitter: Twitter,
       tiktok: Video,

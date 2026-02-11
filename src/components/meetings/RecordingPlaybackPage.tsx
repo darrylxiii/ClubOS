@@ -96,12 +96,12 @@ export default function RecordingPlaybackPage() {
       if (error) throw error;
 
       if (recordingData) {
-        const rec = recordingData as Record<string, any>;
+        const rec = recordingData as unknown as Record<string, unknown>;
         if (rec.meeting_id) {
           const { data: meetingData } = await supabase
             .from('meetings')
             .select('title, meeting_type, scheduled_start, host_id')
-            .eq('id', rec.meeting_id)
+            .eq('id', rec.meeting_id as string)
             .single();
           
           setRecording({ ...rec, meeting: meetingData });
@@ -109,7 +109,7 @@ export default function RecordingPlaybackPage() {
           const { data: channelData } = await supabase
             .from('live_channels')
             .select('name, channel_type')
-            .eq('id', rec.live_channel_id)
+            .eq('id', rec.live_channel_id as string)
             .single();
           
           setRecording({ 

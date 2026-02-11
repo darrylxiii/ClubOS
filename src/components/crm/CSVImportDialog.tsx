@@ -169,7 +169,7 @@ export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSucces
     try {
       // Transform rows to prospect format
       const prospects = parsedCSV.rows.map(row => {
-        const prospect: Record<string, any> = {};
+        const prospect: Record<string, unknown> = {};
         Object.entries(fieldMapping).forEach(([csvColumn, targetField]) => {
           if (targetField !== 'skip' && row[csvColumn]) {
             prospect[targetField] = row[csvColumn];

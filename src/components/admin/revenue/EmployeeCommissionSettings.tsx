@@ -103,7 +103,7 @@ export function EmployeeCommissionSettings() {
       tierId?: string | null; 
       annualTarget?: number;
     }) => {
-      const updates: Record<string, any> = {};
+      const updates: Record<string, unknown> = {};
       if (tierId !== undefined) updates.commission_tier_id = tierId;
       if (annualTarget !== undefined) updates.annual_target = annualTarget;
 

@@ -87,7 +87,7 @@ export function TeamTimeView() {
           acc[e.user_id].activityCount += 1;
         }
         return acc;
-      }, {} as Record<string, any>);
+      }, {} as Record<string, { userId: string; name: string; avatar?: string; totalSeconds: number; billableSeconds: number; activitySum: number; activityCount: number }>);
 
       const teamMembers = Object.values(userStats || {}).map((u: any) => ({
         ...u,

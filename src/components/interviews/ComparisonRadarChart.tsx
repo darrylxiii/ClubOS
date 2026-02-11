@@ -35,7 +35,7 @@ export function ComparisonRadarChart({ candidates }: ComparisonRadarChartProps) 
   ];
 
   const data = categories.map((cat) => {
-    const point: Record<string, any> = { category: cat.label };
+    const point: Record<string, string | number> = { category: cat.label };
     candidates.forEach((candidate) => {
       point[candidate.name] = candidate.scores[cat.key as keyof typeof candidate.scores];
     });

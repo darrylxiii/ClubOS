@@ -316,7 +316,7 @@ export default function Messages() {
                   <VideoCallLauncher
                     conversationId={selectedConversationId}
                     participantName={selectedConversation.title}
-                    onSendMessage={sendMessage}
+                    onSendMessage={(content, metadata) => sendMessage(content, undefined, metadata)}
                   />
                   <Button
                     variant={showGroupInfo ? "default" : "ghost"}

@@ -230,7 +230,7 @@ export function getCandidateSortValue(
 /**
  * Sort candidates by column
  */
-export function sortCandidates<T extends Record<string, any>>(
+export function sortCandidates<T extends Record<string, unknown>>(
   candidates: T[],
   column: CandidateColumnKey,
   direction: 'asc' | 'desc'
@@ -250,7 +250,7 @@ export function sortCandidates<T extends Record<string, any>>(
 /**
  * Filter candidates by search term
  */
-export function filterCandidatesBySearch<T extends Record<string, any>>(
+export function filterCandidatesBySearch<T extends Record<string, unknown>>(
   candidates: T[],
   searchTerm: string
 ): T[] {
@@ -259,14 +259,16 @@ export function filterCandidatesBySearch<T extends Record<string, any>>(
   const term = searchTerm.toLowerCase();
   
   return candidates.filter(candidate => {
+    const c = candidate as Record<string, unknown>;
+    const skills = Array.isArray(c.skills) ? c.skills : [];
     const searchableFields = [
-      candidate.full_name,
-      candidate.name,
-      candidate.email,
-      candidate.current_title,
-      candidate.current_company,
-      candidate.location,
-      ...(candidate.skills || []),
+      c.full_name as string | undefined,
+      c.name as string | undefined,
+      c.email as string | undefined,
+      c.current_title as string | undefined,
+      c.current_company as string | undefined,
+      c.location as string | undefined,
+      ...skills,
     ];
     
     return searchableFields.some(field => 

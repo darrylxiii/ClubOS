@@ -207,7 +207,7 @@ export function getApplicationSortValue(
 /**
  * Sort applications by column
  */
-export function sortApplications<T extends Record<string, any>>(
+export function sortApplications<T extends Record<string, unknown>>(
   applications: T[],
   column: ApplicationColumnKey,
   direction: 'asc' | 'desc'
@@ -227,7 +227,7 @@ export function sortApplications<T extends Record<string, any>>(
 /**
  * Filter applications by search term
  */
-export function filterApplicationsBySearch<T extends Record<string, any>>(
+export function filterApplicationsBySearch<T extends Record<string, unknown>>(
   applications: T[],
   searchTerm: string
 ): T[] {
@@ -236,14 +236,18 @@ export function filterApplicationsBySearch<T extends Record<string, any>>(
   const term = searchTerm.toLowerCase();
   
   return applications.filter(app => {
+    const a = app as Record<string, unknown>;
+    const profiles = a.profiles as Record<string, unknown> | undefined;
+    const job = a.job as Record<string, unknown> | undefined;
+    const companies = job?.companies as Record<string, unknown> | undefined;
     const searchableFields = [
-      app.candidate_name,
-      app.profiles?.full_name,
-      app.position,
-      app.job?.title,
-      app.company_name,
-      app.job?.companies?.name,
-      app.status,
+      a.candidate_name as string | undefined,
+      profiles?.full_name as string | undefined,
+      a.position as string | undefined,
+      job?.title as string | undefined,
+      a.company_name as string | undefined,
+      companies?.name as string | undefined,
+      a.status as string | undefined,
     ];
     
     return searchableFields.some(field => 
