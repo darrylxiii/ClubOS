@@ -104,10 +104,42 @@ function emptyToNull(val: unknown): string | null {
   return String(val);
 }
 
+const MONTH_NAME_MAP: Record<string, string> = {
+  jan:'01', feb:'02', mar:'03', apr:'04', may:'05', jun:'06',
+  jul:'07', aug:'08', sep:'09', oct:'10', nov:'11', dec:'12',
+};
+
+function parseMonthValue(month: unknown): string {
+  if (typeof month === 'number') return String(month).padStart(2, '0');
+  if (typeof month === 'string') {
+    const num = MONTH_NAME_MAP[month.toLowerCase().substring(0, 3)];
+    if (num) return num;
+    // Try parsing as numeric string
+    const parsed = parseInt(month, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) return String(parsed).padStart(2, '0');
+  }
+  return '01';
+}
+
+function parseDateValue(val: any): string | undefined {
+  if (!val) return undefined;
+  if (typeof val === 'string') {
+    if (val.trim() === '' || val === '[object Object]' || val === 'undefined' || val === 'null') return undefined;
+    return val;
+  }
+  if (typeof val === 'number') return `${val}`;
+  if (typeof val === 'object' && val !== null) {
+    const year = val.year;
+    if (!year) return undefined;
+    return `${year}-${parseMonthValue(val.month)}`;
+  }
+  return undefined;
+}
+
 function normalizeDateField(val: unknown): string | null {
   if (!val) return null;
   if (typeof val === 'string') {
-    if (val.trim() === '' || val === '[object Object]') return null;
+    if (val.trim() === '' || val === '[object Object]' || val === 'undefined' || val === 'null') return null;
     if (/^\d{4}$/.test(val)) return `${val}-01-01`;
     if (/^\d{4}-\d{1,2}$/.test(val)) return `${val}-01`;
     return val;
@@ -116,7 +148,7 @@ function normalizeDateField(val: unknown): string | null {
   if (typeof val === 'object' && val !== null) {
     const obj = val as Record<string, any>;
     if (obj.year) {
-      return `${obj.year}-${String(obj.month || 1).padStart(2, '0')}-01`;
+      return `${obj.year}-${parseMonthValue(obj.month)}-01`;
     }
   }
   return null;
@@ -209,14 +241,10 @@ Deno.serve(async (req) => {
               company: exp.company || exp.companyName || exp.organization || exp.companyTitle || '',
               companyLogo: exp.companyLogo || exp.companyLogoUrl || exp.logo || exp.company_logo_url || exp.logoUrl || '',
               location: exp.location || exp.locationName || '',
-              startDate: exp.startDate || exp.start_date || exp.dateRange?.start ||
-                (exp.starts_at ? `${exp.starts_at.year}-${String(exp.starts_at.month || 1).padStart(2, '0')}` : undefined) ||
-                (exp.start?.year ? `${exp.start.year}-${String(exp.start.month || 1).padStart(2, '0')}` : undefined) ||
-                (exp.timePeriod?.startDate ? `${exp.timePeriod.startDate.year}-${String(exp.timePeriod.startDate.month || 1).padStart(2, '0')}` : undefined),
-              endDate: exp.endDate || exp.end_date || exp.dateRange?.end ||
-                (exp.ends_at ? `${exp.ends_at.year}-${String(exp.ends_at.month || 1).padStart(2, '0')}` : undefined) ||
-                (exp.end?.year ? `${exp.end.year}-${String(exp.end.month || 1).padStart(2, '0')}` : undefined) ||
-                (exp.timePeriod?.endDate ? `${exp.timePeriod.endDate.year}-${String(exp.timePeriod.endDate.month || 1).padStart(2, '0')}` : undefined),
+              startDate: parseDateValue(exp.startDate) || parseDateValue(exp.start_date) || parseDateValue(exp.dateRange?.start) ||
+                parseDateValue(exp.starts_at) || parseDateValue(exp.start) || parseDateValue(exp.timePeriod?.startDate),
+              endDate: parseDateValue(exp.endDate) || parseDateValue(exp.end_date) || parseDateValue(exp.dateRange?.end) ||
+                parseDateValue(exp.ends_at) || parseDateValue(exp.end) || parseDateValue(exp.timePeriod?.endDate),
               description: exp.description || exp.summary || '',
             })),
             education: rawEdu.map((edu: any) => ({
@@ -224,8 +252,8 @@ Deno.serve(async (req) => {
               schoolLogo: edu.logo || edu.logoUrl || edu.schoolLogo || edu.school_logo || '',
               degree: edu.degree || edu.degreeName || edu.degree_name || '',
               field: edu.field || edu.fieldOfStudy || edu.field_of_study || edu.major || '',
-              startYear: (edu.startYear || edu.start_year || edu.starts_at?.year || edu.start?.year || edu.timePeriod?.startDate?.year)?.toString(),
-              endYear: (edu.endYear || edu.end_year || edu.ends_at?.year || edu.end?.year || edu.timePeriod?.endDate?.year)?.toString(),
+              startYear: parseDateValue(edu.startYear) || parseDateValue(edu.start_year) || parseDateValue(edu.starts_at) || parseDateValue(edu.start) || parseDateValue(edu.timePeriod?.startDate),
+              endYear: parseDateValue(edu.endYear) || parseDateValue(edu.end_year) || parseDateValue(edu.ends_at) || parseDateValue(edu.end) || parseDateValue(edu.timePeriod?.endDate),
             })),
             skills: rawSkills.map((s: any) => typeof s === 'string' ? s : (s.name || s.skill || '')).filter(Boolean),
             certifications: rawCerts.map((c: any) => ({
