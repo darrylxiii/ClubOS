@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Shield, Plus, Trash2, Edit2, ArrowUpDown, UserPlus, ArrowRight, XCircle, Eye, Linkedin } from "lucide-react";
-import { format } from "date-fns";
+import { Shield, Plus, Trash2, Edit2, ArrowUpDown, UserPlus, ArrowRight, XCircle, Eye, Linkedin, Mail, CheckCircle, Share2 } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface AuditLog {
   id: string;
@@ -21,14 +22,33 @@ interface PipelineAuditLogProps {
   jobId: string;
 }
 
+const FILTER_GROUPS: Record<string, string[]> = {
+  all: [],
+  pipeline: [
+    'stage_added', 'stage_removed', 'stage_updated', 'stage_reordered',
+    'candidate_added', 'candidate_advanced', 'candidate_declined', 'stage_changed_manual',
+  ],
+  views: ['job_viewed'],
+  imports: ['email_dump_created', 'email_dump_imported'],
+  system: ['linkedin_synced', 'dossier_shared', 'job_edited'],
+};
+
+const FILTER_LABELS: Record<string, string> = {
+  all: 'All',
+  pipeline: 'Pipeline',
+  views: 'Views',
+  imports: 'Imports',
+  system: 'System',
+};
+
 export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchAuditLogs();
     
-    // Subscribe to real-time updates
     const channel = supabase
       .channel(`pipeline-audit-${jobId}`)
       .on(
@@ -55,11 +75,10 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
         .select('*')
         .eq('job_id', jobId)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (error) throw error;
 
-      // Fetch user profiles separately
       if (data && data.length > 0) {
         const userIds = [...new Set(data.map(log => log.user_id))];
         const { data: profiles } = await supabase
@@ -85,6 +104,10 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
     }
   };
 
+  const filteredLogs = activeFilter === 'all'
+    ? logs
+    : logs.filter(log => FILTER_GROUPS[activeFilter]?.includes(log.action));
+
   const getActionIcon = (action: string) => {
     switch (action) {
       case 'stage_added': return Plus;
@@ -96,6 +119,11 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
       case 'candidate_declined': return XCircle;
       case 'stage_changed_manual': return ArrowUpDown;
       case 'job_viewed': return Eye;
+      case 'email_dump_created': return Mail;
+      case 'email_dump_imported': return CheckCircle;
+      case 'linkedin_synced': return Linkedin;
+      case 'dossier_shared': return Share2;
+      case 'job_edited': return Edit2;
       default: return Shield;
     }
   };
@@ -111,6 +139,11 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
       case 'candidate_declined': return 'bg-red-500/10 text-red-500 border-red-500/20';
       case 'stage_changed_manual': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
       case 'job_viewed': return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+      case 'email_dump_created': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+      case 'email_dump_imported': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+      case 'linkedin_synced': return 'bg-blue-600/10 text-blue-600 border-blue-600/20';
+      case 'dossier_shared': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+      case 'job_edited': return 'bg-primary/20 text-primary border-primary/30';
       default: return 'bg-muted';
     }
   };
@@ -125,7 +158,12 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
       'candidate_advanced': 'Candidate Advanced',
       'candidate_declined': 'Candidate Declined',
       'stage_changed_manual': 'Stage Changed',
-      'job_viewed': 'Page Viewed'
+      'job_viewed': 'Page Viewed',
+      'email_dump_created': 'Email Dump',
+      'email_dump_imported': 'Dump Imported',
+      'linkedin_synced': 'LinkedIn Sync',
+      'dossier_shared': 'Dossier Shared',
+      'job_edited': 'Job Edited',
     };
     return labels[action] || action.split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
@@ -151,26 +189,54 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-accent" />
           <CardTitle className="text-lg font-black uppercase">
-            White Glove Audit Log
+            Job Audit Log
           </CardTitle>
         </div>
         <CardDescription>
-          Secure, comprehensive tracking of all pipeline modifications
+          Comprehensive tracking of all job interactions and modifications
         </CardDescription>
+
+        {/* Filter Chips */}
+        <div className="flex flex-wrap gap-2 pt-2">
+          {Object.keys(FILTER_GROUPS).map((key) => {
+            const count = key === 'all'
+              ? logs.length
+              : logs.filter(l => FILTER_GROUPS[key]?.includes(l.action)).length;
+            return (
+              <Button
+                key={key}
+                variant={activeFilter === key ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => setActiveFilter(key)}
+              >
+                {FILTER_LABELS[key]}
+                <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-1">
+                  {count}
+                </Badge>
+              </Button>
+            );
+          })}
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[400px]">
-          {logs.length === 0 ? (
+        <ScrollArea className="h-[500px]">
+          {filteredLogs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Shield className="w-12 h-12 text-muted-foreground/50 mb-4" />
               <p className="text-sm text-muted-foreground">
-                No audit logs yet. All changes will be tracked here.
+                {activeFilter === 'all'
+                  ? 'No audit logs yet. All changes will be tracked here.'
+                  : `No ${FILTER_LABELS[activeFilter]?.toLowerCase()} events found.`}
               </p>
             </div>
           ) : (
             <div className="space-y-1 p-4">
-              {logs.map((log) => {
+              {filteredLogs.map((log) => {
                 const ActionIcon = getActionIcon(log.action);
+                const relativeTime = formatDistanceToNow(new Date(log.created_at), { addSuffix: true });
+                const fullDate = format(new Date(log.created_at), 'MMM d, yyyy · HH:mm');
+
                 return (
                   <div
                     key={log.id}
@@ -190,7 +256,7 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
                               {getActionLabel(log.action)}
                             </Badge>
                             <span className="text-sm font-medium">
-                              by {log.profiles?.full_name || 'Unknown'}
+                              by {log.profiles?.full_name || log.metadata?.viewer_name || 'Unknown'}
                             </span>
                           </div>
                           <div className="text-xs text-muted-foreground space-y-1">
@@ -273,12 +339,47 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
                               <p className="flex items-center gap-1">
                                 <Eye className="w-3 h-3" />
                                 Viewed dashboard
+                                {log.metadata?.viewer_role && (
+                                  <Badge variant="secondary" className="text-[10px] h-4 ml-1">
+                                    {log.metadata.viewer_role}
+                                  </Badge>
+                                )}
                               </p>
+                            )}
+
+                            {/* Email Dump Created Details */}
+                            {log.action === 'email_dump_created' && (
+                              <div className="mt-1">
+                                <p className="text-foreground">
+                                  Created email dump — <span className="font-medium">{log.stage_data?.candidate_count || 0} candidates</span> extracted
+                                </p>
+                                {log.stage_data?.linkedin_count > 0 && (
+                                  <Badge variant="secondary" className="text-xs h-5 mt-1">
+                                    <Linkedin className="w-3 h-3 mr-1" />
+                                    {log.stage_data.linkedin_count} LinkedIn profiles
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Email Dump Imported Details */}
+                            {log.action === 'email_dump_imported' && (
+                              <div className="mt-1">
+                                <p className="text-foreground">
+                                  Imported <span className="font-medium">{log.stage_data?.imported_count || 0} candidates</span>
+                                  {log.stage_data?.skipped_count > 0 && (
+                                    <span className="text-muted-foreground">, {log.stage_data.skipped_count} skipped (duplicates)</span>
+                                  )}
+                                </p>
+                              </div>
                             )}
                           </div>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {format(new Date(log.created_at), 'MMM d, HH:mm')}
+                        <span
+                          className="text-xs text-muted-foreground whitespace-nowrap cursor-default"
+                          title={fullDate}
+                        >
+                          {relativeTime}
                         </span>
                       </div>
                     </div>

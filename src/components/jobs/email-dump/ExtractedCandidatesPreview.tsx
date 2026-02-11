@@ -262,6 +262,24 @@ export function ExtractedCandidatesPreview({
           .eq("id", dumpId);
       }
 
+      // Log email_dump_imported to audit log
+      try {
+        await supabase.from('pipeline_audit_logs').insert({
+          job_id: jobId,
+          user_id: user.id,
+          action: 'email_dump_imported',
+          stage_data: {
+            dump_id: dumpId,
+            imported_count: importedCount,
+            skipped_count: skippedCount,
+            total_selected: toImport.length,
+          },
+          metadata: {},
+        });
+      } catch (auditErr) {
+        console.error('Failed to log import audit:', auditErr);
+      }
+
       const msg = skippedCount > 0
         ? `Imported ${importedCount} candidate${importedCount !== 1 ? "s" : ""}, ${skippedCount} skipped (duplicates or errors)`
         : `Imported ${importedCount} candidate${importedCount !== 1 ? "s" : ""} to pipeline`;
