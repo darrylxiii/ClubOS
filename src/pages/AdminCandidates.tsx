@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Download, Filter, Users, Grid3x3, Table as TableIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { adminCandidateService } from "@/services/adminCandidateService";
+import { supabase } from "@/integrations/supabase/client";
 import { UnifiedCandidateCard } from "@/components/admin/UnifiedCandidateCard";
 import { CandidatesTable } from "@/components/admin/CandidatesTable";
 import { BulkActionsToolbar } from "@/components/admin/BulkActionsToolbar";
@@ -18,6 +19,8 @@ import { MergeStatusDashboard } from "@/components/admin/MergeStatusDashboard";
 import { ActivitySettingsDialog, getActivityThresholds, ActivityThresholds } from "@/components/admin/ActivitySettingsDialog";
 import { ArchivedCandidatesView } from "@/components/admin/ArchivedCandidatesView";
 import { SectionLoader } from "@/components/ui/unified-loader";
+import { TagFilterSidebar } from "@/components/candidates/TagFilterSidebar";
+import { BatchProcessingPanel } from "@/components/candidates/BatchProcessingPanel";
 
 export default function AdminCandidates() {
   const [candidates, setCandidates] = useState<any[]>([]);
@@ -34,16 +37,33 @@ export default function AdminCandidates() {
   const [salaryRange, setSalaryRange] = useState<number[]>([0, 300000]);
   const [activityThresholds, setActivityThresholds] = useState<ActivityThresholds>(getActivityThresholds());
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [candidateTagMap, setCandidateTagMap] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     loadCandidates();
     loadStrategists();
+    loadCandidateTagMap();
   }, [mergeStatusFilter, completenessFilter]);
 
   const loadStrategists = async () => {
     const { data, error } = await adminCandidateService.getStrategists();
     if (!error && data) {
       setStrategists(data);
+    }
+  };
+
+  const loadCandidateTagMap = async () => {
+    const { data, error } = await (supabase as any)
+      .from('candidate_tag_assignments')
+      .select('candidate_id, tag_id');
+    if (!error && data) {
+      const map: Record<string, string[]> = {};
+      for (const row of data) {
+        if (!map[row.candidate_id]) map[row.candidate_id] = [];
+        map[row.candidate_id].push(row.tag_id);
+      }
+      setCandidateTagMap(map);
     }
   };
 
@@ -83,6 +103,14 @@ export default function AdminCandidates() {
     const salary = c.desired_salary_min || 0;
     if (salary < salaryRange[0] || salary > salaryRange[1]) {
       return false;
+    }
+
+    // Tag filter
+    if (selectedTagIds.length > 0) {
+      const candidateTags = candidateTagMap[c.id] || [];
+      if (!selectedTagIds.every(tagId => candidateTags.includes(tagId))) {
+        return false;
+      }
     }
 
     return true;
@@ -285,103 +313,119 @@ export default function AdminCandidates() {
           </CardContent>
         </div>
 
-        {showArchived ? (
-          <ArchivedCandidatesView />
-        ) : loading ? (
-          <div className="flex justify-center py-12">
-            <SectionLoader />
-          </div>
-        ) : (
-          <>
-            {viewMode === 'grid' ? (
-              <motion.div
-                layout
-                className="grid gap-4"
-              >
-                <AnimatePresence mode="popLayout">
-                  {paginatedCandidates.map((candidate) => (
-                    <motion.div
-                      key={candidate.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <UnifiedCandidateCard
-                        candidate={candidate}
-                        activityThresholds={activityThresholds}
-                        onDelete={loadCandidates}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </motion.div>
-            ) : (
-              <CandidatesTable
-                candidates={paginatedCandidates}
-                selectedIds={selectedIds}
-                onSelectionChange={handleSelectionChange}
-                onSelectAll={handleSelectAll}
-                activityThresholds={activityThresholds}
+        <div className="flex gap-6">
+          {/* Tag Filter Sidebar */}
+          <aside className="hidden lg:block w-64 shrink-0 space-y-4">
+            <div className="glass-card p-4 sticky top-24">
+              <TagFilterSidebar
+                selectedTagIds={selectedTagIds}
+                onTagSelectionChange={setSelectedTagIds}
               />
-            )}
+            </div>
+            <BatchProcessingPanel />
+          </aside>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-6">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="glass-input"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (page <= 3) {
-                      pageNum = i + 1;
-                    } else if (page >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = page - 2 + i;
-                    }
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={page === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setPage(pageNum)}
-                        className={page !== pageNum ? "glass-input" : ""}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="glass-input"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {showArchived ? (
+              <ArchivedCandidatesView />
+            ) : loading ? (
+              <div className="flex justify-center py-12">
+                <SectionLoader />
               </div>
+            ) : (
+              <>
+                {viewMode === 'grid' ? (
+                  <motion.div
+                    layout
+                    className="grid gap-4"
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {paginatedCandidates.map((candidate) => (
+                        <motion.div
+                          key={candidate.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <UnifiedCandidateCard
+                            candidate={candidate}
+                            activityThresholds={activityThresholds}
+                            onDelete={loadCandidates}
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+                ) : (
+                  <CandidatesTable
+                    candidates={paginatedCandidates}
+                    selectedIds={selectedIds}
+                    onSelectionChange={handleSelectionChange}
+                    onSelectAll={handleSelectAll}
+                    activityThresholds={activityThresholds}
+                  />
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="glass-input"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (page <= 3) {
+                          pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = page - 2 + i;
+                        }
+
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={page === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setPage(pageNum)}
+                            className={page !== pageNum ? "glass-input" : ""}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                      className="glass-input"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
 
         <BulkActionsToolbar
           selectedCount={selectedIds.length}
