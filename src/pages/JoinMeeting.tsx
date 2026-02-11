@@ -79,10 +79,10 @@ export default function JoinMeeting() {
 
       // Navigate to meeting room
       navigate(`/meeting/${formattedCode}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error joining meeting:', error);
       toast.error('Failed to join meeting', {
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
       setLoading(false);

@@ -160,7 +160,7 @@ export default function Scheduling() {
       }
       console.log("[Scheduling] Loaded booking links:", data);
       setBookingLinks(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[Scheduling] Failed to load booking links:", error);
       toast.error("Failed to load booking links");
     } finally {
@@ -182,7 +182,7 @@ export default function Scheduling() {
 
       if (error) throw error;
       setUpcomingBookings(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to load bookings");
     }
   };
@@ -253,8 +253,9 @@ export default function Scheduling() {
         },
       });
       setDialogOpen(false);
-    } catch (error: any) {
-      if (error.code === "23505") {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === "23505") {
         toast.error("This URL is already taken");
       } else {
         toast.error("Failed to create booking link");

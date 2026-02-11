@@ -107,7 +107,7 @@ const TargetCompaniesOverview = () => {
         .order('name');
 
       setPartnerCompanies(companiesData || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading data:', error);
       toast.error('Failed to load target companies');
     } finally {
