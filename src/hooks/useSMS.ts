@@ -93,7 +93,7 @@ export function useSMS(options: UseSMSOptions = {}) {
       toast.success('SMS sent successfully');
       queryClient.invalidateQueries({ queryKey: ['sms-messages'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Failed to send SMS', { description: error.message });
     },
   });

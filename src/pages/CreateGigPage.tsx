@@ -126,7 +126,7 @@ export default function CreateGigPage() {
       toast.success("Gig created successfully!");
       navigate(`/projects/gigs/${data.id}`);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to create gig");
     },
   });

@@ -38,7 +38,7 @@ export function TrackList() {
       queryClient.invalidateQueries({ queryKey: ['tracks'] });
       toast.success('Track deleted');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete track');
     },
   });
@@ -70,7 +70,7 @@ export function TrackList() {
       queryClient.invalidateQueries({ queryKey: ['dj-queue'] });
       toast.success('Track added to DJ queue');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to add track to queue');
     },
   });

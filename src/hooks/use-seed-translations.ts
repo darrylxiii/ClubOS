@@ -123,7 +123,7 @@ export const useSeedTranslations = () => {
       queryClient.invalidateQueries({ queryKey: ['translation-coverage'] });
       queryClient.invalidateQueries({ queryKey: ['db-namespaces'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('[Seed Translations] Error:', error);
       toast.error(error.message || 'Failed to seed English translations');
     }

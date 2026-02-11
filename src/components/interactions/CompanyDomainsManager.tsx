@@ -76,7 +76,7 @@ export function CompanyDomainsManager({
       setNewNotes("");
       toast.success("Domain added successfully");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to add domain");
     },
   });
@@ -97,7 +97,7 @@ export function CompanyDomainsManager({
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
       toast.success("Domain status updated");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to update domain status");
     },
   });
@@ -118,7 +118,7 @@ export function CompanyDomainsManager({
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
       toast.success("Domain deleted");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to delete domain");
     },
   });
@@ -139,7 +139,7 @@ export function CompanyDomainsManager({
       const count = data?.length || 0;
       toast.success(count > 0 ? `Synced ${count} partner domain(s)` : "All partner domains are already tracked");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to sync partner domains");
     },
   });

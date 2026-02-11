@@ -35,7 +35,7 @@ export function useRefreshAggregatedIntelligence() {
       queryClient.setQueryData(['aggregated-hiring-intelligence', companyId], data);
       toast.success("Intelligence refreshed successfully");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error("Failed to refresh intelligence");
       console.error('Refresh error:', error);
     }

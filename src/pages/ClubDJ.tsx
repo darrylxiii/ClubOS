@@ -102,7 +102,7 @@ export default function ClubDJ() {
       queryClient.invalidateQueries({ queryKey: ['live-session'] });
       queryClient.invalidateQueries({ queryKey: ['has-live-session'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to toggle live status');
     },
   });

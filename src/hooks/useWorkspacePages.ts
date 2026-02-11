@@ -218,7 +218,7 @@ export function useWorkspacePages() {
       queryClient.invalidateQueries({ queryKey: ['workspace-pages'] });
       queryClient.invalidateQueries({ queryKey: ['user-workspaces'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Create page mutation error:', error);
       toast.error(`Failed to create page: ${error.message || 'Unknown error'}`);
     },

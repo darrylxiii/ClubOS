@@ -37,7 +37,7 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
       toast.success('Daily briefing generated');
       queryClient.invalidateQueries({ queryKey: ['daily-briefing', companyId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Failed to generate briefing', {
         description: error.message
       });
