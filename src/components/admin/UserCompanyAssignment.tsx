@@ -118,9 +118,10 @@ export function UserCompanyAssignment() {
       setDialogOpen(false);
       resetForm();
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error assigning user:', error);
-      if (error.code === '23505') {
+      const pgError = error as { code?: string };
+      if (pgError.code === '23505') {
         toast.error("User is already a member of this company");
       } else {
         toast.error("Failed to assign user");

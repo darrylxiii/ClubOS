@@ -35,9 +35,10 @@ export const useCustomAssessments = () => {
       });
 
       return { success: true, data: data as unknown as AssessmentTemplate };
-    } catch (error: any) {
-      notify.error('Error', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error', { description: msg });
+      return { success: false, error: msg };
     } finally {
       setLoading(false);
     }
@@ -62,9 +63,10 @@ export const useCustomAssessments = () => {
       if (error) throw error;
 
       return { success: true, data: data as unknown as AssessmentTemplate[] };
-    } catch (error: any) {
-      notify.error('Error loading templates', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error loading templates', { description: msg });
+      return { success: false, error: msg };
     }
   };
 
@@ -95,9 +97,10 @@ export const useCustomAssessments = () => {
       });
 
       return { success: true, data: data as unknown as AssessmentTemplate };
-    } catch (error: any) {
-      notify.error('Error', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error', { description: msg });
+      return { success: false, error: msg };
     } finally {
       setLoading(false);
     }
@@ -118,9 +121,10 @@ export const useCustomAssessments = () => {
       });
 
       return { success: true };
-    } catch (error: any) {
-      notify.error('Error', { description: error.message });
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      notify.error('Error', { description: msg });
+      return { success: false, error: msg };
     } finally {
       setLoading(false);
     }

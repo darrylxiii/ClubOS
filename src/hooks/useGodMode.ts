@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export type AccountStatus = 'active' | 'suspended' | 'banned' | 'pending_review' | 'read_only';
 
@@ -13,6 +14,10 @@ export interface UserAccountInfo {
   banned_at?: string;
   force_password_reset?: boolean;
   force_password_reset_reason?: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export function useGodMode() {
@@ -29,9 +34,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('User suspended successfully');
       return true;
-    } catch (error: any) {
-      console.error('Error suspending user:', error);
-      toast.error(error.message || 'Failed to suspend user');
+    } catch (error: unknown) {
+      logger.error('Error suspending user', error);
+      toast.error(getErrorMessage(error, 'Failed to suspend user'));
       return false;
     } finally {
       setIsLoading(false);
@@ -48,9 +53,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('User unsuspended successfully');
       return true;
-    } catch (error: any) {
-      console.error('Error unsuspending user:', error);
-      toast.error(error.message || 'Failed to unsuspend user');
+    } catch (error: unknown) {
+      logger.error('Error unsuspending user', error);
+      toast.error(getErrorMessage(error, 'Failed to unsuspend user'));
       return false;
     } finally {
       setIsLoading(false);
@@ -68,9 +73,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('User banned successfully');
       return true;
-    } catch (error: any) {
-      console.error('Error banning user:', error);
-      toast.error(error.message || 'Failed to ban user');
+    } catch (error: unknown) {
+      logger.error('Error banning user', error);
+      toast.error(getErrorMessage(error, 'Failed to ban user'));
       return false;
     } finally {
       setIsLoading(false);
@@ -87,9 +92,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('User unbanned successfully');
       return true;
-    } catch (error: any) {
-      console.error('Error unbanning user:', error);
-      toast.error(error.message || 'Failed to unban user');
+    } catch (error: unknown) {
+      logger.error('Error unbanning user', error);
+      toast.error(getErrorMessage(error, 'Failed to unban user'));
       return false;
     } finally {
       setIsLoading(false);
@@ -107,9 +112,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('Password reset forced - user will be prompted on next login');
       return true;
-    } catch (error: any) {
-      console.error('Error forcing password reset:', error);
-      toast.error(error.message || 'Failed to force password reset');
+    } catch (error: unknown) {
+      logger.error('Error forcing password reset', error);
+      toast.error(getErrorMessage(error, 'Failed to force password reset'));
       return false;
     } finally {
       setIsLoading(false);
@@ -126,9 +131,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('Password reset requirement cleared');
       return true;
-    } catch (error: any) {
-      console.error('Error clearing password reset:', error);
-      toast.error(error.message || 'Failed to clear password reset');
+    } catch (error: unknown) {
+      logger.error('Error clearing password reset', error);
+      toast.error(getErrorMessage(error, 'Failed to clear password reset'));
       return false;
     } finally {
       setIsLoading(false);
@@ -145,9 +150,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('User promoted to Super Admin');
       return true;
-    } catch (error: any) {
-      console.error('Error promoting to super admin:', error);
-      toast.error(error.message || 'Failed to promote to super admin');
+    } catch (error: unknown) {
+      logger.error('Error promoting to super admin', error);
+      toast.error(getErrorMessage(error, 'Failed to promote to super admin'));
       return false;
     } finally {
       setIsLoading(false);
@@ -164,9 +169,9 @@ export function useGodMode() {
       if (error) throw error;
       toast.success('User demoted from Super Admin');
       return true;
-    } catch (error: any) {
-      console.error('Error demoting from super admin:', error);
-      toast.error(error.message || 'Failed to demote from super admin');
+    } catch (error: unknown) {
+      logger.error('Error demoting from super admin', error);
+      toast.error(getErrorMessage(error, 'Failed to demote from super admin'));
       return false;
     } finally {
       setIsLoading(false);
@@ -181,8 +186,8 @@ export function useGodMode() {
       
       if (error) throw error;
       return data || false;
-    } catch (error) {
-      console.error('Error checking super admin status:', error);
+    } catch (error: unknown) {
+      logger.error('Error checking super admin status', error);
       return false;
     }
   };
@@ -195,8 +200,8 @@ export function useGodMode() {
       
       if (error) throw error;
       return data || false;
-    } catch (error) {
-      console.error('Error checking modify permissions:', error);
+    } catch (error: unknown) {
+      logger.error('Error checking modify permissions', error);
       return false;
     }
   };

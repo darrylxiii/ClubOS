@@ -35,7 +35,7 @@ export const useMeetingMessages = () => {
         });
 
       if (error) throw error;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating meeting message:', error);
       toast.error('Failed to create meeting notification');
     }

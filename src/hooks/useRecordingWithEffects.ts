@@ -124,9 +124,9 @@ export function useRecordingWithEffects({
             }, 1000);
 
             toast.success('Recording started');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error starting recording:', error);
-            toast.error(error.message || 'Failed to start recording');
+            toast.error(error instanceof Error ? error.message : 'Failed to start recording');
         }
     }, [enabled, videoStream, audioStream]);
 
