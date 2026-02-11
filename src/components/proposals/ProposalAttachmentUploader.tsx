@@ -133,9 +133,9 @@ export function ProposalAttachmentUploader({
 
       onAttachmentsChange([...attachments, ...newAttachments]);
       toast.success(`${newAttachments.length} file(s) uploaded`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload files');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload files');
     } finally {
       setUploading(false);
       setUploadProgress({});
@@ -165,7 +165,7 @@ export function ProposalAttachmentUploader({
 
       onAttachmentsChange(attachments.filter(a => a.id !== attachment.id));
       toast.success('File removed');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Remove error:', error);
       toast.error('Failed to remove file');
     }

@@ -93,9 +93,9 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
       setAccessType('invite_only');
       setPassword('');
       setMaxParticipants(undefined);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating meeting:', error);
-      toast.error(error.message || 'Failed to create meeting');
+      toast.error(error instanceof Error ? error.message : 'Failed to create meeting');
     } finally {
       setIsCreating(false);
     }

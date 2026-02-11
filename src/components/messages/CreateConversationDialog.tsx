@@ -204,15 +204,16 @@ export const CreateConversationDialog = ({
       
       onConversationCreated?.(conversation.id);
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string; code?: string; hint?: string };
       console.error('Error creating conversation:', {
-        message: error?.message,
-        code: error?.code,
-        hint: error?.hint,
+        message: err?.message,
+        code: err?.code,
+        hint: err?.hint,
         details: error,
       });
       toast.error('Failed to create conversation', {
-        description: error?.message || 'Please try again',
+        description: err?.message || 'Please try again',
       });
     } finally {
       setCreating(false);

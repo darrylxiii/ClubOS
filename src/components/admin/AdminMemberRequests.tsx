@@ -537,7 +537,7 @@ export const AdminMemberRequests = () => {
 
       // Refresh to show updated notification status
       fetchRequests();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error resending notification:', error);
       toast.error(`Failed to resend ${notificationType}`);
     } finally {

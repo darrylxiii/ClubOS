@@ -34,7 +34,7 @@ export function PersonalMeetingRoomCard({ pmr, onUpdate }: PersonalMeetingRoomCa
 
       toast.success(pmr.is_active ? 'Room deactivated' : 'Room activated');
       onUpdate?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to update room');
     } finally {
       setUpdating(false);
@@ -51,7 +51,7 @@ export function PersonalMeetingRoomCard({ pmr, onUpdate }: PersonalMeetingRoomCa
 
       toast.success('Starting your personal room...');
       navigate(`/meetings/${pmr.room_code}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to start meeting');
     }
   };

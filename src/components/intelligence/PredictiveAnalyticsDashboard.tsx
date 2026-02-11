@@ -90,7 +90,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
       } else {
         throw new Error('No predictions returned from AI');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading predictions:', error);
       setPredictions(null);
       toast.error("Failed to generate predictions. You can retry or continue without AI insights.");
