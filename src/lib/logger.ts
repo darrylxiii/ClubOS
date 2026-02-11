@@ -195,7 +195,7 @@ class Logger {
         component_name: log.componentName || null,
         page_url: log.pageUrl,
         user_agent: log.userAgent,
-        metadata: log.metadata as any, // Cast to Json type
+        metadata: (log.metadata ?? null) as { [key: string]: string | number | boolean | null | undefined } | null,
       }));
       
       const { error } = await supabase.from('error_logs').insert(records);

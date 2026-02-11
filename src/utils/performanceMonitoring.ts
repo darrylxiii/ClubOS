@@ -107,9 +107,9 @@ export const trackCLS = (): void => {
   
   let clsValue = 0;
   const clsObserver = new PerformanceObserver((list) => {
-    for (const entry of list.getEntries() as any[]) {
-      if (!entry.hadRecentInput) {
-        clsValue += entry.value;
+    for (const entry of list.getEntries()) {
+      if (!(entry as PerformanceEntry & { hadRecentInput?: boolean }).hadRecentInput) {
+        clsValue += (entry as PerformanceEntry & { value: number }).value;
       }
     }
     logPerformanceMetric('cumulative_layout_shift', clsValue * 1000, { metric: 'cls' });
@@ -129,7 +129,7 @@ export const trackINP = (): void => {
   if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
   
   const inpObserver = new PerformanceObserver((list) => {
-    for (const entry of list.getEntries() as any[]) {
+    for (const entry of list.getEntries()) {
       if (entry.duration > 40) {
         logPerformanceMetric('interaction_to_next_paint', entry.duration, { 
           metric: 'inp',
@@ -156,10 +156,10 @@ export const trackCoreWebVitals = (): void => {
   if ('PerformanceObserver' in window) {
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      const lastEntry = entries[entries.length - 1] as any;
+      const lastEntry = entries[entries.length - 1] as PerformanceEntry & { renderTime?: number; loadTime?: number };
       
       if (lastEntry) {
-        logPerformanceMetric('largest_contentful_paint', lastEntry.renderTime || lastEntry.loadTime, {
+        logPerformanceMetric('largest_contentful_paint', lastEntry.renderTime || lastEntry.loadTime || 0, {
           metric: 'lcp',
         });
       }

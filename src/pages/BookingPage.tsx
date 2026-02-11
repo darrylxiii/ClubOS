@@ -176,8 +176,9 @@ export default function BookingPage() {
       timezone,
     });
 
-    const slots = Array.isArray((data as any)?.slots) ? (data as any).slots : [];
-    const match = slots.find((s: any) => {
+    const dataObj = data as unknown as Record<string, unknown> | null;
+    const slots = Array.isArray(dataObj?.slots) ? (dataObj.slots as Array<Record<string, unknown>>) : [];
+    const match = slots.find((s) => {
       if (!s || typeof s !== 'object') return false;
       if (typeof s.start !== 'string') return false;
       const label = safeFormatTime(s.start, timezone, '12h');

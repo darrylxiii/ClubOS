@@ -180,10 +180,11 @@ export function mapSupabaseError(error: unknown): MappedError {
     errorMessage = err.message || '';
     
     // Check for nested error structure (Supabase format)
-    if ('error' in error && typeof (error as any).error === 'object') {
-      const nested = (error as any).error;
-      errorCode = nested.code || errorCode;
-      errorMessage = nested.message || errorMessage;
+    const errObj = error as Record<string, unknown>;
+    if ('error' in error && typeof errObj.error === 'object' && errObj.error !== null) {
+      const nested = errObj.error as Record<string, unknown>;
+      errorCode = (nested.code as string) || errorCode;
+      errorMessage = (nested.message as string) || errorMessage;
     }
   } else if (typeof error === 'string') {
     errorMessage = error;

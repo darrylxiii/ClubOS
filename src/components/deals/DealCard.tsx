@@ -43,7 +43,7 @@ function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardPr
     weightedValue,
     feeConfig,
   } = useMemo(() => {
-    const companies = deal.companies as any;
+    const companies = deal.companies as Record<string, any>;
     const feeType = (companies?.fee_type || 'percentage') as FeeType;
     const feePercentage = companies?.placement_fee_percentage;
     const feeFixed = companies?.placement_fee_fixed;

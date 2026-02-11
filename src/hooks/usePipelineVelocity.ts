@@ -49,7 +49,7 @@ export function usePipelineVelocity() {
       let overdueCount = 0;
 
       applications?.forEach(app => {
-        const stages = app.stages as any[];
+        const stages = app.stages as Array<{ name?: string; timestamp?: string }>;
         if (!stages || !Array.isArray(stages)) return;
 
         // Calculate time in each stage

@@ -29,7 +29,7 @@ export default function PartnerFunnel() {
 
     if (data) {
       setIsActive(data.is_active);
-      setLiveStats(data.live_stats as any);
+      setLiveStats(data.live_stats as typeof liveStats);
     }
   };
 

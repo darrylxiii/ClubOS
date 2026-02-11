@@ -142,7 +142,7 @@ export function useCommunicationNotifications() {
         schema: 'public',
         table: 'cross_channel_patterns'
       }, (payload) => {
-        const p = payload.new as any;
+        const p = payload.new as Record<string, any>;
         const newNotif: CommunicationNotification = {
           id: p.id,
           type: p.pattern_type,

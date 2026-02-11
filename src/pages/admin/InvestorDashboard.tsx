@@ -237,7 +237,7 @@ export default function InvestorDashboard() {
         </div>
 
         {/* Time Range Selector */}
-        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)} className="mb-6">
+        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)} className="mb-6">
           <TabsList>
             <TabsTrigger value="3m">3 Months</TabsTrigger>
             <TabsTrigger value="6m">6 Months</TabsTrigger>

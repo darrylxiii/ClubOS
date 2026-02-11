@@ -57,7 +57,7 @@ export default function MeetingNotes() {
 
       if (recordingData) {
         setRecording(recordingData);
-        setMeeting((recordingData as any).meetings);
+        setMeeting((recordingData as Record<string, any>).meetings);
       }
     } catch (error) {
       console.error('Error loading recording:', error);
