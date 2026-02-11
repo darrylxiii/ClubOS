@@ -31,6 +31,8 @@ import { TierBadge } from "@/components/talent-pool/TierBadge";
 import { ApplicationLogViewer } from "@/components/candidate/ApplicationLogViewer";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { CandidateTagManager } from "@/components/candidates/CandidateTagManager";
+import { Progress } from "@/components/ui/progress";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -276,6 +278,32 @@ export default function UnifiedCandidateProfile() {
 
           {/* Right Sidebar: Sticky Cards - Tighter spacing */}
           <div className="space-y-4">
+            {/* Candidate Tags */}
+            {isAdmin && (
+              <CandidateTagManager candidateId={candidateId!} />
+            )}
+
+            {/* Profile Completeness */}
+            {isAdmin && (
+              <Card className={`${candidateProfileTokens.glass.card}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Data Completeness</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Score</span>
+                    <span className={`font-semibold ${
+                      (candidate.profile_completeness || 0) >= 80 ? 'text-emerald-500' :
+                      (candidate.profile_completeness || 0) >= 50 ? 'text-amber-500' : 'text-destructive'
+                    }`}>
+                      {candidate.profile_completeness || 0}%
+                    </span>
+                  </div>
+                  <Progress value={candidate.profile_completeness || 0} className="h-2" />
+                </CardContent>
+              </Card>
+            )}
+
             {/* Talent Pool Status - Admin Only */}
             {isAdmin && (
               <Card className={`${candidateProfileTokens.glass.card}`}>
