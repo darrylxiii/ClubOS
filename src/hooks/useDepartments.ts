@@ -29,7 +29,7 @@ export function useDepartments(companyId: string | null) {
       if (error) throw error;
 
       setDepartments(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading departments:', error);
       toast.error('Failed to load departments');
     } finally {
@@ -70,7 +70,7 @@ export function useDepartments(companyId: string | null) {
       toast.success(`Department "${name}" created`);
       await loadDepartments();
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating department:', error);
       toast.error('Failed to create department');
       throw error;
@@ -91,7 +91,7 @@ export function useDepartments(companyId: string | null) {
 
       toast.success('Department updated');
       await loadDepartments();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating department:', error);
       toast.error('Failed to update department');
     }
@@ -109,7 +109,7 @@ export function useDepartments(companyId: string | null) {
 
       toast.success('Department archived');
       await loadDepartments();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting department:', error);
       toast.error('Failed to archive department');
     }
@@ -137,7 +137,7 @@ export function useDepartments(companyId: string | null) {
 
       toast.success('Standard departments created');
       await loadDepartments();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error seeding departments:', error);
       toast.error('Failed to create standard departments');
     }

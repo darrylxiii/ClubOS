@@ -32,10 +32,10 @@ export function useEmailIntelligenceSync() {
       } else {
         throw new Error(data?.error || 'Unknown error');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Email intelligence sync error:', error);
       notify.error('Sync Failed', {
-        description: error.message || 'Failed to sync email intelligence',
+        description: error instanceof Error ? error.message : 'Failed to sync email intelligence',
       });
       return null;
     } finally {

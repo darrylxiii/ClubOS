@@ -225,9 +225,9 @@ export function useInstantlyData() {
       if (lastSync && lastSync.created_at) {
         setLastSyncedAt(lastSync.created_at);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading Instantly data:', error);
-      setError(error);
+      setError(error instanceof Error ? error : new Error('Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -242,9 +242,9 @@ export function useInstantlyData() {
 
       toast.success(`Synced ${data?.created + data?.updated || 0} campaigns from Instantly`);
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error syncing campaigns:', error);
-      toast.error(error.message || 'Failed to sync campaigns');
+      toast.error(error instanceof Error ? error.message : 'Failed to sync campaigns');
     } finally {
       setSyncing(false);
     }
@@ -261,9 +261,9 @@ export function useInstantlyData() {
 
       toast.success(`Synced ${data?.synced || 0} leads from Instantly`);
       await loadData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error syncing leads:', error);
-      toast.error(error.message || 'Failed to sync leads');
+      toast.error(error instanceof Error ? error.message : 'Failed to sync leads');
     } finally {
       setSyncing(false);
     }

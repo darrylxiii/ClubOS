@@ -57,7 +57,7 @@ export function useOrgChart(companyId: string | null) {
       const tree = buildOrgTree(enhancedMembers);
       setOrgTree(tree);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading org chart:', error);
       toast.error('Failed to load organization chart');
     } finally {
@@ -126,9 +126,9 @@ export function useOrgChart(companyId: string | null) {
 
       toast.success('Reporting structure updated');
       await loadOrgChart();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating reporting:', error);
-      toast.error(error.message || 'Failed to update reporting structure');
+      toast.error(error instanceof Error ? error.message : 'Failed to update reporting structure');
     }
   };
 
@@ -146,7 +146,7 @@ export function useOrgChart(companyId: string | null) {
 
       toast.success('Member details updated');
       await loadOrgChart();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating member:', error);
       toast.error('Failed to update member details');
     }

@@ -813,11 +813,12 @@ export const useVoiceChannel = (channelId: string | null, options: VoiceChannelO
       } else {
         await stopScreenShare();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error toggling screen share:', error);
-      if (error.name === 'NotAllowedError') {
+      const err = error as { name?: string };
+      if (err.name === 'NotAllowedError') {
         toast.error('Screen sharing permission denied');
-      } else if (error.name === 'NotFoundError') {
+      } else if (err.name === 'NotFoundError') {
         toast.error('No screen available to share');
       } else {
         toast.error('Failed to start screen sharing');

@@ -50,7 +50,7 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
         if (error) throw error;
         setSessionId(data.id);
         startTime.current = Date.now();
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error creating session:', error);
         toast.error('Failed to start assessment');
       }
@@ -115,7 +115,7 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
       if (error) throw error;
       setFrameAnswers(answers);
       setPhase('build');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving frame:', error);
       toast.error('Failed to save answers');
     }
@@ -229,7 +229,7 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
         body: { sessionId },
       }).catch(console.error);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting assessment:', error);
       toast.error('Failed to submit assessment');
     } finally {

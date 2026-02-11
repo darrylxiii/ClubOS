@@ -466,9 +466,9 @@ export function useRecordingCompositor(initialConfig: Partial<CompositorConfig> 
       });
       
       console.log('[Compositor] Recording started with', mimeType);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[Compositor] Failed to start recording:', error);
-      setState(prev => ({ ...prev, error: error.message }));
+      setState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Recording failed' }));
       throw error;
     }
   }, [effectiveConfig, initialize, renderFrame]);
