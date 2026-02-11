@@ -73,9 +73,9 @@ export const CandidateHeroSection = ({
       } else {
         throw new Error(data.error || "Failed to sync LinkedIn profile");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("LinkedIn sync error:", error);
-      toast.error(error.message || "Failed to sync LinkedIn profile");
+      toast.error(error instanceof Error ? error.message : "Failed to sync LinkedIn profile");
     } finally {
       setIsSyncing(false);
     }

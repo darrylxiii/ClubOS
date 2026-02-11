@@ -74,7 +74,7 @@ export function WaitlistForm({
 
       toast.success("Added to waitlist! We'll notify you when a slot opens up.");
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Waitlist error:", error);
       toast.error("Failed to join waitlist. Please try again.");
     } finally {

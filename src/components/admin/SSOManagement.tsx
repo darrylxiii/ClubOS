@@ -63,8 +63,8 @@ export const SSOManagement = () => {
 
       if (error) throw error;
       setConnections(data || []);
-    } catch (error: any) {
-      notify.error('Failed to Load SSO Connections', { description: error.message });
+    } catch (error: unknown) {
+      notify.error('Failed to Load SSO Connections', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     } finally {
       setLoading(false);
     }
@@ -106,8 +106,8 @@ export const SSOManagement = () => {
         metadata_xml: '',
       });
       loadConnections();
-    } catch (error: any) {
-      notify.error('Failed to Create Connection', { description: error.message });
+    } catch (error: unknown) {
+      notify.error('Failed to Create Connection', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     }
   };
 
@@ -125,8 +125,8 @@ export const SSOManagement = () => {
       });
 
       loadConnections();
-    } catch (error: any) {
-      notify.error('Failed to Update Connection', { description: error.message });
+    } catch (error: unknown) {
+      notify.error('Failed to Update Connection', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     }
   };
 
@@ -144,8 +144,8 @@ export const SSOManagement = () => {
       notify.success('SSO Connection Deleted', { description: 'The SSO connection has been removed' });
 
       loadConnections();
-    } catch (error: any) {
-      notify.error('Failed to Delete Connection', { description: error.message });
+    } catch (error: unknown) {
+      notify.error('Failed to Delete Connection', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     }
   };
 

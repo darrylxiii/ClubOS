@@ -67,11 +67,11 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
           description: 'Latest ML features have been calculated.',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error computing features:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to compute ML features',
+        description: error instanceof Error ? error.message : 'Failed to compute ML features',
         variant: 'destructive',
       });
     } finally {

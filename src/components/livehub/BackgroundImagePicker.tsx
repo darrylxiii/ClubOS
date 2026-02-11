@@ -101,9 +101,9 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
 
             toast.success('Background uploaded successfully');
             await loadBackgrounds();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error uploading background:', error);
-            toast.error(error.message || 'Failed to upload background');
+            toast.error(error instanceof Error ? error.message : 'Failed to upload background');
         } finally {
             setUploading(false);
         }
@@ -138,7 +138,7 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
 
             toast.success('Background deleted');
             await loadBackgrounds();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error deleting background:', error);
             toast.error('Failed to delete background');
         }
