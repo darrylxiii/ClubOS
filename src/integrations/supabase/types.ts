@@ -5793,6 +5793,55 @@ export type Database = {
           },
         ]
       }
+      candidate_completeness_audit: {
+        Row: {
+          candidate_id: string
+          completeness_score: number
+          created_at: string
+          id: string
+          missing_fields: string[]
+          populated_fields: string[]
+        }
+        Insert: {
+          candidate_id: string
+          completeness_score: number
+          created_at?: string
+          id?: string
+          missing_fields: string[]
+          populated_fields: string[]
+        }
+        Update: {
+          candidate_id?: string
+          completeness_score?: number
+          created_at?: string
+          id?: string
+          missing_fields?: string[]
+          populated_fields?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_completeness_audit_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_completeness_audit_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_completeness_audit_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_documents: {
         Row: {
           archived: boolean | null
@@ -53718,6 +53767,14 @@ export type Database = {
       aggregate_interview_performance: {
         Args: { p_candidate_id: string }
         Returns: undefined
+      }
+      aggregate_skill_demand: {
+        Args: never
+        Returns: {
+          demand_score: number
+          job_count: number
+          skill_name: string
+        }[]
       }
       archive_expired_documents: { Args: never; Returns: undefined }
       auto_delete_old_audit_logs: { Args: never; Returns: undefined }
