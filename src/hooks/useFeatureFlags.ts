@@ -32,7 +32,7 @@ export function useFeatureFlags() {
 
       if (error) throw error;
       setFlags((data || []) as FeatureFlag[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching feature flags:', error);
       toast.error('Failed to load feature flags');
     } finally {
@@ -62,9 +62,9 @@ export function useFeatureFlags() {
       toast.success('Feature flag created');
       await fetchFlags();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating feature flag:', error);
-      toast.error(error.message || 'Failed to create feature flag');
+      toast.error(error instanceof Error ? error.message : 'Failed to create feature flag');
       return false;
     }
   };
@@ -80,9 +80,9 @@ export function useFeatureFlags() {
       toast.success('Feature flag updated');
       await fetchFlags();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating feature flag:', error);
-      toast.error(error.message || 'Failed to update feature flag');
+      toast.error(error instanceof Error ? error.message : 'Failed to update feature flag');
       return false;
     }
   };
@@ -95,9 +95,9 @@ export function useFeatureFlags() {
       toast.success('Feature flag deleted');
       await fetchFlags();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting feature flag:', error);
-      toast.error(error.message || 'Failed to delete feature flag');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete feature flag');
       return false;
     }
   };

@@ -164,9 +164,9 @@ export async function scheduleEmailReport(
       scheduleId: data.scheduleId,
       nextRunAt: data.nextRunAt,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to schedule email report:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
