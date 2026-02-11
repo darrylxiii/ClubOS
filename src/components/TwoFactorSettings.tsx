@@ -67,9 +67,9 @@ export const TwoFactorSettings = () => {
       
       // Refresh status
       await checkMFAStatus();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error removing MFA factor:', error);
-      toast.error(error.message || 'Failed to remove 2FA factor');
+      toast.error(error instanceof Error ? error.message : 'Failed to remove 2FA factor');
     } finally {
       setResetting(false);
     }
@@ -116,9 +116,9 @@ export const TwoFactorSettings = () => {
         // Refresh factors list
         await checkMFAStatus();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error enabling MFA:', error);
-      toast.error(error.message || 'Failed to enable 2FA');
+      toast.error(error instanceof Error ? error.message : 'Failed to enable 2FA');
     } finally {
       setEnrolling(false);
     }
@@ -156,9 +156,9 @@ export const TwoFactorSettings = () => {
       setMfaEnabled(true);
       setQrCode('');
       setVerifyCode('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error verifying MFA:', error);
-      toast.error(error.message || 'Invalid code. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Invalid code. Please try again.');
     }
   };
 
@@ -183,9 +183,9 @@ export const TwoFactorSettings = () => {
       toast.success('2FA disabled');
       setMfaEnabled(false);
       setRecoveryCodes([]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error disabling MFA:', error);
-      toast.error(error.message || 'Failed to disable 2FA');
+      toast.error(error instanceof Error ? error.message : 'Failed to disable 2FA');
     }
   };
 

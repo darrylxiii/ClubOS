@@ -75,9 +75,9 @@ export function SequencePerformanceChart({ campaignId, externalCampaignId }: Seq
 
       toast.success('Sequence steps synced successfully');
       await fetchSteps();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error syncing sequence steps:', error);
-      toast.error(error.message || 'Failed to sync sequence steps');
+      toast.error(error instanceof Error ? error.message : 'Failed to sync sequence steps');
     } finally {
       setSyncing(false);
     }

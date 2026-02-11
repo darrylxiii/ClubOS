@@ -60,8 +60,8 @@ export const AuditLogViewer = () => {
 
       if (error) throw error;
       setEvents((data || []) as AuditEvent[]);
-    } catch (error: any) {
-      notify.error('Failed to Load Audit Logs', { description: error.message });
+    } catch (error: unknown) {
+      notify.error('Failed to Load Audit Logs', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
     } finally {
       setLoading(false);
     }

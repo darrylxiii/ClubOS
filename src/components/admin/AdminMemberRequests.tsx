@@ -455,7 +455,7 @@ export const AdminMemberRequests = () => {
       setSendSMS(true);
       fetchRequests();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error reviewing request:', error);
       toast.error('Failed to process request');
     } finally {

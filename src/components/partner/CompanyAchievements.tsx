@@ -132,10 +132,10 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
       setIsTimeBound(false);
       setTimeBoundDays(30);
       loadAchievements();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({ 
         title: "Error saving achievement", 
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
         variant: "destructive" 
       });
     }
