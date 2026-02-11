@@ -80,7 +80,7 @@ serve(async (req) => {
             messages: [
               {
                 role: 'system',
-                content: `You are QUIN, an AI assistant for The Quantum Club — a luxury talent platform. 
+              content: `You are QUIN, an AI assistant for The Quantum Club — a luxury talent platform. 
 Generate a concise professional summary (2-3 sentences) for a candidate profile. 
 Focus on: key strengths, experience level, domain expertise, and what makes them stand out.
 Also determine their talent_tier and move_probability.
@@ -88,17 +88,19 @@ Also determine their talent_tier and move_probability.
 Respond ONLY with valid JSON in this exact format:
 {
   "summary": "...",
-  "talent_tier": "star|strong|pool|archive",
+  "talent_tier": "hot|warm|strategic|pool|dormant|excluded",
   "move_probability": 0.0-1.0,
   "key_strengths": ["strength1", "strength2", "strength3"],
   "recommended_roles": ["role1", "role2"]
 }
 
 Tier criteria:
-- star: Exceptional profile, strong skills, complete data, proven track record
-- strong: Good profile with relevant experience
-- pool: Adequate but needs more data or less relevant
-- archive: Inactive, incomplete, or not a fit`,
+- hot: Exceptional profile, strong skills, complete data, actively looking, proven track record
+- warm: Good profile with relevant experience, somewhat open to opportunities
+- strategic: High-value candidate for specific niches, not actively looking but worth tracking
+- pool: Adequate but needs more data or less relevant experience
+- dormant: Inactive for 60+ days, incomplete profile, disengaged
+- excluded: Not a fit, opted out, or does not meet minimum criteria`,
               },
               { role: 'user', content: profileText },
             ],
@@ -135,6 +137,15 @@ Tier criteria:
             recommended_roles: [],
           };
         }
+
+        // Validate tier against allowed values
+        const VALID_TIERS = ['hot', 'warm', 'strategic', 'pool', 'dormant', 'excluded'];
+        const tierMap: Record<string, string> = { star: 'hot', strong: 'warm', archive: 'dormant' };
+        let tier = enrichment.talent_tier || 'pool';
+        if (!VALID_TIERS.includes(tier)) {
+          tier = tierMap[tier] || 'pool';
+        }
+        enrichment.talent_tier = tier;
 
         // 4. Calculate move probability from data signals
         const calculatedMoveProbability = calculateMoveProbability(candidate, applications);

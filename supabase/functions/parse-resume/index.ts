@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ParsedResume {
@@ -25,6 +25,7 @@ interface ParsedResume {
   summary?: string;
   languages?: string[];
   certifications?: string[];
+  yearsOfExperience?: number;
   contactInfo?: {
     email?: string;
     phone?: string;
@@ -46,7 +47,7 @@ serve(async (req) => {
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY") ?? "";
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { documentId, fileUrl, candidateId, triggerNormalization = true } = await req.json();
+    const { documentId, fileUrl, candidateId, triggerNormalization = true, triggerEnrichment = true } = await req.json();
 
     if (!documentId && !fileUrl) {
       throw new Error("Either documentId or fileUrl is required");
@@ -84,11 +85,9 @@ serve(async (req) => {
 
     // Handle different file types
     if (contentType.includes("pdf")) {
-      // For PDFs, we'll extract text using AI vision or fallback to metadata
       const arrayBuffer = await fileResponse.arrayBuffer();
       const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
       
-      // Use AI to extract text from PDF
       console.log("[parse-resume] Extracting text from PDF via AI...");
       
       const extractionResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -125,7 +124,6 @@ serve(async (req) => {
         resumeText = extractionData.choices?.[0]?.message?.content || "";
       }
     } else {
-      // For text-based formats (doc, docx might come as text)
       resumeText = await fileResponse.text();
     }
 
@@ -136,46 +134,7 @@ serve(async (req) => {
 
     console.log("[parse-resume] Calling AI to parse resume content...");
 
-    // Use AI to parse structured data from resume text
-    const parsePrompt = `Analyze this resume and extract structured information in JSON format:
-
-RESUME TEXT:
-${resumeText.substring(0, 8000)}
-
-Return a JSON object with these fields:
-{
-  "skills": ["skill1", "skill2", ...],
-  "experience": [
-    {
-      "title": "Job Title",
-      "company": "Company Name",
-      "duration": "Jan 2020 - Present",
-      "description": "Brief description of role",
-      "startDate": "2020-01",
-      "endDate": null
-    }
-  ],
-  "education": [
-    {
-      "degree": "Bachelor of Science",
-      "institution": "University Name",
-      "year": "2018",
-      "field": "Computer Science"
-    }
-  ],
-  "summary": "Professional summary if present",
-  "languages": ["English", "Dutch"],
-  "certifications": ["AWS Certified", "PMP"],
-  "contactInfo": {
-    "email": "email@example.com",
-    "phone": "+31...",
-    "location": "Amsterdam, Netherlands",
-    "linkedin": "linkedin.com/in/..."
-  }
-}
-
-Return ONLY valid JSON, no markdown formatting or explanations.`;
-
+    // Use AI with tool calling for structured extraction
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -183,18 +142,76 @@ Return ONLY valid JSON, no markdown formatting or explanations.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           {
             role: "system",
-            content: "You are an expert resume parser. Extract structured data from resumes accurately. Always return valid JSON only."
+            content: "You are an expert resume parser. Extract structured data from resumes accurately. Call the extract_resume_data tool with the parsed information."
           },
           {
             role: "user",
-            content: parsePrompt
+            content: `Parse this resume and extract all structured data:\n\n${resumeText.substring(0, 10000)}`
           }
         ],
-        max_tokens: 4000,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "extract_resume_data",
+              description: "Extract structured resume data",
+              parameters: {
+                type: "object",
+                properties: {
+                  skills: { type: "array", items: { type: "string" }, description: "All skills mentioned" },
+                  experience: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        company: { type: "string" },
+                        duration: { type: "string" },
+                        description: { type: "string" },
+                        startDate: { type: "string", description: "ISO date or YYYY-MM" },
+                        endDate: { type: "string", description: "ISO date, YYYY-MM, or null if current" },
+                      },
+                      required: ["title", "company", "duration"],
+                    },
+                  },
+                  education: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        degree: { type: "string" },
+                        institution: { type: "string" },
+                        year: { type: "string" },
+                        field: { type: "string" },
+                      },
+                      required: ["degree", "institution"],
+                    },
+                  },
+                  summary: { type: "string", description: "Professional summary if present" },
+                  languages: { type: "array", items: { type: "string" } },
+                  certifications: { type: "array", items: { type: "string" } },
+                  yearsOfExperience: { type: "number", description: "Total years of professional experience" },
+                  contactInfo: {
+                    type: "object",
+                    properties: {
+                      email: { type: "string" },
+                      phone: { type: "string" },
+                      location: { type: "string" },
+                      linkedin: { type: "string" },
+                    },
+                  },
+                },
+                required: ["skills", "experience", "education"],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+        tool_choice: { type: "function", function: { name: "extract_resume_data" } },
       }),
     });
 
@@ -205,29 +222,31 @@ Return ONLY valid JSON, no markdown formatting or explanations.`;
     }
 
     const aiData = await aiResponse.json();
-    const aiContent = aiData.choices?.[0]?.message?.content || "{}";
-    
-    // Clean and parse JSON
+
+    // Extract from tool call response
     let parsedResume: ParsedResume;
     try {
-      const cleanedJson = aiContent
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
-        .trim();
-      parsedResume = JSON.parse(cleanedJson);
+      const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      if (toolCall?.function?.arguments) {
+        parsedResume = JSON.parse(toolCall.function.arguments);
+      } else {
+        // Fallback: try parsing from content
+        const content = aiData.choices?.[0]?.message?.content || "{}";
+        const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        parsedResume = JSON.parse(cleaned);
+      }
     } catch (parseError) {
-      console.error("[parse-resume] JSON parse error:", parseError);
-      parsedResume = {
-        skills: [],
-        experience: [],
-        education: [],
-      };
+      console.error("[parse-resume] Parse error:", parseError);
+      parsedResume = { skills: [], experience: [], education: [] };
     }
 
-    console.log("[parse-resume] Parsed resume:", {
+    console.log("[parse-resume] Parsed:", {
       skills: parsedResume.skills?.length || 0,
       experience: parsedResume.experience?.length || 0,
       education: parsedResume.education?.length || 0,
+      languages: parsedResume.languages?.length || 0,
+      certifications: parsedResume.certifications?.length || 0,
+      yearsOfExperience: parsedResume.yearsOfExperience,
     });
 
     // Update the document with parsing results
@@ -241,46 +260,159 @@ Return ONLY valid JSON, no markdown formatting or explanations.`;
         .eq("id", documentId);
     }
 
-    // Update candidate profile with parsed data if candidateId provided
-    if (candidateId && parsedResume.skills?.length > 0) {
-      // Get existing skills
-      const { data: existingSkills } = await supabase
-        .from("candidate_skills")
-        .select("skill_name")
-        .eq("candidate_id", candidateId);
+    // --- PHASE 1 ENHANCEMENT: Write parsed data back to candidate_profiles ---
+    if (candidateId) {
+      const profileUpdate: Record<string, any> = {};
 
-      const existingSkillNames = new Set(existingSkills?.map(s => s.skill_name.toLowerCase()) || []);
-      
-      // Add new skills
-      const newSkills = parsedResume.skills.filter(s => !existingSkillNames.has(s.toLowerCase()));
-      
-      if (newSkills.length > 0) {
-        const skillInserts = newSkills.map(skill => ({
-          candidate_id: candidateId,
-          skill_name: skill,
-          source: "resume_parse",
-          proficiency_level: "intermediate",
+      // Work history
+      if (parsedResume.experience?.length > 0) {
+        profileUpdate.work_history = parsedResume.experience.map(e => ({
+          title: e.title,
+          company: e.company,
+          duration: e.duration,
+          description: e.description || null,
+          start_date: e.startDate || null,
+          end_date: e.endDate || null,
         }));
-
-        await supabase.from("candidate_skills").insert(skillInserts);
-        console.log(`[parse-resume] Added ${newSkills.length} new skills for candidate`);
       }
 
-      // Trigger skill normalization if enabled
-      if (triggerNormalization) {
+      // Education
+      if (parsedResume.education?.length > 0) {
+        profileUpdate.education = parsedResume.education.map(e => ({
+          degree: e.degree,
+          institution: e.institution,
+          year: e.year || null,
+          field: e.field || null,
+        }));
+      }
+
+      // Languages
+      if (parsedResume.languages && parsedResume.languages.length > 0) {
+        profileUpdate.languages = parsedResume.languages;
+      }
+
+      // Certifications
+      if (parsedResume.certifications && parsedResume.certifications.length > 0) {
+        profileUpdate.certifications = parsedResume.certifications;
+      }
+
+      // Years of experience
+      if (parsedResume.yearsOfExperience && parsedResume.yearsOfExperience > 0) {
+        profileUpdate.years_of_experience = parsedResume.yearsOfExperience;
+      }
+
+      // Contact info updates (only fill empty fields)
+      if (parsedResume.contactInfo) {
+        const { data: currentProfile } = await supabase
+          .from("candidate_profiles")
+          .select("phone, location, linkedin_url")
+          .eq("id", candidateId)
+          .single();
+
+        if (currentProfile) {
+          if (!currentProfile.phone && parsedResume.contactInfo.phone) {
+            profileUpdate.phone = parsedResume.contactInfo.phone;
+          }
+          if (!currentProfile.location && parsedResume.contactInfo.location) {
+            profileUpdate.location = parsedResume.contactInfo.location;
+          }
+          if (!currentProfile.linkedin_url && parsedResume.contactInfo.linkedin) {
+            profileUpdate.linkedin_url = parsedResume.contactInfo.linkedin;
+          }
+        }
+      }
+
+      // Update profile if we have data
+      if (Object.keys(profileUpdate).length > 0) {
+        profileUpdate.updated_at = new Date().toISOString();
+        const { error: profileError } = await supabase
+          .from("candidate_profiles")
+          .update(profileUpdate)
+          .eq("id", candidateId);
+
+        if (profileError) {
+          console.error("[parse-resume] Profile update error:", profileError.message);
+        } else {
+          console.log(`[parse-resume] Updated candidate_profiles with ${Object.keys(profileUpdate).length} fields`);
+        }
+      }
+
+      // Insert skills
+      if (parsedResume.skills?.length > 0) {
+        const { data: existingSkills } = await supabase
+          .from("candidate_skills")
+          .select("skill_name")
+          .eq("candidate_id", candidateId);
+
+        const existingSet = new Set((existingSkills || []).map(s => s.skill_name.toLowerCase()));
+        const newSkills = parsedResume.skills.filter(s => !existingSet.has(s.toLowerCase()));
+
+        if (newSkills.length > 0) {
+          await supabase.from("candidate_skills").insert(
+            newSkills.map(skill => ({
+              candidate_id: candidateId,
+              skill_name: skill,
+              source: "resume_parse",
+              proficiency_level: "intermediate",
+            }))
+          );
+          console.log(`[parse-resume] Added ${newSkills.length} skills`);
+        }
+      }
+
+      // Also write to profile_experience and profile_education tables
+      // (for candidates with user-managed profiles)
+      if (parsedResume.experience?.length > 0) {
+        // Check if profile_id column references exist
+        for (const exp of parsedResume.experience.slice(0, 10)) {
+          await supabase.from("profile_experience").upsert({
+            profile_id: candidateId,
+            company: exp.company,
+            title: exp.title,
+            description: exp.description || null,
+            start_date: exp.startDate || null,
+            end_date: exp.endDate || null,
+            is_current: !exp.endDate,
+          }, { onConflict: 'profile_id,company,title', ignoreDuplicates: true }).select();
+        }
+      }
+
+      if (parsedResume.education?.length > 0) {
+        for (const edu of parsedResume.education.slice(0, 5)) {
+          await supabase.from("profile_education").upsert({
+            profile_id: candidateId,
+            institution: edu.institution,
+            degree: edu.degree,
+            field_of_study: edu.field || null,
+            graduation_year: edu.year ? parseInt(edu.year) : null,
+          }, { onConflict: 'profile_id,institution,degree', ignoreDuplicates: true }).select();
+        }
+      }
+
+      // Trigger skill normalization
+      if (triggerNormalization && parsedResume.skills?.length > 0) {
         try {
           await supabase.functions.invoke("normalize-candidate-skills", {
             body: { candidateId },
           });
-          console.log("[parse-resume] Triggered skill normalization");
         } catch (normError) {
           console.error("[parse-resume] Skill normalization error:", normError);
         }
       }
-    }
 
-    // Log to application logs
-    if (candidateId) {
+      // Trigger enrichment (AI summary, tier, embedding)
+      if (triggerEnrichment) {
+        try {
+          await supabase.functions.invoke("enrich-candidate-profile", {
+            body: { candidate_id: candidateId },
+          });
+          console.log("[parse-resume] Triggered enrichment pipeline");
+        } catch (enrichError) {
+          console.error("[parse-resume] Enrichment trigger error:", enrichError);
+        }
+      }
+
+      // Audit log
       await supabase.from("candidate_application_logs").insert({
         candidate_profile_id: candidateId,
         action: "resume_parsed",
@@ -289,6 +421,11 @@ Return ONLY valid JSON, no markdown formatting or explanations.`;
           skills_extracted: parsedResume.skills?.length || 0,
           experience_entries: parsedResume.experience?.length || 0,
           education_entries: parsedResume.education?.length || 0,
+          languages: parsedResume.languages?.length || 0,
+          certifications: parsedResume.certifications?.length || 0,
+          years_of_experience: parsedResume.yearsOfExperience || null,
+          fields_updated: Object.keys(profileUpdate),
+          enrichment_triggered: triggerEnrichment,
           parsed_at: new Date().toISOString(),
         },
       });
@@ -299,6 +436,7 @@ Return ONLY valid JSON, no markdown formatting or explanations.`;
         success: true,
         parsedResume,
         documentId,
+        fieldsUpdated: candidateId ? true : false,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
