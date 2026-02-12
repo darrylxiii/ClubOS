@@ -334,6 +334,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "KPI Command Center", icon: BarChart3, path: "/admin/kpi-command-center" },
         { name: "Edge Function Command Center", icon: Zap, path: "/admin/edge-functions" },
+        { name: "Feature Control Center", icon: Zap, path: "/admin/feature-control" },
         { name: "Employee Dashboard", icon: Users, path: "/admin/employee-management" },
         { name: "System Health", icon: Heart, path: "/admin/system-health" },
         { name: "Bulk Operations", icon: Users, path: "/admin/bulk-operations" },
