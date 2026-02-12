@@ -1,46 +1,42 @@
 
 
-# Fix: Edge Functions Failing for Deep Enrich
+# Fix: Deep Enrich Edge Functions Blocked by JWT Verification
 
 ## Root Cause
 
-There is a **duplicate TOML section** in `supabase/config.toml` at lines 156-159:
+All three enrichment functions have `verify_jwt = true` in `supabase/config.toml`:
 
 ```toml
-[functions.analytics-ai-assistant]
+[functions.enrich-github-profile]
+verify_jwt = true
 
-[functions.analytics-ai-assistant]
+[functions.enrich-public-presence]
+verify_jwt = true
+
+[functions.generate-candidate-brief]
 verify_jwt = true
 ```
 
-The same section header `[functions.analytics-ai-assistant]` appears twice in a row. This causes a TOML parse error that prevents the entire configuration file from being read correctly, which blocks deployment and invocation of **all** edge functions -- including the three new enrichment functions.
+With Lovable Cloud's signing-keys system, `verify_jwt = true` is a deprecated approach that rejects requests before they even reach the function code -- returning a 401 "Missing authorization header" error. This is why the logs show the functions boot but never process any requests.
 
 ## Fix
 
-Remove the duplicate entry on line 156-157, keeping only the valid one:
+Change all three to `verify_jwt = false` in `supabase/config.toml` (lines 1136, 1139, 1142):
 
-**File**: `supabase/config.toml` (lines 156-159)
-
-Before:
 ```toml
-[functions.analytics-ai-assistant]
+[functions.enrich-github-profile]
+verify_jwt = false
 
-[functions.analytics-ai-assistant]
-verify_jwt = true
+[functions.enrich-public-presence]
+verify_jwt = false
+
+[functions.generate-candidate-brief]
+verify_jwt = false
 ```
 
-After:
-```toml
-[functions.analytics-ai-assistant]
-verify_jwt = true
-```
+The functions already use a Supabase service-role client internally and do not depend on the gateway JWT check, so this is safe.
 
-## What This Resolves
+## No Other Changes Needed
 
-Once the duplicate is removed, the config will parse correctly again and all three enrichment functions will become invocable:
-- `enrich-github-profile`
-- `enrich-public-presence`
-- `generate-candidate-brief`
-
-No changes needed to the edge function code or the modal -- they are all correctly implemented. This is purely a config parse issue.
+The modal component, edge function code, and CORS headers are all correct. This is purely a config issue preventing the gateway from forwarding requests to the function runtime.
 
