@@ -1,131 +1,191 @@
 
-# Full Polling Audit + Enable/Disable Toggle for Edge Functions
 
-## Part 1: Polling Audit — Remaining Unoptimized Hooks
+# Additional Edge Function Optimization Opportunities
 
-After the first optimization pass (12 files), **64+ files still have polling without `refetchIntervalInBackground: false` and/or `staleTime`**. Here is the full breakdown organized by severity.
+## 1. **Client-Side Request Deduplication & Caching**
 
-### Tier 1: Critical (1-5s intervals) — Highest waste per user
+**Issue**: When users have multiple tabs open, each tab makes redundant calls to the same edge functions. Currently, we rely on React Query's cache, but this is per-tab. Cross-tab deduplication could save 10-15% more volume.
 
-| File | Current | New Interval | Notes |
+**Solution**:
+- Implement a local IndexedDB store that tracks in-flight edge function calls (keyed by `functionName + JSON.stringify(body)`)
+- If a request is already in-flight, subscribe to the same promise instead of making a new call
+- Add a small TTL (5-60s depending on function criticality) to prevent stale responses
+
+**Estimated Savings**: 5-10M requests/month
+
+---
+
+## 2. **Automatic Retry & Circuit Breaker Pattern**
+
+**Issue**: Failing edge functions are being retried blindly, creating duplicate calls. No circuit breaker to stop hammering a failing service.
+
+**Solution**:
+- Enhance `invokeEdgeFunction.ts` to track:
+  - **Error counts** per function (in-memory or IndexedDB)
+  - **Last error time** and error type
+  - **Circuit breaker state**: CLOSED (normal) → OPEN (too many errors, reject calls) → HALF_OPEN (allow 1 test call)
+- Rules:
+  - After 5 errors in 5 minutes → OPEN
+  - Stay OPEN for 60s, then try 1 call (HALF_OPEN)
+  - If HALF_OPEN call succeeds → CLOSED
+  - If HALF_OPEN call fails → OPEN again
+- Automatically disable high-error functions in the registry (notify admin)
+
+**Estimated Savings**: 3-8M requests/month (prevents error amplification)
+
+---
+
+## 3. **Batch Edge Function Calls**
+
+**Issue**: Some functions are called 200+ times/day independently (e.g., `calculate-lead-conversion-score` per lead), when they could be batched.
+
+**Solution**:
+- Create a new edge function `batch-execute` that accepts an array of function calls and executes them server-side in parallel
+- Implement a client-side batch queue in a custom hook (e.g., `useBatchEdgeFunctions`)
+- Settings:
+  - Max 25 functions per batch
+  - Max wait time 500ms before flushing
+  - Automatic flush on memory pressure
+- Registry new field: `batchable: true` for eligible functions
+
+**Example Usage**:
+```typescript
+const { queueBatch } = useBatchEdgeFunctions();
+queueBatch('calculate-lead-conversion-score', { leadId: '123' });
+queueBatch('calculate-lead-conversion-score', { leadId: '456' });
+// Both sent in 1 request after 500ms or when batch is full
+```
+
+**Estimated Savings**: 8-12M requests/month (for high-volume, parallelizable functions)
+
+---
+
+## 4. **Smart Sampling for Non-Critical Metrics**
+
+**Issue**: Every single user action triggers metrics calculations (e.g., `calculate-all-kpis`, `track-event`, `log-metric`). We don't need 100% fidelity.
+
+**Solution**:
+- Add to registry a new field: `sampling_rate: 1.0` (default 100%, can be reduced)
+- Enhance `invokeEdgeFunction.ts` to:
+  - Check the sampling rate
+  - Generate a random number [0, 1]
+  - Skip invocation if random > sampling_rate
+  - Log the skip for auditing
+
+**Rules by Category**:
+- **Critical** (Security, Infrastructure): 100% (sampling_rate = 1.0)
+- **High** (CRM, Communication): 80-90%
+- **Medium** (Analytics, Metrics): 20-50%
+- **Low** (UI telemetry, debug logs): 5-10%
+
+**UI**: Add a "Sampling Rate" column to the Registry tab with a slider (0-100%)
+
+**Estimated Savings**: 10-20M requests/month
+
+---
+
+## 5. **Selective JWT Verification**
+
+**Issue**: All functions with `verify_jwt = true` perform full JWT verification on every call, even for non-sensitive operations.
+
+**Solution**:
+- Add registry field: `require_auth: true | false` (separate from verify_jwt)
+- For `require_auth: false`, skip JWT validation in the edge function code
+- Registry UI shows which functions require auth vs. which are public
+
+**Note**: Already partially implemented (139 functions have `verify_jwt = false`), but verify all ~40 "Candidate" functions like `enrich-github-profile` don't need JWT and could be made public.
+
+**Estimated Savings**: 1-3M requests/month
+
+---
+
+## 6. **Time-Window Throttling for Polling-Driven Functions**
+
+**Issue**: Functions like `calculate-all-kpis`, `sync-revenue-metrics` are triggered by polling hooks that run every 30-60s, even if nothing has changed.
+
+**Solution**:
+- Add registry field: `min_call_interval_ms: 0` (default: no throttling)
+- For poll-driven functions, set `min_call_interval_ms = 300000` (5 minutes)
+- Track **last invocation timestamp** in IndexedDB per function
+- Skip calls that violate the interval window
+- Show in Polling Config tab: "Next eligible call in 4m 23s"
+
+**Estimated Savings**: 2-5M requests/month
+
+---
+
+## 7. **Function Health Dashboard Enhancements**
+
+**Issue**: The Overview tab shows stats, but doesn't surface which functions are "unhealthy" (high error rates, slow response times, disabled by admin).
+
+**Solution**:
+- Add a new "Health Status" section in Overview tab with:
+  - **Red functions** (error rate > 15%)
+  - **Yellow functions** (error rate 5-15% OR avg response time > 5s)
+  - **Disabled functions** (by admin)
+- Add a "Quick Fix" button per unhealthy function:
+  - For high error rate → Suggest reducing `sampling_rate` or disabling
+  - For slow → Suggest enabling circuit breaker or batch mode
+  - For disabled → Show "Re-enable" with timestamp of when it was disabled
+
+**No new requests generated** — just better visibility and 1-click fixes.
+
+---
+
+## 8. **Edge Function Cost Estimation (Revenue Optimization)**
+
+**Issue**: Admin can disable functions, but has no idea which ones are "most expensive" in terms of external API costs or compute time.
+
+**Solution**:
+- Add registry fields:
+  - `external_api_cost_per_call: 0.001` (in USD)
+  - `compute_cost_estimate_per_call: 0.00001` (Supabase compute + bandwidth)
+  - `tags: ["stripe", "elevenlabs", "openai"]` (external services)
+- Override fields in `edge_function_daily_stats` table:
+  - `external_api_cost_daily` (calculated: invocation_count × external_api_cost_per_call)
+  - `compute_cost_daily` (avg_response_time_ms × compute_cost_estimate_per_call)
+- Add a new tab: **Cost Breakdown**
+  - Pie chart: % cost by function
+  - Table: daily cost trend with filtering by service tags
+  - "Disable expensive functions" quick action
+  - ROI analysis: "This function costs $50/day but generates 0 revenue" → Disable?
+
+**No requests reduced** — but enables smarter disable decisions (e.g., disable low-ROI marketing functions on weekends).
+
+**Estimated Further Savings**: 2-5M requests/month (when used to disable low-ROI functions)
+
+---
+
+## Summary of All Optimizations
+
+| Optimization | Effort | Savings | Implementation |
 |---|---|---|---|
-| `useTimeTracking.ts` | 1s | 5s | Live timer display; 5s still feels real-time |
-| `ClubDJ.tsx` | 5s | 30s | Playlist data; already has Realtime channel |
-| `radio/LiveDJs.tsx` | 5s | 30s | Already has Realtime subscription; polling redundant |
+| 1. Client dedup + IndexedDB | Medium | 5-10M/mo | New hook + IndexedDB |
+| 2. Circuit breaker | Medium | 3-8M/mo | Enhance `invokeEdgeFunction.ts` |
+| 3. Batch execution | High | 8-12M/mo | New edge function + hook |
+| 4. Smart sampling | Low | 10-20M/mo | Registry field + math in wrapper |
+| 5. Selective JWT | Low | 1-3M/mo | Registry field + function audits |
+| 6. Time-window throttling | Medium | 2-5M/mo | IndexedDB + registry field |
+| 7. Health dashboard | Low | 0 (visibility only) | UI enhancement |
+| 8. Cost breakdown | Medium | 2-5M/mo (via manual disables) | New tab + cost fields |
 
-**Est. savings: ~5M req/month per active user tab**
-
-### Tier 2: Aggressive (10s intervals)
-
-| File | Current | New |
-|---|---|---|
-| `useCommunicationAudit.ts` (delivery stats) | 10s | 30s |
-| `ModelHealthMonitor.tsx` | 10s | 30s |
-
-### Tier 3: Moderate (15-30s intervals, missing guards)
-
-These have `refetchInterval` set at 15-30s but are **missing `refetchIntervalInBackground: false`** and **`staleTime`**, causing unnecessary background tab noise.
-
-| File | Current | Add Guards |
-|---|---|---|
-| `useSessionSecurity.ts` (3 queries) | 15s, 30s, 30s | + background:false + staleTime |
-| `SecurityAlertsPanel.tsx` | 30s | + background:false + staleTime |
-| `RateLimitDashboard.tsx` (2 queries) | 30s, 30s | + background:false + staleTime |
-| `DisasterRecoveryDashboard.tsx` (4 queries) | 30s-60s | + background:false + staleTime |
-| `SLAStatusPanel.tsx` | 30s | + background:false |
-| `FrustrationSignalsTab.tsx` | 30s | + background:false + staleTime |
-| `CandidateIntelligenceTab.tsx` | 30s | + background:false + staleTime |
-| `StrategistIntelligenceTab.tsx` | 30s | + background:false + staleTime |
-| `AdminIntelligenceTab.tsx` | 30s | + background:false + staleTime |
-| `FeatureAnalyticsTab.tsx` | 30s | + background:false + staleTime |
-| `SecurityIncidentsPanel.tsx` | 30s | + background:false + staleTime |
-| `OutreachActivityFeed.tsx` (3 queries) | 30s | + background:false + staleTime |
-| `WebhookReliabilityDashboard.tsx` (2 queries) | 30s, 60s | + background:false + staleTime |
-| `WhatsAppHub.tsx` (2 queries) | 30s, 60s | + background:false + staleTime |
-| `UnreadMessagesWidget.tsx` (2 queries) | 30s, 30s | + background:false + staleTime |
-| `useSecurityMetrics.ts` (4 queries) | 30s-300s | + background:false + staleTime |
-| `useSystemHealthMetrics.ts` | 30s | + background:false + staleTime |
-| `DossierActivityWidget.tsx` | 60s | + background:false + staleTime |
-| `WhatsAppMetricsBar.tsx` | 60s | + background:false + staleTime |
-| `usePredictiveAnalytics.ts` | 60s | + background:false + staleTime |
-| `SmartAlertsPanel.tsx` | 60s | + background:false + staleTime |
-| `useSmartReplyIntelligence.ts` | 60s | + background:false + staleTime |
-| `useApplicationMetrics.ts` | 60s | + background:false + staleTime |
-| `PerformanceDashboard.tsx` (3 queries) | 60s | + background:false + staleTime |
-| `SearchAnalyticsTab.tsx` | 60s | + background:false + staleTime |
-| `AuditLogSummaryWidget.tsx` | 60s | + background:false + staleTime |
-| `ApplicationFunnelWidget.tsx` | 60s | + background:false + staleTime |
-| `UpcomingDeadlinesWidget.tsx` | 60s | + background:false + staleTime |
-| `usePlatformHealth.ts` | 60s | already has staleTime, add background:false |
-| `useRecentActivity.ts` | 60s | already has staleTime, add background:false |
-| `useAgentContext.ts` | 60s | already has staleTime, add background:false |
-
-**Total: ~50 files, ~65 individual useQuery calls**
-
-### Applied Pattern (uniform across all)
-
-```typescript
-// Before
-refetchInterval: 30000,
-
-// After
-refetchInterval: 30000, // (or increased value for Tier 1-2)
-refetchIntervalInBackground: false,
-staleTime: 15000, // 50% of refetchInterval
-```
+**Total potential savings (all implemented): 31-68M requests/month** — enough to cut the 48M baseline by 65-142% (overlap accounted for, realistic floor is ~60-70% total reduction when all stacked).
 
 ---
 
-## Part 2: Enable/Disable Toggle Enhancement
+## Recommended Next Steps (in priority order)
 
-The Registry tab already has working per-function toggles and bulk enable/disable buttons. However, the toggle only writes to the database -- **it does not actually prevent function invocation on the client side**. The plan adds:
+1. **Quick wins** (implement this week):
+   - Smart sampling (4) — lowest effort, highest impact
+   - Selective JWT audits (5) — quick audit
+   - Time-window throttling (6) — medium effort, decent savings
 
-### Client-Side Invocation Guard
+2. **Medium-term** (next 2 weeks):
+   - Circuit breaker (2) — improves reliability + saves requests
+   - Client dedup (1) — reduces redundant calls
+   - Cost breakdown (8) — visibility for manual optimization
 
-Create a wrapper utility `src/utils/invokeEdgeFunction.ts` that:
-1. Checks a cached copy of the registry's `is_active` status before calling `supabase.functions.invoke()`
-2. If the function is disabled, returns early with a standardized "Function disabled by admin" response
-3. Uses React Query's cache so there is zero extra network cost per invocation check
+3. **Future** (nice-to-have):
+   - Batch execution (3) — highest complexity, high reward
+   - Health dashboard (7) — pure UX improvement
 
-```typescript
-// src/utils/invokeEdgeFunction.ts
-import { supabase } from '@/integrations/supabase/client';
-import { queryClient } from '@/lib/queryClient';
-
-export async function invokeEdgeFunction(
-  functionName: string,
-  options?: { body?: unknown; headers?: Record<string, string> }
-) {
-  // Check cached registry (no network call)
-  const registry = queryClient.getQueryData(['edge-function-registry']) as any[] | undefined;
-  const entry = registry?.find(e => e.function_name === functionName);
-
-  if (entry && entry.is_active === false) {
-    console.warn(`[EdgeFunction] ${functionName} is disabled by admin`);
-    return { data: null, error: { message: 'Function disabled by admin' } };
-  }
-
-  return supabase.functions.invoke(functionName, options);
-}
-```
-
-### Registry Tab Improvements
-
-- Add a description tooltip per function explaining what it does
-- Add a confirmation dialog when disabling critical functions (category = "Infrastructure" or "Security")
-- Show the `admin_disabled_at` timestamp when a function is disabled
-- Add a "Disabled Functions" quick filter badge
-
----
-
-## Summary of Changes
-
-| Category | Files Modified | Impact |
-|---|---|---|
-| Tier 1 polling fixes (1-5s) | 3 files | ~5M req/month saved |
-| Tier 2 polling fixes (10s) | 2 files | ~2M req/month saved |
-| Tier 3 guard additions (15-60s) | ~45 files | ~10-15M req/month saved (background tabs) |
-| Invocation guard utility | 1 new file | Enables admin disable to actually stop calls |
-| Registry tab improvements | 1 file | Better UX for admin control |
-
-**Estimated total reduction: 17-22M requests/month (35-45% of 48M baseline)**
