@@ -20,6 +20,8 @@ export function FeatureAnalyticsTab() {
       return data || [];
     },
     refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Aggregate by feature

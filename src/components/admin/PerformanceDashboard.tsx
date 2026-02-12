@@ -92,7 +92,9 @@ export function PerformanceDashboard() {
         } as MetricSummary;
       });
     },
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Fetch violation counts
@@ -119,6 +121,8 @@ export function PerformanceDashboard() {
       ] as ViolationSummary[];
     },
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Fetch recent metrics for chart
@@ -166,6 +170,8 @@ export function PerformanceDashboard() {
       }));
     },
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   const getStatusBadge = (metricType: string, value: number) => {

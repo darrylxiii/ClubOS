@@ -61,7 +61,9 @@ export function DossierActivityWidget({ companyId }: { companyId: string }) {
       return (data || []) as unknown as DossierView[];
     },
     enabled: !!companyId,
-    refetchInterval: 60000
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   const { data: weekStats } = useQuery({

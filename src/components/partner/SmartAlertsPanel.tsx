@@ -36,7 +36,9 @@ export function SmartAlertsPanel({ companyId }: { companyId: string }) {
       if (error) throw error;
       return (data || []) as unknown as SmartAlert[];
     },
-    refetchInterval: 60000 // Refresh every minute
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   const dismissAlert = useMutation({

@@ -20,6 +20,8 @@ export const useApplicationMetrics = () => {
       return data as any as ApplicationMetrics;
     },
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   return {

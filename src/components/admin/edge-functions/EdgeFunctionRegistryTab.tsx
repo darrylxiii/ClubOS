@@ -1,18 +1,26 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEdgeFunctionRegistry, useEdgeFunctionCategories, useToggleEdgeFunction, useBulkToggleFunctions, type EdgeFunctionEntry } from '@/hooks/useEdgeFunctionRegistry';
-import { Search, Power, PowerOff, Filter } from 'lucide-react';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { Search, Power, PowerOff, Filter, Info, Ban } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+
+const CRITICAL_CATEGORIES = ['Infrastructure', 'Security'];
 
 export function EdgeFunctionRegistryTab() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [showDisabledOnly, setShowDisabledOnly] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; id: string; name: string; isActive: boolean }>({
+    open: false, id: '', name: '', isActive: false,
+  });
 
   const { data: functions = [], isLoading } = useEdgeFunctionRegistry();
   const { data: categories = [] } = useEdgeFunctionCategories();
@@ -25,11 +33,26 @@ export function EdgeFunctionRegistryTab() {
       fn.display_name?.toLowerCase().includes(search.toLowerCase()) ||
       fn.description?.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || fn.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesDisabled = !showDisabledOnly || fn.is_active === false;
+    return matchesSearch && matchesCategory && matchesDisabled;
   });
 
   const activeCount = filtered.filter(f => f.is_active !== false).length;
   const disabledCount = filtered.length - activeCount;
+  const totalDisabled = functions.filter(f => f.is_active === false).length;
+
+  const handleToggle = (fn: EdgeFunctionEntry, newActive: boolean) => {
+    // Show confirmation dialog when disabling critical functions
+    if (!newActive && fn.category && CRITICAL_CATEGORIES.includes(fn.category)) {
+      setConfirmDialog({ open: true, id: fn.id, name: fn.display_name || fn.function_name, isActive: newActive });
+    } else {
+      toggleFn.mutate({ id: fn.id, isActive: newActive });
+    }
+  };
+
+  const handleConfirmToggle = () => {
+    toggleFn.mutate({ id: confirmDialog.id, isActive: confirmDialog.isActive });
+  };
 
   return (
     <div className="space-y-4">
@@ -57,6 +80,16 @@ export function EdgeFunctionRegistryTab() {
             ))}
           </SelectContent>
         </Select>
+
+        <Button
+          variant={showDisabledOnly ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setShowDisabledOnly(!showDisabledOnly)}
+          className="gap-1.5"
+        >
+          <Ban className="h-4 w-4" />
+          Disabled ({totalDisabled})
+        </Button>
 
         <Button
           variant="outline"
@@ -91,47 +124,85 @@ export function EdgeFunctionRegistryTab() {
       <Card>
         <CardContent className="p-0">
           <ScrollArea className="h-[600px]">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-card border-b">
-                <tr className="text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Function</th>
-                  <th className="p-3 font-medium hidden md:table-cell">Category</th>
-                  <th className="p-3 font-medium text-center">Status</th>
-                  <th className="p-3 font-medium text-right hidden lg:table-cell">Invocations</th>
-                  <th className="p-3 font-medium text-right hidden lg:table-cell">Avg Time</th>
-                  <th className="p-3 font-medium text-right hidden xl:table-cell">Error Rate</th>
-                  <th className="p-3 font-medium text-right hidden xl:table-cell">Last Invoked</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No functions found</td></tr>
-                ) : (
-                  filtered.map(fn => (
-                    <FunctionRow key={fn.id} fn={fn} onToggle={(id, active) => toggleFn.mutate({ id, isActive: active })} />
-                  ))
-                )}
-              </tbody>
-            </table>
+            <TooltipProvider delayDuration={300}>
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-card border-b">
+                  <tr className="text-left text-muted-foreground">
+                    <th className="p-3 font-medium">Function</th>
+                    <th className="p-3 font-medium hidden md:table-cell">Category</th>
+                    <th className="p-3 font-medium text-center">Status</th>
+                    <th className="p-3 font-medium text-right hidden lg:table-cell">Invocations</th>
+                    <th className="p-3 font-medium text-right hidden lg:table-cell">Avg Time</th>
+                    <th className="p-3 font-medium text-right hidden xl:table-cell">Error Rate</th>
+                    <th className="p-3 font-medium text-right hidden xl:table-cell">Last Invoked</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No functions found</td></tr>
+                  ) : (
+                    filtered.map(fn => (
+                      <FunctionRow key={fn.id} fn={fn} onToggle={handleToggle} />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </TooltipProvider>
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog for Critical Functions */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title="Disable critical function?"
+        description={`"${confirmDialog.name}" belongs to a critical category (Infrastructure/Security). Disabling it may affect platform stability. Are you sure?`}
+        confirmText="Disable Function"
+        variant="destructive"
+        onConfirm={handleConfirmToggle}
+      />
     </div>
   );
 }
 
-function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (id: string, active: boolean) => void }) {
+function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (fn: EdgeFunctionEntry, active: boolean) => void }) {
   const isActive = fn.is_active !== false;
   const errorRate = Number(fn.error_rate) || 0;
+  const isCritical = fn.category && CRITICAL_CATEGORIES.includes(fn.category);
 
   return (
-    <tr className="border-b hover:bg-muted/30 transition-colors">
+    <tr className={`border-b hover:bg-muted/30 transition-colors ${!isActive ? 'opacity-60' : ''}`}>
       <td className="p-3">
-        <div>
-          <p className="font-medium">{fn.display_name || fn.function_name}</p>
-          <p className="text-xs text-muted-foreground font-mono">{fn.function_name}</p>
+        <div className="flex items-start gap-1.5">
+          <div className="flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="font-medium">{fn.display_name || fn.function_name}</p>
+              {fn.description && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 cursor-help shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs">
+                    <p className="text-xs">{fn.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {isCritical && (
+                <Badge variant="outline" className="text-[10px] px-1 py-0 border-destructive/30 text-destructive">
+                  Critical
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground font-mono">{fn.function_name}</p>
+            {!isActive && fn.admin_disabled_at && (
+              <p className="text-[10px] text-destructive/70 mt-0.5">
+                Disabled {formatDistanceToNow(new Date(fn.admin_disabled_at), { addSuffix: true })}
+              </p>
+            )}
+          </div>
         </div>
       </td>
       <td className="p-3 hidden md:table-cell">
@@ -140,7 +211,7 @@ function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (id: s
       <td className="p-3 text-center">
         <Switch
           checked={isActive}
-          onCheckedChange={(checked) => onToggle(fn.id, checked)}
+          onCheckedChange={(checked) => onToggle(fn, checked)}
           aria-label={`Toggle ${fn.function_name}`}
         />
       </td>

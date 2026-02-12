@@ -78,6 +78,8 @@ export function CandidateIntelligenceTab() {
       });
     },
     refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Calculate stats

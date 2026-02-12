@@ -63,6 +63,8 @@ export const WebhookReliabilityDashboard = () => {
       return data as WebhookDLQItem[];
     },
     refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   const { data: webhookStats, isLoading: statsLoading } = useQuery({
@@ -78,6 +80,8 @@ export const WebhookReliabilityDashboard = () => {
       return data as WebhookStats[];
     },
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   const retryMutation = useMutation({

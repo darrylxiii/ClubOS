@@ -43,7 +43,9 @@ export function useActiveSessions() {
         user_email: emailMap.get(session.user_id) || 'Unknown'
       }));
     },
-    refetchInterval: 15000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 }
 
@@ -74,6 +76,8 @@ export function useSuspiciousSessions() {
       }));
     },
     refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 }
 
@@ -166,5 +170,7 @@ export function useSessionStats() {
       };
     },
     refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 }

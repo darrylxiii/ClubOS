@@ -41,7 +41,9 @@ export function OutreachActivityFeed() {
         .limit(10);
       return data || [];
     },
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Fetch hot leads
@@ -56,7 +58,9 @@ export function OutreachActivityFeed() {
         .limit(5);
       return data || [];
     },
-    refetchInterval: 30000
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Fetch meetings
@@ -71,7 +75,9 @@ export function OutreachActivityFeed() {
         .limit(5);
       return data || [];
     },
-    refetchInterval: 30000
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Combine and sort activities
