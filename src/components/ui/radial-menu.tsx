@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
@@ -88,7 +88,15 @@ export const RadialMenu = ({
   outerRingWidth = 12,
 }: RadialMenuProps) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [pointerReady, setPointerReady] = useState(false);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Delay pointer-events until the open animation settles
+  useEffect(() => {
+    setPointerReady(false);
+    const timer = setTimeout(() => setPointerReady(true), 250);
+    return () => clearTimeout(timer);
+  }, []);
 
   const radius = size / 2;
   const outerRingOuterRadius = radius;
@@ -159,6 +167,7 @@ export const RadialMenu = ({
         onClick={onClose}
         onContextMenu={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           onClose();
         }}
       />
@@ -184,6 +193,7 @@ export const RadialMenu = ({
           height={size}
           viewBox={`${-radius} ${-radius} ${size} ${size}`}
           className="drop-shadow-2xl"
+          style={{ pointerEvents: pointerReady ? "auto" : "none" }}
           onMouseLeave={() => setActiveIndex(null)}
         >
           {/* Outer ring */}
