@@ -381,6 +381,9 @@ verify_jwt = true
 [functions.match-freelancers-to-project]
 verify_jwt = true
 
+[functions.calculate-assessment-scores]
+verify_jwt = true
+
 # =============================================================================
 # Content Generation (JWT Required)
 # =============================================================================

@@ -86,14 +86,22 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
 
   const overallScore = calculateOverallScore();
   
-  // Radar chart data for skills match visualization
-  const radarData = [
+  // Radar chart data - use assessment_breakdown if available, else fallback
+  const ab = candidate.assessment_breakdown as any;
+  const radarData = ab ? [
+    { category: 'Skills Match', value: ab.skills_match?.score || 0 },
+    { category: 'Experience', value: ab.experience?.score || 0 },
+    { category: 'Engagement', value: ab.engagement?.score || 0 },
+    { category: 'Culture Fit', value: ab.culture_fit?.score || 0 },
+    { category: 'Salary Match', value: ab.salary_match?.score || 0 },
+    { category: 'Location', value: ab.location_match?.score || 0 },
+  ] : [
     { category: 'Skills Match', value: candidate.fit_score ? candidate.fit_score * 10 : 0 },
     { category: 'Experience', value: candidate.years_of_experience ? Math.min(candidate.years_of_experience * 10, 100) : 0 },
     { category: 'Engagement', value: candidate.engagement_score ? candidate.engagement_score * 10 : 0 },
     { category: 'Culture Fit', value: candidate.internal_rating ? candidate.internal_rating * 10 : 0 },
-    { category: 'Salary Match', value: 80 },
-    { category: 'Location', value: 70 },
+    { category: 'Salary Match', value: 0 },
+    { category: 'Location', value: 0 },
   ];
 
   // Score badges component

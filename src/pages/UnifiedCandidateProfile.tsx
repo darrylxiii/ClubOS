@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { CandidateHeroSection } from "@/components/candidate-profile/CandidateHeroSection";
 import { CandidateDecisionDashboard } from "@/components/partner/CandidateDecisionDashboard";
-import { SkillMatrix } from "@/components/jobs/SkillMatrix";
+import { CandidateSkillAssessment } from "@/components/candidate-profile/CandidateSkillAssessment";
 import { ExperienceTimeline } from "@/components/candidate-profile/ExperienceTimeline";
 import { PortfolioGrid } from "@/components/candidate-profile/PortfolioGrid";
 import { CandidateDocumentsViewer } from "@/components/partner/CandidateDocumentsViewer";
@@ -261,8 +261,13 @@ export default function UnifiedCandidateProfile() {
             {/* Assessment Insights */}
             <AssessmentInsightsCard candidateId={candidateId!} />
 
-            {/* Skills & Expertise */}
-            <SkillMatrix mustHaveSkills={mustHaveSkills} niceToHaveSkills={niceToHaveSkills} />
+            {/* Skills & Assessment Engine */}
+            <CandidateSkillAssessment
+              candidateId={candidateId!}
+              candidate={candidate}
+              jobId={fromJob}
+              skills={skills}
+            />
 
             {/* Experience Timeline */}
             <ExperienceTimeline
