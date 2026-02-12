@@ -178,6 +178,8 @@ export const RadialMenu = ({
         style={{
           left: clampedX - radius,
           top: clampedY - radius,
+          width: size,
+          height: size,
           transformOrigin: "center center",
         }}
         initial={{ scale: 0.6, opacity: 0 }}
