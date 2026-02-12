@@ -43,6 +43,9 @@ import { TalentIntelligenceBanner } from "@/components/candidate-profile/TalentI
 import { AIInsightsCard } from "@/components/candidate-profile/AIInsightsCard";
 import { CompensationCard } from "@/components/candidate-profile/CompensationCard";
 import { AvailabilityCard } from "@/components/candidate-profile/AvailabilityCard";
+import { TechnicalFootprintCard } from "@/components/candidate-profile/TechnicalFootprintCard";
+import { PublicPresenceCard } from "@/components/candidate-profile/PublicPresenceCard";
+import { CandidateBriefCard } from "@/components/candidate-profile/CandidateBriefCard";
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>();
@@ -615,6 +618,17 @@ export default function CandidateProfile() {
               {/* AI Insights Card */}
               {isTeamView && (
                 <AIInsightsCard candidate={candidate} />
+              )}
+
+              {/* Intelligence Pipeline Cards */}
+              {isTeamView && (
+                <CandidateBriefCard brief={candidate.candidate_brief} skillVerification={candidate.skill_verification} />
+              )}
+              {isTeamView && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <TechnicalFootprintCard githubData={candidate.github_profile_data} />
+                  <PublicPresenceCard publicMentions={candidate.public_mentions} />
+                </div>
               )}
 
               {/* Compensation & Interview Intelligence - Two Column Grid (Team Only) */}
