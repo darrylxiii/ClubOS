@@ -1,174 +1,97 @@
 
 
-# Comprehensive Candidate Intelligence Pipeline
+# Enrichment Progress Modal -- Real-Time Feedback for LinkedIn Sync and Deep Enrich
 
-Build a multi-source enrichment system that automatically discovers and aggregates public information about candidates from across the internet, using data you already have (name, email, LinkedIn, resume) as starting points.
+Replace the invisible toast-based enrichment flow with a dedicated full-screen modal that shows live progress, step-by-step results, and a final summary of everything discovered.
 
-## What Data You Already Have (Starting Points)
+## The Problem
 
-From LinkedIn scraper + resume parser, you typically have:
-- Full name
-- Email address
-- LinkedIn URL
-- Current company + title
-- Skills list
-- Portfolio URL (if provided)
+Both "Sync LinkedIn" and "Deep Enrich" fire background API calls with only a tiny toast at the bottom of the screen. Users click the button, see nothing meaningful happen, and have to guess whether it worked or what data was found.
 
-## New Enrichment Sources (4 Edge Functions)
+## The Solution
 
-### 1. Google Search Intelligence (`enrich-public-presence`)
-**API**: Apify `apify/google-search-scraper` (uses existing `APIFY_API_KEY`)
-**Input**: Candidate's full name + current company
-**Discovers**:
-- Conference talks and speaking engagements
-- Published articles (Medium, Substack, industry blogs)
-- Podcast appearances
-- Press mentions and interviews
-- Awards and recognitions
-- Court/regulatory filings (public record only)
+A modal dialog that opens immediately on click and stays open throughout the enrichment process, showing:
 
-**Cost**: ~EUR 0.01 per candidate
+1. **Live step-by-step progress** with animated status indicators (pending, running, complete, failed, skipped)
+2. **Per-step result summaries** as each step finishes (e.g., "Found 23 repos, top language: TypeScript")
+3. **A final summary card** showing total data points discovered, fields updated, and a "View Profile" dismiss button
 
-### 2. GitHub / GitLab Technical Footprint (`enrich-github-profile`)
-**API**: Apify GitHub scraper (uses existing `APIFY_API_KEY`)
-**Input**: GitHub username (from LinkedIn, resume, or email-based GitHub search)
-**Discovers**:
-- Public repositories, stars, contributions
-- Top programming languages
-- Contribution streak and activity patterns
-- Open-source involvement
-- README quality and documentation habits
+## How It Works
 
-**Cost**: ~EUR 0.005 per candidate
+### LinkedIn Sync Modal
+Opens with steps:
+- Scraping LinkedIn profile (spinner while running)
+- Updating candidate fields (shows which fields got new data)
+- Recalculating profile intelligence (completeness, tier, AI summary)
+- Final summary: "Updated 8 fields: name, title, company, avatar, 12 skills merged, 4 work history entries, 2 education entries"
 
-### 3. Portfolio and Personal Site Scraper (`enrich-portfolio`)
-**API**: Firecrawl connector (needs setup -- free tier available)
-**Input**: Portfolio URL from profile, or discovered personal site from Google search
-**Works for**:
-- Behance portfolios (designers)
-- Dribbble profiles (designers)
-- Personal websites and blogs
-- Medium/Substack profiles
-- Speaker decks and slide shares
-- Any public URL the candidate lists
+### Deep Enrich Modal
+Opens with steps:
+- GitHub scan (result: "Found profile: 23 repos, 142 stars, top langs: TypeScript, Python" or "No GitHub profile found -- skipped")
+- Public presence scan (result: "Found 5 mentions: 2 articles, 1 conference talk, 2 press mentions")
+- AI brief generation (result: "Generated executive summary, 3 differentiators, 2 risk factors, 8 skill verifications")
+- Final summary card with totals
 
-**Cost**: Free tier covers initial usage
+## New Component
 
-### 4. AI-Powered 360-Degree Brief (`generate-candidate-brief`)
-**API**: Lovable AI (no extra cost, uses existing `LOVABLE_API_KEY`)
-**Input**: All enriched data combined
-**Generates**:
-- 3-sentence executive summary
-- Top 3 unique differentiators
-- Risk factors (job hopping, skill gaps, notice concerns)
-- Recommended interview angles
-- Skill verification scores (cross-referencing claimed skills against GitHub repos, articles, work history)
-- Overall confidence rating
+### `EnrichmentProgressModal.tsx`
+Located at `src/components/candidate-profile/EnrichmentProgressModal.tsx`
 
-## Database Changes (1 Migration)
+**Props:**
+- `open: boolean`
+- `onOpenChange: (open: boolean) => void`
+- `mode: 'linkedin' | 'deep-enrich'`
+- `candidateId: string`
+- `candidateData: any` (for passing linkedin_url, existing skills, etc.)
+- `onComplete: () => void` (triggers profile reload)
 
-Add 5 new columns to `candidate_profiles`:
+**Internal state:**
+- Array of steps, each with: `{ id, label, status: 'pending' | 'running' | 'complete' | 'failed' | 'skipped', result?: string, details?: string[] }`
+- Overall progress percentage
+- Final summary object
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| `public_mentions` | jsonb | Google search results, articles, talks |
-| `portfolio_data` | jsonb | Scraped portfolio/Behance/Dribbble content |
-| `candidate_brief` | jsonb | AI-synthesized 360 brief |
-| `skill_verification` | jsonb | Per-skill confidence with evidence links |
-| `enrichment_sources` | text[] | Tracks which sources have run (e.g., `['linkedin', 'github', 'google', 'portfolio']`) |
-
-Note: `github_profile_data`, `github_username`, `github_connected`, and `portfolio_url` columns already exist.
-
-## New UI Components (3 Cards)
-
-### Technical Footprint Card
-- GitHub stats: repos, stars, top languages, contribution graph
-- Shows "No GitHub profile found" gracefully for non-technical candidates
-- Links to actual repos
-
-### Public Presence Card
-- Published articles with titles and sources
-- Conference talks with event names
-- Press mentions grouped by recency
-- "No public presence found" fallback
-
-### Candidate Brief Card (The Crown Jewel)
-- AI executive summary
-- Differentiators as highlighted chips
-- Risk factors as amber warnings
-- Skill verification: each claimed skill with a confidence bar and evidence count
-- "Powered by QUIN" attribution
-
-## Enrichment Flow
-
-```text
-User clicks "Deep Enrich" on candidate profile
-                    |
-                    v
-       linkedin-scraper (existing, if not already done)
-                    |
-                    v
-       enrich-github-profile (new)
-       -- Tries GitHub username from LinkedIn/resume
-       -- Falls back to email-based GitHub search
-                    |
-                    v
-       enrich-public-presence (new)
-       -- Searches "Full Name" + "Company" on Google
-       -- Extracts articles, talks, mentions
-                    |
-                    v
-       enrich-portfolio (new, requires Firecrawl)
-       -- Scrapes portfolio_url if present
-       -- Scrapes any personal sites found in Google results
-                    |
-                    v
-       generate-candidate-brief (new)
-       -- Feeds ALL data into Lovable AI
-       -- Generates brief, verification scores, risk factors
-                    |
-                    v
-       Profile refreshes with full intelligence
-```
+**UI layout:**
+- Dialog with glass-morphism styling
+- Header with mode title and animated progress bar
+- Step list with status icons (clock for pending, spinner for running, checkmark for complete, X for failed, skip icon for skipped)
+- Each completed step expands to show a one-line result summary
+- Failed steps show the error message in amber/red
+- Bottom: "Close" button (disabled while running), or "View Updated Profile" on completion
 
 ## Modified Files
 
 | File | Change |
 |------|--------|
-| `src/pages/CandidateProfile.tsx` | Add 3 new cards to Overview tab |
-| `src/components/candidate-profile/CandidateHeroSection.tsx` | Add "Deep Enrich" button + enrichment freshness indicator |
+| `src/components/candidate-profile/CandidateHeroSection.tsx` | Replace inline `handleSyncLinkedIn` and `handleDeepEnrich` with modal open triggers; move enrichment logic into the modal |
+| `src/pages/CandidateProfile.tsx` | Same for the header-level "Sync LinkedIn" button -- delegate to the modal |
 
-## Implementation Phases
+## Step Execution Logic (Inside Modal)
 
-**Phase 1** (immediate, no new APIs needed):
-- Database migration for new columns
-- `enrich-github-profile` edge function (Apify)
-- `enrich-public-presence` edge function (Apify)
-- `generate-candidate-brief` edge function (Lovable AI)
-- All 3 new UI cards
-- "Deep Enrich" button on hero section
+### LinkedIn Sync Steps
+1. **Scrape LinkedIn** -- calls `linkedin-scraper`, captures response fields
+2. **Update Profile** -- applies null-safe field updates, counts fields changed
+3. **Recalculate Intelligence** -- calls `enrich-candidate-profile`, captures new completeness/tier
+4. **Done** -- builds summary from step results
 
-**Phase 2** (requires Firecrawl connector setup):
-- `enrich-portfolio` edge function
-- Portfolio card enhancement with scraped content
+### Deep Enrich Steps
+1. **GitHub Scan** -- calls `enrich-github-profile`, shows repo count or "skipped"
+2. **Public Presence** -- calls `enrich-public-presence`, shows mention count
+3. **AI Brief** -- calls `generate-candidate-brief`, shows brief stats
+4. **Done** -- builds summary
 
-## Privacy and Consent Safeguards
+## Design Details
 
-- Only scrapes publicly available information (no private data)
-- All enrichment logged in `audit_logs`
-- Candidates can see what was discovered about them in their own profile
-- Ghost mode disables all enrichment activity
-- Enrichment cooldown: max once per 24 hours per candidate
-- All data stored server-side, never exposed to unauthorized roles
+- Uses `framer-motion` for step transitions (fade in results as they complete)
+- Glass card styling from `candidateProfileTokens.glass.card`
+- Progress bar with gold accent gradient
+- Step icons use semantic colors: blue for running, green for complete, red for failed, gray for pending
+- "Powered by QUIN" attribution at the bottom
+- Modal cannot be dismissed while enrichment is running (prevents partial state)
+- On completion, the modal auto-scrolls to the summary and enables the close button
 
-## Cost Per Full Enrichment
+## Technical Notes
 
-| Source | Cost |
-|--------|------|
-| LinkedIn (existing) | ~EUR 0.01 |
-| GitHub (Apify) | ~EUR 0.005 |
-| Google Search (Apify) | ~EUR 0.01 |
-| Portfolio (Firecrawl) | Free tier |
-| AI Brief (Lovable AI) | Included |
-| **Total per candidate** | **~EUR 0.025** |
-
+- All enrichment API calls and profile update logic moves from `CandidateHeroSection` into the modal component, keeping the hero section clean
+- The modal handles errors per-step (one failed step does not block subsequent steps)
+- Each step's result is derived from the actual API response data, not hardcoded
+- The `onComplete` callback triggers `loadCandidate()` to refresh the profile with new data
