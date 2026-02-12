@@ -62,6 +62,9 @@ const AgentBrain = lazy(() => import("@/pages/admin/AgentBrain"));
 // Edge Function Command Center
 const EdgeFunctionCommandCenter = lazy(() => import("@/pages/admin/EdgeFunctionCommandCenter"));
 
+// Feature Control Center
+const FeatureControlCenter = lazy(() => import("@/pages/admin/FeatureControlCenter"));
+
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
@@ -132,6 +135,7 @@ export const adminRoutes = (
     {R("/admin/job-analytics", JobAnalyticsIndex)}
     {R("/admin/agent-brain", AgentBrain)}
     {R("/admin/edge-functions", EdgeFunctionCommandCenter)}
+    {R("/admin/feature-control", FeatureControlCenter)}
     
     {R("/talent-pool", TalentPool)}
     {R("/admin/talent-pool/lists", TalentPoolLists)}
