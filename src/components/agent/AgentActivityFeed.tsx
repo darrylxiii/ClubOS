@@ -62,7 +62,9 @@ export function AgentActivityFeed({ limit = 20 }: { limit?: number }) {
       return data as AgentEvent[];
     },
     enabled: !!user?.id,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   if (isLoading) {

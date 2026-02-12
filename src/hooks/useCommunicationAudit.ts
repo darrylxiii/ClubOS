@@ -146,7 +146,9 @@ export function useCommunicationAudit() {
 
       return { statusCounts, typeCounts, total: data?.length || 0 };
     },
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   // Trigger backfill mutation

@@ -43,9 +43,9 @@ export function useActiveSessions() {
         user_email: emailMap.get(session.user_id) || 'Unknown'
       }));
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 }
 
@@ -75,9 +75,9 @@ export function useSuspiciousSessions() {
         user_email: emailMap.get(session.user_id) || 'Unknown'
       }));
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 }
 
@@ -169,8 +169,8 @@ export function useSessionStats() {
         uniqueCountries,
       };
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 }

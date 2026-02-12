@@ -76,7 +76,9 @@ export function RecruiterIntelligenceTab() {
         return new Date(b.last_activity_at).getTime() - new Date(a.last_activity_at).getTime();
       });
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   // Calculate stats

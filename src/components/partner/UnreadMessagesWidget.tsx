@@ -59,9 +59,9 @@ export function UnreadMessagesWidget({ companyId, userId }: { companyId: string;
       }));
     },
     enabled: !!userId,
-    refetchInterval: 30000,
+    refetchInterval: 60000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 30000,
   });
 
   const { data: unreadCount } = useQuery({
@@ -79,9 +79,9 @@ export function UnreadMessagesWidget({ companyId, userId }: { companyId: string;
       return count || 0;
     },
     enabled: !!userId,
-    refetchInterval: 30000,
+    refetchInterval: 60000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 30000,
   });
 
   if (isLoading) {

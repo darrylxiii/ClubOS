@@ -52,9 +52,9 @@ export const RateLimitDashboard = () => {
       if (error) throw error;
       return data as unknown as RateLimitAnalytics[];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 
   const { data: aiRateLimits } = useQuery({
@@ -69,9 +69,9 @@ export const RateLimitDashboard = () => {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 
   // Aggregate stats

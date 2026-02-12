@@ -46,7 +46,9 @@ export function useBlockedIPs() {
       if (error) throw error;
       return (data || []) as BlockedIP[];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 }
 

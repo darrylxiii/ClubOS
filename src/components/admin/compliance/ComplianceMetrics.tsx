@@ -31,7 +31,9 @@ export const ComplianceMetrics = () => {
         piiAccess: piiAccess || 0
       };
     },
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   const { data: incidentStats } = useQuery({

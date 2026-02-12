@@ -38,9 +38,9 @@ export function ModelHealthMonitor() {
         interview_rate: totalPredictions > 0 ? (interviewedCount / totalPredictions) : 0
       };
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 
   if (!modelHealth?.model) {

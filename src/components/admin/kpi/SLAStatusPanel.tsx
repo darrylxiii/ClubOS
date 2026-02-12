@@ -52,8 +52,9 @@ function useSLADashboard() {
       if (error) throw error;
       return data as unknown as SLADashboardData;
     },
-    refetchInterval: 30000,
-    staleTime: 10000,
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 }
 
