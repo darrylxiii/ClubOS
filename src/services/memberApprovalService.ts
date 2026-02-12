@@ -301,6 +301,18 @@ export const memberApprovalService = {
     companyId: string,
     role: string
   ): Promise<boolean> {
+    // Defensive mapping: app_role → company_members role
+    const COMPANY_ROLE_MAP: Record<string, string> = {
+      partner: 'partner',
+      admin: 'admin',
+      strategist: 'admin',
+      recruiter: 'recruiter',
+      owner: 'owner',
+      viewer: 'viewer',
+      member: 'member',
+    };
+    const companyRole = COMPANY_ROLE_MAP[role] ?? 'member';
+
     try {
       // Check if already a member
       const { data: existingMember } = await supabase
@@ -315,13 +327,13 @@ export const memberApprovalService = {
         return true;
       }
 
-      // Add to company_members
+      // Add to company_members with mapped role
       const { error } = await supabase
         .from('company_members')
         .insert({
           user_id: userId,
           company_id: companyId,
-          role: role,
+          role: companyRole,
         });
 
       if (error) {
