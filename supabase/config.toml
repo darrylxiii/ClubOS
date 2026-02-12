@@ -1131,4 +1131,15 @@ verify_jwt = false
 [functions.batch-linkedin-enrich]
 verify_jwt = false
 
+# =============================================================================
+# Candidate Intelligence Pipeline
+# =============================================================================
+[functions.enrich-github-profile]
+verify_jwt = true
+
+[functions.enrich-public-presence]
+verify_jwt = true
+
+[functions.generate-candidate-brief]
+verify_jwt = true
 

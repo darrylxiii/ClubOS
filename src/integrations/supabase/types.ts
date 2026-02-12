@@ -6853,6 +6853,7 @@ export type Database = {
           available_hours_per_week: number | null
           avatar_url: string | null
           blocked_companies: Json | null
+          candidate_brief: Json | null
           career_velocity_score: number | null
           certifications: Json | null
           company_size_preference: string | null
@@ -6884,6 +6885,7 @@ export type Database = {
           engagement_score: number | null
           enrichment_data: Json | null
           enrichment_last_run: string | null
+          enrichment_sources: string[] | null
           fit_score: number | null
           full_name: string
           functions: string[] | null
@@ -6924,12 +6926,14 @@ export type Database = {
           ownership_assigned_at: string | null
           personality_insights: Json | null
           phone: string | null
+          portfolio_data: Json | null
           portfolio_url: string | null
           preferred_currency: string | null
           preferred_language: string | null
           profile_completeness: number | null
           profile_embedding: string | null
           public_fields: Json | null
+          public_mentions: Json | null
           rejection_reason: string | null
           remote_preference: string | null
           remote_work_aspiration: boolean | null
@@ -6940,6 +6944,7 @@ export type Database = {
           reviewed_by: string | null
           salary_preference_hidden: boolean | null
           seniority_level: string | null
+          skill_verification: Json | null
           skills: Json | null
           source_channel: string | null
           source_metadata: Json | null
@@ -6972,6 +6977,7 @@ export type Database = {
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
+          candidate_brief?: Json | null
           career_velocity_score?: number | null
           certifications?: Json | null
           company_size_preference?: string | null
@@ -7003,6 +7009,7 @@ export type Database = {
           engagement_score?: number | null
           enrichment_data?: Json | null
           enrichment_last_run?: string | null
+          enrichment_sources?: string[] | null
           fit_score?: number | null
           full_name: string
           functions?: string[] | null
@@ -7043,12 +7050,14 @@ export type Database = {
           ownership_assigned_at?: string | null
           personality_insights?: Json | null
           phone?: string | null
+          portfolio_data?: Json | null
           portfolio_url?: string | null
           preferred_currency?: string | null
           preferred_language?: string | null
           profile_completeness?: number | null
           profile_embedding?: string | null
           public_fields?: Json | null
+          public_mentions?: Json | null
           rejection_reason?: string | null
           remote_preference?: string | null
           remote_work_aspiration?: boolean | null
@@ -7059,6 +7068,7 @@ export type Database = {
           reviewed_by?: string | null
           salary_preference_hidden?: boolean | null
           seniority_level?: string | null
+          skill_verification?: Json | null
           skills?: Json | null
           source_channel?: string | null
           source_metadata?: Json | null
@@ -7091,6 +7101,7 @@ export type Database = {
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
+          candidate_brief?: Json | null
           career_velocity_score?: number | null
           certifications?: Json | null
           company_size_preference?: string | null
@@ -7122,6 +7133,7 @@ export type Database = {
           engagement_score?: number | null
           enrichment_data?: Json | null
           enrichment_last_run?: string | null
+          enrichment_sources?: string[] | null
           fit_score?: number | null
           full_name?: string
           functions?: string[] | null
@@ -7162,12 +7174,14 @@ export type Database = {
           ownership_assigned_at?: string | null
           personality_insights?: Json | null
           phone?: string | null
+          portfolio_data?: Json | null
           portfolio_url?: string | null
           preferred_currency?: string | null
           preferred_language?: string | null
           profile_completeness?: number | null
           profile_embedding?: string | null
           public_fields?: Json | null
+          public_mentions?: Json | null
           rejection_reason?: string | null
           remote_preference?: string | null
           remote_work_aspiration?: boolean | null
@@ -7178,6 +7192,7 @@ export type Database = {
           reviewed_by?: string | null
           salary_preference_hidden?: boolean | null
           seniority_level?: string | null
+          skill_verification?: Json | null
           skills?: Json | null
           source_channel?: string | null
           source_metadata?: Json | null

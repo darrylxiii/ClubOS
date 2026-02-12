@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Send, Calendar, Edit, Linkedin, User,
   AlertCircle, CheckCircle, Mail, Phone, MapPin,
-  RefreshCw, Loader2
+  RefreshCw, Loader2, Scan
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
@@ -41,6 +41,40 @@ export const CandidateHeroSection = ({
 }: Props) => {
   const navigate = useNavigate();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isDeepEnriching, setIsDeepEnriching] = useState(false);
+
+  const handleDeepEnrich = async () => {
+    setIsDeepEnriching(true);
+    const toastId = toast.loading("Running deep enrichment pipeline...");
+
+    try {
+      // Step 1: GitHub
+      toast.loading("Scanning GitHub profile...", { id: toastId });
+      await supabase.functions.invoke('enrich-github-profile', {
+        body: { candidateId: candidate.id },
+      });
+
+      // Step 2: Public presence
+      toast.loading("Searching public mentions...", { id: toastId });
+      await supabase.functions.invoke('enrich-public-presence', {
+        body: { candidateId: candidate.id },
+      });
+
+      // Step 3: AI Brief (uses all enriched data)
+      toast.loading("Generating intelligence brief...", { id: toastId });
+      await supabase.functions.invoke('generate-candidate-brief', {
+        body: { candidateId: candidate.id },
+      });
+
+      toast.success("Deep enrichment complete", { id: toastId });
+      onRefresh?.();
+    } catch (error: unknown) {
+      console.error("Deep enrich error:", error);
+      toast.error(error instanceof Error ? error.message : "Enrichment failed", { id: toastId });
+    } finally {
+      setIsDeepEnriching(false);
+    }
+  };
 
   // Check account status
   const hasAccount = !!candidate.user_id;
@@ -287,6 +321,23 @@ export const CandidateHeroSection = ({
                     <RefreshCw className="w-4 h-4 mr-2" />
                   )}
                   Sync LinkedIn
+                </Button>
+              )}
+
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeepEnrich}
+                  disabled={isDeepEnriching}
+                  className="border-primary/30 hover:border-primary/60"
+                >
+                  {isDeepEnriching ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Scan className="w-4 h-4 mr-2" />
+                  )}
+                  Deep Enrich
                 </Button>
               )}
             </div>
