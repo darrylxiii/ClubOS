@@ -16,6 +16,13 @@ export interface EdgeFunctionEntry {
   error_rate: number | null;
   polling_interval_ms: number | null;
   admin_disabled_at: string | null;
+  sampling_rate: number | null;
+  min_call_interval_ms: number | null;
+  external_api_cost_per_call: number | null;
+  compute_cost_estimate_per_call: number | null;
+  tags: string[] | null;
+  require_auth: boolean | null;
+  batchable: boolean | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -65,7 +72,7 @@ export function useEdgeFunctionStats() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('edge_function_registry')
-        .select('is_active, category, invocation_count, error_rate, avg_execution_time_ms');
+        .select('is_active, category, invocation_count, error_rate, avg_execution_time_ms, sampling_rate, external_api_cost_per_call, compute_cost_estimate_per_call, tags');
 
       if (error) throw error;
       const entries = data || [];
@@ -78,6 +85,13 @@ export function useEdgeFunctionStats() {
         ? entries.reduce((s, e) => s + (Number(e.error_rate) || 0), 0) / entries.length
         : 0;
 
+      // Health breakdown
+      const unhealthy = entries.filter(e => Number(e.error_rate) > 15);
+      const warning = entries.filter(e => {
+        const er = Number(e.error_rate) || 0;
+        return er > 5 && er <= 15;
+      });
+
       const byCategory: Record<string, { count: number; invocations: number }> = {};
       entries.forEach(e => {
         const cat = e.category || 'Uncategorized';
@@ -86,7 +100,15 @@ export function useEdgeFunctionStats() {
         byCategory[cat].invocations += e.invocation_count || 0;
       });
 
-      return { total, active, disabled, totalInvocations, avgErrorRate, byCategory };
+      // Cost estimation
+      const totalEstimatedDailyCost = entries.reduce((s, e) => {
+        const dailyInvocations = (e.invocation_count || 0) / 30; // rough daily avg
+        const apiCost = dailyInvocations * (Number(e.external_api_cost_per_call) || 0);
+        const computeCost = dailyInvocations * (Number(e.compute_cost_estimate_per_call) || 0);
+        return s + apiCost + computeCost;
+      }, 0);
+
+      return { total, active, disabled, totalInvocations, avgErrorRate, byCategory, unhealthy: unhealthy.length, warning: warning.length, totalEstimatedDailyCost };
     },
     staleTime: 30000,
     refetchInterval: 60000,
@@ -142,6 +164,31 @@ export function useUpdatePollingInterval() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Failed to update interval');
+    },
+  });
+}
+
+export function useUpdateSamplingRate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, rate }: { id: string; rate: number }) => {
+      const { error } = await supabase
+        .from('edge_function_registry')
+        .update({
+          sampling_rate: rate,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Sampling rate updated');
+      queryClient.invalidateQueries({ queryKey: ['edge-function-registry'] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update sampling rate');
     },
   });
 }

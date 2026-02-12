@@ -4,13 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEdgeFunctionRegistry, useEdgeFunctionCategories, useToggleEdgeFunction, useBulkToggleFunctions, type EdgeFunctionEntry } from '@/hooks/useEdgeFunctionRegistry';
+import { useEdgeFunctionRegistry, useEdgeFunctionCategories, useToggleEdgeFunction, useBulkToggleFunctions, useUpdateSamplingRate, type EdgeFunctionEntry } from '@/hooks/useEdgeFunctionRegistry';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
-import { Search, Power, PowerOff, Filter, Info, Ban } from 'lucide-react';
+import { Search, Power, PowerOff, Filter, Info, Ban, DollarSign, Gauge } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 
 const CRITICAL_CATEGORIES = ['Infrastructure', 'Security'];
 
@@ -42,7 +43,6 @@ export function EdgeFunctionRegistryTab() {
   const totalDisabled = functions.filter(f => f.is_active === false).length;
 
   const handleToggle = (fn: EdgeFunctionEntry, newActive: boolean) => {
-    // Show confirmation dialog when disabling critical functions
     if (!newActive && fn.category && CRITICAL_CATEGORIES.includes(fn.category)) {
       setConfirmDialog({ open: true, id: fn.id, name: fn.display_name || fn.function_name, isActive: newActive });
     } else {
@@ -60,14 +60,8 @@ export function EdgeFunctionRegistryTab() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search functions..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <Input placeholder="Search functions..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
-
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
@@ -80,32 +74,15 @@ export function EdgeFunctionRegistryTab() {
             ))}
           </SelectContent>
         </Select>
-
-        <Button
-          variant={showDisabledOnly ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setShowDisabledOnly(!showDisabledOnly)}
-          className="gap-1.5"
-        >
+        <Button variant={showDisabledOnly ? 'default' : 'outline'} size="sm" onClick={() => setShowDisabledOnly(!showDisabledOnly)} className="gap-1.5">
           <Ban className="h-4 w-4" />
           Disabled ({totalDisabled})
         </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => bulkToggle.mutate({ category: categoryFilter, isActive: true })}
-          disabled={bulkToggle.isPending}
-        >
+        <Button variant="outline" size="sm" onClick={() => bulkToggle.mutate({ category: categoryFilter, isActive: true })} disabled={bulkToggle.isPending}>
           <Power className="h-4 w-4 mr-1" />
           Enable All
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => bulkToggle.mutate({ category: categoryFilter, isActive: false })}
-          disabled={bulkToggle.isPending}
-        >
+        <Button variant="outline" size="sm" onClick={() => bulkToggle.mutate({ category: categoryFilter, isActive: false })} disabled={bulkToggle.isPending}>
           <PowerOff className="h-4 w-4 mr-1" />
           Disable All
         </Button>
@@ -126,15 +103,29 @@ export function EdgeFunctionRegistryTab() {
           <ScrollArea className="h-[600px]">
             <TooltipProvider delayDuration={300}>
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card border-b">
+                <thead className="sticky top-0 bg-card border-b z-10">
                   <tr className="text-left text-muted-foreground">
                     <th className="p-3 font-medium">Function</th>
                     <th className="p-3 font-medium hidden md:table-cell">Category</th>
                     <th className="p-3 font-medium text-center">Status</th>
+                    <th className="p-3 font-medium text-center hidden lg:table-cell">
+                      <Tooltip>
+                        <TooltipTrigger className="flex items-center gap-1">
+                          <Gauge className="h-3.5 w-3.5" /> Sampling
+                        </TooltipTrigger>
+                        <TooltipContent>Percentage of calls that actually execute (0–100%)</TooltipContent>
+                      </Tooltip>
+                    </th>
                     <th className="p-3 font-medium text-right hidden lg:table-cell">Invocations</th>
-                    <th className="p-3 font-medium text-right hidden lg:table-cell">Avg Time</th>
                     <th className="p-3 font-medium text-right hidden xl:table-cell">Error Rate</th>
-                    <th className="p-3 font-medium text-right hidden xl:table-cell">Last Invoked</th>
+                    <th className="p-3 font-medium text-right hidden xl:table-cell">
+                      <Tooltip>
+                        <TooltipTrigger className="flex items-center gap-1">
+                          <DollarSign className="h-3.5 w-3.5" /> Cost/Call
+                        </TooltipTrigger>
+                        <TooltipContent>Estimated external API + compute cost per invocation</TooltipContent>
+                      </Tooltip>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -154,7 +145,6 @@ export function EdgeFunctionRegistryTab() {
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog for Critical Functions */}
       <ConfirmDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
@@ -172,6 +162,9 @@ function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (fn: E
   const isActive = fn.is_active !== false;
   const errorRate = Number(fn.error_rate) || 0;
   const isCritical = fn.category && CRITICAL_CATEGORIES.includes(fn.category);
+  const samplingRate = Number(fn.sampling_rate ?? 1) * 100;
+  const updateSampling = useUpdateSamplingRate();
+  const costPerCall = (Number(fn.external_api_cost_per_call) || 0) + (Number(fn.compute_cost_estimate_per_call) || 0);
 
   return (
     <tr className={`border-b hover:bg-muted/30 transition-colors ${!isActive ? 'opacity-60' : ''}`}>
@@ -191,10 +184,11 @@ function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (fn: E
                 </Tooltip>
               )}
               {isCritical && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0 border-destructive/30 text-destructive">
-                  Critical
-                </Badge>
+                <Badge variant="outline" className="text-[10px] px-1 py-0 border-destructive/30 text-destructive">Critical</Badge>
               )}
+              {fn.tags && fn.tags.length > 0 && fn.tags.map(tag => (
+                <Badge key={tag} variant="secondary" className="text-[10px] px-1 py-0">{tag}</Badge>
+              ))}
             </div>
             <p className="text-xs text-muted-foreground font-mono">{fn.function_name}</p>
             {!isActive && fn.admin_disabled_at && (
@@ -209,25 +203,31 @@ function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (fn: E
         <Badge variant="outline" className="text-xs">{fn.category || 'Uncategorized'}</Badge>
       </td>
       <td className="p-3 text-center">
-        <Switch
-          checked={isActive}
-          onCheckedChange={(checked) => onToggle(fn, checked)}
-          aria-label={`Toggle ${fn.function_name}`}
-        />
+        <Switch checked={isActive} onCheckedChange={(checked) => onToggle(fn, checked)} aria-label={`Toggle ${fn.function_name}`} />
+      </td>
+      <td className="p-3 hidden lg:table-cell">
+        <div className="flex items-center gap-2 min-w-[120px]">
+          <Slider
+            value={[samplingRate]}
+            min={0}
+            max={100}
+            step={5}
+            className="flex-1"
+            onValueCommit={([val]) => updateSampling.mutate({ id: fn.id, rate: val / 100 })}
+          />
+          <span className="text-xs font-mono w-10 text-right text-muted-foreground">{samplingRate}%</span>
+        </div>
       </td>
       <td className="p-3 text-right hidden lg:table-cell font-mono text-xs">
         {(fn.invocation_count || 0).toLocaleString()}
-      </td>
-      <td className="p-3 text-right hidden lg:table-cell font-mono text-xs">
-        {fn.avg_execution_time_ms ? `${Number(fn.avg_execution_time_ms).toFixed(0)}ms` : '—'}
       </td>
       <td className="p-3 text-right hidden xl:table-cell">
         <span className={`text-xs font-mono ${errorRate > 10 ? 'text-red-500' : errorRate > 5 ? 'text-yellow-500' : 'text-green-500'}`}>
           {errorRate.toFixed(1)}%
         </span>
       </td>
-      <td className="p-3 text-right hidden xl:table-cell text-xs text-muted-foreground">
-        {fn.last_invoked_at ? format(new Date(fn.last_invoked_at), 'MMM d, HH:mm') : '—'}
+      <td className="p-3 text-right hidden xl:table-cell font-mono text-xs text-muted-foreground">
+        {costPerCall > 0 ? `$${costPerCall.toFixed(4)}` : '—'}
       </td>
     </tr>
   );

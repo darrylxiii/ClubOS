@@ -16797,9 +16797,11 @@ export type Database = {
       edge_function_daily_stats: {
         Row: {
           avg_response_time_ms: number | null
+          compute_cost_daily: number | null
           created_at: string
           date: string
           error_count: number | null
+          external_api_cost_daily: number | null
           function_name: string
           id: string
           invocation_count: number | null
@@ -16808,9 +16810,11 @@ export type Database = {
         }
         Insert: {
           avg_response_time_ms?: number | null
+          compute_cost_daily?: number | null
           created_at?: string
           date: string
           error_count?: number | null
+          external_api_cost_daily?: number | null
           function_name: string
           id?: string
           invocation_count?: number | null
@@ -16819,9 +16823,11 @@ export type Database = {
         }
         Update: {
           avg_response_time_ms?: number | null
+          compute_cost_daily?: number | null
           created_at?: string
           date?: string
           error_count?: number | null
+          external_api_cost_daily?: number | null
           function_name?: string
           id?: string
           invocation_count?: number | null
@@ -16834,51 +16840,72 @@ export type Database = {
         Row: {
           admin_disabled_at: string | null
           avg_execution_time_ms: number | null
+          batchable: boolean | null
           category: string | null
+          compute_cost_estimate_per_call: number | null
           created_at: string | null
           description: string | null
           display_name: string | null
           error_rate: number | null
+          external_api_cost_per_call: number | null
           function_name: string
           id: string
           invocation_count: number | null
           is_active: boolean | null
           last_invoked_at: string | null
+          min_call_interval_ms: number | null
           polling_interval_ms: number | null
+          require_auth: boolean | null
+          sampling_rate: number | null
+          tags: string[] | null
           updated_at: string | null
           verify_jwt: boolean | null
         }
         Insert: {
           admin_disabled_at?: string | null
           avg_execution_time_ms?: number | null
+          batchable?: boolean | null
           category?: string | null
+          compute_cost_estimate_per_call?: number | null
           created_at?: string | null
           description?: string | null
           display_name?: string | null
           error_rate?: number | null
+          external_api_cost_per_call?: number | null
           function_name: string
           id?: string
           invocation_count?: number | null
           is_active?: boolean | null
           last_invoked_at?: string | null
+          min_call_interval_ms?: number | null
           polling_interval_ms?: number | null
+          require_auth?: boolean | null
+          sampling_rate?: number | null
+          tags?: string[] | null
           updated_at?: string | null
           verify_jwt?: boolean | null
         }
         Update: {
           admin_disabled_at?: string | null
           avg_execution_time_ms?: number | null
+          batchable?: boolean | null
           category?: string | null
+          compute_cost_estimate_per_call?: number | null
           created_at?: string | null
           description?: string | null
           display_name?: string | null
           error_rate?: number | null
+          external_api_cost_per_call?: number | null
           function_name?: string
           id?: string
           invocation_count?: number | null
           is_active?: boolean | null
           last_invoked_at?: string | null
+          min_call_interval_ms?: number | null
           polling_interval_ms?: number | null
+          require_auth?: boolean | null
+          sampling_rate?: number | null
+          tags?: string[] | null
           updated_at?: string | null
           verify_jwt?: boolean | null
         }

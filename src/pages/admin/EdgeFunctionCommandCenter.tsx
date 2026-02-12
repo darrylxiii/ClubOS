@@ -3,7 +3,8 @@ import { EdgeFunctionOverviewTab } from '@/components/admin/edge-functions/EdgeF
 import { EdgeFunctionRegistryTab } from '@/components/admin/edge-functions/EdgeFunctionRegistryTab';
 import { EdgeFunctionUsageTab } from '@/components/admin/edge-functions/EdgeFunctionUsageTab';
 import { PollingConfigTab } from '@/components/admin/edge-functions/PollingConfigTab';
-import { LayoutDashboard, List, BarChart3, Timer } from 'lucide-react';
+import { EdgeFunctionCostTab } from '@/components/admin/edge-functions/EdgeFunctionCostTab';
+import { LayoutDashboard, List, BarChart3, Timer, DollarSign } from 'lucide-react';
 
 export default function EdgeFunctionCommandCenter() {
   return (
@@ -16,7 +17,7 @@ export default function EdgeFunctionCommandCenter() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
           <TabsTrigger value="overview" className="gap-1.5">
             <LayoutDashboard className="h-3.5 w-3.5" />
             Overview
@@ -28,6 +29,10 @@ export default function EdgeFunctionCommandCenter() {
           <TabsTrigger value="usage" className="gap-1.5">
             <BarChart3 className="h-3.5 w-3.5" />
             Usage
+          </TabsTrigger>
+          <TabsTrigger value="costs" className="gap-1.5">
+            <DollarSign className="h-3.5 w-3.5" />
+            Costs
           </TabsTrigger>
           <TabsTrigger value="polling" className="gap-1.5">
             <Timer className="h-3.5 w-3.5" />
@@ -45,6 +50,10 @@ export default function EdgeFunctionCommandCenter() {
 
         <TabsContent value="usage">
           <EdgeFunctionUsageTab />
+        </TabsContent>
+
+        <TabsContent value="costs">
+          <EdgeFunctionCostTab />
         </TabsContent>
 
         <TabsContent value="polling">

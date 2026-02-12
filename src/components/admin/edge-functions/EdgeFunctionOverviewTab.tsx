@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useEdgeFunctionStats } from '@/hooks/useEdgeFunctionRegistry';
 import { useEdgeFunctionUsageSummary } from '@/hooks/useEdgeFunctionDailyStats';
-import { Activity, CheckCircle, XCircle, Zap, TrendingUp, Clock } from 'lucide-react';
+import { EdgeFunctionHealthSection } from './EdgeFunctionHealthSection';
+import { Activity, CheckCircle, XCircle, Zap, TrendingUp, Clock, AlertTriangle, DollarSign } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const COLORS = [
@@ -33,7 +34,7 @@ export function EdgeFunctionOverviewTab() {
   return (
     <div className="space-y-6">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -41,7 +42,7 @@ export function EdgeFunctionOverviewTab() {
                 <Zap className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Functions</p>
+                <p className="text-sm text-muted-foreground">Total</p>
                 <p className="text-2xl font-bold">{stats?.total || 0}</p>
               </div>
             </div>
@@ -65,8 +66,8 @@ export function EdgeFunctionOverviewTab() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-500/10">
-                <XCircle className="h-5 w-5 text-red-500" />
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <XCircle className="h-5 w-5 text-destructive" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Disabled</p>
@@ -83,13 +84,44 @@ export function EdgeFunctionOverviewTab() {
                 <Activity className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Invocations (7d)</p>
+                <p className="text-sm text-muted-foreground">Calls (7d)</p>
                 <p className="text-2xl font-bold">{usage?.totalLogs?.toLocaleString() || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-yellow-500/10">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Unhealthy</p>
+                <p className="text-2xl font-bold">{stats?.unhealthy || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Est. $/day</p>
+                <p className="text-2xl font-bold">${(stats?.totalEstimatedDailyCost || 0).toFixed(2)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Health Section */}
+      <EdgeFunctionHealthSection />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Distribution */}
@@ -102,15 +134,7 @@ export function EdgeFunctionOverviewTab() {
               <div className="flex items-center gap-6">
                 <ResponsiveContainer width={200} height={200}>
                   <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
+                    <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
                       {categoryData.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
@@ -122,10 +146,7 @@ export function EdgeFunctionOverviewTab() {
                   {categoryData.map((cat, i) => (
                     <div key={cat.name} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                        />
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                         <span className="text-muted-foreground">{cat.name}</span>
                       </div>
                       <Badge variant="secondary" className="text-xs">{cat.value}</Badge>
