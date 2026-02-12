@@ -178,10 +178,11 @@ export const RadialMenu = ({
         style={{
           left: clampedX,
           top: clampedY,
+          transformOrigin: "center center",
         }}
-        initial={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
-        animate={{ scale: 1, opacity: 1, x: "-50%", y: "-50%" }}
-        exit={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
+        initial={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
+        animate={{ scale: 1, opacity: 1, x: -radius, y: -radius }}
+        exit={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
         transition={menuTransition}
         onKeyDown={handleKeyDown}
         role="menu"
