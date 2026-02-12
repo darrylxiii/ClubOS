@@ -1133,11 +1133,11 @@ verify_jwt = false
 # Candidate Intelligence Pipeline
 # =============================================================================
 [functions.enrich-github-profile]
-verify_jwt = true
+verify_jwt = false
 
 [functions.enrich-public-presence]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-candidate-brief]
-verify_jwt = true
+verify_jwt = false
 
