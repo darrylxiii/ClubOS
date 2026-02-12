@@ -1,33 +1,46 @@
 
+# Fix Stale "Last Pipeline" Redirect
 
-# Change "Last Pipeline" to Track Job Pipelines, Not CRM
+## Problem
 
-## What Changes
+The code change is correct, but `localStorage` still contains the old value (`/crm/prospects`) from before the update. The radial menu reads `localStorage.getItem("tqc_last_pipeline")` which returns `/crm/prospects`, so the `/jobs` fallback never kicks in.
 
-The radial menu's "Last Pipeline" action currently tracks CRM routes (`/crm/prospects`, `/crm/pipeline`, etc.) and navigates back to them. You want it to track the last **Job Pipeline** (e.g., `/jobs/abc-123/dashboard`) that the user visited instead.
+## Fix
 
-## How It Will Work
-
-- Whenever a user visits a job dashboard (`/jobs/:jobId/dashboard`), that URL is saved to localStorage.
-- Clicking "Last Pipeline" in the radial menu navigates to that last-visited job pipeline.
-- If no job pipeline has been visited yet, it falls back to `/jobs` (the Jobs Hub).
-
-## Technical Details
+In `src/hooks/useLastPipeline.ts`, add a one-time cleanup on mount: if the stored value does NOT match the new job pipeline pattern, remove it so the fallback to `/jobs` takes effect.
 
 ### File: `src/hooks/useLastPipeline.ts`
 
-Replace the CRM route list with a job dashboard pattern match:
+```ts
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
-- Change `PIPELINE_ROUTES` from CRM paths to a regex check for `/jobs/:jobId/dashboard`.
-- The hook will save the full path (e.g., `/jobs/some-uuid/dashboard`) to localStorage whenever it matches.
+const JOB_PIPELINE_PATTERN = /^\/jobs\/[^/]+\/dashboard/;
+const STORAGE_KEY = "tqc_last_pipeline";
 
-### File: `src/hooks/useRadialMenu.ts`
+export function useLastPipeline() {
+  const location = useLocation();
 
-- Update the `last-pipeline` fallback from `"/crm/prospects"` to `"/jobs"` (the Jobs Hub) so if no job pipeline has been visited yet, it goes to the jobs overview.
+  // Clear stale non-job-pipeline values from previous version
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && !JOB_PIPELINE_PATTERN.test(stored)) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, []);
 
-### File: `src/config/radial-menu-items.ts`
+  useEffect(() => {
+    if (JOB_PIPELINE_PATTERN.test(location.pathname)) {
+      localStorage.setItem(STORAGE_KEY, location.pathname);
+    }
+  }, [location.pathname]);
+}
+```
 
-- Update the label from "Last Pipeline" to "Last Job Pipeline" (or just "Pipeline") for clarity.
+This adds a single `useEffect` (runs once on mount) that checks if the stored value is a legacy CRM route and removes it. After that, clicking "Pipeline" will go to `/jobs` until you visit a real job dashboard.
 
-### No database changes needed.
+### Files changed
 
+| File | Change |
+|---|---|
+| `src/hooks/useLastPipeline.ts` | Add cleanup useEffect to remove stale non-job-pipeline values |
