@@ -1,41 +1,58 @@
 
-# Fix Radial Menu Centering (Definitive)
 
-## Root Cause
+# Link Quick Task to the Unified Task System
 
-The `motion.div` container has no explicit `width` or `height`. CSS `transformOrigin: "center center"` resolves relative to the element's **layout box**, which may not match the SVG's `size` exactly (browser rendering quirks, sub-pixel rounding, glass overlay div). This causes the scale animation to expand from a slightly wrong origin, drifting the center away from the cursor.
+## Overview
 
-## The Fix
+The radial menu's Quick Task currently writes to a separate `pilot_tasks` table that has no connection to the Task Board. This plan rewires it so every quick task lands in the real `unified_tasks` table, assigns you by default, and provides a one-click "Expand" button to open the full task creation dialog where you can add assignees, link to objectives/projects, set dependencies, etc.
 
-Set explicit `width` and `height` on the `motion.div` so `transformOrigin` resolves deterministically:
+## How It Will Work
 
-In `src/components/ui/radial-menu.tsx`, update the `motion.div` (line 176-191):
-
-```tsx
-<motion.div
-  className="fixed z-[9999] outline-none"
-  style={{
-    left: clampedX - radius,
-    top: clampedY - radius,
-    width: size,
-    height: size,
-    transformOrigin: "center center",
-  }}
-  initial={{ scale: 0.6, opacity: 0 }}
-  animate={{ scale: 1, opacity: 1 }}
-  exit={{ scale: 0.6, opacity: 0 }}
-  transition={menuTransition}
-  onKeyDown={handleKeyDown}
-  role="menu"
-  aria-label="Quick actions"
-  tabIndex={-1}
->
+```text
+Right-click --> Quick Task wedge
+         |
+         v
++-------------------------------+
+| Quick Task           [Expand] |
+| [What needs to be done?     ] |
+| [Low] [Med] [High]           |
+| [Create Task]                 |
++-------------------------------+
+         |                  |
+    "Create Task"       "Expand"
+         |                  |
+         v                  v
+  INSERT into          Close quick dialog,
+  unified_tasks        open full
+  + auto-assign        CreateUnifiedTaskDialog
+  to yourself          with title & priority
+                       pre-filled
 ```
 
-Adding `width: size` and `height: size` guarantees the layout box is exactly 240x240, so "center center" is pixel-perfect at (120, 120) -- exactly at `clampedX, clampedY`.
+## Changes
 
-## File Changed
+### 1. `src/components/clubpilot/QuickTaskDialog.tsx` (rewrite)
 
-| File | Change |
-|---|---|
-| `src/components/ui/radial-menu.tsx` | Add `width: size, height: size` to the motion.div style (2 lines added) |
+- **Replace `pilot_tasks` insert with `unified_tasks`**: insert with `title`, `priority`, `status: "pending"`, `task_type: "general"`, `scheduling_mode: "manual"`, `user_id`, `created_by`, `task_number: ""`.
+- **Auto-assign to self**: after creating the task, insert a row into `unified_task_assignees` with the current user.
+- **Add `onExpand` callback prop**: new optional prop `onExpand?: (title: string, priority: string) => void`.
+- **Expand button**: add a small icon button (Maximize2 icon) in the dialog header next to the title. Clicking it calls `onExpand(currentTitle, currentPriority)` and closes the quick dialog.
+
+### 2. `src/hooks/useRadialMenu.ts` (add full-task state)
+
+- Add to state: `showFullTask: boolean`, `fullTaskTitle: string`, `fullTaskPriority: string`.
+- Add `openFullTask(title, priority)` callback — sets `showFullTask: true` and stores title/priority.
+- Add `closeFullTask()` callback — resets back.
+- Return these new values from the hook.
+
+### 3. `src/components/ui/radial-menu-provider.tsx` (render full dialog)
+
+- Import `CreateUnifiedTaskDialog`.
+- Destructure new `showFullTask`, `fullTaskTitle`, `fullTaskPriority`, `openFullTask`, `closeFullTask` from the hook.
+- Pass `onExpand` to `QuickTaskDialog` that calls `closeQuickTask()` then `openFullTask(title, priority)`.
+- Render `CreateUnifiedTaskDialog` with `open={showFullTask}`, `onOpenChange`, `initialTitle`, `initialPriority`, `objectiveId={null}`, wrapping an empty `<span />` as children.
+
+### No database changes needed
+
+The `unified_tasks` and `unified_task_assignees` tables already exist with all required columns.
+
