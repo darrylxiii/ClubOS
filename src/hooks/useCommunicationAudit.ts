@@ -105,7 +105,9 @@ export function useCommunicationAudit() {
         avgSentiment,
       };
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Get recent unified communications

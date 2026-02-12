@@ -26,6 +26,8 @@ export const useCampaignPerformance = () => {
             if (error) throw error;
             return (data || []) as CampaignPerformance[];
         },
-        refetchInterval: 30000, // Refresh every 30s
+        refetchInterval: 60000,
+        refetchIntervalInBackground: false,
+        staleTime: 30000,
     });
 };

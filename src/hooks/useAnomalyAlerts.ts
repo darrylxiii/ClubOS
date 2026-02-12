@@ -36,7 +36,9 @@ export function useAnomalyAlerts() {
       if (error) throw error;
       return (data || []) as AnomalyAlert[];
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Realtime subscription

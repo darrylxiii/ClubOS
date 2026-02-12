@@ -41,7 +41,9 @@ export const BulkOperationHistory = () => {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 5000, // Poll for updates
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   if (isLoading) {

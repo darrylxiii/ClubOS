@@ -16794,8 +16794,45 @@ export type Database = {
         }
         Relationships: []
       }
+      edge_function_daily_stats: {
+        Row: {
+          avg_response_time_ms: number | null
+          created_at: string
+          date: string
+          error_count: number | null
+          function_name: string
+          id: string
+          invocation_count: number | null
+          success_count: number | null
+          total_tokens_used: number | null
+        }
+        Insert: {
+          avg_response_time_ms?: number | null
+          created_at?: string
+          date: string
+          error_count?: number | null
+          function_name: string
+          id?: string
+          invocation_count?: number | null
+          success_count?: number | null
+          total_tokens_used?: number | null
+        }
+        Update: {
+          avg_response_time_ms?: number | null
+          created_at?: string
+          date?: string
+          error_count?: number | null
+          function_name?: string
+          id?: string
+          invocation_count?: number | null
+          success_count?: number | null
+          total_tokens_used?: number | null
+        }
+        Relationships: []
+      }
       edge_function_registry: {
         Row: {
+          admin_disabled_at: string | null
           avg_execution_time_ms: number | null
           category: string | null
           created_at: string | null
@@ -16807,10 +16844,12 @@ export type Database = {
           invocation_count: number | null
           is_active: boolean | null
           last_invoked_at: string | null
+          polling_interval_ms: number | null
           updated_at: string | null
           verify_jwt: boolean | null
         }
         Insert: {
+          admin_disabled_at?: string | null
           avg_execution_time_ms?: number | null
           category?: string | null
           created_at?: string | null
@@ -16822,10 +16861,12 @@ export type Database = {
           invocation_count?: number | null
           is_active?: boolean | null
           last_invoked_at?: string | null
+          polling_interval_ms?: number | null
           updated_at?: string | null
           verify_jwt?: boolean | null
         }
         Update: {
+          admin_disabled_at?: string | null
           avg_execution_time_ms?: number | null
           category?: string | null
           created_at?: string | null
@@ -16837,6 +16878,7 @@ export type Database = {
           invocation_count?: number | null
           is_active?: boolean | null
           last_invoked_at?: string | null
+          polling_interval_ms?: number | null
           updated_at?: string | null
           verify_jwt?: boolean | null
         }

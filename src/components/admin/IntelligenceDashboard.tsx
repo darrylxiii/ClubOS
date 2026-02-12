@@ -34,7 +34,9 @@ export function IntelligenceDashboard() {
       
       return stats;
     },
-    refetchInterval: 5000
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   const { data: hiringIntents } = useQuery({
