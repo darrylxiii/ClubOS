@@ -143,9 +143,9 @@ export function useTimeTracking() {
       return data as TimeEntryData | null;
     },
     enabled: !!user?.id,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
     refetchIntervalInBackground: false,
-    staleTime: 2500,
+    staleTime: 15000,
   });
 
   // Fetch all projects

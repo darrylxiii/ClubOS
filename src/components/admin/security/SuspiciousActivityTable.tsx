@@ -88,7 +88,9 @@ export function SuspiciousActivityTable() {
         return severityOrder[a.severity] - severityOrder[b.severity];
       });
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   const getSeverityColor = (severity: string) => {

@@ -62,7 +62,9 @@ export default function RadioListen() {
 
       return { type: 'live' as const, data: { ...liveSession, profile } };
     },
-    refetchInterval: 3000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Subscribe to realtime updates for track changes

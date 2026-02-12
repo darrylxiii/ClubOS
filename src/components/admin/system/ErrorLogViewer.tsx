@@ -28,7 +28,9 @@ export const ErrorLogViewer = () => {
       if (error) throw error;
       return data as ErrorLog[];
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   const getSeverityColor = (severity: string) => {

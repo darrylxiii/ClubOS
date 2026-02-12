@@ -270,7 +270,9 @@ export const DisasterRecoveryDashboard = () => {
       if (error) throw error;
       return data as PlatformAlert[];
     },
-    refetchInterval: 30000
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   // Fetch PITR test results

@@ -23,9 +23,9 @@ export const SecurityAlertsPanel = () => {
       if (error) throw error;
       return data as SecurityAlert[];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 
   const dismissMutation = useMutation({

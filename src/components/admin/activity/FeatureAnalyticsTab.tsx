@@ -19,9 +19,9 @@ export function FeatureAnalyticsTab() {
       if (error) throw error;
       return data || [];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 
   // Aggregate by feature

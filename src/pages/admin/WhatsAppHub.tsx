@@ -118,7 +118,9 @@ export default function WhatsAppHub() {
         .select('unread_count');
       return data?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Check for templates

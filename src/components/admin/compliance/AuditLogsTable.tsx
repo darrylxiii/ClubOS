@@ -34,7 +34,9 @@ export const AuditLogsTable = () => {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 30000
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
+    staleTime: 60000,
   });
 
   const getEventTypeBadge = (eventType: string) => {
