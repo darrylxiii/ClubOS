@@ -176,13 +176,13 @@ export const RadialMenu = ({
       <motion.div
         className="fixed z-[9999] outline-none"
         style={{
-          left: clampedX,
-          top: clampedY,
+          left: clampedX - radius,
+          top: clampedY - radius,
           transformOrigin: "center center",
         }}
-        initial={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
-        animate={{ scale: 1, opacity: 1, x: -radius, y: -radius }}
-        exit={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.6, opacity: 0 }}
         transition={menuTransition}
         onKeyDown={handleKeyDown}
         role="menu"
