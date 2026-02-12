@@ -93,7 +93,9 @@ export function UpcomingDeadlinesWidget({ companyId }: { companyId: string }) {
       return results.sort((a, b) => a.deadline.getTime() - b.deadline.getTime()).slice(0, 8);
     },
     enabled: !!companyId,
-    refetchInterval: 60000
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   const getDeadlineIcon = (type: Deadline['type']) => {

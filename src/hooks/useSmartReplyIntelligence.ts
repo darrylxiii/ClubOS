@@ -231,6 +231,8 @@ export function useReplyIntelligenceStats() {
       
       return stats;
     },
-    refetchInterval: 60000 // Refresh every minute
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 }

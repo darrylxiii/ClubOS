@@ -20,6 +20,8 @@ export const useSystemHealthMetrics = () => {
       return data as any as SystemHealthMetrics;
     },
     refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   return {

@@ -36,6 +36,7 @@ export function useAgentContext(sessionId?: string) {
     enabled: !!user?.id,
     staleTime: 30000,
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
   });
 }
 

@@ -228,6 +228,8 @@ export function usePredictiveAnalytics() {
       return churnRisks;
     },
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Fetch engagement predictions from session events

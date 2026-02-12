@@ -77,6 +77,8 @@ export function StrategistIntelligenceTab() {
       });
     },
     refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Calculate stats

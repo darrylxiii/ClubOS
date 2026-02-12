@@ -44,7 +44,9 @@ export function LiveDJs() {
       
       return sessionsWithProfiles;
     },
-    refetchInterval: 5000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Subscribe to realtime updates

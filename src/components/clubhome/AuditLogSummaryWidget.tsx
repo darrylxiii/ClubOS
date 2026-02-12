@@ -76,6 +76,8 @@ export const AuditLogSummaryWidget = () => {
       };
     },
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   if (isLoading) {

@@ -115,6 +115,7 @@ export function usePlatformHealth() {
     },
     retry: 1,
     refetchInterval: 60000,
+    refetchIntervalInBackground: false,
     staleTime: 30000
   });
 }

@@ -23,7 +23,9 @@ export const useSecurityMetrics = () => {
       
       return result;
     },
-    refetchInterval: 60000 // 1 minute
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Auth Failures (last 24h)
@@ -43,7 +45,9 @@ export const useSecurityMetrics = () => {
       
       return result;
     },
-    refetchInterval: 30000 // 30 seconds
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   // Rate Limiting Stats
@@ -79,7 +83,9 @@ export const useSecurityMetrics = () => {
       
       return result;
     },
-    refetchInterval: 60000
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 
   // Storage Buckets
@@ -100,7 +106,9 @@ export const useSecurityMetrics = () => {
       
       return result;
     },
-    refetchInterval: 300000 // 5 minutes
+    refetchInterval: 300000,
+    refetchIntervalInBackground: false,
+    staleTime: 150000,
   });
 
   return {

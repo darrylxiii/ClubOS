@@ -66,7 +66,9 @@ export const SecurityIncidentsPanel = () => {
       if (error) throw error;
       return data as SecurityIncident[];
     },
-    refetchInterval: 30000
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   const createIncidentMutation = useMutation({

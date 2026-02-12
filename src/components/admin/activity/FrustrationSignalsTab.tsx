@@ -46,7 +46,9 @@ export default function FrustrationSignalsTab() {
         problemPages: Object.values(signalsByPage).sort((a: any, b: any) => b.total - a.total).slice(0, 10)
       };
     },
-    refetchInterval: 30000
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   const getSignalIcon = (type: string) => {

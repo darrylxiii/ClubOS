@@ -140,6 +140,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// Expose queryClient globally for invokeEdgeFunction guard
+(window as any).__QUERY_CLIENT__ = queryClient;
+
 // Only enable tracing in development for debugging - reduces production overhead
 const isTracingEnabled = import.meta.env.DEV;
 
