@@ -12,10 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Maximize2 } from "lucide-react";
 
 interface QuickTaskDialogProps {
   open: boolean;
   onClose: () => void;
+  onExpand?: (title: string, priority: string) => void;
 }
 
 const PRIORITIES = [
@@ -24,7 +26,7 @@ const PRIORITIES = [
   { value: "high", label: "High", color: "bg-destructive/20 text-destructive" },
 ] as const;
 
-export const QuickTaskDialog = ({ open, onClose }: QuickTaskDialogProps) => {
+export const QuickTaskDialog = ({ open, onClose, onExpand }: QuickTaskDialogProps) => {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<string>("medium");
@@ -36,18 +38,26 @@ export const QuickTaskDialog = ({ open, onClose }: QuickTaskDialogProps) => {
 
     setIsSubmitting(true);
     try {
-      // Map priority string to a numeric score for pilot_tasks
-      const priorityScores: Record<string, number> = { low: 30, medium: 60, high: 90 };
-
-      const { error } = await supabase.from("pilot_tasks").insert({
+      const { data: task, error } = await supabase.from("unified_tasks").insert({
         user_id: user.id,
+        created_by: user.id,
         title: title.trim(),
-        priority_score: priorityScores[priority] || 60,
+        priority,
         status: "pending",
-        task_type: "manual",
-      });
+        task_type: "general",
+        scheduling_mode: "manual",
+        task_number: "",
+      }).select("id").single();
 
       if (error) throw error;
+
+      // Auto-assign to self
+      if (task) {
+        await supabase.from("unified_task_assignees").insert({
+          task_id: task.id,
+          user_id: user.id,
+        });
+      }
 
       toast.success("Task created");
       setTitle("");
@@ -61,12 +71,37 @@ export const QuickTaskDialog = ({ open, onClose }: QuickTaskDialogProps) => {
     }
   };
 
+  const handleExpand = () => {
+    const currentTitle = title;
+    const currentPriority = priority;
+    setTitle("");
+    setPriority("medium");
+    onClose();
+    onExpand?.(currentTitle, currentPriority);
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Quick Task</DialogTitle>
-          <DialogDescription>Create a task instantly.</DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>Quick Task</DialogTitle>
+              <DialogDescription>Create a task instantly.</DialogDescription>
+            </div>
+            {onExpand && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 min-h-0 min-w-0 shrink-0"
+                onClick={handleExpand}
+                title="Open full task editor"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <Input

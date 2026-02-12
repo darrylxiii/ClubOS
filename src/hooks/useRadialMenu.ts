@@ -9,6 +9,9 @@ interface RadialMenuState {
   position: { x: number; y: number };
   showVoiceMemo: boolean;
   showQuickTask: boolean;
+  showFullTask: boolean;
+  fullTaskTitle: string;
+  fullTaskPriority: string;
 }
 
 export function useRadialMenu() {
@@ -19,6 +22,9 @@ export function useRadialMenu() {
     position: { x: 0, y: 0 },
     showVoiceMemo: false,
     showQuickTask: false,
+    showFullTask: false,
+    fullTaskTitle: "",
+    fullTaskPriority: "medium",
   });
 
   const openMenu = useCallback((x: number, y: number) => {
@@ -82,6 +88,24 @@ export function useRadialMenu() {
     setState((prev) => ({ ...prev, showQuickTask: false }));
   }, []);
 
+  const openFullTask = useCallback((title: string, priority: string) => {
+    setState((prev) => ({
+      ...prev,
+      showFullTask: true,
+      fullTaskTitle: title,
+      fullTaskPriority: priority,
+    }));
+  }, []);
+
+  const closeFullTask = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      showFullTask: false,
+      fullTaskTitle: "",
+      fullTaskPriority: "medium",
+    }));
+  }, []);
+
   return {
     ...state,
     items,
@@ -89,5 +113,7 @@ export function useRadialMenu() {
     closeMenu,
     closeVoiceMemo,
     closeQuickTask,
+    openFullTask,
+    closeFullTask,
   };
 }
