@@ -1,141 +1,131 @@
 
+# Full Polling Audit + Enable/Disable Toggle for Edge Functions
 
-# Edge Function Command Center + Polling Optimization
+## Part 1: Polling Audit — Remaining Unoptimized Hooks
 
-## Part 1: Silent Polling Optimizations (No User Impact)
+After the first optimization pass (12 files), **64+ files still have polling without `refetchIntervalInBackground: false` and/or `staleTime`**. Here is the full breakdown organized by severity.
 
-Reduce request volume by ~60-70% through three changes applied across the codebase:
+### Tier 1: Critical (1-5s intervals) — Highest waste per user
 
-### 1A. Increase Polling Intervals for Non-Critical Data
-
-| Current Interval | New Interval | Files Affected | Est. Reduction |
+| File | Current | New Interval | Notes |
 |---|---|---|---|
-| 3s (RadioListen, MusicPlayerPanel) | 15s | 2 files | ~80% per file |
-| 5s (ClubDJ, DJMixer, LiveDJs, MusicPlayer, RealTimeActivityTab, IntelligenceDashboard, BulkOperationHistory) | 30s | 7 files | ~83% per file |
-| 10s (ModelHealthMonitor, CommunicationAudit delivery stats) | 30s | 2 files | ~67% per file |
-| 15s (ThreatDetection events, SessionSecurity) | 30s | 2 files | ~50% per file |
-| 30s (28+ files: security panels, activity tabs, CRM feeds, etc.) | 60s | ~28 files | ~50% per file |
+| `useTimeTracking.ts` | 1s | 5s | Live timer display; 5s still feels real-time |
+| `ClubDJ.tsx` | 5s | 30s | Playlist data; already has Realtime channel |
+| `radio/LiveDJs.tsx` | 5s | 30s | Already has Realtime subscription; polling redundant |
 
-None of these are user-facing interactions -- they are background dashboard refreshes. A user will never notice the difference between a 5s and 30s refresh on a DJ status card.
+**Est. savings: ~5M req/month per active user tab**
 
-### 1B. Add `enabled` Guards
+### Tier 2: Aggressive (10s intervals)
 
-For every `useQuery` with a `refetchInterval`, add visibility/mount guards so queries only poll when the component is actually visible on screen. This prevents background tabs from generating requests.
+| File | Current | New |
+|---|---|---|
+| `useCommunicationAudit.ts` (delivery stats) | 10s | 30s |
+| `ModelHealthMonitor.tsx` | 10s | 30s |
 
-Pattern applied:
+### Tier 3: Moderate (15-30s intervals, missing guards)
+
+These have `refetchInterval` set at 15-30s but are **missing `refetchIntervalInBackground: false`** and **`staleTime`**, causing unnecessary background tab noise.
+
+| File | Current | Add Guards |
+|---|---|---|
+| `useSessionSecurity.ts` (3 queries) | 15s, 30s, 30s | + background:false + staleTime |
+| `SecurityAlertsPanel.tsx` | 30s | + background:false + staleTime |
+| `RateLimitDashboard.tsx` (2 queries) | 30s, 30s | + background:false + staleTime |
+| `DisasterRecoveryDashboard.tsx` (4 queries) | 30s-60s | + background:false + staleTime |
+| `SLAStatusPanel.tsx` | 30s | + background:false |
+| `FrustrationSignalsTab.tsx` | 30s | + background:false + staleTime |
+| `CandidateIntelligenceTab.tsx` | 30s | + background:false + staleTime |
+| `StrategistIntelligenceTab.tsx` | 30s | + background:false + staleTime |
+| `AdminIntelligenceTab.tsx` | 30s | + background:false + staleTime |
+| `FeatureAnalyticsTab.tsx` | 30s | + background:false + staleTime |
+| `SecurityIncidentsPanel.tsx` | 30s | + background:false + staleTime |
+| `OutreachActivityFeed.tsx` (3 queries) | 30s | + background:false + staleTime |
+| `WebhookReliabilityDashboard.tsx` (2 queries) | 30s, 60s | + background:false + staleTime |
+| `WhatsAppHub.tsx` (2 queries) | 30s, 60s | + background:false + staleTime |
+| `UnreadMessagesWidget.tsx` (2 queries) | 30s, 30s | + background:false + staleTime |
+| `useSecurityMetrics.ts` (4 queries) | 30s-300s | + background:false + staleTime |
+| `useSystemHealthMetrics.ts` | 30s | + background:false + staleTime |
+| `DossierActivityWidget.tsx` | 60s | + background:false + staleTime |
+| `WhatsAppMetricsBar.tsx` | 60s | + background:false + staleTime |
+| `usePredictiveAnalytics.ts` | 60s | + background:false + staleTime |
+| `SmartAlertsPanel.tsx` | 60s | + background:false + staleTime |
+| `useSmartReplyIntelligence.ts` | 60s | + background:false + staleTime |
+| `useApplicationMetrics.ts` | 60s | + background:false + staleTime |
+| `PerformanceDashboard.tsx` (3 queries) | 60s | + background:false + staleTime |
+| `SearchAnalyticsTab.tsx` | 60s | + background:false + staleTime |
+| `AuditLogSummaryWidget.tsx` | 60s | + background:false + staleTime |
+| `ApplicationFunnelWidget.tsx` | 60s | + background:false + staleTime |
+| `UpcomingDeadlinesWidget.tsx` | 60s | + background:false + staleTime |
+| `usePlatformHealth.ts` | 60s | already has staleTime, add background:false |
+| `useRecentActivity.ts` | 60s | already has staleTime, add background:false |
+| `useAgentContext.ts` | 60s | already has staleTime, add background:false |
+
+**Total: ~50 files, ~65 individual useQuery calls**
+
+### Applied Pattern (uniform across all)
+
 ```typescript
 // Before
-refetchInterval: 30000
-
-// After  
 refetchInterval: 30000,
+
+// After
+refetchInterval: 30000, // (or increased value for Tier 1-2)
 refetchIntervalInBackground: false,
+staleTime: 15000, // 50% of refetchInterval
 ```
-
-React Query's `refetchIntervalInBackground: false` (the default, but we'll be explicit) stops polling when the browser tab is not focused. This alone cuts ~30-40% of background noise.
-
-### 1C. Add `staleTime` Where Missing
-
-Many queries re-fetch on every window focus because they have no `staleTime`. Adding `staleTime` equal to half the `refetchInterval` prevents redundant fetches when users switch tabs.
 
 ---
 
-## Part 2: Edge Function Command Center (New Admin Page)
+## Part 2: Enable/Disable Toggle Enhancement
 
-### New Route: `/admin/edge-functions`
+The Registry tab already has working per-function toggles and bulk enable/disable buttons. However, the toggle only writes to the database -- **it does not actually prevent function invocation on the client side**. The plan adds:
 
-A dedicated admin page with full visibility and control over all edge functions.
+### Client-Side Invocation Guard
 
-### Database Changes
+Create a wrapper utility `src/utils/invokeEdgeFunction.ts` that:
+1. Checks a cached copy of the registry's `is_active` status before calling `supabase.functions.invoke()`
+2. If the function is disabled, returns early with a standardized "Function disabled by admin" response
+3. Uses React Query's cache so there is zero extra network cost per invocation check
 
-**Populate `edge_function_registry`**: The table already exists with the right schema (`function_name`, `display_name`, `description`, `category`, `is_active`, `invocation_count`, `avg_execution_time_ms`, `error_rate`). We will seed it with all 389 functions organized by category and write a migration to add two new columns:
+```typescript
+// src/utils/invokeEdgeFunction.ts
+import { supabase } from '@/integrations/supabase/client';
+import { queryClient } from '@/lib/queryClient';
 
-- `polling_interval_ms` (integer, nullable) -- for functions triggered by polling, the configurable interval
-- `admin_disabled_at` (timestamptz, nullable) -- when an admin toggled it off
+export async function invokeEdgeFunction(
+  functionName: string,
+  options?: { body?: unknown; headers?: Record<string, string> }
+) {
+  // Check cached registry (no network call)
+  const registry = queryClient.getQueryData(['edge-function-registry']) as any[] | undefined;
+  const entry = registry?.find(e => e.function_name === functionName);
 
-**New table: `edge_function_daily_stats`** -- stores aggregated daily usage per function for historical trending:
-- `id` (uuid, PK)
-- `function_name` (text)
-- `date` (date)
-- `invocation_count` (integer)
-- `success_count` (integer)
-- `error_count` (integer)
-- `avg_response_time_ms` (numeric)
-- `total_tokens_used` (integer)
-- `created_at` (timestamptz)
-- Unique constraint on (function_name, date)
+  if (entry && entry.is_active === false) {
+    console.warn(`[EdgeFunction] ${functionName} is disabled by admin`);
+    return { data: null, error: { message: 'Function disabled by admin' } };
+  }
 
-### UI Layout (4 Tabs)
+  return supabase.functions.invoke(functionName, options);
+}
+```
 
-**Tab 1: Overview**
-- Total functions count, active vs disabled, total invocations today/this week/this month
-- Donut chart: invocations by category (AI/ML, Communication, CRM, Security, Infrastructure, etc.)
-- Top 10 most-called functions table with sparkline trends
-- Health status bar: healthy / degraded / critical count
+### Registry Tab Improvements
 
-**Tab 2: Function Registry**
-- Searchable, filterable table of all 389 functions
-- Columns: Name, Category, Status (active/disabled toggle), Last Invoked, Invocations (24h), Avg Response Time, Error Rate, Polling Interval (editable)
-- Bulk actions: Enable All, Disable All (by category), Reset Intervals
-- Toggle switch per row to enable/disable a function (writes `is_active` + `admin_disabled_at`)
-- Inline editable polling interval field (for functions that are poll-driven)
+- Add a description tooltip per function explaining what it does
+- Add a confirmation dialog when disabling critical functions (category = "Infrastructure" or "Security")
+- Show the `admin_disabled_at` timestamp when a function is disabled
+- Add a "Disabled Functions" quick filter badge
 
-**Tab 3: Usage Analytics**
-- Date range picker (today, 7d, 30d, custom)
-- Stacked area chart: invocations over time by category
-- Table: per-function daily breakdown with sortable columns
-- Cost estimation column (using the logic from `useCostMetrics`)
-- Export to CSV button
+---
 
-**Tab 4: Polling Configuration**
-- Lists only poll-driven hooks (the 76 files with `refetchInterval`)
-- Shows current interval, suggested interval, and a slider to adjust
-- "Apply Optimized Defaults" button that sets all intervals to recommended values
-- Estimated monthly request savings calculator
+## Summary of Changes
 
-### New Files
+| Category | Files Modified | Impact |
+|---|---|---|
+| Tier 1 polling fixes (1-5s) | 3 files | ~5M req/month saved |
+| Tier 2 polling fixes (10s) | 2 files | ~2M req/month saved |
+| Tier 3 guard additions (15-60s) | ~45 files | ~10-15M req/month saved (background tabs) |
+| Invocation guard utility | 1 new file | Enables admin disable to actually stop calls |
+| Registry tab improvements | 1 file | Better UX for admin control |
 
-| File | Purpose |
-|---|---|
-| `src/pages/admin/EdgeFunctionCommandCenter.tsx` | Main page with 4 tabs |
-| `src/hooks/useEdgeFunctionRegistry.ts` | CRUD hook for `edge_function_registry` |
-| `src/hooks/useEdgeFunctionDailyStats.ts` | Aggregated stats queries with date filters |
-| `src/components/admin/edge-functions/EdgeFunctionOverviewTab.tsx` | Overview dashboard tab |
-| `src/components/admin/edge-functions/EdgeFunctionRegistryTab.tsx` | Searchable registry with toggles |
-| `src/components/admin/edge-functions/EdgeFunctionUsageTab.tsx` | Analytics charts and tables |
-| `src/components/admin/edge-functions/PollingConfigTab.tsx` | Polling interval management |
-
-### Modified Files
-
-| File | Change |
-|---|---|
-| `src/routes/admin.routes.tsx` | Add route for `/admin/edge-functions` |
-| ~40 files with `refetchInterval` | Increase intervals + add `refetchIntervalInBackground: false` + add `staleTime` |
-
-### Seeding the Registry
-
-A database migration will insert all 389 functions into `edge_function_registry` with categorization:
-- **AI/ML** (generate-*, analyze-*, predict-*, ai-*, etc.)
-- **Communication** (send-*, email-*, whatsapp-*, sms-*)
-- **CRM** (crm-*, outreach-*, campaign-*)
-- **Security** (detect-*, check-*, auto-respond-*, verify-*)
-- **Infrastructure** (cleanup-*, sync-*, calculate-*, monitor-*)
-- **Candidate** (enrich-*, parse-*, match-*, normalize-*)
-- **Meeting** (meeting-*, livekit-*, bridge-*, compile-*)
-- **Finance** (moneybird-*, reconcile-*, calculate-payment-*, invoice-*)
-
-### How Toggle On/Off Works
-
-When an admin disables a function via the UI:
-1. `is_active = false` and `admin_disabled_at = now()` is set in `edge_function_registry`
-2. Client-side: before any `supabase.functions.invoke()` call, a lightweight check against the registry determines if the function is disabled. If disabled, the call is skipped and a "Function disabled by admin" message is returned.
-3. This is implemented as a thin wrapper around `supabase.functions.invoke` that all components use.
-
-### Aggregation
-
-A new edge function `aggregate-edge-function-stats` runs daily (via cron) to:
-1. Query `ai_usage_logs` for the previous day
-2. Group by `function_name`
-3. Insert/upsert into `edge_function_daily_stats`
-4. Update `edge_function_registry` counters (`invocation_count`, `avg_execution_time_ms`, `error_rate`)
-
+**Estimated total reduction: 17-22M requests/month (35-45% of 48M baseline)**
