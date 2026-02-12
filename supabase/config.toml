@@ -384,6 +384,12 @@ verify_jwt = true
 [functions.calculate-assessment-scores]
 verify_jwt = true
 
+[functions.extract-skills-from-experience]
+verify_jwt = true
+
+[functions.extract-job-requirements]
+verify_jwt = true
+
 # =============================================================================
 # Content Generation (JWT Required)
 # =============================================================================
