@@ -48,7 +48,7 @@ export function useRadialMenu() {
           navigate("/club-ai");
           break;
         case "last-pipeline": {
-          const lastPipeline = localStorage.getItem("tqc_last_pipeline") || "/crm/prospects";
+          const lastPipeline = localStorage.getItem("tqc_last_pipeline") || "/jobs";
           navigate(lastPipeline);
           break;
         }

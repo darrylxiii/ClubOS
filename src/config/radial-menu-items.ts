@@ -41,7 +41,7 @@ const SHARED_ITEMS: RadialMenuItemConfig[] = [
 const ADMIN_ITEMS: RadialMenuItemConfig[] = [
   ...SHARED_ITEMS,
   { id: "quick-task", label: "Quick Task", icon: Plus, actionType: "quick-task" },
-  { id: "last-pipeline", label: "Last Pipeline", icon: History, actionType: "last-pipeline" },
+  { id: "last-pipeline", label: "Pipeline", icon: History, actionType: "last-pipeline" },
   { id: "command-palette", label: "Search", icon: Search, actionType: "command-palette" },
   { id: "quantum-pulse", label: "Pulse", icon: Activity, actionType: "quantum-pulse" },
 ];
