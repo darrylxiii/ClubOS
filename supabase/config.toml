@@ -154,9 +154,7 @@ verify_jwt = true
 
 
 [functions.analytics-ai-assistant]
-
-[functions.analytics-ai-assistant]
-verify_jwt = true
+verify_jwt = false
 
 [functions.ai-booking-assistant]
 verify_jwt = true
