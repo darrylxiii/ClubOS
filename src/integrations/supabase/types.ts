@@ -5949,10 +5949,12 @@ export type Database = {
           created_by: string | null
           id: string
           interaction_direction: string | null
+          interaction_quality: string | null
           interaction_type: string
           is_internal: boolean | null
           metadata: Json | null
           participants: Json | null
+          response_time_minutes: number | null
           scheduled_at: string | null
           summary: string | null
           tags: Json | null
@@ -5972,10 +5974,12 @@ export type Database = {
           created_by?: string | null
           id?: string
           interaction_direction?: string | null
+          interaction_quality?: string | null
           interaction_type: string
           is_internal?: boolean | null
           metadata?: Json | null
           participants?: Json | null
+          response_time_minutes?: number | null
           scheduled_at?: string | null
           summary?: string | null
           tags?: Json | null
@@ -5995,10 +5999,12 @@ export type Database = {
           created_by?: string | null
           id?: string
           interaction_direction?: string | null
+          interaction_quality?: string | null
           interaction_type?: string
           is_internal?: boolean | null
           metadata?: Json | null
           participants?: Json | null
+          response_time_minutes?: number | null
           scheduled_at?: string | null
           summary?: string | null
           tags?: Json | null
@@ -23816,6 +23822,7 @@ export type Database = {
           location_formatted: string | null
           longitude: number | null
           loss_reason_id: string | null
+          nice_to_have: Json | null
           pipeline_stages: Json | null
           published_at: string | null
           referral_bonus_fixed: number | null
@@ -23824,6 +23831,7 @@ export type Database = {
           responsibilities: Json | null
           salary_max: number | null
           salary_min: number | null
+          salary_period: string | null
           show_referral_bonus: boolean | null
           status: string | null
           stealth_enabled_at: string | null
@@ -23879,6 +23887,7 @@ export type Database = {
           location_formatted?: string | null
           longitude?: number | null
           loss_reason_id?: string | null
+          nice_to_have?: Json | null
           pipeline_stages?: Json | null
           published_at?: string | null
           referral_bonus_fixed?: number | null
@@ -23887,6 +23896,7 @@ export type Database = {
           responsibilities?: Json | null
           salary_max?: number | null
           salary_min?: number | null
+          salary_period?: string | null
           show_referral_bonus?: boolean | null
           status?: string | null
           stealth_enabled_at?: string | null
@@ -23942,6 +23952,7 @@ export type Database = {
           location_formatted?: string | null
           longitude?: number | null
           loss_reason_id?: string | null
+          nice_to_have?: Json | null
           pipeline_stages?: Json | null
           published_at?: string | null
           referral_bonus_fixed?: number | null
@@ -23950,6 +23961,7 @@ export type Database = {
           responsibilities?: Json | null
           salary_max?: number | null
           salary_min?: number | null
+          salary_period?: string | null
           show_referral_bonus?: boolean | null
           status?: string | null
           stealth_enabled_at?: string | null

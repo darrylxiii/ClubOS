@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, AlertCircle, Star } from "lucide-react";
+import { Users, AlertCircle, Star, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessmentBreakdown } from "@/hooks/useAssessmentScores";
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
@@ -24,7 +24,6 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
 
   useEffect(() => {
     async function loadFeedback() {
-      // Get feedback via applications
       const { data: apps } = await supabase
         .from('applications')
         .select('id')
@@ -47,6 +46,7 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
 
   const cultureFitData = breakdown?.culture_fit;
   const hasData = cultureFitData && cultureFitData.confidence > 0.1;
+  const isAIBaseline = hasData && !cultureFitData.sources.includes('interview_feedback');
 
   return (
     <Card className={candidateProfileTokens.glass.card}>
@@ -54,6 +54,9 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
         <CardTitle className="text-base flex items-center gap-2">
           <Users className="w-4 h-4" />
           Culture Fit Signals
+          {isAIBaseline && (
+            <Badge variant="outline" className="text-[10px] font-normal">AI baseline</Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -71,6 +74,17 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
                 <p className="mt-0.5">Confidence: {Math.round(cultureFitData.confidence * 100)}%</p>
               </div>
             </div>
+
+            {/* Data sources used */}
+            {cultureFitData.sources.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {cultureFitData.sources.map((src) => (
+                  <Badge key={src} variant="secondary" className="text-[10px]">
+                    {src.replace(/_/g, ' ')}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {/* Interview feedback entries */}
             {feedback.length > 0 && (
@@ -91,8 +105,7 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
                       )}
                       {fb.recommendation && (
                         <Badge
-                          variant={fb.recommendation === 'strong_hire' || fb.recommendation === 'hire'
-                            ? 'default' : 'secondary'}
+                          variant={fb.recommendation === 'strong_hire' || fb.recommendation === 'hire' ? 'default' : 'secondary'}
                           className="text-[10px]"
                         >
                           {fb.recommendation.replace('_', ' ')}
@@ -119,13 +132,23 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
                   ))}
               </div>
             )}
+
+            {/* Pre-interview hint */}
+            {isAIBaseline && (
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3" />
+                  Score will improve after interviews and strategist conversations
+                </p>
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center py-4">
             <AlertCircle className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No culture fit data yet</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Culture fit scores are gathered from interview feedback
+              Schedule interviews or generate personality insights to bootstrap this score
             </p>
           </div>
         )}
