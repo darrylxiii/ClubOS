@@ -1,36 +1,36 @@
 
 
-# Fix Radial Menu Centering — Use Pixel Offsets
+# Fix Radial Menu Centering (Final)
 
 ## Root Cause
 
-Framer Motion's percentage-based `x: "-50%"` and `y: "-50%"` compute the offset from the element's **rendered** dimensions, which shift during the `scale: 0.6 -> 1.0` spring animation. A scaled-down element has a smaller computed size, so `-50%` of that smaller size yields a smaller offset — the center drifts during the transition and can land off-target.
+The current approach sets `left: clampedX, top: clampedY` (the click point = top-left of the element), then uses Framer Motion `x: -radius, y: -radius` to translate it back. But when combined with `scale`, CSS applies the transforms in sequence relative to `transformOrigin`, causing the visual center to drift away from the click point during the scale animation.
 
-## Fix
+## The Fix
 
-Replace the percentage-based offset with **exact pixel values**. Since `size` is always known (240px), the offset is simply `-size / 2` = `-120` pixels in both axes. This is constant regardless of scale.
-
-In `src/components/ui/radial-menu.tsx`, change `initial`, `animate`, and `exit` on the motion.div (lines 182-184):
+Stop using translate transforms for centering entirely. Instead, set `left` and `top` directly to the already-offset position:
 
 ```
-// Before
-initial={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
-animate={{ scale: 1, opacity: 1, x: "-50%", y: "-50%" }}
-exit={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
-
-// After
-initial={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
-animate={{ scale: 1, opacity: 1, x: -radius, y: -radius }}
-exit={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
+style={{
+  left: clampedX - radius,   // was: left: clampedX + x: -radius
+  top: clampedY - radius,    // was: top: clampedY + y: -radius
+  transformOrigin: "center center",
+}}
+initial={{ scale: 0.6, opacity: 0 }}
+animate={{ scale: 1, opacity: 1 }}
+exit={{ scale: 0.6, opacity: 0 }}
 ```
 
-Where `radius = size / 2 = 120`. Pixel values don't change with scale, so the menu center stays pinned to the click coordinates at every animation frame.
+This way:
+- The element's top-left is placed at `(clickX - 120, clickY - 120)`
+- Its geometric center is exactly at the click point
+- `transformOrigin: center center` makes `scale` expand from that center
+- No translate transform exists, so there is zero interaction between translate and scale
+- The center stays perfectly pinned at every animation frame
 
-Additionally, add `transformOrigin: "center center"` to ensure the scale animation expands outward from the center, not from a corner.
-
-## File Modified
+## File Changed
 
 | File | Change |
 |---|---|
-| `src/components/ui/radial-menu.tsx` | Replace `x: "-50%", y: "-50%"` with `x: -radius, y: -radius` in initial/animate/exit; add `transformOrigin: "center center"` |
+| `src/components/ui/radial-menu.tsx` | Move centering offset into `left`/`top` style; remove `x`/`y` from initial/animate/exit |
 
