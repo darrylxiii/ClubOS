@@ -6846,6 +6846,8 @@ export type Database = {
           ai_strengths: Json | null
           ai_summary: string | null
           application_status: string | null
+          assessment_breakdown: Json | null
+          assessment_computed_at: string | null
           assigned_strategist_id: string | null
           auto_reengagement_enabled: boolean | null
           availability_status: string | null
@@ -6970,6 +6972,8 @@ export type Database = {
           ai_strengths?: Json | null
           ai_summary?: string | null
           application_status?: string | null
+          assessment_breakdown?: Json | null
+          assessment_computed_at?: string | null
           assigned_strategist_id?: string | null
           auto_reengagement_enabled?: boolean | null
           availability_status?: string | null
@@ -7094,6 +7098,8 @@ export type Database = {
           ai_strengths?: Json | null
           ai_summary?: string | null
           application_status?: string | null
+          assessment_breakdown?: Json | null
+          assessment_computed_at?: string | null
           assigned_strategist_id?: string | null
           auto_reengagement_enabled?: boolean | null
           availability_status?: string | null
