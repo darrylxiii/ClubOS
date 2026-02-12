@@ -39,7 +39,9 @@ export function DJMixer() {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 5000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   const { data: liveSession } = useQuery({

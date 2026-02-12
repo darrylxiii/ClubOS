@@ -39,7 +39,9 @@ export const useSystemHealth = () => {
       // Function now returns JSON directly
       return data as unknown as SystemHealthData;
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
     retry: false, // Don't retry on failure to avoid log spam
   });
 

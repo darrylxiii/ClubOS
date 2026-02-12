@@ -172,6 +172,8 @@ export function useUnreadMessagesCount() {
       return count || 0;
     },
     enabled: !!user,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+    staleTime: 30000,
   });
 }

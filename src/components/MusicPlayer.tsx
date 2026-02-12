@@ -21,7 +21,9 @@ export const MusicPlayer = () => {
       
       return (count || 0) > 0;
     },
-    refetchInterval: 5000,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   return (

@@ -64,7 +64,9 @@ export default function RealTimeActivityTab() {
         deviceBreakdown: deviceBreakdown || {}
       };
     },
-    refetchInterval: 5000
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
+    staleTime: 15000,
   });
 
   const getDeviceIcon = (device: string) => {

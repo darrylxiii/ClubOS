@@ -59,9 +59,10 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
       
       return null;
     },
-    refetchInterval: 3000,
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
+    staleTime: 7000,
   });
-
   // Subscribe to realtime updates for live sessions
   useEffect(() => {
     const channel = supabase
