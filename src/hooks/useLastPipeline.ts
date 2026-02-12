@@ -12,6 +12,14 @@ const STORAGE_KEY = "tqc_last_pipeline";
 export function useLastPipeline() {
   const location = useLocation();
 
+  // Clear stale non-job-pipeline values from previous version
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && !JOB_PIPELINE_PATTERN.test(stored)) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, []);
+
   useEffect(() => {
     if (JOB_PIPELINE_PATTERN.test(location.pathname)) {
       localStorage.setItem(STORAGE_KEY, location.pathname);
