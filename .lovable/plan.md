@@ -1,27 +1,36 @@
 
 
-# Fix Double Menu and Pre-Highlighted Wedge on Open
+# Fix Radial Menu Centering — Use Pixel Offsets
 
-## Bug 1: Double Menu
+## Root Cause
 
-**Root cause**: In `radial-menu.tsx` line 160-163, the backdrop's `onContextMenu` calls `onClose()` but the event keeps bubbling. It reaches the provider's `div onContextMenu` in `radial-menu-provider.tsx` line 42, which calls `openMenu()` — so the menu closes and instantly reopens.
+Framer Motion's percentage-based `x: "-50%"` and `y: "-50%"` compute the offset from the element's **rendered** dimensions, which shift during the `scale: 0.6 -> 1.0` spring animation. A scaled-down element has a smaller computed size, so `-50%` of that smaller size yields a smaller offset — the center drifts during the transition and can land off-target.
 
-**Fix in `src/components/ui/radial-menu.tsx`**:
-- Add `e.stopPropagation()` to the backdrop's `onContextMenu` handler so the event never reaches the provider
+## Fix
 
-## Bug 2: Cursor Lands on a Wedge on Open
+Replace the percentage-based offset with **exact pixel values**. Since `size` is always known (240px), the offset is simply `-size / 2` = `-120` pixels in both axes. This is constant regardless of scale.
 
-**Root cause**: The menu scales from 0.6 to 1.0. During that spring animation, the wedge paths expand outward through the cursor's resting position, triggering `onMouseEnter` on a wedge path before the user moves the mouse.
+In `src/components/ui/radial-menu.tsx`, change `initial`, `animate`, and `exit` on the motion.div (lines 182-184):
 
-**Fix in `src/components/ui/radial-menu.tsx`**:
-- Wrap the SVG in a container with `pointer-events: none` initially
-- After the open animation completes (~200ms), flip to `pointer-events: auto`
-- Use a `useEffect` with a short timeout tied to the `items` mount to enable pointer events after the spring settles
-- This ensures the cursor rests cleanly in the center circle with nothing highlighted until the user deliberately moves to a wedge
+```
+// Before
+initial={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
+animate={{ scale: 1, opacity: 1, x: "-50%", y: "-50%" }}
+exit={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
 
-## Files Modified
+// After
+initial={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
+animate={{ scale: 1, opacity: 1, x: -radius, y: -radius }}
+exit={{ scale: 0.6, opacity: 0, x: -radius, y: -radius }}
+```
+
+Where `radius = size / 2 = 120`. Pixel values don't change with scale, so the menu center stays pinned to the click coordinates at every animation frame.
+
+Additionally, add `transformOrigin: "center center"` to ensure the scale animation expands outward from the center, not from a corner.
+
+## File Modified
 
 | File | Change |
 |---|---|
-| `src/components/ui/radial-menu.tsx` | Add `e.stopPropagation()` to backdrop contextmenu; delay pointer-events on SVG wedges until animation settles |
+| `src/components/ui/radial-menu.tsx` | Replace `x: "-50%", y: "-50%"` with `x: -radius, y: -radius` in initial/animate/exit; add `transformOrigin: "center center"` |
 
