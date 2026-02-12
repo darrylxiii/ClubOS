@@ -1,6 +1,8 @@
 import { ReactNode, useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { RadialMenuProvider } from "@/components/ui/radial-menu-provider";
+import { useLastPipeline } from "@/hooks/useLastPipeline";
 import { useTranslationSync } from "@/hooks/use-translation-sync";
 import { GlobalRunningTimerHeader } from "@/components/time-tracking/GlobalRunningTimerHeader";
 // Short QC icons (for collapsed state) - "transparent" files are the small icons
@@ -47,6 +49,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   useTranslationSync(); // Keep all components in sync with language changes
   const location = useLocation();
   const { currentRole } = useRole();
+  useLastPipeline(); // Track last visited pipeline route
   const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
   
   // Lifted sidebar state - single source of truth for mobile menu
@@ -185,31 +188,33 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Main Content - Adjusted for sidebar - Mobile Optimized */}
       {/* Workspace routes (/messages, /admin/whatsapp) manage their own scrolling */}
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className={cn(
-          "flex-1 w-full md:ml-20 relative z-10",
-          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
-            ? 'overflow-hidden'
-            : 'overflow-y-auto'
-        )}
-      >
-        <div className={cn(
-          "pt-14 sm:pt-16",
-          (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
-            ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col'
-            : 'min-h-screen pb-4'
-        )}
-          style={{
-            paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp'))
-              ? 'max(env(safe-area-inset-bottom), 1rem)'
-              : undefined
-          }}
+      <RadialMenuProvider>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={cn(
+            "flex-1 w-full md:ml-20 relative z-10",
+            (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
+              ? 'overflow-hidden'
+              : 'overflow-y-auto'
+          )}
         >
-          {children}
-        </div>
-      </main>
+          <div className={cn(
+            "pt-14 sm:pt-16",
+            (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
+              ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col'
+              : 'min-h-screen pb-4'
+          )}
+            style={{
+              paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp'))
+                ? 'max(env(safe-area-inset-bottom), 1rem)'
+                : undefined
+            }}
+          >
+            {children}
+          </div>
+        </main>
+      </RadialMenuProvider>
 
       {/* Global Navigation Tools */}
       <QuantumPulse />

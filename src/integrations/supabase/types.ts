@@ -50743,6 +50743,42 @@ export type Database = {
           },
         ]
       }
+      voice_memos: {
+        Row: {
+          audio_url: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          metadata: Json | null
+          status: string
+          title: string | null
+          transcript: string | null
+          user_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          title?: string | null
+          transcript?: string | null
+          user_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          title?: string | null
+          transcript?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_quality_alerts: {
         Row: {
           alert_type: string
