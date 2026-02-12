@@ -169,11 +169,10 @@ export const RadialMenu = ({
         style={{
           left: clampedX,
           top: clampedY,
-          transform: "translate(-50%, -50%)",
         }}
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.6, opacity: 0 }}
+        initial={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
+        animate={{ scale: 1, opacity: 1, x: "-50%", y: "-50%" }}
+        exit={{ scale: 0.6, opacity: 0, x: "-50%", y: "-50%" }}
         transition={menuTransition}
         onKeyDown={handleKeyDown}
         role="menu"
@@ -185,6 +184,7 @@ export const RadialMenu = ({
           height={size}
           viewBox={`${-radius} ${-radius} ${size} ${size}`}
           className="drop-shadow-2xl"
+          onMouseLeave={() => setActiveIndex(null)}
         >
           {/* Outer ring */}
           <circle
@@ -215,7 +215,6 @@ export const RadialMenu = ({
                     setActiveIndex(index);
                     itemRefs.current[index]?.focus();
                   }}
-                  onMouseLeave={() => setActiveIndex(null)}
                 />
               </g>
             );
@@ -240,6 +239,7 @@ export const RadialMenu = ({
                 <button
                   ref={(el) => { itemRefs.current[index] = el; }}
                   onFocus={() => setActiveIndex(index)}
+                  onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => handleSelect(item)}
                   aria-label={item.label}
                   role="menuitem"
