@@ -1,58 +1,33 @@
 
 
-# Link Quick Task to the Unified Task System
+# Change "Last Pipeline" to Track Job Pipelines, Not CRM
 
-## Overview
+## What Changes
 
-The radial menu's Quick Task currently writes to a separate `pilot_tasks` table that has no connection to the Task Board. This plan rewires it so every quick task lands in the real `unified_tasks` table, assigns you by default, and provides a one-click "Expand" button to open the full task creation dialog where you can add assignees, link to objectives/projects, set dependencies, etc.
+The radial menu's "Last Pipeline" action currently tracks CRM routes (`/crm/prospects`, `/crm/pipeline`, etc.) and navigates back to them. You want it to track the last **Job Pipeline** (e.g., `/jobs/abc-123/dashboard`) that the user visited instead.
 
 ## How It Will Work
 
-```text
-Right-click --> Quick Task wedge
-         |
-         v
-+-------------------------------+
-| Quick Task           [Expand] |
-| [What needs to be done?     ] |
-| [Low] [Med] [High]           |
-| [Create Task]                 |
-+-------------------------------+
-         |                  |
-    "Create Task"       "Expand"
-         |                  |
-         v                  v
-  INSERT into          Close quick dialog,
-  unified_tasks        open full
-  + auto-assign        CreateUnifiedTaskDialog
-  to yourself          with title & priority
-                       pre-filled
-```
+- Whenever a user visits a job dashboard (`/jobs/:jobId/dashboard`), that URL is saved to localStorage.
+- Clicking "Last Pipeline" in the radial menu navigates to that last-visited job pipeline.
+- If no job pipeline has been visited yet, it falls back to `/jobs` (the Jobs Hub).
 
-## Changes
+## Technical Details
 
-### 1. `src/components/clubpilot/QuickTaskDialog.tsx` (rewrite)
+### File: `src/hooks/useLastPipeline.ts`
 
-- **Replace `pilot_tasks` insert with `unified_tasks`**: insert with `title`, `priority`, `status: "pending"`, `task_type: "general"`, `scheduling_mode: "manual"`, `user_id`, `created_by`, `task_number: ""`.
-- **Auto-assign to self**: after creating the task, insert a row into `unified_task_assignees` with the current user.
-- **Add `onExpand` callback prop**: new optional prop `onExpand?: (title: string, priority: string) => void`.
-- **Expand button**: add a small icon button (Maximize2 icon) in the dialog header next to the title. Clicking it calls `onExpand(currentTitle, currentPriority)` and closes the quick dialog.
+Replace the CRM route list with a job dashboard pattern match:
 
-### 2. `src/hooks/useRadialMenu.ts` (add full-task state)
+- Change `PIPELINE_ROUTES` from CRM paths to a regex check for `/jobs/:jobId/dashboard`.
+- The hook will save the full path (e.g., `/jobs/some-uuid/dashboard`) to localStorage whenever it matches.
 
-- Add to state: `showFullTask: boolean`, `fullTaskTitle: string`, `fullTaskPriority: string`.
-- Add `openFullTask(title, priority)` callback — sets `showFullTask: true` and stores title/priority.
-- Add `closeFullTask()` callback — resets back.
-- Return these new values from the hook.
+### File: `src/hooks/useRadialMenu.ts`
 
-### 3. `src/components/ui/radial-menu-provider.tsx` (render full dialog)
+- Update the `last-pipeline` fallback from `"/crm/prospects"` to `"/jobs"` (the Jobs Hub) so if no job pipeline has been visited yet, it goes to the jobs overview.
 
-- Import `CreateUnifiedTaskDialog`.
-- Destructure new `showFullTask`, `fullTaskTitle`, `fullTaskPriority`, `openFullTask`, `closeFullTask` from the hook.
-- Pass `onExpand` to `QuickTaskDialog` that calls `closeQuickTask()` then `openFullTask(title, priority)`.
-- Render `CreateUnifiedTaskDialog` with `open={showFullTask}`, `onOpenChange`, `initialTitle`, `initialPriority`, `objectiveId={null}`, wrapping an empty `<span />` as children.
+### File: `src/config/radial-menu-items.ts`
 
-### No database changes needed
+- Update the label from "Last Pipeline" to "Last Job Pipeline" (or just "Pipeline") for clarity.
 
-The `unified_tasks` and `unified_task_assignees` tables already exist with all required columns.
+### No database changes needed.
 
