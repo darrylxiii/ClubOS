@@ -46,6 +46,7 @@ import { AvailabilityCard } from "@/components/candidate-profile/AvailabilityCar
 import { TechnicalFootprintCard } from "@/components/candidate-profile/TechnicalFootprintCard";
 import { PublicPresenceCard } from "@/components/candidate-profile/PublicPresenceCard";
 import { CandidateBriefCard } from "@/components/candidate-profile/CandidateBriefCard";
+import { EnrichmentProgressModal } from "@/components/candidate-profile/EnrichmentProgressModal";
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>();
@@ -64,7 +65,7 @@ export default function CandidateProfile() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
-  const [isImporting, setIsImporting] = useState(false);
+  const [enrichModal, setEnrichModal] = useState<{ open: boolean; mode: 'linkedin' | 'deep-enrich' }>({ open: false, mode: 'linkedin' });
 
   const isTeamView = role === 'admin' || role === 'partner';
 
@@ -152,81 +153,8 @@ export default function CandidateProfile() {
     }
   };
 
-  const handleLinkedInImport = async () => {
-    if (!candidate?.linkedin_url) {
-      toast.error("LinkedIn URL is missing");
-      return;
-    }
-
-    setIsImporting(true);
-    const toastId = toast.loading("Importing profile data from LinkedIn...");
-
-    try {
-      const { data, error } = await supabase.functions.invoke('linkedin-scraper', {
-        body: { linkedinUrl: candidate.linkedin_url }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        // Null-safe update — only populate fields that have real values
-        const d = data.data;
-        const updates: Record<string, unknown> = {};
-
-        if (d.full_name) updates.full_name = d.full_name;
-        if (d.current_title) updates.current_title = d.current_title;
-        if (d.current_company) updates.current_company = d.current_company;
-        if (d.avatar_url) updates.avatar_url = d.avatar_url;
-        
-        if (d.years_of_experience) updates.years_of_experience = d.years_of_experience;
-        if (d.work_history?.length) updates.work_history = d.work_history;
-        if (d.education?.length) updates.education = d.education;
-        if (d.ai_summary) updates.ai_summary = d.ai_summary;
-        if (d.linkedin_profile_data) updates.linkedin_profile_data = d.linkedin_profile_data;
-
-        // Merge skills (union, no duplicates)
-        if (d.skills?.length) {
-          const existing = Array.isArray(candidate.skills) ? candidate.skills : [];
-          updates.skills = [...new Set([...existing, ...d.skills])];
-        }
-
-        // Always update timestamps & enrichment metadata
-        updates.enrichment_last_run = new Date().toISOString();
-        updates.last_profile_update = new Date().toISOString();
-        updates.enrichment_data = {
-          source: 'linkedin',
-          api_used: d.source_metadata?.api_used || 'unknown',
-          enriched_at: new Date().toISOString(),
-          fields_updated: Object.keys(updates),
-        };
-
-        const { error: updateError } = await supabase
-          .from("candidate_profiles")
-          .update(updates)
-          .eq("id", id);
-
-        if (updateError) throw updateError;
-
-        // Trigger enrichment to recalculate completeness, AI summary, talent tier
-        try {
-          await supabase.functions.invoke('enrich-candidate-profile', {
-            body: { candidateId: id }
-          });
-        } catch (enrichErr) {
-          console.warn('[linkedin-sync] Post-sync enrichment failed (non-blocking):', enrichErr);
-        }
-
-        toast.success("Profile imported successfully", { id: toastId });
-        loadCandidate();
-      } else {
-        throw new Error(data.error || "Import failed");
-      }
-    } catch (error: unknown) {
-      console.error("Error importing LinkedIn profile:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to import from LinkedIn", { id: toastId });
-    } finally {
-      setIsImporting(false);
-    }
+  const openLinkedInSync = () => {
+    setEnrichModal({ open: true, mode: 'linkedin' });
   };
 
   if (loading) {
@@ -331,14 +259,11 @@ export default function CandidateProfile() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleLinkedInImport}
-                      disabled={isImporting}
+                      onClick={openLinkedInSync}
                       className="gap-1 sm:gap-2 bg-background/80 backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3 border-primary/20 hover:border-primary/50"
                     >
-                      <Linkedin className={cn("w-3 h-3 sm:w-4 sm:h-4", isImporting && "animate-pulse")} />
-                      <span className="hidden sm:inline">
-                        {isImporting ? "Importing..." : "Sync LinkedIn"}
-                      </span>
+                      <Linkedin className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Sync LinkedIn</span>
                       <span className="sm:hidden">Sync</span>
                     </Button>
                   )}
@@ -809,9 +734,9 @@ export default function CandidateProfile() {
                       </p>
                     </div>
                     {candidate.linkedin_url && (
-                      <Button onClick={handleLinkedInImport} disabled={isImporting} size="lg" className="mt-2 gap-2">
-                        <Linkedin className={cn("w-4 h-4", isImporting && "animate-pulse")} />
-                        {isImporting ? "Importing..." : "Sync LinkedIn"}
+                      <Button onClick={openLinkedInSync} size="lg" className="mt-2 gap-2">
+                        <Linkedin className="w-4 h-4" />
+                        Sync LinkedIn
                       </Button>
                     )}
                   </CardContent>
@@ -869,9 +794,9 @@ export default function CandidateProfile() {
                       </p>
                     </div>
                     {candidate.linkedin_url && (
-                      <Button onClick={handleLinkedInImport} disabled={isImporting} size="lg" variant="outline" className="mt-2 gap-2">
-                        <Linkedin className={cn("w-4 h-4", isImporting && "animate-pulse")} />
-                        {isImporting ? "Importing..." : "Sync LinkedIn"}
+                      <Button onClick={openLinkedInSync} size="lg" variant="outline" className="mt-2 gap-2">
+                        <Linkedin className="w-4 h-4" />
+                        Sync LinkedIn
                       </Button>
                     )}
                   </CardContent>
@@ -1023,6 +948,18 @@ export default function CandidateProfile() {
           onOpenChange={setEditDialogOpen}
           candidate={candidate}
           onSave={loadCandidate}
+        />
+      )}
+
+      {/* Enrichment Progress Modal */}
+      {candidate && (
+        <EnrichmentProgressModal
+          open={enrichModal.open}
+          onOpenChange={(open) => setEnrichModal(prev => ({ ...prev, open }))}
+          mode={enrichModal.mode}
+          candidateId={id!}
+          candidateData={candidate}
+          onComplete={loadCandidate}
         />
       )}
     </AppLayout>
