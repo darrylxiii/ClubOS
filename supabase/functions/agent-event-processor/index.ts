@@ -101,6 +101,7 @@ async function processEvent(supabase: any, event: any) {
     'user_action_profile_update': ['club_ai'],
     'external_webhook_email': ['engagement_agent'],
     'system_deadline_approaching': ['club_ai', 'engagement_agent'],
+    'job_status_open': ['sourcing_agent', 'club_ai'],
   };
 
   const agents = agentMappings[event.event_type] || ['club_ai'];
