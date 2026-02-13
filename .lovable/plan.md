@@ -1,41 +1,24 @@
 
 
-# Fix: Duplicate Key Error on Calendar Reconnection
+# Fix: Upsert Still Failing Due to Missing WITH CHECK on UPDATE Policy
 
 ## Problem
 
-When reconnecting a Google Calendar that was previously connected, the code tries to `INSERT` a new row. However, a unique constraint (`calendar_connections_user_id_provider_email_key`) already exists for that user/provider/email combination, causing the error.
+The `.upsert()` call is correct, but Supabase (PostgREST) requires the UPDATE RLS policy to include **both** a `USING` clause and a `WITH CHECK` clause for upserts to succeed. The current UPDATE policy only has `USING (auth.uid() = user_id)` but no `WITH CHECK`.
 
 ## Solution
 
-Change the `.insert()` call to `.upsert()` with `onConflict: 'user_id,provider,email'`. This will update the existing row (refreshing tokens, re-activating) instead of failing on duplicate.
+Drop and recreate the UPDATE policy with both clauses:
 
-## Technical Details
+```sql
+DROP POLICY "Users can update own calendar connections" ON public.calendar_connections;
 
-**File:** `src/components/settings/ConnectionsSettings.tsx` (lines 173-184)
-
-Change:
-```typescript
-.insert({
-  user_id: user.id,
-  provider: 'google',
-  email: userInfo.email,
-  ...
-})
+CREATE POLICY "Users can update own calendar connections"
+  ON public.calendar_connections
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 ```
 
-To:
-```typescript
-.upsert({
-  user_id: user.id,
-  provider: 'google',
-  email: userInfo.email,
-  label: label.trim(),
-  access_token: data.tokens.access_token,
-  refresh_token: data.tokens.refresh_token || null,
-  token_expires_at: data.tokens.expires_at,
-  is_active: true,
-}, { onConflict: 'user_id,provider,email' })
-```
+This single migration will allow the upsert to perform the UPDATE path when a matching row already exists.
 
-This single change allows both first-time connections and reconnections to work seamlessly.
