@@ -10,6 +10,7 @@ const IntelligenceFeedView = lazy(() => import('@/components/admin/agentic/Intel
 const AgentDirectoryView = lazy(() => import('@/components/admin/agentic/AgentDirectoryView'));
 const BriefingDocumentView = lazy(() => import('@/components/admin/agentic/BriefingDocumentView'));
 const AgentChatView = lazy(() => import('@/components/admin/agentic/AgentChatView'));
+const SourcingCommandPanel = lazy(() => import('@/components/admin/agentic/SourcingCommandPanel'));
 
 export default function AgenticOSHub() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,12 +42,13 @@ export default function AgenticOSHub() {
 
       <Tabs value={currentTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto">
-          <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-5 sm:w-full h-auto bg-card/50 backdrop-blur-sm rounded-lg p-1">
+          <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-6 sm:w-full h-auto bg-card/50 backdrop-blur-sm rounded-lg p-1">
             <TabsTrigger value="mission">Mission Control</TabsTrigger>
             <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
             <TabsTrigger value="briefings">Briefings</TabsTrigger>
             <TabsTrigger value="chat">Agent Chat</TabsTrigger>
+            <TabsTrigger value="sourcing">Sourcing</TabsTrigger>
           </TabsList>
         </div>
 
@@ -65,6 +67,9 @@ export default function AgenticOSHub() {
           </TabsContent>
           <TabsContent value="chat">
             <AgentChatView initialAgent={chatAgent} />
+          </TabsContent>
+          <TabsContent value="sourcing">
+            <SourcingCommandPanel />
           </TabsContent>
         </Suspense>
       </Tabs>

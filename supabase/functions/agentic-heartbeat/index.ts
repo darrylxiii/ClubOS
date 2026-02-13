@@ -116,7 +116,34 @@ serve(async (req) => {
       }
     }
 
-    // 5. Memory decay (clean up expired working memory)
+    // 5. Process pending sourcing missions (max 2)
+    console.log("[Heartbeat] Checking pending sourcing missions...");
+    const { data: pendingMissions } = await supabase
+      .from("sourcing_missions")
+      .select("id, job_id, search_criteria")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .limit(2);
+
+    if (pendingMissions && pendingMissions.length > 0) {
+      agentsInvoked.push("sourcing_processor");
+      for (const mission of pendingMissions) {
+        // Generate strategy if not yet done
+        const strategyResult = await invokeAgent("guide-sourcing-strategy", { jobId: mission.job_id });
+        if (strategyResult && typeof strategyResult === "object" && "strategy" in strategyResult) {
+          await supabase
+            .from("sourcing_missions")
+            .update({
+              search_strategy: (strategyResult as any).strategy,
+              status: "in_progress",
+            })
+            .eq("id", mission.id);
+        }
+      }
+      results.sourcing = { pending_processed: pendingMissions.length };
+    }
+
+    // 6. Memory decay (clean up expired working memory)
     console.log("[Heartbeat] Running memory decay...");
     const { error: decayError } = await supabase
       .from("agent_working_memory")

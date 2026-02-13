@@ -1162,3 +1162,12 @@ verify_jwt = false
 [functions.agent-chat]
 verify_jwt = true
 
+# =============================================================================
+# Sourcing Agent (Admin/Strategist Only)
+# =============================================================================
+[functions.guide-sourcing-strategy]
+verify_jwt = false
+
+[functions.source-candidates]
+verify_jwt = false
+

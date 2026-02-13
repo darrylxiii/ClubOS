@@ -135,6 +135,17 @@ Description: ${job.description || "N/A"}`;
             }
         }
 
+        // Auto-create sourcing mission if internal matches are thin (<5)
+        if (agentMatches.length < 5) {
+            console.log(`[Headhunter] Only ${agentMatches.length} internal matches. Creating sourcing mission for strategist attention.`);
+            await supabase.from('sourcing_missions').insert({
+                job_id: job.id,
+                status: 'pending',
+                triggered_by: 'headhunter_auto',
+                search_criteria: { persona: searchPersona, internal_matches: agentMatches.length },
+            });
+        }
+
         return new Response(
             JSON.stringify({
                 success: true,
@@ -142,7 +153,8 @@ Description: ${job.description || "N/A"}`;
                 persona: searchPersona,
                 matches_found: matches.length,
                 matches_saved: agentMatches.length,
-                saved_matches: agentMatches
+                saved_matches: agentMatches,
+                sourcing_mission_created: agentMatches.length < 5,
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
