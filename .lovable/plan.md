@@ -1,41 +1,27 @@
 
-# Fix Calendar Edge Functions: CORS Header Mismatch
 
-## Root Cause
+# Fix: Add Missing INSERT RLS Policy on `calendar_connections`
 
-All four calendar-related edge functions have an outdated `Access-Control-Allow-Headers` value:
+## Problem
 
-```
-authorization, x-client-info, apikey, content-type
-```
+The Google OAuth token exchange succeeds (edge function logs confirm "Token exchange successful"), but the subsequent client-side `INSERT` into the `calendar_connections` table is blocked because there is **no INSERT RLS policy**.
 
-The Supabase JS client (v2.58.0) now sends additional headers with every request:
-- `x-supabase-client-platform`
-- `x-supabase-client-platform-version`
-- `x-supabase-client-runtime`
-- `x-supabase-client-runtime-version`
-
-Because these headers are not listed in the CORS preflight response, the browser blocks the request entirely, resulting in "Failed to fetch" before the request ever reaches the edge function. This is confirmed by the edge function logs showing the function boots but never receives a request.
+Current policies on `calendar_connections`:
+- SELECT: users can view own rows
+- UPDATE: users can update own rows
+- DELETE: users can delete own rows
+- **INSERT: MISSING**
 
 ## Fix
 
-Update the `corsHeaders` in all four edge functions to include the full set of allowed headers:
+Add a single RLS policy allowing authenticated users to insert rows where `user_id` matches their auth UID.
 
-```typescript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+```sql
+CREATE POLICY "Users can insert own calendar connections"
+  ON public.calendar_connections
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 ```
 
-## Files changed
+No code changes needed -- the client-side insert logic is already correct.
 
-| File | Change |
-|---|---|
-| `supabase/functions/google-calendar-auth/index.ts` | Update CORS headers (line 6) |
-| `supabase/functions/google-calendar-events/index.ts` | Update CORS headers (line 6) |
-| `supabase/functions/microsoft-calendar-auth/index.ts` | Update CORS headers (line 6) |
-| `supabase/functions/detect-calendar-interviews/index.ts` | Update CORS headers (line 6) |
-| `supabase/functions/refresh-calendar-tokens/index.ts` | Update CORS headers (line 5) -- for consistency, though this one is called server-to-server |
-
-No other code changes needed. After deployment, the "Connect Google Calendar" button on the Settings page will successfully reach the edge function and return an OAuth URL.
