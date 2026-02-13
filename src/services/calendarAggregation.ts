@@ -1,9 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UnifiedCalendarEvent } from "@/types/calendar";
+import { toast } from "sonner";
 
 // Debounce map to prevent excessive detection calls
 const detectionDebounce = new Map<string, number>();
 const DETECTION_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+const EDGE_FUNCTION_TIMEOUT_MS = 30000;
+
+/** Wrap a promise with a timeout via Promise.race */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
+/** Check if a calendar connection's token is likely expired beyond auto-refresh */
+function isTokenExpiredBeyondRefresh(connection: { token_expires_at?: string | null }): boolean {
+  if (!connection.token_expires_at) return false;
+  const expiresAt = new Date(connection.token_expires_at).getTime();
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  return expiresAt < oneHourAgo;
+}
 
 export async function fetchUnifiedCalendarEvents(
   userId: string,
@@ -24,21 +42,36 @@ export async function fetchUnifiedCalendarEvents(
   const msEvents = await fetchMicrosoftCalendarEvents(userId, startDate, endDate);
   allEvents.push(...msEvents);
 
-  // Auto-trigger interview detection (debounced)
+  // Auto-trigger interview detection (debounced + guarded)
   const now = Date.now();
   const lastDetection = detectionDebounce.get(userId) || 0;
-  
+
   if (now - lastDetection > DETECTION_COOLDOWN_MS) {
-    detectionDebounce.set(userId, now);
-    
-    // Trigger detection in background (don't await to avoid blocking calendar load)
-    triggerInterviewDetection(userId, startDate, endDate).catch(error => {
-      console.error('Background interview detection failed:', error);
-    });
+    // Only trigger if user has at least one healthy calendar connection
+    const hasHealthyConnection = await hasActiveCalendarConnection(userId);
+    if (hasHealthyConnection) {
+      detectionDebounce.set(userId, now);
+      triggerInterviewDetection(userId, startDate, endDate).catch(error => {
+        console.error('Background interview detection failed:', error);
+      });
+    }
   }
 
   // Sort by start time
   return allEvents.sort((a, b) => a.start.getTime() - b.start.getTime());
+}
+
+/** Check if user has at least one active calendar connection with a non-expired token */
+async function hasActiveCalendarConnection(userId: string): Promise<boolean> {
+  const { data: connections } = await supabase
+    .from('calendar_connections')
+    .select('token_expires_at')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .limit(5);
+
+  if (!connections || connections.length === 0) return false;
+  return connections.some(c => !isTokenExpiredBeyondRefresh(c));
 }
 
 async function triggerInterviewDetection(
@@ -48,14 +81,18 @@ async function triggerInterviewDetection(
 ): Promise<void> {
   try {
     console.log('Auto-triggering interview detection for user:', userId);
-    
-    const { data, error } = await supabase.functions.invoke('detect-calendar-interviews', {
-      body: {
-        userId,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      },
-    });
+
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('detect-calendar-interviews', {
+        body: {
+          userId,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        },
+      }),
+      EDGE_FUNCTION_TIMEOUT_MS,
+      'Interview detection'
+    );
 
     if (error) {
       console.error('Interview detection error:', error);
@@ -119,21 +156,30 @@ async function fetchGoogleCalendarEvents(
   const allEvents: UnifiedCalendarEvent[] = [];
 
   for (const connection of connections) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      const { data, error } = await supabase.functions.invoke('google-calendar-events', {
-        body: {
-          action: 'listEvents',
-          connectionId: connection.id,
-          timeMin: startDate.toISOString(),
-          timeMax: endDate.toISOString(),
-        },
-        signal: controller.signal,
+    // Token expiry pre-check
+    if (isTokenExpiredBeyondRefresh(connection)) {
+      console.warn(`Google calendar token expired for ${connection.email}. Prompting reconnect.`);
+      toast.error('Google Calendar token expired', {
+        description: 'Reconnect your Google Calendar in Settings to restore sync.',
+        duration: 8000,
       });
+      continue;
+    }
 
-      clearTimeout(timeoutId);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke('google-calendar-events', {
+          body: {
+            action: 'listEvents',
+            connectionId: connection.id,
+            timeMin: startDate.toISOString(),
+            timeMax: endDate.toISOString(),
+          },
+        }),
+        EDGE_FUNCTION_TIMEOUT_MS,
+        'Google Calendar fetch'
+      );
+
       if (error || !data?.events) {
         console.error('Failed to fetch Google events:', error);
         continue;
@@ -157,12 +203,8 @@ async function fetchGoogleCalendarEvents(
       }));
 
       allEvents.push(...events);
-    } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        console.error('Google calendar sync timed out after 30s');
-      } else {
-        console.error('Failed to fetch Google calendar events:', err);
-      }
+    } catch (err) {
+      console.error('Failed to fetch Google calendar events:', err);
     }
   }
 
@@ -186,20 +228,29 @@ async function fetchMicrosoftCalendarEvents(
   const allEvents: UnifiedCalendarEvent[] = [];
 
   for (const connection of connections) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      const { data, error } = await supabase.functions.invoke('microsoft-calendar-events', {
-        body: {
-          connectionId: connection.id,
-          timeMin: startDate.toISOString(),
-          timeMax: endDate.toISOString(),
-        },
-        signal: controller.signal,
+    // Token expiry pre-check
+    if (isTokenExpiredBeyondRefresh(connection)) {
+      console.warn(`Microsoft calendar token expired for ${connection.email}. Prompting reconnect.`);
+      toast.error('Microsoft Calendar token expired', {
+        description: 'Reconnect your Microsoft Calendar in Settings to restore sync.',
+        duration: 8000,
       });
+      continue;
+    }
 
-      clearTimeout(timeoutId);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke('microsoft-calendar-events', {
+          body: {
+            connectionId: connection.id,
+            timeMin: startDate.toISOString(),
+            timeMax: endDate.toISOString(),
+          },
+        }),
+        EDGE_FUNCTION_TIMEOUT_MS,
+        'Microsoft Calendar fetch'
+      );
+
       if (error || !data?.events) {
         console.error('Failed to fetch Microsoft events:', error);
         continue;
@@ -222,12 +273,8 @@ async function fetchMicrosoftCalendarEvents(
       }));
 
       allEvents.push(...events);
-    } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        console.error('Microsoft calendar sync timed out after 30s');
-      } else {
-        console.error('Failed to fetch Microsoft calendar events:', err);
-      }
+    } catch (err) {
+      console.error('Failed to fetch Microsoft calendar events:', err);
     }
   }
 
@@ -279,7 +326,6 @@ export async function syncMeetingToExternalCalendar(
         const provider = connection.provider as 'google' | 'microsoft';
 
         if (action === 'delete' && meeting.external_calendar_event_id) {
-          // Delete from external calendar
           await supabase.functions.invoke(functionName, {
             body: {
               action: 'deleteEvent',
@@ -289,7 +335,6 @@ export async function syncMeetingToExternalCalendar(
           });
           syncedTo.push(provider);
         } else if (action === 'update' && meeting.external_calendar_event_id) {
-          // Update in external calendar
           const event = formatMeetingForExternalCalendar(meeting, provider);
           const { data } = await supabase.functions.invoke(functionName, {
             body: {
@@ -304,7 +349,6 @@ export async function syncMeetingToExternalCalendar(
             syncedTo.push(provider);
           }
         } else if (action === 'create') {
-          // Create in external calendar
           const event = formatMeetingForExternalCalendar(meeting, provider);
           const { data } = await supabase.functions.invoke(functionName, {
             body: {
@@ -368,7 +412,6 @@ function formatMeetingForExternalCalendar(
       },
     };
   } else {
-    // Microsoft format
     return {
       subject: meeting.title,
       body: {
