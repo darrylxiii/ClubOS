@@ -49,10 +49,27 @@ serve(async (req) => {
       }
     }
 
+    // 0. Load recent feedback & instructions for agent context
+    const { data: recentFeedback } = await supabase
+      .from("agent_feedback")
+      .select("agent_name, rating, comment, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    const { data: activeInstructions } = await supabase
+      .from("agent_instructions")
+      .select("agent_name, instruction, priority")
+      .eq("is_active", true)
+      .order("priority", { ascending: false });
+
+    results.feedback_loaded = recentFeedback?.length || 0;
+    results.instructions_loaded = activeInstructions?.length || 0;
+
     // 1. Process pending agent events
     console.log("[Heartbeat] Processing agent events...");
     const eventResult = await invokeAgent("agent-event-processor", {
       operation: "process_events",
+      context: { recentFeedback, activeInstructions },
     });
     if (eventResult && typeof eventResult === "object" && "processedCount" in eventResult) {
       eventsProcessed = (eventResult as any).processedCount || 0;

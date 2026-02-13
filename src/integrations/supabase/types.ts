@@ -1117,6 +1117,33 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_conversations: {
+        Row: {
+          agent_name: string
+          created_at: string
+          id: string
+          messages: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_name: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_name?: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_decision_log: {
         Row: {
           affected_entities: Json | null
@@ -1427,6 +1454,44 @@ export type Database = {
           },
         ]
       }
+      agent_feedback: {
+        Row: {
+          agent_name: string
+          comment: string | null
+          created_at: string
+          decision_id: string | null
+          id: string
+          rating: string
+          user_id: string
+        }
+        Insert: {
+          agent_name: string
+          comment?: string | null
+          created_at?: string
+          decision_id?: string | null
+          id?: string
+          rating: string
+          user_id: string
+        }
+        Update: {
+          agent_name?: string
+          comment?: string | null
+          created_at?: string
+          decision_id?: string | null
+          id?: string
+          rating?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_feedback_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "agent_decision_log"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_goal_progress: {
         Row: {
           action_taken: string
@@ -1555,6 +1620,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agent_instructions: {
+        Row: {
+          agent_name: string
+          created_at: string
+          created_by: string
+          id: string
+          instruction: string
+          is_active: boolean
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          agent_name: string
+          created_at?: string
+          created_by: string
+          id?: string
+          instruction: string
+          is_active?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_name?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          instruction?: string
+          is_active?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       agent_registry: {
         Row: {
