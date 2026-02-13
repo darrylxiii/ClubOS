@@ -1150,3 +1150,12 @@ verify_jwt = false
 [functions.generate-candidate-brief]
 verify_jwt = false
 
+# =============================================================================
+# Agentic OS (Cron-triggered, no JWT)
+# =============================================================================
+[functions.agentic-heartbeat]
+verify_jwt = false
+
+[functions.generate-daily-briefing]
+verify_jwt = false
+

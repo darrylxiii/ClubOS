@@ -1717,6 +1717,48 @@ export type Database = {
           },
         ]
       }
+      agentic_heartbeat_log: {
+        Row: {
+          agents_invoked: string[]
+          created_at: string
+          duration_ms: number | null
+          errors: Json | null
+          events_processed: number | null
+          id: string
+          results: Json | null
+          run_at: string
+          run_type: string
+          signals_detected: number | null
+          tasks_created: number | null
+        }
+        Insert: {
+          agents_invoked?: string[]
+          created_at?: string
+          duration_ms?: number | null
+          errors?: Json | null
+          events_processed?: number | null
+          id?: string
+          results?: Json | null
+          run_at?: string
+          run_type?: string
+          signals_detected?: number | null
+          tasks_created?: number | null
+        }
+        Update: {
+          agents_invoked?: string[]
+          created_at?: string
+          duration_ms?: number | null
+          errors?: Json | null
+          events_processed?: number | null
+          id?: string
+          results?: Json | null
+          run_at?: string
+          run_type?: string
+          signals_detected?: number | null
+          tasks_created?: number | null
+        }
+        Relationships: []
+      }
       ai_action_audit: {
         Row: {
           action_details: Json | null
@@ -15494,6 +15536,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_briefings: {
+        Row: {
+          briefing_date: string
+          content: Json
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          is_dismissed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          briefing_date?: string
+          content?: Json
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          user_id: string
+        }
+        Update: {
+          briefing_date?: string
+          content?: Json
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
       }
       data_classification_categories: {
         Row: {
@@ -35913,6 +35985,8 @@ export type Database = {
       }
       predictive_signals: {
         Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
           actioned_at: string | null
           actioned_by: string | null
           contributing_factors: string[] | null
@@ -35930,6 +36004,8 @@ export type Database = {
           signal_type: string
         }
         Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
           actioned_at?: string | null
           actioned_by?: string | null
           contributing_factors?: string[] | null
@@ -35947,6 +36023,8 @@ export type Database = {
           signal_type: string
         }
         Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
           actioned_at?: string | null
           actioned_by?: string | null
           contributing_factors?: string[] | null

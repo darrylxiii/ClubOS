@@ -6,13 +6,18 @@ import { PipelineFunnel } from "./PipelineFunnel";
 import { TeamCapacityWidget } from "./TeamCapacityWidget";
 import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
-import { RecentActivityFeed } from "./RecentActivityFeed";
 import { DashboardSection } from "./DashboardSection";
+import { DailyBriefingBanner } from "./DailyBriefingBanner";
+import { PredictiveSignalsStrip } from "./PredictiveSignalsStrip";
+import { AgentActivityWidget } from "./AgentActivityWidget";
 
 const AdminHomeContent = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Zone 0: Club AI Chat */}
+      {/* Zone 0: Daily Briefing (dismissible) */}
+      <DailyBriefingBanner />
+
+      {/* Zone 0.5: Club AI Chat */}
       <ClubAIHomeChatWidget />
 
       {/* Zone 1: Command Strip — urgent action items */}
@@ -24,6 +29,9 @@ const AdminHomeContent = () => {
         <PipelineFunnel />
       </DashboardSection>
 
+      {/* Zone 2.5: Predictive Signals Strip */}
+      <PredictiveSignalsStrip />
+
       {/* Zone 3: Operations Grid — essential detail widgets */}
       <DashboardSection columns={3} mobileColumns={1}>
         <TeamCapacityWidget />
@@ -31,9 +39,9 @@ const AdminHomeContent = () => {
         <ActiveMeetingsWidget />
       </DashboardSection>
 
-      {/* Zone 4: Activity Stream */}
+      {/* Zone 4: Agent Activity Stream */}
       <DashboardSection>
-        <RecentActivityFeed />
+        <AgentActivityWidget />
       </DashboardSection>
     </div>
   );
