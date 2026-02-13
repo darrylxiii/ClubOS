@@ -3,7 +3,7 @@ import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
 import { CommandStrip } from "./CommandStrip";
 import { RevenueSparkline } from "./RevenueSparkline";
 import { PipelineFunnel } from "./PipelineFunnel";
-import { KPISummaryWidget } from "./KPISummaryWidget";
+import { TeamCapacityWidget } from "./TeamCapacityWidget";
 import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
 import { RecentActivityFeed } from "./RecentActivityFeed";
@@ -26,7 +26,7 @@ const AdminHomeContent = () => {
 
       {/* Zone 3: Operations Grid — essential detail widgets */}
       <DashboardSection columns={3} mobileColumns={1}>
-        <KPISummaryWidget />
+        <TeamCapacityWidget />
         <PartnerEngagementWidget />
         <ActiveMeetingsWidget />
       </DashboardSection>
