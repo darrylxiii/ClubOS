@@ -172,7 +172,7 @@ export const ConnectionsSettings = ({
 
           const { error: dbError } = await supabase
             .from('calendar_connections')
-            .insert({
+            .upsert({
               user_id: user.id,
               provider: 'google',
               email: userInfo.email,
@@ -181,7 +181,7 @@ export const ConnectionsSettings = ({
               refresh_token: data.tokens.refresh_token || null,
               token_expires_at: data.tokens.expires_at,
               is_active: true,
-            });
+            }, { onConflict: 'user_id,provider,email' });
 
           if (dbError) throw new Error(`Failed to save connection: ${dbError.message}`);
 
