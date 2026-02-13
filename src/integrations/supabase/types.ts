@@ -44352,6 +44352,68 @@ export type Database = {
           },
         ]
       }
+      sourcing_missions: {
+        Row: {
+          completed_at: string | null
+          cost_credits_used: number | null
+          created_at: string
+          created_by: string | null
+          error: string | null
+          id: string
+          job_id: string | null
+          profiles_found: number | null
+          profiles_new: number | null
+          profiles_ranked: number | null
+          results: Json | null
+          search_criteria: Json | null
+          search_radius: string | null
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          cost_credits_used?: number | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          job_id?: string | null
+          profiles_found?: number | null
+          profiles_new?: number | null
+          profiles_ranked?: number | null
+          results?: Json | null
+          search_criteria?: Json | null
+          search_radius?: string | null
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          cost_credits_used?: number | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          job_id?: string | null
+          profiles_found?: number | null
+          profiles_new?: number | null
+          profiles_ranked?: number | null
+          results?: Json | null
+          search_criteria?: Json | null
+          search_radius?: string | null
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sourcing_missions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sso_connections: {
         Row: {
           certificate: string | null
