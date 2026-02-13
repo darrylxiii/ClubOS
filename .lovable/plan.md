@@ -1,24 +1,36 @@
 
-# Fix: Today's Agenda Widget to Include Google Calendar Events
 
-## Problem
+# Replace KPI Health with Team Capacity Heatmap
 
-The `ActiveMeetingsWidget` on the Admin Home only queries the internal `meetings` table directly. It does not fetch events from connected external calendars (Google, Microsoft). Since your meetings are on Google Calendar, the widget shows "No meetings scheduled today."
+## What Changes
 
-## Solution
+The static "KPI Health" widget in Admin Home Zone 3 will be replaced with a live **Team Capacity Heatmap** showing each strategist's current workload at a glance -- who has bandwidth, who's overloaded, and how many candidates/companies each is managing.
 
-Refactor `ActiveMeetingsWidget` to use `fetchUnifiedCalendarEvents` (the same service the full Calendar page uses) instead of querying the `meetings` table directly. This pulls events from all sources: internal TQC meetings, Google Calendar, and Microsoft Calendar.
+## Why This Matters
+
+- Prevents bottlenecks by making overloaded team members visible instantly
+- Speeds up candidate routing -- admins can see who to assign to without navigating away
+- Protects revenue by ensuring no strategist is silently drowning in work
+
+## Design
+
+The widget will show:
+- Each strategist as a compact row with avatar, name, and a color-coded capacity bar (green < 60%, amber 60-85%, red > 85%)
+- Candidate and company counts as small inline stats
+- A "Manage" link to the Strategist Management modal
+- Sorted by capacity (most loaded first) so problems surface immediately
 
 ## Technical Details
 
-**File:** `src/components/clubhome/ActiveMeetingsWidget.tsx`
+**File created:** `src/components/clubhome/TeamCapacityWidget.tsx`
+- New widget component replacing `KPISummaryWidget` in the Zone 3 grid
+- Reuses the existing `useStrategistWorkload` hook (no new data fetching needed)
+- Shows top 4 strategists in the compact card, with "View All" linking to the full management view
+- Capacity bar uses semantic colors: emerald (healthy), amber (watch), red (overloaded)
+- Follows the `glass-subtle rounded-2xl` aesthetic standard
 
-1. Replace the direct Supabase queries (hosted meetings + participant meetings) with a single call to `fetchUnifiedCalendarEvents(userId, startOfDay, endOfDay)`.
-2. The returned `UnifiedCalendarEvent[]` already has `start`, `end`, `title`, `source`, `meeting_id`, etc. -- everything the widget needs.
-3. Remove the `AgendaMeeting` interface and `toCalendarEvent` helper since the data will already be in the correct `UnifiedCalendarEvent` format.
-4. Adapt the rendering to use `UnifiedCalendarEvent` fields directly (`event.start`, `event.end`, `event.title`).
-5. Keep the 60-second status refresh interval and the `getMeetingStatus` integration.
-6. Show a subtle source indicator (e.g., a small Google/TQC icon or label) so users can distinguish event origins.
-7. For external events (Google/Microsoft), the "Join" button should be hidden (no internal meeting room), replaced with "View" or omitted.
+**File modified:** `src/components/clubhome/AdminHome.tsx`
+- Swap the `KPISummaryWidget` import/usage for `TeamCapacityWidget`
 
-This ensures the widget becomes a true unified "Today's Agenda" across all connected calendars.
+No database changes, no new hooks -- purely a UI replacement leveraging existing data infrastructure.
+
