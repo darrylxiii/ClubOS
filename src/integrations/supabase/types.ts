@@ -44367,7 +44367,9 @@ export type Database = {
           results: Json | null
           search_criteria: Json | null
           search_radius: string | null
+          search_strategy: Json | null
           status: string
+          time_spent_minutes: number | null
           triggered_by: string | null
         }
         Insert: {
@@ -44384,7 +44386,9 @@ export type Database = {
           results?: Json | null
           search_criteria?: Json | null
           search_radius?: string | null
+          search_strategy?: Json | null
           status?: string
+          time_spent_minutes?: number | null
           triggered_by?: string | null
         }
         Update: {
@@ -44401,7 +44405,9 @@ export type Database = {
           results?: Json | null
           search_criteria?: Json | null
           search_radius?: string | null
+          search_strategy?: Json | null
           status?: string
+          time_spent_minutes?: number | null
           triggered_by?: string | null
         }
         Relationships: [
