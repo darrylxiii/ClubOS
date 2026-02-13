@@ -1,150 +1,165 @@
 
-# Agentic OS Audit: Making The Quantum Club 0.1% Efficient
+# Agentic OS: Enterprise Command Center Rebuild
 
-## Current State Assessment
+## The Problem
 
-### What Already Exists (Strong Foundation)
+The current Agentic OS Hub is four bare tables with zero visual hierarchy, no interactivity beyond "Ack" buttons, and no way to communicate with agents. It looks like a developer debug panel, not an enterprise command center. There is also no mechanism to talk to individual agents, give them instructions, or have them learn from your feedback.
 
-The platform has significant agentic infrastructure already built but largely **dormant or disconnected**:
+## What This Plan Delivers
 
-| Layer | Component | Status |
-|-------|-----------|--------|
-| Agent Orchestrator | Goal creation, execution plans, task delegation | Built, barely wired to UI |
-| Event Processor | Autonomous actions, autonomy levels, event routing | Built, no cron trigger |
-| Memory Manager | Store, retrieve, decay, consolidate, preferences | Built, used only by Club AI chat |
-| Club Pilot | AI task generation, auto-scheduling | Built, manual trigger only |
-| Predictive Signals | Company cooling/heating, hiring intent, stalling | Built, no cron trigger |
-| Headhunter Agent | AI candidate matching against jobs | Built, manual button only |
-| Stalled Candidates | Detect 7+ day stuck candidates, create tasks | Built, no cron trigger |
-| CRM Automation | Stage-change triggers, auto-tasks | Built, requires DB webhook setup |
-| Focus Time Defender | Protect deep work blocks | Built, UI exists |
-| Post-Meeting Automation | Action items, follow-ups from transcripts | Built, wired to meeting panel |
+### 1. Complete Visual Redesign of the Hub
 
-### The Gap: Nothing Runs Automatically
+Replace the four flat table views with an enterprise-grade mission control layout:
 
-The single biggest gap: **almost none of these agents run on a schedule**. Only 3 cron jobs exist (booking reminders, data integrity, region health). The entire agentic layer sits idle waiting to be manually invoked.
+**Header Zone** -- System health strip across the top showing:
+- Heartbeat pulse indicator (green dot animating if last run < 20 min ago, red if stale)
+- Live counters: Events Processed, Signals Active, Agents Online, Tasks Created (last 24h)
+- System uptime percentage calculated from heartbeat logs
 
----
+**Tab 1: Mission Control (replaces Heartbeat Logs)**
+- Top row: 4 stat cards (Heartbeat Runs Today, Avg Duration, Error Rate, Agents Active)
+- Timeline visualization: vertical timeline of heartbeat runs with expandable detail panels showing which agents ran and results
+- Error spotlight: any errors bubble up in a red-bordered alert card with agent name and message
 
-## The Plan: 5 High-Impact Agentic Upgrades
+**Tab 2: Intelligence Feed (replaces Predictive Signals)**
+- Card grid layout instead of table -- each signal gets a glass card with:
+  - Large icon (flame/snowflake/alert/trend) with color glow
+  - Entity name resolved from the database (actual company/candidate name, not UUID)
+  - Signal strength as a visual meter bar
+  - Evidence summary (parsed from JSON)
+  - Recommended action as a primary button
+  - "Dismiss" and "Investigate" secondary actions
+- Filters: by signal type, strength threshold, entity type
+- Empty state: illustration with "No signals detected -- your agents are monitoring"
 
-### 1. Agentic Heartbeat (Cron Backbone)
+**Tab 3: Agent Directory (replaces Agent Activity)**
+- Grid of agent cards, one per registered agent (6 agents from the registry)
+- Each card shows: avatar/icon, display name, autonomy level badge, capabilities as tags, status indicator (active/idle based on recent decisions), last action timestamp
+- Click an agent card to open the **Agent Chat Panel** (see below)
+- Below the grid: a scrollable decision log (the existing table, but styled better with icons and grouped by agent)
 
-**Problem**: Agents exist but never wake up on their own.
+**Tab 4: Briefings (redesigned)**
+- Calendar-style date picker to browse briefings
+- Selected briefing renders as a formatted document with sections (Signals, Actions, Priorities, Meetings) instead of raw JSON badges
+- "Generate Now" button to manually trigger a briefing for today
 
-**Solution**: Add a single `agentic-heartbeat` edge function that runs on a cron schedule (every 15 minutes during business hours, hourly otherwise). It orchestrates all background agents:
+**Tab 5: Agent Chat (new)**
+- Dedicated conversational interface for talking to any agent
+- Agent selector dropdown at the top (populated from agent_registry)
+- Chat messages with agent avatar, streaming responses via Lovable AI
+- The agent's system_prompt from the registry is used as the base prompt
+- Full conversation history persisted per agent in a new `agent_conversations` table
+- The agent has access to its own decision history, memory, and context
+- Admin can give instructions like "Focus on tech companies this week" which get stored as agent preferences
+- Admin can review a past decision and mark it as "good" or "bad" -- this feedback gets stored and included in the agent's context for future decisions
 
-- Process pending agent events (`agent-event-processor`)
-- Detect predictive signals (`detect-predictive-signals`)
-- Check for stalled candidates (`check-stalled-candidates`)
-- Apply memory decay (`agent-memory-manager` with `decay` operation)
-- Run Club Pilot task generation for users with auto-schedule enabled
+### 2. Agent Memory and Learning Loop
 
-**Database**: One new cron job via migration. One new `agentic_heartbeat_log` table for observability.
+**Database additions:**
+- `agent_conversations` table: stores chat history per agent per admin user
+- `agent_feedback` table: stores admin ratings (thumbs up/down + text) on agent decisions, linked to `agent_decision_log`
+- `agent_instructions` table: stores standing instructions given to agents by admins (e.g., "Prioritize fintech roles this quarter")
 
-### 2. Autonomous Action Dashboard (Admin Home Widget)
+**Edge function: `agent-chat`**
+- New edge function that powers the Agent Chat tab
+- Receives: agent_name, messages, userId
+- Loads: agent's system_prompt from registry, agent's recent decisions, agent's feedback history, agent's standing instructions, relevant memories
+- Calls Lovable AI (google/gemini-3-flash-preview) with full context
+- Streams response back
+- Stores conversation in agent_conversations
+- When the agent receives feedback on a decision, it stores it in agent_feedback and the next time the agent runs, the heartbeat includes recent feedback in the agent's context
 
-**Problem**: Even when agents act, admins have zero visibility into what AI did overnight.
-
-**Solution**: Replace the `RecentActivityFeed` in Zone 4 with a dual-panel:
-- Left: **Agent Activity Log** -- what AI did autonomously (emails sent, tasks created, signals detected, candidates flagged)
-- Right: **Pending Approvals** -- actions the AI wants to take but needs human sign-off (based on autonomy_level = 'suggest')
-
-Data comes from existing `agent_decision_log` and `ai_suggestions` tables.
-
-### 3. Predictive Signal Cards on Admin Home
-
-**Problem**: Predictive signals (company cooling off, hiring intent, stalled jobs) are detected but never surfaced.
-
-**Solution**: Add a new Zone 2.5 section: `PredictiveSignalsStrip` -- a horizontal scrollable strip of signal cards showing:
-- Signal type icon (fire for heating up, snowflake for cooling, alert for risk)
-- Entity name (company/candidate/job)
-- Signal strength as a colored indicator
-- One-click action button (the first `recommended_action`)
-- Dismiss/acknowledge button
-
-Data: Query `predictive_signals` where `is_active = true AND acknowledged = false`.
-
-### 4. Auto-Headhunter on Job Publish
-
-**Problem**: The headhunter agent requires a manual button click per job.
-
-**Solution**: Wire `run-headhunter-agent` to trigger automatically when a job status changes to `open`. This is done via:
-- A database trigger on `jobs` table that publishes an agent event
-- The heartbeat picks it up and invokes the headhunter agent
-- Results (matched candidates) surface as Club Pilot tasks for the strategist
-
-No new edge function needed -- just a DB trigger + event routing in the event processor.
-
-### 5. Smart Daily Briefing (Morning Digest)
-
-**Problem**: Admins start the day with no context. They have to click through multiple screens.
-
-**Solution**: Create a `generate-daily-briefing` edge function that runs at 7 AM via cron and compiles:
-- Predictive signals detected overnight
-- Stalled candidates count
-- Today's meetings (from unified calendar)
-- Revenue pipeline changes
-- Agent actions taken autonomously
-- Top 3 recommended actions for the day
-
-Delivered as:
-- An in-app notification card at the top of Admin Home (dismissible)
-- Optionally via email (using existing `send-email` function)
-
----
-
-## Technical Implementation Details
-
-### Database Changes (Migration)
-
+**Learning loop flow:**
 ```text
-1. CREATE TABLE agentic_heartbeat_log (
-     id, run_at, agents_invoked, results, duration_ms, errors
-   )
-2. ALTER TABLE predictive_signals ADD COLUMN acknowledged_at TIMESTAMPTZ
-3. CREATE TRIGGER on jobs table for status -> 'open' that inserts into agent_events
-4. New cron job: agentic-heartbeat every 15 minutes
-5. New cron job: daily-briefing at 07:00 Europe/Amsterdam
+Admin reviews decision --> rates good/bad + comment
+    --> stored in agent_feedback
+    --> next heartbeat loads recent feedback
+    --> agent context includes "Your admin rated X as bad because Y"
+    --> agent adjusts behavior
 ```
 
-### New Edge Functions
+### 3. Standing Instructions System
 
-1. `agentic-heartbeat` -- the cron backbone that wakes all agents
-2. `generate-daily-briefing` -- morning digest compiler
+Admins can give agents persistent instructions that carry across all runs:
+- "Headhunter: only source candidates with 5+ years for senior roles"
+- "Engagement Agent: always follow up within 24 hours"
+- "Analytics Agent: generate weekly pipeline reports every Monday"
 
-### New Frontend Components
+These are stored in `agent_instructions` and injected into the agent's system prompt context during every invocation (heartbeat + chat).
 
-1. `src/components/clubhome/PredictiveSignalsStrip.tsx` -- horizontal signal cards
-2. `src/components/clubhome/AgentActivityWidget.tsx` -- replaces/augments RecentActivityFeed with agent decisions + pending approvals
-3. `src/components/clubhome/DailyBriefingBanner.tsx` -- dismissible morning briefing card
+### 4. Implementation Order
+
+1. **Database migration**: Create `agent_conversations`, `agent_feedback`, `agent_instructions` tables with RLS
+2. **Edge function**: Create `agent-chat` with Lovable AI streaming, context loading, memory persistence
+3. **Hub redesign -- Header**: System health strip component with live counters
+4. **Hub redesign -- Mission Control tab**: Stat cards + timeline replacing the flat table
+5. **Hub redesign -- Intelligence Feed tab**: Signal cards with resolved entity names
+6. **Hub redesign -- Agent Directory tab**: Agent cards grid from registry + decision log
+7. **Hub redesign -- Briefings tab**: Formatted document view + "Generate Now" button
+8. **Hub redesign -- Agent Chat tab**: Full conversational interface with agent selector, streaming, feedback buttons
+9. **Update AgenticOSHub.tsx**: New 5-tab layout with redesigned header
+10. **Update heartbeat**: Include recent feedback and instructions in agent context when invoking agents
+
+## Technical Details
+
+### New Database Tables
+
+```text
+agent_conversations
+  - id (uuid PK)
+  - agent_name (text, FK agent_registry)
+  - user_id (uuid, FK profiles)
+  - messages (jsonb[])
+  - created_at, updated_at
+  - RLS: admin only
+
+agent_feedback
+  - id (uuid PK)
+  - decision_id (uuid, FK agent_decision_log)
+  - agent_name (text)
+  - user_id (uuid)
+  - rating ('positive' | 'negative' | 'neutral')
+  - comment (text)
+  - created_at
+  - RLS: admin only
+
+agent_instructions
+  - id (uuid PK)
+  - agent_name (text)
+  - instruction (text)
+  - priority (int)
+  - is_active (boolean default true)
+  - created_by (uuid)
+  - created_at, updated_at
+  - RLS: admin only
+```
+
+### New Edge Function: `agent-chat`
+- Uses Lovable AI gateway with streaming
+- Loads agent system_prompt + recent decisions + feedback + instructions as context
+- Persists conversation history
+- Supports special commands: `/instruct` to add standing instructions, `/feedback` to rate a decision
+
+### New Frontend Components (in `src/components/admin/agentic/`)
+- `AgenticSystemHealth.tsx` -- header health strip
+- `MissionControlView.tsx` -- replaces HeartbeatLogs with stat cards + timeline
+- `IntelligenceFeedView.tsx` -- replaces PredictiveSignalsView with card grid
+- `AgentDirectoryView.tsx` -- agent cards from registry + decision log
+- `BriefingDocumentView.tsx` -- replaces DailyBriefingsView with formatted display
+- `AgentChatView.tsx` -- full chat interface with agent selector
+- `AgentChatPanel.tsx` -- the streaming chat component
+- `AgentFeedbackButton.tsx` -- thumbs up/down on decisions
+- `AgentInstructionsPanel.tsx` -- manage standing instructions per agent
 
 ### Modified Files
+- `src/pages/admin/AgenticOSHub.tsx` -- complete redesign with 5 tabs + health header
+- `supabase/functions/agentic-heartbeat/index.ts` -- inject feedback + instructions into agent context
+- `supabase/config.toml` -- register new agent-chat function
 
-1. `src/components/clubhome/AdminHome.tsx` -- add new zones for signals strip, agent activity, and briefing banner
-2. `supabase/functions/agent-event-processor/index.ts` -- add `INSERT_jobs` event mapping to trigger headhunter
-
-### Execution Order
-
-1. Database migration (tables, triggers, cron jobs)
-2. `agentic-heartbeat` edge function (the backbone)
-3. `generate-daily-briefing` edge function
-4. Frontend: PredictiveSignalsStrip component
-5. Frontend: AgentActivityWidget component  
-6. Frontend: DailyBriefingBanner component
-7. AdminHome layout update (wire everything together)
-8. Event processor update (add job publish trigger)
-
----
-
-## Impact Summary
-
-| Before | After |
-|--------|-------|
-| Agents wait for manual clicks | Agents run every 15 minutes autonomously |
-| Predictive signals sit in DB unseen | Signals surface as actionable cards on dashboard |
-| Headhunter requires manual trigger per job | Headhunter runs automatically on job publish |
-| Admin starts day blind | Morning briefing with overnight AI actions + top priorities |
-| No visibility into AI decisions | Full agent activity log with approve/dismiss workflow |
-
-This transforms the platform from a tool where humans drive every action into an operating system where AI handles routine decisions, surfaces intelligence proactively, and only escalates when human judgment is needed.
+### Design Aesthetic
+- Dark glass cards (`bg-card/50 backdrop-blur-sm border border-border/50`)
+- Gold accent for active/important elements
+- Subtle pulse animations on live indicators
+- Agent avatars with colored status rings (green = active, amber = idle, red = error)
+- Monospace font for system metrics, sans-serif for content
+- Generous whitespace, no clutter -- one primary action per card
