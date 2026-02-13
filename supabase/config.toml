@@ -1159,3 +1159,6 @@ verify_jwt = false
 [functions.generate-daily-briefing]
 verify_jwt = false
 
+[functions.agent-chat]
+verify_jwt = true
+
