@@ -1,165 +1,220 @@
 
-# Agentic OS: Enterprise Command Center Rebuild
+# Sourcing Agent: From Internal-Only to External Discovery
 
 ## The Problem
 
-The current Agentic OS Hub is four bare tables with zero visual hierarchy, no interactivity beyond "Ack" buttons, and no way to communicate with agents. It looks like a developer debug panel, not an enterprise command center. There is also no mechanism to talk to individual agents, give them instructions, or have them learn from your feedback.
+The current headhunter agent has a critical limitation: it can **only match against candidates already in your database**. It generates a search persona from the job description, then queries your internal RAG system (`retrieve-context`). If the perfect candidate isn't already imported, the agent will never find them.
+
+A true sourcing agent needs to **go out and find new people** -- searching LinkedIn, GitHub, and the web for candidates who match a role, then scraping their profiles and ingesting them into your pipeline automatically.
+
+## Current State
+
+| Capability | Status |
+|-----------|--------|
+| LinkedIn profile scraping (by URL) | Working -- Apify + Proxycurl fallback |
+| GitHub profile enrichment | Working -- Apify scraper |
+| Public presence search | Working -- Google Search via Apify |
+| Internal semantic candidate search | Working -- embeddings + keyword |
+| Headhunter agent (internal matching) | Working -- but limited to existing DB |
+| **External candidate discovery** | **Missing entirely** |
+| **LinkedIn People Search** | **Missing** |
+| **Automated pipeline: search, scrape, ingest, rank** | **Missing** |
 
 ## What This Plan Delivers
 
-### 1. Complete Visual Redesign of the Hub
-
-Replace the four flat table views with an enterprise-grade mission control layout:
-
-**Header Zone** -- System health strip across the top showing:
-- Heartbeat pulse indicator (green dot animating if last run < 20 min ago, red if stale)
-- Live counters: Events Processed, Signals Active, Agents Online, Tasks Created (last 24h)
-- System uptime percentage calculated from heartbeat logs
-
-**Tab 1: Mission Control (replaces Heartbeat Logs)**
-- Top row: 4 stat cards (Heartbeat Runs Today, Avg Duration, Error Rate, Agents Active)
-- Timeline visualization: vertical timeline of heartbeat runs with expandable detail panels showing which agents ran and results
-- Error spotlight: any errors bubble up in a red-bordered alert card with agent name and message
-
-**Tab 2: Intelligence Feed (replaces Predictive Signals)**
-- Card grid layout instead of table -- each signal gets a glass card with:
-  - Large icon (flame/snowflake/alert/trend) with color glow
-  - Entity name resolved from the database (actual company/candidate name, not UUID)
-  - Signal strength as a visual meter bar
-  - Evidence summary (parsed from JSON)
-  - Recommended action as a primary button
-  - "Dismiss" and "Investigate" secondary actions
-- Filters: by signal type, strength threshold, entity type
-- Empty state: illustration with "No signals detected -- your agents are monitoring"
-
-**Tab 3: Agent Directory (replaces Agent Activity)**
-- Grid of agent cards, one per registered agent (6 agents from the registry)
-- Each card shows: avatar/icon, display name, autonomy level badge, capabilities as tags, status indicator (active/idle based on recent decisions), last action timestamp
-- Click an agent card to open the **Agent Chat Panel** (see below)
-- Below the grid: a scrollable decision log (the existing table, but styled better with icons and grouped by agent)
-
-**Tab 4: Briefings (redesigned)**
-- Calendar-style date picker to browse briefings
-- Selected briefing renders as a formatted document with sections (Signals, Actions, Priorities, Meetings) instead of raw JSON badges
-- "Generate Now" button to manually trigger a briefing for today
-
-**Tab 5: Agent Chat (new)**
-- Dedicated conversational interface for talking to any agent
-- Agent selector dropdown at the top (populated from agent_registry)
-- Chat messages with agent avatar, streaming responses via Lovable AI
-- The agent's system_prompt from the registry is used as the base prompt
-- Full conversation history persisted per agent in a new `agent_conversations` table
-- The agent has access to its own decision history, memory, and context
-- Admin can give instructions like "Focus on tech companies this week" which get stored as agent preferences
-- Admin can review a past decision and mark it as "good" or "bad" -- this feedback gets stored and included in the agent's context for future decisions
-
-### 2. Agent Memory and Learning Loop
-
-**Database additions:**
-- `agent_conversations` table: stores chat history per agent per admin user
-- `agent_feedback` table: stores admin ratings (thumbs up/down + text) on agent decisions, linked to `agent_decision_log`
-- `agent_instructions` table: stores standing instructions given to agents by admins (e.g., "Prioritize fintech roles this quarter")
-
-**Edge function: `agent-chat`**
-- New edge function that powers the Agent Chat tab
-- Receives: agent_name, messages, userId
-- Loads: agent's system_prompt from registry, agent's recent decisions, agent's feedback history, agent's standing instructions, relevant memories
-- Calls Lovable AI (google/gemini-3-flash-preview) with full context
-- Streams response back
-- Stores conversation in agent_conversations
-- When the agent receives feedback on a decision, it stores it in agent_feedback and the next time the agent runs, the heartbeat includes recent feedback in the agent's context
-
-**Learning loop flow:**
-```text
-Admin reviews decision --> rates good/bad + comment
-    --> stored in agent_feedback
-    --> next heartbeat loads recent feedback
-    --> agent context includes "Your admin rated X as bad because Y"
-    --> agent adjusts behavior
-```
-
-### 3. Standing Instructions System
-
-Admins can give agents persistent instructions that carry across all runs:
-- "Headhunter: only source candidates with 5+ years for senior roles"
-- "Engagement Agent: always follow up within 24 hours"
-- "Analytics Agent: generate weekly pipeline reports every Monday"
-
-These are stored in `agent_instructions` and injected into the agent's system prompt context during every invocation (heartbeat + chat).
-
-### 4. Implementation Order
-
-1. **Database migration**: Create `agent_conversations`, `agent_feedback`, `agent_instructions` tables with RLS
-2. **Edge function**: Create `agent-chat` with Lovable AI streaming, context loading, memory persistence
-3. **Hub redesign -- Header**: System health strip component with live counters
-4. **Hub redesign -- Mission Control tab**: Stat cards + timeline replacing the flat table
-5. **Hub redesign -- Intelligence Feed tab**: Signal cards with resolved entity names
-6. **Hub redesign -- Agent Directory tab**: Agent cards grid from registry + decision log
-7. **Hub redesign -- Briefings tab**: Formatted document view + "Generate Now" button
-8. **Hub redesign -- Agent Chat tab**: Full conversational interface with agent selector, streaming, feedback buttons
-9. **Update AgenticOSHub.tsx**: New 5-tab layout with redesigned header
-10. **Update heartbeat**: Include recent feedback and instructions in agent context when invoking agents
-
-## Technical Details
-
-### New Database Tables
+A new **`source-candidates`** edge function that acts as a full autonomous sourcing pipeline:
 
 ```text
-agent_conversations
-  - id (uuid PK)
-  - agent_name (text, FK agent_registry)
-  - user_id (uuid, FK profiles)
-  - messages (jsonb[])
-  - created_at, updated_at
-  - RLS: admin only
-
-agent_feedback
-  - id (uuid PK)
-  - decision_id (uuid, FK agent_decision_log)
-  - agent_name (text)
-  - user_id (uuid)
-  - rating ('positive' | 'negative' | 'neutral')
-  - comment (text)
-  - created_at
-  - RLS: admin only
-
-agent_instructions
-  - id (uuid PK)
-  - agent_name (text)
-  - instruction (text)
-  - priority (int)
-  - is_active (boolean default true)
-  - created_by (uuid)
-  - created_at, updated_at
-  - RLS: admin only
+Job Description
+    |
+    v
+[1] AI generates search criteria (titles, skills, industries, locations)
+    |
+    v
+[2] Proxycurl Person Search API finds matching LinkedIn profiles
+    |
+    v
+[3] For each result: scrape full profile via existing linkedin-scraper
+    |
+    v
+[4] Deduplicate against existing candidate_profiles (by linkedin_url)
+    |
+    v
+[5] Insert new candidates + trigger enrichment pipeline
+    |
+    v
+[6] AI ranks all discovered candidates against the job
+    |
+    v
+[7] Save ranked results to agent_matches with sourcing metadata
+    |
+    v
+[8] Log everything to agent_decision_log for Agentic OS visibility
 ```
 
-### New Edge Function: `agent-chat`
-- Uses Lovable AI gateway with streaming
-- Loads agent system_prompt + recent decisions + feedback + instructions as context
-- Persists conversation history
-- Supports special commands: `/instruct` to add standing instructions, `/feedback` to rate a decision
+### Why Proxycurl Person Search
 
-### New Frontend Components (in `src/components/admin/agentic/`)
-- `AgenticSystemHealth.tsx` -- header health strip
-- `MissionControlView.tsx` -- replaces HeartbeatLogs with stat cards + timeline
-- `IntelligenceFeedView.tsx` -- replaces PredictiveSignalsView with card grid
-- `AgentDirectoryView.tsx` -- agent cards from registry + decision log
-- `BriefingDocumentView.tsx` -- replaces DailyBriefingsView with formatted display
-- `AgentChatView.tsx` -- full chat interface with agent selector
-- `AgentChatPanel.tsx` -- the streaming chat component
-- `AgentFeedbackButton.tsx` -- thumbs up/down on decisions
-- `AgentInstructionsPanel.tsx` -- manage standing instructions per agent
+You already have the `PROXYCURL_API_KEY` configured. Proxycurl offers a **Person Search API** (`/search/person/`) that accepts structured criteria -- job title, skills, location, company, industry -- and returns matching LinkedIn profile URLs. This is the missing piece: going from "what I need" to "who exists out there."
 
-### Modified Files
-- `src/pages/admin/AgenticOSHub.tsx` -- complete redesign with 5 tabs + health header
-- `supabase/functions/agentic-heartbeat/index.ts` -- inject feedback + instructions into agent context
-- `supabase/config.toml` -- register new agent-chat function
+Cost: approximately $0.03 per search result returned.
 
-### Design Aesthetic
-- Dark glass cards (`bg-card/50 backdrop-blur-sm border border-border/50`)
-- Gold accent for active/important elements
-- Subtle pulse animations on live indicators
-- Agent avatars with colored status rings (green = active, amber = idle, red = error)
-- Monospace font for system metrics, sans-serif for content
-- Generous whitespace, no clutter -- one primary action per card
+## Technical Implementation
+
+### 1. New Edge Function: `source-candidates`
+
+**Input**: `{ jobId: string, maxResults?: number, searchRadius?: 'narrow' | 'balanced' | 'wide' }`
+
+**Step-by-step logic**:
+
+1. **Fetch job details** from `jobs` table (title, description, location, skills, company)
+
+2. **Generate search criteria via AI** (Lovable AI, gemini-3-flash-preview):
+   - Use tool calling to extract structured output:
+     ```text
+     {
+       current_role_title: "Senior Frontend Engineer",
+       past_role_title: "Frontend Developer",
+       skills: ["React", "TypeScript", "Next.js"],
+       location: "Netherlands",
+       industry: "SaaS",
+       years_experience_min: 5,
+       company_size: "51-200"
+     }
+     ```
+   - The search radius parameter controls how strict vs. broad the criteria are
+
+3. **Execute Proxycurl Person Search** (`POST https://nubela.co/proxycurl/api/search/person/`):
+   - Pass structured criteria as query parameters
+   - Returns list of LinkedIn profile URLs with basic info
+   - Paginate if needed (up to maxResults, default 20)
+
+4. **Deduplicate**: Check each returned LinkedIn URL against `candidate_profiles.linkedin_url` (using the existing URL normalization logic)
+
+5. **Scrape new profiles**: For each new candidate, invoke the existing `linkedin-scraper` function to get full profile data
+
+6. **Ingest into database**: Insert new `candidate_profiles` records with `source_channel: 'agent_sourced'` and `source_metadata` linking back to the job
+
+7. **Trigger enrichment**: For each new candidate, invoke `enrich-candidate-profile` (AI summary, talent tier, move probability)
+
+8. **AI Ranking**: Once all candidates are ingested, use AI to rank them against the job with a detailed match explanation per candidate
+
+9. **Save to agent_matches**: Store ranked results with `source: 'external_sourcing'`
+
+10. **Audit and log**: Write to `agent_decision_log` so it appears in the Agentic OS hub
+
+### 2. Updated Headhunter Agent
+
+Modify `run-headhunter-agent` to orchestrate both:
+- **Internal search** (existing `retrieve-context` flow) -- fast, free
+- **External sourcing** (new `source-candidates` flow) -- slower, costs per result
+
+The agent first searches internally. If internal results are insufficient (< 5 candidates or low match scores), it automatically triggers external sourcing.
+
+### 3. New UI: Sourcing Mission Panel
+
+A new component in the Agentic OS hub and on the Job detail page showing:
+- Active sourcing missions (which jobs are being sourced)
+- Discovery progress (profiles found, scraped, ingested, ranked)
+- Results grid with match scores and "Add to Shortlist" actions
+- Cost tracking (Proxycurl credits used per mission)
+
+### 4. Database Changes
+
+```text
+CREATE TABLE sourcing_missions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id UUID REFERENCES jobs(id),
+  status TEXT DEFAULT 'pending',  -- pending, searching, scraping, ranking, completed, failed
+  search_criteria JSONB,
+  search_radius TEXT DEFAULT 'balanced',
+  profiles_found INT DEFAULT 0,
+  profiles_new INT DEFAULT 0,
+  profiles_ranked INT DEFAULT 0,
+  cost_credits_used NUMERIC DEFAULT 0,
+  results JSONB,
+  error TEXT,
+  triggered_by TEXT,  -- 'manual', 'heartbeat', 'job_publish'
+  created_at TIMESTAMPTZ DEFAULT now(),
+  completed_at TIMESTAMPTZ,
+  created_by UUID
+);
+
+-- RLS: admin/strategist only
+```
+
+### 5. Heartbeat Integration
+
+Update `agentic-heartbeat` to:
+- When processing `job_status_open` events, run internal headhunter first
+- If internal results < 5, automatically create a sourcing mission
+- Process pending sourcing missions (max 2 concurrent to avoid rate limits)
+
+### 6. Agent Chat Integration
+
+Register sourcing as a capability in the Headhunter agent's registry so admins can say:
+- "Source 15 senior engineers in Amsterdam for the Acme role"
+- "Expand the search for job X to include Germany"
+- "Show me what you found for the VP Product role"
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| `supabase/functions/source-candidates/index.ts` | Core sourcing pipeline (search, scrape, ingest, rank) |
+| `src/components/admin/agentic/SourcingMissionsView.tsx` | Sourcing missions dashboard in Agentic OS |
+| `src/components/jobs/SourcingPanel.tsx` | Sourcing panel on job detail page |
+| `src/hooks/useSourcingMissions.ts` | Data hook for sourcing missions |
+
+## Modified Files
+
+| File | Change |
+|------|--------|
+| `supabase/functions/run-headhunter-agent/index.ts` | Orchestrate internal + external sourcing |
+| `supabase/functions/agentic-heartbeat/index.ts` | Process sourcing missions |
+| `src/pages/admin/AgenticOSHub.tsx` | Add "Sourcing" tab |
+| `supabase/config.toml` | Register new function |
+
+## Cost and Rate Limit Safeguards
+
+- Default cap: 20 profiles per sourcing mission (configurable)
+- Maximum 2 concurrent sourcing missions via heartbeat
+- Daily budget limit stored in a config table (default: 100 searches/day)
+- Each mission logs credits used for cost visibility
+- Proxycurl rate limits handled with exponential backoff
+
+## Data Flow Summary
+
+```text
+Job Published
+    |
+    v
+Heartbeat picks up event
+    |
+    v
+Headhunter runs internal search
+    |
+    +-- 5+ good matches? --> Done (save to agent_matches)
+    |
+    +-- < 5 matches? --> Create sourcing_mission
+                              |
+                              v
+                         source-candidates runs
+                              |
+                              v
+                         Proxycurl Person Search
+                              |
+                              v
+                         linkedin-scraper (per profile)
+                              |
+                              v
+                         enrich-candidate-profile
+                              |
+                              v
+                         AI ranking against job
+                              |
+                              v
+                         Save to agent_matches
+                              |
+                              v
+                         Visible in Agentic OS + Job page
+```
