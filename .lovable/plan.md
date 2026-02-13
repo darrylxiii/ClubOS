@@ -1,46 +1,48 @@
 
-# Fix Stale "Last Pipeline" Redirect
 
-## Problem
+# Replace Meetings Widget with Today's Agenda
 
-The code change is correct, but `localStorage` still contains the old value (`/crm/prospects`) from before the update. The radial menu reads `localStorage.getItem("tqc_last_pipeline")` which returns `/crm/prospects`, so the `/jobs` fallback never kicks in.
+## What changes
 
-## Fix
+Replace the current `ActiveMeetingsWidget` on the home page (which shows generic stats like "1 Active Now" and "36 In Calls") with a clean **"Today's Agenda"** widget that lists the user's meetings for the day in chronological order.
 
-In `src/hooks/useLastPipeline.ts`, add a one-time cleanup on mount: if the stored value does NOT match the new job pipeline pattern, remove it so the fallback to `/jobs` takes effect.
+## How it will look
 
-### File: `src/hooks/useLastPipeline.ts`
+- Header: "Today's Agenda" with a date label (e.g., "Thursday, Feb 13")
+- A timeline-style list of the day's meetings, each showing:
+  - Time (e.g., "10:00 AM - 10:30 AM")
+  - Meeting title
+  - Status badge: "Live" (green pulse), "Next" (gold accent), or time remaining
+  - A "Join" button for meetings that are live or starting within 5 minutes
+- Empty state: "No meetings scheduled today" with a link to the calendar
+- Footer link: "View Full Calendar" pointing to `/meetings?tab=calendar`
 
-```ts
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+## Design alignment
 
-const JOB_PIPELINE_PATTERN = /^\/jobs\/[^/]+\/dashboard/;
-const STORAGE_KEY = "tqc_last_pipeline";
+- Dark, minimal card with subtle glass styling (matching existing `glass-subtle` pattern)
+- Gold accent (`accent-gold`) for the "Next" badge on the soonest upcoming meeting
+- Status uses the existing `getMeetingStatus` utility from `src/utils/meetingStatus.ts`
+- Only one primary action per meeting row (Join or View)
 
-export function useLastPipeline() {
-  const location = useLocation();
+---
 
-  // Clear stale non-job-pipeline values from previous version
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && !JOB_PIPELINE_PATTERN.test(stored)) {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (JOB_PIPELINE_PATTERN.test(location.pathname)) {
-      localStorage.setItem(STORAGE_KEY, location.pathname);
-    }
-  }, [location.pathname]);
-}
-```
-
-This adds a single `useEffect` (runs once on mount) that checks if the stored value is a legacy CRM route and removes it. After that, clicking "Pipeline" will go to `/jobs` until you visit a real job dashboard.
+## Technical details
 
 ### Files changed
 
 | File | Change |
 |---|---|
-| `src/hooks/useLastPipeline.ts` | Add cleanup useEffect to remove stale non-job-pipeline values |
+| `src/components/clubhome/ActiveMeetingsWidget.tsx` | Full rewrite: replace stats grid with a chronological agenda list of today's meetings for the logged-in user. Fetch user's meetings (hosted + participant) for today, sort by start time, render timeline cards with live status using `getMeetingStatus`. |
+
+### Data fetching
+
+Query both `meetings` (where `host_id = user.id`) and `meeting_participants` (where `user_id = user.id`) for today's date range, deduplicate, and sort by `scheduled_start`. Reuse the same pattern already in `src/pages/Meetings.tsx` (lines 75-98).
+
+### Status logic
+
+Reuse `getMeetingStatus()` from `src/utils/meetingStatus.ts` to determine live/starting-soon/upcoming/ended states and join-ability per meeting. A 60-second interval will refresh statuses so "starting soon" countdowns stay accurate.
+
+### No new dependencies
+
+Uses existing components (`Card`, `Badge`, `Button`, `Avatar`) and utilities (`date-fns`, `getMeetingStatus`).
+
