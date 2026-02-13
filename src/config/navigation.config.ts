@@ -64,6 +64,7 @@ import {
   Gamepad2,
   Heart,
   Receipt,
+  Zap as ZapIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -325,6 +326,15 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Candidate Analytics", icon: BarChart3, path: "/candidate-analytics" },
         { name: "Meeting Analytics", icon: Video, path: "/meeting-intelligence" },
         { name: "AI Analytics Hub", icon: Brain, path: "/admin/ai-analytics" },
+      ],
+    },
+    // === AGENTIC OS (new autonomous system) ===
+    {
+      title: "Agentic OS",
+      icon: ZapIcon,
+      badge: "New",
+      items: [
+        { name: "Agentic OS Hub", icon: ZapIcon, path: "/admin/agentic-os" },
       ],
     },
     // === OPERATIONS - Core (streamlined for efficiency) ===

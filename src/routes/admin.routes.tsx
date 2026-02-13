@@ -22,6 +22,7 @@ const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
 const FinanceHub = lazy(() => import("@/pages/admin/FinanceHub"));
 const AIAnalyticsHub = lazy(() => import("@/pages/admin/AIAnalyticsHub"));
+const AgenticOSHub = lazy(() => import("@/pages/admin/AgenticOSHub"));
 
 // ──────────────────────────────────────────────
 // Standalone Admin Pages
@@ -102,6 +103,7 @@ export const adminRoutes = (
     {R("/admin/talent-hub", TalentHub)}
     {R("/admin/finance", FinanceHub)}
     {R("/admin/ai-analytics", AIAnalyticsHub)}
+    {R("/admin/agentic-os", AgenticOSHub)}
 
     {/* ════════════════════════════════════════════ */}
     {/* STANDALONE ROUTES                            */}
