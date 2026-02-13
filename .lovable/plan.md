@@ -1,48 +1,73 @@
 
+# Calendar Integration Audit and Fix Plan
 
-# Replace Meetings Widget with Today's Agenda
+## Issues Found
 
-## What changes
+### Issue 1: Edge Functions Unreachable from Browser ("Failed to fetch")
+The `google-calendar-events` and `detect-calendar-interviews` edge functions boot correctly on the server, but the browser client fails to reach them with a `FunctionsFetchError: Failed to send a request to the Edge Function`. This is the root cause of all Google Calendar data not loading.
 
-Replace the current `ActiveMeetingsWidget` on the home page (which shows generic stats like "1 Active Now" and "36 In Calls") with a clean **"Today's Agenda"** widget that lists the user's meetings for the day in chronological order.
+**Root cause**: The `supabase.functions.invoke()` call in `calendarAggregation.ts` passes an `AbortController.signal` option. In Supabase JS v2.58.0, the `signal` option may not be properly forwarded to the underlying `fetch` call, or the abort controller is interfering with the request. This needs to be replaced with a simpler timeout pattern that wraps the entire invoke call in a `Promise.race` with a timeout promise instead.
 
-## How it will look
+### Issue 2: Google OAuth Token Expired
+The active calendar connection for your account has a `token_expires_at` of January 29, 2026 -- 15 days ago. Even once the edge function is reachable, the token refresh logic in the function will attempt to use `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (both are configured). However, if the refresh token itself has been revoked by Google (common after ~6 months of inactivity or credential rotation), the user will need to reconnect their Google Calendar in Settings.
 
-- Header: "Today's Agenda" with a date label (e.g., "Thursday, Feb 13")
-- A timeline-style list of the day's meetings, each showing:
-  - Time (e.g., "10:00 AM - 10:30 AM")
-  - Meeting title
-  - Status badge: "Live" (green pulse), "Next" (gold accent), or time remaining
-  - A "Join" button for meetings that are live or starting within 5 minutes
-- Empty state: "No meetings scheduled today" with a link to the calendar
-- Footer link: "View Full Calendar" pointing to `/meetings?tab=calendar`
+### Issue 3: Today's Agenda Widget (Home Screen)
+The newly built `ActiveMeetingsWidget` queries the `meetings` table directly (no edge functions involved), so it should be functional. If it appears empty, that is because no meetings are scheduled for today in the database. This is working as designed -- not a bug.
 
-## Design alignment
-
-- Dark, minimal card with subtle glass styling (matching existing `glass-subtle` pattern)
-- Gold accent (`accent-gold`) for the "Next" badge on the soonest upcoming meeting
-- Status uses the existing `getMeetingStatus` utility from `src/utils/meetingStatus.ts`
-- Only one primary action per meeting row (Join or View)
+### Issue 4: Background Interview Detection Silently Failing
+The `triggerInterviewDetection` function fires on every calendar page load and fails with the same `FunctionsFetchError`. While it is caught and logged, it adds noise and unnecessary failed network requests.
 
 ---
 
-## Technical details
+## Fix Plan
 
-### Files changed
+### Step 1: Fix Edge Function Invocation (calendarAggregation.ts)
+Replace the `AbortController` + `signal` pattern with a `Promise.race` timeout wrapper. This ensures the Supabase client makes a clean fetch without an unsupported `signal` option.
+
+**Before:**
+```typescript
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 30000);
+const { data, error } = await supabase.functions.invoke('google-calendar-events', {
+  body: { ... },
+  signal: controller.signal,
+});
+clearTimeout(timeoutId);
+```
+
+**After:**
+```typescript
+const timeoutPromise = new Promise((_, reject) =>
+  setTimeout(() => reject(new Error('Request timed out after 30s')), 30000)
+);
+const { data, error } = await Promise.race([
+  supabase.functions.invoke('google-calendar-events', { body: { ... } }),
+  timeoutPromise,
+]);
+```
+
+Apply the same fix to the Microsoft Calendar invocation.
+
+### Step 2: Add Token Expiry Resilience
+Add a check in `fetchGoogleCalendarEvents` that inspects the calendar connection's `token_expires_at` from the query result. If the token expired more than 1 hour ago, skip the edge function call and surface a user-friendly toast suggesting reconnection, rather than making a doomed network request.
+
+### Step 3: Suppress Interview Detection on Failure
+Wrap `triggerInterviewDetection` with an additional guard: only invoke if the user has at least one active calendar connection with a non-expired token. This prevents unnecessary failed edge function calls.
+
+### Step 4: Verify Today's Agenda Widget
+No code changes needed. The widget correctly queries the `meetings` table. If it shows "No meetings scheduled today," that reflects the actual database state.
+
+---
+
+## Technical Details
 
 | File | Change |
 |---|---|
-| `src/components/clubhome/ActiveMeetingsWidget.tsx` | Full rewrite: replace stats grid with a chronological agenda list of today's meetings for the logged-in user. Fetch user's meetings (hosted + participant) for today, sort by start time, render timeline cards with live status using `getMeetingStatus`. |
+| `src/services/calendarAggregation.ts` | Replace `AbortController` + `signal` with `Promise.race` timeout for both Google and Microsoft invoke calls. Add token expiry pre-check. Guard interview detection behind connection health check. |
 
-### Data fetching
-
-Query both `meetings` (where `host_id = user.id`) and `meeting_participants` (where `user_id = user.id`) for today's date range, deduplicate, and sort by `scheduled_start`. Reuse the same pattern already in `src/pages/Meetings.tsx` (lines 75-98).
-
-### Status logic
-
-Reuse `getMeetingStatus()` from `src/utils/meetingStatus.ts` to determine live/starting-soon/upcoming/ended states and join-ability per meeting. A 60-second interval will refresh statuses so "starting soon" countdowns stay accurate.
-
-### No new dependencies
-
-Uses existing components (`Card`, `Badge`, `Button`, `Avatar`) and utilities (`date-fns`, `getMeetingStatus`).
-
+### Post-Fix Verification
+After deployment, the calendar page at `/meetings?tab=calendar` should:
+- Successfully invoke the `google-calendar-events` edge function
+- Refresh the expired token automatically (if Google hasn't revoked the refresh token)
+- Display Google Calendar events alongside Quantum Club meetings
+- If token refresh fails, show a clear message to reconnect in Settings
