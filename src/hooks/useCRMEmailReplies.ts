@@ -17,10 +17,15 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
   const [replies, setReplies] = useState<CRMEmailReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchReplies = useCallback(async () => {
+  const pageSize = options.limit || 50;
+
+  const fetchReplies = useCallback(async (offset = 0, append = false) => {
     try {
-      setLoading(true);
+      if (!append) setLoading(true);
+      else setLoadingMore(true);
       setError(null);
 
       let query = supabase
@@ -32,7 +37,11 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
         `)
         .eq('is_archived', false)
         .eq('is_spam', false)
-        .order('received_at', { ascending: false });
+        .order('received_at', { ascending: false })
+        .range(offset, offset + pageSize - 1);
+
+      // Filter out snoozed replies (show only if snooze expired)
+      query = query.or('snoozed_until.is.null,snoozed_until.lt.' + new Date().toISOString());
 
       if (options.classification) {
         if (Array.isArray(options.classification)) {
@@ -58,10 +67,6 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
         query = query.eq('campaign_id', options.campaignId);
       }
 
-      if (options.limit) {
-        query = query.limit(options.limit);
-      }
-
       if (options.search) {
         query = query.or(`subject.ilike.%${options.search}%,body_text.ilike.%${options.search}%,from_email.ilike.%${options.search}%`);
       }
@@ -77,18 +82,31 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
         campaign_name: r.campaign?.name,
       }));
 
-      setReplies(mappedReplies);
+      setHasMore((data || []).length >= pageSize);
+
+      if (append) {
+        setReplies(prev => [...prev, ...mappedReplies]);
+      } else {
+        setReplies(mappedReplies);
+      }
     } catch (err) {
       console.error('Error fetching email replies:', err);
       setError(err as Error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [options.classification, options.isRead, options.isActioned, options.prospectId, options.campaignId, options.limit, options.search]);
+  }, [options.classification, options.isRead, options.isActioned, options.prospectId, options.campaignId, options.search, pageSize]);
 
   useEffect(() => {
     fetchReplies();
   }, [fetchReplies]);
+
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      fetchReplies(replies.length, true);
+    }
+  }, [fetchReplies, replies.length, loadingMore, hasMore]);
 
   const markAsRead = async (replyId: string) => {
     try {
@@ -109,6 +127,29 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
       return true;
     } catch (err) {
       console.error('Error marking reply as read:', err);
+      return false;
+    }
+  };
+
+  const markAsUnread = async (replyId: string) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('crm_email_replies')
+        .update({
+          is_read: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', replyId);
+
+      if (updateError) throw updateError;
+
+      setReplies(prev =>
+        prev.map(r => r.id === replyId ? { ...r, is_read: false } : r)
+      );
+
+      return true;
+    } catch (err) {
+      console.error('Error marking reply as unread:', err);
       return false;
     }
   };
@@ -163,12 +204,92 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       setReplies(prev => prev.filter(r => r.id !== replyId));
 
-      notify.success('Reply archived', { description: 'The reply has been archived' });
-
       return true;
     } catch (err) {
       console.error('Error archiving reply:', err);
       notify.error('Error', { description: 'Failed to archive reply' });
+      return false;
+    }
+  };
+
+  const unarchiveReply = async (replyId: string) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('crm_email_replies')
+        .update({
+          is_archived: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', replyId);
+
+      if (updateError) throw updateError;
+      return true;
+    } catch (err) {
+      console.error('Error unarchiving reply:', err);
+      return false;
+    }
+  };
+
+  const updatePriority = async (replyId: string, priority: number) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('crm_email_replies')
+        .update({
+          priority,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', replyId);
+
+      if (updateError) throw updateError;
+
+      setReplies(prev =>
+        prev.map(r => r.id === replyId ? { ...r, priority } : r)
+      );
+
+      return true;
+    } catch (err) {
+      console.error('Error updating priority:', err);
+      return false;
+    }
+  };
+
+  const snoozeReply = async (replyId: string, until: Date) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('crm_email_replies')
+        .update({
+          snoozed_until: until.toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', replyId);
+
+      if (updateError) throw updateError;
+
+      // Remove from current list (will reappear when snooze expires)
+      setReplies(prev => prev.filter(r => r.id !== replyId));
+
+      return true;
+    } catch (err) {
+      console.error('Error snoozing reply:', err);
+      notify.error('Error', { description: 'Failed to snooze reply' });
+      return false;
+    }
+  };
+
+  const unsnoozeReply = async (replyId: string) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('crm_email_replies')
+        .update({
+          snoozed_until: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', replyId);
+
+      if (updateError) throw updateError;
+      return true;
+    } catch (err) {
+      console.error('Error unsnoozing reply:', err);
       return false;
     }
   };
@@ -188,7 +309,7 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       setReplies(prev => prev.filter(r => r.id !== replyId));
 
-      notify.success('Marked as spam', { description: 'The reply has been marked as spam' });
+      notify.success('Marked as spam');
 
       return true;
     } catch (err) {
@@ -219,7 +340,6 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
 
       if (response.error) throw response.error;
 
-      // Refetch to get updated data
       await fetchReplies();
 
       notify.success('Analysis complete', {
@@ -234,7 +354,6 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
     }
   };
 
-  // Count by classification
   const getCounts = () => {
     const counts: Record<string, number> = {
       all: replies.length,
@@ -252,10 +371,18 @@ export function useCRMEmailReplies(options: UseEmailRepliesOptions = {}) {
     replies,
     loading,
     error,
+    hasMore,
+    loadingMore,
     refetch: fetchReplies,
+    loadMore,
     markAsRead,
+    markAsUnread,
     markAsActioned,
     archiveReply,
+    unarchiveReply,
+    updatePriority,
+    snoozeReply,
+    unsnoozeReply,
     markAsSpam,
     analyzeReply,
     getCounts,

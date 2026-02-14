@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { Loader2 } from "lucide-react";
 import type { CRMEmailReply } from "@/types/crm-enterprise";
 import { ReplyRow } from "./ReplyRow";
 
@@ -12,6 +13,9 @@ interface VirtualReplyListProps {
   onToggleStar: (replyId: string) => void;
   onArchive?: (replyId: string) => void;
   onSnooze?: (replyId: string) => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 export function VirtualReplyList({
@@ -23,6 +27,9 @@ export function VirtualReplyList({
   onToggleStar,
   onArchive,
   onSnooze,
+  hasMore,
+  loadingMore,
+  onLoadMore,
 }: VirtualReplyListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +40,24 @@ export function VirtualReplyList({
     overscan: 10,
     getItemKey: (index) => replies[index]?.id || index,
   });
+
+  // Infinite scroll: trigger loadMore when near bottom
+  useEffect(() => {
+    if (!hasMore || !onLoadMore || loadingMore) return;
+
+    const el = parentRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      if (scrollHeight - scrollTop - clientHeight < 200) {
+        onLoadMore();
+      }
+    };
+
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [hasMore, onLoadMore, loadingMore]);
 
   return (
     <div
@@ -81,6 +106,14 @@ export function VirtualReplyList({
           );
         })}
       </div>
+
+      {/* Load more indicator */}
+      {loadingMore && (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-xs text-muted-foreground">Loading more...</span>
+        </div>
+      )}
     </div>
   );
 }
