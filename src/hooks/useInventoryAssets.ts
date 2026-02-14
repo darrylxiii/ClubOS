@@ -120,13 +120,6 @@ export function useInventoryAssets(filters?: UseInventoryAssetsFilters) {
 
   const createAsset = async (data: AssetFormData): Promise<InventoryAsset | null> => {
     try {
-      const vatAmount = data.vat_amount || 0;
-      const totalValue = data.purchase_value_excl_vat + vatAmount;
-      const residualValue = data.residual_value || 0;
-      const depreciableValue = totalValue - residualValue;
-      const annualDepreciation = depreciableValue / data.useful_life_years;
-      const monthlyDepreciation = annualDepreciation / 12;
-
       // Generate inventory number
       const year = new Date().getFullYear();
       const { count } = await supabase
@@ -146,14 +139,9 @@ export function useInventoryAssets(filters?: UseInventoryAssetsFilters) {
           asset_type: data.asset_type,
           purchase_date: data.purchase_date,
           purchase_value_excl_vat: data.purchase_value_excl_vat,
-          vat_amount: vatAmount,
-          total_purchase_value: totalValue,
+          vat_amount: data.vat_amount || 0,
           useful_life_years: data.useful_life_years,
-          residual_value: residualValue,
-          annual_depreciation: annualDepreciation,
-          monthly_depreciation: monthlyDepreciation,
-          accumulated_depreciation: 0,
-          current_book_value: totalValue,
+          residual_value: data.residual_value || 0,
           status: 'active',
           supplier: data.supplier || null,
           invoice_reference: data.invoice_reference || null,
@@ -195,13 +183,12 @@ export function useInventoryAssets(filters?: UseInventoryAssetsFilters) {
           const usefulLife = data.useful_life_years ?? asset.useful_life_years;
           const residualValue = data.residual_value ?? (asset.residual_value || 0);
 
-          const totalValue = purchaseValue + vatAmount;
-          const depreciableValue = totalValue - residualValue;
-          const annualDepreciation = depreciableValue / usefulLife;
-
-          updates.total_purchase_value = totalValue;
-          updates.annual_depreciation = annualDepreciation;
-          updates.monthly_depreciation = annualDepreciation / 12;
+          // Remove computed fields — DB generates these automatically
+          delete updates.total_purchase_value;
+          delete updates.annual_depreciation;
+          delete updates.monthly_depreciation;
+          delete updates.accumulated_depreciation;
+          delete updates.current_book_value;
         }
       }
 
