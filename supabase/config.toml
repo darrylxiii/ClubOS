@@ -1190,3 +1190,6 @@ verify_jwt = false
 [functions.categorize-expenses]
 verify_jwt = true
 
+[functions.parse-receipt]
+verify_jwt = false
+
