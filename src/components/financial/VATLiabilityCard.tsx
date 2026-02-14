@@ -89,9 +89,14 @@ export function VATLiabilityCard({ year }: VATLiabilityCardProps) {
               Dutch VAT liability from {data?.invoiceCount || 0} invoices
             </CardDescription>
           </div>
-          <Badge variant="outline" className="text-xs">
-            Next filing: Q{currentQuarter} ({nextFilingDeadline.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric' })})
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs font-mono tracking-wide">
+              BTW: NL004888038B44
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              Next filing: Q{currentQuarter} ({nextFilingDeadline.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric' })})
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
