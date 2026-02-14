@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InviteStatsCards } from "./InviteStatsCards";
 import { SendInviteTab } from "./SendInviteTab";
 import { InviteHistoryTab } from "./InviteHistoryTab";
+import { InviteAnalyticsTab } from "./InviteAnalyticsTab";
 import { Mail, History, BarChart3, Send, Upload } from "lucide-react";
 
 export function InviteDashboardLayout() {
@@ -72,14 +73,8 @@ export function InviteDashboardLayout() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
-            <div className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border rounded-lg p-8">
-              <div className="text-center py-12">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">Analytics & Insights</h3>
-                <p className="text-muted-foreground">
-                  Detailed analytics on invitation performance coming soon.
-                </p>
-              </div>
+            <div className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border rounded-lg p-6 sm:p-8">
+              <InviteAnalyticsTab />
             </div>
           </TabsContent>
         </Tabs>

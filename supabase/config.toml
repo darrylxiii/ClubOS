@@ -9,7 +9,8 @@ verify_jwt = false
 [functions.notify-admin-partner-request]
 verify_jwt = false
 
-# =============================================================================
+[functions.approve-partner-request]
+verify_jwt = false
 # WhatsApp Business Integration (Enterprise)
 # =============================================================================
 
