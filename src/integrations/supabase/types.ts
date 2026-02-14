@@ -32217,6 +32217,7 @@ export type Database = {
           receipt_url: string | null
           recurring_frequency: string | null
           updated_at: string | null
+          vat_amount: number | null
           vendor: string | null
         }
         Insert: {
@@ -32234,6 +32235,7 @@ export type Database = {
           receipt_url?: string | null
           recurring_frequency?: string | null
           updated_at?: string | null
+          vat_amount?: number | null
           vendor?: string | null
         }
         Update: {
@@ -32251,6 +32253,7 @@ export type Database = {
           receipt_url?: string | null
           recurring_frequency?: string | null
           updated_at?: string | null
+          vat_amount?: number | null
           vendor?: string | null
         }
         Relationships: [
