@@ -14066,6 +14066,7 @@ export type Database = {
           received_at: string
           sentiment_score: number | null
           smart_category: string | null
+          snoozed_until: string | null
           subject: string | null
           suggested_action: string | null
           suggested_reply: string | null
@@ -14109,6 +14110,7 @@ export type Database = {
           received_at?: string
           sentiment_score?: number | null
           smart_category?: string | null
+          snoozed_until?: string | null
           subject?: string | null
           suggested_action?: string | null
           suggested_reply?: string | null
@@ -14152,6 +14154,7 @@ export type Database = {
           received_at?: string
           sentiment_score?: number | null
           smart_category?: string | null
+          snoozed_until?: string | null
           subject?: string | null
           suggested_action?: string | null
           suggested_reply?: string | null

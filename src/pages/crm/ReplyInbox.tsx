@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -16,7 +17,10 @@ import {
   Clock,
   Inbox,
   Keyboard,
-  Archive
+  Archive,
+  MailOpen,
+  MailX,
+  AlertTriangle,
 } from 'lucide-react';
 import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { useCRMAdvancedSearch } from '@/hooks/useCRMAdvancedSearch';
@@ -26,9 +30,11 @@ import { toast } from 'sonner';
 import { VirtualReplyList } from '@/components/crm/VirtualReplyList';
 import { ReplyDetailDrawer } from '@/components/crm/ReplyDetailDrawer';
 import { ReplyDetailPanel } from '@/components/crm/ReplyDetailPanel';
+import { SnoozeDialog } from '@/components/crm/SnoozeDialog';
 import { CRMKeyboardShortcutsDialog } from '@/components/crm/CRMKeyboardShortcutsDialog';
 import { CRMActivityReminderBell } from '@/components/crm/CRMActivityReminderBell';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUndoableAction } from '@/hooks/useUndoableAction';
 
 type TabFilter = 'all' | 'hot' | 'warm' | 'objections' | 'unread';
 
@@ -39,11 +45,18 @@ function ReplyInboxContent() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [snoozeTarget, setSnoozeTarget] = useState<string | null>(null);
   const isMobile = useIsMobile();
+  const { executeWithUndo } = useUndoableAction();
 
   const { replyChanges, lastUpdate } = useCRMRealtime();
 
-  const { replies, loading, refetch, markAsRead, markAsActioned } = useCRMEmailReplies({
+  const {
+    replies, loading, refetch, hasMore, loadingMore, loadMore,
+    markAsRead, markAsUnread, markAsActioned,
+    archiveReply, unarchiveReply, updatePriority,
+    snoozeReply, unsnoozeReply, markAsSpam,
+  } = useCRMEmailReplies({
     search: searchQuery || undefined,
   });
 
@@ -71,6 +84,19 @@ function ReplyInboxContent() {
     objections: replies.filter(r => ['objection', 'question', 'not_interested'].includes(r.classification)).length,
     unread: replies.filter(r => !r.is_read).length,
   };
+
+  // Keep selectedReply in sync with replies data
+  useEffect(() => {
+    if (selectedReply) {
+      const updated = replies.find(r => r.id === selectedReply.id);
+      if (updated && JSON.stringify(updated) !== JSON.stringify(selectedReply)) {
+        setSelectedReply(updated);
+      } else if (!updated) {
+        // Reply was removed (archived/snoozed) - clear selection
+        setSelectedReply(null);
+      }
+    }
+  }, [replies]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -133,35 +159,118 @@ function ReplyInboxContent() {
     });
   }, []);
 
+  const handleToggleAll = useCallback(() => {
+    setSelectedIds(prev => {
+      if (prev.size === filteredReplies.length) {
+        return new Set();
+      }
+      return new Set(filteredReplies.map(r => r.id));
+    });
+  }, [filteredReplies]);
+
   const handleToggleStar = useCallback(async (replyId: string) => {
     const reply = replies.find(r => r.id === replyId);
     if (reply) {
       const newPriority = reply.priority > 3 ? 3 : 5;
+      await updatePriority(replyId, newPriority);
       toast.success(newPriority > 3 ? 'Starred' : 'Unstarred');
     }
-  }, [replies]);
+  }, [replies, updatePriority]);
 
   const handleArchive = useCallback(async (replyId: string) => {
-    await markAsActioned(replyId, 'archived');
-    toast.success('Archived');
-  }, [markAsActioned]);
+    // Optimistically remove from list
+    await archiveReply(replyId);
+    
+    // Clear selection if archived item was selected
+    if (selectedReply?.id === replyId) {
+      setSelectedReply(null);
+    }
 
-  const handleSnooze = useCallback(async (replyId: string) => {
-    toast.success('Snoozed for 24 hours');
+    executeWithUndo({
+      description: 'Reply archived',
+      execute: async () => {
+        // Already archived above
+      },
+      undo: async () => {
+        await unarchiveReply(replyId);
+        await refetch();
+      },
+    });
+  }, [archiveReply, unarchiveReply, refetch, executeWithUndo, selectedReply]);
+
+  const handleSnooze = useCallback((replyId: string) => {
+    setSnoozeTarget(replyId);
   }, []);
+
+  const handleSnoozeConfirm = useCallback(async (date: Date) => {
+    if (!snoozeTarget) return;
+    const replyId = snoozeTarget;
+    await snoozeReply(replyId, date);
+
+    if (selectedReply?.id === replyId) {
+      setSelectedReply(null);
+    }
+
+    executeWithUndo({
+      description: 'Reply snoozed',
+      execute: async () => {},
+      undo: async () => {
+        await unsnoozeReply(replyId);
+        await refetch();
+      },
+    });
+
+    toast.success(`Snoozed until ${date.toLocaleDateString()}`);
+    setSnoozeTarget(null);
+  }, [snoozeTarget, snoozeReply, unsnoozeReply, refetch, executeWithUndo, selectedReply]);
 
   const handleMarkActioned = async (replyId: string, action: string) => {
     await markAsActioned(replyId, action);
     toast.success(`Marked as ${action}`);
   };
 
+  // Bulk actions
   const handleBulkArchive = async () => {
-    for (const id of selectedIds) {
-      await markAsActioned(id, 'archived');
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await archiveReply(id);
     }
-    toast.success(`Archived ${selectedIds.size} replies`);
+    toast.success(`Archived ${ids.length} replies`);
+    setSelectedIds(new Set());
+    if (selectedReply && selectedIds.has(selectedReply.id)) {
+      setSelectedReply(null);
+    }
+  };
+
+  const handleBulkMarkRead = async () => {
+    for (const id of selectedIds) {
+      await markAsRead(id);
+    }
+    toast.success(`Marked ${selectedIds.size} as read`);
     setSelectedIds(new Set());
   };
+
+  const handleBulkMarkUnread = async () => {
+    for (const id of selectedIds) {
+      await markAsUnread(id);
+    }
+    toast.success(`Marked ${selectedIds.size} as unread`);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkMarkSpam = async () => {
+    for (const id of selectedIds) {
+      await markAsSpam(id);
+    }
+    toast.success(`Marked ${selectedIds.size} as spam`);
+    setSelectedIds(new Set());
+    if (selectedReply && selectedIds.has(selectedReply.id)) {
+      setSelectedReply(null);
+    }
+  };
+
+  const isAllSelected = filteredReplies.length > 0 && selectedIds.size === filteredReplies.length;
+  const isPartialSelection = selectedIds.size > 0 && selectedIds.size < filteredReplies.length;
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -184,11 +293,27 @@ function ReplyInboxContent() {
             <CRMActivityReminderBell />
           </div>
           <div className="flex items-center gap-2">
+            {/* Bulk actions */}
             {selectedIds.size > 0 && (
-              <Button variant="outline" size="sm" onClick={handleBulkArchive}>
-                <Archive className="w-4 h-4 mr-1" />
-                Archive ({selectedIds.size})
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground mr-1">{selectedIds.size} selected</span>
+                <Button variant="outline" size="sm" onClick={handleBulkArchive} className="h-7 text-xs px-2">
+                  <Archive className="w-3.5 h-3.5 mr-1" />
+                  Archive
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleBulkMarkRead} className="h-7 text-xs px-2">
+                  <MailOpen className="w-3.5 h-3.5 mr-1" />
+                  Read
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleBulkMarkUnread} className="h-7 text-xs px-2">
+                  <Mail className="w-3.5 h-3.5 mr-1" />
+                  Unread
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleBulkMarkSpam} className="h-7 text-xs px-2">
+                  <AlertTriangle className="w-3.5 h-3.5 mr-1" />
+                  Spam
+                </Button>
+              </div>
             )}
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -245,6 +370,25 @@ function ReplyInboxContent() {
       <div className="flex-1 flex overflow-hidden">
         {/* Reply list panel */}
         <div className="w-full md:w-[420px] md:min-w-[320px] md:max-w-[480px] border-r border-border/30 flex flex-col bg-card/20">
+          {/* Select-all row */}
+          {filteredReplies.length > 0 && (
+            <div className="flex items-center gap-3 px-4 py-2 border-b border-border/20 bg-muted/10 flex-shrink-0">
+              <Checkbox
+                checked={isAllSelected}
+                // @ts-ignore - indeterminate is valid
+                indeterminate={isPartialSelection}
+                onCheckedChange={handleToggleAll}
+                className="h-4 w-4"
+              />
+              <span className="text-xs text-muted-foreground">
+                {selectedIds.size > 0
+                  ? `${selectedIds.size} of ${filteredReplies.length} selected`
+                  : `${filteredReplies.length} replies`
+                }
+              </span>
+            </div>
+          )}
+
           {loading ? (
             <div className="p-4 space-y-2">
               {[1, 2, 3, 4, 5].map(i => (
@@ -261,6 +405,9 @@ function ReplyInboxContent() {
               onToggleStar={handleToggleStar}
               onArchive={handleArchive}
               onSnooze={handleSnooze}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onLoadMore={loadMore}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
@@ -276,7 +423,7 @@ function ReplyInboxContent() {
             <ReplyDetailPanel
               reply={selectedReply}
               onClose={() => setSelectedReply(null)}
-              onReply={() => handleMarkActioned(selectedReply.id, 'replied')}
+              onReply={() => {}} // Reply button now opens inline composer inside the panel
               onArchive={() => handleArchive(selectedReply.id)}
               onSnooze={() => handleSnooze(selectedReply.id)}
               onMarkActioned={(action) => handleMarkActioned(selectedReply.id, action)}
@@ -307,6 +454,13 @@ function ReplyInboxContent() {
           onMarkActioned={(action) => handleMarkActioned(selectedReply.id, action)}
         />
       )}
+
+      {/* Snooze dialog */}
+      <SnoozeDialog
+        open={!!snoozeTarget}
+        onClose={() => setSnoozeTarget(null)}
+        onSnooze={handleSnoozeConfirm}
+      />
 
       <CRMKeyboardShortcutsDialog 
         open={showShortcuts} 

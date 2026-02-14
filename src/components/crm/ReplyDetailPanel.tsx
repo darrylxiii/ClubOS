@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Reply, Archive, Clock, ExternalLink, Star, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Reply, Archive, Clock, ExternalLink, Star, X, Send, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import DOMPurify from "dompurify";
+import { supabase } from "@/integrations/supabase/client";
+import { notify } from "@/lib/notify";
 import type { CRMEmailReply } from "@/types/crm-enterprise";
 import { REPLY_CLASSIFICATIONS } from "@/types/crm-enterprise";
 
@@ -26,6 +31,59 @@ export function ReplyDetailPanel({
   onMarkActioned,
 }: ReplyDetailPanelProps) {
   const classification = REPLY_CLASSIFICATIONS.find(c => c.value === reply.classification);
+  const [showComposer, setShowComposer] = useState(false);
+  const [replyText, setReplyText] = useState(reply.suggested_reply || "");
+  const [sending, setSending] = useState(false);
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) return;
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-instantly-reply', {
+        body: {
+          prospect_id: reply.prospect_id,
+          subject: `Re: ${reply.subject || ''}`,
+          body: replyText,
+        },
+      });
+      if (error) throw error;
+      notify.success('Reply sent via Instantly');
+      onMarkActioned('replied');
+      setShowComposer(false);
+      setReplyText('');
+    } catch (err) {
+      console.error('Failed to send reply:', err);
+      notify.error('Failed to send reply', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Render email body: prefer sanitized HTML, fall back to plain text
+  const renderEmailBody = () => {
+    if (reply.body_html) {
+      const sanitized = DOMPurify.sanitize(reply.body_html, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'blockquote', 'pre', 'code', 'span', 'div', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'img', 'hr'],
+        ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target'],
+      });
+      return (
+        <div
+          className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed [&_a]:text-primary [&_img]:max-w-full [&_img]:h-auto [&_blockquote]:border-l-2 [&_blockquote]:border-muted [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground overflow-x-auto"
+          dangerouslySetInnerHTML={{ __html: sanitized }}
+        />
+      );
+    }
+
+    return (
+      <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed">
+        {reply.body_text?.split('\n').map((line, i) => (
+          <p key={i} className="mb-2 last:mb-0">{line}</p>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -77,12 +135,8 @@ export function ReplyDetailPanel({
             </div>
           </div>
 
-          {/* Email body */}
-          <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed">
-            {reply.body_text?.split('\n').map((line, i) => (
-              <p key={i} className="mb-2 last:mb-0">{line}</p>
-            ))}
-          </div>
+          {/* Email body (HTML or plain text) */}
+          {renderEmailBody()}
 
           {/* AI Summary */}
           {reply.ai_summary && (
@@ -99,7 +153,7 @@ export function ReplyDetailPanel({
           )}
 
           {/* Suggested Reply */}
-          {reply.suggested_reply && (
+          {reply.suggested_reply && !showComposer && (
             <Card className="bg-green-500/5 border-green-500/20">
               <CardContent className="p-4">
                 <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
@@ -109,11 +163,58 @@ export function ReplyDetailPanel({
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                   {reply.suggested_reply}
                 </p>
-                <Button size="sm" className="mt-3" asChild>
-                  <a href={`mailto:${reply.from_email}?subject=Re: ${reply.subject}`}>
-                    Use as Template
-                  </a>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3"
+                  onClick={() => {
+                    setReplyText(reply.suggested_reply || '');
+                    setShowComposer(true);
+                  }}
+                >
+                  Use as Template
                 </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Inline Reply Composer */}
+          {showComposer && (
+            <Card className="border-primary/30">
+              <CardContent className="p-4 space-y-3">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  <Reply className="w-4 h-4 text-primary" />
+                  Reply to {reply.from_name || reply.from_email}
+                </h4>
+                <Textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Write your reply..."
+                  className="min-h-[120px] resize-y bg-background"
+                  disabled={sending}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleSendReply}
+                    disabled={!replyText.trim() || sending}
+                  >
+                    {sending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-2" />
+                    )}
+                    Send via Instantly
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowComposer(false)}
+                    disabled={sending}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -122,7 +223,11 @@ export function ReplyDetailPanel({
 
       {/* Sticky action bar */}
       <div className="px-6 py-3 border-t border-border/30 bg-card/30 backdrop-blur-sm flex items-center gap-2 flex-shrink-0">
-        <Button onClick={onReply} size="sm" className="flex-1 max-w-[160px]">
+        <Button
+          onClick={() => setShowComposer(!showComposer)}
+          size="sm"
+          className="flex-1 max-w-[160px]"
+        >
           <Reply className="w-4 h-4 mr-2" />
           Reply
         </Button>
