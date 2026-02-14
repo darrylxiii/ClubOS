@@ -273,7 +273,7 @@ function ReplyInboxContent() {
   const isPartialSelection = selectedIds.size > 0 && selectedIds.size < filteredReplies.length;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex-shrink-0 px-4 sm:px-6 py-3 border-b border-border/30 bg-card/50 backdrop-blur-xl">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
