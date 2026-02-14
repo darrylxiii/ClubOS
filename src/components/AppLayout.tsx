@@ -194,19 +194,19 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           tabIndex={-1}
           className={cn(
             "flex-1 w-full md:ml-20 relative z-10",
-            (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
+            (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp') || location.pathname === '/crm/inbox')
               ? 'overflow-hidden'
               : 'overflow-y-auto'
           )}
         >
           <div className={cn(
             "pt-14 sm:pt-16",
-            (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp'))
+            (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp') || location.pathname === '/crm/inbox')
               ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col'
               : 'min-h-screen pb-4'
           )}
             style={{
-              paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp'))
+              paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp') && location.pathname !== '/crm/inbox')
                 ? 'max(env(safe-area-inset-bottom), 1rem)'
                 : undefined
             }}
