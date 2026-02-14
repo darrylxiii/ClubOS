@@ -25,6 +25,7 @@ import { CommunicationSettings } from "@/components/settings/CommunicationSettin
 import { useTranslation } from 'react-i18next';
 import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
+import { lovable } from "@/integrations/lovable/index";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -420,6 +421,8 @@ const Settings = () => {
 
   const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
     try {
+      // Use managed auth for supported providers (none of the social link providers are Google/Apple here)
+      // Social linking uses direct Supabase OAuth
       const redirectTo = `${window.location.origin}/settings`;
 
       await signInWithOAuthCustomDomain({
