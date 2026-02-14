@@ -5,6 +5,7 @@ import { useSubscriptionMetrics } from '@/hooks/useVendorSubscriptions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/revenueCalculations';
 import { cn } from '@/lib/utils';
+import { AddBudgetDialog } from './AddBudgetDialog';
 
 export function BudgetVsActual() {
   const { data: budgets, isLoading } = useSubscriptionBudgets();
@@ -18,12 +19,15 @@ export function BudgetVsActual() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Budget vs Actual</CardTitle>
-          <CardDescription>No budgets configured yet. Add category budgets to track spend limits.</CardDescription>
+          <CardTitle className="flex items-center justify-between">
+            <span>Budget vs Actual</span>
+            <AddBudgetDialog />
+          </CardTitle>
+          <CardDescription>No budgets configured yet. Set category budgets to track spend limits.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
-            Set monthly budgets per subscription category to see variance tracking here.
+            Use the "Set Budget" button above to define monthly spend limits per subscription category.
           </div>
         </CardContent>
       </Card>
@@ -33,7 +37,10 @@ export function BudgetVsActual() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Budget vs Actual</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <span>Budget vs Actual</span>
+          <AddBudgetDialog />
+        </CardTitle>
         <CardDescription>Monthly category spend against budgets</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

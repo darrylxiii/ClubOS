@@ -82,7 +82,7 @@ export function useCostIntelligence() {
       const costToRevenuePercent = netRevenue > 0 ? (totalOperatingCosts / netRevenue) * 100 : 0;
 
       // Health score
-      let utilizationScore = 100;
+      let utilizationScore = 0;
       let subsWithSeats = 0;
       subscriptions.forEach(sub => {
         if (sub.seats_licensed && sub.seats_used) {
