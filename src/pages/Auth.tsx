@@ -149,6 +149,22 @@ const Auth = () => {
                 // Continue anyway - this is non-critical
               }
 
+              // Consume pending invite code for OAuth signups
+              const pendingInvite = localStorage.getItem('pending_invite_code');
+              if (pendingInvite) {
+                try {
+                  const { data: consumeResult } = await supabase.functions.invoke('consume-invite', {
+                    body: { code: pendingInvite }
+                  });
+                  if (consumeResult?.success) {
+                    logger.debug('OAuth invite code consumed', { componentName: 'Auth' });
+                  }
+                } catch (err) {
+                  logger.warn('Failed to consume invite on OAuth (non-blocking)', { componentName: 'Auth', err });
+                }
+                localStorage.removeItem('pending_invite_code');
+              }
+
               // Clean up URL only after session is confirmed
               window.history.replaceState({}, '', '/auth');
               setOauthProcessing(false);
@@ -354,7 +370,8 @@ const Auth = () => {
           options: {
             emailRedirectTo: redirectUrl,
             data: {
-              full_name: fullName
+              full_name: fullName,
+              ...(inviteCode ? { invite_code: inviteCode } : {})
             }
           }
         });
@@ -367,6 +384,24 @@ const Auth = () => {
           }
           return;
         }
+
+        // Consume invite code after successful signup (assigns company + role)
+        if (inviteCode && authData?.user) {
+          try {
+            const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-invite', {
+              body: { code: inviteCode }
+            });
+            if (consumeError) {
+              logger.warn('Failed to consume invite code', { componentName: 'Auth', error: consumeError });
+            } else if (consumeResult?.success) {
+              logger.debug('Invite code consumed successfully', { componentName: 'Auth', result: consumeResult });
+            }
+          } catch (err) {
+            logger.warn('Invite consumption error (non-blocking)', { componentName: 'Auth', err });
+          }
+          localStorage.removeItem('pending_invite_code');
+        }
+
         if (authData?.user && !authData.session) {
           toast.success(t('messages.verificationEmailSent'));
           setNeedsEmailVerification(true);

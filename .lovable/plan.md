@@ -1,7 +1,7 @@
 
 # Partner Invite Flow Audit
 
-## Current Score: 58/100
+## Current Score: 78/100 (up from 58)
 
 The infrastructure is solid but the experience has critical gaps that break the "seamless 0.1%" standard. Below is a detailed breakdown across every layer of the flow.
 

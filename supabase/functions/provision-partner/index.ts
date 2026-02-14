@@ -144,14 +144,23 @@ serve(async (req) => {
       });
     }
 
-    // Check if user already exists
-    const { data: existingUsers } = await supabase.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(u => u.email === body.email);
+    // Check if user already exists (scalable: single lookup instead of listUsers)
+    const { data: existingUserList } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1,
+    });
+    // Use a direct query approach: try to create, catch conflict
+    // First, check via email lookup on profiles (fast, indexed)
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('email', body.email)
+      .maybeSingle();
     
-    if (existingUser) {
+    if (existingProfile) {
       return new Response(JSON.stringify({ 
         error: 'User already exists',
-        existingUserId: existingUser.id 
+        existingUserId: existingProfile.id 
       }), {
         status: 409,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -325,8 +334,8 @@ serve(async (req) => {
     // Step 7: Generate magic link if needed
     let magicLink: string | null = null;
     if (body.provisionMethod === 'magic_link') {
-      // Use SITE_URL env var for custom domain support, fallback to lovable.app
-      const siteUrl = Deno.env.get('SITE_URL') || supabaseUrl.replace('.supabase.co', '.lovable.app');
+      // Use SITE_URL or APP_URL env var; never derive from supabaseUrl
+      const siteUrl = Deno.env.get('SITE_URL') || Deno.env.get('APP_URL') || 'https://os.thequantumclub.com';
       // Route pre-provisioned partners to partner welcome screen
       const redirectPath = '/partner-welcome';
       
@@ -385,43 +394,51 @@ serve(async (req) => {
       try {
         const emailBody = body.provisionMethod === 'magic_link' && magicLink
           ? `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0E0E10; color: #F5F4EF;">
               <div style="text-align: center; margin-bottom: 40px;">
-                <h1 style="color: #0E0E10; font-size: 28px; margin: 0;">Welcome to The Quantum Club</h1>
+                <h1 style="color: #C9A24E; font-size: 28px; margin: 0; font-weight: 300;">The Quantum Club</h1>
               </div>
               
-              <p style="color: #333; font-size: 16px; line-height: 1.6;">Dear ${body.fullName},</p>
-              
-              <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                You've been personally invited to join The Quantum Club as a valued partner. 
-                ${body.welcomeMessage ? `<br><br><em>"${body.welcomeMessage}"</em>` : ''}
-              </p>
-              
-              <div style="text-align: center; margin: 40px 0;">
-                <a href="${magicLink}" style="display: inline-block; background: linear-gradient(135deg, #C9A24E 0%, #E5C87D 100%); color: #0E0E10; font-weight: 600; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-size: 16px;">
-                  Access Your Account
-                </a>
+              <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 32px; border: 1px solid rgba(201,162,78,0.2);">
+                <p style="color: #F5F4EF; font-size: 16px; line-height: 1.6;">Dear ${body.fullName},</p>
+                
+                <p style="color: #A8A8A8; font-size: 16px; line-height: 1.6;">
+                  You've been personally invited to join The Quantum Club as a valued partner.
+                  ${body.welcomeMessage ? `<br><br><em style="color: #C9A24E;">"${body.welcomeMessage}"</em>` : ''}
+                </p>
+                
+                <div style="text-align: center; margin: 32px 0;">
+                  <a href="${magicLink}" style="display: inline-block; background: linear-gradient(135deg, #C9A24E 0%, #E5C87D 100%); color: #0E0E10; font-weight: 600; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-size: 16px;">
+                    Access Your Account
+                  </a>
+                </div>
+                
+                <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                  This link expires in 72 hours. If you have any questions, your dedicated strategist is ready to assist.
+                </p>
               </div>
               
-              <p style="color: #666; font-size: 14px; line-height: 1.6;">
-                This link expires in 72 hours. If you have any questions, your dedicated strategist is ready to assist.
-              </p>
+              <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 40px 0;" />
               
-              <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;" />
-              
-              <p style="color: #999; font-size: 12px; text-align: center;">
+              <p style="color: #666; font-size: 12px; text-align: center;">
                 The Quantum Club · Elite Talent Network
               </p>
             </div>
           `
           : `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-              <h1 style="color: #0E0E10; font-size: 28px; text-align: center;">Welcome to The Quantum Club</h1>
-              <p style="color: #333; font-size: 16px;">Dear ${body.fullName},</p>
-              <p style="color: #333; font-size: 16px;">
-                You've been invited as a partner. Your temporary password is: <strong>${userPassword}</strong>
-              </p>
-              <p style="color: #333; font-size: 16px;">Please change your password upon first login.</p>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0E0E10; color: #F5F4EF;">
+              <div style="text-align: center; margin-bottom: 40px;">
+                <h1 style="color: #C9A24E; font-size: 28px; margin: 0; font-weight: 300;">The Quantum Club</h1>
+              </div>
+              <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 32px; border: 1px solid rgba(201,162,78,0.2);">
+                <p style="color: #F5F4EF; font-size: 16px; line-height: 1.6;">Dear ${body.fullName},</p>
+                <p style="color: #A8A8A8; font-size: 16px; line-height: 1.6;">
+                  You've been invited to join The Quantum Club as a partner. Please sign in using Google or request a magic link from your strategist.
+                </p>
+                <p style="color: #666; font-size: 14px;">For security, temporary passwords are not sent via email.</p>
+              </div>
+              <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 40px 0;" />
+              <p style="color: #666; font-size: 12px; text-align: center;">The Quantum Club · Elite Talent Network</p>
             </div>
           `;
 
@@ -439,6 +456,10 @@ serve(async (req) => {
           })
         });
 
+        if (!emailResponse.ok) {
+          const errorBody = await emailResponse.text();
+          console.error('Resend email error:', emailResponse.status, errorBody);
+        }
         welcomeEmailSent = emailResponse.ok;
         
         if (welcomeEmailSent) {
