@@ -4,6 +4,8 @@ import { useTopClients } from "@/hooks/useMoneybirdFinancials";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TopClientsTableProps {
   year?: number;
@@ -13,6 +15,9 @@ interface TopClientsTableProps {
 export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
   const topClients = useTopClients(year);
   const displayClients = topClients.slice(0, limit);
+
+  // Calculate total revenue for concentration risk
+  const totalRevenue = topClients.reduce((sum, c) => sum + c.revenue, 0);
 
   // Fetch company data to get payment scores and slugs
   const { data: companies } = useQuery({
@@ -61,7 +66,7 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
           <TableHead className="w-12">#</TableHead>
           <TableHead>Client</TableHead>
           <TableHead className="text-right">Net Revenue</TableHead>
-          <TableHead className="text-right">VAT</TableHead>
+          <TableHead className="text-right">Share</TableHead>
           <TableHead className="text-right">Score</TableHead>
           <TableHead className="text-right">Status</TableHead>
         </TableRow>
@@ -70,11 +75,12 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
         {displayClients.map((client, index) => {
           // Calculate net revenue (excluding 21% VAT)
           const netRevenue = client.revenue / 1.21;
-          const vatAmount = client.revenue - netRevenue;
           const collectionRate = client.revenue > 0 
             ? (client.paid / client.revenue) * 100 
             : 0;
           const company = getCompanyByName(client.name);
+          const revenueShare = totalRevenue > 0 ? (client.revenue / totalRevenue) * 100 : 0;
+          const isConcentrationRisk = revenueShare >= 30;
           
           return (
             <TableRow key={client.contact_id}>
@@ -82,22 +88,38 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
                 {index + 1}
               </TableCell>
               <TableCell className="font-medium">
-                {company?.slug ? (
-                  <Link 
-                    to={`/company/${company.slug}?tab=financials`}
-                    className="hover:text-primary hover:underline transition-colors"
-                  >
-                    {client.name || 'Unknown'}
-                  </Link>
-                ) : (
-                  client.name || 'Unknown'
-                )}
+                <div className="flex items-center gap-2">
+                  {company?.slug ? (
+                    <Link 
+                      to={`/company/${company.slug}?tab=financials`}
+                      className="hover:text-primary hover:underline transition-colors"
+                    >
+                      {client.name || 'Unknown'}
+                    </Link>
+                  ) : (
+                    client.name || 'Unknown'
+                  )}
+                  {isConcentrationRisk && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <AlertTriangle className="h-4 w-4 text-warning" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-xs">Concentration risk: {revenueShare.toFixed(0)}% of total revenue</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
               </TableCell>
               <TableCell className="text-right">
                 {formatCurrency(netRevenue)}
               </TableCell>
-              <TableCell className="text-right text-muted-foreground">
-                {formatCurrency(vatAmount)}
+              <TableCell className="text-right">
+                <span className={isConcentrationRisk ? 'text-warning font-medium' : 'text-muted-foreground'}>
+                  {revenueShare.toFixed(0)}%
+                </span>
               </TableCell>
               <TableCell className="text-right">
                 {getPaymentScoreBadge(company?.payment_reliability_score ?? null)}

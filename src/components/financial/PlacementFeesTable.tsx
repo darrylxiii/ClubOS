@@ -11,6 +11,7 @@ import { Search, FileText, TrendingUp, TrendingDown, Minus, User, AlertCircle, B
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AddPlacementFeeDialog } from "./AddPlacementFeeDialog";
+import { InvoiceGenerator } from "./InvoiceGenerator";
 
 interface PlacementFeesTableProps {
   fees: PlacementFee[] | PlacementFeeWithContext[];
@@ -18,6 +19,7 @@ interface PlacementFeesTableProps {
 
 export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
   const [search, setSearch] = useState("");
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
 
   const filteredFees = fees.filter((fee) => {
     const searchLower = search.toLowerCase();
@@ -77,12 +79,17 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
               toast.info('No pending placement fees to invoice.');
               return;
             }
-            toast.info(`${pending.length} pending fee(s) ready for invoicing. Invoice generation coming soon.`);
+            setInvoiceOpen(true);
           }}
         >
           <FileText className="mr-2 h-4 w-4" />
           Generate Invoice
         </Button>
+        <InvoiceGenerator
+          fees={fees.filter(f => f.status === 'pending')}
+          open={invoiceOpen}
+          onOpenChange={setInvoiceOpen}
+        />
       </div>
 
       <div className="border rounded-lg overflow-x-auto">

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,15 @@ export default function SubscriptionManagement() {
   const metrics = useSubscriptionMetrics();
   const generateExpenses = useGenerateExpensesFromSubscriptions();
   const [showFullTable, setShowFullTable] = useState(false);
+  const autoSyncRan = useRef(false);
+
+  // Auto-sync subscriptions to expenses on first load (once per session)
+  useEffect(() => {
+    if (!autoSyncRan.current && metrics.activeCount > 0) {
+      autoSyncRan.current = true;
+      generateExpenses.mutate();
+    }
+  }, [metrics.activeCount]);
 
   return (
     <AppLayout>
