@@ -1,87 +1,174 @@
 
+# Sync Instantly Unibox to CRM Reply Inbox
 
-# Fix Instantly to CRM Sync Pipeline
+## Problem
 
-## Problem Summary
+The Smart Reply Inbox at `/crm/inbox` reads from the `crm_email_replies` table, which is **completely empty**. Nothing in the system populates it:
 
-The CRM is stuck with data from February 3 because of two compounding issues:
+- The `instantly-webhook-receiver` writes reply content to `crm_prospect_activities` but never to `crm_email_replies`
+- The `sync-interested-leads` function syncs prospect records but not their email conversations
+- There is no edge function that calls Instantly's `GET /api/v2/emails` endpoint (the Unibox API)
 
-1. **No automatic scheduling**: The `sync-interested-leads` function only runs when manually triggered -- there is no cron job or periodic automation calling it.
-2. **Webhooks not arriving**: The `instantly-webhook-receiver` has received only 1 test event in its entire lifetime. Instantly is not sending real-time events to your system.
-
-Together, this means neither the push path (webhooks) nor the pull path (scheduled sync) is active.
+The result: the Reply Inbox UI is a fully built but empty shell.
 
 ---
 
-## Fix Plan
+## Solution: Two-Path Sync
 
-### Fix 1: Add automatic sync scheduling via pg_cron
+### Path 1: New Edge Function -- `sync-instantly-unibox`
 
-Create a database-level cron job that calls the `sync-interested-leads` edge function every 30 minutes. This is the most reliable approach since it runs server-side with no dependency on a user being online.
+A new edge function that pulls emails directly from Instantly's Unibox API and populates `crm_email_replies`.
 
 **How it works:**
-- A PostgreSQL `pg_cron` job fires every 30 minutes
-- It calls `net.http_post()` to invoke the edge function
-- The function fetches interested/replied/meeting-booked leads from Instantly API and upserts them into `crm_prospects`
+1. Calls `GET /api/v2/emails` with `email_type=received` (inbound replies only) and `preview_only=false` (to get full body)
+2. Paginates through results using Instantly's cursor
+3. For each email:
+   - Matches to a `crm_prospect` by lead email address
+   - Matches to a `crm_campaign` by Instantly campaign_id
+   - Upserts into `crm_email_replies` using `external_id` (Instantly email UUID) as dedup key
+   - Maps Instantly's `ai_interest_value` to a preliminary classification
+   - Stores `thread_id` for conversation threading
+4. Optionally triggers AI analysis (`analyze-email-reply`) for unclassified replies
+5. Logs sync stats to `crm_sync_logs`
 
-**Technical detail:**
-- Uses `pg_net` extension (already available) to make HTTP calls from the database
-- Targets the deployed edge function URL with the service role key for authentication
-- Logs every run in `crm_sync_logs` (already implemented in the function)
+**Instantly API fields mapped to `crm_email_replies`:**
 
-### Fix 2: Add a "Sync Now" button on the CRM Prospects page
+| Instantly Field | CRM Field |
+|----------------|-----------|
+| `id` | `external_id` |
+| `from_address_email` | `from_email` |
+| `from_address_json` | `from_name` |
+| `to_address_email_list` | `to_email` |
+| `subject` | `subject` |
+| `body.text` | `body_text` |
+| `body.html` | `body_html` |
+| `content_preview` | `body_preview` |
+| `message_id` | `message_id` |
+| `thread_id` | `thread_id` |
+| `timestamp_email` | `received_at` |
+| `ai_interest_value` | `sentiment_score` + initial classification |
+| `is_unread` | `is_read` (inverted) |
+| `campaign_id` | `campaign_id` (via lookup) |
 
-Add a manual trigger button so strategists can force a sync without waiting for the next cron run. This gives immediate control when they know new leads have come in.
+### Path 2: Fix the Webhook Receiver
 
-**Where:** The existing `/crm/prospects` page header area
-**What:** A "Sync from Instantly" button with loading state and last-sync timestamp
+Update `instantly-webhook-receiver` so that when a `lead.replied` event comes in, it also writes to `crm_email_replies` (not just `crm_prospect_activities`). This gives near-instant population for new replies going forward.
 
-### Fix 3: Re-register Instantly webhooks
+### Path 3: Automated Scheduling
 
-Call the existing `register-instantly-webhooks` edge function to ensure webhooks point to the correct URL. This restores the real-time push path so leads appear in CRM within seconds of showing interest.
+Add a `pg_cron` job that runs `sync-instantly-unibox` every 15 minutes, ensuring the Reply Inbox stays current even if webhooks fail.
 
-**What this does:**
-- Deletes any stale webhook registrations in Instantly
-- Registers a new webhook pointing to `instantly-webhook-receiver` for key events: `lead.replied`, `lead.interested`, `lead.meeting_booked`, `lead.meeting_completed`, `lead.not_interested`
+---
 
-### Fix 4: Add sync health indicator to CRM page
+## Instantly API Integration
 
-Show a small status badge on the CRM page indicating when the last sync ran and whether it succeeded. This prevents the "stuck and nobody notices" problem from recurring.
+The shared client (`_shared/instantly-client.ts`) needs new functions:
+
+```text
+listUniboxEmails(params)  --> GET /api/v2/emails
+  - email_type: 'received' | 'sent' | 'all' | 'manual'
+  - campaign_id: optional filter
+  - lead: optional email filter
+  - latest_of_thread: boolean
+  - preview_only: boolean (false to get full body)
+  - limit: number
+  - starting_after: cursor
+
+getUnreadCount()          --> GET /api/v2/emails/unread/count
+
+markThreadAsRead(threadId) --> POST /api/v2/emails/threads/{thread_id}/mark-as-read
+```
+
+---
+
+## Reply Sending (Bi-directional Sync)
+
+The existing `send-instantly-reply` function uses the old V1 API. It needs to be updated to use V2's `POST /api/v2/emails/reply` which requires:
+
+- `reply_to_uuid`: The Instantly email ID to reply to (now available via `external_id` on `crm_email_replies`)
+- `eaccount`: The sending account email
+- `subject`: Subject line
+- `body`: `{ html, text }` format
+
+After sending, the outbound reply is logged in `crm_email_replies` with `ue_type = 3` (sent) so the full thread is visible in the inbox.
+
+---
+
+## Files to Create/Modify
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `supabase/functions/_shared/instantly-client.ts` | Modify | Add `listUniboxEmails`, `getUnreadCount`, `markThreadAsRead` functions |
+| `supabase/functions/sync-instantly-unibox/index.ts` | Create | New edge function to pull Unibox emails into `crm_email_replies` |
+| `supabase/functions/instantly-webhook-receiver/index.ts` | Modify | Also write to `crm_email_replies` on `lead.replied` events |
+| `supabase/functions/send-instantly-reply/index.ts` | Modify | Update to V2 reply API, log outbound emails to `crm_email_replies` |
+| `supabase/config.toml` | Modify | Register `sync-instantly-unibox` function |
+| SQL migration | Create | `pg_cron` job for 15-minute Unibox sync |
 
 ---
 
 ## Technical Details
 
-### Database Migration (pg_cron job)
-
-A SQL migration will:
-1. Enable the `pg_cron` extension if not already active
-2. Create a cron job named `sync-instantly-interested-leads` that runs every 30 minutes
-3. The job calls the edge function via `net.http_post` with the service role key
-
-### Files to Create/Modify
-
-| File | Change |
-|------|--------|
-| SQL migration | Create pg_cron job for 30-minute sync schedule |
-| `src/components/crm/CRMSyncControls.tsx` | New component: "Sync Now" button + last sync timestamp + health badge |
-| `src/pages/CRMProspects.tsx` (or wherever the prospect list header lives) | Add `CRMSyncControls` to the page header |
-
-### Sync Flow After Fix
+### `sync-instantly-unibox` Edge Function Flow
 
 ```text
-Every 30 min (pg_cron) ---------> sync-interested-leads ---------> crm_prospects (upsert)
-                                         |
-Real-time (Instantly webhook) --> instantly-webhook-receiver --> crm_prospects (upsert)
-                                         |
-Manual ("Sync Now" button) -----> sync-interested-leads ---------> crm_prospects (upsert)
+1. Fetch last sync timestamp from crm_sync_logs (type='unibox_sync')
+2. Call GET /api/v2/emails?email_type=received&preview_only=false
+3. Paginate through all results
+4. For each email:
+   a. Skip if external_id already exists in crm_email_replies
+   b. Find prospect by matching lead email to crm_prospects.email
+   c. Find campaign by matching campaign_id to crm_campaigns.external_id
+   d. Map ai_interest_value to classification:
+      - >= 0.8: hot_lead
+      - >= 0.5: warm_lead / interested
+      - >= 0.3: question
+      - < 0.3: unclassified
+   e. Insert into crm_email_replies
+5. Log sync stats to crm_sync_logs
 ```
 
-All three paths feed the same CRM table, ensuring no interested leads are missed regardless of which mechanism fires.
+### Webhook Receiver Enhancement
 
-### Estimated Impact
+In the `lead.replied` handler (line ~190-204), after storing in `crm_prospect_activities`, also insert into `crm_email_replies`:
 
-- Sync gap reduced from "infinite" (manual only) to maximum 30 minutes
-- Webhook re-registration restores near-instant updates for key events
-- Health indicator prevents silent failures going unnoticed again
+```text
+- from_email = data.email (the lead's email)
+- subject = data.subject
+- body_text = data.reply_body
+- prospect_id = prospect.id
+- classification = 'unclassified' (will be analyzed)
+- received_at = data.replied_at
+```
 
+### Send Reply V2 Update
+
+Replace the old `sendReply` call with the V2 format:
+
+```text
+POST /api/v2/emails/reply
+{
+  "reply_to_uuid": <instantly email UUID from crm_email_replies.external_id>,
+  "eaccount": <sending account email>,
+  "subject": "Re: ...",
+  "body": { "html": "<p>...</p>", "text": "..." }
+}
+```
+
+### pg_cron Schedule
+
+```text
+Every 15 minutes: sync-instantly-unibox (pull new received emails)
+Every 30 minutes: sync-interested-leads (already scheduled, syncs prospect stages)
+```
+
+---
+
+## What Changes for the User
+
+After implementation:
+- The Reply Inbox at `/crm/inbox` will populate with all received replies from Instantly campaigns
+- New replies appear within 15 minutes (via scheduled sync) or near-instantly (via webhook)
+- Replies sent from the CRM will go through Instantly's V2 API and appear in both TQC's inbox and Instantly's Unibox
+- Thread view will show the full conversation history
+- AI classification will auto-categorize replies as hot/warm/objection etc.
