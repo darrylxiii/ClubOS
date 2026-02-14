@@ -24,6 +24,7 @@ import { APIIntegrationSettings } from "@/components/settings/APIIntegrationSett
 import { CommunicationSettings } from "@/components/settings/CommunicationSettings";
 import { useTranslation } from 'react-i18next';
 import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
+import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -421,16 +422,12 @@ const Settings = () => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      await signInWithOAuthCustomDomain({
         provider: provider as any,
-        options: {
-          redirectTo,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' :
-            provider === 'github' ? 'read:user user:email' : undefined,
-        }
+        redirectTo,
+        scopes: provider === 'linkedin_oidc' ? 'openid profile email' :
+          provider === 'github' ? 'read:user user:email' : undefined,
       });
-
-      if (error) throw error;
 
       toast.success(`Redirecting to ${provider} login...`);
     } catch (error) {

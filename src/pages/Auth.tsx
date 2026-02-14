@@ -17,6 +17,7 @@ import { useTheme } from "next-themes";
 import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
+import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
 
 // Lazy load heavy components to reduce initial bundle
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
@@ -424,20 +425,14 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      // Let Supabase handle PKCE and state internally - don't override state
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      await signInWithOAuthCustomDomain({
         provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
+        redirectTo: redirectUrl,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       });
-      if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.google')
@@ -451,16 +446,10 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      // Let Supabase handle PKCE and state internally - don't override state
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      await signInWithOAuthCustomDomain({
         provider: 'apple',
-        options: {
-          redirectTo: redirectUrl
-        }
+        redirectTo: redirectUrl,
       });
-      if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.apple')
@@ -474,17 +463,11 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      // Let Supabase handle PKCE and state internally - don't override state
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      await signInWithOAuthCustomDomain({
         provider: 'linkedin_oidc',
-        options: {
-          redirectTo: redirectUrl,
-          scopes: 'openid profile email'
-        }
+        redirectTo: redirectUrl,
+        scopes: 'openid profile email',
       });
-      if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.linkedin')

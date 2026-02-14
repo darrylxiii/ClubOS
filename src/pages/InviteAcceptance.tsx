@@ -7,6 +7,7 @@ import { MinimalHeader } from "@/components/MinimalHeader";
 import { CheckCircle2, AlertCircle, Briefcase, User } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { toast } from "sonner";
+import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
 
 export default function InviteAcceptance() {
   const { token } = useParams();
@@ -63,15 +64,11 @@ export default function InviteAcceptance() {
         sessionStorage.setItem('expected_invitation_email', candidate.email);
       }
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/invite/${token}/complete`,
-          scopes: provider === 'linkedin' ? 'r_emailaddress r_liteprofile' : undefined
-        }
+      await signInWithOAuthCustomDomain({
+        provider: provider === 'linkedin' ? 'linkedin_oidc' : provider,
+        redirectTo: `${window.location.origin}/invite/${token}/complete`,
+        scopes: provider === 'linkedin' ? 'openid profile email' : undefined,
       });
-
-      if (error) throw error;
     } catch (error) {
       console.error('Sign up error:', error);
       toast.error('Failed to sign up');
