@@ -1,6 +1,15 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
 # =============================================================================
+# Partner Invite & Provisioning
+# =============================================================================
+[functions.consume-invite]
+verify_jwt = false
+
+[functions.notify-admin-partner-request]
+verify_jwt = false
+
+# =============================================================================
 # WhatsApp Business Integration (Enterprise)
 # =============================================================================
 

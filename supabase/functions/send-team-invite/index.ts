@@ -147,7 +147,7 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'The Quantum Club <noreply@thequantumclub.com>',
+        from: 'The Quantum Club <noreply@thequantumclub.nl>',
         to: body.email,
         subject: `You're invited to join ${body.companyName} on The Quantum Club`,
         html: emailHtml
