@@ -27,7 +27,12 @@ import { usePlacementFeesWithContext } from "@/hooks/usePlacementFeesWithContext
 import { VATLiabilityCard } from "@/components/financial/VATLiabilityCard";
 import { VATRegisterTable } from "@/components/financial/VATRegisterTable";
 import { EmployeeCommissionsTable } from "@/components/financial/EmployeeCommissionsTable";
-import { SubscriptionsTab } from "@/components/financial/SubscriptionsTab";
+import { FinancialExportMenu } from "@/components/financial/FinancialExportMenu";
+import { CurrencySelector } from "@/components/financial/CurrencySelector";
+import { useRole } from "@/contexts/RoleContext";
+import { useState } from "react";
+import { Currency, convertCurrency } from "@/lib/currencyConversion";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
@@ -36,6 +41,48 @@ export default function FinancialDashboard() {
   const { data: fees, isLoading: feesLoading } = usePlacementFeesWithContext(selectedYear);
   const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices();
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
+  const { currentRole } = useRole();
+  const [displayCurrency, setDisplayCurrency] = useState<Currency>('EUR');
+
+  const isFinanceOrAdmin = currentRole === 'admin';
+  const isStrategist = currentRole === 'strategist';
+
+  // Export datasets
+  const exportDatasets = [
+    {
+      label: 'Placement Fees',
+      filename: 'placement-fees',
+      getData: async () => {
+        const { data } = await supabase
+          .from('placement_fees')
+          .select('*')
+          .gte('created_at', `${selectedYear}-01-01`);
+        return (data || []) as Record<string, unknown>[];
+      },
+    },
+    {
+      label: 'Invoices',
+      filename: 'moneybird-invoices',
+      getData: async () => {
+        const { data } = await supabase
+          .from('moneybird_sales_invoices')
+          .select('*')
+          .gte('invoice_date', `${selectedYear}-01-01`);
+        return (data || []) as Record<string, unknown>[];
+      },
+    },
+    {
+      label: 'Operating Expenses',
+      filename: 'operating-expenses',
+      getData: async () => {
+        const { data } = await supabase
+          .from('operating_expenses')
+          .select('*')
+          .gte('expense_date', `${selectedYear}-01-01`);
+        return (data || []) as Record<string, unknown>[];
+      },
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -46,12 +93,18 @@ export default function FinancialDashboard() {
             <InlineLoader text="Syncing..." className="text-primary" />
           )}
         </p>
-        <YearSelector
-          selectedYear={selectedYear}
-          onYearChange={setSelectedYear}
-          yearOptions={yearOptions}
-          availableYears={availableYears}
-        />
+        <div className="flex items-center gap-2">
+          <CurrencySelector value={displayCurrency} onChange={setDisplayCurrency} />
+          {isFinanceOrAdmin && (
+            <FinancialExportMenu datasets={exportDatasets} year={selectedYear} />
+          )}
+          <YearSelector
+            selectedYear={selectedYear}
+            onYearChange={setSelectedYear}
+            yearOptions={yearOptions}
+            availableYears={availableYears}
+          />
+        </div>
       </div>
 
       <ReconciliationAlert year={selectedYear} />
@@ -84,12 +137,17 @@ export default function FinancialDashboard() {
         <PaymentAgingChart year={selectedYear} />
       </div>
 
-      <CashFlowProjection year={selectedYear} />
+      {/* Full P&L and cash flow -- admin only */}
+      {isFinanceOrAdmin && (
+        <>
+          <CashFlowProjection year={selectedYear} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <ProfitLossCard year={selectedYear} />
-        <FinancialEventsTimeline />
-      </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <ProfitLossCard year={selectedYear} />
+            <FinancialEventsTimeline />
+          </div>
+        </>
+      )}
 
       <Card>
         <CardHeader>
@@ -101,26 +159,31 @@ export default function FinancialDashboard() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Cash Flow Pipeline</CardTitle>
-          <CardDescription>Visual pipeline of expected revenue by collection status</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CashFlowPipeline year={selectedYear} />
-        </CardContent>
-      </Card>
+      {isFinanceOrAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Cash Flow Pipeline</CardTitle>
+            <CardDescription>Visual pipeline of expected revenue by collection status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CashFlowPipeline year={selectedYear} />
+          </CardContent>
+        </Card>
+      )}
 
       <PlacementFeeHealth />
 
-      <Tabs defaultValue="fees" className="space-y-4">
+      <Tabs defaultValue={isStrategist ? 'commissions' : 'fees'} className="space-y-4">
         <TabsList>
           <TabsTrigger value="fees">Placement Fees</TabsTrigger>
           <TabsTrigger value="commissions">Commissions</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
-          <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-          <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
+          {isFinanceOrAdmin && (
+            <>
+              <TabsTrigger value="invoices">Invoices</TabsTrigger>
+              <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
+              <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
+            </>
+          )}
         </TabsList>
 
         <TabsContent value="fees" className="space-y-4">
@@ -143,54 +206,54 @@ export default function FinancialDashboard() {
           <EmployeeCommissionsTable year={selectedYear} />
         </TabsContent>
 
-        <TabsContent value="invoices" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Partner Invoices</CardTitle>
-              <CardDescription>Generate and manage invoices for partner companies</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {invoicesLoading ? (
-                <SectionLoader text="Loading Invoices..." className="min-h-[200px]" />
-              ) : (
-                <InvoicesTable invoices={invoices || []} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {isFinanceOrAdmin && (
+          <>
+            <TabsContent value="invoices" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Partner Invoices</CardTitle>
+                  <CardDescription>Generate and manage invoices for partner companies</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {invoicesLoading ? (
+                    <SectionLoader text="Loading Invoices..." className="min-h-[200px]" />
+                  ) : (
+                    <InvoicesTable invoices={invoices || []} />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        <TabsContent value="payouts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Referral Payouts</CardTitle>
-              <CardDescription>Review and approve referral reward payouts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {payoutsLoading ? (
-                <SectionLoader text="Loading Payouts..." className="min-h-[200px]" />
-              ) : (
-                <PayoutApprovalQueue payouts={payouts || []} />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <TabsContent value="payouts" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Referral Payouts</CardTitle>
+                  <CardDescription>Review and approve referral reward payouts</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {payoutsLoading ? (
+                    <SectionLoader text="Loading Payouts..." className="min-h-[200px]" />
+                  ) : (
+                    <PayoutApprovalQueue payouts={payouts || []} />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        <TabsContent value="subscriptions" className="space-y-4">
-          <SubscriptionsTab />
-        </TabsContent>
-
-        <TabsContent value="vat" className="space-y-6">
-          <VATLiabilityCard year={selectedYear} />
-          <Card>
-            <CardHeader>
-              <CardTitle>VAT Register</CardTitle>
-              <CardDescription>Quarterly VAT breakdown for BTW-aangifte filing</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <VATRegisterTable year={selectedYear} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            <TabsContent value="vat" className="space-y-6">
+              <VATLiabilityCard year={selectedYear} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>VAT Register</CardTitle>
+                  <CardDescription>Quarterly VAT breakdown for BTW-aangifte filing</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <VATRegisterTable year={selectedYear} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </>
+        )}
       </Tabs>
     </div>
   );
