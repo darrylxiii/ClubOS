@@ -143,7 +143,12 @@ serve(async (req) => {
       results.sourcing = { pending_processed: pendingMissions.length };
     }
 
-    // 6. Memory decay (clean up expired working memory)
+    // 6. Proactive calendar token refresh
+    console.log("[Heartbeat] Refreshing calendar tokens...");
+    const calRefreshResult = await invokeAgent("refresh-calendar-tokens", {});
+    results.calendar_token_refresh = calRefreshResult;
+
+    // 7. Memory decay (clean up expired working memory)
     console.log("[Heartbeat] Running memory decay...");
     const { error: decayError } = await supabase
       .from("agent_working_memory")

@@ -66,11 +66,16 @@ serve(async (req) => {
             continue;
           }
 
-          // Update the connection with new token
+          // Update the connection with new token and expiry
+          const newExpiresAt = tokenData.tokens?.expires_at
+            || tokenData.expires_at
+            || new Date(Date.now() + 3600 * 1000).toISOString();
+
           const { error: updateError } = await supabaseClient
             .from("calendar_connections")
             .update({
               access_token: tokenData.access_token,
+              token_expires_at: newExpiresAt,
               updated_at: new Date().toISOString(),
             })
             .eq("id", connection.id);

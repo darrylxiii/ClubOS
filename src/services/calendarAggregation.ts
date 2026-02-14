@@ -15,13 +15,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   return Promise.race([promise, timeout]);
 }
 
-/** Check if a calendar connection's token is likely expired beyond auto-refresh */
-function isTokenExpiredBeyondRefresh(connection: { token_expires_at?: string | null }): boolean {
-  if (!connection.token_expires_at) return false;
-  const expiresAt = new Date(connection.token_expires_at).getTime();
-  const oneHourAgo = Date.now() - 60 * 60 * 1000;
-  return expiresAt < oneHourAgo;
-}
 
 export async function fetchUnifiedCalendarEvents(
   userId: string,
@@ -70,8 +63,7 @@ async function hasActiveCalendarConnection(userId: string): Promise<boolean> {
     .eq('is_active', true)
     .limit(5);
 
-  if (!connections || connections.length === 0) return false;
-  return connections.some(c => !isTokenExpiredBeyondRefresh(c));
+  return !!(connections && connections.length > 0);
 }
 
 async function triggerInterviewDetection(
@@ -156,16 +148,6 @@ async function fetchGoogleCalendarEvents(
   const allEvents: UnifiedCalendarEvent[] = [];
 
   for (const connection of connections) {
-    // Token expiry pre-check
-    if (isTokenExpiredBeyondRefresh(connection)) {
-      console.warn(`Google calendar token expired for ${connection.email}. Prompting reconnect.`);
-      toast.error('Google Calendar token expired', {
-        description: 'Reconnect your Google Calendar in Settings to restore sync.',
-        duration: 8000,
-      });
-      continue;
-    }
-
     try {
       const { data, error } = await withTimeout(
         supabase.functions.invoke('google-calendar-events', {
@@ -181,7 +163,15 @@ async function fetchGoogleCalendarEvents(
       );
 
       if (error || !data?.events) {
-        console.error('Failed to fetch Google events:', error);
+        // Check if this is a token expiry error requiring user action
+        if (data?.error === 'token_refresh_failed' || data?.error === 'token_expired') {
+          toast.error('Google Calendar token expired', {
+            description: 'Reconnect your Google Calendar in Settings to restore sync.',
+            duration: 8000,
+          });
+        } else {
+          console.error('Failed to fetch Google events:', error);
+        }
         continue;
       }
 
@@ -228,16 +218,6 @@ async function fetchMicrosoftCalendarEvents(
   const allEvents: UnifiedCalendarEvent[] = [];
 
   for (const connection of connections) {
-    // Token expiry pre-check
-    if (isTokenExpiredBeyondRefresh(connection)) {
-      console.warn(`Microsoft calendar token expired for ${connection.email}. Prompting reconnect.`);
-      toast.error('Microsoft Calendar token expired', {
-        description: 'Reconnect your Microsoft Calendar in Settings to restore sync.',
-        duration: 8000,
-      });
-      continue;
-    }
-
     try {
       const { data, error } = await withTimeout(
         supabase.functions.invoke('microsoft-calendar-events', {
@@ -252,7 +232,14 @@ async function fetchMicrosoftCalendarEvents(
       );
 
       if (error || !data?.events) {
-        console.error('Failed to fetch Microsoft events:', error);
+        if (data?.error === 'token_refresh_failed' || data?.error === 'token_expired') {
+          toast.error('Microsoft Calendar token expired', {
+            description: 'Reconnect your Microsoft Calendar in Settings to restore sync.',
+            duration: 8000,
+          });
+        } else {
+          console.error('Failed to fetch Microsoft events:', error);
+        }
         continue;
       }
 
