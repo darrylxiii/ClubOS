@@ -3,7 +3,7 @@
  * Provisions a partner account directly from an approval action in the admin panel
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,7 +32,7 @@ export async function handler(req: Request) {
     const { requestId, approvedBy } = (await req.json()) as ProvisionPayload;
 
     const supabase = createClient(
-      Deno.env.get('VITE_SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
