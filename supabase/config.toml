@@ -1184,3 +1184,9 @@ verify_jwt = false
 [functions.source-candidates]
 verify_jwt = false
 
+# =============================================================================
+# Financial Intelligence
+# =============================================================================
+[functions.categorize-expenses]
+verify_jwt = true
+

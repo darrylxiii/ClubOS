@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, Euro, TrendingDown, Calendar, Building2 } from "lucide-react";
+import { Plus, Trash2, Euro, TrendingDown, Calendar, Building2, Sparkles } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { format } from "date-fns";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
 
 interface ExpenseCategory {
   id: string;
@@ -50,6 +51,7 @@ export default function ExpenseTracking() {
   });
   const queryClient = useQueryClient();
   const currentYear = new Date().getFullYear();
+  const [isCategorizing, setIsCategorizing] = useState(false);
 
   // Fetch categories
   const { data: categories } = useQuery({
@@ -154,6 +156,52 @@ export default function ExpenseTracking() {
   }, {} as Record<string, number>) || {};
   const recurringTotal = expenses?.filter(e => e.is_recurring).reduce((sum, e) => sum + e.amount, 0) || 0;
 
+  // AI categorization for uncategorized expenses
+  const handleAICategorize = async () => {
+    const uncategorized = expenses?.filter(e => !e.category_name || e.category_name === 'Other') || [];
+    if (uncategorized.length === 0) {
+      toast.info('All expenses are already categorized.');
+      return;
+    }
+    setIsCategorizing(true);
+    try {
+      const { data, error } = await supabaseClient.functions.invoke('categorize-expenses', {
+        body: {
+          expenses: uncategorized.slice(0, 20).map(e => ({
+            id: e.id,
+            description: e.description,
+            vendor: e.vendor,
+            amount: e.amount,
+          })),
+        },
+      });
+      if (error) throw error;
+      const categorizations = data?.categorizations || [];
+      let updated = 0;
+      for (const cat of categorizations) {
+        if (cat.confidence >= 0.6) {
+          const { error: updateErr } = await supabase
+            .from('operating_expenses')
+            .update({ category_name: cat.category })
+            .eq('id', cat.id);
+          if (!updateErr) updated++;
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ['operating-expenses'] });
+      toast.success(`Categorized ${updated} expenses using AI.`);
+    } catch (err: any) {
+      if (err?.status === 429) {
+        toast.error('Rate limit exceeded. Try again in a minute.');
+      } else if (err?.status === 402) {
+        toast.error('AI credits depleted. Please add funds.');
+      } else {
+        toast.error('AI categorization failed.');
+      }
+    } finally {
+      setIsCategorizing(false);
+    }
+  };
+
   const categoryColors: Record<string, string> = {
     'Salaries & Benefits': 'bg-blue-500',
     'Software & SaaS': 'bg-purple-500',
@@ -170,13 +218,18 @@ export default function ExpenseTracking() {
         <p className="text-muted-foreground">
           Track operating expenses for accurate profit calculations
         </p>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Expense
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleAICategorize} disabled={isCategorizing}>
+            <Sparkles className={`h-4 w-4 mr-2 ${isCategorizing ? 'animate-pulse' : ''}`} />
+            {isCategorizing ? 'Categorizing...' : 'AI Categorize'}
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Expense
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Expense</DialogTitle>
@@ -215,7 +268,8 @@ export default function ExpenseTracking() {
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Summary Cards */}

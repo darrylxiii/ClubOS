@@ -9,6 +9,8 @@ import { CostIntelligenceCards } from '@/components/financial/CostIntelligenceCa
 import { BurnRateChart } from '@/components/financial/BurnRateChart';
 import { BudgetVsActual } from '@/components/financial/BudgetVsActual';
 import { SubscriptionROITable } from '@/components/financial/SubscriptionROITable';
+import { FinancialAlertsBanner } from '@/components/financial/FinancialAlertsBanner';
+import { RevenueAttributionROI } from '@/components/financial/RevenueAttributionROI';
 import { useCostIntelligence, useGenerateExpensesFromSubscriptions } from '@/hooks/useSubscriptionBudgets';
 import { useSubscriptionMetrics } from '@/hooks/useVendorSubscriptions';
 import { formatCurrency } from '@/lib/revenueCalculations';
@@ -109,6 +111,9 @@ export default function SubscriptionManagement() {
             </Card>
           </div>
 
+          {/* Financial Alerts */}
+          <FinancialAlertsBanner />
+
           {/* Cost Intelligence Cards */}
           <CostIntelligenceCards />
 
@@ -118,8 +123,9 @@ export default function SubscriptionManagement() {
             <BudgetVsActual />
           </div>
 
-          {/* ROI Table */}
+          {/* ROI Tables */}
           <SubscriptionROITable />
+          <RevenueAttributionROI />
 
           {/* Full Subscription Management */}
           <div className="space-y-4">
