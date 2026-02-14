@@ -564,6 +564,77 @@ export async function removeFromBlockList(emails: string[]) {
 }
 
 // =====================================================
+// Unibox Email Endpoints (V2)
+// =====================================================
+
+export interface UniboxEmail {
+  id: string;
+  from_address_email: string;
+  from_address_json?: { name?: string; email?: string };
+  to_address_email_list?: string[];
+  cc_address_email_list?: string[];
+  subject: string;
+  body?: { text?: string; html?: string };
+  content_preview?: string;
+  message_id?: string;
+  thread_id?: string;
+  in_reply_to?: string;
+  timestamp_email?: string;
+  timestamp_created?: string;
+  ai_interest_value?: number;
+  is_unread?: boolean;
+  campaign_id?: string;
+  eaccount?: string; // sending account email
+  ue_type?: number; // 1=received, 3=sent
+}
+
+export interface ListUniboxEmailsParams {
+  email_type?: 'received' | 'sent' | 'all' | 'manual';
+  campaign_id?: string;
+  lead?: string; // filter by lead email
+  latest_of_thread?: boolean;
+  preview_only?: boolean;
+  limit?: number;
+  starting_after?: string;
+}
+
+export async function listUniboxEmails(params: ListUniboxEmailsParams = {}) {
+  return instantlyRequest<{ items: UniboxEmail[]; next_starting_after?: string }>('/emails', {
+    params: {
+      email_type: params.email_type || 'received',
+      campaign_id: params.campaign_id,
+      lead: params.lead,
+      latest_of_thread: params.latest_of_thread,
+      preview_only: params.preview_only !== undefined ? params.preview_only : false,
+      limit: params.limit || 50,
+      starting_after: params.starting_after,
+    } as Record<string, string | number | boolean | undefined>,
+  });
+}
+
+export async function getUnreadCount() {
+  return instantlyRequest<{ count: number }>('/emails/unread/count');
+}
+
+export async function markThreadAsRead(threadId: string) {
+  return instantlyRequest<void>(`/emails/threads/${threadId}/mark-as-read`, {
+    method: 'POST',
+  });
+}
+
+export async function replyToEmailV2(params: {
+  reply_to_uuid: string;
+  eaccount: string;
+  subject: string;
+  body: { html: string; text: string };
+}) {
+  return instantlyRequest<UniboxEmail>('/emails/reply', {
+    method: 'POST',
+    body: params as unknown as Record<string, unknown>,
+  });
+}
+
+// =====================================================
 // Email Verification
 // =====================================================
 

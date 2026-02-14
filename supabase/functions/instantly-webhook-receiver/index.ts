@@ -190,7 +190,7 @@ serve(async (req) => {
       case 'lead.replied':
         updates.emails_replied = (prospect.emails_replied || 0) + 1;
         updates.last_replied_at = data.replied_at || new Date().toISOString();
-        // Store reply content
+        // Store reply content in activities
         if (data.reply_body) {
           await supabase
             .from('crm_prospect_activities')
@@ -201,6 +201,36 @@ serve(async (req) => {
               content: data.reply_body,
               source: 'instantly_webhook',
             });
+        }
+        // Also write to crm_email_replies for the Reply Inbox
+        {
+          // Find campaign ID
+          let crmCampaignId: string | null = null;
+          if (data.campaign_id) {
+            const { data: crmCampaign } = await supabase
+              .from('crm_campaigns')
+              .select('id')
+              .eq('external_id', data.campaign_id)
+              .maybeSingle();
+            crmCampaignId = crmCampaign?.id || null;
+          }
+          
+          await supabase
+            .from('crm_email_replies')
+            .insert({
+              prospect_id: prospect.id,
+              campaign_id: crmCampaignId,
+              from_email: email,
+              from_name: [data.first_name, data.last_name].filter(Boolean).join(' ') || null,
+              subject: data.subject || 'Reply',
+              body_text: data.reply_body || data.body || null,
+              classification: 'unclassified',
+              received_at: data.replied_at || new Date().toISOString(),
+              external_id: data.lead_id ? `webhook_${data.lead_id}_${Date.now()}` : null,
+              metadata: { source: 'instantly_webhook', event_type },
+            });
+          
+          console.log(`[instantly-webhook] Wrote reply to crm_email_replies for ${email}`);
         }
         break;
       
