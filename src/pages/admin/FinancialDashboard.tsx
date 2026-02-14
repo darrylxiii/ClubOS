@@ -31,6 +31,7 @@ import { FinancialExportMenu } from "@/components/financial/FinancialExportMenu"
 import { CurrencySelector } from "@/components/financial/CurrencySelector";
 import { useRole } from "@/contexts/RoleContext";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Currency, convertCurrency } from "@/lib/currencyConversion";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,6 +47,54 @@ export default function FinancialDashboard() {
 
   const isFinanceOrAdmin = currentRole === 'admin';
   const isStrategist = currentRole === 'strategist';
+
+  // P&L summary for PDF export (mirrors ProfitLossCard logic)
+  const { data: plData } = useQuery({
+    queryKey: ['pl-export-summary', selectedYear],
+    enabled: isFinanceOrAdmin,
+    queryFn: async () => {
+      const startOfYear = `${selectedYear}-01-01`;
+      const { data: inv } = await supabase
+        .from('moneybird_sales_invoices')
+        .select('total_amount, net_amount, vat_amount')
+        .gte('invoice_date', startOfYear);
+
+      const netRevenue = inv?.reduce((s, i) => s + (Number(i.net_amount) || Number(i.total_amount) / 1.21 || 0), 0) || 0;
+      const vatCollected = inv?.reduce((s, i) => s + (Number(i.vat_amount) || Number(i.total_amount) - Number(i.total_amount) / 1.21 || 0), 0) || 0;
+      const grossRevenue = inv?.reduce((s, i) => s + (Number(i.total_amount) || 0), 0) || 0;
+
+      const { data: comms } = await supabase.from('employee_commissions').select('gross_amount').gte('created_at', startOfYear);
+      const totalCommissions = comms?.reduce((s, c) => s + (c.gross_amount || 0), 0) || 0;
+
+      const { data: pays } = await supabase.from('referral_payouts').select('payout_amount').gte('created_at', startOfYear);
+      const totalPayouts = pays?.reduce((s, p) => s + (p.payout_amount || 0), 0) || 0;
+
+      const { data: exps } = await supabase.from('operating_expenses').select('amount').gte('expense_date', startOfYear);
+      const totalOtherExpenses = exps?.reduce((s, e) => s + (e.amount || 0), 0) || 0;
+
+      const { data: subs } = await supabase.from('vendor_subscriptions').select('monthly_cost, contract_start_date, status').eq('status', 'active');
+      const now = new Date();
+      const yearStart = new Date(selectedYear, 0, 1);
+      const monthsElapsed = (now.getFullYear() - yearStart.getFullYear()) * 12 + (now.getMonth() - yearStart.getMonth()) + 1;
+      const totalSubscriptionCosts = subs?.reduce((sum, sub) => {
+        const start = new Date(sub.contract_start_date);
+        const effective = start > yearStart ? start : yearStart;
+        const active = Math.max(0, (now.getFullYear() - effective.getFullYear()) * 12 + (now.getMonth() - effective.getMonth()) + 1);
+        return sum + (sub.monthly_cost * Math.min(active, monthsElapsed));
+      }, 0) || 0;
+
+      const grossMargin = netRevenue - totalCommissions - totalPayouts;
+      const netProfit = grossMargin - totalOtherExpenses - totalSubscriptionCosts;
+
+      return {
+        netRevenue, grossRevenue, vatCollected,
+        totalCommissions, totalPayouts, totalOtherExpenses, totalSubscriptionCosts,
+        grossMargin, netProfit,
+        grossMarginPercent: netRevenue > 0 ? (grossMargin / netRevenue) * 100 : 0,
+        netMarginPercent: netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0,
+      };
+    },
+  });
 
   // Export datasets
   const exportDatasets = [
@@ -96,7 +145,7 @@ export default function FinancialDashboard() {
         <div className="flex items-center gap-2">
           <CurrencySelector value={displayCurrency} onChange={setDisplayCurrency} />
           {isFinanceOrAdmin && (
-            <FinancialExportMenu datasets={exportDatasets} year={selectedYear} />
+            <FinancialExportMenu datasets={exportDatasets} plSummary={plData || undefined} year={selectedYear} />
           )}
           <YearSelector
             selectedYear={selectedYear}
