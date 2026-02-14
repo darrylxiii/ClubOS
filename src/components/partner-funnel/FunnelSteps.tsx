@@ -343,6 +343,16 @@ export function FunnelSteps() {
         return;
       }
 
+      // Notify admins about the new partner request (non-blocking)
+      supabase.functions.invoke('notify-admin-partner-request', {
+        body: {
+          requestId: crypto.randomUUID(),
+          name: formData.contact_name || 'Unknown',
+          email: formData.contact_email || '',
+          type: 'partner',
+        }
+      }).catch(err => console.warn('Admin notification failed (non-blocking):', err));
+
       toast({
         title: "Successfully submitted Partner Request",
         description: "Your strategist will respond within 19 minutes on average.",
