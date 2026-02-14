@@ -5,77 +5,58 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProfitLossCardProps {
   year?: number;
 }
 
-export function ProfitLossCard({ year }: ProfitLossCardProps) {
-  const currentYear = year || new Date().getFullYear();
-  const startOfYear = `${currentYear}-01-01`;
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['profit-loss-summary', currentYear],
+function usePLData(year: number) {
+  const startOfYear = `${year}-01-01`;
+  return useQuery({
+    queryKey: ['profit-loss-summary', year],
     queryFn: async () => {
-      // Fetch revenue from Moneybird - use net_amount for true revenue (excl. VAT)
       const { data: invoices } = await supabase
         .from('moneybird_sales_invoices')
         .select('total_amount, net_amount, vat_amount, state_normalized')
         .gte('invoice_date', startOfYear);
 
-      // Net revenue (excluding 21% VAT) - this is our actual revenue
       const netRevenue = invoices?.reduce((sum, inv) => 
         sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
-      
-      // VAT collected (liability to tax authority)
       const vatCollected = invoices?.reduce((sum, inv) => 
         sum + (Number(inv.vat_amount) || Number(inv.total_amount) - Number(inv.total_amount) / 1.21 || 0), 0) || 0;
-      
-      // Gross for reference
       const grossRevenue = invoices?.reduce((sum, inv) => 
         sum + (Number(inv.total_amount) || 0), 0) || 0;
 
-      // Fetch commissions
       const { data: commissions } = await supabase
         .from('employee_commissions')
         .select('gross_amount')
         .gte('created_at', startOfYear);
+      const totalCommissions = commissions?.reduce((sum, c) => sum + (c.gross_amount || 0), 0) || 0;
 
-      const totalCommissions = commissions?.reduce((sum, c) => 
-        sum + (c.gross_amount || 0), 0) || 0;
-
-      // Fetch referral payouts
       const { data: payouts } = await supabase
         .from('referral_payouts')
         .select('payout_amount')
         .gte('created_at', startOfYear);
+      const totalPayouts = payouts?.reduce((sum, p) => sum + (p.payout_amount || 0), 0) || 0;
 
-      const totalPayouts = payouts?.reduce((sum, p) => 
-        sum + (p.payout_amount || 0), 0) || 0;
-
-      // Fetch operating expenses (non-subscription)
       const { data: expenses } = await supabase
         .from('operating_expenses')
         .select('amount')
         .gte('expense_date', startOfYear);
+      const totalOtherExpenses = expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0;
 
-      const totalOtherExpenses = expenses?.reduce((sum, e) => 
-        sum + (e.amount || 0), 0) || 0;
-
-      // Fetch SaaS subscription costs (active subscriptions, annualized for YTD)
       const { data: subscriptions } = await supabase
         .from('vendor_subscriptions')
         .select('monthly_cost, contract_start_date, status')
         .eq('status', 'active');
 
-      // Calculate subscription costs YTD
       const now = new Date();
-      const yearStart = new Date(currentYear, 0, 1);
+      const yearStart = new Date(year, 0, 1);
       const monthsElapsed = (now.getFullYear() - yearStart.getFullYear()) * 12 + 
                            (now.getMonth() - yearStart.getMonth()) + 1;
       
       const totalSubscriptionCosts = subscriptions?.reduce((sum, sub) => {
-        // Calculate months active in current year
         const startDate = new Date(sub.contract_start_date);
         const effectiveStart = startDate > yearStart ? startDate : yearStart;
         const monthsActive = Math.max(0, 
@@ -86,8 +67,6 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
       }, 0) || 0;
 
       const totalExpenses = totalOtherExpenses + totalSubscriptionCosts;
-
-      // Calculate margins based on NET revenue (excluding VAT)
       const grossMargin = netRevenue - totalCommissions - totalPayouts;
       const netProfit = grossMargin - totalExpenses;
       const grossMarginPercent = netRevenue > 0 ? (grossMargin / netRevenue) * 100 : 0;
@@ -95,7 +74,7 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
 
       return {
         netRevenue,
-        grossRevenue, // For reference/tooltip
+        grossRevenue,
         vatCollected,
         totalCommissions,
         totalPayouts,
@@ -109,6 +88,12 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
       };
     },
   });
+}
+
+export function ProfitLossCard({ year }: ProfitLossCardProps) {
+  const currentYear = year || new Date().getFullYear();
+  const { data, isLoading } = usePLData(currentYear);
+  const { data: priorData, isLoading: priorLoading } = usePLData(currentYear - 1);
 
   if (isLoading) {
     return (
@@ -129,6 +114,33 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
     : data?.netProfit && data.netProfit < 0 
       ? 'negative' 
       : 'neutral';
+
+  // YoY calculation
+  const yoyRevenueChange = priorData && priorData.netRevenue > 0
+    ? ((data?.netRevenue || 0) - priorData.netRevenue) / priorData.netRevenue * 100
+    : null;
+  const yoyProfitChange = priorData && priorData.netProfit !== 0
+    ? ((data?.netProfit || 0) - priorData.netProfit) / Math.abs(priorData.netProfit) * 100
+    : null;
+
+  const YoYBadge = ({ value, label }: { value: number | null; label: string }) => {
+    if (value === null || priorLoading) return null;
+    const isPositive = value >= 0;
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={`text-xs font-medium ml-2 ${isPositive ? 'text-success' : 'text-destructive'}`}>
+              {isPositive ? '↑' : '↓'}{Math.abs(value).toFixed(0)}% YoY
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">{label}: {formatCurrency(priorData?.netRevenue || 0)} in {currentYear - 1}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   return (
     <Card>
@@ -152,7 +164,10 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
         {/* Net Revenue (excl. VAT) */}
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Net Revenue (excl. VAT)</span>
+            <span className="text-muted-foreground">
+              Net Revenue (excl. VAT)
+              <YoYBadge value={yoyRevenueChange} label="Prior year revenue" />
+            </span>
             <span className="font-medium">{formatCurrency(data?.netRevenue || 0)}</span>
           </div>
           <div className="text-xs text-muted-foreground">
@@ -203,7 +218,10 @@ export function ProfitLossCard({ year }: ProfitLossCardProps) {
         {/* Net Profit */}
         <div className="pt-2 border-t bg-muted/30 -mx-6 px-6 py-3 rounded-b-lg">
           <div className="flex justify-between items-center">
-            <span className="font-bold text-lg">Net Profit</span>
+            <span className="font-bold text-lg">
+              Net Profit
+              <YoYBadge value={yoyProfitChange} label="Prior year profit" />
+            </span>
             <span className={`font-bold text-xl ${
               (data?.netProfit || 0) >= 0 ? 'text-success' : 'text-destructive'
             }`}>
