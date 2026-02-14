@@ -1,96 +1,94 @@
 
+## Issue 1: Email Verification Audit (Separate Task)
+The email verification system for membership requests shows a **66% success rate** (39/59 deliveries since Jan 2026). Root causes:
+- **Domain configuration**: Resend likely has SPF/DKIM/DMARC misconfigurations for `thequantumclub.nl`
+- **Provider blocks**: Yahoo and corporate domains (closedin.io, binnenbouwers.nl) showing 0% delivery
+- **Missing telemetry**: The `send-verification-code` function has no error logging to Resend API responses
+- **Input typos**: Database has unvalidated email addresses (gmail.con, hotmaill.com)
 
-# Sourcing Agent: Admin/Strategist-Only Implementation
+**Recommended fixes:**
+1. Add enhanced logging to `send-verification-code` edge function to capture Resend API responses
+2. Create a database audit query to identify problematic domains
+3. Add email domain typo detection in onboarding (Did you mean gmail.com?)
+4. Implement SMS fallback for verified phone numbers
+5. Verify SPF/DKIM/DMARC records in Resend dashboard for thequantumclub.nl
 
-## Scope Clarification
+This will be tracked separately once the current task is complete.
 
-Partners are completely excluded from the sourcing system. They will never see sourcing strategies, Boolean queries, URL imports, mission progress, or any sourcing-related UI. The entire Agentic OS hub is already restricted to admin routes -- Partners cannot access `/admin/agentic-os` at all.
+---
 
-This means the previously discussed `PartnerSourcingView.tsx` and partner RLS policies are dropped entirely. The sourcing system is 100% internal tooling for The Quantum Club team.
+## Issue 2: Agenda Widget - Show 5 Upcoming Meetings
 
-## What Gets Built
+### Current Behavior
+- `ActiveMeetingsWidget.tsx` fetches meetings using `startOfDay(now)` to `endOfDay(now)` — only today's meetings
+- Displays all today's meetings, with header showing "Today's Agenda"
+- No date indicators when there are multiple meetings
 
-### 1. Database Migration
+### Proposed Changes
 
-Add columns to the existing `sourcing_missions` table:
-- `search_strategy JSONB` -- AI-generated Boolean queries and tips
-- `partner_request_notes` is NOT added (partners excluded)
-- `time_spent_minutes INT` -- strategist effort tracking
+**1. Modify Data Fetching (ActiveMeetingsWidget.tsx)**
+- Change date range from today-only to **next 5 days** (today + 4 more days)
+- Use `startOfDay(now)` to `endOfDay(addDays(now, 4))`
+- Limit results to max 5 meetings via `.slice(0, 5)`
+- Keep existing filtering and status computation
 
-Add a strategist RLS policy (currently only admin/super_admin can access):
-- Strategists can SELECT and INSERT sourcing missions for jobs they are assigned to
+**2. Update Header Logic**
+- Detect if all events are today: show "Today's Agenda"
+- If events span multiple days: show "Upcoming Meetings" instead
+- Remove the specific date label and replace with dynamic indicator
 
-No partner policies whatsoever.
+**3. Add Date Display for Multi-Day Events**
+- Group events by date internally (for rendering purposes)
+- When rendering each event row, check if it's a different day than the previous event
+- If date changed, inject a **subtle date separator** or show date inline with time
 
-### 2. Edge Function: `guide-sourcing-strategy`
+**Two rendering approaches:**
 
-Uses Lovable AI (gemini-3-flash-preview) to generate actionable search strategies from a job description. Zero external API keys needed.
+**Approach A (Date Separators)**: Insert a divider before each new date
+```
+🗓️ Today
+├─ 9:00 AM - Client Meeting
+├─ 2:00 PM - Interview Round 1
 
-**Input**: `{ jobId: string }`
-**Output**: Structured JSON with:
-- 5 LinkedIn Boolean search strings (title + skills + location variations)
-- GitHub search queries for technical roles
-- Platform-specific tips (where to look, what filters to use)
-- Estimated effort in hours
+🗓️ Friday, Feb 14
+├─ 10:00 AM - Panel Interview
+├─ 3:30 PM - Technical Review
 
-Server-side role check: only admin/strategist can invoke.
+🗓️ Monday, Feb 17
+├─ 11:00 AM - Final Interview
+```
 
-### 3. Edge Function: `source-candidates`
+**Approach B (Inline Date)**: Show date in the time column when it's not today
+```
+9:00 AM      Client Meeting
+2:00 PM      Interview Round 1
 
-Processes LinkedIn URLs submitted by admin/strategist. Pipeline per URL:
-1. Normalize URL format
-2. Deduplicate against `candidate_profiles.linkedin_url`
-3. Invoke existing `linkedin-scraper` for new profiles
-4. Invoke `enrich-candidate-profile` for AI enrichment
-5. AI-rank candidates against the job
-6. Save to `agent_matches` and update `sourcing_missions`
-7. Log to `agent_decision_log`
+Tomorrow 10:00 AM    Panel Interview
+Tomorrow 3:30 PM     Technical Review
 
-Server-side role check: rejects any non-admin/strategist caller with 403.
+Feb 17 11:00 AM      Final Interview
+```
 
-### 4. UI: `SourcingCommandPanel.tsx` (Admin/Strategist Only)
+**Recommendation**: Use **Approach B (Inline Date)** since it's more compact and fits the existing glass-subtle card aesthetic. It adds a single line per date change without extra visual clutter.
 
-New tab in the Agentic OS hub with:
-- **Job selector** dropdown to pick the role being sourced
-- **AI Strategy Generator** button: calls `guide-sourcing-strategy`, displays Boolean queries in copyable cards
-- **Bulk URL Import** textarea: paste LinkedIn URLs, preview dedup results, trigger processing pipeline
-- **Active Missions** list: status, profile counts, timeline
-- **Results Grid**: ranked candidates with match scores and "Add to Shortlist" actions
-- No cost/credit tracking UI (no external API costs without Proxycurl)
+**4. Implementation Details**
+- Reuse existing `format()` calls from date-fns
+- Add helper function to determine if date changed between events
+- For non-today dates, prepend date label: `formatDate(e.start, 'EEE, MMM d')` followed by time
+- Update header logic to say "Upcoming Meetings" if span > 1 day
+- Keep all other status badges, join buttons, and behavior identical
 
-### 5. Data Hook: `useSourcingMissions.ts`
+**5. Files to Modify**
+- `src/components/clubhome/ActiveMeetingsWidget.tsx` (only file, ~80 lines changed)
+  - Import `addDays` from date-fns
+  - Change date range calculation in useEffect
+  - Add `.slice(0, 5)` to limit results
+  - Add date grouping/comparison logic in render loop
+  - Update header condition
 
-React Query hook for CRUD on `sourcing_missions`. No role branching needed since only admin/strategist can reach this UI.
-
-### 6. Hub Integration
-
-Update `AgenticOSHub.tsx` to add a 6th tab: "Sourcing" with the `SourcingCommandPanel`.
-
-### 7. Heartbeat Integration
-
-Update `agentic-heartbeat` to process pending sourcing missions (max 2 concurrent). When the headhunter finds fewer than 5 internal matches for a new job, it auto-creates a sourcing mission for strategist attention.
-
-## Files
-
-### New
-| File | Purpose |
-|------|---------|
-| `supabase/functions/guide-sourcing-strategy/index.ts` | AI Boolean query generation |
-| `supabase/functions/source-candidates/index.ts` | URL processing pipeline |
-| `src/components/admin/agentic/SourcingCommandPanel.tsx` | Full sourcing UI |
-| `src/hooks/useSourcingMissions.ts` | Data hook |
-
-### Modified
-| File | Change |
-|------|--------|
-| `src/pages/admin/AgenticOSHub.tsx` | Add 6th "Sourcing" tab |
-| `supabase/functions/run-headhunter-agent/index.ts` | Auto-create sourcing mission when internal results are thin |
-| `supabase/functions/agentic-heartbeat/index.ts` | Process pending sourcing missions |
-
-## Security Summary
-
-- `sourcing_missions` table: RLS restricts to admin/super_admin/strategist only
-- Both edge functions validate caller role server-side before processing
-- Partners have zero visibility: no UI route, no RLS policy, no API access
-- The Agentic OS hub lives under `/admin/` which is already gated to admin roles
-
+### Design Decisions
+- **5 meetings max**: Keeps card height reasonable (~300-400px max), user can click "View Full Calendar" for more
+- **Limit to 5 days ahead**: Beyond that, meetings are far-future context; cards remain scannable
+- **No cost/complexity**: Uses existing `fetchUnifiedCalendarEvents`, just different date range
+- **Maintains glass aesthetic**: Subtle date labels, no extra visual breaks beyond current design
+- **Backward compatible**: All existing status badges, join buttons, and styling unchanged
