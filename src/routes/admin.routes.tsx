@@ -47,6 +47,7 @@ const StrategistProjectsDashboard = lazy(() => import("@/pages/admin/StrategistP
 const MarketplaceAnalytics = lazy(() => import("@/pages/admin/MarketplaceAnalytics"));
 const InventoryHub = lazy(() => import("@/pages/admin/InventoryHub"));
 const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
+const SubscriptionManagement = lazy(() => import("@/pages/admin/SubscriptionManagement"));
 
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
@@ -129,6 +130,7 @@ export const adminRoutes = (
     {R("/admin/marketplace/strategist", StrategistProjectsDashboard)}
     {R("/admin/marketplace/analytics", MarketplaceAnalytics)}
     {R("/admin/inventory", InventoryHub)}
+    {R("/admin/subscriptions", SubscriptionManagement)}
     {R("/admin/bulk-operations", BulkOperationsHub)}
     {R("/admin/enterprise", EnterpriseDashboard)}
     {R("/admin/due-diligence", DueDiligenceDashboard)}

@@ -45228,6 +45228,39 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_budgets: {
+        Row: {
+          budget_amount: number
+          category: string
+          created_at: string
+          id: string
+          notes: string | null
+          period_type: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          budget_amount?: number
+          category: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_type?: string
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          budget_amount?: number
+          category?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_type?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           billing_interval: string
@@ -50420,8 +50453,11 @@ export type Database = {
           next_billing_date: string | null
           next_renewal_date: string | null
           notes: string | null
+          operating_expense_category_id: string | null
           payment_method: string | null
           primary_owner_id: string | null
+          revenue_attribution: string | null
+          roi_notes: string | null
           seats_licensed: number | null
           seats_used: number | null
           status: string | null
@@ -50449,8 +50485,11 @@ export type Database = {
           next_billing_date?: string | null
           next_renewal_date?: string | null
           notes?: string | null
+          operating_expense_category_id?: string | null
           payment_method?: string | null
           primary_owner_id?: string | null
+          revenue_attribution?: string | null
+          roi_notes?: string | null
           seats_licensed?: number | null
           seats_used?: number | null
           status?: string | null
@@ -50478,8 +50517,11 @@ export type Database = {
           next_billing_date?: string | null
           next_renewal_date?: string | null
           notes?: string | null
+          operating_expense_category_id?: string | null
           payment_method?: string | null
           primary_owner_id?: string | null
+          revenue_attribution?: string | null
+          roi_notes?: string | null
           seats_licensed?: number | null
           seats_used?: number | null
           status?: string | null
@@ -50489,6 +50531,13 @@ export type Database = {
           vendor_website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "vendor_subscriptions_operating_expense_category_id_fkey"
+            columns: ["operating_expense_category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vendor_subscriptions_primary_owner_id_fkey"
             columns: ["primary_owner_id"]

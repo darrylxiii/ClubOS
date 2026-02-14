@@ -15,6 +15,7 @@ const ExpenseTrackingPage = lazy(() => import('@/pages/admin/ExpenseTracking'));
 const InvoiceReconciliationPage = lazy(() => import('@/pages/admin/InvoiceReconciliation'));
 const MoneybirdSettings = lazy(() => import('@/pages/admin/MoneybirdSettings'));
 const DealPipelineSettings = lazy(() => import('@/pages/admin/DealPipelineSettings'));
+const SubscriptionManagementEmbed = lazy(() => import('@/pages/admin/SubscriptionManagement'));
 
 const TAB_MAP: Record<string, string> = {
   dashboard: 'dashboard',
@@ -26,6 +27,7 @@ const TAB_MAP: Record<string, string> = {
   reconciliation: 'reconciliation',
   moneybird: 'moneybird',
   'pipeline-settings': 'pipeline-settings',
+  subscriptions: 'subscriptions',
 };
 
 export default function FinanceHub() {
@@ -61,6 +63,7 @@ export default function FinanceHub() {
               <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
               <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
               <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
+              <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>
@@ -73,6 +76,14 @@ export default function FinanceHub() {
               <TabsContent value="reconciliation"><InvoiceReconciliationPage /></TabsContent>
               <TabsContent value="moneybird"><MoneybirdSettings /></TabsContent>
               <TabsContent value="pipeline-settings"><DealPipelineSettings /></TabsContent>
+              <TabsContent value="subscriptions">
+                <div className="text-center py-8 space-y-4">
+                  <p className="text-muted-foreground">Full subscription management has been moved to a dedicated page for enterprise-grade cost control.</p>
+                  <a href="/admin/subscriptions" className="inline-flex items-center gap-2 text-primary hover:underline font-medium">
+                    Open Subscription Management →
+                  </a>
+                </div>
+              </TabsContent>
             </Suspense>
           </Tabs>
         </div>
