@@ -1,6 +1,7 @@
 import { useInvestorMetrics } from "@/hooks/useInvestorMetrics";
 import { ARRTracker } from "@/components/admin/revenue/ARRTracker";
 import { RevenueDistributionSummary } from "@/components/admin/revenue/RevenueDistributionSummary";
+import { RevenueCohortAnalysis } from "@/components/financial/RevenueCohortAnalysis";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -197,17 +198,7 @@ export default function RevenueDashboard() {
         </TabsContent>
 
         <TabsContent value="cohorts">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle>Revenue Cohorts</CardTitle>
-              <CardDescription>Customer cohort analysis by signup month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Cohort analysis will be available once sufficient customer data is collected.
-              </p>
-            </CardContent>
-          </Card>
+          <RevenueCohortAnalysis />
         </TabsContent>
       </Tabs>
     </div>
