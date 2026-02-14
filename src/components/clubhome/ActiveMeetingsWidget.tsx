@@ -6,7 +6,7 @@ import { Calendar, Video, Clock, ArrowRight, Globe } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { format, startOfDay, endOfDay, addDays, isToday, isTomorrow, isSameDay } from "date-fns";
 import { getMeetingStatus, type MeetingStatusInfo } from "@/utils/meetingStatus";
 import { fetchUnifiedCalendarEvents } from "@/services/calendarAggregation";
 import type { UnifiedCalendarEvent } from "@/types/calendar";
@@ -36,9 +36,10 @@ export const ActiveMeetingsWidget = () => {
         if (!user) return;
 
         const now = new Date();
-        const unified = await fetchUnifiedCalendarEvents(user.id, startOfDay(now), endOfDay(now));
-        setEvents(unified);
-        refreshStatuses(unified);
+        const unified = await fetchUnifiedCalendarEvents(user.id, startOfDay(now), endOfDay(addDays(now, 4)));
+        const limited = unified.slice(0, 5);
+        setEvents(limited);
+        refreshStatuses(limited);
       } catch (err) {
         console.error('Error fetching agenda:', err);
       } finally {
@@ -57,7 +58,15 @@ export const ActiveMeetingsWidget = () => {
   }, [events, refreshStatuses]);
 
   const today = new Date();
-  const dateLabel = format(today, 'EEEE, MMM d');
+  const allToday = events.every((e) => isToday(e.start));
+  const headerTitle = allToday ? "Today's Agenda" : 'Upcoming Meetings';
+  const dateLabel = allToday ? format(today, 'EEEE, MMM d') : '';
+
+  const formatEventTime = (date: Date): string => {
+    if (isToday(date)) return format(date, 'h:mm a');
+    if (isTomorrow(date)) return `Tomorrow ${format(date, 'h:mm a')}`;
+    return `${format(date, 'EEE, MMM d')} ${format(date, 'h:mm a')}`;
+  };
 
   const nextEventId = events.find((e) => {
     const s = statuses.get(e.id);
@@ -84,16 +93,16 @@ export const ActiveMeetingsWidget = () => {
         <CardTitle className="flex items-center justify-between text-lg">
           <span className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            Today's Agenda
+            {headerTitle}
           </span>
-          <span className="text-xs font-normal text-muted-foreground">{dateLabel}</span>
+          {dateLabel && <span className="text-xs font-normal text-muted-foreground">{dateLabel}</span>}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <Calendar className="h-8 w-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No meetings scheduled today</p>
+            <p className="text-sm text-muted-foreground">No meetings in the next 5 days</p>
             <Button asChild variant="outline" size="sm">
               <Link to="/meetings?tab=calendar">View Calendar</Link>
             </Button>
@@ -113,9 +122,9 @@ export const ActiveMeetingsWidget = () => {
                   className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-card/40"
                 >
                   {/* Time column */}
-                  <div className="flex w-24 shrink-0 flex-col text-xs text-muted-foreground">
+                  <div className={`flex shrink-0 flex-col text-xs text-muted-foreground ${!isToday(e.start) ? 'w-36' : 'w-24'}`}>
                     <span className="font-medium text-foreground/80">
-                      {format(e.start, 'h:mm a')}
+                      {formatEventTime(e.start)}
                     </span>
                     <span>{format(e.end, 'h:mm a')}</span>
                   </div>
