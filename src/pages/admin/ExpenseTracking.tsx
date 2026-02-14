@@ -234,8 +234,8 @@ export default function ExpenseTracking() {
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><TrendingDown className="h-4 w-4" />Monthly Average</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(totalExpenses / 12)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Based on YTD</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalExpenses / (new Date().getMonth() + 1))}</p>
+            <p className="text-xs text-muted-foreground mt-1">Based on {new Date().getMonth() + 1} months</p>
           </CardContent>
         </Card>
         <Card>

@@ -8,6 +8,7 @@ import { PlacementFee } from "@/hooks/useFinancialData";
 import { PlacementFeeWithContext } from "@/hooks/usePlacementFeesWithContext";
 import { format } from "date-fns";
 import { Search, FileText, TrendingUp, TrendingDown, Minus, User, AlertCircle, Building2 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AddPlacementFeeDialog } from "./AddPlacementFeeDialog";
 
@@ -69,7 +70,16 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
           />
         </div>
         <AddPlacementFeeDialog />
-        <Button>
+        <Button
+          onClick={() => {
+            const pending = fees.filter(f => f.status === 'pending');
+            if (pending.length === 0) {
+              toast.info('No pending placement fees to invoice.');
+              return;
+            }
+            toast.info(`${pending.length} pending fee(s) ready for invoicing. Invoice generation coming soon.`);
+          }}
+        >
           <FileText className="mr-2 h-4 w-4" />
           Generate Invoice
         </Button>

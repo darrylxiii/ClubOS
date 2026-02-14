@@ -15,7 +15,7 @@ const ExpenseTrackingPage = lazy(() => import('@/pages/admin/ExpenseTracking'));
 const InvoiceReconciliationPage = lazy(() => import('@/pages/admin/InvoiceReconciliation'));
 const MoneybirdSettings = lazy(() => import('@/pages/admin/MoneybirdSettings'));
 const DealPipelineSettings = lazy(() => import('@/pages/admin/DealPipelineSettings'));
-const SubscriptionManagementEmbed = lazy(() => import('@/pages/admin/SubscriptionManagement'));
+
 
 const TAB_MAP: Record<string, string> = {
   dashboard: 'dashboard',
