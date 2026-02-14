@@ -10,6 +10,40 @@ import { format, startOfDay, endOfDay, addDays, isToday, isTomorrow, isSameDay }
 import { getMeetingStatus, type MeetingStatusInfo } from "@/utils/meetingStatus";
 import { fetchUnifiedCalendarEvents } from "@/services/calendarAggregation";
 import type { UnifiedCalendarEvent } from "@/types/calendar";
+import { EventDetailModal } from "@/components/meetings/EventDetailModal";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+function getInitialsFromEmail(email: string): string {
+  const local = email.split('@')[0];
+  const parts = local.split(/[._-]/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return local.slice(0, 2).toUpperCase();
+}
+
+function AttendeeAvatars({ attendees }: { attendees?: string[] }) {
+  if (!attendees || attendees.length === 0) return null;
+  const visible = attendees.slice(0, 3);
+  const overflow = attendees.length - 3;
+
+  return (
+    <div className="flex items-center -space-x-1.5 shrink-0">
+      {visible.map((email, i) => (
+        <Avatar key={i} className="h-6 w-6 border-2 border-background">
+          <AvatarFallback className="text-[9px] font-medium bg-muted text-muted-foreground">
+            {getInitialsFromEmail(email)}
+          </AvatarFallback>
+        </Avatar>
+      ))}
+      {overflow > 0 && (
+        <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground">
+          +{overflow}
+        </span>
+      )}
+    </div>
+  );
+}
 
 const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
   quantum_club: { label: 'TQC', color: 'text-primary' },
@@ -21,6 +55,8 @@ export const ActiveMeetingsWidget = () => {
   const [events, setEvents] = useState<UnifiedCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [statuses, setStatuses] = useState<Map<string, MeetingStatusInfo>>(new Map());
+  const [selectedEvent, setSelectedEvent] = useState<UnifiedCalendarEvent | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const navigate = useNavigate();
 
   const refreshStatuses = useCallback((list: UnifiedCalendarEvent[]) => {
@@ -119,7 +155,8 @@ export const ActiveMeetingsWidget = () => {
               return (
                 <div
                   key={e.id}
-                  className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-card/40"
+                  className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-card/40 cursor-pointer"
+                  onClick={() => { setSelectedEvent(e); setDetailOpen(true); }}
                 >
                   {/* Time column */}
                   <div className={`flex shrink-0 flex-col text-xs text-muted-foreground ${!isToday(e.start) ? 'w-36' : 'w-24'}`}>
@@ -154,27 +191,32 @@ export const ActiveMeetingsWidget = () => {
                     )}
                   </div>
 
+                  {/* Attendee avatars */}
+                  <AttendeeAvatars attendees={e.attendees} />
+
                   {/* Action — only show Join for TQC meetings */}
-                  {e.is_quantum_club && info?.canJoin ? (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      className="shrink-0"
-                      onClick={() => navigate(`/meetings/${e.meeting_id}/room`)}
-                    >
-                      <Video className="h-3.5 w-3.5 mr-1" />
-                      Join
-                    </Button>
-                  ) : e.is_quantum_club && info?.status === 'ended' ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="shrink-0 text-xs"
-                      onClick={() => navigate(`/meetings/${e.meeting_id}/insights`)}
-                    >
-                      View
-                    </Button>
-                  ) : null}
+                  <div onClick={(ev) => ev.stopPropagation()}>
+                    {e.is_quantum_club && info?.canJoin ? (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        className="shrink-0"
+                        onClick={() => navigate(`/meetings/${e.meeting_id}/room`)}
+                      >
+                        <Video className="h-3.5 w-3.5 mr-1" />
+                        Join
+                      </Button>
+                    ) : e.is_quantum_club && info?.status === 'ended' ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="shrink-0 text-xs"
+                        onClick={() => navigate(`/meetings/${e.meeting_id}/insights`)}
+                      >
+                        View
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               );
             })}
@@ -187,6 +229,12 @@ export const ActiveMeetingsWidget = () => {
             View Full Calendar
           </Link>
         </Button>
+
+        <EventDetailModal
+          event={selectedEvent}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+        />
       </CardContent>
     </Card>
   );
