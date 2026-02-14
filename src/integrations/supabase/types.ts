@@ -45261,6 +45261,50 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_cost_history: {
+        Row: {
+          annual_cost: number
+          change_reason: string | null
+          created_at: string
+          id: string
+          monthly_cost: number
+          recorded_at: string
+          seats_licensed: number | null
+          seats_used: number | null
+          subscription_id: string
+        }
+        Insert: {
+          annual_cost: number
+          change_reason?: string | null
+          created_at?: string
+          id?: string
+          monthly_cost: number
+          recorded_at?: string
+          seats_licensed?: number | null
+          seats_used?: number | null
+          subscription_id: string
+        }
+        Update: {
+          annual_cost?: number
+          change_reason?: string | null
+          created_at?: string
+          id?: string
+          monthly_cost?: number
+          recorded_at?: string
+          seats_licensed?: number | null
+          seats_used?: number | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_cost_history_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           billing_interval: string
