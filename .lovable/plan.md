@@ -1,94 +1,100 @@
 
-## Issue 1: Email Verification Audit (Separate Task)
-The email verification system for membership requests shows a **66% success rate** (39/59 deliveries since Jan 2026). Root causes:
-- **Domain configuration**: Resend likely has SPF/DKIM/DMARC misconfigurations for `thequantumclub.nl`
-- **Provider blocks**: Yahoo and corporate domains (closedin.io, binnenbouwers.nl) showing 0% delivery
-- **Missing telemetry**: The `send-verification-code` function has no error logging to Resend API responses
-- **Input typos**: Database has unvalidated email addresses (gmail.con, hotmaill.com)
 
-**Recommended fixes:**
-1. Add enhanced logging to `send-verification-code` edge function to capture Resend API responses
-2. Create a database audit query to identify problematic domains
-3. Add email domain typo detection in onboarding (Did you mean gmail.com?)
-4. Implement SMS fallback for verified phone numbers
-5. Verify SPF/DKIM/DMARC records in Resend dashboard for thequantumclub.nl
+# Fix Google Calendar Token Expiry
 
-This will be tracked separately once the current task is complete.
+## Problem
 
----
+The calendar sync breaks because of a conflict between three token refresh layers:
 
-## Issue 2: Agenda Widget - Show 5 Upcoming Meetings
+1. **Background cron** (`refresh-calendar-tokens`): exists but has never been called -- no scheduler is invoking it
+2. **On-demand refresh** (inside `google-calendar-events`): works correctly, refreshes tokens when they are within 5 minutes of expiry
+3. **Client-side guard** (`calendarAggregation.ts`): blocks API calls entirely when `token_expires_at` is more than 1 hour old, preventing Layer 2 from ever running
 
-### Current Behavior
-- `ActiveMeetingsWidget.tsx` fetches meetings using `startOfDay(now)` to `endOfDay(now)` — only today's meetings
-- Displays all today's meetings, with header showing "Today's Agenda"
-- No date indicators when there are multiple meetings
+The result: if you close the app for more than ~2 hours, the client-side guard blocks the request, the on-demand refresh never fires, and you see "Google Calendar token expired."
 
-### Proposed Changes
+## Solution
 
-**1. Modify Data Fetching (ActiveMeetingsWidget.tsx)**
-- Change date range from today-only to **next 5 days** (today + 4 more days)
-- Use `startOfDay(now)` to `endOfDay(addDays(now, 4))`
-- Limit results to max 5 meetings via `.slice(0, 5)`
-- Keep existing filtering and status computation
+### 1. Remove the overly aggressive client-side token guard
 
-**2. Update Header Logic**
-- Detect if all events are today: show "Today's Agenda"
-- If events span multiple days: show "Upcoming Meetings" instead
-- Remove the specific date label and replace with dynamic indicator
+In `src/services/calendarAggregation.ts`, remove the `isTokenExpiredBeyondRefresh` check that blocks API calls. Instead, always call the edge function and let the server-side refresh handle it. If the server returns a `401` with `requiresReauth`, then show the reconnect toast.
 
-**3. Add Date Display for Multi-Day Events**
-- Group events by date internally (for rendering purposes)
-- When rendering each event row, check if it's a different day than the previous event
-- If date changed, inject a **subtle date separator** or show date inline with time
+This means:
+- Delete the `isTokenExpiredBeyondRefresh` function
+- Remove the pre-check in `fetchGoogleCalendarEvents` and `fetchMicrosoftCalendarEvents`
+- Add response error handling: if the edge function returns a `token_refresh_failed` or `token_expired` error, show the reconnect toast at that point
 
-**Two rendering approaches:**
+### 2. Wire up the background cron via `agentic-heartbeat`
 
-**Approach A (Date Separators)**: Insert a divider before each new date
-```
-🗓️ Today
-├─ 9:00 AM - Client Meeting
-├─ 2:00 PM - Interview Round 1
+Since there is no external cron scheduler, add a token refresh step to the existing `agentic-heartbeat` function (which is already called periodically). This will proactively refresh tokens before they expire, so users rarely hit expiry at all.
 
-🗓️ Friday, Feb 14
-├─ 10:00 AM - Panel Interview
-├─ 3:30 PM - Technical Review
+Add a step in the heartbeat that calls `refresh-calendar-tokens` once per run.
 
-🗓️ Monday, Feb 17
-├─ 11:00 AM - Final Interview
-```
+### 3. Improve the `refresh-calendar-tokens` function
 
-**Approach B (Inline Date)**: Show date in the time column when it's not today
-```
-9:00 AM      Client Meeting
-2:00 PM      Interview Round 1
+The current function also does not update `token_expires_at` -- it only updates `access_token` and `updated_at`. Add the expiry timestamp so the on-demand check works correctly after a background refresh.
 
-Tomorrow 10:00 AM    Panel Interview
-Tomorrow 3:30 PM     Technical Review
+## Files to Modify
 
-Feb 17 11:00 AM      Final Interview
+| File | Change |
+|------|--------|
+| `src/services/calendarAggregation.ts` | Remove `isTokenExpiredBeyondRefresh` guard; add error-based reconnect toast instead |
+| `supabase/functions/refresh-calendar-tokens/index.ts` | Also persist `token_expires_at` when updating tokens |
+| `supabase/functions/agentic-heartbeat/index.ts` | Add a call to `refresh-calendar-tokens` in the heartbeat loop |
+
+## Technical Details
+
+### calendarAggregation.ts changes
+
+Remove:
+- `isTokenExpiredBeyondRefresh` function (lines 19-24)
+- Pre-check blocks in `fetchGoogleCalendarEvents` (lines 160-167) and `fetchMicrosoftCalendarEvents` (lines 232-239)
+- `hasActiveCalendarConnection` function's use of `isTokenExpiredBeyondRefresh`
+
+Add error handling after edge function calls:
+
+```text
+const { data, error } = await withTimeout(...);
+
+if (error || !data?.events) {
+  // Check if this is a token expiry error requiring user action
+  if (data?.error === 'token_refresh_failed' || data?.error === 'token_expired') {
+    toast.error('Google Calendar token expired', {
+      description: 'Reconnect your Google Calendar in Settings to restore sync.',
+      duration: 8000,
+    });
+  }
+  continue;
+}
 ```
 
-**Recommendation**: Use **Approach B (Inline Date)** since it's more compact and fits the existing glass-subtle card aesthetic. It adds a single line per date change without extra visual clutter.
+### refresh-calendar-tokens fix
 
-**4. Implementation Details**
-- Reuse existing `format()` calls from date-fns
-- Add helper function to determine if date changed between events
-- For non-today dates, prepend date label: `formatDate(e.start, 'EEE, MMM d')` followed by time
-- Update header logic to say "Upcoming Meetings" if span > 1 day
-- Keep all other status badges, join buttons, and behavior identical
+When updating the connection after a successful refresh, also store the new expiry:
 
-**5. Files to Modify**
-- `src/components/clubhome/ActiveMeetingsWidget.tsx` (only file, ~80 lines changed)
-  - Import `addDays` from date-fns
-  - Change date range calculation in useEffect
-  - Add `.slice(0, 5)` to limit results
-  - Add date grouping/comparison logic in render loop
-  - Update header condition
+```text
+.update({
+  access_token: tokenData.access_token,
+  token_expires_at: tokenData.tokens?.expires_at || new Date(Date.now() + 3600 * 1000).toISOString(),
+  updated_at: new Date().toISOString(),
+})
+```
 
-### Design Decisions
-- **5 meetings max**: Keeps card height reasonable (~300-400px max), user can click "View Full Calendar" for more
-- **Limit to 5 days ahead**: Beyond that, meetings are far-future context; cards remain scannable
-- **No cost/complexity**: Uses existing `fetchUnifiedCalendarEvents`, just different date range
-- **Maintains glass aesthetic**: Subtle date labels, no extra visual breaks beyond current design
-- **Backward compatible**: All existing status badges, join buttons, and styling unchanged
+### Heartbeat integration
+
+Add at the end of the heartbeat's task list:
+
+```text
+// Proactive calendar token refresh
+try {
+  await supabaseClient.functions.invoke('refresh-calendar-tokens');
+} catch (e) {
+  console.error('[heartbeat] Calendar token refresh failed:', e);
+}
+```
+
+## Result
+
+- Tokens are proactively refreshed every heartbeat cycle (before they expire)
+- If a token does expire between heartbeats, the on-demand refresh in `google-calendar-events` catches it
+- Users only see the "reconnect" toast when the refresh token itself is revoked by Google (rare -- requires user action in Google account settings)
+
