@@ -83,9 +83,6 @@ export default defineConfig(({ mode, command }) => ({
         // This prevents stale index.html from bricking the app after deploy
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
         
-        // CRITICAL: OAuth callback route must never be cached by the service worker
-        navigateFallbackDenylist: [/^\/~oauth/],
-        
         // CRITICAL: Auto-activate new service worker immediately
         // Prevents users from being stuck on old cached version
         skipWaiting: true,

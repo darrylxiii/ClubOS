@@ -8,7 +8,6 @@ import { CheckCircle2, AlertCircle, Briefcase, User } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { toast } from "sonner";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
-import { lovable } from "@/integrations/lovable/index";
 
 export default function InviteAcceptance() {
   const { token } = useParams();
@@ -65,18 +64,11 @@ export default function InviteAcceptance() {
         sessionStorage.setItem('expected_invitation_email', candidate.email);
       }
 
-      if (provider === 'google' || provider === 'apple') {
-        const { error } = await lovable.auth.signInWithOAuth(provider, {
-          redirect_uri: window.location.origin,
-        });
-        if (error) throw error;
-      } else {
-        await signInWithOAuthCustomDomain({
-          provider: 'linkedin_oidc',
-          redirectTo: `${window.location.origin}/invite/${token}/complete`,
-          scopes: 'openid profile email',
-        });
-      }
+      await signInWithOAuthCustomDomain({
+        provider: provider === 'linkedin' ? 'linkedin_oidc' : provider,
+        redirectTo: `${window.location.origin}/invite/${token}/complete`,
+        scopes: provider === 'linkedin' ? 'openid profile email' : undefined,
+      });
     } catch (error) {
       console.error('Sign up error:', error);
       toast.error('Failed to sign up');

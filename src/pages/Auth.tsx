@@ -18,7 +18,6 @@ import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
-import { lovable } from "@/integrations/lovable/index";
 
 // Lazy load heavy components to reduce initial bundle
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
@@ -424,16 +423,16 @@ const Auth = () => {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: {
+      await signInWithOAuthCustomDomain({
+        provider: 'google',
+        redirectTo: redirectUrl,
+        queryParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
       });
-
-      if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.google')
@@ -445,12 +444,12 @@ const Auth = () => {
       if (inviteCode) {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
+      const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: window.location.origin,
+      await signInWithOAuthCustomDomain({
+        provider: 'apple',
+        redirectTo: redirectUrl,
       });
-
-      if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.apple')
