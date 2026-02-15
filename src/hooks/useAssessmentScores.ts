@@ -81,10 +81,13 @@ export function useAssessmentScores(
       if (fnError) throw fnError;
       if (data?.breakdown) {
         setBreakdown(data.breakdown);
+      } else if (data?.error) {
+        throw new Error(data.error);
       }
     } catch (err: any) {
       console.error('Failed to compute assessment scores:', err);
-      setError(err.message || 'Failed to compute scores');
+      const msg = err.message || 'Failed to compute scores';
+      setError(msg);
     } finally {
       setIsComputing(false);
     }
@@ -100,17 +103,15 @@ export function useAssessmentScores(
       }
 
       setIsLoading(true);
+      setError(null);
       try {
         const existing = await fetchExisting();
         if (!cancelled) {
           if (existing) {
             setBreakdown(existing);
-            setIsLoading(false);
-          } else {
-            setIsLoading(false);
-            // Auto-compute if stale or missing
-            computeScores();
           }
+          // Don't auto-compute — require explicit user action via recompute
+          setIsLoading(false);
         }
       } catch {
         if (!cancelled) setIsLoading(false);
@@ -119,7 +120,7 @@ export function useAssessmentScores(
 
     init();
     return () => { cancelled = true; };
-  }, [candidateId, jobId, fetchExisting, computeScores]);
+  }, [candidateId, jobId, fetchExisting]);
 
   return {
     breakdown,

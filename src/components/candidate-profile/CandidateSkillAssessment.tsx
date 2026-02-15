@@ -3,13 +3,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Target, RefreshCw, AlertCircle, TrendingUp, Users, DollarSign, MapPin, Briefcase, Activity } from "lucide-react";
+import { Target, RefreshCw, AlertCircle, TrendingUp, Users, DollarSign, MapPin, Briefcase, Activity, AlertTriangle, Sparkles } from "lucide-react";
 import { useAssessmentScores, AssessmentDimension } from "@/hooks/useAssessmentScores";
 import { useRecharts } from "@/hooks/useRecharts";
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
 import { SkillMatchBreakdown } from "./SkillMatchBreakdown";
 import { CultureFitSignals } from "./CultureFitSignals";
 import { EngagementTimeline } from "./EngagementTimeline";
+import { AvailabilityNoticeCard } from "./AvailabilityNoticeCard";
+import { SalaryComparisonVisualizer } from "./SalaryComparisonVisualizer";
+import { CareerTrajectoryTimeline } from "./CareerTrajectoryTimeline";
 
 interface CandidateSkillAssessmentProps {
   candidateId: string;
@@ -28,8 +31,22 @@ const DIMENSION_CONFIG = [
 ] as const;
 
 export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills = [] }: CandidateSkillAssessmentProps) {
-  const { breakdown, isLoading, isComputing, recompute } = useAssessmentScores(candidateId, jobId);
+  const { breakdown, isLoading, isComputing, error, recompute } = useAssessmentScores(candidateId, jobId);
   const { recharts, isLoading: chartsLoading } = useRecharts();
+
+  const renderConfidenceDots = (confidence: number) => {
+    const dots = confidence > 0.6 ? 3 : confidence > 0.3 ? 2 : 1;
+    return (
+      <div className="flex gap-0.5" title={`${Math.round(confidence * 100)}% confidence`}>
+        {[1, 2, 3].map(i => (
+          <div
+            key={i}
+            className={`w-1.5 h-1.5 rounded-full ${i <= dots ? 'bg-primary' : 'bg-muted-foreground/20'}`}
+          />
+        ))}
+      </div>
+    );
+  };
 
   const renderDimensionCard = (dim: typeof DIMENSION_CONFIG[number]) => {
     const data: AssessmentDimension | null = breakdown?.[dim.key as keyof typeof breakdown] as AssessmentDimension | null;
@@ -46,6 +63,7 @@ export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="w-4 h-4 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground truncate">{dim.label}</span>
+                {hasData && renderConfidenceDots(data.confidence)}
               </div>
               {hasData ? (
                 <div className="text-2xl font-bold" style={{ color: scoreColor?.bg }}>
@@ -57,9 +75,6 @@ export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills
                   <AlertCircle className="w-3 h-3 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">Needs data</span>
                 </div>
-              )}
-              {hasData && data.confidence < 0.5 && (
-                <span className="text-[10px] text-muted-foreground">Low confidence</span>
               )}
             </div>
           </TooltipTrigger>
@@ -137,6 +152,18 @@ export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills
 
   return (
     <div className="space-y-4">
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-sm">
+          <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0" />
+          <span className="text-destructive/90 flex-1">{error}</span>
+          <Button variant="ghost" size="sm" onClick={recompute} disabled={isComputing} className="text-xs h-7">
+            <RefreshCw className={`w-3 h-3 mr-1 ${isComputing ? 'animate-spin' : ''}`} />
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Main Assessment Card */}
       <Card className={candidateProfileTokens.glass.card}>
         <CardHeader className="pb-3">
@@ -150,20 +177,26 @@ export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills
                 </Badge>
               )}
             </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={recompute}
-              disabled={isComputing}
-              className="text-xs"
-            >
-              <RefreshCw className={`w-3 h-3 mr-1 ${isComputing ? 'animate-spin' : ''}`} />
-              {isComputing ? 'Computing...' : 'Refresh'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Powered by QUIN
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={recompute}
+                disabled={isComputing}
+                className="text-xs"
+              >
+                <RefreshCw className={`w-3 h-3 mr-1 ${isComputing ? 'animate-spin' : ''}`} />
+                {isComputing ? 'Computing...' : 'Refresh'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-[auto_1fr_280px] gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_280px] gap-6 items-start">
             {/* Overall Score */}
             <div className="text-center min-w-[80px]">
               <div className="text-5xl font-black" style={{ color: overallColor.bg }}>
@@ -173,17 +206,17 @@ export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills
             </div>
 
             {/* Dimension Cards Grid */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {DIMENSION_CONFIG.map(renderDimensionCard)}
             </div>
 
             {/* Radar Chart */}
-            <div>{renderRadarChart()}</div>
+            <div className="hidden lg:block">{renderRadarChart()}</div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Skill Match Breakdown - Side by side comparison */}
+      {/* Skill Match Breakdown */}
       <SkillMatchBreakdown
         candidateId={candidateId}
         candidate={candidate}
@@ -201,6 +234,20 @@ export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills
         <EngagementTimeline
           candidateId={candidateId}
           breakdown={breakdown}
+        />
+      </div>
+
+      {/* New: Salary + Availability + Trajectory Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <SalaryComparisonVisualizer
+          candidate={candidate}
+          breakdown={breakdown}
+        />
+        <AvailabilityNoticeCard
+          candidate={candidate}
+        />
+        <CareerTrajectoryTimeline
+          candidate={candidate}
         />
       </div>
     </div>
