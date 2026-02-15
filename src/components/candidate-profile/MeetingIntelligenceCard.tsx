@@ -155,7 +155,7 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
             </Button>
           </CardContent>
         </Card>
-        <AddMeetingModal open={showAddModal} onOpenChange={setShowAddModal} candidateId={candidateId} />
+        <AddMeetingModal open={showAddModal} onOpenChange={setShowAddModal} candidateId={candidateId} candidateName={undefined} />
       </>
     );
   }

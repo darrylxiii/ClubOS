@@ -8,12 +8,8 @@ const corsHeaders = {
 
 /**
  * process-manual-meeting
- * 
- * Orchestrates: create recording row → transcribe (if needed) → analyze
- * 
- * Input:
- *   candidateId, title, meetingType, meetingDate, jobId?, participants?,
- *   transcript?, storagePath?, mimeType?, fileSizeBytes?
+ *
+ * Orchestrates: create meeting + recording rows, link participants, trigger analysis.
  */
 
 serve(async (req) => {
@@ -26,7 +22,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Auth: get user from JWT
+    // Auth
     const authHeader = req.headers.get('Authorization') || '';
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
@@ -43,12 +39,19 @@ serve(async (req) => {
       title,
       meetingType,
       meetingDate,
+      duration,
+      description,
+      agenda,
       jobId,
-      participants,
+      participants,       // array: { userId?, name, email?, role, isGuest }
       transcript,
       storagePath,
       mimeType,
       fileSizeBytes,
+      notes,
+      tags,
+      isPrivate,
+      recordingConsent,
     } = body;
 
     if (!candidateId) {
@@ -68,20 +71,33 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[ProcessManualMeeting] Starting for candidate=${candidateId}, hasFile=${hasFile}, hasTranscript=${hasTranscript}`);
+    console.log(`[ProcessManualMeeting] candidate=${candidateId}, hasFile=${hasFile}, hasTranscript=${hasTranscript}, participants=${participants?.length || 0}`);
 
-    // Determine initial processing status
+    // Processing status
     let processingStatus = 'pending';
-    if (hasTranscript && !hasFile) {
+    if (hasTranscript) {
       processingStatus = 'analyzing';
-    } else if (hasFile && !hasTranscript) {
+    } else if (hasFile) {
       processingStatus = 'transcribing';
-    } else {
-      // Both: skip transcription, go to analyzing
-      processingStatus = 'analyzing';
     }
 
-    // 1. Create row in meeting_recordings_extended
+    // Parse tags into array
+    const tagArray = tags
+      ? tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+      : [];
+
+    // Build structured participants JSON for RAG storage
+    const participantsJson = participants && participants.length > 0
+      ? participants.map((p: any) => ({
+          userId: p.userId || null,
+          name: p.name,
+          email: p.email || null,
+          role: p.role,
+          isGuest: p.isGuest || false,
+        }))
+      : null;
+
+    // 1. Create meeting_recordings_extended row
     const { data: recording, error: insertError } = await supabase
       .from('meeting_recordings_extended')
       .insert({
@@ -93,10 +109,13 @@ serve(async (req) => {
         storage_path: storagePath || null,
         mime_type: mimeType || null,
         file_size_bytes: fileSizeBytes || null,
+        duration_seconds: duration ? duration * 60 : null,
         transcript: hasTranscript ? transcript.trim() : null,
         processing_status: processingStatus,
         recorded_at: meetingDate || new Date().toISOString(),
-        participants: participants ? { names: participants.split(',').map((p: string) => p.trim()) } : null,
+        participants: participantsJson,
+        is_private: isPrivate || false,
+        recording_consent_at: recordingConsent ? new Date().toISOString() : null,
       })
       .select('id')
       .single();
@@ -109,31 +128,78 @@ serve(async (req) => {
     const recordingId = recording.id;
     console.log(`[ProcessManualMeeting] Created recording ${recordingId}`);
 
-    // 2. Create a meetings entry so MeetingIntelligenceCard picks it up
+    // 2. Create meetings row
+    let meetingId: string | null = null;
     try {
-      await supabase.from('meetings').insert({
-        title: title || 'Manual Meeting',
-        meeting_type: meetingType || 'other',
-        candidate_id: candidateId,
-        job_id: jobId || null,
-        scheduled_start: meetingDate || new Date().toISOString(),
-        status: 'completed',
-        created_by: user.id,
-      });
+      const { data: meetingRow } = await supabase
+        .from('meetings')
+        .insert({
+          title: title || 'Manual Meeting',
+          meeting_type: meetingType || 'other',
+          description: description || null,
+          candidate_id: candidateId,
+          job_id: jobId || null,
+          scheduled_start: meetingDate || new Date().toISOString(),
+          scheduled_end: duration && meetingDate
+            ? new Date(new Date(meetingDate).getTime() + duration * 60000).toISOString()
+            : null,
+          status: 'completed',
+          created_by: user.id,
+          has_recording: hasFile,
+        })
+        .select('id')
+        .single();
+
+      meetingId = meetingRow?.id || null;
+      console.log(`[ProcessManualMeeting] Created meeting ${meetingId}`);
     } catch (meetingErr) {
-      console.warn('[ProcessManualMeeting] Could not create meetings entry (non-critical):', meetingErr);
+      console.warn('[ProcessManualMeeting] Could not create meetings entry:', meetingErr);
     }
 
-    // 3. Trigger the appropriate pipeline (fire-and-forget)
+    // 3. Create meeting_participants rows
+    if (meetingId && participants && participants.length > 0) {
+      const participantRows = participants.map((p: any) => ({
+        meeting_id: meetingId,
+        user_id: p.userId || null,
+        guest_name: p.isGuest ? p.name : null,
+        guest_email: p.isGuest ? (p.email || null) : null,
+        role: p.role || 'interviewer',
+        role_in_interview: p.role || 'interviewer',
+        participant_type: p.isGuest ? 'guest' : 'member',
+        attended: true,
+        rsvp_status: 'accepted',
+      }));
+
+      const { error: partError } = await supabase
+        .from('meeting_participants')
+        .insert(participantRows);
+
+      if (partError) {
+        console.warn('[ProcessManualMeeting] Failed to insert participants:', partError);
+      } else {
+        console.log(`[ProcessManualMeeting] Created ${participantRows.length} participant rows`);
+      }
+    }
+
+    // 4. Store notes and tags in metadata (update recording row)
+    if (notes || tagArray.length > 0) {
+      await supabase
+        .from('meeting_recordings_extended')
+        .update({
+          executive_summary: notes || null,
+          key_moments: tagArray.length > 0 ? { tags: tagArray } : null,
+        })
+        .eq('id', recordingId);
+    }
+
+    // 5. Trigger analysis pipeline (fire-and-forget)
     if (hasFile && !hasTranscript) {
-      // Needs transcription first (which chains to analysis)
       console.log(`[ProcessManualMeeting] Triggering transcription → analysis chain`);
       triggerFunction(supabaseUrl, supabaseServiceKey, 'transcribe-recording', {
         recordingId,
         chainAnalysis: true,
       });
     } else {
-      // Has transcript (with or without file) → go straight to analysis
       console.log(`[ProcessManualMeeting] Triggering analysis directly`);
       triggerFunction(supabaseUrl, supabaseServiceKey, 'analyze-meeting-recording-advanced', {
         recordingId,
@@ -143,7 +209,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       recordingId,
+      meetingId,
       processingStatus,
+      participantsLinked: participants?.length || 0,
       message: hasTranscript
         ? 'Transcript submitted for AI analysis.'
         : 'File submitted for transcription and analysis.',
@@ -160,9 +228,6 @@ serve(async (req) => {
   }
 });
 
-/**
- * Fire-and-forget call to another edge function
- */
 function triggerFunction(supabaseUrl: string, serviceKey: string, functionName: string, payload: Record<string, unknown>) {
   fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
     method: 'POST',
