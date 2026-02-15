@@ -22,9 +22,11 @@ import {
   ChevronRight,
   Brain,
   MessageSquare,
+  Plus,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { AddMeetingModal } from './AddMeetingModal';
 
 interface MeetingIntelligenceCardProps {
   candidateId: string;
@@ -49,6 +51,7 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
   const [insights, setInsights] = useState<InterviewInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [aggregateScore, setAggregateScore] = useState<number | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -142,12 +145,18 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
 
   if (insights.length === 0) {
     return (
-      <Card className="border-dashed border-2 border-muted">
-        <CardContent className="py-8 text-center text-muted-foreground">
-          <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No interview recordings analyzed yet</p>
-        </CardContent>
-      </Card>
+      <>
+        <Card className="border-dashed border-2 border-muted">
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm mb-3">No interview recordings analyzed yet</p>
+            <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Add Meeting
+            </Button>
+          </CardContent>
+        </Card>
+        <AddMeetingModal open={showAddModal} onOpenChange={setShowAddModal} candidateId={candidateId} />
+      </>
     );
   }
 
@@ -173,20 +182,26 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
   };
 
   return (
+    <>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
           Interview Intelligence
         </CardTitle>
-        {aggregateScore !== null && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Avg Score</span>
-            <span className={`text-2xl font-bold ${getScoreColor(aggregateScore)}`}>
-              {aggregateScore}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Add Meeting
+          </Button>
+          {aggregateScore !== null && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Avg Score</span>
+              <span className={`text-2xl font-bold ${getScoreColor(aggregateScore)}`}>
+                {aggregateScore}
+              </span>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Aggregate Insights */}
@@ -281,5 +296,7 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
         )}
       </CardContent>
     </Card>
+    <AddMeetingModal open={showAddModal} onOpenChange={setShowAddModal} candidateId={candidateId} />
+    </>
   );
 }
