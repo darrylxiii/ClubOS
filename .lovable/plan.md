@@ -1,124 +1,122 @@
 
 
-# Add Meeting / Recording Entry Modal for Candidate Intelligence
+# Upgrade Add Meeting Modal -- Comprehensive Past Meeting Entry
 
-## Overview
+## What is Changing
 
-Build a modal on the candidate profile that lets strategists manually add past meetings, recordings (MP4/audio), and transcripts. Each submission flows through the existing transcription and AI analysis pipeline, enriching the candidate's assessment scores, culture fit signals, engagement timeline, and interview intelligence automatically.
+The existing `AddMeetingModal` on the candidate profile will be upgraded from a basic 3-step wizard into a comprehensive single-page form with all the fields needed to capture maximum intelligence from past meetings and recordings.
 
-## What Already Exists
+**`CreateMeetingDialog` on `/meetings` is NOT touched.** That component schedules future meetings -- a completely different use case.
 
-The infrastructure is already robust:
-- `meeting_recordings_extended` table with full schema (transcript, ai_analysis, candidate_id, job_id, processing_status, etc.)
-- `meeting-recordings` storage bucket (public, already created)
-- `transcribe-recording` edge function (Whisper-based, chains to analysis)
-- `analyze-meeting-recording-advanced` edge function (Lovable AI with circuit breaker, chunking, fallback models)
-- `MeetingIntelligenceCard` component on the candidate profile already reads analyzed data
-- `meeting_recordings` table for simpler manual entries (has transcript, ai_analysis, meeting_type fields)
+## Current Problems
 
-## What Needs to Be Built
+1. **Participants are a free-text string** -- no way to search/select real users from the system
+2. **No description, agenda, or notes fields** -- strategist observations are lost
+3. **No tags** -- no future search/clustering capability
+4. **No duration field** -- metadata gap
+5. **No recording consent / privacy toggle** -- GDPR gap when `meeting_recordings_extended` has these columns
+6. **3-step wizard adds friction** -- for a form this size, a single scrollable page with sections works better
+7. **Meeting not linked to participants** -- when a meeting is added, it does not appear on other participants' meeting tabs because no `meeting_participants` rows are created
 
-### 1. New Component: `AddMeetingModal.tsx`
+## What Will Be Built
 
-A multi-step modal with the following sections:
+### 1. New Component: `ParticipantPicker.tsx`
 
-**Step 1 -- Meeting Details**
-- Meeting type selector: `screening`, `technical`, `behavioral`, `culture_fit`, `final_round`, `debrief`, `client_presentation`, `other`
-- Meeting date and time picker
-- Duration (optional, auto-detected from recording if uploaded)
-- Title / subject line
-- Job selector (optional -- links to a specific role for scoring)
-- Participants (free-text names or stakeholder picker)
+A searchable multi-select component (based on the existing `PersonCell` pattern) that:
+- Queries `profiles` table by name or email in real-time
+- Shows avatar, name, email for each result
+- Allows selecting multiple people with badge display and remove buttons
+- Each selected person gets a **role** dropdown: Host, Interviewer, Hiring Manager, Observer, Candidate
+- Option to add **external guests** (name + email) who are not in the system
+- Returns a structured array: `{ userId?, guestName?, guestEmail?, role }`
 
-**Step 2 -- Content Input (at least one required)**
-Three input modes, any combination allowed:
-- **Transcript paste**: Large textarea for pasting a meeting transcript
-- **Video upload**: Drag-and-drop MP4/WebM file upload to `meeting-recordings` bucket
-- **Audio-only upload**: Drag-and-drop MP3/WAV/M4A/WebM audio upload to same bucket
+### 2. Upgraded `AddMeetingModal.tsx`
 
-Visual indicator showing which inputs have been provided (checkmarks).
+Single scrollable modal (no wizard steps) with collapsible sections:
 
-**Step 3 -- Review and Submit**
-- Summary of what will be processed
+**Section: Meeting Details** (always expanded)
+- Title (required)
+- Meeting Type selector (screening, technical, behavioral, culture_fit, final_round, debrief, client_presentation, other)
+- Date and Time (datetime-local input)
+- Duration selector (15, 30, 45, 60, 90, 120 min)
+- Description (textarea)
+- Agenda (textarea)
+- Job selector (optional, searchable from `jobs` table)
+
+**Section: Participants** (always expanded)
+- `ParticipantPicker` component with role assignment
+- The current candidate is auto-added with role "Candidate"
+
+**Section: Content and Recordings** (collapsible, expanded by default)
+- Paste Transcript (textarea, monospace)
+- Video upload (drag-and-drop MP4/WebM/MOV, max 50MB)
+- Audio upload (drag-and-drop MP3/WAV/M4A, max 50MB)
+- Visual checkmarks for each provided input
+
+**Section: Notes and Tags** (collapsible)
+- Strategist Notes (textarea)
+- Tags (comma-separated text input)
+
+**Section: Privacy** (collapsible)
+- Recording consent checkbox
+- Private toggle (marks recording as not shareable)
+
+**Footer**
 - "Powered by QUIN" label
-- Submit button that triggers the pipeline
+- Cancel / Submit
 
-### 2. Backend Flow (Edge Function: `process-manual-meeting`)
+### 3. Backend: Updated `process-manual-meeting` Edge Function
 
-New edge function that orchestrates the full pipeline:
+Accept the new fields and create proper participant linkages:
 
-1. Creates a row in `meeting_recordings_extended` with `candidate_id`, `source_type: 'manual_upload'`, and the storage path or pasted transcript
-2. If a file was uploaded but no transcript was pasted:
-   - Calls `transcribe-recording` (which uses Whisper then chains to `analyze-meeting-recording-advanced`)
-3. If only a transcript was pasted (no file):
-   - Writes transcript directly to `meeting_recordings_extended`
-   - Calls `analyze-meeting-recording-advanced` directly
-4. If both file and transcript provided:
-   - Stores file, uses provided transcript (skips Whisper), calls analysis
-5. Optionally creates a row in `meetings` table with `candidate_id` so `MeetingIntelligenceCard` picks it up
-6. Returns processing status to the frontend
+- Accept: `description`, `agenda`, `duration`, `participants` (structured array with userId/role/guestName/guestEmail), `notes`, `tags`, `isPrivate`, `recordingConsent`
+- Write expanded fields to `meeting_recordings_extended` (notes go into `participants` JSON, tags into metadata)
+- Write `description` and `agenda` to the `meetings` row
+- **Create `meeting_participants` rows** for each participant with their role, `role_in_interview`, `attended = true`, `rsvp_status = 'accepted'`
+- Set `has_recording = true` on meetings row if a file was uploaded
 
-### 3. UI Integration
+### 4. UI Integration
 
-- Add a "Add Meeting" button to the `MeetingIntelligenceCard` empty state AND as a header action when data exists
-- The button opens the `AddMeetingModal`
-- After submission, show a toast: "Meeting submitted for analysis. Intelligence will update shortly."
-- The `MeetingIntelligenceCard` already polls/reads from the right tables, so new data will appear on next load
-
-### 4. Intelligence Enrichment
-
-Once the analysis pipeline runs, it automatically:
-- Populates `ai_analysis` JSON on `meeting_recordings_extended` (strengths, areas for improvement, key moments, recommendation)
-- `MeetingIntelligenceCard` reads this and shows scores, trends, and insights
-- `calculate-assessment-scores` picks up meeting data for the Culture Fit and Engagement dimensions
-- The more meetings added, the higher the confidence scores across all assessment dimensions
+- `MeetingIntelligenceCard` import path stays the same (modal remains in candidate-profile folder since it is candidate-context specific)
+- The candidate's name is passed to auto-add them as a participant
 
 ## Files to Create
 
 | File | Purpose |
 |---|---|
-| `src/components/candidate-profile/AddMeetingModal.tsx` | Modal component with 3-step form |
-| `supabase/functions/process-manual-meeting/index.ts` | Edge function orchestrating storage, transcription, and analysis |
+| `src/components/candidate-profile/ParticipantPicker.tsx` | Searchable user picker with role assignment |
 
 ## Files to Modify
 
 | File | Change |
 |---|---|
-| `src/components/candidate-profile/MeetingIntelligenceCard.tsx` | Add "Add Meeting" button in header and empty state; open modal |
-| `supabase/config.toml` | Add `[functions.process-manual-meeting]` entry (auto-managed, but noting for completeness) |
+| `src/components/candidate-profile/AddMeetingModal.tsx` | Full rewrite: single-page layout, all new fields, ParticipantPicker integration |
+| `supabase/functions/process-manual-meeting/index.ts` | Accept new fields, create `meeting_participants` rows, write description/agenda/tags |
+| `src/components/candidate-profile/MeetingIntelligenceCard.tsx` | Pass `candidateName` prop to modal (minor) |
 
-## Technical Details
+## Participant Linking Logic
 
-### Meeting Type Options
-```
-screening | technical | behavioral | culture_fit | final_round | debrief | client_presentation | other
-```
+When the meeting is submitted with participants:
+1. The `meetings` row is created (already happens)
+2. For each system user in the participants array: insert into `meeting_participants` with `user_id`, `role`, `role_in_interview`, `attended = true`
+3. For each external guest: insert into `meeting_participants` with `guest_name`, `guest_email`, `participant_type = 'guest'`
+4. The `meeting_recordings_extended.participants` JSON stores the full structured list for RAG/ML use
 
-### Accepted File Types
-- Video: `video/mp4`, `video/webm`, `video/quicktime`
-- Audio: `audio/mpeg`, `audio/wav`, `audio/mp4`, `audio/webm`, `audio/x-m4a`
-- Max size: 50MB (matches existing `MAX_VIDEO_SIZE` pattern)
+This means the meeting automatically appears on each participant's meeting history because the existing meeting queries join through `meeting_participants`.
 
-### Storage Path Convention
-```
-candidates/{candidateId}/meetings/{timestamp}_{filename}
-```
+## RAG and ML Readiness
 
-### Edge Function CORS
-The new `process-manual-meeting` function will include `x-application-name` in `Access-Control-Allow-Headers` from the start (lesson learned from previous bugs).
+Every field is chosen to maximize future intelligence extraction:
+- **Structured participants with roles** -- enables "who interviews whom" graph queries and panel composition analysis
+- **Tags** -- free-text tags for semantic clustering
+- **Notes** -- strategist observations feed into embeddings alongside transcript
+- **Meeting type + duration** -- categorical and numerical features for scoring models
+- **`skills_assessed`** JSONB on `meeting_recordings_extended` -- already exists, populated by the analysis pipeline
+- **`embeddings_generated`** flag -- already exists for future vector search
 
-### Database Row Creation
-The function creates entries in both:
-1. `meeting_recordings_extended` -- for the analysis pipeline
-2. `meetings` -- with `candidate_id` set, so `MeetingIntelligenceCard` query picks it up via the join on `meeting_recording_analysis`
+## Technical Notes
 
-### Processing States Shown to User
-- `uploading` -- file being sent to storage
-- `processing` -- transcript being generated (Whisper)
-- `analyzing` -- AI extracting intelligence
-- `complete` -- data ready, card auto-refreshes
-
-## Summary
-
-This creates a closed loop: strategist adds a meeting (any format) -> system transcribes if needed -> AI extracts intelligence -> candidate profile gets smarter across all assessment dimensions. Every new meeting increases confidence and accuracy of scores, culture fit signals, and engagement metrics.
-
+- `ParticipantPicker` follows the exact same query pattern as `PersonCell` (queries `profiles` with `.or(full_name.ilike, email.ilike)` and `.limit(20)`)
+- File upload stays client-side to `meeting-recordings` bucket (same as current)
+- Edge function uses service role key -- no RLS bypass needed
+- `meeting_participants` table has all required columns: `user_id`, `guest_email`, `guest_name`, `role`, `role_in_interview`, `participant_type`, `attended`
