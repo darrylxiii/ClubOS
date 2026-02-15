@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,9 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
   const [jobNiceToHave, setJobNiceToHave] = useState<string[]>([]);
   const [candidateSkills, setCandidateSkills] = useState<string[]>([]);
   const [extracting, setExtracting] = useState(false);
+  const [jobMatchResults, setJobMatchResults] = useState<any[]>([]);
 
-  useEffect(() => {
+  const refreshSkills = useCallback(() => {
     const allSkills = new Set<string>();
     skills.forEach((s: any) => {
       if (s.skill_name) allSkills.add(s.skill_name);
@@ -34,6 +35,10 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
       });
     }
     setCandidateSkills(Array.from(allSkills));
+  }, [candidate, skills]);
+
+  useEffect(() => {
+    refreshSkills();
 
     if (jobId) {
       supabase.from('jobs').select('requirements, nice_to_have').eq('id', jobId).single()
@@ -50,25 +55,38 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
           }
         });
     }
-  }, [candidateId, jobId, candidate, skills]);
+  }, [candidateId, jobId, refreshSkills]);
 
   const extractSkills = async () => {
     setExtracting(true);
     try {
       const { data, error } = await supabase.functions.invoke('extract-skills-from-experience', {
-        body: { candidate_id: candidateId },
+        body: { candidate_id: candidateId, job_id: jobId || undefined },
       });
       if (error) throw error;
-      const result = data?.results?.[0];
-      if (result?.skills_extracted > 0) {
-        toast.success(`Extracted ${result.skills_extracted} skills from work history`);
-        // Refresh page to show new skills
-        window.location.reload();
+
+      if (data?.skills_extracted > 0) {
+        toast.success(`Extracted ${data.skills_extracted} skills from resume`);
+
+        // Update local state with extracted skills
+        if (data.skills && Array.isArray(data.skills)) {
+          const newSkillNames = data.skills.map((s: any) => s.name);
+          setCandidateSkills(prev => {
+            const merged = new Set([...prev, ...newSkillNames]);
+            return Array.from(merged);
+          });
+        }
+
+        // Store job match results if available
+        if (data.job_match && Array.isArray(data.job_match)) {
+          setJobMatchResults(data.job_match);
+        }
       } else {
-        toast.info('No new skills could be extracted');
+        toast.info(data?.message || 'No skills could be extracted');
       }
     } catch (e: any) {
-      toast.error(e.message || 'Failed to extract skills');
+      console.error('Skill extraction error:', e);
+      toast.error(e.message || 'Failed to extract skills from resume');
     } finally {
       setExtracting(false);
     }
@@ -78,6 +96,12 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
   
   const isMatched = (skill: string) => {
     const normalized = skill.toLowerCase().trim();
+    // Check job_match results first if available
+    const matchResult = jobMatchResults.find(m =>
+      m.requirement?.toLowerCase().trim() === normalized
+    );
+    if (matchResult) return matchResult.matched;
+    // Fallback to string matching
     return normalizedCandidateSkills.some(cs => cs === normalized || cs.includes(normalized) || normalized.includes(cs));
   };
 
@@ -99,29 +123,27 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
               )}
             </div>
           </div>
-          {noSkills && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={extractSkills}
-              disabled={extracting}
-              className="text-xs"
-            >
-              {extracting ? (
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <Wand2 className="w-3 h-3 mr-1" />
-              )}
-              {extracting ? 'Extracting...' : 'Extract from CV'}
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={extractSkills}
+            disabled={extracting}
+            className="text-xs"
+          >
+            {extracting ? (
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            ) : (
+              <Wand2 className="w-3 h-3 mr-1" />
+            )}
+            {extracting ? 'Extracting...' : 'Extract from CV'}
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {noSkills && !hasJobContext && (
           <div className="text-center py-4 text-muted-foreground">
             <p className="text-sm">No skills data available</p>
-            <p className="text-xs mt-1">Use "Extract from CV" to populate skills from work history and education</p>
+            <p className="text-xs mt-1">Use "Extract from CV" to populate skills from the uploaded resume</p>
           </div>
         )}
 
