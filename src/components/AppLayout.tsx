@@ -193,7 +193,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           id="main-content"
           tabIndex={-1}
           className={cn(
-            "flex-1 w-full md:ml-20 relative z-10",
+            "flex-1 w-full md:ml-20 relative z-10 overflow-x-hidden",
             (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp') || location.pathname === '/crm/inbox')
               ? 'overflow-hidden'
               : 'overflow-y-auto'
