@@ -1,40 +1,43 @@
 
-
-# Fix: Google OAuth Redirecting to lovable.app Instead of Custom Domain
+# Fix: "Cannot Add Barbara de Groot" -- Duplicate Profile & Pipeline Errors
 
 ## Problem
-When signing in with Google on `os.thequantumclub.com`, the Lovable auth-bridge intercepts the OAuth callback and redirects to `thequantumclub.lovable.app` instead of back to the custom domain. This causes a broken redirect with an error about being unable to exchange the external code.
+Barbara de Groot already exists in the database (candidate profile + "Supply Chain Manager" application with status "submitted"). When the approval workflow runs again for her, it hits two hard errors instead of gracefully handling the situation:
+
+1. **Profile creation**: tries to INSERT with the same email, violating `unique_email_when_present`
+2. **Pipeline assignment**: finds an existing application and throws instead of reusing it
 
 ## Root Cause
-The auth-bridge (built into Lovable's preview infrastructure) handles OAuth flows automatically on `*.lovable.app` domains, but on custom domains like `os.thequantumclub.com` it misdirects the callback. The current code uses `supabase.auth.signInWithOAuth()` without `skipBrowserRedirect`, so the auth-bridge takes over.
+The `createCandidateProfile` method checks for duplicates and returns the existing ID (correct), but the `executeApprovalWorkflow` method in Step 2 calls a *different* path (`createProfile` data) that bypasses the duplicate-safe logic. Meanwhile `linkCandidateToJob` throws a hard error when the candidate is already in the pipeline, instead of returning the existing application ID.
 
 ## Fix
-Modify `handleGoogleAuth`, `handleAppleAuth`, and `handleLinkedInAuth` in `src/pages/Auth.tsx` to detect when running on a custom domain. When on a custom domain, use `skipBrowserRedirect: true` to get the OAuth URL directly, then manually redirect -- bypassing the auth-bridge entirely.
 
-### File: `src/pages/Auth.tsx`
+### File: `src/services/memberApprovalService.ts`
 
-For each OAuth handler (`handleGoogleAuth`, `handleAppleAuth`, `handleLinkedInAuth`):
+**1. `linkCandidateToJob` (line ~370)** -- Instead of throwing when a duplicate application exists, return the existing application ID with a log message. This makes re-approval idempotent.
 
-1. **Detect custom domain**:
 ```
-const isCustomDomain =
-  !window.location.hostname.includes('lovable.app') &&
-  !window.location.hostname.includes('lovableproject.com') &&
-  !window.location.hostname.includes('localhost');
+// Before (throws):
+if (existingApp) {
+  throw new Error(`Candidate is already in the "..." pipeline`);
+}
+
+// After (returns existing):
+if (existingApp) {
+  console.log('[MemberApproval] Candidate already in pipeline, reusing:', existingApp.id);
+  return existingApp.id;
+}
 ```
 
-2. **If custom domain**: pass `skipBrowserRedirect: true`, get the OAuth URL from the response, validate it, then do `window.location.href = data.url`
+**2. `createCandidateProfile` (line ~144-152)** -- Wrap the INSERT in a catch that detects the `unique_email_when_present` constraint violation. If hit, query for the existing profile by email and return its ID instead of throwing.
 
-3. **If Lovable domain**: keep the existing flow unchanged (the auth-bridge handles it correctly there)
+```
+// After the insert, if error.code === '23505' and message includes
+// 'unique_email_when_present', fall back to email lookup and return
+// the existing candidate ID.
+```
 
-This same pattern will also be applied in `src/pages/Settings.tsx` and `src/pages/InviteAcceptance.tsx` where OAuth is also initiated.
+These two changes make the entire approval flow idempotent -- re-approving a member who already exists simply links everything that isn't already linked and succeeds quietly.
 
-### Files to Modify
-| File | Change |
-|------|--------|
-| `src/pages/Auth.tsx` | Add custom-domain detection + `skipBrowserRedirect` to all three OAuth handlers |
-| `src/pages/Settings.tsx` | Same pattern for the account-linking OAuth flow |
-| `src/pages/InviteAcceptance.tsx` | Same pattern for the invite acceptance OAuth flow |
-
-### No Database or Edge Function Changes Required
-
+### No other files need changes.
+No database migrations, no new components. The UI already handles success/error messages from the workflow result.
