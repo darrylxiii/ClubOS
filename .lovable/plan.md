@@ -1,55 +1,45 @@
 
-# Fix: "Extract from CV" Button and Full Resume-Based Skill Matrix
+# Fix: "Extract from CV" Edge Function Crash
 
-## Problems Found
+## Problem
+The `extract-skills-from-experience` edge function crashes immediately on every request, producing "Failed to send a request to the Edge Function." No error logs appear because the crash happens before any response is sent.
 
-1. **Edge function returns 401 (JWT rejected)**: `extract-skills-from-experience` has `verify_jwt = true` in config.toml, causing the request to be rejected
-2. **Function reads empty arrays, not the actual resume**: It looks at `work_history` and `education` fields (both empty), but ignores the uploaded CV file (`candidate_documents` table has the PDF)
-3. **Data type mismatch**: `profile_skills.proficiency_level` is an INTEGER column, but the function tries to write strings like `"beginner"`
-4. **Missing unique constraint**: The `onConflict: 'user_id,skill_name'` has no backing unique index, causing silent failures
-5. **No job-context matching**: Skills are extracted generically -- not matched against the specific job's requirements to fill the matrix
+## Root Cause
+The function uses `userClient.auth.getClaims(token)` (line 42), which does not exist on `@supabase/supabase-js@2.58.0` imported via esm.sh. Every other edge function in the project uses `supabase.auth.getUser(token)` instead. Calling a non-existent method throws an unhandled exception, crashing the Deno isolate before any Response is returned.
 
-## Plan
+## Fix
 
-### 1. Database Migration
-- Add a unique index on `profile_skills(user_id, skill_name)` so upserts work
-- Add a proficiency mapping comment (the column stays INTEGER; we map beginner=1, intermediate=2, advanced=3, expert=4 in code)
+### File: `supabase/functions/extract-skills-from-experience/index.ts`
 
-### 2. Set `verify_jwt = false` in config.toml
-Change the entry for `extract-skills-from-experience` so the function is reachable. Auth is validated inside the function via the service role key.
+Replace the `getClaims` auth block (lines 38-47) with the `getUser` pattern used by all other functions:
 
-### 3. Rewrite `extract-skills-from-experience/index.ts`
+**Before:**
+```typescript
+const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+  global: { headers: { Authorization: authHeader } },
+});
+const token = authHeader.replace('Bearer ', '');
+const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+if (claimsError || !claimsData?.claims) {
+  return new Response(JSON.stringify({ error: 'Invalid token' }), {
+    status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+```
 
-The new flow:
-1. Accept `candidate_id` and optional `job_id`
-2. Look up the candidate's uploaded CV from `candidate_documents`
-3. Download the PDF from storage, convert to base64
-4. Send to Lovable AI (Gemini Flash) with the resume content
-5. If `job_id` is provided, also fetch the job's `requirements` and `nice_to_have` -- ask the AI to specifically assess each requirement against the resume
-6. Return extracted skills with proficiency (mapped to integers 1-4) and job match results
-7. Store in `profile_skills` with proper integer proficiency and `candidate_profiles.skills`
+**After:**
+```typescript
+const token = authHeader.replace('Bearer ', '');
+const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+  global: { headers: { Authorization: `Bearer ${token}` } },
+});
+const { data: { user }, error: authError } = await userClient.auth.getUser(token);
+if (authError || !user) {
+  return new Response(JSON.stringify({ error: 'Invalid token' }), {
+    status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+```
 
-### 4. Update `SkillMatchBreakdown.tsx`
-
-- Pass `jobId` to the `extractSkills` call so the edge function knows which job to match against
-- Show the "Extract from CV" button even when skills already exist (so users can re-extract)
-- After extraction, refresh the skills data without a full page reload (use state update instead of `window.location.reload()`)
-
-### 5. Files to Modify
-
-| File | Change |
-|------|--------|
-| `supabase/config.toml` | `verify_jwt = false` for `extract-skills-from-experience` |
-| `supabase/functions/extract-skills-from-experience/index.ts` | Full rewrite: read actual CV PDF, extract + match skills against job requirements |
-| `src/components/candidate-profile/SkillMatchBreakdown.tsx` | Pass `jobId` to extraction, show button always, refresh without reload |
-
-### Technical Details
-
-**Proficiency mapping** (string to integer):
-- beginner = 1, intermediate = 2, advanced = 3, expert = 4
-
-**CV retrieval**: Query `candidate_documents` for the latest `document_type = 'cv'` or `'resume'`, download from the `resumes` storage bucket using the `file_url` path, convert to base64 for multimodal AI processing.
-
-**Job matching prompt**: When `job_id` is provided, the AI prompt includes each must-have and nice-to-have requirement, asking for a per-requirement assessment (matched/not matched + evidence from the resume).
-
-**No new edge functions or storage buckets needed.**
+### No other files need changes
+The frontend code in `SkillMatchBreakdown.tsx` is correct. The only issue is the crashing auth call in the edge function.
