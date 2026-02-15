@@ -1,39 +1,65 @@
 
-# Fix Horizontal Scroll on Candidate Page (and All Pages)
+
+# Fix Horizontal Overflow -- Proper Root Cause Fix
+
+## The Problem
+
+The previous fix (`overflow-x-hidden` on `<main>`) was a bandaid that clips content instead of fixing the actual layout math. Content is now pushed out of view on the right side.
 
 ## Root Cause
 
-The `AppLayout.tsx` `<main>` element (line 192-216) does not have `overflow-x: hidden` applied. It only conditionally sets `overflow-hidden` for messaging routes and `overflow-y-auto` for all other routes. This means any child content that bleeds horizontally (flex children, wide cards, tables, long text without word-break) creates a horizontal scrollbar across the entire page.
-
-The candidate page at `/candidate/:candidateId` renders inside `AppLayout` using `container mx-auto px-4 max-w-7xl`, which itself is fine, but sub-components (hero section badges, skill tags, decision dashboard metrics, etc.) can push content wider than the viewport on certain screen sizes.
-
-## Fix
-
-**Single-line fix in `AppLayout.tsx`**: Add `overflow-x-hidden` to the `<main>` element's className so horizontal overflow is always clipped, regardless of route.
-
-Current (line 196):
+In `AppLayout.tsx` line 196, the `<main>` element has:
 ```
-"flex-1 w-full md:ml-20 relative z-10",
+flex-1 w-full md:ml-20
 ```
 
-Updated:
+On desktop this means:
+- `w-full` forces `width: 100%` of the parent (the full viewport)
+- `md:ml-20` adds `margin-left: 5rem` for the sidebar
+- Total space needed: **100% + 5rem** -- overflows the viewport by exactly 5rem (80px, the sidebar width)
+
+The `overflow-x-hidden` we added just hides that 5rem of content on the right side, which is why things appear cut off.
+
+## The Fix
+
+Two changes in `AppLayout.tsx`:
+
+1. **On the `<main>` element (line 196):** Replace `w-full` with `min-w-0` and remove `overflow-x-hidden`
+   - `flex-1` already handles sizing (grows to fill available space)
+   - `min-w-0` is the standard flex overflow fix -- it allows the flex child to shrink below its content size
+   - Without `w-full` forcing 100% width, the margin-left no longer causes overflow
+
+2. **On the root `<div>` (line 108):** Add `overflow-hidden` to the outermost wrapper as a safety net
+   - Prevents any edge cases from creating a body-level scrollbar
+   - The root container should never scroll horizontally
+
+### Before
 ```
-"flex-1 w-full md:ml-20 relative z-10 overflow-x-hidden",
+<!-- Root -->
+<div className="min-h-screen flex w-full bg-background">
+
+<!-- Main -->
+"flex-1 w-full md:ml-20 relative z-10 overflow-x-hidden"
 ```
 
-This is safe because:
-- Messaging routes already use `overflow-hidden` (both axes clipped)
-- All other routes use `overflow-y-auto` for vertical scroll -- adding `overflow-x-hidden` does not interfere
-- No page legitimately needs horizontal scrolling at the layout level (tables/code blocks handle their own `overflow-x-auto` internally within their containers)
+### After
+```
+<!-- Root -->
+<div className="min-h-screen flex w-full overflow-hidden bg-background">
+
+<!-- Main -->
+"flex-1 min-w-0 md:ml-20 relative z-10"
+```
+
+## Why This Works
+
+- `flex-1` (which is `flex: 1 1 0%`) makes main grow to fill remaining space after the margin is accounted for
+- `min-w-0` overrides the default `min-width: auto` on flex items, allowing content to shrink properly
+- No content is clipped at the layout level -- components that need internal horizontal scroll (tables, code blocks) keep working with their own `overflow-x-auto`
+- The root `overflow-hidden` is a safety net only -- the layout math is now correct so it should never activate
 
 ## File to Modify
 
 | File | Change |
 |---|---|
-| `src/components/AppLayout.tsx` | Add `overflow-x-hidden` to the `<main>` element className (line 196) |
-
-## Technical Notes
-
-- This is a global fix that prevents horizontal scroll on ALL authenticated pages, not just the candidate profile
-- Components that need internal horizontal scroll (tables, code blocks, carousels) already have their own `overflow-x-auto` wrappers, so they will continue to scroll horizontally within their bounded containers
-- The `DynamicBackground` already has `overflow-hidden` on its fixed container, so it is not the source of the issue
+| `src/components/AppLayout.tsx` | Line 108: add `overflow-hidden` to root div. Line 196: replace `w-full overflow-x-hidden` with `min-w-0` |
