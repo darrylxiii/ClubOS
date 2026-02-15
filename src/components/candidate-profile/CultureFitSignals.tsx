@@ -21,6 +21,7 @@ interface FeedbackEntry {
 
 export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsProps) {
   const [feedback, setFeedback] = useState<FeedbackEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadFeedback() {
@@ -29,24 +30,40 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
         .select('id')
         .eq('candidate_id', candidateId);
 
-      if (!apps || apps.length === 0) return;
+      if (apps && apps.length > 0) {
+        const { data } = await supabase
+          .from('interview_feedback')
+          .select('culture_fit_score, overall_rating, recommendation, concerns, submitted_at')
+          .in('application_id', apps.map(a => a.id))
+          .order('submitted_at', { ascending: false })
+          .limit(10);
 
-      const { data } = await supabase
-        .from('interview_feedback')
-        .select('culture_fit_score, overall_rating, recommendation, concerns, submitted_at')
-        .in('application_id', apps.map(a => a.id))
-        .order('submitted_at', { ascending: false })
-        .limit(10);
-
-      if (data) setFeedback(data as FeedbackEntry[]);
+        if (data) setFeedback(data as FeedbackEntry[]);
+      }
+      setLoading(false);
     }
 
     loadFeedback();
   }, [candidateId]);
 
   const cultureFitData = breakdown?.culture_fit;
-  const hasData = cultureFitData && cultureFitData.confidence > 0.1;
-  const isAIBaseline = hasData && !cultureFitData.sources.includes('interview_feedback');
+  const hasBreakdownData = cultureFitData && cultureFitData.confidence > 0.1;
+  const hasFeedback = feedback.length > 0;
+  const hasAnyData = hasBreakdownData || hasFeedback;
+
+  // Compute local fallback score from feedback when breakdown is unavailable
+  const localScore = !hasBreakdownData && hasFeedback
+    ? Math.round(
+        feedback
+          .filter(fb => fb.culture_fit_score != null)
+          .reduce((sum, fb) => sum + (fb.culture_fit_score! * 10), 0) /
+        Math.max(1, feedback.filter(fb => fb.culture_fit_score != null).length)
+      )
+    : null;
+
+  const displayScore = hasBreakdownData ? cultureFitData.score : localScore;
+  const isLocalFallback = !hasBreakdownData && localScore != null;
+  const isAIBaseline = hasBreakdownData && !cultureFitData.sources.includes('interview_feedback');
 
   return (
     <Card className={candidateProfileTokens.glass.card}>
@@ -57,26 +74,40 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
           {isAIBaseline && (
             <Badge variant="outline" className="text-[10px] font-normal">AI baseline</Badge>
           )}
+          {isLocalFallback && (
+            <Badge variant="outline" className="text-[10px] font-normal">From feedback</Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {hasData ? (
+        {loading ? (
+          <div className="h-20 animate-pulse bg-muted/30 rounded" />
+        ) : hasAnyData ? (
           <>
-            <div className="flex items-center gap-3">
-              <div
-                className="text-3xl font-bold"
-                style={{ color: getScoreColor(cultureFitData.score).bg }}
-              >
-                {cultureFitData.score}
+            {/* Score display */}
+            {displayScore != null && (
+              <div className="flex items-center gap-3">
+                <div
+                  className="text-3xl font-bold"
+                  style={{ color: getScoreColor(displayScore).bg }}
+                >
+                  {displayScore}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {hasBreakdownData ? (
+                    <>
+                      <p>{cultureFitData.details}</p>
+                      <p className="mt-0.5">Confidence: {Math.round(cultureFitData.confidence * 100)}%</p>
+                    </>
+                  ) : (
+                    <p>Averaged from {feedback.filter(fb => fb.culture_fit_score != null).length} interview(s)</p>
+                  )}
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                <p>{cultureFitData.details}</p>
-                <p className="mt-0.5">Confidence: {Math.round(cultureFitData.confidence * 100)}%</p>
-              </div>
-            </div>
+            )}
 
             {/* Data sources used */}
-            {cultureFitData.sources.length > 0 && (
+            {hasBreakdownData && cultureFitData.sources.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {cultureFitData.sources.map((src) => (
                   <Badge key={src} variant="secondary" className="text-[10px]">
@@ -87,7 +118,7 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
             )}
 
             {/* Interview feedback entries */}
-            {feedback.length > 0 && (
+            {hasFeedback && (
               <div className="space-y-2 pt-2 border-t border-border/50">
                 {feedback.slice(0, 3).map((fb, i) => (
                   <div key={i} className="flex items-center justify-between text-sm">

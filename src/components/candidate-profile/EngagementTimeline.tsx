@@ -21,6 +21,7 @@ export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelin
   const [weeklyData, setWeeklyData] = useState<WeekBucket[]>([]);
   const [loading, setLoading] = useState(true);
   const [commCount, setCommCount] = useState(0);
+  const [totalActivities, setTotalActivities] = useState(0);
 
   useEffect(() => {
     async function loadInteractions() {
@@ -54,6 +55,7 @@ export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelin
       ];
 
       setCommCount((comms || []).length);
+      setTotalActivities(allDates.length);
 
       const buckets: WeekBucket[] = [];
       const now = Date.now();
@@ -72,8 +74,17 @@ export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelin
   }, [candidateId]);
 
   const engagementData = breakdown?.engagement;
-  const hasData = engagementData && engagementData.confidence > 0.1;
+  const hasBreakdownData = engagementData && engagementData.confidence > 0.1;
+  const hasLocalData = totalActivities > 0;
+  const hasAnyData = hasBreakdownData || hasLocalData;
   const maxCount = Math.max(1, ...weeklyData.map(w => w.count));
+
+  // Compute a local engagement estimate when breakdown is unavailable
+  const localScore = !hasBreakdownData && hasLocalData
+    ? Math.min(100, totalActivities * 8)
+    : null;
+
+  const displayScore = hasBreakdownData ? engagementData.score : localScore;
 
   return (
     <Card className={candidateProfileTokens.glass.card}>
@@ -81,25 +92,35 @@ export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelin
         <CardTitle className="text-base flex items-center gap-2">
           <Activity className="w-4 h-4" />
           Engagement
+          {!hasBreakdownData && hasLocalData && (
+            <Badge variant="outline" className="text-[10px] font-normal">Local estimate</Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {hasData ? (
+        {hasAnyData ? (
           <>
-            <div className="flex items-center gap-3">
-              <div
-                className="text-3xl font-bold"
-                style={{ color: getScoreColor(engagementData.score).bg }}
-              >
-                {engagementData.score}
+            {/* Score */}
+            {displayScore != null && (
+              <div className="flex items-center gap-3">
+                <div
+                  className="text-3xl font-bold"
+                  style={{ color: getScoreColor(displayScore).bg }}
+                >
+                  {displayScore}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {hasBreakdownData ? (
+                    <p>{engagementData.details}</p>
+                  ) : (
+                    <p>{totalActivities} activities in 90 days</p>
+                  )}
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                <p>{engagementData.details}</p>
-              </div>
-            </div>
+            )}
 
             {/* Data sources */}
-            {engagementData.sources.length > 0 && (
+            {hasBreakdownData && engagementData.sources.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {engagementData.sources.map((src) => (
                   <Badge key={src} variant="secondary" className="text-[10px]">
