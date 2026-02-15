@@ -148,6 +148,18 @@ export const memberApprovalService = {
         .single();
 
       if (error) {
+        // Handle race condition: unique_email_when_present constraint
+        if (error.code === '23505' && error.message?.includes('unique_email_when_present')) {
+          console.warn('[MemberApproval] Duplicate email constraint hit, fetching existing profile for:', requestData.email);
+          const { data: existingProfile } = await supabase
+            .from('candidate_profiles')
+            .select('id')
+            .eq('email', requestData.email)
+            .maybeSingle();
+          if (existingProfile) {
+            return existingProfile.id;
+          }
+        }
         console.error('[MemberApproval] Create candidate error:', error);
         throw error;
       }
@@ -238,6 +250,15 @@ export const memberApprovalService = {
         .single();
 
       if (createError) {
+        if (createError.code === '23505' && createError.message?.includes('unique_email_when_present')) {
+          console.warn('[MemberApproval] Duplicate email constraint hit in auto-create for:', profile.email);
+          const { data: fallback } = await supabase
+            .from('candidate_profiles')
+            .select('id')
+            .eq('email', profile.email)
+            .maybeSingle();
+          if (fallback) return fallback.id;
+        }
         console.error('[MemberApproval] Auto-create candidate error:', createError);
         throw createError;
       }
@@ -368,7 +389,8 @@ export const memberApprovalService = {
         .maybeSingle();
 
       if (existingApp) {
-        throw new Error(`Candidate is already in the "${existingApp.position}" pipeline (Status: ${existingApp.status})`);
+        console.log('[MemberApproval] Candidate already in pipeline, reusing:', existingApp.id);
+        return existingApp.id;
       }
 
       // Get job details
