@@ -105,7 +105,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const profilePath = '/profile';
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full overflow-hidden bg-background">
       <DynamicBackground />
 
       {/* Skip to main content link for accessibility */}
@@ -193,7 +193,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           id="main-content"
           tabIndex={-1}
           className={cn(
-            "flex-1 w-full md:ml-20 relative z-10 overflow-x-hidden",
+            "flex-1 min-w-0 md:ml-20 relative z-10",
             (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp') || location.pathname === '/crm/inbox')
               ? 'overflow-hidden'
               : 'overflow-y-auto'
