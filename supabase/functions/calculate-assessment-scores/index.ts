@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch all supporting data in parallel
+    // Fetch all supporting data in parallel (including profile_experience as fallback)
     const [
       { data: profileSkills },
       { data: interactions },
@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
       { data: taxonomy },
       { data: applications },
       { data: communications },
+      { data: profileExperience },
     ] = await Promise.all([
       supabase.from("profile_skills").select("*").eq("user_id", candidate_id),
       supabase.from("candidate_interactions").select("*").eq("candidate_id", candidate_id),
@@ -89,6 +90,7 @@ Deno.serve(async (req) => {
       supabase.from("applications").select("id").eq("candidate_id", candidate_id),
       supabase.from("unified_communications").select("original_timestamp, direction, channel")
         .eq("entity_id", candidate_id).order("original_timestamp", { ascending: true }).limit(100),
+      supabase.from("profile_experience").select("*").eq("user_id", candidate_id).order("start_date", { ascending: false }),
     ]);
 
     // Fetch interview feedback via applications
@@ -116,7 +118,7 @@ Deno.serve(async (req) => {
 
     // ===== COMPUTE EACH DIMENSION =====
     const skillsMatch = computeSkillsMatch(candidate, profileSkills || [], job, taxonomy || []);
-    const experience = computeExperience(candidate, job);
+    const experience = computeExperience(candidate, job, profileExperience || []);
     const engagement = computeEngagement(candidate, interactions || [], applicationLogs || [], communications || []);
     const cultureFit = computeCultureFit(candidate, allFeedback);
     const salaryMatch = computeSalaryMatch(candidate, job);
@@ -282,29 +284,89 @@ function computeSkillsMatch(
 }
 
 // ==================== EXPERIENCE ====================
-function computeExperience(candidate: any, job: any | null): AssessmentDimension {
-  const yoe = candidate.years_of_experience;
-  const workHistory = Array.isArray(candidate.work_history) ? candidate.work_history : [];
+function computeExperience(candidate: any, job: any | null, profileExperience: any[] = []): AssessmentDimension {
+  let yoe = candidate.years_of_experience;
+  let workHistory = Array.isArray(candidate.work_history) ? candidate.work_history : [];
 
-  if (!yoe && yoe !== 0 && workHistory.length === 0) {
-    return { score: 0, confidence: 0, sources: [], details: "No experience data" };
+  // FALLBACK 1: If work_history is empty, build it from profile_experience table
+  if (workHistory.length === 0 && profileExperience.length > 0) {
+    workHistory = profileExperience.map((pe: any) => ({
+      title: pe.position_title || pe.title,
+      company: pe.company_name || pe.company,
+      start_date: pe.start_date,
+      end_date: pe.end_date,
+      is_current: pe.is_current,
+      description: pe.description,
+    }));
   }
 
-  const sources: string[] = ["candidate_profile"];
+  // FALLBACK 2: If work_history is empty, try linkedin_profile_data
+  if (workHistory.length === 0 && candidate.linkedin_profile_data) {
+    const lpd = typeof candidate.linkedin_profile_data === 'string'
+      ? JSON.parse(candidate.linkedin_profile_data)
+      : candidate.linkedin_profile_data;
+    const exp = lpd?.experience || lpd?.positions || lpd?.work_history || [];
+    if (Array.isArray(exp) && exp.length > 0) {
+      workHistory = exp.map((e: any) => ({
+        title: e.title || e.position_title || e.role,
+        company: e.company || e.company_name || e.organization,
+        start_date: e.start_date || e.startDate,
+        end_date: e.end_date || e.endDate,
+        is_current: e.is_current || false,
+        description: e.description || e.summary,
+      }));
+    }
+  }
+
+  // FALLBACK 3: Compute years_of_experience from work history dates when field is null
+  if ((!yoe || yoe === 0) && workHistory.length > 0) {
+    yoe = computeYearsFromWorkHistory(workHistory);
+  }
+
+  // FALLBACK 4: Infer from current_title if nothing else
+  if (!yoe && yoe !== 0 && workHistory.length === 0) {
+    if (candidate.current_title) {
+      const title = (candidate.current_title || '').toLowerCase();
+      const seniorityMap: Record<string, number> = {
+        intern: 0.5, trainee: 1, junior: 2, associate: 3, mid: 4,
+        senior: 7, lead: 9, principal: 11, head: 12, director: 14, vp: 16, chief: 18, cto: 18, ceo: 20
+      };
+      for (const [keyword, years] of Object.entries(seniorityMap)) {
+        if (title.includes(keyword)) {
+          yoe = years;
+          break;
+        }
+      }
+      if (!yoe) yoe = 4; // default mid-level for non-keyword titles
+      return {
+        score: Math.min(100, Math.max(0, Math.round(100 - Math.abs(yoe - 8) * 4))),
+        confidence: 0.2,
+        sources: ["current_title_inferred"],
+        details: `~${yoe} years inferred from title "${candidate.current_title}". Add work history for accuracy.`,
+      };
+    }
+    return { score: 0, confidence: 0, sources: [], details: "No experience data. Upload a CV or connect LinkedIn." };
+  }
+
+  const sources: string[] = [];
+  if (workHistory.length > 0) sources.push("work_history");
+  if (profileExperience.length > 0) sources.push("profile_experience");
+  if (candidate.years_of_experience) sources.push("candidate_profile");
+
   let details = `${yoe || 0} years experience`;
+  if (workHistory.length > 0) details += `, ${workHistory.length} roles`;
 
   // Detect career progression from work history
   let progressionBonus = 0;
   if (workHistory.length >= 2) {
-    const titles = workHistory.map((w: any) => (w.title || w.job_title || '').toLowerCase());
-    const seniorityKeywords = ['intern', 'junior', 'mid', 'senior', 'lead', 'principal', 'head', 'director', 'vp', 'cto', 'ceo'];
+    const titles = workHistory.map((w: any) => (w.title || w.job_title || w.position_title || '').toLowerCase());
+    const seniorityKeywords = ['intern', 'trainee', 'junior', 'mid', 'senior', 'lead', 'principal', 'head', 'director', 'vp', 'cto', 'ceo'];
     const titleLevels = titles.map((t: string) => {
       for (let i = seniorityKeywords.length - 1; i >= 0; i--) {
         if (t.includes(seniorityKeywords[i])) return i;
       }
       return 3; // default mid
     });
-    // Check if progression is upward
     let ascending = 0;
     for (let i = 1; i < titleLevels.length; i++) {
       if (titleLevels[i] > titleLevels[i - 1]) ascending++;
@@ -320,7 +382,7 @@ function computeExperience(candidate: any, job: any | null): AssessmentDimension
     const idealYears = 8;
     const diff = Math.abs((yoe || 0) - idealYears);
     const score = Math.min(100, Math.max(0, Math.round(100 - diff * 4)) + progressionBonus);
-    return { score, confidence: 0.5, sources, details };
+    return { score, confidence: workHistory.length > 0 ? 0.6 : 0.5, sources, details };
   }
 
   // Use seniority_level and experience_level from job if available
@@ -332,7 +394,6 @@ function computeExperience(candidate: any, job: any | null): AssessmentDimension
     expectedYears = SENIORITY_YEARS[job.experience_level.toLowerCase()];
     sources.push("job_experience_level");
   } else {
-    // Fallback: parse from title
     const title = (job.title || "").toLowerCase();
     if (title.includes("junior") || title.includes("jr.")) expectedYears = 2;
     else if (title.includes("senior") || title.includes("sr.")) expectedYears = 7;
@@ -342,11 +403,47 @@ function computeExperience(candidate: any, job: any | null): AssessmentDimension
   }
 
   const diff = Math.abs((yoe || 0) - expectedYears);
-  // Bell curve: exact match = 100, graceful degradation
   const score = Math.min(100, Math.max(0, Math.round(100 - diff * 6)) + progressionBonus);
   details = `${yoe || 0} years vs ~${expectedYears} expected`;
+  if (workHistory.length > 0) details += ` (${workHistory.length} roles)`;
 
-  return { score, confidence: 0.7, sources, details };
+  return { score, confidence: workHistory.length > 0 ? 0.8 : 0.7, sources, details };
+}
+
+// Helper: compute total years of experience from work history date ranges
+function computeYearsFromWorkHistory(workHistory: any[]): number {
+  const now = new Date();
+  let totalMonths = 0;
+
+  for (const entry of workHistory) {
+    const startStr = entry.start_date || entry.startDate;
+    const endStr = entry.end_date || entry.endDate;
+    const isCurrent = entry.is_current;
+
+    if (!startStr) {
+      // If we have duration string like "2 years" or "Jan 2020 - Dec 2022", try to parse
+      const durStr = entry.duration || '';
+      const yearMatch = durStr.match(/(\d+)\s*(?:year|yr)/i);
+      const monthMatch = durStr.match(/(\d+)\s*(?:month|mo)/i);
+      if (yearMatch) totalMonths += parseInt(yearMatch[1]) * 12;
+      if (monthMatch) totalMonths += parseInt(monthMatch[1]);
+      continue;
+    }
+
+    const start = new Date(startStr);
+    if (isNaN(start.getTime())) continue;
+
+    let end = now;
+    if (endStr && !isCurrent) {
+      const parsedEnd = new Date(endStr);
+      if (!isNaN(parsedEnd.getTime())) end = parsedEnd;
+    }
+
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    if (months > 0) totalMonths += months;
+  }
+
+  return Math.round(totalMonths / 12 * 10) / 10; // round to 1 decimal
 }
 
 // ==================== ENGAGEMENT ====================
