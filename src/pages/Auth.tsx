@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Lock, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
@@ -670,22 +670,27 @@ const Auth = () => {
               </div>
 
               <div className="space-y-3">
-                <Button type="button" onClick={handleGoogleAuth} variant="outline" className="w-full h-14 rounded-2xl font-semibold">
+                <Button type="button" disabled variant="outline" className="w-full h-14 rounded-2xl font-semibold opacity-50 cursor-not-allowed">
                   <GoogleIcon />
-                  {t('signInWith', {
-                provider: t('oauth.google')
-              })}
+                  <span className="flex items-center gap-2">
+                    {t('oauth.google')} — updating
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '3s' }} />
+                  </span>
                 </Button>
 
-                <Button type="button" onClick={handleAppleAuth} variant="outline" className="w-full h-14 rounded-2xl font-semibold">
+                <Button type="button" disabled variant="outline" className="w-full h-14 rounded-2xl font-semibold opacity-50 cursor-not-allowed">
                   <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                   </svg>
-                  {t('signInWith', {
-                provider: t('oauth.apple')
-              })}
+                  <span className="flex items-center gap-2">
+                    {t('oauth.apple')} — updating
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '3s' }} />
+                  </span>
                 </Button>
 
+                <p className="text-center text-xs text-muted-foreground pt-1">
+                  Social sign-in temporarily unavailable. Use email to log in.
+                </p>
               </div>
 
               <div className="text-center pt-2">
