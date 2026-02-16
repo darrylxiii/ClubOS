@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Calculator, AlertCircle, Check } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { evaluate } from 'mathjs';
 
 interface FormulaCellProps {
   formula: string;
@@ -14,7 +15,7 @@ interface FormulaCellProps {
   readOnly?: boolean;
 }
 
-// Simple formula parser and evaluator
+// Safe formula parser using mathjs (no eval/Function constructor)
 function evaluateFormula(
   formula: string, 
   rowData: Record<string, unknown>,
@@ -26,85 +27,79 @@ function evaluateFormula(
     // Replace column references with actual values
     let expression = formula;
     
+    // Build a scope object for mathjs evaluation
+    const scope: Record<string, unknown> = {};
+    
     // Match column references like {Column Name} or prop("Column Name")
     const columnRefRegex = /\{([^}]+)\}|prop\("([^"]+)"\)/g;
+    let refIndex = 0;
     expression = expression.replace(columnRefRegex, (match, col1, col2) => {
       const colName = col1 || col2;
       const value = rowData[colName];
-      if (value === undefined || value === null) return '0';
-      if (typeof value === 'number') return String(value);
-      if (typeof value === 'string') return `"${value}"`;
-      if (typeof value === 'boolean') return value ? 'true' : 'false';
-      return '0';
+      const varName = `_col${refIndex++}`;
+      scope[varName] = value === undefined || value === null ? 0 : 
+        typeof value === 'number' ? value :
+        typeof value === 'boolean' ? (value ? 1 : 0) :
+        typeof value === 'string' ? (isNaN(Number(value)) ? value : Number(value)) : 0;
+      return varName;
     });
 
-    // Handle built-in functions
-    const functions: Record<string, (...args: number[]) => number | string> = {
-      SUM: (...args) => args.reduce((a, b) => a + b, 0),
-      AVG: (...args) => args.length ? args.reduce((a, b) => a + b, 0) / args.length : 0,
-      MIN: (...args) => Math.min(...args),
-      MAX: (...args) => Math.max(...args),
-      ABS: (n) => Math.abs(n),
-      ROUND: (n, decimals = 0) => Number(n.toFixed(decimals)),
-      FLOOR: (n) => Math.floor(n),
-      CEIL: (n) => Math.ceil(n),
-      CONCAT: (...args) => args.join(''),
-      LENGTH: (str) => String(str).length,
-      UPPER: (str) => String(str).toUpperCase(),
-      LOWER: (str) => String(str).toLowerCase(),
+    // Handle string functions that mathjs doesn't support natively
+    const stringFunctions: Record<string, (...args: unknown[]) => unknown> = {
+      CONCAT: (...args) => args.map(String).join(''),
+      LENGTH: (str) => String(str ?? '').length,
+      UPPER: (str) => String(str ?? '').toUpperCase(),
+      LOWER: (str) => String(str ?? '').toLowerCase(),
       NOW: () => Date.now(),
       TODAY: () => new Date().toISOString().split('T')[0],
     };
 
-    // Replace function calls
-    Object.entries(functions).forEach(([name, fn]) => {
+    // Check if formula uses string functions
+    for (const [name, fn] of Object.entries(stringFunctions)) {
       const fnRegex = new RegExp(`${name}\\(([^)]*)\\)`, 'gi');
-      expression = expression.replace(fnRegex, (match, args) => {
-        try {
-          const parsedArgs = args
-            .split(',')
-            .map((a: string) => a.trim())
-            .filter((a: string) => a)
-            .map((a: string) => {
-              if (a.startsWith('"') && a.endsWith('"')) return a.slice(1, -1);
-              const num = parseFloat(a);
-              return isNaN(num) ? a : num;
-            });
-          const result = fn(...parsedArgs as number[]);
-          return typeof result === 'string' ? `"${result}"` : String(result);
-        } catch {
-          return '0';
-        }
-      });
-    });
+      const fnMatch = expression.match(fnRegex);
+      if (fnMatch) {
+        expression = expression.replace(fnRegex, (_match, args) => {
+          try {
+            const parsedArgs = args
+              .split(',')
+              .map((a: string) => a.trim())
+              .filter((a: string) => a)
+              .map((a: string) => {
+                if (a.startsWith('"') && a.endsWith('"')) return a.slice(1, -1);
+                if (scope[a] !== undefined) return scope[a];
+                const num = parseFloat(a);
+                return isNaN(num) ? a : num;
+              });
+            const result = fn(...parsedArgs);
+            return typeof result === 'string' ? `"${result}"` : String(result);
+          } catch {
+            return '0';
+          }
+        });
+      }
+    }
 
     // Handle IF statements: IF(condition, trueValue, falseValue)
     const ifRegex = /IF\(([^,]+),([^,]+),([^)]+)\)/gi;
-    expression = expression.replace(ifRegex, (match, condition, trueVal, falseVal) => {
+    expression = expression.replace(ifRegex, (_match, condition, trueVal, falseVal) => {
       try {
-        // Simple condition evaluation
-        const evalCondition = new Function(`return ${condition}`)();
-        return evalCondition ? trueVal.trim() : falseVal.trim();
+        // Evaluate condition safely with mathjs
+        const condResult = evaluate(condition, scope);
+        return condResult ? trueVal.trim() : falseVal.trim();
       } catch {
         return falseVal.trim();
       }
     });
-
-    // Evaluate basic math expressions safely
-    // Only allow numbers, operators, and parentheses
-    const safeExpression = expression.replace(/[^0-9+\-*/().,"'\s]/g, '');
-    
-    if (safeExpression.match(/^[\d+\-*/().\s]+$/)) {
-      const result = new Function(`return ${safeExpression}`)();
-      return { result, error: null };
-    }
 
     // For string results, remove quotes
     if (expression.startsWith('"') && expression.endsWith('"')) {
       return { result: expression.slice(1, -1), error: null };
     }
 
-    return { result: expression, error: null };
+    // Evaluate with mathjs (safe, no code injection)
+    const result = evaluate(expression, scope);
+    return { result, error: null };
   } catch (err) {
     return { result: null, error: err instanceof Error ? err.message : 'Invalid formula' };
   }
