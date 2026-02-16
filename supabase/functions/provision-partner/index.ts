@@ -243,7 +243,7 @@ serve(async (req) => {
       .from('profiles')
       .update({
         full_name: body.fullName,
-        phone_number: body.phoneNumber,
+        phone: body.phoneNumber,
         provisioned_by: adminUser.id,
         provisioned_at: new Date().toISOString(),
         admin_verified_email: body.markEmailVerified,
@@ -264,11 +264,12 @@ serve(async (req) => {
     // Step 4b: Assign strategist if specified
     if (body.assignedStrategistId) {
       await supabase
-        .from('candidate_strategist_assignments')
+        .from('strategist_assignments')
         .insert({
-          candidate_id: newUserId,
+          partner_id: newUserId,
           strategist_id: body.assignedStrategistId,
-          status: 'active',
+          is_active: true,
+          assignment_type: 'partner_provisioning',
           notes: 'Assigned during partner provisioning'
         });
     }
