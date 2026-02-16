@@ -7041,6 +7041,7 @@ export type Database = {
           gdpr_consent_date: string | null
           ghost_mode_enabled: boolean | null
           github_url: string | null
+          greenhouse_id: string | null
           header_media_type: string | null
           header_media_url: string | null
           id: string
@@ -7167,6 +7168,7 @@ export type Database = {
           gdpr_consent_date?: string | null
           ghost_mode_enabled?: boolean | null
           github_url?: string | null
+          greenhouse_id?: string | null
           header_media_type?: string | null
           header_media_url?: string | null
           id?: string
@@ -7293,6 +7295,7 @@ export type Database = {
           gdpr_consent_date?: string | null
           ghost_mode_enabled?: boolean | null
           github_url?: string | null
+          greenhouse_id?: string | null
           header_media_type?: string | null
           header_media_url?: string | null
           id?: string
@@ -20740,6 +20743,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      greenhouse_import_logs: {
+        Row: {
+          admin_id: string
+          completed_at: string | null
+          data_fields: Json
+          errors: Json | null
+          failed_count: number
+          id: string
+          imported_count: number
+          job_ids: Json
+          skipped_count: number
+          started_at: string
+          total_candidates: number
+        }
+        Insert: {
+          admin_id: string
+          completed_at?: string | null
+          data_fields?: Json
+          errors?: Json | null
+          failed_count?: number
+          id?: string
+          imported_count?: number
+          job_ids?: Json
+          skipped_count?: number
+          started_at?: string
+          total_candidates?: number
+        }
+        Update: {
+          admin_id?: string
+          completed_at?: string | null
+          data_fields?: Json
+          errors?: Json | null
+          failed_count?: number
+          id?: string
+          imported_count?: number
+          job_ids?: Json
+          skipped_count?: number
+          started_at?: string
+          total_candidates?: number
+        }
+        Relationships: []
       }
       guest_domain_behavior: {
         Row: {
