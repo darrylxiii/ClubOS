@@ -28791,6 +28791,7 @@ export type Database = {
           embeddings_generated: boolean | null
           embeddings_generated_at: string | null
           executive_summary: string | null
+          external_source_id: string | null
           file_size_bytes: number | null
           host_id: string
           id: string
@@ -28833,6 +28834,7 @@ export type Database = {
           embeddings_generated?: boolean | null
           embeddings_generated_at?: string | null
           executive_summary?: string | null
+          external_source_id?: string | null
           file_size_bytes?: number | null
           host_id: string
           id?: string
@@ -28875,6 +28877,7 @@ export type Database = {
           embeddings_generated?: boolean | null
           embeddings_generated_at?: string | null
           executive_summary?: string | null
+          external_source_id?: string | null
           file_size_bytes?: number | null
           host_id?: string
           id?: string
