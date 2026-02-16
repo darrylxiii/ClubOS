@@ -1,35 +1,64 @@
 
 
-# Fix: Greenhouse Edge Function CORS Failure
+# Fix: Wrong Greenhouse OAuth Token Endpoint
 
-## Root Cause
+## Problem
 
-The Supabase client is configured with a custom global header `x-application-name: 'thequantumclub'` (in `src/integrations/supabase/client.ts`). This header is sent on every request, including calls to `supabase.functions.invoke`.
+The edge function logs show a DNS resolution failure:
 
-However, the `sync-greenhouse-candidates` edge function does not include `x-application-name` in its `Access-Control-Allow-Headers` CORS whitelist. This causes the browser's CORS preflight (OPTIONS) request to be rejected, resulting in the generic "Failed to send a request to the Edge Function" error.
+```
+dns error: failed to lookup address information: Name or service not known
+URL: https://id.greenhouse.io/oauth/token
+```
 
-The function itself is deployed and working -- a direct server-side call returns a proper 401 response, confirming it is reachable.
+The domain `id.greenhouse.io` does not exist. According to the official Greenhouse documentation, the correct OAuth token endpoint is `https://auth.greenhouse.io/token`.
 
-## Fix
+Additionally, the credentials must be sent via HTTP Basic Auth header (`client_id:client_secret` base64-encoded), not as form body parameters. The `grant_type=client_credentials` stays in the body, but a `sub` parameter (a Greenhouse user email with Site Admin privileges) is also required by Greenhouse.
+
+## Changes
 
 **File:** `supabase/functions/sync-greenhouse-candidates/index.ts`
 
-Add `x-application-name` to the CORS `Access-Control-Allow-Headers` string:
+### 1. Fix the token endpoint URL
+
+Change `https://id.greenhouse.io/oauth/token` to `https://auth.greenhouse.io/token`
+
+### 2. Fix credential transmission
+
+Greenhouse OAuth v3 requires client credentials in the HTTP Basic Auth header, not in the request body:
 
 ```
-// Before
-'Access-Control-Allow-Headers':
-  'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, ...'
+Authorization: Basic base64(client_id:client_secret)
+Content-Type: application/x-www-form-urlencoded
 
-// After
-'Access-Control-Allow-Headers':
-  'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, ...'
+Body: grant_type=client_credentials
 ```
 
-Then redeploy the function.
+### 3. Update `getAccessToken` function
+
+The corrected function will:
+- POST to `https://auth.greenhouse.io/token`
+- Send `Authorization: Basic <base64(clientId:clientSecret)>` header
+- Send `grant_type=client_credentials` in the body
+- Return the `access_token` from the response
+
+### 4. Harvest API version
+
+Keep using `/v2` endpoints for now, as Bearer tokens from v3 OAuth can authenticate against v2 endpoints as well. Switching to `/v3` would require updating all endpoint paths and response parsing, which is a separate task.
+
+## Technical Details
+
+```
+POST https://auth.greenhouse.io/token
+Authorization: Basic base64(<client_id>:<client_secret>)
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+```
 
 ## Scope
 
-- One line change in one file
-- No UI or database changes needed
+- One function modified: `supabase/functions/sync-greenhouse-candidates/index.ts`
+- Only the `getAccessToken` function changes
+- Redeploy required
 
