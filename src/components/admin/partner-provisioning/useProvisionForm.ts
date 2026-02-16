@@ -179,19 +179,38 @@ export function useProvisionForm(prefillData?: PrefillData) {
 
   // Load strategists
   const loadStrategists = useCallback(async () => {
-    const { data } = await supabase
+    const { data: roles } = await supabase
       .from('user_roles')
-      .select('user_id, profiles!inner(id, full_name, email)')
+      .select('user_id')
       .eq('role', 'strategist');
-    if (data) {
+
+    if (!roles?.length) {
+      // Fallback: include admins so there's always someone to assign
+      const { data: adminRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+      if (!adminRoles?.length) { setStrategists([]); return; }
+      const ids = [...new Set(adminRoles.map(r => r.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', ids);
       setStrategists(
-        data.map((d: any) => ({
-          id: d.user_id,
-          full_name: d.profiles?.full_name || null,
-          email: d.profiles?.email || '',
-        }))
+        (profiles || []).map(p => ({ id: p.id, full_name: p.full_name, email: p.email || '' }))
       );
+      return;
     }
+
+    const userIds = [...new Set(roles.map(r => r.user_id))];
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds);
+
+    setStrategists(
+      (profiles || []).map(p => ({ id: p.id, full_name: p.full_name, email: p.email || '' }))
+    );
   }, []);
 
   // Check for duplicate email
