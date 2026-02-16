@@ -1,72 +1,35 @@
 
 
-# Fix Greenhouse Integration -- Switch to OAuth Authentication
+# Fix: Greenhouse Edge Function CORS Failure
 
-## Problem
+## Root Cause
 
-Two issues prevent the sync from working:
+The Supabase client is configured with a custom global header `x-application-name: 'thequantumclub'` (in `src/integrations/supabase/client.ts`). This header is sent on every request, including calls to `supabase.functions.invoke`.
 
-1. The `GREENHOUSE_API_KEY` secret was never saved (it does not appear in the project secrets).
-2. The edge function uses Basic Auth with a single API key, but you have Greenhouse OAuth v3 credentials (Client ID + Client Secret), which require a different authentication flow.
+However, the `sync-greenhouse-candidates` edge function does not include `x-application-name` in its `Access-Control-Allow-Headers` CORS whitelist. This causes the browser's CORS preflight (OPTIONS) request to be rejected, resulting in the generic "Failed to send a request to the Edge Function" error.
 
-## Solution
+The function itself is deployed and working -- a direct server-side call returns a proper 401 response, confirming it is reachable.
 
-Update the edge function to use Greenhouse OAuth token exchange and store both credentials as secrets.
-
-## Secrets to Add
-
-- **GREENHOUSE_CLIENT_ID** -- your Greenhouse OAuth Client ID
-- **GREENHOUSE_CLIENT_SECRET** -- your Greenhouse OAuth Client Secret
-
-The old `GREENHOUSE_API_KEY` reference will be removed.
-
-## Edge Function Changes
+## Fix
 
 **File:** `supabase/functions/sync-greenhouse-candidates/index.ts`
 
-Replace the Basic Auth helper with an OAuth token exchange:
-
-1. Read `GREENHOUSE_CLIENT_ID` and `GREENHOUSE_CLIENT_SECRET` from environment
-2. Exchange them for a Bearer access token via Greenhouse's OAuth token endpoint (`POST https://id.greenhouse.io/oauth/token`)
-3. Use the Bearer token in all Harvest API requests instead of Basic Auth
-4. Cache the token for the duration of the function invocation (no need to re-fetch per request)
-
-### Key code changes
-
-- Remove the `ghHeaders()` function that builds Basic Auth
-- Add `getAccessToken(clientId, clientSecret)` that POSTs to `https://id.greenhouse.io/oauth/token` with `grant_type=client_credentials`
-- Update `ghFetch()` and `fetchAllPages()` to use `Authorization: Bearer <token>` instead of Basic Auth
-- Update the env check at the top to require `GREENHOUSE_CLIENT_ID` and `GREENHOUSE_CLIENT_SECRET` instead of `GREENHOUSE_API_KEY`
-
-## No Other Files Change
-
-The UI panel and database schema remain the same. Only the edge function authentication logic is updated.
-
-## Technical Details
-
-### OAuth Token Exchange
+Add `x-application-name` to the CORS `Access-Control-Allow-Headers` string:
 
 ```
-POST https://id.greenhouse.io/oauth/token
-Content-Type: application/x-www-form-urlencoded
+// Before
+'Access-Control-Allow-Headers':
+  'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, ...'
 
-grant_type=client_credentials
-&client_id=<GREENHOUSE_CLIENT_ID>
-&client_secret=<GREENHOUSE_CLIENT_SECRET>
+// After
+'Access-Control-Allow-Headers':
+  'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, ...'
 ```
 
-Response provides an `access_token` used as a Bearer token for all subsequent Harvest API calls.
+Then redeploy the function.
 
-### Updated request headers
+## Scope
 
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
+- One line change in one file
+- No UI or database changes needed
 
-## Steps
-
-1. Add `GREENHOUSE_CLIENT_ID` secret (you will be prompted)
-2. Add `GREENHOUSE_CLIENT_SECRET` secret (you will be prompted)
-3. Update edge function auth logic
-4. Deploy updated function
