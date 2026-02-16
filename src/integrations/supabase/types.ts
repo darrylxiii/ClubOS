@@ -25851,6 +25851,194 @@ export type Database = {
           },
         ]
       }
+      linkedin_avatar_accounts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          linkedin_email: string | null
+          max_daily_minutes: number
+          notes: string | null
+          owner_team: string | null
+          playbook: string | null
+          risk_level: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          linkedin_email?: string | null
+          max_daily_minutes?: number
+          notes?: string | null
+          owner_team?: string | null
+          playbook?: string | null
+          risk_level?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          linkedin_email?: string | null
+          max_daily_minutes?: number
+          notes?: string | null
+          owner_team?: string | null
+          playbook?: string | null
+          risk_level?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_avatar_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_avatar_events: {
+        Row: {
+          account_id: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_avatar_events_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_avatar_sessions: {
+        Row: {
+          account_id: string
+          created_at: string
+          ended_at: string | null
+          expected_end_at: string
+          id: string
+          purpose: string
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          ended_at?: string | null
+          expected_end_at: string
+          id?: string
+          purpose?: string
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          ended_at?: string | null
+          expected_end_at?: string
+          id?: string
+          purpose?: string
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_avatar_sessions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       linkedin_imports: {
         Row: {
           created_at: string | null
@@ -55388,6 +55576,7 @@ export type Database = {
           synced_count: number
         }[]
       }
+      timeout_expired_avatar_sessions: { Args: never; Returns: number }
       toggle_maintenance_mode: {
         Args: { p_enabled: boolean; p_eta?: string; p_message?: string }
         Returns: boolean
