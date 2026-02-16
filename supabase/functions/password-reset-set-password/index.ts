@@ -5,7 +5,7 @@ import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-application-name",
 };
 
 const requestSchema = z.object({
@@ -40,12 +40,11 @@ serve(async (req) => {
 
     console.log(`[Set Password] Token: ${token.substring(0, 10)}...`);
 
-    // Validate token
+    // Validate token (allow tokens marked used by OTP step, within 15-min window)
     const { data: tokens, error: lookupError } = await supabaseAdmin
       .from('password_reset_tokens')
       .select('*')
       .eq('magic_token', token)
-      .eq('is_used', false)
       .gt('expires_at', new Date().toISOString())
       .limit(1);
 
@@ -63,6 +62,22 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    // If token was already used (by OTP step), ensure it was used within 15 minutes
+    if (tokens[0].is_used && tokens[0].used_at) {
+      const usedAt = new Date(tokens[0].used_at).getTime();
+      const fifteenMinAgo = Date.now() - 15 * 60 * 1000;
+      if (usedAt < fifteenMinAgo) {
+        console.log('[Set Password] Token used_at too old, rejecting');
+        return new Response(
+          JSON.stringify({ error: "Token has expired. Please start over." }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     const resetToken = tokens[0];
@@ -123,7 +138,7 @@ serve(async (req) => {
         password_hash: newPasswordHash,
       });
 
-    // Mark token as used
+    // Update used_at to reflect when password was actually set
     await supabaseAdmin
       .from('password_reset_tokens')
       .update({
