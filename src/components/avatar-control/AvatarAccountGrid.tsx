@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
-import { AvatarAccount } from '@/hooks/useAvatarAccounts';
+import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { AvatarAccountCard } from './AvatarAccountCard';
+import { toast } from 'sonner';
 
 interface AvatarAccountGridProps {
   accounts: AvatarAccount[];
@@ -15,8 +16,22 @@ interface AvatarAccountGridProps {
 const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk'] as const;
 
 export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: AvatarAccountGridProps) {
+  const { syncLinkedIn } = useAvatarAccounts();
+  const [syncingId, setSyncingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<typeof FILTER_OPTIONS[number]>('All');
+
+  const handleSyncLinkedIn = (account: AvatarAccount) => {
+    if (!account.linkedin_url) {
+      toast.error('No LinkedIn URL set for this account.');
+      return;
+    }
+    setSyncingId(account.id);
+    syncLinkedIn.mutate(
+      { accountId: account.id, linkedinUrl: account.linkedin_url },
+      { onSettled: () => setSyncingId(null) }
+    );
+  };
 
   const activeByAccount = useMemo(() => {
     const map = new Map<string, AvatarSession>();
@@ -80,6 +95,8 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
             account={account}
             activeSession={activeByAccount.get(account.id)}
             onStartSession={onStartSession}
+            onSyncLinkedIn={handleSyncLinkedIn}
+            isSyncing={syncingId === account.id}
           />
         ))}
       </div>
