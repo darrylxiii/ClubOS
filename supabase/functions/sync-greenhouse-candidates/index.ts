@@ -26,16 +26,41 @@ interface SyncResult {
   dryRun: boolean;
 }
 
-// ── Greenhouse helpers ────────────────────────────────────────────
-function ghHeaders(apiKey: string): HeadersInit {
+// ── Greenhouse OAuth helpers ──────────────────────────────────────
+let cachedToken: string | null = null;
+
+async function getAccessToken(clientId: string, clientSecret: string): Promise<string> {
+  if (cachedToken) return cachedToken;
+
+  const res = await fetch('https://id.greenhouse.io/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret,
+    }).toString(),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Greenhouse OAuth token exchange failed (${res.status}): ${body}`);
+  }
+
+  const data = await res.json();
+  cachedToken = data.access_token;
+  return cachedToken!;
+}
+
+function bearerHeaders(token: string): HeadersInit {
   return {
-    Authorization: `Basic ${btoa(apiKey + ':')}`,
+    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 }
 
-async function ghFetch(path: string, apiKey: string): Promise<Response> {
-  const res = await fetch(`${GH_BASE}${path}`, { headers: ghHeaders(apiKey) });
+async function ghFetch(path: string, token: string): Promise<Response> {
+  const res = await fetch(`${GH_BASE}${path}`, { headers: bearerHeaders(token) });
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`Greenhouse API ${res.status}: ${body}`);
@@ -50,12 +75,12 @@ function getNextUrl(linkHeader: string | null): string | null {
   return match ? match[1] : null;
 }
 
-async function fetchAllPages<T>(initialUrl: string, apiKey: string, pageSize: number): Promise<T[]> {
+async function fetchAllPages<T>(initialUrl: string, token: string, pageSize: number): Promise<T[]> {
   const all: T[] = [];
   let url: string | null = `${GH_BASE}${initialUrl}${initialUrl.includes('?') ? '&' : '?'}per_page=${pageSize}`;
 
   while (url) {
-    const res = await fetch(url, { headers: ghHeaders(apiKey) });
+    const res = await fetch(url, { headers: bearerHeaders(token) });
     if (!res.ok) {
       const body = await res.text();
       throw new Error(`Greenhouse API ${res.status}: ${body}`);
@@ -64,7 +89,6 @@ async function fetchAllPages<T>(initialUrl: string, apiKey: string, pageSize: nu
     all.push(...data);
     url = getNextUrl(res.headers.get('Link'));
 
-    // Rate-limit safety: 200ms between pages (50 req/10s = 200ms avg)
     if (url) await new Promise((r) => setTimeout(r, 200));
   }
   return all;
@@ -88,13 +112,18 @@ serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const greenhouseApiKey = Deno.env.get('GREENHOUSE_API_KEY');
-    if (!greenhouseApiKey) {
-      return new Response(JSON.stringify({ error: 'GREENHOUSE_API_KEY not configured' }), {
+
+    const ghClientId = Deno.env.get('GREENHOUSE_CLIENT_ID');
+    const ghClientSecret = Deno.env.get('GREENHOUSE_CLIENT_SECRET');
+    if (!ghClientId || !ghClientSecret) {
+      return new Response(JSON.stringify({ error: 'GREENHOUSE_CLIENT_ID and GREENHOUSE_CLIENT_SECRET not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Get OAuth access token
+    const ghToken = await getAccessToken(ghClientId, ghClientSecret);
 
     // Verify JWT + role
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -130,9 +159,8 @@ serve(async (req: Request) => {
 
     // ── Mode: list_jobs ──
     if (mode === 'list_jobs') {
-      const jobs = await fetchAllPages<any>('/jobs?status=open', greenhouseApiKey, 100);
-      // Also fetch closed jobs for historical import
-      const closedJobs = await fetchAllPages<any>('/jobs?status=closed', greenhouseApiKey, 100);
+      const jobs = await fetchAllPages<any>('/jobs?status=open', ghToken, 100);
+      const closedJobs = await fetchAllPages<any>('/jobs?status=closed', ghToken, 100);
       const allJobs = [...jobs, ...closedJobs].map((j: any) => ({
         id: j.id,
         name: j.name,
@@ -150,7 +178,6 @@ serve(async (req: Request) => {
     // ── Mode: sync ──
     const result: SyncResult = { found: 0, created: 0, skipped: 0, errors: 0, errorDetails: [], dryRun: dry_run };
 
-    // Create import log
     let logId: string | null = null;
     if (!dry_run) {
       const { data: logRow } = await adminClient
@@ -169,33 +196,29 @@ serve(async (req: Request) => {
       logId = logRow?.id || null;
     }
 
-    // Determine which jobs to pull candidates from
     let ghJobIds: number[] = job_ids;
     if (!ghJobIds.length) {
-      const allJobs = await fetchAllPages<any>('/jobs', greenhouseApiKey, 100);
+      const allJobs = await fetchAllPages<any>('/jobs', ghToken, 100);
       ghJobIds = allJobs.map((j: any) => j.id);
     }
 
-    // Fetch existing greenhouse_ids for dedup
     const { data: existingProfiles } = await adminClient
       .from('candidate_profiles')
       .select('greenhouse_id')
       .not('greenhouse_id', 'is', null);
     const existingGhIds = new Set((existingProfiles || []).map((p: any) => String(p.greenhouse_id)));
 
-    // Process each job
     for (const jobId of ghJobIds) {
       try {
         const candidates = await fetchAllPages<any>(
           `/jobs/${jobId}/candidates`,
-          greenhouseApiKey,
+          ghToken,
           clampedPageSize,
         );
 
         for (const candidate of candidates) {
           result.found++;
 
-          // Check rejection status
           const apps = candidate.applications || [];
           const isRejected = apps.every((a: any) => a.status === 'rejected');
           if (isRejected && !include_rejected) {
@@ -203,7 +226,6 @@ serve(async (req: Request) => {
             continue;
           }
 
-          // Dedup
           const ghId = String(candidate.id);
           if (existingGhIds.has(ghId)) {
             result.skipped++;
@@ -217,7 +239,6 @@ serve(async (req: Request) => {
           }
 
           try {
-            // Map fields
             const fullName = [candidate.first_name, candidate.last_name].filter(Boolean).join(' ');
             const email = candidate.emails?.[0]?.value || candidate.email_addresses?.[0]?.value || null;
             const phone = candidate.phone_numbers?.[0]?.value || null;
@@ -233,7 +254,6 @@ serve(async (req: Request) => {
             const currentStage = apps[0]?.current_stage?.name || null;
             const tags = (candidate.tags || []).map((t: string) => t);
 
-            // Insert candidate profile
             const { data: newProfile, error: insertErr } = await adminClient
               .from('candidate_profiles')
               .insert({
@@ -270,7 +290,6 @@ serve(async (req: Request) => {
               continue;
             }
 
-            // Create candidate note with raw data
             if (newProfile) {
               await adminClient.from('candidate_notes').insert({
                 candidate_id: newProfile.id,
@@ -301,7 +320,6 @@ serve(async (req: Request) => {
       }
     }
 
-    // Update import log
     if (logId && !dry_run) {
       await adminClient
         .from('greenhouse_import_logs')
