@@ -1204,3 +1204,15 @@ verify_jwt = false
 # =============================================================================
 [functions.sync-greenhouse-candidates]
 verify_jwt = false
+
+# =============================================================================
+# Avatar LinkedIn Sync & Credentials
+# =============================================================================
+[functions.sync-avatar-linkedin]
+verify_jwt = false
+
+[functions.avatar-account-credentials]
+verify_jwt = false
+
+[functions.avatar-session-timeout]
+verify_jwt = false
