@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { verifyRecaptcha, createRecaptchaErrorResponse } from "../_shared/recaptcha-verifier.ts";
+import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,6 +74,14 @@ serve(async (req) => {
       }
     } else {
       console.log('[Booking] RECAPTCHA_SECRET_KEY not set; skipping verification');
+    }
+
+    // Rate limiting: 10 bookings per 15 minutes per IP
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateLimit = await checkUserRateLimit(clientIp, 'create-booking', 10, 15 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      console.warn('[Booking] Rate limit exceeded for IP:', clientIp);
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
     }
 
     // Validate input

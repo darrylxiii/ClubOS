@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,13 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 10 OAuth requests per 5 minutes per IP
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateLimit = await checkUserRateLimit(clientIp, 'outlook-oauth', 10, 5 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
+
     const { action, code, redirectUri } = await req.json();
     
     console.log('📧 Outlook OAuth request:', { action, redirectUri: redirectUri?.substring(0, 50) + '...' });

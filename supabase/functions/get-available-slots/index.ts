@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,6 +16,13 @@ serve(async (req) => {
   type Slot = { start: string; end: string };
 
   try {
+    // Rate limiting: 30 slot requests per 5 minutes per IP
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rateLimit = await checkUserRateLimit(clientIp, 'get-available-slots', 30, 5 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
+
     const { bookingLinkSlug, dateRange, timezone = "Europe/Amsterdam" } = await req.json();
     console.log(`[Slots] Request params: slug=${bookingLinkSlug}, dateRange=${JSON.stringify(dateRange)}, timezone=${timezone}`);
 
