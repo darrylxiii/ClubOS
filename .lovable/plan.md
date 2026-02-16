@@ -1,64 +1,48 @@
 
 
-# Fix: Wrong Greenhouse OAuth Token Endpoint
+# Fix: Booking Function Crash — Duplicate Variable Declaration
 
 ## Problem
-
-The edge function logs show a DNS resolution failure:
-
-```
-dns error: failed to lookup address information: Name or service not known
-URL: https://id.greenhouse.io/oauth/token
-```
-
-The domain `id.greenhouse.io` does not exist. According to the official Greenhouse documentation, the correct OAuth token endpoint is `https://auth.greenhouse.io/token`.
-
-Additionally, the credentials must be sent via HTTP Basic Auth header (`client_id:client_secret` base64-encoded), not as form body parameters. The `grant_type=client_credentials` stays in the body, but a `sub` parameter (a Greenhouse user email with Site Admin privileges) is also required by Greenhouse.
-
-## Changes
-
-**File:** `supabase/functions/sync-greenhouse-candidates/index.ts`
-
-### 1. Fix the token endpoint URL
-
-Change `https://id.greenhouse.io/oauth/token` to `https://auth.greenhouse.io/token`
-
-### 2. Fix credential transmission
-
-Greenhouse OAuth v3 requires client credentials in the HTTP Basic Auth header, not in the request body:
+Sebastiaan's booking attempts on `/book/darryl` fail with "network request failed" because the `create-booking` backend function crashes immediately on startup. The logs show:
 
 ```
-Authorization: Basic base64(client_id:client_secret)
-Content-Type: application/x-www-form-urlencoded
-
-Body: grant_type=client_credentials
+Uncaught SyntaxError: Identifier 'clientIp' has already been declared
 ```
 
-### 3. Update `getAccessToken` function
+The recent security fix added a new rate-limiting block (lines 79-85) that declares `const clientIp`, but an older DB-based rate limiter already declares the same variable (line 143). JavaScript does not allow two `const` declarations with the same name in the same scope, so the function never boots.
 
-The corrected function will:
-- POST to `https://auth.greenhouse.io/token`
-- Send `Authorization: Basic <base64(clientId:clientSecret)>` header
-- Send `grant_type=client_credentials` in the body
-- Return the `access_token` from the response
+## Fix
 
-### 4. Harvest API version
+**File:** `supabase/functions/create-booking/index.ts`
 
-Keep using `/v2` endpoints for now, as Bearer tokens from v3 OAuth can authenticate against v2 endpoints as well. Switching to `/v3` would require updating all endpoint paths and response parsing, which is a separate task.
+1. **Remove the old, redundant rate-limiting block (lines 142-171).** The new `checkUserRateLimit` utility (lines 79-85) already provides IP-based rate limiting using the shared rate-limiter module. The old block duplicates this logic by querying the `bookings` table — it is less efficient and now causes the crash.
+
+2. **Keep the new rate-limiter block (lines 79-85) as-is.** It correctly uses the shared utility and fires before any heavy DB work, which is the intended pattern.
+
+No other files need changes. After the edit, the function will be redeployed and Sebastiaan's booking flow will work.
 
 ## Technical Details
 
+### What is removed
+```typescript
+// OLD block (lines 142-171) — REMOVE entirely
+const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0] || ...
+const fifteenMinutesAgo = ...
+const { data: recentBookings } = await supabaseClient
+  .from("bookings").select("id").eq("guest_email", guestEmail)...
+if (recentBookings.length >= 5) { return 429 }
 ```
-POST https://auth.greenhouse.io/token
-Authorization: Basic base64(<client_id>:<client_secret>)
-Content-Type: application/x-www-form-urlencoded
 
-grant_type=client_credentials
+### What stays
+```typescript
+// NEW block (lines 79-85) — KEEP
+const clientIp = req.headers.get('x-forwarded-for')...
+const rateLimit = await checkUserRateLimit(clientIp, 'create-booking', 10, 15 * 60 * 1000);
+if (!rateLimit.allowed) { return 429 }
 ```
 
-## Scope
-
-- One function modified: `supabase/functions/sync-greenhouse-candidates/index.ts`
-- Only the `getAccessToken` function changes
-- Redeploy required
+### Verification
+- Redeploy `create-booking`
+- Confirm logs no longer show `SyntaxError`
+- Test a booking on `/book/darryl` to confirm end-to-end success
 
