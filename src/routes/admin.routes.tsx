@@ -68,6 +68,9 @@ const EdgeFunctionCommandCenter = lazy(() => import("@/pages/admin/EdgeFunctionC
 // Feature Control Center
 const FeatureControlCenter = lazy(() => import("@/pages/admin/FeatureControlCenter"));
 
+// Avatar Control
+const AvatarControlHub = lazy(() => import("@/pages/admin/AvatarControlHub"));
+
 
 // Talent Pool
 const TalentPool = lazy(() => import("@/pages/TalentPool"));
@@ -142,6 +145,7 @@ export const adminRoutes = (
     {R("/admin/edge-functions", EdgeFunctionCommandCenter)}
     {R("/admin/feature-control", FeatureControlCenter)}
     {R("/admin/greenhouse-sync", GreenhouseSync)}
+    {R("/admin/avatar-control", AvatarControlHub)}
     
     {R("/talent-pool", TalentPool)}
     {R("/admin/talent-pool/lists", TalentPoolLists)}
