@@ -25853,11 +25853,20 @@ export type Database = {
       }
       linkedin_avatar_accounts: {
         Row: {
+          avatar_url: string | null
+          connections_count: number | null
           created_at: string
           created_by: string | null
+          email_account_address: string | null
+          email_account_password_encrypted: string | null
+          followers_count: number | null
           id: string
           label: string
+          last_synced_at: string | null
           linkedin_email: string | null
+          linkedin_headline: string | null
+          linkedin_password_encrypted: string | null
+          linkedin_url: string | null
           max_daily_minutes: number
           notes: string | null
           owner_team: string | null
@@ -25867,11 +25876,20 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
+          connections_count?: number | null
           created_at?: string
           created_by?: string | null
+          email_account_address?: string | null
+          email_account_password_encrypted?: string | null
+          followers_count?: number | null
           id?: string
           label: string
+          last_synced_at?: string | null
           linkedin_email?: string | null
+          linkedin_headline?: string | null
+          linkedin_password_encrypted?: string | null
+          linkedin_url?: string | null
           max_daily_minutes?: number
           notes?: string | null
           owner_team?: string | null
@@ -25881,11 +25899,20 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
+          connections_count?: number | null
           created_at?: string
           created_by?: string | null
+          email_account_address?: string | null
+          email_account_password_encrypted?: string | null
+          followers_count?: number | null
           id?: string
           label?: string
+          last_synced_at?: string | null
           linkedin_email?: string | null
+          linkedin_headline?: string | null
+          linkedin_password_encrypted?: string | null
+          linkedin_url?: string | null
           max_daily_minutes?: number
           notes?: string | null
           owner_team?: string | null
