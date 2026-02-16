@@ -162,57 +162,15 @@ export function AdminApplicationHub() {
     if (!selectedApplication || !user) return;
 
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: selectedApplication.email,
-        email_confirm: true,
-        user_metadata: {
-          full_name: selectedApplication.full_name
-        }
+      const { data, error } = await supabase.functions.invoke('approve-member-application', {
+        body: {
+          applicationId: selectedApplication.id,
+          sendEmail,
+        },
       });
 
-      if (authError) throw authError;
-
-      // Update candidate profile
-      const { error: updateError } = await supabase
-        .from('candidate_profiles')
-        .update({
-          application_status: 'approved',
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: user.id,
-          user_id: authData.user.id
-        })
-        .eq('id', selectedApplication.id);
-
-      if (updateError) throw updateError;
-
-      // Create profile
-      await supabase.from('profiles').upsert({
-        id: authData.user.id,
-        full_name: selectedApplication.full_name,
-        email: selectedApplication.email,
-        phone: selectedApplication.phone,
-        phone_verified: true,
-        email_verified: true,
-        location: selectedApplication.location,
-        current_title: selectedApplication.current_title,
-        linkedin_url: selectedApplication.linkedin_url,
-        onboarding_completed_at: new Date().toISOString()
-      });
-
-      // Assign user role
-      await supabase.from('user_roles').insert({
-        user_id: authData.user.id,
-        role: 'user'
-      });
-
-      // Log activity
-      await supabase.from('candidate_application_logs').insert({
-        candidate_profile_id: selectedApplication.id,
-        action: 'approved',
-        actor_id: user.id,
-        details: { send_email: sendEmail }
-      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast.success(`${selectedApplication.full_name} has been approved!`, {
         description: 'User account created and platform access granted'

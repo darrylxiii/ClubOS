@@ -86,8 +86,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('[Recall Webhook] Error:', error);
     return new Response(JSON.stringify({ 
-      error: 'Webhook processing failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Webhook processing failed'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -96,8 +95,9 @@ serve(async (req) => {
 });
 
 async function handleBotStatusChange(supabase: any, sessionId: string, data: any) {
-  const status = data.status?.code || data.status;
+  const rawStatus = data.status?.code || data.status;
   
+  // Validate status against strict allowlist
   const statusMap: Record<string, string> = {
     'joining_call': 'bot_joining',
     'in_waiting_room': 'bot_joining',
@@ -109,14 +109,28 @@ async function handleBotStatusChange(supabase: any, sessionId: string, data: any
     'analysis_done': 'completed',
   };
 
-  const mappedStatus = statusMap[status] || status;
+  const mappedStatus = statusMap[rawStatus] || 'unknown';
+
+  // Fetch existing metadata first, then merge safely (no SQL template literals)
+  const { data: session } = await supabase
+    .from('external_meeting_sessions')
+    .select('metadata')
+    .eq('id', sessionId)
+    .single();
+
+  const existingMetadata = (session?.metadata && typeof session.metadata === 'object') ? session.metadata : {};
+  const updatedMetadata = {
+    ...existingMetadata,
+    last_status_update: mappedStatus,
+    status_updated_at: new Date().toISOString(),
+  };
 
   await supabase
     .from('external_meeting_sessions')
     .update({
       status: mappedStatus,
       updated_at: new Date().toISOString(),
-      metadata: supabase.sql`metadata || ${JSON.stringify({ last_status_update: status, status_updated_at: new Date().toISOString() })}::jsonb`
+      metadata: updatedMetadata,
     })
     .eq('id', sessionId);
 
