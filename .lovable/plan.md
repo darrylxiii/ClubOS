@@ -1,65 +1,103 @@
 
 
-# Fix Horizontal Overflow -- Proper Root Cause Fix
+# Fix Resume Storage and Admin Document Viewing
 
-## The Problem
+## Problem
 
-The previous fix (`overflow-x-hidden` on `<main>`) was a bandaid that clips content instead of fixing the actual layout math. Content is now pushed out of view on the right side.
+Two related issues:
+
+1. **"Bucket not found" error**: The `resumes` storage bucket is **private**, but the resume upload code (`useResumeUpload.ts`) stores a **public URL** via `getPublicUrl()`. Public URLs do not work on private buckets -- Supabase returns `{"statusCode":"404","error":"Bucket not found"}`.
+
+2. **Download-only access across admin views**: Several admin components link directly to the stored `resume_url` with `<a href={url}>Download</a>`. Since the URL is a non-functional public URL on a private bucket, downloads also fail. Additionally, for GDPR compliance, admins should be able to **view documents in-browser** (via the existing `DocumentPreviewDialog`) rather than downloading to their local machines.
 
 ## Root Cause
 
-In `AppLayout.tsx` line 196, the `<main>` element has:
-```
-flex-1 w-full md:ml-20
-```
-
-On desktop this means:
-- `w-full` forces `width: 100%` of the parent (the full viewport)
-- `md:ml-20` adds `margin-left: 5rem` for the sidebar
-- Total space needed: **100% + 5rem** -- overflows the viewport by exactly 5rem (80px, the sidebar width)
-
-The `overflow-x-hidden` we added just hides that 5rem of content on the right side, which is why things appear cut off.
-
-## The Fix
-
-Two changes in `AppLayout.tsx`:
-
-1. **On the `<main>` element (line 196):** Replace `w-full` with `min-w-0` and remove `overflow-x-hidden`
-   - `flex-1` already handles sizing (grows to fill available space)
-   - `min-w-0` is the standard flex overflow fix -- it allows the flex child to shrink below its content size
-   - Without `w-full` forcing 100% width, the margin-left no longer causes overflow
-
-2. **On the root `<div>` (line 108):** Add `overflow-hidden` to the outermost wrapper as a safety net
-   - Prevents any edge cases from creating a body-level scrollbar
-   - The root container should never scroll horizontally
-
-### Before
-```
-<!-- Root -->
-<div className="min-h-screen flex w-full bg-background">
-
-<!-- Main -->
-"flex-1 w-full md:ml-20 relative z-10 overflow-x-hidden"
+In `useResumeUpload.ts` (line 78-80):
+```typescript
+const { data: { publicUrl } } = supabase.storage
+  .from('resumes')
+  .getPublicUrl(fileName);
 ```
 
-### After
+This generates a URL like:
 ```
-<!-- Root -->
-<div className="min-h-screen flex w-full overflow-hidden bg-background">
-
-<!-- Main -->
-"flex-1 min-w-0 md:ml-20 relative z-10"
+https://...supabase.co/storage/v1/object/public/resumes/onboarding/file.pdf
 ```
 
-## Why This Works
+But the `resumes` bucket has `public = false`, so this URL always returns a 404.
 
-- `flex-1` (which is `flex: 1 1 0%`) makes main grow to fill remaining space after the margin is accounted for
-- `min-w-0` overrides the default `min-width: auto` on flex items, allowing content to shrink properly
-- No content is clipped at the layout level -- components that need internal horizontal scroll (tables, code blocks) keep working with their own `overflow-x-auto`
-- The root `overflow-hidden` is a safety net only -- the layout math is now correct so it should never activate
+The correct approach is to store only the **storage path** (e.g., `onboarding/1770714067565_file.pdf`) and generate signed URLs on demand when viewing or downloading. The `DocumentPreviewDialog` already does this correctly -- the problem is that it receives a broken public URL to parse, and other admin views bypass it entirely.
 
-## File to Modify
+## Fix Plan
+
+### 1. Fix `useResumeUpload.ts` -- Store path, not public URL
+
+Stop using `getPublicUrl()`. Instead, store the relative storage path. When a URL is needed, generate a signed URL on demand.
+
+**Change**: After uploading, return only the file path (e.g., `userId/timestamp_filename.pdf`) instead of a public URL. Update `onSuccess` callback and return value accordingly.
+
+### 2. Fix `CandidateOnboardingSteps.tsx` -- Handle path-based resume URLs
+
+Update the onboarding flow to store the path in `resume_url` instead of a public URL. The copy/move logic when transitioning from `onboarding/` folder to `userId/` folder also needs updating to store paths consistently.
+
+### 3. Fix `DocumentPreviewDialog.tsx` -- Handle both legacy URLs and paths
+
+Make the path extraction more robust:
+- If the value is already a relative path (no `http`), use it directly
+- If it is a full URL, extract the path as before
+- This ensures backward compatibility with Helene's already-stored URL
+
+### 4. Add "View Resume" (in-browser) to all admin views that currently only have "Download"
+
+Replace direct `<a href={url}>Download</a>` links with a "View" button that opens the `DocumentPreviewDialog`, plus a secondary "Download" option that generates a signed URL and opens in a new tab.
+
+**Files affected:**
+- `src/components/admin/CandidateSettingsViewer.tsx` -- Resume section
+- `src/components/admin/UserSettingsViewer.tsx` -- Resume section
+- `src/components/admin/ApplicationDetailDrawer.tsx` -- Resume button
+- `src/components/admin/UnifiedCandidateCard.tsx` -- Resume badge (minor)
+
+Each will import `DocumentPreviewDialog` and add local state for the preview modal.
+
+### 5. Create a shared utility for signed URL generation
+
+Create `src/utils/storageUtils.ts` with:
+- `getSignedResumeUrl(pathOrUrl: string): Promise<string>` -- extracts path from legacy URLs or uses path directly, returns a 1-hour signed URL
+- `extractStoragePath(url: string, bucket: string): string` -- normalizes any URL or path to a clean storage path
+
+This centralizes the logic so all components handle both legacy (full URL) and new (path-only) resume references.
+
+### 6. Fix Helene's existing data (no migration needed)
+
+The `DocumentPreviewDialog` already handles full URLs by extracting the path. With the improved path extraction in step 3, Helene's existing `resume_url` will work without any data migration. New uploads will store clean paths going forward.
+
+## Files to Create
+
+| File | Purpose |
+|---|---|
+| `src/utils/storageUtils.ts` | Shared signed URL generation and path extraction utilities |
+
+## Files to Modify
 
 | File | Change |
 |---|---|
-| `src/components/AppLayout.tsx` | Line 108: add `overflow-hidden` to root div. Line 196: replace `w-full overflow-x-hidden` with `min-w-0` |
+| `src/hooks/useResumeUpload.ts` | Replace `getPublicUrl()` with returning the storage path |
+| `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` | Update resume URL handling to use paths; fix copy/move logic |
+| `src/components/shared/DocumentPreviewDialog.tsx` | Improve path extraction to handle both paths and legacy URLs robustly |
+| `src/components/admin/CandidateSettingsViewer.tsx` | Add DocumentPreviewDialog for in-browser viewing |
+| `src/components/admin/UserSettingsViewer.tsx` | Add DocumentPreviewDialog for in-browser viewing |
+| `src/components/admin/ApplicationDetailDrawer.tsx` | Add DocumentPreviewDialog for in-browser viewing |
+| `src/components/admin/AdminMemberRequests.tsx` | No change needed (already uses DocumentPreviewDialog) |
+
+## How Signed URLs Work (GDPR-compliant)
+
+- Signed URLs expire after 1 hour (configurable)
+- No file is downloaded to the admin's machine -- the PDF renders inside an iframe in the browser
+- The URL is watermarked with the requesting user's session (audit trail via Supabase logs)
+- If the browser blocks the iframe (security software), a fallback "Open in New Tab" button is shown (already implemented in `DocumentPreviewDialog`)
+
+## Backward Compatibility
+
+- Existing `resume_url` values stored as full public URLs will continue to work because the path extraction handles both formats
+- New uploads will store clean paths (e.g., `userId/timestamp_file.pdf`)
+- No database migration required
