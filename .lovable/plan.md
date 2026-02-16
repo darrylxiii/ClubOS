@@ -1,98 +1,107 @@
 
 
-# Fix: Strategist Dropdown Empty + Provisioning Request Failure
+# Greenhouse Import Hub
 
-Two separate bugs, both fixable in the same pass.
-
----
-
-## Bug 1: Strategist Dropdown Shows No Options
-
-**Root cause**: The `loadStrategists` function in `useProvisionForm.ts` (line 183) uses a Supabase relational join: `profiles!inner(id, full_name, email)`. This join syntax requires a foreign key relationship between `user_roles.user_id` and `profiles.id`. No such foreign key exists on the `user_roles` table, so the query silently returns empty results.
-
-**Fix**: Replace the join query with two sequential queries (same pattern already used in `useStrategistWorkload.ts`):
-1. Fetch `user_roles` where `role = 'strategist'`
-2. Fetch `profiles` where `id` is in the resulting user IDs
-
-This avoids the FK dependency entirely.
-
-**File**: `src/components/admin/partner-provisioning/useProvisionForm.ts` (lines 181-195)
-
-```typescript
-const loadStrategists = useCallback(async () => {
-  const { data: roles } = await supabase
-    .from('user_roles')
-    .select('user_id')
-    .eq('role', 'strategist');
-
-  if (!roles?.length) {
-    // Fallback: also include admins so there's always someone to assign
-    const { data: adminRoles } = await supabase
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'admin');
-    if (!adminRoles?.length) { setStrategists([]); return; }
-    const ids = [...new Set(adminRoles.map(r => r.user_id))];
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, email')
-      .in('id', ids);
-    setStrategists(
-      (profiles || []).map(p => ({ id: p.id, full_name: p.full_name, email: p.email || '' }))
-    );
-    return;
-  }
-
-  const userIds = [...new Set(roles.map(r => r.user_id))];
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, full_name, email')
-    .in('id', userIds);
-
-  setStrategists(
-    (profiles || []).map(p => ({ id: p.id, full_name: p.full_name, email: p.email || '' }))
-  );
-}, []);
-```
-
-Currently there is only 1 user with the `strategist` role in the database. The fallback to include admins ensures the dropdown is always populated with assignable team members.
+Build a dedicated admin page that connects to the Greenhouse Harvest API, lets you browse your pipelines (jobs), preview candidates in each, select what to import, and bring them into the OS with full history -- then optionally invite them to the platform.
 
 ---
 
-## Bug 2: "Failed to send a request to the Edge Function"
+## How It Works
 
-**Root cause**: The Supabase client (auto-generated, line 29) sends a custom header `x-application-name: thequantumclub` on every request. The edge function's CORS `Access-Control-Allow-Headers` list does not include this header. When the browser sends a preflight OPTIONS request, the server responds without allowing `x-application-name`, so the browser blocks the actual POST request entirely.
+### Step 1: Connect Your Greenhouse API Key
 
-**Fix**: Add `x-application-name` to the CORS allowed headers in the edge function.
+- Admin enters their Greenhouse Harvest API key (stored as a secret `GREENHOUSE_API_KEY`)
+- An edge function validates the key by calling `GET /v1/user/me` on the Harvest API
+- Once validated, the connection status is shown in the UI
 
-**File**: `supabase/functions/provision-partner/index.ts` (line 6)
+### Step 2: Browse Jobs / Pipelines
 
-Change the `Access-Control-Allow-Headers` value from:
+- The edge function calls `GET /v1/jobs?status=open` (and `status=closed` if requested) from the Greenhouse Harvest API
+- Each job is displayed as a card showing: title, department, office, status, candidate count
+- You select which jobs/pipelines you want to import from (e.g. both "Business Analyst" pipelines)
 
-```
-authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version
-```
+### Step 3: Preview and Select Candidates
 
-To:
+- For each selected job, the edge function fetches candidates via `GET /v1/candidates?job_id=...`
+- Candidates are displayed in a table: name, email, LinkedIn URL, current stage, source, last activity date
+- You can filter by stage (e.g. "only candidates who reached Interview or beyond")
+- Select all, select by stage, or cherry-pick individual candidates
+- Duplicate detection: candidates whose email already exists in `candidate_profiles` are flagged with a "Already in OS" badge
 
-```
-authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version
-```
+### Step 4: Choose What Data to Import
 
-Then redeploy the `provision-partner` edge function.
+A checklist of data categories:
+
+| Data | Greenhouse Source | Where It Goes in OS |
+|---|---|---|
+| Name + Email | Candidate record | `candidate_profiles.full_name`, `.email` |
+| LinkedIn URL | Custom fields or social media | `candidate_profiles.linkedin_url` |
+| Phone | Candidate phone numbers | `candidate_profiles.phone` |
+| Current company + title | Candidate current employer | `candidate_profiles.current_company`, `.current_title` |
+| Resume/CV | Attachments (latest) | Stored in file storage, URL in `candidate_profiles.resume_url` |
+| Application history | Applications per job | `applications` table (job title, stages, dates, status) |
+| Interview notes | Scorecards and feedback | `candidate_notes` (one note per scorecard, tagged "greenhouse-import") |
+| Activity log | Candidate activity feed | `candidate_notes` with type "activity" and full timeline |
+| Tags | Candidate tags | `candidate_profiles.tags` (merged with any existing) |
+| Source | Candidate source | `candidate_profiles.source_channel` = "greenhouse", `.source_metadata` stores original source details |
+
+### Step 5: Import
+
+- The edge function processes candidates in batches of 25
+- For each candidate:
+  - Check if email already exists in `candidate_profiles` -- if so, merge (update fields that are currently null, append notes, skip duplicates)
+  - Create the `candidate_profiles` record with `source_channel: 'greenhouse'`
+  - Create `applications` records for each job application with stage history
+  - Create `candidate_notes` for scorecards, feedback, and activity events
+  - Download and re-upload the latest resume to file storage
+- Progress is shown in real-time (X of Y candidates imported)
+- A summary log is saved to `greenhouse_import_logs` for audit
+
+### Step 6: Post-Import Actions
+
+After import completes:
+- **View imported candidates** in the Talent Pool
+- **Bulk invite** the imported candidates to the OS (links to the existing Bulk Invitation system)
+- **Import another pipeline** to continue with more jobs
 
 ---
 
-## Files to Modify
+## Files to Create
 
-| File | Change |
+| File | Purpose |
 |---|---|
-| `src/components/admin/partner-provisioning/useProvisionForm.ts` | Replace join query with two-step fetch; add admin fallback |
-| `supabase/functions/provision-partner/index.ts` | Add `x-application-name` to CORS headers |
+| `supabase/functions/greenhouse-sync/index.ts` | Edge function: validate key, list jobs, fetch candidates, import batches |
+| `src/pages/admin/GreenhouseImport.tsx` | Main page: connection setup, job browser, candidate preview, import progress |
+| `src/components/greenhouse/GreenhouseJobSelector.tsx` | Job cards with selection checkboxes |
+| `src/components/greenhouse/GreenhouseCandidatePreview.tsx` | Candidate table with stage filter and selection |
+| `src/components/greenhouse/GreenhouseImportProgress.tsx` | Real-time progress bar and results summary |
+| `src/components/greenhouse/GreenhouseDataFieldSelector.tsx` | Checklist for which data categories to import |
+| `src/hooks/useGreenhouseImport.ts` | React Query hooks for all Greenhouse operations |
+
+## Database Changes
+
+1. New table `greenhouse_import_logs`:
+   - `id`, `admin_id`, `job_ids` (jsonb), `total_candidates`, `imported_count`, `skipped_count`, `failed_count`, `data_fields` (jsonb -- which categories were selected), `errors` (jsonb), `started_at`, `completed_at`
+   - RLS: admin-only read/write
+
+2. Add column `greenhouse_id` (text, nullable) to `candidate_profiles` -- stores the Greenhouse candidate ID for deduplication and future syncs
+
+## Route
+
+- `/admin/greenhouse-import` -- added to admin routes, accessible from the admin sidebar
+
+## Security
+
+- The Greenhouse API key is stored as a server-side secret, never exposed to the client
+- All Greenhouse API calls happen inside the edge function
+- The edge function requires admin authentication (checks `user_roles`)
+- Imported data respects existing RLS policies on `candidate_profiles`, `applications`, and `candidate_notes`
 
 ## Implementation Sequence
 
-1. Fix the CORS header in the edge function (unblocks all requests)
-2. Fix the strategist query in `useProvisionForm.ts` (populates dropdown)
-3. Redeploy the edge function
+1. Store the `GREENHOUSE_API_KEY` secret
+2. Create the `greenhouse_import_logs` table and add `greenhouse_id` to `candidate_profiles`
+3. Build the `greenhouse-sync` edge function (validate, list jobs, fetch candidates, import)
+4. Build the UI page and components
+5. Add the route and sidebar link
 
