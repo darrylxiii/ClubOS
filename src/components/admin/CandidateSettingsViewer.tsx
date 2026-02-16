@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { adminCandidateService } from "@/services/adminCandidateService";
 import { toast } from "sonner";
+import { DocumentPreviewDialog } from "@/components/shared/DocumentPreviewDialog";
 
 interface CandidateSettingsViewerProps {
   userId: string;
@@ -30,6 +31,7 @@ export function CandidateSettingsViewer({
 }: CandidateSettingsViewerProps) {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -233,11 +235,9 @@ export function CandidateSettingsViewer({
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <span>Resume uploaded</span>
               </div>
-              <Button variant="outline" size="sm" asChild>
-                <a href={settings.resume_url} target="_blank" rel="noopener noreferrer">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
-                </a>
+              <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
+                <Eye className="w-4 h-4 mr-2" />
+                View
               </Button>
             </div>
           ) : (
@@ -248,6 +248,13 @@ export function CandidateSettingsViewer({
           )}
         </CardContent>
       </Card>
+
+      <DocumentPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        documentUrl={settings.resume_url}
+        documentName={`${candidateName} - Resume`}
+      />
 
       {/* Profile Privacy */}
       <Card>

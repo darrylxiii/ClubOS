@@ -74,11 +74,6 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName);
-
       clearInterval(interval);
       setProgress(100);
 
@@ -93,7 +88,7 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
           candidate_id: userId,
           document_type: 'resume',
           file_name: file.name,
-          file_url: publicUrl,
+          file_url: fileName,
           file_size_kb: Math.round(file.size / 1024),
           mime_type: file.type,
           uploaded_by: currentUser?.id,
@@ -109,7 +104,7 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            resume_url: publicUrl,
+            resume_url: fileName,
             resume_filename: file.name
           })
           .eq('id', userId);
@@ -140,12 +135,12 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
       }
 
       options.onSuccess?.({
-        url: publicUrl,
+        url: fileName,
         filename: file.name,
         path: fileName
       });
 
-      return { url: publicUrl, filename: file.name, path: fileName };
+      return { url: fileName, filename: file.name, path: fileName };
 
     } catch (error: unknown) {
       console.error('Upload error:', error);

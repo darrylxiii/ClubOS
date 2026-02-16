@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { 
   User, Mail, Phone, MapPin, Briefcase, Linkedin, 
   FileText, Euro, Calendar, Home, CheckCircle, XCircle,
-  Clock, Download
+  Clock, Eye
 } from "lucide-react";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureHttpsUrl } from "@/utils/urlHelpers";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { DocumentPreviewDialog } from "@/components/shared/DocumentPreviewDialog";
 
 interface Application {
   id: string;
@@ -63,6 +64,7 @@ export function ApplicationDetailDrawer({
   const { user } = useAuth();
   const [notes, setNotes] = useState(application?.admin_notes || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   if (!application) return null;
 
@@ -191,11 +193,9 @@ export function ApplicationDetailDrawer({
                 )}
                 {application.resume_url && (
                   <div className="pt-3">
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={application.resume_url} target="_blank" rel="noopener noreferrer">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Resume
-                      </a>
+                    <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Resume
                     </Button>
                   </div>
                 )}
@@ -354,6 +354,13 @@ export function ApplicationDetailDrawer({
           </TabsContent>
         </Tabs>
       </SheetContent>
+
+      <DocumentPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        documentUrl={application.resume_url || null}
+        documentName={`${application.full_name} - Resume`}
+      />
     </Sheet>
   );
 }

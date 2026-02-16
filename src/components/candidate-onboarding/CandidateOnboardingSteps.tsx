@@ -555,8 +555,9 @@ export function CandidateOnboardingSteps() {
 
       if (formData.resume_url) {
         try {
-          const oldPath = formData.resume_url.split('/resumes/')[1];
-          const fileName = oldPath.split('/')[1];
+          // resume_url is now a storage path like "onboarding/sessionId_file.pdf"
+          const oldPath = formData.resume_url;
+          const fileName = oldPath.split('/').pop() || oldPath;
           const newPath = `${authData.user.id}/${fileName}`;
           
           const { error: copyError } = await supabase.storage
@@ -565,12 +566,8 @@ export function CandidateOnboardingSteps() {
           
           if (!copyError) {
             await supabase.storage.from('resumes').remove([oldPath]);
-            
-            const { data: { publicUrl } } = supabase.storage
-              .from('resumes')
-              .getPublicUrl(newPath);
-            
-            formData.resume_url = publicUrl;
+            // Store the new path (not a public URL)
+            formData.resume_url = newPath;
           }
         } catch (error) {
           console.error('Error moving resume:', error);
@@ -813,7 +810,7 @@ export function CandidateOnboardingSteps() {
       if (result) {
         setFormData({
           ...formData,
-          resume_url: result.url,
+          resume_url: result.path,
           resume_filename: file.name,
         });
 
@@ -827,9 +824,10 @@ export function CandidateOnboardingSteps() {
   const handleRemoveResume = async () => {
     if (formData.resume_url) {
       try {
-        const urlParts = formData.resume_url.split('/resumes/');
-        if (urlParts[1]) {
-          await supabase.storage.from('resumes').remove([urlParts[1]]);
+        // resume_url is now a storage path, use it directly
+        const storagePath = formData.resume_url;
+        if (storagePath) {
+          await supabase.storage.from('resumes').remove([storagePath]);
         }
       } catch (error) {
         console.error('Error removing resume:', error);
