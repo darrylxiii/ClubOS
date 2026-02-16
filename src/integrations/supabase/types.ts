@@ -24018,6 +24018,7 @@ export type Database = {
           expected_close_date: string | null
           external_url: string | null
           fee_source: string | null
+          greenhouse_job_id: string | null
           hired_count: number | null
           id: string
           is_continuous: boolean | null
@@ -24083,6 +24084,7 @@ export type Database = {
           expected_close_date?: string | null
           external_url?: string | null
           fee_source?: string | null
+          greenhouse_job_id?: string | null
           hired_count?: number | null
           id?: string
           is_continuous?: boolean | null
@@ -24148,6 +24150,7 @@ export type Database = {
           expected_close_date?: string | null
           external_url?: string | null
           fee_source?: string | null
+          greenhouse_job_id?: string | null
           hired_count?: number | null
           id?: string
           is_continuous?: boolean | null
