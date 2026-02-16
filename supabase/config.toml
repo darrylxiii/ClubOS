@@ -3,6 +3,9 @@ project_id = "dpjucecmoyfzrduhlctt"
 # =============================================================================
 # Partner Invite & Provisioning
 # =============================================================================
+[functions.provision-partner]
+verify_jwt = false
+
 [functions.consume-invite]
 verify_jwt = false
 
