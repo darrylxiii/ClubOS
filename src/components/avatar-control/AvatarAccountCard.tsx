@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, Shield, Play, Users, UserPlus } from 'lucide-react';
+import { Clock, Shield, Play, Users, UserPlus, RefreshCw } from 'lucide-react';
 import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -11,6 +11,8 @@ interface AvatarAccountCardProps {
   account: AvatarAccount;
   activeSession?: AvatarSession | null;
   onStartSession: (account: AvatarAccount) => void;
+  onSyncLinkedIn?: (account: AvatarAccount) => void;
+  isSyncing?: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -32,11 +34,13 @@ function formatCompact(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
-export function AvatarAccountCard({ account, activeSession, onStartSession }: AvatarAccountCardProps) {
+export function AvatarAccountCard({ account, activeSession, onStartSession, onSyncLinkedIn, isSyncing }: AvatarAccountCardProps) {
   const isInUse = !!activeSession;
   const isAvailable = account.status === 'available' && !isInUse;
   const userName = activeSession?.profiles?.full_name ?? 'Unknown';
   const initials = account.label.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const hasLinkedInUrl = !!account.linkedin_url;
+  const hasBeenSynced = !!account.last_synced_at;
 
   return (
     <Card className={`relative overflow-hidden transition-all duration-200 hover:shadow-lg ${
@@ -63,6 +67,19 @@ export function AvatarAccountCard({ account, activeSession, onStartSession }: Av
               <p className="text-[11px] text-muted-foreground/70 mt-0.5">{account.owner_team}</p>
             )}
           </div>
+          {/* Sync button */}
+          {hasLinkedInUrl && onSyncLinkedIn && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={(e) => { e.stopPropagation(); onSyncLinkedIn(account); }}
+              disabled={isSyncing}
+              title={hasBeenSynced ? 'Re-sync LinkedIn data' : 'Sync LinkedIn data'}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            </Button>
+          )}
         </div>
 
         {/* Connection & follower stats */}
@@ -81,6 +98,11 @@ export function AvatarAccountCard({ account, activeSession, onStartSession }: Av
               </span>
             )}
           </div>
+        )}
+
+        {/* Not synced hint */}
+        {hasLinkedInUrl && !hasBeenSynced && (
+          <p className="text-[11px] text-muted-foreground/60 italic">Not synced yet — tap the refresh icon to pull LinkedIn data.</p>
         )}
 
         {/* Risk + Status badges */}

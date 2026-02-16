@@ -19,6 +19,7 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
   const [syncing, setSyncing] = useState(false);
   const [showLinkedinPw, setShowLinkedinPw] = useState(false);
   const [showEmailPw, setShowEmailPw] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
     label: '',
@@ -28,29 +29,22 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
     max_daily_minutes: 360,
     notes: '',
     playbook: '',
-    // Credentials (sent separately via edge function)
     linkedin_password: '',
     email_account_address: '',
     email_account_password: '',
   });
 
-  const handleSync = async () => {
-    if (!form.linkedin_url.trim()) {
-      toast.error('Enter a LinkedIn URL first.');
-      return;
-    }
-    setSyncing(true);
-    try {
-      // Create account first if no label yet, or sync to a temp ID
-      // For now, just show what we'd get — actual sync happens after save
-      toast.info('LinkedIn data will be synced after saving the account.');
-    } finally {
-      setSyncing(false);
-    }
+  const resetForm = () => {
+    setForm({
+      label: '', linkedin_url: '', linkedin_email: '', owner_team: '',
+      max_daily_minutes: 360, notes: '', playbook: '',
+      linkedin_password: '', email_account_address: '', email_account_password: '',
+    });
   };
 
   const handleSubmit = async () => {
-    if (!form.label.trim()) return;
+    if (!form.label.trim() || saving) return;
+    setSaving(true);
 
     createAccount.mutate(
       {
@@ -64,11 +58,17 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
         email_account_address: form.email_account_address || null,
       },
       {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           const accountId = (data as any)?.id;
+          if (!accountId) {
+            setSaving(false);
+            onOpenChange(false);
+            resetForm();
+            return;
+          }
 
-          // Save credentials via edge function
-          if (accountId && (form.linkedin_password || form.email_account_password)) {
+          // Save credentials if provided
+          if (form.linkedin_password || form.email_account_password) {
             saveCredentials.mutate({
               accountId,
               linkedinPassword: form.linkedin_password || undefined,
@@ -78,16 +78,26 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
           }
 
           // Trigger LinkedIn sync if URL provided
-          if (accountId && form.linkedin_url) {
-            syncLinkedIn.mutate({ accountId, linkedinUrl: form.linkedin_url });
+          if (form.linkedin_url.trim()) {
+            toast.info('Syncing LinkedIn profile data…');
+            syncLinkedIn.mutate(
+              { accountId, linkedinUrl: form.linkedin_url.trim() },
+              {
+                onSettled: () => {
+                  setSaving(false);
+                  onOpenChange(false);
+                  resetForm();
+                },
+              }
+            );
+          } else {
+            setSaving(false);
+            onOpenChange(false);
+            resetForm();
           }
-
-          onOpenChange(false);
-          setForm({
-            label: '', linkedin_url: '', linkedin_email: '', owner_team: '',
-            max_daily_minutes: 360, notes: '', playbook: '',
-            linkedin_password: '', email_account_address: '', email_account_password: '',
-          });
+        },
+        onError: () => {
+          setSaving(false);
         },
       }
     );
@@ -111,26 +121,12 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
             </div>
             <div className="space-y-2">
               <Label>LinkedIn Profile URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="https://linkedin.com/in/username"
-                  value={form.linkedin_url}
-                  onChange={e => set('linkedin_url', e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={!form.linkedin_url.trim() || syncing}
-                  onClick={handleSync}
-                  className="shrink-0"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 mr-1 ${syncing ? 'animate-spin' : ''}`} />
-                  Sync
-                </Button>
-              </div>
-              <p className="text-[11px] text-muted-foreground">Profile picture, headline, connections and followers will be pulled after saving.</p>
+              <Input
+                placeholder="https://linkedin.com/in/username"
+                value={form.linkedin_url}
+                onChange={e => set('linkedin_url', e.target.value)}
+              />
+              <p className="text-[11px] text-muted-foreground">Profile picture, headline, connections and followers will be synced automatically after saving.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -219,8 +215,8 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!form.label.trim() || createAccount.isPending}>
-            {createAccount.isPending ? 'Adding…' : 'Add Account'}
+          <Button onClick={handleSubmit} disabled={!form.label.trim() || saving}>
+            {saving ? 'Adding…' : 'Add Account'}
           </Button>
         </DialogFooter>
       </DialogContent>
