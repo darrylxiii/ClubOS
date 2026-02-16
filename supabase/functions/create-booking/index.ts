@@ -139,36 +139,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // IP-based rate limiting: 5 bookings per 15 minutes per IP
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0] || 
-                     req.headers.get("x-real-ip") || 
-                     "unknown";
-    
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-    
-    const { data: recentBookings, error: rateLimitError } = await supabaseClient
-      .from("bookings")
-      .select("id")
-      .eq("guest_email", guestEmail)
-      .gte("created_at", fifteenMinutesAgo);
-
-    if (!rateLimitError && recentBookings && recentBookings.length >= 5) {
-      console.log("[Booking] Rate limit exceeded for:", guestEmail);
-      return new Response(
-        JSON.stringify({ 
-          error: "Too many booking attempts. Please try again in a few minutes.",
-          retryAfter: 900
-        }),
-        { 
-          status: 429, 
-          headers: { 
-            ...corsHeaders, 
-            "Content-Type": "application/json",
-            "Retry-After": "900"
-          } 
-        }
-      );
-    }
 
     // Get booking link details
     const { data: bookingLink, error: linkError } = await supabaseClient
