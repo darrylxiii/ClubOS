@@ -18,6 +18,7 @@ import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
+import { SetPasswordModal } from "@/components/auth/SetPasswordModal";
 
 // Lazy load heavy components to reduce initial bundle
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
@@ -70,6 +71,7 @@ const Auth = () => {
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
   const [oauthProcessing, setOauthProcessing] = useState(false);
+  const [setPasswordOpen, setSetPasswordOpen] = useState(false);
   const {
     checkLockout,
     recordAttempt
@@ -692,16 +694,24 @@ const Auth = () => {
                 </Link>
               </div>
 
-              {isLogin && <div className="text-center">
-                  <Link to="/forgot-password" className="text-sm text-foreground/70 hover:text-foreground">
+              {isLogin && <div className="text-center space-y-1">
+                  <Link to="/forgot-password" className="text-sm text-foreground/70 hover:text-foreground block">
                     {t('login.forgotPassword')}
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => setSetPasswordOpen(true)}
+                    className="text-sm text-foreground/50 hover:text-foreground transition-colors"
+                  >
+                    {t('setPassword.noPassword')} <span className="underline">{t('setPassword.setOne')}</span>
+                  </button>
                 </div>}
             </form>}
         </CardContent>
       </Card>
 
       {resolvedTheme === 'dark' && <OAuthDiagnostics />}
+      <SetPasswordModal open={setPasswordOpen} onOpenChange={setSetPasswordOpen} />
     </div>;
 };
 export default Auth;
