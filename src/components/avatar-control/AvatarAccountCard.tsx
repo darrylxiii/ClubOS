@@ -2,7 +2,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, Shield, Play, Users, UserPlus, RefreshCw, Pencil } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Clock, Shield, Play, Users, UserPlus, RefreshCw, Pencil, MapPin, Briefcase, Crown, Star, Sparkles, Eye } from 'lucide-react';
 import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -44,130 +45,204 @@ export function AvatarAccountCard({ account, activeSession, onStartSession, onSy
   const hasBeenSynced = !!account.last_synced_at;
 
   return (
-    <Card className={`relative overflow-hidden transition-all duration-200 hover:shadow-lg ${
-      isInUse ? 'border-red-500/40 bg-red-500/5' : isAvailable ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'opacity-70'
-    }`}>
-      {/* Status strip */}
-      <div className={`absolute top-0 left-0 right-0 h-1 ${
-        isInUse ? 'bg-red-500' : isAvailable ? 'bg-emerald-500' : 'bg-amber-500'
-      }`} />
+    <TooltipProvider>
+      <Card className={`relative overflow-hidden transition-all duration-200 hover:shadow-lg ${
+        isInUse ? 'border-red-500/40 bg-red-500/5' : isAvailable ? 'border-emerald-500/20 hover:border-emerald-500/40' : 'opacity-70'
+      }`}>
+        {/* Status strip */}
+        <div className={`absolute top-0 left-0 right-0 h-1 ${
+          isInUse ? 'bg-red-500' : isAvailable ? 'bg-emerald-500' : 'bg-amber-500'
+        }`} />
 
-      <CardContent className="pt-5 pb-4 px-4 space-y-3">
-        {/* Header with profile picture */}
-        <div className="flex items-start gap-3">
-          <Avatar className="h-11 w-11 shrink-0 border border-border">
-            <AvatarImage src={account.avatar_url ?? undefined} alt={account.label} />
-            <AvatarFallback className="text-xs font-semibold bg-muted">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-sm truncate">{account.label}</h3>
-            {account.linkedin_headline && (
-              <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{account.linkedin_headline}</p>
-            )}
-            {account.owner_team && (
-              <p className="text-[11px] text-muted-foreground/70 mt-0.5">{account.owner_team}</p>
-            )}
-          </div>
-          {/* Edit + Sync buttons */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            {onEdit && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={(e) => { e.stopPropagation(); onEdit(account); }}
-                title="Edit account"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            {hasLinkedInUrl && onSyncLinkedIn && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={(e) => { e.stopPropagation(); onSyncLinkedIn(account); }}
-                disabled={isSyncing}
-                title={hasBeenSynced ? 'Re-sync LinkedIn data' : 'Sync LinkedIn data'}
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Connection & follower stats */}
-        {(account.connections_count != null || account.followers_count != null) && (
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            {account.connections_count != null && (
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {formatCompact(account.connections_count)} connections
-              </span>
-            )}
-            {account.followers_count != null && (
-              <span className="flex items-center gap-1">
-                <UserPlus className="h-3 w-3" />
-                {formatCompact(account.followers_count)} followers
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Not synced hint */}
-        {hasLinkedInUrl && !hasBeenSynced && (
-          <p className="text-[11px] text-muted-foreground/60 italic">Not synced yet — tap the refresh icon to pull LinkedIn data.</p>
-        )}
-
-        {/* Risk + Status badges */}
-        <div className="flex items-center gap-1.5">
-          <Shield className={`h-3.5 w-3.5 ${riskColors[account.risk_level] ?? 'text-muted-foreground'}`} />
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${statusColors[account.status] ?? ''}`}>
-            {isInUse ? 'In Use' : account.status.replace('_', ' ')}
-          </Badge>
-        </div>
-
-        {/* Active session info */}
-        {isInUse && activeSession && (
-          <div className="flex items-center gap-2 bg-red-500/10 rounded-md p-2 text-xs">
-            <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-[10px] bg-red-500/20">
-                {userName.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </AvatarFallback>
+        <CardContent className="pt-5 pb-4 px-4 space-y-3">
+          {/* Header with profile picture */}
+          <div className="flex items-start gap-3">
+            <Avatar className="h-11 w-11 shrink-0 border border-border">
+              <AvatarImage src={account.avatar_url ?? undefined} alt={account.label} />
+              <AvatarFallback className="text-xs font-semibold bg-muted">{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="font-medium truncate">{userName}</p>
-              <p className="text-muted-foreground flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Until {format(new Date(activeSession.expected_end_at), 'HH:mm')}
-              </p>
+              <h3 className="font-semibold text-sm truncate">{account.label}</h3>
+              {account.linkedin_headline && (
+                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{account.linkedin_headline}</p>
+              )}
+              {account.current_company && (
+                <p className="text-[11px] text-muted-foreground/70 mt-0.5 flex items-center gap-1">
+                  <Briefcase className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{account.current_company}</span>
+                </p>
+              )}
+              {!account.current_company && account.owner_team && (
+                <p className="text-[11px] text-muted-foreground/70 mt-0.5">{account.owner_team}</p>
+              )}
+            </div>
+            {/* Edit + Sync buttons */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              {onEdit && (
+                <Button variant="ghost" size="icon" className="h-7 w-7"
+                  onClick={(e) => { e.stopPropagation(); onEdit(account); }} title="Edit account">
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              {hasLinkedInUrl && onSyncLinkedIn && (
+                <Button variant="ghost" size="icon" className="h-7 w-7"
+                  onClick={(e) => { e.stopPropagation(); onSyncLinkedIn(account); }}
+                  disabled={isSyncing} title={hasBeenSynced ? 'Re-sync LinkedIn data' : 'Sync LinkedIn data'}>
+                  <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                </Button>
+              )}
             </div>
           </div>
-        )}
 
-        {activeSession?.purpose && (
-          <p className="text-xs text-muted-foreground truncate">{activeSession.purpose}</p>
-        )}
+          {/* Location row */}
+          {account.location && (
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <MapPin className="h-3 w-3 shrink-0" />
+              <span className="truncate">{account.location}</span>
+            </p>
+          )}
 
-        {/* Action */}
-        {isAvailable ? (
-          <Button size="sm" className="w-full" onClick={() => onStartSession(account)}>
-            <Play className="h-3.5 w-3.5 mr-1.5" />
-            Start Session
-          </Button>
-        ) : !isInUse ? (
-          <div className="text-xs text-muted-foreground text-center py-1">
-            Account {account.status.replace('_', ' ')}
+          {/* Connection & follower stats */}
+          {(account.connections_count != null || account.followers_count != null) && (
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              {account.connections_count != null && (
+                <span className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {formatCompact(account.connections_count)} connections
+                </span>
+              )}
+              {account.followers_count != null && (
+                <span className="flex items-center gap-1">
+                  <UserPlus className="h-3 w-3" />
+                  {formatCompact(account.followers_count)} followers
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Skills pills */}
+          {account.top_skills && account.top_skills.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {account.top_skills.slice(0, 3).map(skill => (
+                <Badge key={skill} variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                  {skill}
+                </Badge>
+              ))}
+              {account.top_skills.length > 3 && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                  +{account.top_skills.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
+
+          {/* Premium / Creator / Influencer / Open-to-Work badges */}
+          {(account.is_premium || account.is_creator || account.is_influencer || account.open_to_work) && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {account.is_premium && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/40 text-amber-400">
+                  <Crown className="h-3 w-3 mr-0.5" /> Premium
+                </Badge>
+              )}
+              {account.is_creator && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-purple-500/40 text-purple-400">
+                  <Sparkles className="h-3 w-3 mr-0.5" /> Creator
+                </Badge>
+              )}
+              {account.is_influencer && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-500/40 text-blue-400">
+                  <Star className="h-3 w-3 mr-0.5" /> Influencer
+                </Badge>
+              )}
+              {account.open_to_work && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/40 text-emerald-400">
+                  <Eye className="h-3 w-3 mr-0.5" /> Open
+                </Badge>
+              )}
+            </div>
+          )}
+
+          {/* About tooltip */}
+          {account.about && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-[11px] text-muted-foreground/70 truncate cursor-help">
+                  {account.about.substring(0, 120)}{account.about.length > 120 ? '…' : ''}
+                </p>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs text-xs whitespace-pre-wrap">
+                {account.about.substring(0, 500)}
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Not synced hint */}
+          {hasLinkedInUrl && !hasBeenSynced && (
+            <p className="text-[11px] text-muted-foreground/60 italic">Not synced yet — tap the refresh icon to pull LinkedIn data.</p>
+          )}
+
+          {/* Risk + Status badges */}
+          <div className="flex items-center gap-1.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1">
+                  <Shield className={`h-3.5 w-3.5 ${riskColors[account.risk_level] ?? 'text-muted-foreground'}`} />
+                  {account.risk_score > 0 && (
+                    <span className={`text-[10px] font-mono ${riskColors[account.risk_level]}`}>{account.risk_score}</span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                Risk: {account.risk_level} ({account.risk_score}/100)
+              </TooltipContent>
+            </Tooltip>
+            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${statusColors[account.status] ?? ''}`}>
+              {isInUse ? 'In Use' : account.status.replace('_', ' ')}
+            </Badge>
           </div>
-        ) : null}
 
-        {/* Last synced footer */}
-        {account.last_synced_at && (
-          <p className="text-[10px] text-muted-foreground/50 text-right">
-            Synced {formatDistanceToNow(new Date(account.last_synced_at), { addSuffix: true })}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {/* Active session info */}
+          {isInUse && activeSession && (
+            <div className="flex items-center gap-2 bg-red-500/10 rounded-md p-2 text-xs">
+              <Avatar className="h-6 w-6">
+                <AvatarFallback className="text-[10px] bg-red-500/20">
+                  {userName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium truncate">{userName}</p>
+                <p className="text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Until {format(new Date(activeSession.expected_end_at), 'HH:mm')}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {activeSession?.purpose && (
+            <p className="text-xs text-muted-foreground truncate">{activeSession.purpose}</p>
+          )}
+
+          {/* Action */}
+          {isAvailable ? (
+            <Button size="sm" className="w-full" onClick={() => onStartSession(account)}>
+              <Play className="h-3.5 w-3.5 mr-1.5" />
+              Start Session
+            </Button>
+          ) : !isInUse ? (
+            <div className="text-xs text-muted-foreground text-center py-1">
+              Account {account.status.replace('_', ' ')}
+            </div>
+          ) : null}
+
+          {/* Last synced footer */}
+          {account.last_synced_at && (
+            <p className="text-[10px] text-muted-foreground/50 text-right">
+              Synced {formatDistanceToNow(new Date(account.last_synced_at), { addSuffix: true })}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 }

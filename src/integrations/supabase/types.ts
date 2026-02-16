@@ -25853,72 +25853,135 @@ export type Database = {
       }
       linkedin_avatar_accounts: {
         Row: {
+          about: string | null
+          account_created_at: string | null
           avatar_url: string | null
+          background_picture_url: string | null
           connections_count: number | null
           created_at: string
           created_by: string | null
+          current_company: string | null
+          current_company_url: string | null
+          daily_usage_minutes_today: number | null
+          education_json: Json | null
           email_account_address: string | null
           email_account_password_encrypted: string | null
+          experience_json: Json | null
+          featured_json: Json | null
           followers_count: number | null
           id: string
+          is_creator: boolean | null
+          is_influencer: boolean | null
+          is_premium: boolean | null
           label: string
+          last_cooldown_at: string | null
           last_synced_at: string | null
           linkedin_email: string | null
+          linkedin_email_from_scrape: string | null
           linkedin_headline: string | null
           linkedin_password_encrypted: string | null
           linkedin_url: string | null
+          linkedin_urn: string | null
+          location: string | null
           max_daily_minutes: number
           notes: string | null
+          open_to_work: boolean | null
           owner_team: string | null
           playbook: string | null
+          public_identifier: string | null
           risk_level: string
+          risk_score: number | null
+          sessions_today: number | null
           status: string
+          top_skills: string[] | null
           updated_at: string
         }
         Insert: {
+          about?: string | null
+          account_created_at?: string | null
           avatar_url?: string | null
+          background_picture_url?: string | null
           connections_count?: number | null
           created_at?: string
           created_by?: string | null
+          current_company?: string | null
+          current_company_url?: string | null
+          daily_usage_minutes_today?: number | null
+          education_json?: Json | null
           email_account_address?: string | null
           email_account_password_encrypted?: string | null
+          experience_json?: Json | null
+          featured_json?: Json | null
           followers_count?: number | null
           id?: string
+          is_creator?: boolean | null
+          is_influencer?: boolean | null
+          is_premium?: boolean | null
           label: string
+          last_cooldown_at?: string | null
           last_synced_at?: string | null
           linkedin_email?: string | null
+          linkedin_email_from_scrape?: string | null
           linkedin_headline?: string | null
           linkedin_password_encrypted?: string | null
           linkedin_url?: string | null
+          linkedin_urn?: string | null
+          location?: string | null
           max_daily_minutes?: number
           notes?: string | null
+          open_to_work?: boolean | null
           owner_team?: string | null
           playbook?: string | null
+          public_identifier?: string | null
           risk_level?: string
+          risk_score?: number | null
+          sessions_today?: number | null
           status?: string
+          top_skills?: string[] | null
           updated_at?: string
         }
         Update: {
+          about?: string | null
+          account_created_at?: string | null
           avatar_url?: string | null
+          background_picture_url?: string | null
           connections_count?: number | null
           created_at?: string
           created_by?: string | null
+          current_company?: string | null
+          current_company_url?: string | null
+          daily_usage_minutes_today?: number | null
+          education_json?: Json | null
           email_account_address?: string | null
           email_account_password_encrypted?: string | null
+          experience_json?: Json | null
+          featured_json?: Json | null
           followers_count?: number | null
           id?: string
+          is_creator?: boolean | null
+          is_influencer?: boolean | null
+          is_premium?: boolean | null
           label?: string
+          last_cooldown_at?: string | null
           last_synced_at?: string | null
           linkedin_email?: string | null
+          linkedin_email_from_scrape?: string | null
           linkedin_headline?: string | null
           linkedin_password_encrypted?: string | null
           linkedin_url?: string | null
+          linkedin_urn?: string | null
+          location?: string | null
           max_daily_minutes?: number
           notes?: string | null
+          open_to_work?: boolean | null
           owner_team?: string | null
           playbook?: string | null
+          public_identifier?: string | null
           risk_level?: string
+          risk_score?: number | null
+          sessions_today?: number | null
           status?: string
+          top_skills?: string[] | null
           updated_at?: string
         }
         Relationships: [
@@ -25941,6 +26004,47 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_avatar_daily_stats: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          date: string
+          id: string
+          peak_hour: number | null
+          total_minutes: number | null
+          total_sessions: number | null
+          unique_users: number | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          peak_hour?: number | null
+          total_minutes?: number | null
+          total_sessions?: number | null
+          unique_users?: number | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          peak_hour?: number | null
+          total_minutes?: number | null
+          total_sessions?: number | null
+          unique_users?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_avatar_daily_stats_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -54594,6 +54698,10 @@ export type Database = {
       ban_user: {
         Args: { p_reason?: string; p_target_user_id: string }
         Returns: boolean
+      }
+      calculate_account_risk: {
+        Args: { p_account_id: string }
+        Returns: undefined
       }
       calculate_activity_level: {
         Args: { last_activity: string }

@@ -63,6 +63,24 @@ Deno.serve(async (req) => {
     let followers: number | null = null;
     let headline: string | null = null;
     let fullName: string | null = null;
+    // Extended fields
+    let about: string | null = null;
+    let location: string | null = null;
+    let topSkills: string[] | null = null;
+    let currentCompany: string | null = null;
+    let currentCompanyUrl: string | null = null;
+    let isCreator = false;
+    let isInfluencer = false;
+    let isPremium = false;
+    let openToWork = false;
+    let publicIdentifier: string | null = null;
+    let linkedinUrn: string | null = null;
+    let accountCreatedAt: string | null = null;
+    let backgroundPicUrl: string | null = null;
+    let experienceJson: any = null;
+    let educationJson: any = null;
+    let featuredJson: any = null;
+    let linkedinEmailFromScrape: string | null = null;
 
     // Helper: find a value across many field name aliases, including nested objects
     function findField(obj: any, aliases: string[]): any {
@@ -141,7 +159,30 @@ Deno.serve(async (req) => {
             connections = parseNum(findField(raw, CONN_ALIASES));
             followers = parseNum(findField(raw, FOLLOW_ALIASES));
 
-            console.log('[sync-avatar-linkedin] Apify success:', fullName, '| pic:', !!profilePicUrl, '| conn:', connections, '| follow:', followers);
+            // Extended data extraction
+            about = data.about || data.summary || data.bio || null;
+            location = data.location || data.city || data.region || null;
+            if (typeof location === 'object' && location !== null) {
+              location = (location as any).default || (location as any).city || JSON.stringify(location);
+            }
+            topSkills = data.top_skills || data.skills || data.topSkills || null;
+            if (topSkills && !Array.isArray(topSkills)) topSkills = null;
+            currentCompany = data.current_company || data.currentCompany || data.company || null;
+            currentCompanyUrl = data.current_company_url || data.currentCompanyUrl || null;
+            isCreator = !!(data.is_creator || data.isCreator);
+            isInfluencer = !!(data.is_influencer || data.isInfluencer);
+            isPremium = !!(data.is_premium || data.isPremium || data.premium);
+            openToWork = !!(data.open_to_work || data.openToWork);
+            publicIdentifier = data.public_identifier || data.publicIdentifier || null;
+            linkedinUrn = data.urn || data.linkedin_urn || null;
+            accountCreatedAt = data.created_timestamp || data.createdAt || null;
+            backgroundPicUrl = findField(raw, ['background_picture_url', 'backgroundPicture', 'coverPicture', 'background_cover_image_url']);
+            experienceJson = data.experience || raw.experience || null;
+            educationJson = data.education || raw.education || null;
+            featuredJson = data.featured || raw.featured || null;
+            linkedinEmailFromScrape = data.email || null;
+
+            console.log('[sync-avatar-linkedin] Apify success:', fullName, '| pic:', !!profilePicUrl, '| conn:', connections, '| follow:', followers, '| skills:', topSkills?.length ?? 0, '| company:', currentCompany);
           }
         } catch (e) {
           console.warn('[sync-avatar-linkedin] Apify failed:', e.message);
@@ -207,7 +248,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update account
+    // Update account with all extracted data
     const updates: Record<string, unknown> = {
       linkedin_url: linkedinUrl,
       avatar_url: storedAvatarUrl,
@@ -215,6 +256,24 @@ Deno.serve(async (req) => {
       followers_count: followers,
       linkedin_headline: headline,
       last_synced_at: new Date().toISOString(),
+      // Extended fields
+      about,
+      location,
+      top_skills: topSkills,
+      current_company: currentCompany,
+      current_company_url: currentCompanyUrl,
+      is_creator: isCreator,
+      is_influencer: isInfluencer,
+      is_premium: isPremium,
+      open_to_work: openToWork,
+      public_identifier: publicIdentifier,
+      linkedin_urn: linkedinUrn,
+      account_created_at: accountCreatedAt,
+      background_picture_url: backgroundPicUrl,
+      experience_json: experienceJson,
+      education_json: educationJson,
+      featured_json: featuredJson,
+      linkedin_email_from_scrape: linkedinEmailFromScrape,
     };
 
     const { data: updated, error: updateError } = await supabase

@@ -4,7 +4,7 @@ import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Radio, Shield, Clock, Users } from 'lucide-react';
+import { Plus, Radio, Shield, Clock, Users, RefreshCw, Loader2 } from 'lucide-react';
 import { useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { useAvatarSessions } from '@/hooks/useAvatarSessions';
 import { AvatarAccountGrid } from '@/components/avatar-control/AvatarAccountGrid';
@@ -15,7 +15,7 @@ import { ActiveSessionBanner } from '@/components/avatar-control/ActiveSessionBa
 import type { AvatarAccount } from '@/hooks/useAvatarAccounts';
 
 export default function AvatarControlHub() {
-  const { data: accounts = [], isLoading, refetch } = useAvatarAccounts();
+  const { data: accounts = [], isLoading, refetch, bulkSync } = useAvatarAccounts();
   const { activeSessions, data: allSessions = [] } = useAvatarSessions();
   const [selectedAccount, setSelectedAccount] = useState<AvatarAccount | null>(null);
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
@@ -23,10 +23,16 @@ export default function AvatarControlHub() {
   const [timelineAccountId, setTimelineAccountId] = useState<string | null>(null);
 
   const atRiskCount = accounts.filter(a => a.risk_level !== 'low').length;
+  const syncableAccounts = accounts.filter(a => a.linkedin_url);
 
   const handleStartSession = (account: AvatarAccount) => {
     setSelectedAccount(account);
     setSessionModalOpen(true);
+  };
+
+  const handleBulkSync = () => {
+    if (syncableAccounts.length === 0) return;
+    bulkSync.mutate(syncableAccounts.map(a => ({ id: a.id, linkedin_url: a.linkedin_url! })));
   };
 
   return (
@@ -40,10 +46,22 @@ export default function AvatarControlHub() {
           onRefresh={() => refetch()}
           isRefreshing={isLoading}
           actions={
-            <Button onClick={() => setAddAccountOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Account
-            </Button>
+            <div className="flex items-center gap-2">
+              {syncableAccounts.length > 0 && (
+                <Button variant="outline" onClick={handleBulkSync} disabled={bulkSync.isPending}>
+                  {bulkSync.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  Sync All ({syncableAccounts.length})
+                </Button>
+              )}
+              <Button onClick={() => setAddAccountOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Account
+              </Button>
+            </div>
           }
         />
 
@@ -112,7 +130,6 @@ export default function AvatarControlHub() {
               <CardContent>
                 {accounts.length > 0 ? (
                   <div className="space-y-4">
-                    {/* Show combined timeline from all accounts */}
                     <div className="space-y-1">
                       {(allSessions ?? []).slice(0, 30).map((session: any) => {
                         const accountLabel = session.linkedin_avatar_accounts?.label ?? 'Unknown';
