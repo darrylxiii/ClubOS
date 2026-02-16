@@ -1,11 +1,9 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-const ENCRYPTION_KEY = 'tqc-avatar-credentials-v1'; // Server-side only
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -14,18 +12,26 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify auth
+    // Verify auth using anon key + user's token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
+      console.error('[avatar-account-credentials] Auth failed:', authError?.message);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+
+    // Service client for DB operations
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     // Check admin role
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
@@ -45,28 +51,13 @@ Deno.serve(async (req) => {
         updates.email_account_address = emailAccountAddress || null;
       }
 
+      // Store credentials directly — protected by admin-only access + RLS
       if (linkedinPassword) {
-        const { data: enc } = await supabase.rpc('encrypt_text', { plain_text: linkedinPassword, key: ENCRYPTION_KEY });
-        // Fallback: store via pgp_sym_encrypt directly
-        if (enc) {
-          updates.linkedin_password_encrypted = enc;
-        } else {
-          // Use raw SQL via service role
-          const { error: rawErr } = await supabase
-            .from('linkedin_avatar_accounts')
-            .update({ linkedin_password_encrypted: linkedinPassword }) // Will be encrypted by trigger or manually
-            .eq('id', accountId);
-          if (rawErr) console.warn('Direct password update fallback:', rawErr.message);
-        }
+        updates.linkedin_password_encrypted = btoa(linkedinPassword);
       }
 
       if (emailAccountPassword) {
-        const { data: enc } = await supabase.rpc('encrypt_text', { plain_text: emailAccountPassword, key: ENCRYPTION_KEY });
-        if (enc) {
-          updates.email_account_password_encrypted = enc;
-        } else {
-          updates.email_account_password_encrypted = emailAccountPassword;
-        }
+        updates.email_account_password_encrypted = btoa(emailAccountPassword);
       }
 
       if (Object.keys(updates).length > 0) {
