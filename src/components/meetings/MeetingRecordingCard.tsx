@@ -118,6 +118,8 @@ export function MeetingRecordingCard({
         return <Badge variant="secondary" className="bg-purple-500/10 text-purple-500">Live Hub</Badge>;
       case 'conversation_call':
         return <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">Call</Badge>;
+      case 'fathom':
+        return <Badge variant="secondary" className="bg-amber-500/10 text-amber-500">Fathom</Badge>;
       default:
         return null;
     }

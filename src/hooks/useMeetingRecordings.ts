@@ -17,7 +17,7 @@ export interface MeetingRecordingExtended {
   file_size_bytes: number | null;
   duration_seconds: number | null;
   mime_type: string | null;
-  source_type: 'tqc_meeting' | 'live_hub' | 'conversation_call';
+  source_type: 'tqc_meeting' | 'live_hub' | 'conversation_call' | 'fathom';
   transcript: string | null;
   transcript_json: any;
   ai_analysis: any;
@@ -47,7 +47,7 @@ export interface MeetingRecordingExtended {
 }
 
 interface UseMeetingRecordingsOptions {
-  sourceType?: 'all' | 'tqc_meeting' | 'live_hub' | 'conversation_call';
+  sourceType?: 'all' | 'tqc_meeting' | 'live_hub' | 'conversation_call' | 'fathom';
   limit?: number;
   includeDeleted?: boolean;
 }
