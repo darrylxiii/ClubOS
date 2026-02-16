@@ -16,6 +16,14 @@ export interface AvatarAccount {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Enrichment fields
+  linkedin_url: string | null;
+  avatar_url: string | null;
+  connections_count: number | null;
+  followers_count: number | null;
+  linkedin_headline: string | null;
+  email_account_address: string | null;
+  last_synced_at: string | null;
 }
 
 export function useAvatarAccounts() {
@@ -68,5 +76,41 @@ export function useAvatarAccounts() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  return { ...accountsQuery, createAccount, updateAccount };
+  const syncLinkedIn = useMutation({
+    mutationFn: async ({ accountId, linkedinUrl }: { accountId: string; linkedinUrl: string }) => {
+      const { data, error } = await supabase.functions.invoke('sync-avatar-linkedin', {
+        body: { accountId, linkedinUrl },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avatar-accounts'] });
+      toast.success('LinkedIn profile synced.');
+    },
+    onError: (e: Error) => toast.error(`Sync failed: ${e.message}`),
+  });
+
+  const saveCredentials = useMutation({
+    mutationFn: async (payload: {
+      accountId: string;
+      linkedinPassword?: string;
+      emailAccountAddress?: string;
+      emailAccountPassword?: string;
+    }) => {
+      const { data, error } = await supabase.functions.invoke('avatar-account-credentials', {
+        body: payload,
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Credentials saved securely.');
+    },
+    onError: (e: Error) => toast.error(`Save failed: ${e.message}`),
+  });
+
+  return { ...accountsQuery, createAccount, updateAccount, syncLinkedIn, saveCredentials };
 }
