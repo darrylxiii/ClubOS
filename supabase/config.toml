@@ -1199,3 +1199,8 @@ verify_jwt = true
 [functions.parse-receipt]
 verify_jwt = false
 
+# =============================================================================
+# Greenhouse Sync
+# =============================================================================
+[functions.sync-greenhouse-candidates]
+verify_jwt = false
