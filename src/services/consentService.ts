@@ -19,26 +19,18 @@ export async function grantConsent(
   recipientId?: string,
   applicationId?: string
 ): Promise<ConsentReceipt> {
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) throw new Error('Not authenticated');
-
-  const { data, error } = await supabase
-    .from('consent_receipts')
-    .insert([{
-      user_id: user.user.id,
-      consent_type: consentType,
-      scope,
-      recipient_type: recipientType,
-      recipient_id: recipientId,
-      application_id: applicationId,
-      granted: true,
-      consent_text: `User granted ${scope} access for ${consentType}`
-    }])
-    .select()
-    .single();
+  const { data, error } = await supabase.functions.invoke('record-consent', {
+    body: {
+      consents: [{
+        consent_type: consentType,
+        scope,
+        consent_text: `User granted ${scope} access for ${consentType}`
+      }]
+    }
+  });
 
   if (error) throw error;
-  return data;
+  return data?.consents?.[0] || data;
 }
 
 export async function revokeConsent(consentId: string) {

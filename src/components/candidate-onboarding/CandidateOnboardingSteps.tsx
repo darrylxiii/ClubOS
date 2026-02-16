@@ -528,23 +528,23 @@ export function CandidateOnboardingSteps() {
           })
           .eq('id', authData.user.id);
 
-        // Create consent receipts for audit trail
-        await Promise.all([
-          supabase.from('consent_receipts').insert({
-            user_id: authData.user.id,
-            consent_type: 'terms_of_service',
-            scope: 'platform_usage',
-            granted: true,
-            consent_text: 'User accepted Terms of Service during onboarding'
-          }),
-          supabase.from('consent_receipts').insert({
-            user_id: authData.user.id,
-            consent_type: 'privacy_policy',
-            scope: 'data_processing_and_communications',
-            granted: true,
-            consent_text: 'User accepted Privacy Policy during onboarding (includes marketing communications consent)'
-          })
-        ]);
+        // Create consent receipts via server-side edge function for audit integrity
+        await supabase.functions.invoke('record-consent', {
+          body: {
+            consents: [
+              {
+                consent_type: 'terms_of_service',
+                scope: 'platform_usage',
+                consent_text: 'User accepted Terms of Service during onboarding'
+              },
+              {
+                consent_type: 'privacy_policy',
+                scope: 'data_processing_and_communications',
+                consent_text: 'User accepted Privacy Policy during onboarding (includes marketing communications consent)'
+              }
+            ]
+          }
+        });
 
       if (profileError) {
         console.error("[Onboarding] Profile update error:", profileError);
@@ -805,12 +805,22 @@ export function CandidateOnboardingSteps() {
     try {
       const renamedFile = new File([file], `${sessionId}_${file.name}`, { type: file.type });
       
-      const result = await uploadResume(renamedFile, 'onboarding', 'candidate');
+      // Upload via server-side edge function (no anonymous storage access)
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', renamedFile);
+      uploadFormData.append('sessionId', sessionId);
       
-      if (result) {
+      const { data: uploadResult, error: uploadError } = await supabase.functions.invoke(
+        'upload-onboarding-resume',
+        { body: uploadFormData }
+      );
+      
+      if (uploadError) throw uploadError;
+      
+      if (uploadResult?.path) {
         setFormData({
           ...formData,
-          resume_url: result.path,
+          resume_url: uploadResult.path,
           resume_filename: file.name,
         });
 
