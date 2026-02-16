@@ -24,6 +24,28 @@ export interface AvatarAccount {
   linkedin_headline: string | null;
   email_account_address: string | null;
   last_synced_at: string | null;
+  // Extended sync fields
+  about: string | null;
+  location: string | null;
+  top_skills: string[] | null;
+  current_company: string | null;
+  current_company_url: string | null;
+  is_creator: boolean;
+  is_influencer: boolean;
+  is_premium: boolean;
+  open_to_work: boolean;
+  public_identifier: string | null;
+  linkedin_urn: string | null;
+  account_created_at: string | null;
+  background_picture_url: string | null;
+  experience_json: any;
+  education_json: any;
+  featured_json: any;
+  linkedin_email_from_scrape: string | null;
+  risk_score: number;
+  daily_usage_minutes_today: number;
+  sessions_today: number;
+  last_cooldown_at: string | null;
 }
 
 export function useAvatarAccounts() {
@@ -112,5 +134,40 @@ export function useAvatarAccounts() {
     onError: (e: Error) => toast.error(`Save failed: ${e.message}`),
   });
 
-  return { ...accountsQuery, createAccount, updateAccount, syncLinkedIn, saveCredentials };
+  const deleteAccount = useMutation({
+    mutationFn: async (accountId: string) => {
+      const { error } = await supabase
+        .from('linkedin_avatar_accounts')
+        .delete()
+        .eq('id', accountId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avatar-accounts'] });
+      toast.success('Account deleted.');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkSync = useMutation({
+    mutationFn: async (accounts: { id: string; linkedin_url: string }[]) => {
+      const results = await Promise.allSettled(
+        accounts.map(a =>
+          supabase.functions.invoke('sync-avatar-linkedin', {
+            body: { accountId: a.id, linkedinUrl: a.linkedin_url },
+          })
+        )
+      );
+      const failed = results.filter(r => r.status === 'rejected').length;
+      if (failed > 0) throw new Error(`${failed} of ${accounts.length} syncs failed`);
+      return results;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['avatar-accounts'] });
+      toast.success(`Synced ${variables.length} accounts.`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return { ...accountsQuery, createAccount, updateAccount, syncLinkedIn, saveCredentials, deleteAccount, bulkSync };
 }
