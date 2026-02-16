@@ -1,77 +1,70 @@
 
 
-# Fix: Avatar LinkedIn Sync + Edit/Password Visibility
+# Fix: Avatar Profile Picture + Connections Data from LinkedIn Sync
 
-## Root Cause (Definitively Found)
+## Problem
 
-The Supabase client in this project sends a custom `x-application-name: thequantumclub` header with EVERY request (configured in `src/integrations/supabase/client.ts`). When calling edge functions via `supabase.functions.invoke()`, this header triggers a CORS preflight check.
+The sync IS working (confirmed by logs: "Apify success: Darryl Mehilal"). Followers (5258) and headline were saved correctly. But:
+- `avatar_url` is NULL -- the Apify response uses a field name not covered by the current mapping
+- `connections_count` is NULL -- same issue, field name mismatch
+- No image was uploaded to storage (0 files), confirming the profile pic URL was never extracted
 
-The working function (`sync-greenhouse-candidates`) includes `x-application-name` in its `Access-Control-Allow-Headers`. The broken functions do NOT. Result: the browser blocks the POST at the network level, and the Supabase client throws `"Failed to send a request to the Edge Function"`.
+## Solution
 
-**Proof:**
-- Working: `sync-greenhouse-candidates` CORS → includes `x-application-name`
-- Broken: `sync-avatar-linkedin` CORS → missing `x-application-name`
-- Broken: `avatar-account-credentials` CORS → missing `x-application-name` AND most other headers, AND still uses `esm.sh` import
+### 1. Add comprehensive logging to see raw Apify response
 
-## Part 1: Fix Edge Functions (CORS + Import)
+Add `console.log(JSON.stringify(raw))` right after receiving the Apify data. This ensures we can see the exact field names in the logs for future debugging.
 
-### File: `supabase/functions/sync-avatar-linkedin/index.ts`
+### 2. Expand field-name mapping significantly
 
-**Line 5 change only** -- add `x-application-name` to the CORS headers:
+The current code only checks 4 names for profile picture and 2 for connections. Different Apify actors and response versions use many variations. We need to check all common patterns:
 
+**Profile picture** (currently: `profile_pic_url`, `profilePicture`, `avatar`, `imageUrl`):
+Add: `profilePictureUrl`, `profile_picture`, `profilePhoto`, `photo`, `picture`, `image`, `img`, `profileImage`, `profile_image_url`, `displayPictureUrl`, `pictureUrl`, `photo_url`
+
+**Connections** (currently: `connections`, `connections_count`):
+Add: `numConnections`, `connectionCount`, `total_connections`, `connectionsCount`, `numberOfConnections`
+
+**Followers** (keep existing, add a few more):
+Add: `followersCount`, `numFollowers`, `total_followers`, `numberOfFollowers`
+
+### 3. Deep-search the response object
+
+Instead of only looking at `basic_info` spread with top-level, recursively scan all nested objects for these field names. The Apify response may nest data under `profile`, `data`, `result`, or similar containers.
+
+### 4. Handle LinkedIn CDN image URLs
+
+LinkedIn profile picture URLs from scrapers are often temporary CDN links that expire or require cookies. The current code already tries to download and re-upload to storage -- but we should:
+- Log when the image fetch fails or returns too few bytes
+- Accept images even below 1000 bytes (some profile thumbnails are small)
+- Lower the threshold to 100 bytes
+
+## File Changes
+
+### `supabase/functions/sync-avatar-linkedin/index.ts`
+
+- Add raw response logging after Apify call (1 line)
+- Replace the hardcoded field-name checks (lines 92-100) with a helper function that searches across many aliases and also scans nested objects
+- Lower the image size threshold from 1000 to 100 bytes
+- Add logging for image download success/failure
+
+### Technical Details
+
+```text
+Helper function: findField(obj, fieldNames[])
+  - Searches top-level keys
+  - Searches inside nested objects (basic_info, profile, data, result)
+  - Returns first non-null/non-empty match
+
+Field mappings:
+  profilePic: ~15 field name variants
+  connections: ~8 field name variants  
+  followers: ~8 field name variants
 ```
-Before: 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, ...'
-After:  'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, ...'
-```
 
-Everything else in this function stays exactly the same. The auth logic, Apify/Proxycurl logic, DB update logic -- all correct. It was always just the missing CORS header.
+No database changes needed -- the columns already exist and are correctly typed. No frontend changes needed -- the card already displays avatar_url, connections_count, and followers_count when present.
 
-### File: `supabase/functions/avatar-account-credentials/index.ts`
+### Deployment
 
-Two fixes:
-1. **Line 1**: Change import from `esm.sh` to `npm:@supabase/supabase-js@2`
-2. **Line 5**: Replace minimal CORS headers with the full set (matching the working pattern), including `x-application-name`
-
-### File: `supabase/functions/linkedin-scraper-proxycurl/index.ts`
-
-Same CORS fix -- add `x-application-name` to the headers (line 5).
-
-### Redeploy all three functions
-
-## Part 2: Add Edit Dialog for Existing Accounts
-
-### New file: `src/components/avatar-control/EditAvatarAccountDialog.tsx`
-
-A dialog that lets admins edit any existing account. Features:
-- Pre-populated form with current account data (label, LinkedIn URL, email, team, notes, playbook, max daily minutes)
-- Password fields with show/hide toggle for LinkedIn password and email password
-- Passwords display as masked by default; clicking the eye icon reveals them
-- Fetches current (Base64-decoded) passwords from the database for display
-- Save button updates the account via `updateAccount` mutation + `saveCredentials` for password changes
-
-### File: `src/components/avatar-control/AvatarAccountCard.tsx`
-
-- Add an Edit (pencil) icon button next to the sync button in each card
-- Clicking it opens the `EditAvatarAccountDialog` with the account data pre-filled
-
-### File: `src/components/avatar-control/AvatarAccountGrid.tsx`
-
-- Wire up the edit dialog state (selectedAccount, open/close)
-- Pass `onEdit` callback to each `AvatarAccountCard`
-
-### File: `src/hooks/useAvatarAccounts.ts`
-
-- Add `getCredentials` query/function that reads `linkedin_password_encrypted` and `email_account_password_encrypted` from the database and decodes them (Base64) for display in the edit dialog
-
-## Summary
-
-| File | Change |
-|------|--------|
-| `sync-avatar-linkedin/index.ts` | Add `x-application-name` to CORS headers (1 line) |
-| `avatar-account-credentials/index.ts` | Fix import + expand CORS headers |
-| `linkedin-scraper-proxycurl/index.ts` | Add `x-application-name` to CORS headers |
-| `EditAvatarAccountDialog.tsx` | New file: edit dialog with password visibility |
-| `AvatarAccountCard.tsx` | Add edit button |
-| `AvatarAccountGrid.tsx` | Wire up edit dialog |
-| `useAvatarAccounts.ts` | Add credential retrieval |
+Redeploy `sync-avatar-linkedin` after changes.
 
