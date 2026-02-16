@@ -1,86 +1,77 @@
 
 
-# Fix: sync-avatar-linkedin -- The Real Solution
+# Fix: Avatar LinkedIn Sync + Edit/Password Visibility
 
-## What's Actually Happening
+## Root Cause (Definitively Found)
 
-The analytics logs prove it definitively:
-- Every POST to `sync-avatar-linkedin` returns **401**
-- The function boots and shuts down without logging anything (no "[sync-avatar-linkedin]" messages)
-- This means the **Supabase gateway** is rejecting the request before the function code runs
+The Supabase client in this project sends a custom `x-application-name: thequantumclub` header with EVERY request (configured in `src/integrations/supabase/client.ts`). When calling edge functions via `supabase.functions.invoke()`, this header triggers a CORS preflight check.
 
-## Why
+The working function (`sync-greenhouse-candidates`) includes `x-application-name` in its `Access-Control-Allow-Headers`. The broken functions do NOT. Result: the browser blocks the POST at the network level, and the Supabase client throws `"Failed to send a request to the Edge Function"`.
 
-`verify_jwt = true` does NOT work on Lovable Cloud. Lovable Cloud signs JWTs with ES256, but the Supabase gateway expects HS256 for `verify_jwt = true`. The gateway rejects every request as unauthorized. The function never boots for the actual request.
+**Proof:**
+- Working: `sync-greenhouse-candidates` CORS → includes `x-application-name`
+- Broken: `sync-avatar-linkedin` CORS → missing `x-application-name`
+- Broken: `avatar-account-credentials` CORS → missing `x-application-name` AND most other headers, AND still uses `esm.sh` import
 
-The previous fix set `verify_jwt = true` thinking the candidate scraper uses the same setting -- but the candidate scraper (`linkedin-scraper-proxycurl`) has had zero recent calls in the logs, so there's no proof it actually works either.
+## Part 1: Fix Edge Functions (CORS + Import)
 
-## The Correct Pattern (from Lovable Cloud documentation)
+### File: `supabase/functions/sync-avatar-linkedin/index.ts`
 
-1. Set `verify_jwt = false` so the gateway lets requests through
-2. Validate the JWT **in code** using `supabase.auth.getUser()` with the anon key client (NOT the service role client)
-3. Use `npm:@supabase/supabase-js@2` import (not `esm.sh` which causes bundle timeouts)
+**Line 5 change only** -- add `x-application-name` to the CORS headers:
 
-## Changes
-
-### File 1: `supabase/config.toml` (line 1212)
-
-```toml
-# Before
-[functions.sync-avatar-linkedin]
-verify_jwt = true
-
-# After
-[functions.sync-avatar-linkedin]
-verify_jwt = false
+```
+Before: 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, ...'
+After:  'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, ...'
 ```
 
-### File 2: `supabase/functions/sync-avatar-linkedin/index.ts` -- Full rewrite
+Everything else in this function stays exactly the same. The auth logic, Apify/Proxycurl logic, DB update logic -- all correct. It was always just the missing CORS header.
 
-Key changes:
-- Import from `npm:@supabase/supabase-js@2`
-- Expanded CORS headers (matching working functions like `sync-greenhouse-candidates`)
-- In-code JWT validation using anon key + user's auth header
-- Service role client for DB operations
-- All existing Apify/Proxycurl/avatar storage logic preserved
+### File: `supabase/functions/avatar-account-credentials/index.ts`
 
-```typescript
-import { createClient } from "npm:@supabase/supabase-js@2";
+Two fixes:
+1. **Line 1**: Change import from `esm.sh` to `npm:@supabase/supabase-js@2`
+2. **Line 5**: Replace minimal CORS headers with the full set (matching the working pattern), including `x-application-name`
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+### File: `supabase/functions/linkedin-scraper-proxycurl/index.ts`
 
-// Auth validation using anon client
-const authHeader = req.headers.get('Authorization');
-if (!authHeader) return 401;
+Same CORS fix -- add `x-application-name` to the headers (line 5).
 
-const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  global: { headers: { Authorization: authHeader } },
-});
-const { data: { user }, error } = await authClient.auth.getUser();
-if (error || !user) return 401;
+### Redeploy all three functions
 
-// Service client for DB writes
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+## Part 2: Add Edit Dialog for Existing Accounts
 
-// ... rest of existing logic unchanged
-```
+### New file: `src/components/avatar-control/EditAvatarAccountDialog.tsx`
 
-### File 3: `supabase/functions/linkedin-scraper-proxycurl/index.ts`
+A dialog that lets admins edit any existing account. Features:
+- Pre-populated form with current account data (label, LinkedIn URL, email, team, notes, playbook, max daily minutes)
+- Password fields with show/hide toggle for LinkedIn password and email password
+- Passwords display as masked by default; clicking the eye icon reveals them
+- Fetches current (Base64-decoded) passwords from the database for display
+- Save button updates the account via `updateAccount` mutation + `saveCredentials` for password changes
 
-Same fix applied -- change to `npm:` import and expanded CORS headers, keep existing auth logic (which already uses the correct anon-key pattern but with esm.sh import).
+### File: `src/components/avatar-control/AvatarAccountCard.tsx`
 
-### Deployment
+- Add an Edit (pencil) icon button next to the sync button in each card
+- Clicking it opens the `EditAvatarAccountDialog` with the account data pre-filled
 
-Redeploy all three functions after changes.
+### File: `src/components/avatar-control/AvatarAccountGrid.tsx`
 
-## Why This Will Work
+- Wire up the edit dialog state (selectedAccount, open/close)
+- Pass `onEdit` callback to each `AvatarAccountCard`
 
-This follows the exact pattern documented for Lovable Cloud (from the troubleshooting knowledge base):
-- `verify_jwt = false` bypasses the broken gateway ES256 check
-- In-code `getUser()` with anon key + auth header correctly validates the JWT
-- `npm:` imports prevent bundle generation timeouts
-- Expanded CORS headers match the working functions in this project
+### File: `src/hooks/useAvatarAccounts.ts`
+
+- Add `getCredentials` query/function that reads `linkedin_password_encrypted` and `email_account_password_encrypted` from the database and decodes them (Base64) for display in the edit dialog
+
+## Summary
+
+| File | Change |
+|------|--------|
+| `sync-avatar-linkedin/index.ts` | Add `x-application-name` to CORS headers (1 line) |
+| `avatar-account-credentials/index.ts` | Fix import + expand CORS headers |
+| `linkedin-scraper-proxycurl/index.ts` | Add `x-application-name` to CORS headers |
+| `EditAvatarAccountDialog.tsx` | New file: edit dialog with password visibility |
+| `AvatarAccountCard.tsx` | Add edit button |
+| `AvatarAccountGrid.tsx` | Wire up edit dialog |
+| `useAvatarAccounts.ts` | Add credential retrieval |
 
