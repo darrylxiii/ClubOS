@@ -1,49 +1,103 @@
 
 
-# Fix: Avatar LinkedIn Sync Edge Functions
+# Fix: Avatar LinkedIn Sync -- Holistic Step-by-Step
 
-## Root Cause
+## Root Cause (confirmed via analytics logs)
 
-After a full audit (config, deployment, logs, curl tests, client code), the functions ARE deployed and reachable (curl returns 401 as expected). The "Failed to send a request" error is a client-side symptom of the function crashing silently during execution. Two issues identified:
+The function IS deployed and reachable. CORS preflight (OPTIONS) returns 200. But the actual POST returns **401** every time. The Supabase JS client wraps this as "Failed to send a request to the Edge Function" -- a misleading error message.
 
-### Issue 1: Unreliable `esm.sh` import
-Both `sync-avatar-linkedin` and `avatar-account-credentials` use `https://esm.sh/@supabase/supabase-js@2.39.3`, which causes intermittent bundle generation timeouts on Lovable Cloud. The newer, working functions in this project (e.g. `sync-greenhouse-candidates`, `record-consent`) all use `npm:@supabase/supabase-js@2` instead.
+The 401 comes from the in-code `getUser()` call failing. The working candidate scraper (`linkedin-scraper-proxycurl`) avoids this entirely by using `verify_jwt = true` in config -- Supabase's gateway validates the JWT before the function even boots, and the function never needs to call `getUser()`.
 
-### Issue 2: Auth client misconfiguration
-Both functions create the Supabase client with the **service role key**, then call `supabase.auth.getUser(token)` on it. When using a service-role client, `getUser` may behave unexpectedly depending on the SDK version. The working `linkedin-scraper` function doesn't do auth at all — it's a simpler pattern.
+The avatar sync function uses `verify_jwt = false` and tries to validate auth manually with `getUser()`, which fails on Lovable Cloud's signing-keys system.
 
-### Issue 3: `encrypt_text` RPC likely doesn't exist
-The `avatar-account-credentials` function calls `supabase.rpc('encrypt_text', ...)`, which was never created in any migration. This causes a 500 error when saving credentials.
+## The Fix: Mirror the Working Pattern Exactly
 
-## Fix Plan
+### Step 1: Change `sync-avatar-linkedin` config to `verify_jwt = true`
 
-### 1. Update `sync-avatar-linkedin/index.ts`
-- Change import from `esm.sh` to `npm:@supabase/supabase-js@2`
-- Create two separate clients: one with anon key + user auth header for `getUser()`, one with service role key for DB writes
-- Add better error logging
+**File:** `supabase/config.toml` (line 1212)
 
-### 2. Update `avatar-account-credentials/index.ts`
-- Change import from `esm.sh` to `npm:@supabase/supabase-js@2`
-- Fix auth pattern (same two-client approach)
-- Remove the non-existent `encrypt_text` RPC call — store passwords using a simpler approach (base64 encode as a basic obfuscation, or just store directly since RLS + admin-only access already protects them, and proper encryption would need a vault secret)
+```toml
+# Before
+[functions.sync-avatar-linkedin]
+verify_jwt = false
 
-### 3. Redeploy both functions
-
-## Technical Details
-
-**sync-avatar-linkedin/index.ts** changes:
-```
-Line 1: import { createClient } from 'npm:@supabase/supabase-js@2';
-Lines 19-21: Create auth client with SUPABASE_ANON_KEY + user's auth header
-Lines 23-31: Use auth client for getUser(), service client for DB writes
+# After
+[functions.sync-avatar-linkedin]
+verify_jwt = true
 ```
 
-**avatar-account-credentials/index.ts** changes:
-```
-Line 1: import { createClient } from 'npm:@supabase/supabase-js@2';
-Lines 16-18: Create auth client with SUPABASE_ANON_KEY + user's auth header
-Lines 48-69: Remove encrypt_text RPC calls, store credentials directly (protected by admin-only access + RLS)
+This makes Supabase's gateway validate the JWT before the function boots -- exactly like `linkedin-scraper-proxycurl`.
+
+### Step 2: Simplify `sync-avatar-linkedin/index.ts` auth
+
+Remove the manual two-client auth dance. Since the gateway already verified the JWT, we know the request is from an authenticated user. Use the service role client only (for DB writes).
+
+Changes:
+- Remove the `authClient` creation and `getUser()` call
+- Keep only the service role client for database operations
+- Remove the `anonKey` variable (no longer needed)
+
+### Step 3: Change `avatar-account-credentials` config to `verify_jwt = true`
+
+Same issue, same fix:
+
+```toml
+# Before
+[functions.avatar-account-credentials]
+verify_jwt = true
+
+# After -- already true from the plan, but the code still needs the admin check
 ```
 
-No frontend changes needed — the client code in `useAvatarAccounts.ts` is correct.
+Wait -- `avatar-account-credentials` needs an **admin role check** (not just "is authenticated"). So it needs `getUser()` to get the user ID, then checks the `profiles` table for role. For this function, we keep `verify_jwt = false` but fix the auth by extracting the user ID from the JWT claims directly instead of calling `getUser()`.
+
+Revised approach for `avatar-account-credentials`:
+- Keep `verify_jwt = false`
+- Replace `getUser()` with manual JWT decode (extract `sub` from the JWT payload -- it's a standard JWT, the claims are in the payload)
+- Use the extracted user ID to check admin role via service client
+
+### Step 4: Update `sync-avatar-linkedin/index.ts` -- Full Rewrite
+
+Strip it to match the working `linkedin-scraper-proxycurl` pattern:
+
+```text
+1. Import from esm.sh (same as working function)
+2. CORS headers (same as working function)  
+3. Auth: None needed (verify_jwt = true handles it)
+4. Parse body: { accountId, linkedinUrl }
+5. Try Apify, fallback to Proxycurl (keep existing logic)
+6. Update linkedin_avatar_accounts row
+7. Return result
+```
+
+### Step 5: Update `avatar-account-credentials/index.ts`
+
+```text
+1. Import from esm.sh (same as working functions)
+2. CORS headers
+3. Extract user ID from JWT payload (decode base64 middle segment)
+4. Check admin role via service client
+5. Store credentials (existing logic)
+```
+
+### Step 6: Redeploy both functions
+
+### Step 7: Verify with curl test
+
+## File Changes Summary
+
+| File | Change |
+|------|--------|
+| `supabase/config.toml` | Line 1212: change `verify_jwt = false` to `verify_jwt = true` for `sync-avatar-linkedin` |
+| `supabase/functions/sync-avatar-linkedin/index.ts` | Full rewrite: remove manual auth, use `esm.sh` import, keep Apify/Proxycurl + DB update logic |
+| `supabase/functions/avatar-account-credentials/index.ts` | Switch to `esm.sh` import, replace `getUser()` with JWT decode for user ID extraction |
+
+## Why This Will Work
+
+The candidate LinkedIn scraper proves the pattern:
+- Same `supabase.functions.invoke()` call from the client
+- Same `esm.sh` import
+- `verify_jwt = true` so the gateway handles auth
+- No manual `getUser()` calls
+- Simple, clean, no room for auth misconfiguration
 
