@@ -1,75 +1,40 @@
 
 
-# Add "Set Password" Option for OAuth Users on Login Page
+# Fix: "Set Password" Link Fails for OAuth Users
 
-## What This Does
+## Problem
 
-Adds a modal on the login page so OAuth users (Google/Apple) who don't have a password can request a link to create one. This lets them log in with email + password in addition to their OAuth method.
+The "Send Setup Link" button fails with "An error occurred" because the browser blocks the request before it reaches the server.
 
-## Why No Backend Changes Are Needed
+## Root Cause
 
-The existing password reset infrastructure already handles this perfectly:
-- `password-reset-request` looks up users by email regardless of auth method
-- `password-reset-set-password` uses admin API to set a password on any account (OAuth or not)
-- The reset email, OTP verification, and new-password page all work as-is
+Same CORS issue we fixed on `provision-partner`: the Supabase client sends a custom `x-application-name` header on every request, but the `password-reset-request` edge function does not include it in its `Access-Control-Allow-Headers` list. The browser's preflight (OPTIONS) request is rejected, so the actual POST never fires.
 
-The only change needed is on the **frontend**: better UX to guide OAuth-only users through this flow.
+The edge function logs confirm this -- the function boots but no request is ever processed.
 
----
+## Fix
 
-## Changes
+**File**: `supabase/functions/password-reset-request/index.ts` (line 7)
 
-### 1. Create a "Set Password" Modal Component
-
-**New file**: `src/components/auth/SetPasswordModal.tsx`
-
-A Dialog component with:
-- Headline: "Set up password login"
-- Subtext: "If you signed in with Google or Apple, you can also create a password for email login."
-- Email input field
-- "Send Setup Link" button
-- Success state showing "Check your email"
-
-The submit handler calls the same `password-reset-request` edge function that the existing Forgot Password page uses. No new endpoint needed.
-
-### 2. Add the Modal Trigger to the Auth Page
-
-**Modified file**: `src/pages/Auth.tsx`
-
-Below the existing "Forgot password?" link (line 696), add a second link:
-
+Change:
 ```
-Don't have a password? Set one up
+"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 ```
 
-Clicking it opens the SetPasswordModal.
+To:
+```
+"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-application-name"
+```
 
-### 3. Add i18n Translations
+Then redeploy the function.
 
-**Modified files**: `src/i18n/locales/en/auth.json` and `src/i18n/locales/nl/auth.json`
+## Scope Check
 
-Add new keys under a `setPassword` section:
-- `title`: "Set Up Password Login" / "Wachtwoord Instellen"
-- `subtitle`: "Signed in with Google or Apple? Create a password to also log in with email." / "Ingelogd met Google of Apple? Maak een wachtwoord aan om ook met e-mail in te loggen."
-- `sendLink`: "Send Setup Link" / "Verstuur Installatielink"
-- `noPassword`: "Don't have a password?" / "Geen wachtwoord?"
-- `setOne`: "Set one up" / "Stel er een in"
+Other edge functions likely have the same problem. After this fix, we should audit all edge functions for the same missing header to prevent this from recurring. But for now, this single-line change unblocks Jasper immediately.
 
----
+## Files to Modify
 
-## Technical Details
-
-- The modal reuses the existing `password-reset-request` edge function -- no new API
-- The email sent contains the same magic link / OTP code leading to `/reset-password/verify-token` then `/reset-password/new` where they create a password
-- The "Create New Password" page at `/reset-password/new` already works for both resetting and first-time password creation
-- Component follows existing Dialog pattern from Radix UI (already in the project)
-- Two files modified, one file created
-
-## Files Summary
-
-| File | Action |
+| File | Change |
 |---|---|
-| `src/components/auth/SetPasswordModal.tsx` | Create |
-| `src/pages/Auth.tsx` | Add modal trigger link + import |
-| `src/i18n/locales/en/auth.json` | Add `setPassword` keys |
-| `src/i18n/locales/nl/auth.json` | Add `setPassword` keys |
+| `supabase/functions/password-reset-request/index.ts` | Add `x-application-name` to CORS headers |
+
