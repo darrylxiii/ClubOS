@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     }
 
     const PIC_ALIASES = [
-      'profile_pic_url', 'profilePicture', 'avatar', 'imageUrl',
+      'profile_pic_url', 'profile_picture_url', 'profilePicture', 'avatar', 'imageUrl',
       'profilePictureUrl', 'profile_picture', 'profilePhoto', 'photo',
       'picture', 'image', 'img', 'profileImage', 'profile_image_url',
       'displayPictureUrl', 'pictureUrl', 'photo_url', 'profilePictureOriginal',
