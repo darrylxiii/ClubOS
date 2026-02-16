@@ -30,7 +30,7 @@ import { MotionToggle } from "@/components/MotionToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
-import { QuantumPulse } from "@/components/admin/QuantumPulse";
+
 import { getNavigationForRole } from "@/config/navigation.config";
 import { SidebarErrorBoundary } from "@/components/SidebarErrorBoundary";
 import {
@@ -217,7 +217,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       </RadialMenuProvider>
 
       {/* Global Navigation Tools */}
-      <QuantumPulse />
+      
       <CommandPalette />
       <Suspense fallback={null}>
         <ClubAIVoice />

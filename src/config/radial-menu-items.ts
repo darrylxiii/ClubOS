@@ -4,7 +4,6 @@ import {
   Bot,
   History,
   Search,
-  Activity,
   Users,
   FileText,
   Calendar,
@@ -28,7 +27,6 @@ export interface RadialMenuItemConfig {
     | "club-ai"
     | "last-pipeline"
     | "command-palette"
-    | "quantum-pulse"
     | "navigate";
   path?: string; // for navigate actions
 }
@@ -43,7 +41,7 @@ const ADMIN_ITEMS: RadialMenuItemConfig[] = [
   { id: "quick-task", label: "Quick Task", icon: Plus, actionType: "quick-task" },
   { id: "last-pipeline", label: "Pipeline", icon: History, actionType: "last-pipeline" },
   { id: "command-palette", label: "Search", icon: Search, actionType: "command-palette" },
-  { id: "quantum-pulse", label: "Pulse", icon: Activity, actionType: "quantum-pulse" },
+  
 ];
 
 const STRATEGIST_ITEMS: RadialMenuItemConfig[] = [
