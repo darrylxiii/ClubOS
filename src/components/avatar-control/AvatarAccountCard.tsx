@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, Shield, Play, Users, UserPlus, RefreshCw } from 'lucide-react';
+import { Clock, Shield, Play, Users, UserPlus, RefreshCw, Pencil } from 'lucide-react';
 import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -12,6 +12,7 @@ interface AvatarAccountCardProps {
   activeSession?: AvatarSession | null;
   onStartSession: (account: AvatarAccount) => void;
   onSyncLinkedIn?: (account: AvatarAccount) => void;
+  onEdit?: (account: AvatarAccount) => void;
   isSyncing?: boolean;
 }
 
@@ -34,7 +35,7 @@ function formatCompact(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
-export function AvatarAccountCard({ account, activeSession, onStartSession, onSyncLinkedIn, isSyncing }: AvatarAccountCardProps) {
+export function AvatarAccountCard({ account, activeSession, onStartSession, onSyncLinkedIn, onEdit, isSyncing }: AvatarAccountCardProps) {
   const isInUse = !!activeSession;
   const isAvailable = account.status === 'available' && !isInUse;
   const userName = activeSession?.profiles?.full_name ?? 'Unknown';
@@ -67,19 +68,32 @@ export function AvatarAccountCard({ account, activeSession, onStartSession, onSy
               <p className="text-[11px] text-muted-foreground/70 mt-0.5">{account.owner_team}</p>
             )}
           </div>
-          {/* Sync button */}
-          {hasLinkedInUrl && onSyncLinkedIn && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 shrink-0"
-              onClick={(e) => { e.stopPropagation(); onSyncLinkedIn(account); }}
-              disabled={isSyncing}
-              title={hasBeenSynced ? 'Re-sync LinkedIn data' : 'Sync LinkedIn data'}
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            </Button>
-          )}
+          {/* Edit + Sync buttons */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={(e) => { e.stopPropagation(); onEdit(account); }}
+                title="Edit account"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {hasLinkedInUrl && onSyncLinkedIn && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={(e) => { e.stopPropagation(); onSyncLinkedIn(account); }}
+                disabled={isSyncing}
+                title={hasBeenSynced ? 'Re-sync LinkedIn data' : 'Sync LinkedIn data'}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Connection & follower stats */}

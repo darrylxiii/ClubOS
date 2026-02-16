@@ -5,6 +5,7 @@ import { Search } from 'lucide-react';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { AvatarAccountCard } from './AvatarAccountCard';
+import { EditAvatarAccountDialog } from './EditAvatarAccountDialog';
 import { toast } from 'sonner';
 
 interface AvatarAccountGridProps {
@@ -20,6 +21,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<typeof FILTER_OPTIONS[number]>('All');
+  const [editAccount, setEditAccount] = useState<AvatarAccount | null>(null);
 
   const handleSyncLinkedIn = (account: AvatarAccount) => {
     if (!account.linkedin_url) {
@@ -96,6 +98,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
             activeSession={activeByAccount.get(account.id)}
             onStartSession={onStartSession}
             onSyncLinkedIn={handleSyncLinkedIn}
+            onEdit={setEditAccount}
             isSyncing={syncingId === account.id}
           />
         ))}
@@ -106,6 +109,12 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
           No accounts match your filter.
         </div>
       )}
+
+      <EditAvatarAccountDialog
+        account={editAccount}
+        open={!!editAccount}
+        onOpenChange={(open) => { if (!open) setEditAccount(null); }}
+      />
     </div>
   );
 }
