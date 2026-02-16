@@ -64,6 +64,47 @@ Deno.serve(async (req) => {
     let headline: string | null = null;
     let fullName: string | null = null;
 
+    // Helper: find a value across many field name aliases, including nested objects
+    function findField(obj: any, aliases: string[]): any {
+      if (!obj || typeof obj !== 'object') return null;
+      for (const key of aliases) {
+        const val = obj[key];
+        if (val !== undefined && val !== null && val !== '') return val;
+      }
+      for (const container of ['basic_info', 'profile', 'data', 'result', 'person', 'details']) {
+        if (obj[container] && typeof obj[container] === 'object') {
+          const found = findField(obj[container], aliases);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function parseNum(val: any): number | null {
+      if (typeof val === 'number') return val;
+      if (typeof val === 'string') {
+        const n = parseInt(val.replace(/[^0-9]/g, ''), 10);
+        return isNaN(n) ? null : n;
+      }
+      return null;
+    }
+
+    const PIC_ALIASES = [
+      'profile_pic_url', 'profilePicture', 'avatar', 'imageUrl',
+      'profilePictureUrl', 'profile_picture', 'profilePhoto', 'photo',
+      'picture', 'image', 'img', 'profileImage', 'profile_image_url',
+      'displayPictureUrl', 'pictureUrl', 'photo_url', 'profilePictureOriginal',
+      'profile_pic', 'profilePic',
+    ];
+    const CONN_ALIASES = [
+      'connections', 'connections_count', 'numConnections', 'connectionCount',
+      'total_connections', 'connectionsCount', 'numberOfConnections', 'connection_count',
+    ];
+    const FOLLOW_ALIASES = [
+      'follower_count', 'followers', 'followersCount', 'numFollowers',
+      'total_followers', 'numberOfFollowers', 'followers_count', 'followerCount',
+    ];
+
     // Try Apify first
     if (APIFY_API_KEY) {
       const username = extractUsername(linkedinUrl);
@@ -87,19 +128,20 @@ Deno.serve(async (req) => {
           if (response.ok) {
             const items = await response.json();
             const raw = items?.[0] || {};
+
+            // Log raw response for debugging field names
+            console.log('[sync-avatar-linkedin] Raw Apify response keys:', JSON.stringify(Object.keys(raw)));
+            if (raw.basic_info) console.log('[sync-avatar-linkedin] basic_info keys:', JSON.stringify(Object.keys(raw.basic_info)));
+
             const data = { ...raw.basic_info, ...raw };
 
             fullName = data.fullname || data.fullName || data.full_name || data.name || null;
             headline = data.headline || data.occupation || data.tagline || null;
-            profilePicUrl = data.profile_pic_url || data.profilePicture || data.avatar || data.imageUrl || null;
-            connections = typeof data.connections === 'number' ? data.connections :
-              typeof data.connections_count === 'number' ? data.connections_count :
-              (typeof data.connections === 'string' ? parseInt(data.connections.replace(/[^0-9]/g, ''), 10) || null : null);
-            followers = typeof data.follower_count === 'number' ? data.follower_count :
-              typeof data.followers === 'number' ? data.followers :
-              (typeof data.follower_count === 'string' ? parseInt(data.follower_count.replace(/[^0-9]/g, ''), 10) || null : null);
+            profilePicUrl = findField(raw, PIC_ALIASES);
+            connections = parseNum(findField(raw, CONN_ALIASES));
+            followers = parseNum(findField(raw, FOLLOW_ALIASES));
 
-            console.log('[sync-avatar-linkedin] Apify success:', fullName);
+            console.log('[sync-avatar-linkedin] Apify success:', fullName, '| pic:', !!profilePicUrl, '| conn:', connections, '| follow:', followers);
           }
         } catch (e) {
           console.warn('[sync-avatar-linkedin] Apify failed:', e.message);
@@ -119,9 +161,9 @@ Deno.serve(async (req) => {
           const data = await response.json();
           fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
           headline = data.headline || data.occupation || null;
-          profilePicUrl = data.profile_pic_url || null;
-          connections = data.connections ?? null;
-          followers = data.follower_count ?? null;
+          profilePicUrl = findField(data, PIC_ALIASES);
+          connections = parseNum(findField(data, CONN_ALIASES));
+          followers = parseNum(findField(data, FOLLOW_ALIASES));
           console.log('[sync-avatar-linkedin] Proxycurl success:', fullName);
         } else {
           console.error('[sync-avatar-linkedin] Proxycurl HTTP error:', response.status);
@@ -141,19 +183,28 @@ Deno.serve(async (req) => {
     let storedAvatarUrl = profilePicUrl;
     if (profilePicUrl) {
       try {
+        console.log('[sync-avatar-linkedin] Downloading profile image:', profilePicUrl.substring(0, 80));
         const imgResp = await fetch(profilePicUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         if (imgResp.ok) {
           const contentType = imgResp.headers.get('content-type') || 'image/jpeg';
           const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
           const buf = await imgResp.arrayBuffer();
-          if (buf.byteLength > 1000) {
+          console.log('[sync-avatar-linkedin] Image downloaded:', buf.byteLength, 'bytes');
+          if (buf.byteLength > 100) {
             const filePath = `linkedin-avatars/${accountId}.${ext}`;
             await supabase.storage.from('avatars').upload(filePath, buf, { contentType, upsert: true });
             const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
             storedAvatarUrl = urlData?.publicUrl || profilePicUrl;
+            console.log('[sync-avatar-linkedin] Image stored at:', storedAvatarUrl);
+          } else {
+            console.warn('[sync-avatar-linkedin] Image too small:', buf.byteLength, 'bytes');
           }
+        } else {
+          console.warn('[sync-avatar-linkedin] Image download failed:', imgResp.status);
         }
-      } catch { /* keep original URL */ }
+      } catch (imgErr) {
+        console.warn('[sync-avatar-linkedin] Image upload error:', imgErr.message);
+      }
     }
 
     // Update account
