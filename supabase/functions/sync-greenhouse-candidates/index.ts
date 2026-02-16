@@ -32,14 +32,14 @@ let cachedToken: string | null = null;
 async function getAccessToken(clientId: string, clientSecret: string): Promise<string> {
   if (cachedToken) return cachedToken;
 
-  const res = await fetch('https://id.greenhouse.io/oauth/token', {
+  const basicAuth = btoa(`${clientId}:${clientSecret}`);
+  const res = await fetch('https://auth.greenhouse.io/token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret,
-    }).toString(),
+    headers: {
+      'Authorization': `Basic ${basicAuth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
   });
 
   if (!res.ok) {
