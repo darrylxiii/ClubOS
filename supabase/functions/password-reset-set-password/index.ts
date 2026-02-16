@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { hash, compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,7 +84,7 @@ serve(async (req) => {
     const userId = resetToken.user_id;
 
     // Hash new password
-    const newPasswordHash = await bcrypt.hash(new_password);
+    const newPasswordHash = await hash(new_password);
 
     // Check password history (last 5 passwords)
     const { data: history, error: historyError } = await supabaseAdmin
@@ -102,7 +102,7 @@ serve(async (req) => {
     // Check if new password matches any recent password
     if (history && history.length > 0) {
       for (const record of history) {
-        const matches = await bcrypt.compare(new_password, record.password_hash);
+        const matches = await compare(new_password, record.password_hash);
         if (matches) {
           console.log('[Set Password] Password reuse detected');
           return new Response(
