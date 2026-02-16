@@ -367,6 +367,9 @@ verify_jwt = true
 [functions.send-meeting-invitation-email]
 verify_jwt = true
 
+[functions.sync-fathom-recordings]
+verify_jwt = true
+
 # =============================================================================
 # Scheduling & Tasks (JWT Required)
 # =============================================================================

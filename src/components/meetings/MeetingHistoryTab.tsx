@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Search, Filter, Plus, AlertCircle, Settings, Loader2, Video, FolderOpen } from "lucide-react";
+import { Search, Filter, Plus, AlertCircle, Settings, Loader2, Video, FolderOpen, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +24,8 @@ export function MeetingHistoryTab() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isSyncingFathom, setIsSyncingFathom] = useState(false);
+  const [fathomSyncResult, setFathomSyncResult] = useState<{ newly_imported: number; total_found: number } | null>(null);
 
   // Use the new hook for real data
   const { recordings, isLoading, error, deleteRecording, refresh } = useMeetingRecordings({
@@ -139,6 +141,29 @@ export function MeetingHistoryTab() {
     }
   };
 
+  const handleSyncFathom = async () => {
+    setIsSyncingFathom(true);
+    setFathomSyncResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-fathom-recordings', {
+        body: {}
+      });
+      if (error) throw error;
+      setFathomSyncResult(data);
+      if (data.newly_imported > 0) {
+        toast.success(`Imported ${data.newly_imported} new Fathom recording${data.newly_imported !== 1 ? 's' : ''}`);
+        refresh();
+      } else {
+        toast.info('All Fathom recordings already synced');
+      }
+    } catch (err: any) {
+      console.error('[MeetingHistoryTab] Fathom sync error:', err);
+      toast.error('Failed to sync Fathom recordings');
+    } finally {
+      setIsSyncingFathom(false);
+    }
+  };
+
   // Check if calendar is connected
   const hasCalendarConnected = (() => {
     const savedCalendars = localStorage.getItem('connected_calendars');
@@ -203,8 +228,22 @@ export function MeetingHistoryTab() {
                   <SelectItem value="tqc_meeting">TQC Meetings</SelectItem>
                   <SelectItem value="live_hub">Live Hub</SelectItem>
                   <SelectItem value="conversation_call">Calls</SelectItem>
+                  <SelectItem value="fathom">Fathom</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Button
+                variant="outline"
+                onClick={handleSyncFathom}
+                disabled={isSyncingFathom}
+              >
+                {isSyncingFathom ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                {isSyncingFathom ? 'Syncing...' : 'Sync Fathom'}
+              </Button>
 
               <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
                 <DialogTrigger asChild>
