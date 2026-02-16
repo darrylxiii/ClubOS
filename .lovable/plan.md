@@ -1,103 +1,115 @@
 
+# Fathom Integration -- Import Meeting Recordings into Meeting Intelligence
 
-# Fix Resume Storage and Admin Document Viewing
+## Overview
 
-## Problem
+Fathom has a public API that allows fetching your recorded meetings, transcripts, and AI summaries. This integration will pull that data into your existing `meeting_recordings_extended` table so Club AI can analyze it alongside your other recordings, making the entire system smarter with more data.
 
-Two related issues:
+## How It Works
 
-1. **"Bucket not found" error**: The `resumes` storage bucket is **private**, but the resume upload code (`useResumeUpload.ts`) stores a **public URL** via `getPublicUrl()`. Public URLs do not work on private buckets -- Supabase returns `{"statusCode":"404","error":"Bucket not found"}`.
+1. You provide your Fathom API key (generated in Fathom's User Settings)
+2. A new backend function connects to Fathom's API to pull meetings, transcripts, and summaries
+3. The data is stored in your existing recordings table with a new `fathom` source type
+4. Your existing AI analysis pipeline processes the Fathom transcripts automatically
+5. A "Sync Fathom" button on the Meeting Intelligence page lets you import on demand, with an option for automatic webhook-based sync later
 
-2. **Download-only access across admin views**: Several admin components link directly to the stored `resume_url` with `<a href={url}>Download</a>`. Since the URL is a non-functional public URL on a private bucket, downloads also fail. Additionally, for GDPR compliance, admins should be able to **view documents in-browser** (via the existing `DocumentPreviewDialog`) rather than downloading to their local machines.
+## What Gets Imported Per Meeting
 
-## Root Cause
+- Title, date, duration, and participant list
+- Full speaker-attributed transcript (Fathom provides these natively)
+- AI-generated summary from Fathom
+- Fathom's recording ID for deduplication (no double imports)
 
-In `useResumeUpload.ts` (line 78-80):
-```typescript
-const { data: { publicUrl } } = supabase.storage
-  .from('resumes')
-  .getPublicUrl(fileName);
-```
+Once imported, your existing analysis pipeline (`analyze-meeting-recording-advanced`) runs on the transcript to extract skills assessed, action items, key moments, and hiring signals -- exactly like it does for TQC meetings.
 
-This generates a URL like:
-```
-https://...supabase.co/storage/v1/object/public/resumes/onboarding/file.pdf
-```
+## Plan
 
-But the `resumes` bucket has `public = false`, so this URL always returns a 404.
+### 1. Database: Add `fathom` source type and tracking columns
 
-The correct approach is to store only the **storage path** (e.g., `onboarding/1770714067565_file.pdf`) and generate signed URLs on demand when viewing or downloading. The `DocumentPreviewDialog` already does this correctly -- the problem is that it receives a broken public URL to parse, and other admin views bypass it entirely.
+- Add `'fathom'` to the `source_type` check constraint on `meeting_recordings_extended`
+- Add `external_source_id` column (text, nullable) for storing the Fathom recording ID to prevent duplicate imports
+- Add a unique partial index on `(external_source_id)` where `source_type = 'fathom'`
 
-## Fix Plan
+### 2. Backend: `sync-fathom-recordings` edge function
 
-### 1. Fix `useResumeUpload.ts` -- Store path, not public URL
+A new backend function that:
+- Accepts the user's Fathom API key (stored as a secret, not sent per request)
+- Calls `GET https://api.fathom.ai/external/v1/meetings` to list recent meetings
+- For each new meeting (not already imported by `external_source_id`):
+  - Calls `GET /recordings/{id}/transcript` to fetch the full transcript
+  - Calls `GET /recordings/{id}/summary` to fetch the AI summary
+  - Inserts into `meeting_recordings_extended` with `source_type = 'fathom'`, `processing_status = 'analyzing'`
+  - Triggers `analyze-meeting-recording-advanced` to run Club AI analysis on the transcript
+- Supports pagination (Fathom uses cursor-based pagination)
+- Supports optional date range filtering
 
-Stop using `getPublicUrl()`. Instead, store the relative storage path. When a URL is needed, generate a signed URL on demand.
+### 3. Frontend: Fathom sync UI on Meeting Intelligence page
 
-**Change**: After uploading, return only the file path (e.g., `userId/timestamp_filename.pdf`) instead of a public URL. Update `onSuccess` callback and return value accordingly.
+- Add a "Fathom" filter option to the source type dropdown in `MeetingHistoryTab`
+- Add a "Sync Fathom" button that triggers the import
+- Show a sync status indicator (syncing, last synced, number imported)
+- Fathom recordings appear in the existing recording list with a Fathom badge
 
-### 2. Fix `CandidateOnboardingSteps.tsx` -- Handle path-based resume URLs
+### 4. API Key Configuration
 
-Update the onboarding flow to store the path in `resume_url` instead of a public URL. The copy/move logic when transitioning from `onboarding/` folder to `userId/` folder also needs updating to store paths consistently.
-
-### 3. Fix `DocumentPreviewDialog.tsx` -- Handle both legacy URLs and paths
-
-Make the path extraction more robust:
-- If the value is already a relative path (no `http`), use it directly
-- If it is a full URL, extract the path as before
-- This ensures backward compatibility with Helene's already-stored URL
-
-### 4. Add "View Resume" (in-browser) to all admin views that currently only have "Download"
-
-Replace direct `<a href={url}>Download</a>` links with a "View" button that opens the `DocumentPreviewDialog`, plus a secondary "Download" option that generates a signed URL and opens in a new tab.
-
-**Files affected:**
-- `src/components/admin/CandidateSettingsViewer.tsx` -- Resume section
-- `src/components/admin/UserSettingsViewer.tsx` -- Resume section
-- `src/components/admin/ApplicationDetailDrawer.tsx` -- Resume button
-- `src/components/admin/UnifiedCandidateCard.tsx` -- Resume badge (minor)
-
-Each will import `DocumentPreviewDialog` and add local state for the preview modal.
-
-### 5. Create a shared utility for signed URL generation
-
-Create `src/utils/storageUtils.ts` with:
-- `getSignedResumeUrl(pathOrUrl: string): Promise<string>` -- extracts path from legacy URLs or uses path directly, returns a 1-hour signed URL
-- `extractStoragePath(url: string, bucket: string): string` -- normalizes any URL or path to a clean storage path
-
-This centralizes the logic so all components handle both legacy (full URL) and new (path-only) resume references.
-
-### 6. Fix Helene's existing data (no migration needed)
-
-The `DocumentPreviewDialog` already handles full URLs by extracting the path. With the improved path extraction in step 3, Helene's existing `resume_url` will work without any data migration. New uploads will store clean paths going forward.
+- You will be prompted to enter your Fathom API key as a backend secret (`FATHOM_API_KEY`)
+- The key is stored securely server-side and never exposed to the browser
 
 ## Files to Create
 
 | File | Purpose |
 |---|---|
-| `src/utils/storageUtils.ts` | Shared signed URL generation and path extraction utilities |
+| `supabase/functions/sync-fathom-recordings/index.ts` | Backend function that calls Fathom API and imports meetings |
 
 ## Files to Modify
 
 | File | Change |
 |---|---|
-| `src/hooks/useResumeUpload.ts` | Replace `getPublicUrl()` with returning the storage path |
-| `src/components/candidate-onboarding/CandidateOnboardingSteps.tsx` | Update resume URL handling to use paths; fix copy/move logic |
-| `src/components/shared/DocumentPreviewDialog.tsx` | Improve path extraction to handle both paths and legacy URLs robustly |
-| `src/components/admin/CandidateSettingsViewer.tsx` | Add DocumentPreviewDialog for in-browser viewing |
-| `src/components/admin/UserSettingsViewer.tsx` | Add DocumentPreviewDialog for in-browser viewing |
-| `src/components/admin/ApplicationDetailDrawer.tsx` | Add DocumentPreviewDialog for in-browser viewing |
-| `src/components/admin/AdminMemberRequests.tsx` | No change needed (already uses DocumentPreviewDialog) |
+| `src/components/meetings/MeetingHistoryTab.tsx` | Add Fathom filter option and Sync button |
+| `src/hooks/useMeetingRecordings.ts` | Add `'fathom'` to source type union |
+| `src/components/meetings/MeetingRecordingCard.tsx` | Display Fathom badge for imported recordings |
 
-## How Signed URLs Work (GDPR-compliant)
+## Database Migration
 
-- Signed URLs expire after 1 hour (configurable)
-- No file is downloaded to the admin's machine -- the PDF renders inside an iframe in the browser
-- The URL is watermarked with the requesting user's session (audit trail via Supabase logs)
-- If the browser blocks the iframe (security software), a fallback "Open in New Tab" button is shown (already implemented in `DocumentPreviewDialog`)
+```sql
+-- Add 'fathom' to source_type constraint
+ALTER TABLE meeting_recordings_extended
+  DROP CONSTRAINT meeting_recordings_extended_source_type_check;
+ALTER TABLE meeting_recordings_extended
+  ADD CONSTRAINT meeting_recordings_extended_source_type_check
+  CHECK (source_type = ANY (ARRAY[
+    'tqc_meeting','live_hub','conversation_call','fathom'
+  ]));
 
-## Backward Compatibility
+-- Track external source IDs for deduplication
+ALTER TABLE meeting_recordings_extended
+  ADD COLUMN IF NOT EXISTS external_source_id text;
 
-- Existing `resume_url` values stored as full public URLs will continue to work because the path extraction handles both formats
-- New uploads will store clean paths (e.g., `userId/timestamp_file.pdf`)
-- No database migration required
+-- Prevent duplicate Fathom imports
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_fathom_source
+  ON meeting_recordings_extended (external_source_id)
+  WHERE source_type = 'fathom' AND external_source_id IS NOT NULL;
+```
+
+## Data Flow
+
+```
+Fathom API                    Backend Function                    Database
+-----------                   ----------------                   --------
+GET /meetings        --->     List all meetings         --->     Check external_source_id
+                              (paginated)                        (skip duplicates)
+
+GET /recordings/     --->     Fetch transcript +        --->     INSERT into
+  {id}/transcript             summary per meeting                meeting_recordings_extended
+GET /recordings/                                                 (source_type = 'fathom')
+  {id}/summary
+                                                        --->     Trigger analyze-meeting-
+                                                                 recording-advanced
+```
+
+## Security Notes
+
+- Fathom API key stored server-side only (backend secret)
+- API keys in Fathom are user-scoped -- they only access meetings recorded by that user or shared to their team
+- No raw audio is downloaded; only transcripts and metadata are imported
+- All imported data follows existing RLS policies on `meeting_recordings_extended`
