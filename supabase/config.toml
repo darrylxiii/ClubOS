@@ -1209,7 +1209,7 @@ verify_jwt = false
 # Avatar LinkedIn Sync & Credentials
 # =============================================================================
 [functions.sync-avatar-linkedin]
-verify_jwt = false
+verify_jwt = true
 
 [functions.avatar-account-credentials]
 verify_jwt = false
