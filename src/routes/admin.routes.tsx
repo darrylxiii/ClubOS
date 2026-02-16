@@ -48,6 +48,7 @@ const MarketplaceAnalytics = lazy(() => import("@/pages/admin/MarketplaceAnalyti
 const InventoryHub = lazy(() => import("@/pages/admin/InventoryHub"));
 const BulkOperationsHub = lazy(() => import("@/pages/admin/BulkOperationsHub"));
 const SubscriptionManagement = lazy(() => import("@/pages/admin/SubscriptionManagement"));
+const GreenhouseSync = lazy(() => import("@/pages/admin/GreenhouseSync"));
 
 // Enterprise Management
 const EnterpriseDashboard = lazy(() => import("@/pages/admin/EnterpriseDashboard"));
@@ -140,6 +141,7 @@ export const adminRoutes = (
     {R("/admin/agent-brain", AgentBrain)}
     {R("/admin/edge-functions", EdgeFunctionCommandCenter)}
     {R("/admin/feature-control", FeatureControlCenter)}
+    {R("/admin/greenhouse-sync", GreenhouseSync)}
     
     {R("/talent-pool", TalentPool)}
     {R("/admin/talent-pool/lists", TalentPoolLists)}
