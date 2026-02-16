@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, traceparent, tracestate",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -44,7 +43,7 @@ serve(async (req) => {
     if (connections && connections.length > 0) {
       for (const connection of connections) {
         try {
-          console.log(`[refresh-calendar-tokens] Refreshing ${connection.provider} token for ${connection.email}`);
+          console.log(`[refresh-calendar-tokens] Refreshing ${connection.provider} token for user ${connection.user_id}`);
 
           const authFunction = connection.provider === "google"
             ? "google-calendar-auth"
@@ -61,7 +60,7 @@ serve(async (req) => {
           );
 
           if (tokenError || !tokenData?.access_token) {
-            console.error(`[refresh-calendar-tokens] Failed to refresh token for ${connection.email}:`, tokenError);
+            console.error(`[refresh-calendar-tokens] Failed to refresh token for user ${connection.user_id}:`, tokenError);
             errorCount++;
             continue;
           }
@@ -81,14 +80,14 @@ serve(async (req) => {
             .eq("id", connection.id);
 
           if (updateError) {
-            console.error(`[refresh-calendar-tokens] Failed to update token for ${connection.email}:`, updateError);
+            console.error(`[refresh-calendar-tokens] Failed to update token for user ${connection.user_id}:`, updateError);
             errorCount++;
           } else {
-            console.log(`[refresh-calendar-tokens] Successfully refreshed token for ${connection.email}`);
+            console.log(`[refresh-calendar-tokens] Successfully refreshed token for user ${connection.user_id}`);
             successCount++;
           }
         } catch (error) {
-          console.error(`[refresh-calendar-tokens] Error processing ${connection.email}:`, error);
+          console.error(`[refresh-calendar-tokens] Error processing user ${connection.user_id}:`, error);
           errorCount++;
         }
       }
@@ -111,7 +110,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error("[refresh-calendar-tokens] Fatal error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An internal error occurred." }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

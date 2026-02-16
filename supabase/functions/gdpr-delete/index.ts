@@ -1,12 +1,17 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { z } from 'npm:zod@3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+const gdprDeleteSchema = z.object({
+  action: z.enum(['request', 'cancel']),
+  reason: z.string().trim().max(1000, 'Reason must be under 1000 characters').optional(),
+});
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -30,7 +35,16 @@ serve(async (req) => {
       });
     }
 
-    const { action, reason } = await req.json();
+    const body = await req.json();
+    const parseResult = gdprDeleteSchema.safeParse(body);
+    if (!parseResult.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: parseResult.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { action, reason } = parseResult.data;
 
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -38,7 +52,6 @@ serve(async (req) => {
     );
 
     if (action === 'request') {
-      // Schedule deletion for 30 days from now
       const scheduledFor = new Date();
       scheduledFor.setDate(scheduledFor.getDate() + 30);
 
@@ -47,7 +60,7 @@ serve(async (req) => {
         .insert({
           user_id: user.id,
           scheduled_for: scheduledFor.toISOString(),
-          reason,
+          reason: reason ?? null,
           status: 'pending',
         })
         .select()
@@ -55,13 +68,12 @@ serve(async (req) => {
 
       if (requestError) throw requestError;
 
-      // Log audit event
       await adminClient.from('audit_events').insert({
         event_type: 'gdpr_deletion_requested',
         actor_id: user.id,
         actor_email: user.email,
         action: 'deletion_requested',
-        metadata: { 
+        metadata: {
           deletion_request_id: deletionRequest.id,
           scheduled_for: scheduledFor.toISOString(),
         },
@@ -76,7 +88,6 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else if (action === 'cancel') {
-      // Cancel pending deletion
       const { error: cancelError } = await adminClient
         .from('deletion_requests')
         .update({
@@ -88,7 +99,6 @@ serve(async (req) => {
 
       if (cancelError) throw cancelError;
 
-      // Log audit event
       await adminClient.from('audit_events').insert({
         event_type: 'gdpr_deletion_cancelled',
         actor_id: user.id,
@@ -108,9 +118,8 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('GDPR delete error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'An internal error occurred. Please try again later.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
