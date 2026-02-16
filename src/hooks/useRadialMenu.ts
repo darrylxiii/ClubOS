@@ -58,10 +58,6 @@ export function useRadialMenu() {
             new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true })
           );
           break;
-        case "quantum-pulse":
-          // Scroll to QuantumPulse or toggle focus — dispatch custom event
-          document.dispatchEvent(new CustomEvent("quantum-pulse-focus"));
-          break;
         case "navigate":
           if (config.path) navigate(config.path);
           break;
