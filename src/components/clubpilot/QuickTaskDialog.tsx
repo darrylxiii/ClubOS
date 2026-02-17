@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTaskBoard } from "@/contexts/TaskBoardContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Maximize2 } from "lucide-react";
@@ -28,6 +29,7 @@ const PRIORITIES = [
 
 export const QuickTaskDialog = ({ open, onClose, onExpand }: QuickTaskDialogProps) => {
   const { user } = useAuth();
+  const { currentBoard } = useTaskBoard();
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<string>("medium");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,6 +43,7 @@ export const QuickTaskDialog = ({ open, onClose, onExpand }: QuickTaskDialogProp
       const { data: task, error } = await supabase.from("unified_tasks").insert({
         user_id: user.id,
         created_by: user.id,
+        board_id: currentBoard?.id || null,
         title: title.trim(),
         priority,
         status: "pending",

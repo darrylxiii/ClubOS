@@ -185,89 +185,95 @@ export function EnhancedCandidateActionDialog({
 
         console.log('[Pipeline] Successfully updated application:', updateData);
 
-        // Log to pipeline audit log
-        await supabase.from('pipeline_audit_logs').insert({
-          job_id: jobId,
-          user_id: user.id,
-          action: 'candidate_advanced',
-          stage_data: {
-            candidate_name: candidateName,
-            candidate_id: candidateProfileId,
-            from_stage: currentStage,
-            to_stage: targetStage.name,
-            from_stage_index: currentStageIndex,
-            to_stage_index: targetStageIndex,
-            skills_match: skillsMatch[0],
-            culture_fit: cultureFit[0],
-            communication: communication[0]
-          },
-          metadata: {
-            application_id: applicationId,
-            feedback_provided: !!feedbackText,
-            feedback_length: feedbackText.length
-          }
-        });
-
-        // Save advancement feedback to company database
-        if (companyId) {
-          await supabase.from('company_candidate_feedback').insert({
-            company_id: companyId,
-            candidate_id: candidateProfileId,
-            application_id: applicationId,
+        // SECONDARY ACTIONS: audit + feedback (wrapped individually so failures don't block)
+        try {
+          await supabase.from('pipeline_audit_logs').insert({
             job_id: jobId,
+            user_id: user.id,
+            action: 'candidate_advanced',
+            stage_data: {
+              candidate_name: candidateName,
+              candidate_id: candidateProfileId,
+              from_stage: currentStage,
+              to_stage: targetStage.name,
+              from_stage_index: currentStageIndex,
+              to_stage_index: targetStageIndex,
+              skills_match: skillsMatch[0],
+              culture_fit: cultureFit[0],
+              communication: communication[0]
+            },
+            metadata: {
+              application_id: applicationId,
+              feedback_provided: !!feedbackText,
+              feedback_length: feedbackText.length
+            }
+          });
+        } catch (e) { console.warn('[Pipeline] Failed to log audit for advancement:', e); }
+
+        if (companyId) {
+          try {
+            await supabase.from('company_candidate_feedback').insert({
+              company_id: companyId,
+              candidate_id: candidateProfileId,
+              application_id: applicationId,
+              job_id: jobId,
+              feedback_type: 'advancement',
+              stage_name: currentStage,
+              feedback_text: feedbackText,
+              rating: (skillsMatch[0] + cultureFit[0] + communication[0]) / 3,
+              provided_by: user.id,
+              metadata: {
+                skills_match: skillsMatch[0],
+                culture_fit: cultureFit[0],
+                communication: communication[0],
+                next_stage: targetStage.name
+              }
+            });
+          } catch (e) { console.warn('[Pipeline] Failed to save company feedback:', e); }
+        }
+
+        try {
+          await supabase.from('role_candidate_feedback').insert({
+            job_id: jobId,
+            candidate_id: candidateProfileId,
+            application_id: applicationId,
             feedback_type: 'advancement',
             stage_name: currentStage,
             feedback_text: feedbackText,
-            rating: (skillsMatch[0] + cultureFit[0] + communication[0]) / 3,
+            skills_match_score: skillsMatch[0],
+            experience_match_score: cultureFit[0],
             provided_by: user.id,
-            metadata: {
-              skills_match: skillsMatch[0],
-              culture_fit: cultureFit[0],
-              communication: communication[0],
-              next_stage: stages[targetStageIndex!].name
-            }
+            metadata: { next_stage: targetStage.name }
           });
+        } catch (e) { console.warn('[Pipeline] Failed to save role feedback:', e); }
+
+        // Only log interaction if candidate profile exists
+        if (candidateProfileId) {
+          try {
+            await supabase.from('candidate_interactions').insert({
+              candidate_id: candidateProfileId,
+              application_id: applicationId,
+              interaction_type: 'status_change',
+              interaction_direction: 'internal',
+              title: `Advanced to ${targetStage.name}`,
+              content: feedbackText || `Candidate advanced from ${currentStage} to ${targetStage.name} for ${jobTitle}`,
+              metadata: {
+                action: 'advance',
+                previous_stage: currentStage,
+                new_stage: targetStage.name,
+                job_id: jobId,
+                job_title: jobTitle,
+                company_name: companyName,
+                skills_match: skillsMatch[0],
+                culture_fit: cultureFit[0],
+                communication: communication[0]
+              },
+              created_by: user.id,
+              is_internal: true,
+              visible_to_candidate: false,
+            });
+          } catch (e) { console.warn('[Pipeline] Failed to log candidate interaction:', e); }
         }
-
-        // Save to role database
-        await supabase.from('role_candidate_feedback').insert({
-          job_id: jobId,
-          candidate_id: candidateProfileId,
-          application_id: applicationId,
-          feedback_type: 'advancement',
-          stage_name: currentStage,
-          feedback_text: feedbackText,
-          skills_match_score: skillsMatch[0],
-          experience_match_score: cultureFit[0],
-          provided_by: user.id,
-          metadata: {
-            next_stage: stages[targetStageIndex!].name
-          }
-        });
-
-        // Log advancement action in interaction log
-        await supabase.from('candidate_interactions').insert({
-          candidate_id: candidateProfileId,
-          application_id: applicationId,
-          interaction_type: 'status_change',
-          interaction_direction: 'internal',
-          title: `Advanced to ${stages[targetStageIndex!].name}`,
-          content: feedbackText || `Candidate advanced from ${currentStage} to ${stages[targetStageIndex!].name} for ${jobTitle}`,
-          metadata: {
-            action: 'advance',
-            previous_stage: currentStage,
-            new_stage: stages[targetStageIndex!].name,
-            job_id: jobId,
-            job_title: jobTitle,
-            company_name: companyName,
-            skills_match: skillsMatch[0],
-            culture_fit: cultureFit[0],
-            communication: communication[0]
-          },
-          created_by: user.id,
-          is_internal: true,
-          visible_to_candidate: false,
-        });
 
       } else if (actionType === 'decline') {
         // Update application status with detailed error logging
@@ -304,88 +310,97 @@ export function EnhancedCandidateActionDialog({
         if (rejectionReason === 'experience_junior') seniorityValue = 'too_junior';
         if (rejectionReason === 'experience_senior') seniorityValue = 'too_senior';
 
-        // Log to pipeline audit log
+        // SECONDARY ACTIONS: audit + feedback (wrapped individually)
         const rejectionLabelForLog = REJECTION_REASONS.find(r => r.value === rejectionReason)?.label || rejectionReason;
-        await supabase.from('pipeline_audit_logs').insert({
-          job_id: jobId,
-          user_id: user.id,
-          action: 'candidate_declined',
-          stage_data: {
-            candidate_name: candidateName,
-            candidate_id: candidateProfileId,
-            stage: currentStage,
-            rejection_reason: rejectionReason,
-            rejection_label: rejectionLabelForLog,
-            specific_gaps: specificGaps,
-            seniority_mismatch: seniorityValue,
-            salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
-            location_mismatch: locationMismatch || rejectionReason === 'location'
-          },
-          metadata: {
-            application_id: applicationId,
-            feedback_provided: !!feedbackText
-          }
-        });
 
-        // Save rejection feedback to company database
+        try {
+          await supabase.from('pipeline_audit_logs').insert({
+            job_id: jobId,
+            user_id: user.id,
+            action: 'candidate_declined',
+            stage_data: {
+              candidate_name: candidateName,
+              candidate_id: candidateProfileId,
+              stage: currentStage,
+              rejection_reason: rejectionReason,
+              rejection_label: rejectionLabelForLog,
+              specific_gaps: specificGaps,
+              seniority_mismatch: seniorityValue,
+              salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
+              location_mismatch: locationMismatch || rejectionReason === 'location'
+            },
+            metadata: {
+              application_id: applicationId,
+              feedback_provided: !!feedbackText
+            }
+          });
+        } catch (e) { console.warn('[Pipeline] Failed to log audit for decline:', e); }
+
         if (companyId) {
-          await supabase.from('company_candidate_feedback').insert({
-            company_id: companyId,
+          try {
+            await supabase.from('company_candidate_feedback').insert({
+              company_id: companyId,
+              candidate_id: candidateProfileId,
+              application_id: applicationId,
+              job_id: jobId,
+              feedback_type: 'rejection',
+              stage_name: currentStage,
+              rejection_reason: rejectionReason,
+              feedback_text: feedbackText,
+              skills_mismatch: specificGaps,
+              salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
+              location_mismatch: locationMismatch || rejectionReason === 'location',
+              seniority_mismatch: seniorityValue,
+              provided_by: user.id
+            });
+          } catch (e) { console.warn('[Pipeline] Failed to save company rejection feedback:', e); }
+        }
+
+        try {
+          await supabase.from('role_candidate_feedback').insert({
+            job_id: jobId,
             candidate_id: candidateProfileId,
             application_id: applicationId,
-            job_id: jobId,
             feedback_type: 'rejection',
             stage_name: currentStage,
             rejection_reason: rejectionReason,
             feedback_text: feedbackText,
-            skills_mismatch: specificGaps,
-            salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
-            location_mismatch: locationMismatch || rejectionReason === 'location',
-            seniority_mismatch: seniorityValue,
+            specific_gaps: specificGaps,
             provided_by: user.id
           });
+        } catch (e) { console.warn('[Pipeline] Failed to save role rejection feedback:', e); }
+
+        // Only log interaction if candidate profile exists
+        if (candidateProfileId) {
+          try {
+            const rejectionLabel = REJECTION_REASONS.find(r => r.value === rejectionReason)?.label || rejectionReason;
+            await supabase.from('candidate_interactions').insert({
+              candidate_id: candidateProfileId,
+              application_id: applicationId,
+              interaction_type: 'status_change',
+              interaction_direction: 'internal',
+              title: `Candidate Rejected - ${rejectionLabel}`,
+              content: feedbackText || `Candidate declined for ${jobTitle}. Reason: ${rejectionLabel}`,
+              metadata: {
+                action: 'reject',
+                status: 'rejected',
+                rejection_reason: rejectionReason,
+                rejection_label: rejectionLabel,
+                stage: currentStage,
+                job_id: jobId,
+                job_title: jobTitle,
+                company_name: companyName,
+                specific_gaps: specificGaps,
+                seniority_mismatch: seniorityValue,
+                salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
+                location_mismatch: locationMismatch || rejectionReason === 'location'
+              },
+              created_by: user.id,
+              is_internal: true,
+              visible_to_candidate: false,
+            });
+          } catch (e) { console.warn('[Pipeline] Failed to log candidate rejection interaction:', e); }
         }
-
-        // Save to role database
-        await supabase.from('role_candidate_feedback').insert({
-          job_id: jobId,
-          candidate_id: candidateProfileId,
-          application_id: applicationId,
-          feedback_type: 'rejection',
-          stage_name: currentStage,
-          rejection_reason: rejectionReason,
-          feedback_text: feedbackText,
-          specific_gaps: specificGaps,
-          provided_by: user.id
-        });
-
-        // Log rejection action in interaction log
-        const rejectionLabel = REJECTION_REASONS.find(r => r.value === rejectionReason)?.label || rejectionReason;
-        await supabase.from('candidate_interactions').insert({
-          candidate_id: candidateProfileId,
-          application_id: applicationId,
-          interaction_type: 'status_change',
-          interaction_direction: 'internal',
-          title: `Candidate Rejected - ${rejectionLabel}`,
-          content: feedbackText || `Candidate declined for ${jobTitle}. Reason: ${rejectionLabel}`,
-          metadata: {
-            action: 'reject',
-            status: 'rejected',
-            rejection_reason: rejectionReason,
-            rejection_label: rejectionLabel,
-            stage: currentStage,
-            job_id: jobId,
-            job_title: jobTitle,
-            company_name: companyName,
-            specific_gaps: specificGaps,
-            seniority_mismatch: seniorityValue,
-            salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
-            location_mismatch: locationMismatch || rejectionReason === 'location'
-          },
-          created_by: user.id,
-          is_internal: true,
-          visible_to_candidate: false,
-        });
       }
 
       toast.success(

@@ -49185,6 +49185,7 @@ export type Database = {
           parent_recurring_id: string | null
           position: string | null
           priority: string
+          project_id: string | null
           recurrence_end_date: string | null
           recurrence_rule: Json | null
           scheduled_end: string | null
@@ -49223,6 +49224,7 @@ export type Database = {
           parent_recurring_id?: string | null
           position?: string | null
           priority?: string
+          project_id?: string | null
           recurrence_end_date?: string | null
           recurrence_rule?: Json | null
           scheduled_end?: string | null
@@ -49261,6 +49263,7 @@ export type Database = {
           parent_recurring_id?: string | null
           position?: string | null
           priority?: string
+          project_id?: string | null
           recurrence_end_date?: string | null
           recurrence_rule?: Json | null
           scheduled_end?: string | null
@@ -49304,6 +49307,13 @@ export type Database = {
             columns: ["parent_recurring_id"]
             isOneToOne: false
             referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_projects"
             referencedColumns: ["id"]
           },
         ]
