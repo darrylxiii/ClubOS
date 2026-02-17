@@ -13,10 +13,13 @@ export interface AvatarSession {
   ended_at: string | null;
   status: string;
   purpose: string;
+  primary_job_id: string | null;
+  anomaly_flags: string[] | null;
   created_at: string;
   // joined
   profiles?: { full_name: string | null; avatar_url: string | null };
   linkedin_avatar_accounts?: { label: string };
+  jobs?: { id: string; title: string; companies?: { name: string } | null } | null;
 }
 
 export function useAvatarSessions() {
@@ -28,7 +31,7 @@ export function useAvatarSessions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('linkedin_avatar_sessions')
-        .select('*, profiles(full_name, avatar_url), linkedin_avatar_accounts(label)')
+        .select('*, profiles(full_name, avatar_url), linkedin_avatar_accounts(label), jobs(id, title, companies(name))')
         .order('created_at', { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -52,30 +55,50 @@ export function useAvatarSessions() {
   }, [queryClient]);
 
   const startSession = useMutation({
-    mutationFn: async (params: { account_id: string; expected_end_at: string; purpose: string }) => {
+    mutationFn: async (params: {
+      account_id: string;
+      expected_end_at: string;
+      purpose: string;
+      job_id: string;
+    }) => {
+      const { job_id, ...sessionParams } = params;
       const { data, error } = await supabase
         .from('linkedin_avatar_sessions')
-        .insert({ ...params, user_id: user!.id, status: 'active' })
+        .insert({
+          ...sessionParams,
+          user_id: user!.id,
+          status: 'active',
+          primary_job_id: job_id,
+        })
         .select()
         .single();
       if (error) {
-        // Extract readable conflict message from trigger
         if (error.message.includes('currently in use')) {
           throw new Error(error.message.replace(/^.*?Account/, 'Account'));
         }
         throw error;
       }
+
+      // Create session-job link
+      await supabase.from('linkedin_avatar_session_jobs').insert({
+        session_id: data.id,
+        job_id,
+        started_at: new Date().toISOString(),
+        is_primary: true,
+      });
+
       // Log event
       await supabase.from('linkedin_avatar_events').insert({
         account_id: params.account_id,
         user_id: user!.id,
         event_type: 'session_started',
-        metadata: { session_id: data.id, purpose: params.purpose },
+        metadata: { session_id: data.id, purpose: params.purpose, job_id },
       });
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avatar-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session-jobs'] });
       toast.success('Session started.');
     },
     onError: (e: Error) => toast.error(e.message),
@@ -83,11 +106,33 @@ export function useAvatarSessions() {
 
   const endSession = useMutation({
     mutationFn: async (sessionId: string) => {
+      const now = new Date().toISOString();
+
+      // End any open session-job entries
+      const { data: openJobs } = await supabase
+        .from('linkedin_avatar_session_jobs')
+        .select('id, started_at')
+        .eq('session_id', sessionId)
+        .is('ended_at', null);
+
+      if (openJobs && openJobs.length > 0) {
+        for (const sj of openJobs) {
+          const minutes = Math.round(
+            (new Date(now).getTime() - new Date(sj.started_at).getTime()) / 60000
+          );
+          await supabase
+            .from('linkedin_avatar_session_jobs')
+            .update({ ended_at: now, minutes_logged: minutes })
+            .eq('id', sj.id);
+        }
+      }
+
       const { error } = await supabase
         .from('linkedin_avatar_sessions')
-        .update({ status: 'completed', ended_at: new Date().toISOString() })
+        .update({ status: 'completed', ended_at: now })
         .eq('id', sessionId);
       if (error) throw error;
+
       // Log event
       const session = sessionsQuery.data?.find(s => s.id === sessionId);
       if (session) {
@@ -101,6 +146,7 @@ export function useAvatarSessions() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avatar-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session-jobs'] });
       toast.success('Session ended.');
     },
     onError: (e: Error) => toast.error(e.message),

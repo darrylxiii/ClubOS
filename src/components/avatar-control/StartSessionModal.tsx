@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { useAvatarSessions } from '@/hooks/useAvatarSessions';
+import { useAvailableJobs } from '@/hooks/useSessionJobs';
 import { addMinutes, format } from 'date-fns';
+import { Check, ChevronsUpDown, Briefcase } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StartSessionModalProps {
   account: AvatarAccount | null;
@@ -25,18 +30,29 @@ const DURATION_OPTIONS = [
 export function StartSessionModal({ account, open, onOpenChange }: StartSessionModalProps) {
   const [duration, setDuration] = useState('60');
   const [purpose, setPurpose] = useState('');
+  const [selectedJobId, setSelectedJobId] = useState('');
+  const [jobSearchOpen, setJobSearchOpen] = useState(false);
   const { startSession } = useAvatarSessions();
+  const { data: jobs = [] } = useAvailableJobs();
+
+  const selectedJob = useMemo(() => jobs.find(j => j.id === selectedJobId), [jobs, selectedJobId]);
 
   const handleStart = () => {
-    if (!account || !purpose.trim()) return;
+    if (!account || !purpose.trim() || !selectedJobId) return;
     const endAt = addMinutes(new Date(), parseInt(duration));
     startSession.mutate(
-      { account_id: account.id, expected_end_at: endAt.toISOString(), purpose: purpose.trim() },
+      {
+        account_id: account.id,
+        expected_end_at: endAt.toISOString(),
+        purpose: purpose.trim(),
+        job_id: selectedJobId,
+      },
       {
         onSuccess: () => {
           onOpenChange(false);
           setPurpose('');
           setDuration('60');
+          setSelectedJobId('');
         },
       }
     );
@@ -54,6 +70,57 @@ export function StartSessionModal({ account, open, onOpenChange }: StartSessionM
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Job selector */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Briefcase className="h-3.5 w-3.5" />
+              Job
+            </Label>
+            <Popover open={jobSearchOpen} onOpenChange={setJobSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={jobSearchOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {selectedJob
+                    ? `${selectedJob.title}${selectedJob.companies?.name ? ` — ${selectedJob.companies.name}` : ''}`
+                    : 'Select a job…'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search jobs…" />
+                  <CommandList>
+                    <CommandEmpty>No jobs found.</CommandEmpty>
+                    <CommandGroup>
+                      {jobs.map(job => (
+                        <CommandItem
+                          key={job.id}
+                          value={`${job.title} ${job.companies?.name ?? ''} ${job.location ?? ''}`}
+                          onSelect={() => {
+                            setSelectedJobId(job.id);
+                            setJobSearchOpen(false);
+                          }}
+                        >
+                          <Check className={cn('mr-2 h-4 w-4', selectedJobId === job.id ? 'opacity-100' : 'opacity-0')} />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{job.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {[job.companies?.name, job.location].filter(Boolean).join(' · ')}
+                            </p>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
           <div className="space-y-2">
             <Label>Duration</Label>
             <Select value={duration} onValueChange={setDuration}>
@@ -92,7 +159,10 @@ export function StartSessionModal({ account, open, onOpenChange }: StartSessionM
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleStart} disabled={!purpose.trim() || startSession.isPending}>
+          <Button
+            onClick={handleStart}
+            disabled={!purpose.trim() || !selectedJobId || startSession.isPending}
+          >
             {startSession.isPending ? 'Starting…' : 'Start Session'}
           </Button>
         </DialogFooter>

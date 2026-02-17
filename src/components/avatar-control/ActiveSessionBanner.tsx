@@ -1,39 +1,114 @@
+import { useState } from 'react';
 import { useActiveAvatarSession } from '@/hooks/useAvatarSessions';
+import { useSessionJobs, useAvailableJobs } from '@/hooks/useSessionJobs';
 import { Button } from '@/components/ui/button';
-import { Radio, Clock, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Radio, Clock, X, ArrowRightLeft, Briefcase, Check } from 'lucide-react';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export function ActiveSessionBanner() {
   const { mySession, endSession } = useActiveAvatarSession();
+  const { data: sessionJobs = [], switchJob } = useSessionJobs(mySession?.id);
+  const { data: jobs = [] } = useAvailableJobs();
+  const [switchOpen, setSwitchOpen] = useState(false);
 
   if (!mySession) return null;
 
   const accountLabel = mySession.linkedin_avatar_accounts?.label ?? 'Unknown Account';
+  const jobTitle = mySession.jobs?.title ?? 'No job';
+  const currentSessionJob = sessionJobs.find(sj => !sj.ended_at);
+
+  const handleSwitchJob = (newJobId: string) => {
+    if (!currentSessionJob || !mySession) return;
+    switchJob.mutate(
+      {
+        session_id: mySession.id,
+        current_session_job_id: currentSessionJob.id,
+        new_job_id: newJobId,
+      },
+      { onSuccess: () => setSwitchOpen(false) }
+    );
+  };
 
   return (
-    <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2.5 flex items-center justify-between gap-3 mx-4 mt-2">
-      <div className="flex items-center gap-3 min-w-0">
-        <Radio className="h-4 w-4 text-red-400 animate-pulse shrink-0" />
-        <div className="min-w-0 text-sm">
-          <span className="font-medium">Active session:</span>{' '}
-          <span className="text-muted-foreground">{accountLabel}</span>
-          <span className="text-muted-foreground mx-1.5">·</span>
-          <Clock className="h-3 w-3 inline -mt-0.5 text-muted-foreground" />{' '}
-          <span className="text-muted-foreground">
-            until {format(new Date(mySession.expected_end_at), 'HH:mm')}
-          </span>
+    <>
+      <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2.5 flex items-center justify-between gap-3 mx-4 mt-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <Radio className="h-4 w-4 text-red-400 animate-pulse shrink-0" />
+          <div className="min-w-0 text-sm flex items-center gap-1.5 flex-wrap">
+            <span className="font-medium">Active:</span>
+            <span className="text-muted-foreground">{accountLabel}</span>
+            <span className="text-muted-foreground">·</span>
+            <Briefcase className="h-3 w-3 text-muted-foreground" />
+            <span className="text-muted-foreground truncate max-w-[200px]">{jobTitle}</span>
+            <span className="text-muted-foreground">·</span>
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              until {format(new Date(mySession.expected_end_at), 'HH:mm')}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs"
+            onClick={() => setSwitchOpen(true)}
+          >
+            <ArrowRightLeft className="h-3 w-3 mr-1" />
+            Switch Job
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+            onClick={() => endSession.mutate(mySession.id)}
+            disabled={endSession.isPending}
+          >
+            <X className="h-3.5 w-3.5 mr-1" />
+            End
+          </Button>
         </div>
       </div>
-      <Button
-        size="sm"
-        variant="outline"
-        className="border-red-500/30 text-red-400 hover:bg-red-500/10 shrink-0"
-        onClick={() => endSession.mutate(mySession.id)}
-        disabled={endSession.isPending}
-      >
-        <X className="h-3.5 w-3.5 mr-1" />
-        End Session
-      </Button>
-    </div>
+
+      {/* Switch Job Dialog */}
+      <Dialog open={switchOpen} onOpenChange={setSwitchOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Switch Job</DialogTitle>
+          </DialogHeader>
+          <Command>
+            <CommandInput placeholder="Search jobs…" />
+            <CommandList>
+              <CommandEmpty>No jobs found.</CommandEmpty>
+              <CommandGroup>
+                {jobs.map(job => {
+                  const isCurrent = job.id === currentSessionJob?.job_id;
+                  return (
+                    <CommandItem
+                      key={job.id}
+                      value={`${job.title} ${job.companies?.name ?? ''}`}
+                      onSelect={() => { if (!isCurrent) handleSwitchJob(job.id); }}
+                      disabled={isCurrent}
+                    >
+                      <Check className={cn('mr-2 h-4 w-4', isCurrent ? 'opacity-100' : 'opacity-0')} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{job.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {[job.companies?.name, job.location].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                      {isCurrent && <span className="ml-auto text-xs text-muted-foreground">Current</span>}
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
