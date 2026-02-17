@@ -27,6 +27,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const { token, new_password, confirm_password } = requestSchema.parse(body);
+    const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
     if (new_password !== confirm_password) {
       return new Response(
@@ -40,8 +41,7 @@ serve(async (req) => {
 
     console.log(`[Set Password] Processing password change request`);
 
-    // FIX ISSUE 9: Token must have been validated (is_used = true by validate-token or validate-otp)
-    // and used_at must be within 15 minutes
+    // FIX BUG A: Require validated_by IN ('otp', 'magic_link') -- not 'invalidated'
     const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
     const { data: tokens, error: lookupError } = await supabaseAdmin
@@ -50,6 +50,7 @@ serve(async (req) => {
       .eq('magic_token', token)
       .eq('is_used', true)
       .gt('used_at', fifteenMinAgo)
+      .in('validated_by', ['otp', 'magic_link'])
       .limit(1);
 
     if (lookupError) {
@@ -59,6 +60,15 @@ serve(async (req) => {
 
     if (!tokens || tokens.length === 0) {
       console.log('[Set Password] No valid validated token found');
+
+      // FIX BUG G: Log set_password attempt
+      await supabaseAdmin.from('password_reset_attempts').insert({
+        email: 'unknown',
+        ip_address: clientIp,
+        success: false,
+        attempt_type: 'set_password'
+      });
+
       return new Response(
         JSON.stringify({ error: "Invalid or expired token. Please start over." }),
         {
@@ -93,6 +103,14 @@ serve(async (req) => {
         const matches = await compare(new_password, record.password_hash);
         if (matches) {
           console.log('[Set Password] Password reuse detected');
+
+          await supabaseAdmin.from('password_reset_attempts').insert({
+            email: resetToken.email,
+            ip_address: clientIp,
+            success: false,
+            attempt_type: 'set_password'
+          });
+
           return new Response(
             JSON.stringify({
               reused: true,
@@ -126,20 +144,18 @@ serve(async (req) => {
         password_hash: newPasswordHash,
       });
 
-    // FIX ISSUE 8: Invalidate ALL existing sessions globally
+    // Invalidate ALL existing sessions globally
     try {
       await supabaseAdmin.auth.admin.signOut(userId, 'global');
       console.log(`[Set Password] All sessions invalidated for user`);
     } catch (signOutError) {
       console.error('[Set Password] Session invalidation error:', signOutError);
-      // Continue anyway - password was already changed
     }
 
     // Get user email for confirmation
     const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId);
 
     if (user?.email) {
-      // Send confirmation email
       await supabaseAdmin.functions.invoke('send-password-changed-email', {
         body: {
           email: user.email,
@@ -149,6 +165,14 @@ serve(async (req) => {
         }
       });
     }
+
+    // FIX BUG G: Log successful set_password attempt
+    await supabaseAdmin.from('password_reset_attempts').insert({
+      email: resetToken.email,
+      ip_address: clientIp,
+      success: true,
+      attempt_type: 'set_password'
+    });
 
     console.log(`[Set Password] Password changed successfully`);
 

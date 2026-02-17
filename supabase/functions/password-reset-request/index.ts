@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { hash as bcryptHash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,7 +76,7 @@ serve(async (req) => {
       );
     }
 
-    // FIX BUG 7: Direct profile lookup instead of paginating all users
+    // FIX BUG B: Profile table is the source of truth. No auth fallback.
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, email, full_name')
@@ -86,7 +87,6 @@ serve(async (req) => {
       console.error('[Password Reset] Profile lookup error:', profileError);
     }
 
-    // If no profile found, try auth admin as fallback (single call)
     let userId: string | null = null;
     let userName: string | null = null;
     let userEmail: string | null = null;
@@ -95,33 +95,20 @@ serve(async (req) => {
       userId = profile.id;
       userName = profile.full_name;
       userEmail = profile.email || email;
-    } else {
-      // Fallback: try to get user directly by email from auth
-      const { data: { users }, error: authError } = await supabaseAdmin.auth.admin.listUsers({
-        page: 1,
-        perPage: 1,
-      });
-
-      if (!authError && users) {
-        const foundUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
-        if (foundUser) {
-          userId = foundUser.id;
-          userName = foundUser.user_metadata?.full_name;
-          userEmail = foundUser.email;
-        }
-      }
-
-      // Removed: pagination fallback that looped through all auth users (caused timeouts)
-      // If user is not in profiles table or first auth page, silently return success (no enumeration)
     }
+    // No fallback - if no profile, silently return success (anti-enumeration)
 
     console.log(`[Password Reset] User lookup: ${userId ? 'found' : 'not found'}`);
 
     if (userId && userEmail) {
-      // FIX ISSUE 12: Invalidate all existing unused tokens for this email
+      // FIX BUG A: Mark old tokens as 'invalidated' instead of just is_used=true
       await supabaseAdmin
         .from('password_reset_tokens')
-        .update({ is_used: true, used_at: new Date().toISOString() })
+        .update({ 
+          is_used: true, 
+          used_at: new Date().toISOString(),
+          validated_by: 'invalidated'
+        })
         .eq('email', email.toLowerCase())
         .eq('is_used', false);
 
@@ -130,17 +117,19 @@ serve(async (req) => {
       const otpCode = generateOTP();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      // FIX ISSUE 6: Never log OTP or full token
+      // FIX BUG C: Hash the OTP before storing
+      const otpHash = await bcryptHash(otpCode);
+
       console.log(`[Password Reset] Token generated, expires at ${expiresAt.toISOString()}`);
 
-      // Store reset token
+      // Store reset token with hashed OTP
       const { error: insertError } = await supabaseAdmin
         .from('password_reset_tokens')
         .insert({
           user_id: userId,
           email: email.toLowerCase(),
           magic_token: magicToken,
-          otp_code: otpCode,
+          otp_code: otpHash,
           expires_at: expiresAt.toISOString(),
           ip_address: clientIp,
           user_agent: userAgent,
@@ -166,7 +155,7 @@ serve(async (req) => {
             body: {
               email: userEmail,
               userName: userName || userEmail.split('@')[0],
-              otpCode,
+              otpCode, // Send plaintext OTP to email (not the hash)
               magicLink,
               expiresInMinutes: 10,
               ipAddress: clientIp,

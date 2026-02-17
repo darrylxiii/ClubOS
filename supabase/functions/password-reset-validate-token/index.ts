@@ -24,6 +24,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const { token } = requestSchema.parse(body);
+    const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
     console.log(`[Token Validation] Validating token`);
 
@@ -43,6 +44,15 @@ serve(async (req) => {
 
     if (!tokens || tokens.length === 0) {
       console.log('[Token Validation] No valid token found');
+
+      // FIX BUG G: Log validate_token attempt
+      await supabaseAdmin.from('password_reset_attempts').insert({
+        email: 'unknown',
+        ip_address: clientIp,
+        success: false,
+        attempt_type: 'validate_token'
+      });
+
       return new Response(
         JSON.stringify({
           valid: false,
@@ -57,12 +67,13 @@ serve(async (req) => {
 
     const resetToken = tokens[0];
 
-    // FIX BUG 4: Mark token as used immediately to prevent replay attacks
+    // FIX BUG A: Mark token as used AND set validated_by = 'magic_link'
     const { error: updateError } = await supabaseAdmin
       .from('password_reset_tokens')
       .update({
         is_used: true,
-        used_at: new Date().toISOString()
+        used_at: new Date().toISOString(),
+        validated_by: 'magic_link'
       })
       .eq('id', resetToken.id);
 
@@ -70,6 +81,14 @@ serve(async (req) => {
       console.error('[Token Validation] Failed to mark token as used:', updateError);
       throw updateError;
     }
+
+    // FIX BUG G: Log successful validate_token attempt
+    await supabaseAdmin.from('password_reset_attempts').insert({
+      email: resetToken.email,
+      ip_address: clientIp,
+      success: true,
+      attempt_type: 'validate_token'
+    });
 
     console.log(`[Token Validation] Token validated and marked as used`);
 

@@ -64,7 +64,7 @@ export default function ResetPasswordNew() {
 
       if (data?.success) {
         toast.success("Password changed successfully!");
-        setTimeout(() => navigate('/auth'), 2000);
+        navigate('/reset-password/success', { replace: true });
       }
     } catch (error: unknown) {
       console.error('Password reset error:', error);

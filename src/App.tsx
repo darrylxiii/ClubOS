@@ -122,6 +122,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPasswordVerify = lazy(() => import("./pages/ResetPasswordVerify"));
 const ResetPasswordMagicLink = lazy(() => import("./pages/ResetPasswordMagicLink"));
 const ResetPasswordNew = lazy(() => import("./pages/ResetPasswordNew"));
+const ResetPasswordSuccess = lazy(() => import("./pages/ResetPasswordSuccess"));
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));
@@ -304,6 +305,13 @@ const App = () => {
                   <PublicProviders>
                     <RouteErrorBoundary>
                       <Suspense fallback={<PageLoader />}><ResetPasswordNew /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
+                <Route path="/reset-password/success" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><ResetPasswordSuccess /></Suspense>
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />

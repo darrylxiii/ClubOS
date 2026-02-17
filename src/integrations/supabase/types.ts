@@ -34570,6 +34570,7 @@ export type Database = {
           used_at: string | null
           user_agent: string | null
           user_id: string
+          validated_by: string | null
         }
         Insert: {
           attempts?: number | null
@@ -34584,6 +34585,7 @@ export type Database = {
           used_at?: string | null
           user_agent?: string | null
           user_id: string
+          validated_by?: string | null
         }
         Update: {
           attempts?: number | null
@@ -34598,6 +34600,7 @@ export type Database = {
           used_at?: string | null
           user_agent?: string | null
           user_id?: string
+          validated_by?: string | null
         }
         Relationships: []
       }
