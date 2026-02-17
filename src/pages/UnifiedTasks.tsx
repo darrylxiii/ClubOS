@@ -182,9 +182,32 @@ const UnifiedTasks = () => {
     return (
       <TaskBoardProvider>
         <AppLayout>
-          <div className="container mx-auto px-4 py-8">
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-pulse text-muted-foreground">Loading tasks...</div>
+          <div className="container mx-auto px-4 py-8 space-y-6">
+            {/* Header skeleton */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="animate-pulse rounded bg-muted/60 h-9 w-32" />
+                <div className="animate-pulse rounded bg-muted/60 h-4 w-64" />
+              </div>
+              <div className="flex gap-2">
+                <div className="animate-pulse rounded bg-muted/60 h-10 w-28" />
+                <div className="animate-pulse rounded bg-muted/60 h-10 w-28" />
+              </div>
+            </div>
+            {/* Board skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="border-2 border-border/30 rounded-lg min-w-[300px]">
+                  <div className="p-4 border-b flex items-center justify-between">
+                    <div className="animate-pulse rounded bg-muted/60 h-5 w-24" />
+                    <div className="animate-pulse rounded bg-muted/60 h-5 w-8 rounded-full" />
+                  </div>
+                  <div className="p-2 space-y-3 min-h-[300px]">
+                    <div className="animate-pulse rounded bg-muted/40 h-28 w-full rounded-lg" />
+                    <div className="animate-pulse rounded bg-muted/40 h-28 w-full rounded-lg" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </AppLayout>

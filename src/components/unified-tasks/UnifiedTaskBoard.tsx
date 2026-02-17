@@ -38,6 +38,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTaskCompletion } from "@/hooks/useTaskCompletion";
 import { TaskCompletionFeedbackModal } from "./TaskCompletionFeedbackModal";
+import { TaskCardSkeleton, BoardColumnSkeleton } from "./TaskCardSkeleton";
 
 interface UnifiedTask {
   id: string;
@@ -132,33 +133,41 @@ export const UnifiedTaskBoard = ({
 
       if (error) throw error;
 
-      // Fetch dependency counts for each task
-      if (data) {
-        const tasksWithDeps = await Promise.all(
-          data.map(async (task) => {
-            // Get blocking count (tasks this task blocks)
-            const { data: blocking } = await supabase
-              .from("task_dependencies")
-              .select("id")
-              .eq("depends_on_task_id", task.id);
+      if (data && data.length > 0) {
+        // Batch fetch all dependency counts in two queries instead of N+1
+        const taskIds = data.map(t => t.id);
 
-            // Get blocked-by count (tasks that block this task)
-            const { data: blockedBy } = await supabase
-              .from("task_dependencies")
-              .select("id")
-              .eq("task_id", task.id);
+        const [{ data: blockingCounts }, { data: blockedByCounts }] = await Promise.all([
+          supabase
+            .from("task_dependencies")
+            .select("depends_on_task_id")
+            .in("depends_on_task_id", taskIds),
+          supabase
+            .from("task_dependencies")
+            .select("task_id")
+            .in("task_id", taskIds),
+        ]);
 
-            return {
-              ...task,
-              blockingCount: blocking?.length || 0,
-              blockedByCount: blockedBy?.length || 0,
-            };
-          })
-        );
+        // Build count maps
+        const blockingMap = new Map<string, number>();
+        blockingCounts?.forEach(row => {
+          blockingMap.set(row.depends_on_task_id, (blockingMap.get(row.depends_on_task_id) || 0) + 1);
+        });
+
+        const blockedByMap = new Map<string, number>();
+        blockedByCounts?.forEach(row => {
+          blockedByMap.set(row.task_id, (blockedByMap.get(row.task_id) || 0) + 1);
+        });
+
+        const tasksWithDeps = data.map(task => ({
+          ...task,
+          blockingCount: blockingMap.get(task.id) || 0,
+          blockedByCount: blockedByMap.get(task.id) || 0,
+        }));
 
         setTasks(tasksWithDeps as UnifiedTask[]);
       } else {
-        setTasks([]);
+        setTasks(data as UnifiedTask[] || []);
       }
     } catch (error) {
       console.error("Error loading tasks:", error);
@@ -203,6 +212,9 @@ export const UnifiedTaskBoard = ({
       return;
     }
 
+    const previousTask = tasks.find(t => t.id === taskId);
+    const previousStatus = previousTask?.status;
+
     // Optimistically update UI
     setTasks(prev =>
       prev.map(task =>
@@ -220,7 +232,23 @@ export const UnifiedTaskBoard = ({
         .eq("id", taskId);
 
       if (error) throw error;
-      toast.success("Task status updated");
+
+      // Undo toast
+      toast.success("Task status updated", {
+        action: previousStatus ? {
+          label: "Undo",
+          onClick: async () => {
+            await supabase
+              .from("unified_tasks")
+              .update({ status: previousStatus, completed_at: null })
+              .eq("id", taskId);
+            loadTasks();
+            onRefresh();
+          },
+        } : undefined,
+        duration: 5000,
+      });
+
       loadTasks();
       onRefresh();
     } catch (error) {
@@ -282,49 +310,71 @@ export const UnifiedTaskBoard = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto pb-4">
-          {getColumns().map((column) => {
-            const columnTasks = getTasksByColumn(column.key);
-            const Icon = column.icon;
+          {loading ? (
+            <>
+              <BoardColumnSkeleton />
+              <BoardColumnSkeleton />
+              <BoardColumnSkeleton />
+              <BoardColumnSkeleton />
+            </>
+          ) : (
+            getColumns().map((column) => {
+              const columnTasks = getTasksByColumn(column.key);
+              const Icon = column.icon;
 
-            return (
-              <SortableContext
-                key={column.key}
-                id={column.key}
-                items={columnTasks.map(t => t.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <Card className={`border-2 ${column.color} min-w-[300px]`}>
-                  <CardHeader className="pb-3 sticky top-0 bg-background/95 backdrop-blur z-10 p-4 border-b">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-5 w-5" />
-                        <CardTitle className="text-lg whitespace-nowrap">{column.label}</CardTitle>
+              return (
+                <SortableContext
+                  key={column.key}
+                  id={column.key}
+                  items={columnTasks.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <Card className={`border-2 ${column.color} min-w-[300px]`}>
+                    <CardHeader className="pb-3 sticky top-0 bg-background/95 backdrop-blur z-10 p-4 border-b">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Icon className="h-5 w-5" />
+                          <CardTitle className="text-lg whitespace-nowrap">{column.label}</CardTitle>
+                        </div>
+                        <Badge variant="secondary">{columnTasks.length}</Badge>
                       </div>
-                      <Badge variant="secondary">{columnTasks.length}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 min-h-[400px] p-2 bg-muted/10">
-                    {columnTasks.length === 0 ? (
-                      <div className="border-2 border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground h-full flex flex-col items-center justify-center opacity-50">
-                        Drop tasks here
-                      </div>
-                    ) : (
-                      columnTasks.map((task) => (
-                        <UnifiedTaskCard
-                          key={task.id}
-                          task={{
-                            ...task,
-                            project_tag: task.marketplace_projects?.title || null
-                          }}
-                          onClick={setSelectedTask}
-                        />
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
-              </SortableContext>
-            );
-          })}
+                    </CardHeader>
+                    <CardContent className="space-y-3 min-h-[400px] p-2 bg-muted/10">
+                      {columnTasks.length === 0 ? (
+                        <div className="border-2 border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground h-full flex flex-col items-center justify-center gap-3">
+                          <p className="opacity-50">No tasks here yet</p>
+                          <CreateUnifiedTaskDialog
+                            objectiveId={objectiveId}
+                            defaultStatus={groupBy === 'status' ? column.key : undefined}
+                            onTaskCreated={() => {
+                              loadTasks();
+                              onRefresh();
+                            }}
+                          >
+                            <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
+                              <Plus className="h-3.5 w-3.5" />
+                              Add task
+                            </Button>
+                          </CreateUnifiedTaskDialog>
+                        </div>
+                      ) : (
+                        columnTasks.map((task) => (
+                          <UnifiedTaskCard
+                            key={task.id}
+                            task={{
+                              ...task,
+                              project_tag: task.marketplace_projects?.title || null
+                            }}
+                            onClick={setSelectedTask}
+                          />
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+                </SortableContext>
+              );
+            })
+          )}
         </div>
 
         {/* Task Detail Dialog */}

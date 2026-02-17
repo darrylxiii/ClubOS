@@ -16,6 +16,7 @@ import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
 import { useTaskCompletion } from "@/hooks/useTaskCompletion";
 import { TaskCompletionFeedbackModal } from "./TaskCompletionFeedbackModal";
+import { TaskCardSkeleton } from "./TaskCardSkeleton";
 
 interface UnifiedTask {
   id: string;
@@ -101,7 +102,20 @@ export const UnifiedTasksList = ({
         .eq("id", taskId);
 
       if (error) throw error;
-      toast.success('Task reopened');
+      toast.success('Task reopened', {
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            await supabase
+              .from("unified_tasks")
+              .update({ status: 'completed', completed_at: new Date().toISOString() })
+              .eq("id", taskId);
+            loadTasks();
+            onRefresh();
+          },
+        },
+        duration: 5000,
+      });
       loadTasks();
       onRefresh();
     } catch (error) {
@@ -144,11 +158,13 @@ export const UnifiedTasksList = ({
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">Loading tasks...</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        <TaskCardSkeleton variant="list" />
+        <TaskCardSkeleton variant="list" />
+        <TaskCardSkeleton variant="list" />
+        <TaskCardSkeleton variant="list" />
+        <TaskCardSkeleton variant="list" />
+      </div>
     );
   }
 

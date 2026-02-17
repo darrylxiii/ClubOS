@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addDays, parseISO, isToday } from "date-fns";
 import { Clock } from "lucide-react";
+import { TaskCardSkeleton } from "./TaskCardSkeleton";
 
 interface UnifiedTaskCalendarProps {
   objectiveId: string | null;
@@ -78,11 +79,22 @@ export const UnifiedTaskCalendar = ({
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">Loading calendar...</p>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-7 gap-4">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <Card key={i} className="border-2 border-border">
+            <CardHeader className="pb-3">
+              <div className="text-center space-y-1">
+                <div className="animate-pulse rounded bg-muted/60 h-3 w-8 mx-auto" />
+                <div className="animate-pulse rounded bg-muted/60 h-7 w-6 mx-auto" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <TaskCardSkeleton variant="calendar" />
+              <TaskCardSkeleton variant="calendar" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     );
   }
 
