@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,8 @@ import { getMeetingStatus, type MeetingStatusInfo } from "@/utils/meetingStatus"
 import { fetchUnifiedCalendarEvents } from "@/services/calendarAggregation";
 import type { UnifiedCalendarEvent } from "@/types/calendar";
 import { EventDetailModal } from "@/components/meetings/EventDetailModal";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAttendeeProfiles, type AttendeeProfileMap } from "@/hooks/useAttendeeProfiles";
 
 function getInitialsFromEmail(email: string): string {
   const local = email.split('@')[0];
@@ -22,20 +23,26 @@ function getInitialsFromEmail(email: string): string {
   return local.slice(0, 2).toUpperCase();
 }
 
-function AttendeeAvatars({ attendees }: { attendees?: string[] }) {
+function AttendeeAvatars({ attendees, profileMap }: { attendees?: string[]; profileMap: AttendeeProfileMap }) {
   if (!attendees || attendees.length === 0) return null;
   const visible = attendees.slice(0, 3);
   const overflow = attendees.length - 3;
 
   return (
     <div className="flex items-center -space-x-1.5 shrink-0">
-      {visible.map((email, i) => (
-        <Avatar key={i} className="h-6 w-6 border-2 border-background">
-          <AvatarFallback className="text-[9px] font-medium bg-muted text-muted-foreground">
-            {getInitialsFromEmail(email)}
-          </AvatarFallback>
-        </Avatar>
-      ))}
+      {visible.map((email, i) => {
+        const profile = profileMap.get(email.toLowerCase());
+        return (
+          <Avatar key={i} className="h-6 w-6 border-2 border-background">
+            {profile?.avatar_url && (
+              <AvatarImage src={profile.avatar_url} alt={profile.full_name || email} />
+            )}
+            <AvatarFallback className="text-[9px] font-medium bg-muted text-muted-foreground">
+              {getInitialsFromEmail(email)}
+            </AvatarFallback>
+          </Avatar>
+        );
+      })}
       {overflow > 0 && (
         <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground">
           +{overflow}
@@ -58,6 +65,13 @@ export const ActiveMeetingsWidget = () => {
   const [selectedEvent, setSelectedEvent] = useState<UnifiedCalendarEvent | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Collect all attendee emails for batch profile resolution
+  const allAttendeeEmails = useMemo(
+    () => events.flatMap((e) => e.attendees || []),
+    [events]
+  );
+  const { profileMap } = useAttendeeProfiles(allAttendeeEmails);
 
   const refreshStatuses = useCallback((list: UnifiedCalendarEvent[]) => {
     const map = new Map<string, MeetingStatusInfo>();
@@ -192,7 +206,7 @@ export const ActiveMeetingsWidget = () => {
                   </div>
 
                   {/* Attendee avatars */}
-                  <AttendeeAvatars attendees={e.attendees} />
+                  <AttendeeAvatars attendees={e.attendees} profileMap={profileMap} />
 
                   {/* Action — only show Join for TQC meetings */}
                   <div onClick={(ev) => ev.stopPropagation()}>
