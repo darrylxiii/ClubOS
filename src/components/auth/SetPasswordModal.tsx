@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { parseEdgeFunctionError } from "@/utils/edgeFunctionErrors";
 
 const emailSchema = z.string().email();
 
@@ -38,7 +39,16 @@ export function SetPasswordModal({ open, onOpenChange }: SetPasswordModalProps) 
         body: { email },
       });
 
-      if (error) throw error;
+      if (error) {
+        const body = await parseEdgeFunctionError(error);
+        if (body?.rate_limited) {
+          toast.error(body.message || t('errors.tooManyAttempts'));
+          setIsLoading(false);
+          return;
+        }
+        toast.error(body?.message || t('errors.genericError'));
+        return;
+      }
 
       if (data?.rate_limited) {
         toast.error(data.message || t('errors.tooManyAttempts'));

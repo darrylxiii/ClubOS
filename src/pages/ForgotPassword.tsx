@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Lock, ArrowLeft, Mail } from "lucide-react";
 import { z } from "zod";
+import { parseEdgeFunctionError } from "@/utils/edgeFunctionErrors";
 
 const emailSchema = z.string().email("Invalid email address");
 
@@ -42,6 +43,12 @@ export default function ForgotPassword() {
 
       if (error) {
         console.error('Edge function error:', error);
+        const body = await parseEdgeFunctionError(error);
+        if (body?.rate_limited) {
+          toast.error(body.message || "Too many requests. Please try again in 15 minutes.");
+          setIsLoading(false);
+          return;
+        }
         throw error;
       }
 

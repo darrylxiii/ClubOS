@@ -111,24 +111,8 @@ serve(async (req) => {
         }
       }
 
-      // If still not found with first page, do a broader search
-      if (!userId) {
-        let page = 1;
-        const perPage = 1000;
-        while (!userId) {
-          const { data: { users: pageUsers }, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
-          if (error || !pageUsers || pageUsers.length === 0) break;
-          const found = pageUsers.find(u => u.email?.toLowerCase() === email.toLowerCase());
-          if (found) {
-            userId = found.id;
-            userName = found.user_metadata?.full_name;
-            userEmail = found.email;
-            break;
-          }
-          if (pageUsers.length < perPage) break;
-          page++;
-        }
-      }
+      // Removed: pagination fallback that looped through all auth users (caused timeouts)
+      // If user is not in profiles table or first auth page, silently return success (no enumeration)
     }
 
     console.log(`[Password Reset] User lookup: ${userId ? 'found' : 'not found'}`);
