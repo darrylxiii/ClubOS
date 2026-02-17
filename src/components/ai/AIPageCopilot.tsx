@@ -99,7 +99,7 @@ export function AIPageCopilot({ currentPage, contextData, onAction }: AIPageCopi
         });
         break;
 
-      case '/unified-tasks':
+      case '/tasks':
         suggestions.push({
           id: 'task-1',
           title: 'Optimize your task list',

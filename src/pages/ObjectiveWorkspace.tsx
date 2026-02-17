@@ -84,7 +84,7 @@ const ObjectiveWorkspace = () => {
     } catch (error) {
       console.error("Error loading objective:", error);
       toast.error("Failed to load objective");
-      navigate("/unified-tasks");
+      navigate("/tasks");
     } finally {
       setLoading(false);
     }
@@ -261,7 +261,7 @@ const ObjectiveWorkspace = () => {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-4 flex-1">
-            <Button variant="ghost" onClick={() => navigate("/unified-tasks")} className="gap-2">
+            <Button variant="ghost" onClick={() => navigate("/tasks")} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               Back to Tasks
             </Button>
