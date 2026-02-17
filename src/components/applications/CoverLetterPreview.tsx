@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Copy, Download, Save, RefreshCw, FileText, Sparkles } from 'lucide-react';
 import { CoverLetterTone } from '@/hooks/useCoverLetterGenerator';
-import { jsPDF } from 'jspdf';
+
 import { toast } from 'sonner';
 
 interface CoverLetterPreviewProps {
@@ -44,8 +44,9 @@ export function CoverLetterPreview({
     executive: { label: 'Executive', color: 'bg-purple-500/20 text-purple-500' },
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     try {
+      const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       const margin = 20;
       const pageWidth = doc.internal.pageSize.getWidth();

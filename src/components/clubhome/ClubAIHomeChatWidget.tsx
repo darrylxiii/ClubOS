@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useClubAIHomeChat } from '@/hooks/useClubAIHomeChat';
 import { useClubAIVoice } from '@/hooks/useClubAIVoice';
 import { cn } from '@/lib/utils';
-import ReactMarkdown from 'react-markdown';
+import { LazyMarkdown } from '@/components/ui/LazyMarkdown';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function ClubAIHomeChatWidget() {
@@ -169,7 +169,7 @@ export function ClubAIHomeChatWidget() {
                     >
                       {msg.role === 'assistant' ? (
                         <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          <LazyMarkdown>{msg.content}</LazyMarkdown>
                         </div>
                       ) : (
                         <p>{msg.content}</p>

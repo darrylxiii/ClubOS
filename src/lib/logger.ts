@@ -1,5 +1,17 @@
 import { supabase } from '@/integrations/supabase/client';
-import * as Sentry from '@sentry/react';
+
+// Lazy Sentry getter - caches module after first load
+let _sentryModule: typeof import('@sentry/react') | null = null;
+const getSentry = async () => {
+  if (!_sentryModule) {
+    try {
+      _sentryModule = await import('@sentry/react');
+    } catch {
+      // Sentry unavailable
+    }
+  }
+  return _sentryModule;
+};
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 type ErrorType = 'react' | 'api' | 'edge_function' | 'database' | 'network' | 'unknown';
@@ -71,10 +83,14 @@ class Logger {
         ...context 
       };
       
-      // Capture in Sentry
-      Sentry.captureException(error, {
-        extra: { message, ...context },
-        level: (context?.severity as Sentry.SeverityLevel) || 'error',
+      // Capture in Sentry (fire-and-forget)
+      getSentry().then((Sentry) => {
+        if (Sentry) {
+          Sentry.captureException(error, {
+            extra: { message, ...context },
+            level: (context?.severity as any) || 'error',
+          });
+        }
       });
     } else if (error && typeof error === 'object' && 'message' in error) {
       errorDetails = { 
@@ -104,7 +120,11 @@ class Logger {
    * Add a breadcrumb for debugging context
    */
   addBreadcrumb(message: string, category: string, data?: Record<string, unknown>) {
-    Sentry.addBreadcrumb({ message, category, data, level: 'info' });
+    getSentry().then((Sentry) => {
+      if (Sentry) {
+        Sentry.addBreadcrumb({ message, category, data, level: 'info' });
+      }
+    });
   }
   
   critical(message: string, error?: Error | ErrorWithStack | unknown, context?: LogContext) {

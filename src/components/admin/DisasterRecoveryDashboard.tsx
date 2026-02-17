@@ -6,7 +6,7 @@ import { AlertCircle, CheckCircle2, Clock, Database, Shield, AlertTriangle, File
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
+import { LazyMarkdown } from '@/components/ui/LazyMarkdown';
 
 interface BackupVerificationLog {
   id: string;
@@ -1008,55 +1008,7 @@ export const DisasterRecoveryDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="prose prose-slate dark:prose-invert max-w-none">
-                <ReactMarkdown
-                  components={{
-                    h2: ({ children }) => (
-                      <h2 className="text-2xl font-bold mt-8 mb-4 pb-2 border-b">{children}</h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-xl font-semibold mt-6 mb-3">{children}</h3>
-                    ),
-                    table: ({ children }) => (
-                      <div className="overflow-x-auto my-6">
-                        <table className="min-w-full border-collapse border border-border">
-                          {children}
-                        </table>
-                      </div>
-                    ),
-                    th: ({ children }) => (
-                      <th className="border border-border bg-muted px-4 py-2 text-left font-semibold">
-                        {children}
-                      </th>
-                    ),
-                    td: ({ children }) => (
-                      <td className="border border-border px-4 py-2">{children}</td>
-                    ),
-                    code: ({ children, className }) => {
-                      const isInline = !className;
-                      return isInline ? (
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-sm">
-                          {children}
-                        </code>
-                      ) : (
-                        <code className={className}>{children}</code>
-                      );
-                    },
-                    pre: ({ children }) => (
-                      <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-4">
-                        {children}
-                      </pre>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc list-inside space-y-2 my-4">{children}</ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal list-inside space-y-2 my-4">{children}</ol>
-                    ),
-                    hr: () => <hr className="my-8 border-border" />,
-                  }}
-                >
-                  {runbooksMarkdown}
-                </ReactMarkdown>
+                <LazyMarkdown>{runbooksMarkdown}</LazyMarkdown>
               </div>
             </CardContent>
           </Card>

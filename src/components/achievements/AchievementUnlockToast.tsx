@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 import { X, Sparkles, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -62,12 +62,12 @@ export const AchievementUnlockToast = () => {
 
     // Confetti based on rarity
     const confettiConfig = getConfettiConfig(rarity);
-    confetti(confettiConfig);
+    fireConfetti(confettiConfig);
 
     // Additional animation for legendary/quantum
     if (rarity === 'legendary' || rarity === 'quantum') {
-      setTimeout(() => confetti(confettiConfig), 200);
-      setTimeout(() => confetti(confettiConfig), 400);
+      setTimeout(() => fireConfetti(confettiConfig), 200);
+      setTimeout(() => fireConfetti(confettiConfig), 400);
     }
   };
 

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { logErrorToDatabase } from '@/utils/errorReporting';
-import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
@@ -30,13 +29,15 @@ export class RouteErrorBoundary extends Component<Props, State> {
       componentStack: errorInfo.componentStack
     });
     
-    // Capture in Sentry with component stack
-    Sentry.captureException(error, {
-      extra: {
-        componentStack: errorInfo.componentStack,
-        errorType: 'route_chunk_load',
-      },
-    });
+    // Dynamically import Sentry to avoid pulling ~150KB into root chunk
+    import('@sentry/react').then((Sentry) => {
+      Sentry.captureException(error, {
+        extra: {
+          componentStack: errorInfo.componentStack,
+          errorType: 'route_chunk_load',
+        },
+      });
+    }).catch(() => {});
     
     // Enhanced error reporting
     logErrorToDatabase(error, 'error', 'RouteErrorBoundary', {
