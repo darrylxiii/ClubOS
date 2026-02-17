@@ -36,6 +36,8 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTaskCompletion } from "@/hooks/useTaskCompletion";
+import { TaskCompletionFeedbackModal } from "./TaskCompletionFeedbackModal";
 
 interface UnifiedTask {
   id: string;
@@ -89,6 +91,13 @@ export const UnifiedTaskBoard = ({
   const [selectedTask, setSelectedTask] = useState<UnifiedTask | null>(null);
   const [activeTask, setActiveTask] = useState<UnifiedTask | null>(null);
   const [groupBy, setGroupBy] = useState<'status' | 'assignee'>('status');
+
+  const { requestComplete, feedbackModalProps } = useTaskCompletion({
+    onCompleted: () => {
+      loadTasks();
+      onRefresh();
+    },
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -187,6 +196,13 @@ export const UnifiedTaskBoard = ({
   };
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
+    // If moving to completed, open debrief modal
+    if (newStatus === 'completed') {
+      const task = tasks.find((t) => t.id === taskId);
+      requestComplete(taskId, task?.title || "Task");
+      return;
+    }
+
     // Optimistically update UI
     setTasks(prev =>
       prev.map(task =>
@@ -199,7 +215,7 @@ export const UnifiedTaskBoard = ({
         .from("unified_tasks")
         .update({
           status: newStatus,
-          completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+          completed_at: null,
         })
         .eq("id", taskId);
 
@@ -210,7 +226,6 @@ export const UnifiedTaskBoard = ({
     } catch (error) {
       console.error("Error updating task:", error);
       toast.error("Failed to update task");
-      // Revert on error
       loadTasks();
     }
   };
@@ -233,6 +248,7 @@ export const UnifiedTaskBoard = ({
   };
 
   return (
+    <>
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
@@ -337,5 +353,8 @@ export const UnifiedTaskBoard = ({
         )}
       </DragOverlay>
     </DndContext>
+
+    <TaskCompletionFeedbackModal {...feedbackModalProps} />
+    </>
   );
 };

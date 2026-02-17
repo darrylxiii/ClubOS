@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useTaskCompletion } from "@/hooks/useTaskCompletion";
+import { TaskCompletionFeedbackModal } from "@/components/unified-tasks/TaskCompletionFeedbackModal";
 
 interface Task {
   id: string;
@@ -19,6 +21,12 @@ export const ClubPilotTasksWidget = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const { requestComplete, feedbackModalProps } = useTaskCompletion({
+    onCompleted: (taskId) => {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    },
+  });
 
   useEffect(() => {
     if (user) {
@@ -52,19 +60,6 @@ export const ClubPilotTasksWidget = () => {
     }
   };
 
-  const handleCompleteTask = async (taskId: string) => {
-    try {
-      await supabase
-        .from('pilot_tasks')
-        .update({ status: 'completed', completed_at: new Date().toISOString() })
-        .eq('id', taskId);
-
-      setTasks(tasks.filter(t => t.id !== taskId));
-    } catch (error) {
-      console.error('Error completing task:', error);
-    }
-  };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'bg-red-500/20 text-red-500';
@@ -87,49 +82,53 @@ export const ClubPilotTasksWidget = () => {
   }
 
   return (
-    <Card className="glass-subtle rounded-2xl">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="h-5 w-5 text-primary" />
-          Club Pilot Tasks
-          <Badge variant="secondary" className="ml-auto text-xs">AI Suggested</Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {tasks.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">
-            <CheckCircle className="h-10 w-10 mx-auto mb-2 text-green-500/50" />
-            <p className="text-sm">All caught up! No pending tasks.</p>
-          </div>
-        ) : (
-          <div className="space-y-2 mb-4">
-            {tasks.map(task => (
-              <div
-                key={task.id}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 group transition-colors"
-              >
-                <button
-                  onClick={() => handleCompleteTask(task.id)}
-                  className="text-muted-foreground hover:text-green-500 transition-colors"
+    <>
+      <Card className="glass-subtle rounded-2xl">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Club Pilot Tasks
+            <Badge variant="secondary" className="ml-auto text-xs">AI Suggested</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tasks.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              <CheckCircle className="h-10 w-10 mx-auto mb-2 text-green-500/50" />
+              <p className="text-sm">All caught up. No pending tasks.</p>
+            </div>
+          ) : (
+            <div className="space-y-2 mb-4">
+              {tasks.map(task => (
+                <div
+                  key={task.id}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 group transition-colors"
                 >
-                  <Circle className="h-5 w-5" />
-                </button>
-                <span className="flex-1 text-sm line-clamp-1">{task.title}</span>
-                <Badge variant="outline" className={`text-xs ${getPriorityColor(task.priority)}`}>
-                  {task.priority}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        )}
+                  <button
+                    onClick={() => requestComplete(task.id, task.title)}
+                    className="text-muted-foreground hover:text-green-500 transition-colors"
+                  >
+                    <Circle className="h-5 w-5" />
+                  </button>
+                  <span className="flex-1 text-sm line-clamp-1">{task.title}</span>
+                  <Badge variant="outline" className={`text-xs ${getPriorityColor(task.priority)}`}>
+                    {task.priority}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
 
-        <Button asChild variant="outline" size="sm" className="w-full">
-          <Link to="/club-pilot">
-            <ArrowRight className="h-4 w-4 mr-2" />
-            View All Tasks
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link to="/club-pilot">
+              <ArrowRight className="h-4 w-4 mr-2" />
+              View All Tasks
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <TaskCompletionFeedbackModal {...feedbackModalProps} />
+    </>
   );
 };

@@ -47354,6 +47354,56 @@ export type Database = {
           },
         ]
       }
+      task_completion_feedback: {
+        Row: {
+          blockers: string[] | null
+          completed_at: string
+          difficulty_rating: number | null
+          id: string
+          improvement_suggestions: string[] | null
+          notes: string | null
+          outcome_rating: number | null
+          skipped: boolean
+          task_id: string
+          time_spent_minutes: number | null
+          user_id: string
+        }
+        Insert: {
+          blockers?: string[] | null
+          completed_at?: string
+          difficulty_rating?: number | null
+          id?: string
+          improvement_suggestions?: string[] | null
+          notes?: string | null
+          outcome_rating?: number | null
+          skipped?: boolean
+          task_id: string
+          time_spent_minutes?: number | null
+          user_id: string
+        }
+        Update: {
+          blockers?: string[] | null
+          completed_at?: string
+          difficulty_rating?: number | null
+          id?: string
+          improvement_suggestions?: string[] | null
+          notes?: string | null
+          outcome_rating?: number | null
+          skipped?: boolean
+          task_id?: string
+          time_spent_minutes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completion_feedback_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_dependencies: {
         Row: {
           created_at: string
