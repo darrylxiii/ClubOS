@@ -17,7 +17,8 @@ import {
   Target,
   Grid3x3,
   Plus,
-  BarChart3
+  BarChart3,
+  GanttChart
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TaskBoardProvider } from "@/contexts/TaskBoardContext";
@@ -40,6 +41,8 @@ import { BoardContextHeader } from "@/components/task-boards/BoardContextHeader"
 import { TaskToolbar } from "@/components/unified-tasks/TaskToolbar";
 import { QuickAddTask } from "@/components/unified-tasks/QuickAddTask";
 import { TaskAnalyticsDashboard } from "@/components/unified-tasks/TaskAnalyticsDashboard";
+import { TaskTimelineView } from "@/components/unified-tasks/TaskTimelineView";
+import { DueDateReminder } from "@/components/unified-tasks/DueDateReminder";
 
 interface SystemPreferences {
   active_system: string;
@@ -356,7 +359,7 @@ const UnifiedTasks = () => {
 
               {/* Task Views */}
               <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-                <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-6' : 'grid-cols-5'} lg:w-auto`}>
+                <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-7' : 'grid-cols-6'} lg:w-auto`}>
                   <TabsTrigger value="board" className="gap-2">
                     <LayoutDashboard className="h-4 w-4" />
                     <span className="hidden sm:inline">Board</span>
@@ -374,6 +377,10 @@ const UnifiedTasks = () => {
                   <TabsTrigger value="calendar" className="gap-2">
                     <Calendar className="h-4 w-4" />
                     <span className="hidden sm:inline">Calendar</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="timeline" className="gap-2">
+                    <GanttChart className="h-4 w-4" />
+                    <span className="hidden sm:inline">Timeline</span>
                   </TabsTrigger>
                   <TabsTrigger value="analytics" className="gap-2">
                     <BarChart3 className="h-4 w-4" />
@@ -418,8 +425,15 @@ const UnifiedTasks = () => {
                   />
                 </TabsContent>
 
+                <TabsContent value="timeline" className="space-y-4">
+                  <TaskTimelineView
+                    objectiveId={selectedObjective}
+                    onRefresh={handleRefresh}
+                  />
+                </TabsContent>
+
                 <TabsContent value="analytics" className="space-y-4">
-                  <TaskAnalyticsDashboard />
+                  <TaskAnalyticsDashboard objectiveId={selectedObjective} />
                 </TabsContent>
 
                 <TabsContent value="ai-scheduling" className="space-y-4">
@@ -429,6 +443,9 @@ const UnifiedTasks = () => {
             </div>
 
             {/* Quick Add (Cmd+K) */}
+            {/* Due date reminder toasts */}
+            <DueDateReminder />
+
             <QuickAddTask 
               objectiveId={selectedObjective} 
               onTaskCreated={handleRefresh} 

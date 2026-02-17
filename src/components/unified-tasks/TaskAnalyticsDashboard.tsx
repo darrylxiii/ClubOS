@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { TaskBurndownChart } from "./TaskBurndownChart";
 import { TeamWorkloadView } from "./TeamWorkloadView";
+import { EstimationVsActualChart } from "./EstimationVsActualChart";
 import { 
   TrendingUp, 
   CheckCircle2, 
@@ -202,6 +203,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
         <TabsList>
           <TabsTrigger value="burndown">Burndown</TabsTrigger>
           <TabsTrigger value="workload">Team Workload</TabsTrigger>
+          <TabsTrigger value="estimation">Est. vs Actual</TabsTrigger>
           <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
         </TabsList>
 
@@ -211,6 +213,10 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
 
         <TabsContent value="workload">
           <TeamWorkloadView objectiveId={objectiveId} />
+        </TabsContent>
+
+        <TabsContent value="estimation">
+          <EstimationVsActualChart objectiveId={objectiveId} />
         </TabsContent>
 
         <TabsContent value="breakdown">

@@ -27,9 +27,9 @@ export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: Unified
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case 'high': return 'bg-red-500/10 text-red-600 border-red-200/20';
-            case 'medium': return 'bg-yellow-500/10 text-yellow-600 border-yellow-200/20';
-            default: return 'bg-blue-500/10 text-blue-600 border-blue-200/20';
+            case 'high': return 'bg-destructive/10 text-destructive border-destructive/20';
+            case 'medium': return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
+            default: return 'bg-primary/10 text-primary border-primary/20';
         }
     };
 
@@ -65,7 +65,7 @@ export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: Unified
 
                     <div className="flex items-center gap-1">
                         {task.task_type === 'meeting' && (
-                            <div className="p-1 rounded-md bg-purple-500/10 text-purple-500" title="Meeting">
+                            <div className="p-1 rounded-md bg-purple-500/10 text-purple-500 dark:text-purple-400" title="Meeting">
                                 <UsersIcon className="h-3 w-3" />
                             </div>
                         )}
@@ -84,7 +84,7 @@ export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: Unified
                 {(task.project_tag || task.objective_tag) && (
                     <div className="flex items-center gap-1.5 mb-3">
                         {task.project_tag && (
-                            <Badge variant="secondary" className="max-w-[100px] truncate text-[10px] h-5 bg-blue-500/5 text-blue-600 hover:bg-blue-500/10 border-blue-200/10 gap-1 px-1.5">
+                            <Badge variant="secondary" className="max-w-[100px] truncate text-[10px] h-5 bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 gap-1 px-1.5">
                                 <Briefcase className="h-3 w-3" />
                                 {task.project_tag}
                             </Badge>
