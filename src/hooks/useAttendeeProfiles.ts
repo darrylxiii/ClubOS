@@ -9,6 +9,21 @@ export interface AttendeeProfile {
 
 export type AttendeeProfileMap = Map<string, AttendeeProfile>;
 
+/** Replace Gravatar `d=mp` with `d=404` so placeholders 404 and trigger initials fallback. */
+function sanitizeGravatarUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('gravatar.com')) {
+      u.searchParams.set('d', '404');
+      return u.toString();
+    }
+  } catch {
+    // not a valid URL, return as-is
+  }
+  return url;
+}
+
 export function useAttendeeProfiles(emails: string[]) {
   const uniqueEmails = useMemo(() => {
     const set = new Set(emails.map((e) => e.toLowerCase().trim()).filter(Boolean));
@@ -24,7 +39,7 @@ export function useAttendeeProfiles(emails: string[]) {
 
       const map: AttendeeProfileMap = new Map();
 
-      // Query 1: profiles table (highest priority)
+      // Query 1: profiles table (highest priority — direct email match)
       const { data: profiles } = await supabase
         .from('profiles')
         .select('email, full_name, avatar_url')
@@ -41,22 +56,55 @@ export function useAttendeeProfiles(emails: string[]) {
         }
       }
 
-      // Query 2: emails table for unresolved addresses
-      const unresolvedEmails = uniqueEmails.filter((e) => !map.has(e));
-      if (unresolvedEmails.length > 0) {
+      // Query 2: calendar_connections → profiles (resolves calendar emails to user avatars)
+      const unresolvedAfterProfiles = uniqueEmails.filter((e) => !map.has(e));
+      if (unresolvedAfterProfiles.length > 0) {
+        const { data: connections } = await supabase
+          .from('calendar_connections')
+          .select('email, user_id')
+          .in('email', unresolvedAfterProfiles);
+
+        if (connections && connections.length > 0) {
+          // Get unique user_ids to fetch their profiles
+          const userIds = [...new Set(connections.map((c) => c.user_id))];
+          const { data: connProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', userIds);
+
+          if (connProfiles) {
+            const profileById = new Map(connProfiles.map((p) => [p.id, p]));
+            for (const conn of connections) {
+              const key = conn.email.toLowerCase();
+              if (!map.has(key)) {
+                const prof = profileById.get(conn.user_id);
+                if (prof) {
+                  map.set(key, {
+                    avatar_url: prof.avatar_url ?? null,
+                    full_name: prof.full_name ?? null,
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Query 3: emails table for still-unresolved addresses (Gmail sync / Gravatar)
+      const unresolvedAfterConnections = uniqueEmails.filter((e) => !map.has(e));
+      if (unresolvedAfterConnections.length > 0) {
         const { data: emailRecords } = await supabase
           .from('emails')
           .select('from_email, from_name, from_avatar_url')
-          .in('from_email', unresolvedEmails);
+          .in('from_email', unresolvedAfterConnections);
 
         if (emailRecords) {
-          // Deduplicate: first record per from_email wins
           for (const rec of emailRecords) {
             if (rec.from_email) {
               const key = rec.from_email.toLowerCase();
               if (!map.has(key)) {
                 map.set(key, {
-                  avatar_url: rec.from_avatar_url ?? null,
+                  avatar_url: sanitizeGravatarUrl(rec.from_avatar_url),
                   full_name: rec.from_name ?? null,
                 });
               }
