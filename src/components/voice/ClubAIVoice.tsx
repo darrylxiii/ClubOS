@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useClubAIVoice } from '@/hooks/useClubAIVoice';
 import { ClubAIVoiceDialog } from './ClubAIVoiceDialog';
 import { ClubAIWaveform } from './ClubAIWaveform';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const ClubAIVoice = () => {

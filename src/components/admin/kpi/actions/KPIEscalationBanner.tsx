@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertTriangle, ArrowRight, Clock, X } from 'lucide-react';
 import { useKPIActions, KPIImprovementAction } from '@/hooks/useKPIOwnership';
 import { formatDistanceToNow, isPast, differenceInDays } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 interface KPIEscalationBannerProps {
   onDismiss?: () => void;

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion, useSpring, useTransform } from '@/lib/motion';
 import { TrendingUp, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

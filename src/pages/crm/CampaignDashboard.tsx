@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { 
   Search, 
   Plus, 

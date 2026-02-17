@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Monitor, MonitorOff, Eye, Maximize2, Minimize2, GripVertical } from 'lucide-react';
-import { motion, useDragControls } from 'framer-motion';
+import { motion, useDragControls } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { meetingZIndex, meetingShadows, meetingBackdrop } from '@/config/meeting-design-tokens';
 

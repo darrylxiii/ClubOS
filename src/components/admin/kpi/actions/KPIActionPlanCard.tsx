@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useKPIActions, KPIImprovementAction } from '@/hooks/useKPIOwnership';
 import { formatDistanceToNow, format, isPast, isToday } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 interface KPIActionPlanCardProps {
   showOnlyMine?: boolean;

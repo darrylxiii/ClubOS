@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { Trophy, Sparkles, PartyPopper, X } from 'lucide-react';
 import { fireConfetti } from '@/utils/fireConfetti';
 import { cn } from '@/lib/utils';

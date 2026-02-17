@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { 
   Trophy, TrendingUp, Target, Coins, Award, 
   ArrowUp, ChevronRight, Sparkles, Medal

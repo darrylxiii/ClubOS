@@ -55,7 +55,7 @@ import {
   Wallet,
   Package,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import {
   milestoneSchema,
   MilestoneFormData,

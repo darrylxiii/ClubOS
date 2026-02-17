@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { 
   Wrench, Heart, Building2, Banknote, 
   ChevronRight, ChevronLeft, Zap, Target, Users, Sparkles,

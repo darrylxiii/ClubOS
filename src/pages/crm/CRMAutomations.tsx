@@ -3,7 +3,7 @@ import { RoleGate } from '@/components/RoleGate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CRMAutomationBuilder } from '@/components/crm/CRMAutomationBuilder';
 import { CRMAutomationLogs } from '@/components/crm/CRMAutomationLogs';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { Zap, History } from 'lucide-react';
 
 export default function CRMAutomations() {

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { DollarSign, EyeOff } from 'lucide-react';
 import { candidateProfileTokens } from '@/config/candidate-profile-tokens';
 import { formatCurrencyCompact, type SupportedCurrency } from '@/lib/currency';

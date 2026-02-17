@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, X, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAggregatedHiringIntelligence } from '@/hooks/useAggregatedHiringIntelligence';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 interface JobsAIBannerProps {
   companyId?: string;

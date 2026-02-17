@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { TrendingUp, Target, Users, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useCRMActivities } from '@/hooks/useCRMActivities';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';

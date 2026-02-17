@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Users, TrendingUp, Target, Euro, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { useMultiHirePipelineMetrics, formatCurrencyCompact, formatCurrencyFull } from '@/hooks/useMultiHirePipelineMetrics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';

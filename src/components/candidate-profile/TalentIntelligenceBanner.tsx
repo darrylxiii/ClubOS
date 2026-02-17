@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { Sparkles, Eye, EyeOff, TrendingUp, Search, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { TierBadge, MoveProbabilityBadge } from '@/components/talent-pool/TierBadge';

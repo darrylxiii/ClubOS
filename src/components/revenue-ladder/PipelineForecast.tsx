@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { 
   TrendingUp, Calendar, Target, Gauge, 
   ArrowRight, Zap, Clock, BarChart3 

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { Circle, Users, Clock, Grid, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {

@@ -1,7 +1,7 @@
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { AlertTriangle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 export function MaintenanceModeBanner() {
   const { config, isMaintenanceMode } = useMaintenanceMode();

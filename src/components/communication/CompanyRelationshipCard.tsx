@@ -1,5 +1,5 @@
 import { format, formatDistanceToNow } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { 
   TrendingUp, TrendingDown, Clock, MessageSquare, AlertTriangle, 
   CheckCircle, XCircle, Mail, Building2, Briefcase, Users, ExternalLink

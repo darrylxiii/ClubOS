@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { WifiOff, Cloud, CloudOff } from 'lucide-react';
 
 interface OfflineIndicatorProps {

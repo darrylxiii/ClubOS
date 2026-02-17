@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Eye, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useImpersonation } from '@/hooks/useImpersonation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { format, differenceInMinutes } from 'date-fns';
 
 export function ImpersonationBanner() {

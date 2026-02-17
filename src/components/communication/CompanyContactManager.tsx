@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { 
   UserPlus, Mail, Phone, Briefcase, Star, StarOff, 
   Trash2, Edit2, Save, X, Globe, Plus, AlertCircle 

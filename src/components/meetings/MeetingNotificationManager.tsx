@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from '@/lib/motion';
 import { supabase } from '@/integrations/supabase/client';
 import { MeetingInvitationCard } from './MeetingInvitationCard';
 import { notificationSoundManager } from '@/lib/sounds/NotificationSoundManager';

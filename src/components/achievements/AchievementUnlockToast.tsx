@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { fireConfetti } from '@/utils/fireConfetti';
 import { X, Sparkles, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
