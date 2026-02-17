@@ -47681,6 +47681,51 @@ export type Database = {
         }
         Relationships: []
       }
+      task_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          default_estimated_minutes: number | null
+          default_labels: string[] | null
+          default_priority: string | null
+          default_task_type: string | null
+          description: string | null
+          id: string
+          is_shared: boolean | null
+          name: string
+          template_data: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          default_estimated_minutes?: number | null
+          default_labels?: string[] | null
+          default_priority?: string | null
+          default_task_type?: string | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          template_data?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          default_estimated_minutes?: number | null
+          default_labels?: string[] | null
+          default_priority?: string | null
+          default_task_type?: string | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          template_data?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           application_id: string | null

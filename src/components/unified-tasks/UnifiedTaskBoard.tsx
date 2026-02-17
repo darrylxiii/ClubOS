@@ -14,7 +14,8 @@ import {
   Lock,
   Unlock,
   Briefcase,
-  User
+  User,
+  XCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -81,6 +82,7 @@ const STATUS_COLUMNS = [
   { key: "in_progress", label: "In Progress", icon: Rocket, color: "bg-amber-500/20 border-amber-500/50" },
   { key: "on_hold", label: "On Hold", icon: Pause, color: "bg-blue-500/20 border-blue-500/50" },
   { key: "completed", label: "Completed", icon: CheckCircle2, color: "bg-green-500/20 border-green-500/50" },
+  { key: "cancelled", label: "Cancelled", icon: XCircle, color: "bg-muted border-muted-foreground/30" },
 ];
 
 export const UnifiedTaskBoard = ({
@@ -366,9 +368,10 @@ export const UnifiedTaskBoard = ({
           </div>
         </div>
 
-        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto pb-4">
+        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto pb-4">
           {loading ? (
             <>
+              <BoardColumnSkeleton />
               <BoardColumnSkeleton />
               <BoardColumnSkeleton />
               <BoardColumnSkeleton />

@@ -14,6 +14,8 @@ import {
 import { TaskSearchBar } from "./TaskSearchBar";
 import { BulkTaskActions } from "./BulkTaskActions";
 import { SavedFilterPresets } from "./SavedFilterPresets";
+import { TaskCSVExport } from "./TaskCSVExport";
+import { TaskTemplates } from "./TaskTemplates";
 import { useUnifiedTasks } from "@/contexts/UnifiedTasksContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -136,6 +138,12 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
               setSearchQuery(query);
             }}
           />
+
+          {/* CSV export */}
+          <TaskCSVExport />
+
+          {/* Task templates */}
+          <TaskTemplates onApply={() => {}} />
 
           <Separator orientation="vertical" className="h-8" />
 
