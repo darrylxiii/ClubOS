@@ -1,6 +1,5 @@
-// Initialize Sentry first, before any other imports
-import { initSentry } from "@/lib/sentry";
-initSentry();
+// Lazy-load Sentry to reduce initial bundle size (~150KB)
+import("@/lib/sentry").then(({ initSentry }) => initSentry()).catch(() => {});
 
 import { TracingProvider } from "@/lib/tracing/TracingProvider";
 import { Toaster } from "@/components/ui/toaster";
@@ -114,11 +113,11 @@ const SupportTicketList = lazy(() => import("./pages/support/SupportTicketList")
 const SupportTicketNew = lazy(() => import("./pages/support/SupportTicketNew"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 
-// Password Reset Pages
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPasswordVerify from "./pages/ResetPasswordVerify";
-import ResetPasswordMagicLink from "./pages/ResetPasswordMagicLink";
-import ResetPasswordNew from "./pages/ResetPasswordNew";
+// Password Reset Pages (lazy-loaded to reduce main chunk)
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPasswordVerify = lazy(() => import("./pages/ResetPasswordVerify"));
+const ResetPasswordMagicLink = lazy(() => import("./pages/ResetPasswordMagicLink"));
+const ResetPasswordNew = lazy(() => import("./pages/ResetPasswordNew"));
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));
@@ -278,22 +277,30 @@ const App = () => {
                 } />
                 <Route path="/forgot-password" element={
                   <PublicProviders>
-                    <RouteErrorBoundary><ForgotPassword /></RouteErrorBoundary>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><ForgotPassword /></Suspense>
+                    </RouteErrorBoundary>
                   </PublicProviders>
                 } />
                 <Route path="/reset-password/verify" element={
                   <PublicProviders>
-                    <RouteErrorBoundary><ResetPasswordVerify /></RouteErrorBoundary>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><ResetPasswordVerify /></Suspense>
+                    </RouteErrorBoundary>
                   </PublicProviders>
                 } />
                 <Route path="/reset-password/verify-token" element={
                   <PublicProviders>
-                    <RouteErrorBoundary><ResetPasswordMagicLink /></RouteErrorBoundary>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><ResetPasswordMagicLink /></Suspense>
+                    </RouteErrorBoundary>
                   </PublicProviders>
                 } />
                 <Route path="/reset-password/new" element={
                   <PublicProviders>
-                    <RouteErrorBoundary><ResetPasswordNew /></RouteErrorBoundary>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><ResetPasswordNew /></Suspense>
+                    </RouteErrorBoundary>
                   </PublicProviders>
                 } />
 

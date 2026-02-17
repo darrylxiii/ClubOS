@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -8,20 +9,7 @@ import {
   Target,
   AlertTriangle
 } from "lucide-react";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line
-} from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 
 interface ApplicationsAnalyticsProps {
   applications: any[];
@@ -29,6 +17,8 @@ interface ApplicationsAnalyticsProps {
 }
 
 export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyticsProps) => {
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
+
   // Calculate conversion rates by stage
   const stageConversion = applications.reduce((acc: any, app) => {
     const stage = app.stages?.[app.current_stage_index]?.name || 'Unknown';
@@ -41,7 +31,6 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
     count
   }));
 
-  // Applications by source
   const sourceData = applications.reduce((acc: any, app) => {
     const source = app.candidate_profiles?.source_channel || 'Direct';
     acc[source] = (acc[source] || 0) + 1;
@@ -53,7 +42,6 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
     value
   }));
 
-  // Time to hire metrics
   const hiredApps = applications.filter(a => a.status === 'hired');
   const avgTimeToHire = hiredApps.length > 0 
     ? hiredApps.reduce((sum, app) => {
@@ -62,12 +50,10 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
       }, 0) / hiredApps.length
     : 0;
 
-  // Bottleneck detection
   const bottlenecks = stageData
     .filter(s => (s.count as number) > applications.length * 0.3)
     .sort((a, b) => (b.count as number) - (a.count as number));
 
-  // Applications trend (last 30 days)
   const last30Days = Array.from({ length: 30 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (29 - i));
@@ -82,6 +68,12 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
   }));
 
   const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+
+  if (rechartsLoading || !recharts) {
+    return <Skeleton className="h-[400px] w-full" />;
+  }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } = recharts;
 
   return (
     <div className="space-y-6">
@@ -172,7 +164,6 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Applications by Stage */}
         <Card>
           <CardHeader>
             <CardTitle>Pipeline Distribution</CardTitle>
@@ -190,7 +181,6 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
           </CardContent>
         </Card>
 
-        {/* Applications by Source */}
         <Card>
           <CardHeader>
             <CardTitle>Source Breakdown</CardTitle>

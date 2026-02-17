@@ -1,22 +1,23 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, MousePointer, Eye, TrendingUp } from "lucide-react";
 
 export default function EngagementAnalyticsTab() {
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
+
   const { data: engagementData } = useQuery({
     queryKey: ['engagement-analytics'],
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       
-      // Try dedicated analytics table first
       const { data: pageAnalytics } = await supabase
         .from('user_page_analytics')
         .select('*')
         .gte('entry_timestamp', sevenDaysAgo);
 
-      // Fallback to session events if no page analytics
       let pageMetrics: any = {};
       
       if (pageAnalytics && pageAnalytics.length > 0) {
@@ -40,7 +41,6 @@ export default function EngagementAnalyticsTab() {
           return acc;
         }, {});
       } else {
-        // Fallback: calculate from session events
         const { data: sessionEvents } = await supabase
           .from('user_session_events')
           .select('page_path, event_timestamp, event_type, metadata')
@@ -87,6 +87,12 @@ export default function EngagementAnalyticsTab() {
     },
     refetchInterval: 60000
   });
+
+  if (rechartsLoading || !recharts) {
+    return <Skeleton className="h-[400px] w-full" />;
+  }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } = recharts;
 
   return (
     <div className="space-y-6">

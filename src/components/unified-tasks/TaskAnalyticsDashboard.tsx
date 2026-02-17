@@ -2,19 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
-} from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { TaskBurndownChart } from "./TaskBurndownChart";
 import { TeamWorkloadView } from "./TeamWorkloadView";
 import { EstimationVsActualChart } from "./EstimationVsActualChart";
@@ -26,6 +14,7 @@ import {
   Target,
   Loader2
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TaskStats {
   total: number;
@@ -53,6 +42,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
   const [priorityData, setPriorityData] = useState<any[]>([]);
   const [statusData, setStatusData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   useEffect(() => {
     loadAnalytics();
@@ -73,7 +63,6 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
 
       if (error) throw error;
 
-      // Calculate stats
       const total = tasks?.length || 0;
       const completed = tasks?.filter(t => t.status === 'completed').length || 0;
       const inProgress = tasks?.filter(t => t.status === 'in_progress').length || 0;
@@ -81,16 +70,15 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
       const onHold = tasks?.filter(t => t.status === 'on_hold').length || 0;
       const overdue = tasks?.filter(t => t.is_overdue).length || 0;
 
-      // Calculate avg completion time
       const completedTasks = tasks?.filter(t => t.completed_at && t.created_at) || [];
       let avgTime = 0;
       if (completedTasks.length > 0) {
         const totalTime = completedTasks.reduce((acc, t) => {
           const created = new Date(t.created_at).getTime();
-          const completed = new Date(t.completed_at!).getTime();
-          return acc + (completed - created);
+          const completedTime = new Date(t.completed_at!).getTime();
+          return acc + (completedTime - created);
         }, 0);
-        avgTime = totalTime / completedTasks.length / (1000 * 60 * 60 * 24); // days
+        avgTime = totalTime / completedTasks.length / (1000 * 60 * 60 * 24);
       }
 
       setStats({
@@ -103,7 +91,6 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
         avgCompletionTime: Math.round(avgTime * 10) / 10
       });
 
-      // Priority breakdown
       const highPriority = tasks?.filter(t => t.priority === 'high').length || 0;
       const mediumPriority = tasks?.filter(t => t.priority === 'medium').length || 0;
       const lowPriority = tasks?.filter(t => t.priority === 'low').length || 0;
@@ -114,7 +101,6 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
         { name: 'Low', value: lowPriority, color: '#22c55e' }
       ]);
 
-      // Status breakdown
       setStatusData([
         { name: 'Completed', value: completed, color: STATUS_COLORS.completed },
         { name: 'In Progress', value: inProgress, color: STATUS_COLORS.in_progress },
@@ -136,6 +122,12 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
       </div>
     );
   }
+
+  if (rechartsLoading || !recharts) {
+    return <Skeleton className="h-[400px] w-full" />;
+  }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = recharts;
 
   return (
     <div className="space-y-6">

@@ -16,7 +16,7 @@ export default defineConfig(({ mode, command }) => ({
     // Limit entries to reduce initial scan
     entries: ['src/main.tsx'],
     // Force pre-bundling for CJS/ESM compatibility issues
-    include: ['extend'],
+    include: [],
     // Exclude heavy libraries from pre-bundling
     exclude: ['mermaid', 'katex', '@blocknote/core', '@blocknote/react'],
   },

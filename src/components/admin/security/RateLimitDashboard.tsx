@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { format, subHours, subDays } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -33,6 +33,7 @@ export const RateLimitDashboard = () => {
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [ipFilter, setIpFilter] = useState("");
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const { data: analytics, isLoading } = useQuery({
     queryKey: ['rate-limit-analytics', timeRange],
@@ -85,7 +86,6 @@ export const RateLimitDashboard = () => {
   const blockRate = stats?.totalRequests ? ((stats.blockedRequests / stats.totalRequests) * 100).toFixed(2) : '0';
   const isUnderAttack = parseFloat(blockRate) > 10;
 
-  // Time series data for chart
   const timeSeriesData = analytics?.reduce((acc, item) => {
     const key = `${item.date}-${item.hour}`;
     if (!acc[key]) {
@@ -98,7 +98,6 @@ export const RateLimitDashboard = () => {
 
   const chartData = Object.values(timeSeriesData || {}).slice(-24);
 
-  // Endpoint breakdown
   const endpointBreakdown = analytics?.reduce((acc, item) => {
     if (!acc[item.endpoint]) {
       acc[item.endpoint] = { endpoint: item.endpoint, total: 0, blocked: 0 };
@@ -112,7 +111,6 @@ export const RateLimitDashboard = () => {
     .sort((a, b) => b.blocked - a.blocked)
     .slice(0, 10);
 
-  // Top IPs
   const allTopIps = analytics?.flatMap(a => a.top_ips || []) || [];
   const ipAggregation = allTopIps.reduce((acc, item) => {
     if (!acc[item.ip]) acc[item.ip] = 0;
@@ -134,7 +132,7 @@ export const RateLimitDashboard = () => {
     toast.success(`IP ${ip} added to blacklist`);
   };
 
-  if (isLoading) {
+  if (isLoading || rechartsLoading || !recharts) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-32 w-full" />
@@ -142,6 +140,8 @@ export const RateLimitDashboard = () => {
       </div>
     );
   }
+
+  const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } = recharts;
 
   return (
     <div className="space-y-6">
@@ -262,7 +262,6 @@ export const RateLimitDashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Time Series Chart */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">Request Volume</CardTitle>
@@ -287,7 +286,6 @@ export const RateLimitDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Top Endpoints */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">Top Limited Endpoints</CardTitle>
@@ -314,7 +312,6 @@ export const RateLimitDashboard = () => {
 
       {/* Detailed Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top IPs */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -372,7 +369,6 @@ export const RateLimitDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Endpoint Details */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">Endpoint Details</CardTitle>

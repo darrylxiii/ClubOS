@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PERFORMANCE_THRESHOLDS, formatMetricValue, checkThreshold } from "@/utils/performanceBaselines";
+import { useRecharts } from "@/hooks/useRecharts";
 import { 
   Activity, 
   AlertTriangle, 
@@ -17,17 +18,6 @@ import {
   Zap
 } from "lucide-react";
 import { format, subDays, subHours } from "date-fns";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-} from "recharts";
 
 interface MetricSummary {
   metric_type: string;
@@ -45,6 +35,7 @@ interface ViolationSummary {
 
 export function PerformanceDashboard() {
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const getTimeRangeStart = () => {
     switch (timeRange) {
@@ -54,7 +45,6 @@ export function PerformanceDashboard() {
     }
   };
 
-  // Fetch metric summaries
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['performance-metrics-summary', timeRange],
     queryFn: async () => {
@@ -68,7 +58,6 @@ export function PerformanceDashboard() {
 
       if (error) throw error;
 
-      // Group and calculate statistics
       const rawData = (data as unknown) as { metric_type: string; value: number }[];
       const grouped = rawData.reduce((acc, row) => {
         if (!acc[row.metric_type]) {
@@ -97,7 +86,6 @@ export function PerformanceDashboard() {
     staleTime: 30000,
   });
 
-  // Fetch violation counts
   const { data: violations, isLoading: violationsLoading } = useQuery({
     queryKey: ['sla-violations-summary', timeRange],
     queryFn: async () => {
@@ -125,7 +113,6 @@ export function PerformanceDashboard() {
     staleTime: 30000,
   });
 
-  // Fetch recent metrics for chart
   const { data: chartData } = useQuery({
     queryKey: ['performance-metrics-chart', timeRange],
     queryFn: async () => {
@@ -140,8 +127,7 @@ export function PerformanceDashboard() {
 
       if (error) throw error;
 
-      // Group by time buckets
-      const bucketSize = timeRange === '1h' ? 5 : timeRange === '24h' ? 60 : 360; // minutes
+      const bucketSize = timeRange === '1h' ? 5 : timeRange === '24h' ? 60 : 360;
       const buckets = new Map<string, Record<string, number[]>>();
 
       (data as any[]).forEach((row) => {
@@ -190,6 +176,12 @@ export function PerformanceDashboard() {
 
   const warningCount = violations?.find(v => v.severity === 'warning')?.count || 0;
   const criticalCount = violations?.find(v => v.severity === 'critical')?.count || 0;
+
+  if (rechartsLoading || !recharts) {
+    return <Skeleton className="h-[600px] w-full" />;
+  }
+
+  const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = recharts;
 
   return (
     <div className="space-y-6">

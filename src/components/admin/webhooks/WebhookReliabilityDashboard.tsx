@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { format, subDays } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -49,6 +49,7 @@ interface WebhookStats {
 export const WebhookReliabilityDashboard = () => {
   const [selectedItem, setSelectedItem] = useState<WebhookDLQItem | null>(null);
   const queryClient = useQueryClient();
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const { data: dlqItems, isLoading: dlqLoading } = useQuery({
     queryKey: ['webhook-dlq'],
@@ -169,7 +170,7 @@ export const WebhookReliabilityDashboard = () => {
 
   const isLoading = dlqLoading || statsLoading;
 
-  if (isLoading) {
+  if (isLoading || rechartsLoading || !recharts) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-32 w-full" />
@@ -177,6 +178,8 @@ export const WebhookReliabilityDashboard = () => {
       </div>
     );
   }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = recharts;
 
   return (
     <div className="space-y-6">
@@ -274,7 +277,6 @@ export const WebhookReliabilityDashboard = () => {
                       const rate = endpoint.total ? (endpoint.success / endpoint.total) * 100 : 100;
                       const isHealthy = rate >= 99;
                       const isDegraded = rate >= 95 && rate < 99;
-                      const isUnhealthy = rate < 95;
 
                       return (
                         <TableRow key={idx}>
@@ -426,14 +428,9 @@ export const WebhookReliabilityDashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))'
-                    }}
-                  />
-                  <Bar dataKey="success" fill="hsl(var(--primary))" name="Successful" />
-                  <Bar dataKey="failed" fill="hsl(var(--destructive))" name="Failed" />
+                  <Tooltip />
+                  <Bar dataKey="success" fill="hsl(var(--primary))" name="Success" stackId="a" />
+                  <Bar dataKey="failed" fill="hsl(var(--destructive))" name="Failed" stackId="a" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

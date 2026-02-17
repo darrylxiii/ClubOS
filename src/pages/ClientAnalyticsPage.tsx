@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Clock, DollarSign, CheckCircle, TrendingUp, AlertCircle } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 
 const ClientAnalyticsPage = () => {
   const { user } = useAuth();
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ['client-projects-analytics', user?.id],
@@ -60,14 +61,12 @@ const ClientAnalyticsPage = () => {
   const totalProposalsReceived = proposals?.length || 0;
   const avgProposalsPerProject = totalProjects > 0 ? Math.round(totalProposalsReceived / totalProjects) : 0;
 
-  // Project status distribution
   const statusData = [
     { name: 'Open', value: openProjects, color: 'hsl(var(--primary))' },
     { name: 'In Progress', value: inProgressProjects, color: 'hsl(var(--accent))' },
     { name: 'Completed', value: completedProjects, color: 'hsl(142, 76%, 36%)' },
   ].filter(d => d.value > 0);
 
-  // Monthly spending (mock data - would come from real aggregation)
   const monthlySpending = [
     { month: 'Jan', amount: 2500 },
     { month: 'Feb', amount: 4200 },
@@ -79,7 +78,7 @@ const ClientAnalyticsPage = () => {
 
   const isLoading = projectsLoading || contractsLoading;
 
-  if (isLoading) {
+  if (isLoading || rechartsLoading || !recharts) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -89,6 +88,8 @@ const ClientAnalyticsPage = () => {
       </div>
     );
   }
+
+  const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } = recharts;
 
   return (
     <div className="container mx-auto p-6 space-y-6">

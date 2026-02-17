@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, Heart, Share2, Bookmark, TrendingUp, Clock, Users } from "lucide-react";
 import { TimeRangeSelector, TimeRange } from "./TimeRangeSelector";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StoryAnalytics() {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ export function StoryAnalytics() {
   });
   const [storiesData, setStoriesData] = useState<any[]>([]);
   const [engagementTrend, setEngagementTrend] = useState<any[]>([]);
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   useEffect(() => {
     if (user) {
@@ -33,7 +35,6 @@ export function StoryAnalytics() {
 
     const { start, end } = getDateRange();
 
-    // Fetch user's stories
     const { data: stories } = await supabase
       .from('stories')
       .select('id, created_at, media_type, caption')
@@ -56,7 +57,6 @@ export function StoryAnalytics() {
 
     const storyIds = stories.map(s => s.id);
 
-    // Fetch analytics for all stories - only required columns
     const [views, reactions, shares, saves] = await Promise.all([
       supabase.from('story_views' as any)
         .select('id, story_id, completed, watch_duration_seconds, viewed_at')
@@ -72,7 +72,6 @@ export function StoryAnalytics() {
         .in('story_id', storyIds) as any,
     ]);
 
-    // Calculate overall stats
     const totalViews = views.data?.length || 0;
     const totalReactions = reactions.data?.length || 0;
     const totalShares = shares.data?.length || 0;
@@ -93,7 +92,6 @@ export function StoryAnalytics() {
       completionRate: Math.round(completionRate),
     });
 
-    // Per-story data
     const storiesWithStats = stories.map(story => {
       const storyViews = views.data?.filter(v => v.story_id === story.id).length || 0;
       const storyReactions = reactions.data?.filter(r => r.story_id === story.id).length || 0;
@@ -112,7 +110,6 @@ export function StoryAnalytics() {
 
     setStoriesData(storiesWithStats);
 
-    // Engagement trend by day
     const dayMap = new Map<string, { views: number; reactions: number; shares: number }>();
     
     views.data?.forEach(v => {
@@ -169,6 +166,12 @@ export function StoryAnalytics() {
 
     return { start, end };
   };
+
+  if (rechartsLoading || !recharts) {
+    return <Skeleton className="h-[400px] w-full" />;
+  }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } = recharts;
 
   return (
     <div className="space-y-6">

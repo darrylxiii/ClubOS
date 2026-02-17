@@ -6,11 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
 import { Calendar, Download, TrendingUp, Users, Briefcase, CheckCircle } from "lucide-react";
 import { format, subDays } from "date-fns";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const EnhancedAnalytics = () => {
   const { companyId } = useRole();
   const [dateRange, setDateRange] = useState({ start: subDays(new Date(), 30), end: new Date() });
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const { data: snapshots } = useQuery({
     queryKey: ['analytics-snapshots', companyId, dateRange],
@@ -65,6 +67,12 @@ export const EnhancedAnalytics = () => {
     a.download = `analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
   };
+
+  if (rechartsLoading || !recharts) {
+    return <Skeleton className="h-[400px] w-full" />;
+  }
+
+  const { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } = recharts;
 
   return (
     <div className="space-y-6">
