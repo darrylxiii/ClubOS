@@ -179,6 +179,9 @@ export default function AvatarControlHub() {
                       const jobTitle = session.jobs?.title ?? '—';
                       const duration = getSessionDuration(session);
                       const anomaly = getAnomalyBadge(session);
+                      // Get the primary session_job for correction
+                      const sessionJobRows = session.linkedin_avatar_session_jobs ?? [];
+                      const primarySessionJob = sessionJobRows.find((sj: any) => sj.is_primary) ?? sessionJobRows[0];
 
                       return (
                         <div key={session.id} className="flex items-center gap-3 text-xs py-2 border-b border-border/50">
@@ -200,16 +203,16 @@ export default function AvatarControlHub() {
                             {new Date(session.started_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}{' '}
                             {new Date(session.started_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                          {session.status === 'completed' && (
+                          {session.status === 'completed' && primarySessionJob && (
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6 shrink-0"
                               onClick={() => setCorrectionTarget({
-                                sessionJobId: session.id, // will need actual session_job id
+                                sessionJobId: primarySessionJob.id,
                                 sessionId: session.id,
-                                originalMinutes: duration,
-                                jobTitle,
+                                originalMinutes: primarySessionJob.minutes_logged ?? duration,
+                                jobTitle: primarySessionJob.jobs?.title ?? jobTitle,
                               })}
                               title="Correct time"
                             >

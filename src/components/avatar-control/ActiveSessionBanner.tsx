@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { useActiveAvatarSession } from '@/hooks/useAvatarSessions';
-import { useSessionJobs, useAvailableJobs } from '@/hooks/useSessionJobs';
+import { useSessionJobs } from '@/hooks/useSessionJobs';
+import { CompanyJobSelector } from '@/components/avatar-control/CompanyJobSelector';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Radio, Clock, X, ArrowRightLeft, Briefcase, Check } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Radio, Clock, X, ArrowRightLeft, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 export function ActiveSessionBanner() {
   const { mySession, endSession } = useActiveAvatarSession();
   const { data: sessionJobs = [], switchJob } = useSessionJobs(mySession?.id);
-  const { data: jobs = [] } = useAvailableJobs();
   const [switchOpen, setSwitchOpen] = useState(false);
 
   if (!mySession) return null;
@@ -73,40 +71,16 @@ export function ActiveSessionBanner() {
         </div>
       </div>
 
-      {/* Switch Job Dialog */}
+      {/* Switch Job Dialog — Company-first */}
       <Dialog open={switchOpen} onOpenChange={setSwitchOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Switch Job</DialogTitle>
           </DialogHeader>
-          <Command>
-            <CommandInput placeholder="Search jobs…" />
-            <CommandList>
-              <CommandEmpty>No jobs found.</CommandEmpty>
-              <CommandGroup>
-                {jobs.map(job => {
-                  const isCurrent = job.id === currentSessionJob?.job_id;
-                  return (
-                    <CommandItem
-                      key={job.id}
-                      value={`${job.title} ${job.companies?.name ?? ''}`}
-                      onSelect={() => { if (!isCurrent) handleSwitchJob(job.id); }}
-                      disabled={isCurrent}
-                    >
-                      <Check className={cn('mr-2 h-4 w-4', isCurrent ? 'opacity-100' : 'opacity-0')} />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{job.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {[job.companies?.name, job.location].filter(Boolean).join(' · ')}
-                        </p>
-                      </div>
-                      {isCurrent && <span className="ml-auto text-xs text-muted-foreground">Current</span>}
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            </CommandList>
-          </Command>
+          <CompanyJobSelector
+            selectedJobId={currentSessionJob?.job_id ?? ''}
+            onSelect={(id) => handleSwitchJob(id)}
+          />
         </DialogContent>
       </Dialog>
     </>
