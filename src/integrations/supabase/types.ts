@@ -50094,6 +50094,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_pinned_kpis: {
+        Row: {
+          id: string
+          kpi_domain: string
+          kpi_id: string
+          pinned_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          kpi_domain: string
+          kpi_id: string
+          pinned_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          kpi_domain?: string
+          kpi_id?: string
+          pinned_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           accent_color: string | null
