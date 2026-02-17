@@ -1,11 +1,25 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Calculator, AlertCircle, Check } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { evaluate } from 'mathjs';
+
+// Lazy-load mathjs to keep it out of the main bundle (~35MB installed)
+let _evaluate: ((expr: string, scope?: object) => unknown) | null = null;
+let _mathLoading: Promise<void> | null = null;
+
+function loadMathjs(): Promise<void> {
+  if (_evaluate) return Promise.resolve();
+  if (_mathLoading) return _mathLoading;
+  _mathLoading = import('mathjs').then(m => {
+    _evaluate = m.evaluate;
+  }).catch(() => {
+    _evaluate = null;
+  });
+  return _mathLoading;
+}
 
 interface FormulaCellProps {
   formula: string;
@@ -23,6 +37,7 @@ function evaluateFormula(
 ): { result: unknown; error: string | null } {
   try {
     if (!formula) return { result: '', error: null };
+    if (!_evaluate) return { result: null, error: 'Math engine loading...' };
     
     // Replace column references with actual values
     let expression = formula;
@@ -85,7 +100,7 @@ function evaluateFormula(
     expression = expression.replace(ifRegex, (_match, condition, trueVal, falseVal) => {
       try {
         // Evaluate condition safely with mathjs
-        const condResult = evaluate(condition, scope);
+        const condResult = _evaluate!(condition, scope);
         return condResult ? trueVal.trim() : falseVal.trim();
       } catch {
         return falseVal.trim();
@@ -98,7 +113,7 @@ function evaluateFormula(
     }
 
     // Evaluate with mathjs (safe, no code injection)
-    const result = evaluate(expression, scope);
+    const result = _evaluate(expression, scope);
     return { result, error: null };
   } catch (err) {
     return { result: null, error: err instanceof Error ? err.message : 'Invalid formula' };
@@ -114,10 +129,18 @@ export function FormulaCell({
 }: FormulaCellProps) {
   const [open, setOpen] = useState(false);
   const [editedFormula, setEditedFormula] = useState(formula);
+  const [mathReady, setMathReady] = useState(!!_evaluate);
+
+  // Load mathjs on mount
+  useEffect(() => {
+    if (!_evaluate) {
+      loadMathjs().then(() => setMathReady(true));
+    }
+  }, []);
 
   const { result, error } = useMemo(() => 
     evaluateFormula(formula, rowData, columnTypes),
-    [formula, rowData, columnTypes]
+    [formula, rowData, columnTypes, mathReady]
   );
 
   const handleSave = () => {
