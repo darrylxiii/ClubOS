@@ -1,110 +1,100 @@
 
 
-# Password System Overhaul -- Implementation Plan
+# Live Preview Build Crash (HTTP 412) -- Fix Plan
 
-## Overview
+## Root Cause
 
-Fix all 12 issues identified in the audit to take the password reset and create-password systems from 22/100 to 92/100. Every fix below addresses a specific bug from the approved audit.
+The preview returns HTTP 412 because the Vite build runs out of memory (OOM) before it can produce output. Your project has 170+ pages and imports several heavy libraries. The build configuration already has aggressive memory guards (`maxParallelFileOps: 1`, `minify: false`, `sourcemap: false`), meaning you are at the memory ceiling. Any small increase in bundle complexity can tip the build over.
 
----
+## Issues Found
 
-## Step 1: Add APP_URL Secret
+### 1. 16 files import directly from `recharts` (bypassing lazy loading)
 
-**What**: Configure the `APP_URL` secret with value `https://thequantumclub.lovable.app` so magic links in emails point to the real application.
+The project has a `DynamicChart` wrapper designed to lazy-load Recharts, but 16 files still import directly from `"recharts"`. This forces the entire Recharts + D3 dependency tree into the main bundle graph during build, increasing peak memory.
 
-**Why**: Currently every magic link points to a dead domain (`thequantumclub.app`), causing 100% failure rate for email-based resets.
+**Affected files:**
+- `src/pages/FreelancerAnalyticsPage.tsx`
+- `src/pages/admin/MarketplaceAnalytics.tsx`
+- `src/pages/ClientAnalyticsPage.tsx`
+- `src/components/admin/webhooks/WebhookReliabilityDashboard.tsx`
+- `src/components/analytics/StoryAnalytics.tsx`
+- `src/components/unified-tasks/TaskAnalyticsDashboard.tsx`
+- `src/components/unified-tasks/TaskBurndownChart.tsx`
+- `src/components/unified-tasks/EstimationVsActualChart.tsx`
+- `src/components/partner/JobAnalytics.tsx`
+- `src/components/partner/ApplicationsAnalytics.tsx`
+- `src/components/partner/EnhancedAnalytics.tsx`
+- `src/components/admin/security/RateLimitDashboard.tsx`
+- `src/components/employees/TeamPerformanceComparison.tsx`
+- `src/components/admin/PerformanceDashboard.tsx`
+- `src/components/admin/activity/EngagementAnalyticsTab.tsx`
+- `src/components/ui/chart.tsx`
 
----
+### 2. Sentry is eagerly imported at app root
 
-## Step 2: Fix `password-reset-request/index.ts`
+`src/lib/sentry.ts` does `import * as Sentry from '@sentry/react'` and is called synchronously in `App.tsx` line 2-3 before the app even renders. The Sentry bundle (~150KB parsed) is loaded into the initial chunk.
 
-**Fixes**: BUG 7 (slow user lookup), ISSUE 6 (OTP logged), ISSUE 12 (old tokens not invalidated)
+### 3. `TracingProvider` is eagerly imported
 
-Changes:
-- Replace the pagination loop (`listUsers` in a while-loop) with a direct `profiles` table query to find the user by email -- single query instead of potentially dozens
-- Remove OTP code from all `console.log` statements (line 121 currently prints the full OTP)
-- Before inserting a new token, mark all existing unused tokens for that email as `is_used = true` so only the latest code is valid
+`src/App.tsx` line 5 imports `TracingProvider` eagerly. If it pulls in `@opentelemetry` packages, that adds another heavy dependency to the initial bundle.
 
----
+### 4. Password reset pages are eagerly imported
 
-## Step 3: Fix `password-reset-validate-token/index.ts`
-
-**Fixes**: BUG 4 (token never marked as used -- replay vulnerability)
-
-Changes:
-- After confirming the token is valid and unused, immediately update `is_used = true` and `used_at = now()` before returning the success response
-- Remove token value from log output
-
----
-
-## Step 4: Fix `password-reset-validate-otp/index.ts`
-
-**Fixes**: BUG 5 (brute-force protection non-functional), ISSUE 6 (OTP logged)
-
-Changes:
-- On every OTP check (pass or fail), first increment the `attempts` counter in the database
-- Query the token with the incremented attempts check, so the 5-attempt limit actually works
-- Return the real `attempts_remaining` from the server (5 minus current attempts)
-- Remove OTP code from the log on line 29
+Lines 118-121 of `App.tsx` eagerly import 4 password reset pages. While these are small individually, every eager import adds to the root chunk that must be processed in a single pass.
 
 ---
 
-## Step 5: Fix `password-reset-set-password/index.ts`
+## Fix Plan
 
-**Fixes**: ISSUE 8 (no session invalidation), ISSUE 9 (token validation too loose)
+### Step 1: Convert all direct `recharts` imports to `DynamicChart`
 
-Changes:
-- Tighten token lookup: require `is_used = true` (meaning it was validated by either the magic-link or OTP step first) with `used_at` within 15 minutes
-- After updating the password, call `supabase.auth.admin.signOut(userId, 'global')` to invalidate all existing sessions before sending the confirmation email
-- Remove partial token from log output
+Migrate the 16 files listed above to use the existing `DynamicChart` lazy wrapper instead of importing from `"recharts"` directly. This is the highest-impact change -- Recharts + D3 is one of the heaviest dependency trees in the project.
+
+### Step 2: Lazy-load Sentry initialization
+
+Change `src/App.tsx` to dynamically import Sentry so the ~150KB bundle is not part of the initial chunk:
+
+```typescript
+// Instead of:
+import { initSentry } from "@/lib/sentry";
+initSentry();
+
+// Use:
+import("@/lib/sentry").then(({ initSentry }) => initSentry()).catch(() => {});
+```
+
+### Step 3: Lazy-load TracingProvider
+
+Wrap the `TracingProvider` import with `React.lazy` or a dynamic import, since tracing is only enabled in dev mode anyway.
+
+### Step 4: Lazy-load password reset pages
+
+Convert the 4 eager imports (lines 118-121 of App.tsx) to lazy imports:
+
+```typescript
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPasswordVerify = lazy(() => import("./pages/ResetPasswordVerify"));
+const ResetPasswordMagicLink = lazy(() => import("./pages/ResetPasswordMagicLink"));
+const ResetPasswordNew = lazy(() => import("./pages/ResetPasswordNew"));
+```
+
+And wrap their routes in `<Suspense>` like the other public routes.
+
+### Step 5: Add `extend` to optimizeDeps exclude list
+
+The `optimizeDeps.include` has `['extend']` which forces pre-bundling of a package that may not need it. Removing it reduces pre-bundling memory.
 
 ---
 
-## Step 6: Fix `ForgotPassword.tsx`
+## Files to Modify
 
-**Fixes**: BUG 2 (no navigation to OTP entry)
+| File | Change |
+|------|--------|
+| `src/App.tsx` | Lazy-load Sentry, TracingProvider, and 4 password reset pages |
+| 16 component/page files | Replace `from "recharts"` with `DynamicChart` usage |
+| `vite.config.ts` | Remove `extend` from optimizeDeps.include |
 
-Changes:
-- In the "sent" success state, replace the single "Back to Login" button with two options:
-  1. **"Enter Code"** primary button that navigates to `/reset-password/verify?email={email}` -- this is the main path
-  2. **"Back to Login"** secondary link below it
-- Add helper text: "We also sent a magic link you can click directly from your email"
+## Expected Result
 
----
-
-## Step 7: Fix `SetPasswordModal.tsx`
-
-**Fixes**: BUG 3 (create password flow is a dead end)
-
-Changes:
-- In the "sent" success state, add an **"Enter Code"** button that closes the modal and navigates to `/reset-password/verify?email={email}`
-- Keep the existing "Back" button as secondary
-
----
-
-## Step 8: Fix `ResetPasswordVerify.tsx`
-
-**Fixes**: ISSUE 11 (client-side attempts counter is cosmetic)
-
-Changes:
-- When the server responds with `attempts_remaining`, use that value instead of the client-side decrement
-- This works because Step 4 makes the server return real attempt counts
-
----
-
-## Files Modified
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/password-reset-request/index.ts` | Direct user lookup, sanitize logs, invalidate old tokens |
-| `supabase/functions/password-reset-validate-token/index.ts` | Mark token as used after validation |
-| `supabase/functions/password-reset-validate-otp/index.ts` | Increment attempts, return real count, sanitize logs |
-| `supabase/functions/password-reset-set-password/index.ts` | Enforce token-was-validated, global session signout |
-| `src/pages/ForgotPassword.tsx` | Add "Enter Code" navigation button |
-| `src/components/auth/SetPasswordModal.tsx` | Add "Enter Code" navigation button |
-| `src/pages/ResetPasswordVerify.tsx` | Use server-side attempts count |
-
-## No database changes required
-
-All fixes are code-level. The existing `password_reset_tokens` table already has the `attempts`, `is_used`, and `used_at` columns needed.
+Reducing the root chunk size by ~300-400KB (Recharts + Sentry + OTel) should bring peak build memory well under the limit, resolving the 412 error and stabilizing the preview.
 
