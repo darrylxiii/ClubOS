@@ -39,6 +39,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useTaskCompletion } from "@/hooks/useTaskCompletion";
 import { TaskCompletionFeedbackModal } from "./TaskCompletionFeedbackModal";
 import { TaskCardSkeleton, BoardColumnSkeleton } from "./TaskCardSkeleton";
+import { useTaskKeyboardNav } from "@/hooks/useTaskKeyboardNav";
+import { useUnifiedTasks } from "@/contexts/UnifiedTasksContext";
 
 interface UnifiedTask {
   id: string;
@@ -92,6 +94,37 @@ export const UnifiedTaskBoard = ({
   const [selectedTask, setSelectedTask] = useState<UnifiedTask | null>(null);
   const [activeTask, setActiveTask] = useState<UnifiedTask | null>(null);
   const [groupBy, setGroupBy] = useState<'status' | 'assignee'>('status');
+  const { toggleTaskSelection, selectedTaskIds } = useUnifiedTasks();
+
+  // Keyboard navigation
+  const allTaskIds = tasks.map(t => t.id);
+  const { focusedTaskId, containerRef } = useTaskKeyboardNav({
+    taskIds: allTaskIds,
+    selectedTaskIds,
+    toggleSelection: toggleTaskSelection,
+    onOpenTask: (id) => {
+      const task = tasks.find(t => t.id === id);
+      if (task) setSelectedTask(task);
+    },
+    onCycleStatus: (id) => {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      const statusCycle = ['pending', 'in_progress', 'on_hold', 'completed'];
+      const nextIdx = (statusCycle.indexOf(task.status) + 1) % statusCycle.length;
+      handleStatusChange(id, statusCycle[nextIdx]);
+    },
+    onCyclePriority: async (id) => {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      const priorityCycle = ['low', 'medium', 'high'];
+      const nextIdx = (priorityCycle.indexOf(task.priority) + 1) % priorityCycle.length;
+      const newPriority = priorityCycle[nextIdx];
+      setTasks(prev => prev.map(t => t.id === id ? { ...t, priority: newPriority } : t));
+      await supabase.from("unified_tasks").update({ priority: newPriority }).eq("id", id);
+      toast.success(`Priority → ${newPriority}`);
+    },
+    enabled: !selectedTask,
+  });
 
   const { requestComplete, feedbackModalProps } = useTaskCompletion({
     onCompleted: () => {
@@ -309,7 +342,7 @@ export const UnifiedTaskBoard = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto pb-4">
+        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto pb-4">
           {loading ? (
             <>
               <BoardColumnSkeleton />
@@ -358,16 +391,21 @@ export const UnifiedTaskBoard = ({
                           </CreateUnifiedTaskDialog>
                         </div>
                       ) : (
-                        columnTasks.map((task) => (
-                          <UnifiedTaskCard
-                            key={task.id}
-                            task={{
-                              ...task,
-                              project_tag: task.marketplace_projects?.title || null
-                            }}
-                            onClick={setSelectedTask}
-                          />
-                        ))
+                        columnTasks.map((task) => {
+                          const globalIdx = allTaskIds.indexOf(task.id);
+                          return (
+                            <UnifiedTaskCard
+                              key={task.id}
+                              task={{
+                                ...task,
+                                project_tag: task.marketplace_projects?.title || null
+                              }}
+                              onClick={setSelectedTask}
+                              isFocused={focusedTaskId === task.id}
+                              taskIndex={globalIdx}
+                            />
+                          );
+                        })
                       )}
                     </CardContent>
                   </Card>

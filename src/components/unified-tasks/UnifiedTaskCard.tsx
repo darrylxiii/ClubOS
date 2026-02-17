@@ -11,9 +11,11 @@ import { cn } from "@/lib/utils";
 interface UnifiedTaskCardProps {
     task: any;
     onClick: (task: any) => void;
+    isFocused?: boolean;
+    taskIndex?: number;
 }
 
-export const UnifiedTaskCard = ({ task, onClick }: UnifiedTaskCardProps) => {
+export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: UnifiedTaskCardProps) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: task.id,
         data: task,
@@ -41,9 +43,11 @@ export const UnifiedTaskCard = ({ task, onClick }: UnifiedTaskCardProps) => {
             style={style}
             {...listeners}
             {...attributes}
+            data-task-index={taskIndex}
             className={cn(
                 "group relative transition-all duration-300 touch-none",
-                isDragging ? "z-50 opacity-50 scale-105 rotate-2" : "z-0 hover:-translate-y-1"
+                isDragging ? "z-50 opacity-50 scale-105 rotate-2" : "z-0 hover:-translate-y-1",
+                isFocused && "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg"
             )}
             onClick={() => onClick(task)}
         >
