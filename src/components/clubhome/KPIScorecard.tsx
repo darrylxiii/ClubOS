@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useAdminKPIScorecard, type KPIPillarMetric, type KPIRange } from "@/hooks/useAdminKPIScorecard";
-import { Zap, DollarSign, Settings2, MessageSquare } from "lucide-react";
+import { Zap, DollarSign, Settings2, MessageSquare, AlertTriangle, Clock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const rangeOptions: { value: KPIRange; label: string }[] = [
   { value: '30d', label: '30d' },
@@ -16,9 +18,25 @@ const rangeOptions: { value: KPIRange; label: string }[] = [
 const pillarConfig = [
   { key: 'efficiency' as const, label: 'Efficiency', icon: Zap, metrics: ['timeToShortlist', 'slaCompliance', 'timeToHire'] as const },
   { key: 'profitability' as const, label: 'Profitability', icon: DollarSign, metrics: ['revenuePerPlacement', 'pipelineConversion', 'totalRevenue'] as const },
-  { key: 'operations' as const, label: 'Operations', icon: Settings2, metrics: ['fillRate', 'offerAcceptance', 'interviewToHire'] as const },
+  { key: 'operations' as const, label: 'Operations', icon: Settings2, metrics: ['fillRate', 'offerAcceptance', 'interviewToHire', 'repeatRate'] as const },
   { key: 'nps' as const, label: 'NPS', icon: MessageSquare, metrics: ['candidateNPS', 'partnerNPS'] as const },
 ];
+
+const STAGE_COLORS: Record<string, string> = {
+  applied: 'bg-blue-500',
+  screening: 'bg-indigo-500',
+  interview: 'bg-violet-500',
+  offer: 'bg-purple-500',
+  hired: 'bg-emerald-500',
+};
+
+const STAGE_LABELS: Record<string, string> = {
+  applied: 'Applied',
+  screening: 'Screen',
+  interview: 'Interview',
+  offer: 'Offer',
+  hired: 'Hired',
+};
 
 function formatValue(metric: KPIPillarMetric): string {
   if (metric.value === null) return '--';
@@ -96,6 +114,9 @@ export const KPIScorecard = () => {
 
   if (!data) return null;
 
+  const { pipeline } = data;
+  const maxStageCount = Math.max(...Object.values(pipeline.stageCounts), 1);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -145,6 +166,55 @@ export const KPIScorecard = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Pipeline snapshot strip + alerts */}
+        <div className="mt-3 pt-3 border-t border-border/20 space-y-2">
+          {/* Mini funnel */}
+          <div className="flex items-center gap-1.5">
+            {(['applied', 'screening', 'interview', 'offer', 'hired'] as const).map((stage) => {
+              const count = pipeline.stageCounts[stage] || 0;
+              const widthPct = Math.max((count / maxStageCount) * 100, 12);
+              return (
+                <div key={stage} className="flex-1 min-w-0">
+                  <div
+                    className={`${STAGE_COLORS[stage]} h-4 rounded-sm flex items-center justify-center transition-all`}
+                    style={{ width: `${widthPct}%`, minWidth: '1.5rem' }}
+                  >
+                    <span className="text-[9px] font-bold text-white leading-none">{count}</span>
+                  </div>
+                  <span className="text-[8px] text-muted-foreground mt-0.5 block truncate">
+                    {STAGE_LABELS[stage]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Alert badges */}
+          {(pipeline.bottleneck || pipeline.overdue > 0) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {pipeline.bottleneck && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px]">
+                  <AlertTriangle className="h-2.5 w-2.5 text-amber-500" />
+                  <span className="text-muted-foreground">Bottleneck:</span>
+                  <span className="font-medium capitalize">{pipeline.bottleneck}</span>
+                </div>
+              )}
+              {pipeline.overdue > 0 && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-[10px]">
+                  <Clock className="h-2.5 w-2.5 text-red-500" />
+                  <span className="font-medium text-red-500">{pipeline.overdue}</span>
+                  <span className="text-muted-foreground">overdue</span>
+                </div>
+              )}
+              <Button variant="ghost" size="sm" asChild className="ml-auto text-[10px] h-6 px-2">
+                <Link to="/applications">
+                  View Pipeline <ArrowRight className="h-2.5 w-2.5 ml-1" />
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
     </motion.div>

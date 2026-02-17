@@ -2,7 +2,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
 import { CommandStrip } from "./CommandStrip";
 import { RevenueSparkline } from "./RevenueSparkline";
-import { PipelineFunnel } from "./PipelineFunnel";
 import { TeamCapacityWidget } from "./TeamCapacityWidget";
 import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
@@ -13,7 +12,6 @@ import { AgentActivityWidget } from "./AgentActivityWidget";
 import { LiveOperationsWidget } from "./LiveOperationsWidget";
 import { AdminTasksWidget } from "./AdminTasksWidget";
 import { KPIScorecard } from "./KPIScorecard";
-import { OperationalEfficiencyWidget } from "./OperationalEfficiencyWidget";
 import { NPSPulseWidget } from "./NPSPulseWidget";
 
 const AdminHomeContent = () => {
@@ -28,13 +26,12 @@ const AdminHomeContent = () => {
       {/* Zone 1: Command Strip */}
       <CommandStrip />
 
-      {/* Zone 2: Intelligence Row */}
-      <DashboardSection columns={2}>
+      {/* Zone 2: Revenue */}
+      <DashboardSection>
         <RevenueSparkline />
-        <PipelineFunnel />
       </DashboardSection>
 
-      {/* Zone 2.5: KPI Scorecard — four pillars */}
+      {/* Zone 2.5: KPI Scorecard (merged power widget) */}
       <KPIScorecard />
 
       {/* Zone 3: Predictive Signals */}
@@ -46,15 +43,14 @@ const AdminHomeContent = () => {
         <PartnerEngagementWidget />
       </DashboardSection>
 
-      {/* Zone 4: Operational Efficiency + NPS */}
+      {/* Zone 4: NPS + Tasks */}
       <DashboardSection columns={2} mobileColumns={1}>
-        <OperationalEfficiencyWidget />
         <NPSPulseWidget />
+        <AdminTasksWidget />
       </DashboardSection>
 
-      {/* Zone 4.5: Tasks + Meetings */}
-      <DashboardSection columns={2} mobileColumns={1}>
-        <AdminTasksWidget />
+      {/* Zone 4.5: Meetings */}
+      <DashboardSection>
         <ActiveMeetingsWidget />
       </DashboardSection>
 

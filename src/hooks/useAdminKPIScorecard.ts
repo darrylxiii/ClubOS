@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { untypedTable } from '@/lib/supabaseRpc';
 
 export type KPIRange = '30d' | '3m' | '6m' | '1y' | 'all';
@@ -10,11 +11,18 @@ export interface KPIPillarMetric {
   lowerIsBetter?: boolean;
 }
 
+export interface PipelineSnapshot {
+  stageCounts: Record<string, number>;
+  bottleneck: string | null;
+  overdue: number;
+}
+
 export interface KPIScorecardData {
   efficiency: { timeToShortlist: KPIPillarMetric; slaCompliance: KPIPillarMetric; timeToHire: KPIPillarMetric };
   profitability: { revenuePerPlacement: KPIPillarMetric; pipelineConversion: KPIPillarMetric; totalRevenue: KPIPillarMetric };
-  operations: { fillRate: KPIPillarMetric; offerAcceptance: KPIPillarMetric; interviewToHire: KPIPillarMetric };
+  operations: { fillRate: KPIPillarMetric; offerAcceptance: KPIPillarMetric; interviewToHire: KPIPillarMetric; repeatRate: KPIPillarMetric };
   nps: { candidateNPS: KPIPillarMetric; partnerNPS: KPIPillarMetric };
+  pipeline: PipelineSnapshot;
 }
 
 function calcNPS(surveys: any[], type: string): number | null {
@@ -39,6 +47,8 @@ function getSinceDate(range: KPIRange): Date | null {
   return now;
 }
 
+const PIPELINE_STAGES = ['applied', 'screening', 'interview', 'offer', 'hired'] as const;
+
 export function useAdminKPIScorecard(range: KPIRange = '30d') {
   return useQuery({
     queryKey: ['admin-kpi-scorecard', range],
@@ -49,7 +59,7 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
       // Build queries with optional date filter
       let appsQ = untypedTable('applications').select('status, created_at, updated_at, stage_updated_at');
       let jobsQ = untypedTable('jobs').select('status, hired_count');
-      let hiresQ = untypedTable('continuous_pipeline_hires').select('placement_fee');
+      let hiresQ = untypedTable('continuous_pipeline_hires').select('placement_fee, company_id');
       let npsQ = untypedTable('nps_surveys').select('nps_score, respondent_type, response_date');
       let interviewsQ = untypedTable('interviews').select('id, created_at');
       let feesQ = untypedTable('placement_fees').select('fee_amount, status, created_at');
@@ -63,9 +73,28 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
         feesQ = feesQ.gte('created_at', sinceISO);
       }
 
-      const [appsRes, jobsRes, hiresRes, npsRes, interviewsRes, feesRes] = await Promise.all([
-        appsQ, jobsQ, hiresQ, npsQ, interviewsQ, feesQ,
+      // Stage count queries (always current snapshot, not range-filtered)
+      const stageCountPromises = PIPELINE_STAGES.map(async (stage) => {
+        const { count } = await supabase
+          .from('applications')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', stage);
+        return { stage, count: count || 0 };
+      });
+
+      // Overdue count (applications in active stages not updated in 7+ days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const overduePromise = supabase
+        .from('applications')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['applied', 'screening', 'interview'])
+        .lt('updated_at', sevenDaysAgo);
+
+      const [appsRes, jobsRes, hiresRes, npsRes, interviewsRes, feesRes, ...stageResults] = await Promise.all([
+        appsQ, jobsQ, hiresQ, npsQ, interviewsQ, feesQ, ...stageCountPromises,
       ]);
+
+      const overdueRes = await overduePromise;
 
       const apps = appsRes.data || [];
       const jobs = jobsRes.data || [];
@@ -73,6 +102,16 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
       const npsSurveys = npsRes.data || [];
       const interviews = interviewsRes.data || [];
       const fees = feesRes.data || [];
+
+      // === Pipeline snapshot ===
+      const stageCounts: Record<string, number> = {};
+      (stageResults as { stage: string; count: number }[]).forEach(r => {
+        stageCounts[r.stage] = r.count;
+      });
+      const activeStages = PIPELINE_STAGES.filter(s => s !== 'hired');
+      const bottleneck = activeStages.reduce((max, s) =>
+        (stageCounts[s] || 0) > (stageCounts[max] || 0) ? s : max, activeStages[0]);
+      const overdueCount = overdueRes.count || 0;
 
       // === Efficiency ===
       const shortlistApps = apps.filter((a: any) => a.stage_updated_at && a.status !== 'applied');
@@ -95,7 +134,6 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
         slaCompliance = Math.round((compliant / activeApps.length) * 100);
       }
 
-      // Time-to-Hire
       const hiredApps = apps.filter((a: any) => a.status === 'hired' && a.stage_updated_at);
       let timeToHire: number | null = null;
       if (hiredApps.length > 0) {
@@ -116,7 +154,6 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
         ? Math.round((apps.filter((a: any) => a.status === 'hired').length / apps.length) * 1000) / 10
         : null;
 
-      // Total Revenue from placement_fees
       const activeFees = fees.filter((f: any) => f.status !== 'cancelled');
       const totalRevenue = activeFees.length > 0
         ? Math.round(activeFees.reduce((s: number, f: any) => s + Number(f.fee_amount || 0), 0))
@@ -133,10 +170,18 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
         ? Math.round((hiredOrRejected.filter((a: any) => a.status === 'hired').length / hiredOrRejected.length) * 100)
         : null;
 
-      // Interview-to-Hire Ratio
       const hiredCount = apps.filter((a: any) => a.status === 'hired').length;
       const interviewCount = interviews.length;
       const interviewToHire = hiredCount > 0 ? Math.round((interviewCount / hiredCount) * 10) / 10 : null;
+
+      // Repeat placement rate
+      const companyHires: Record<string, number> = {};
+      hires.forEach((h: any) => {
+        if (h.company_id) companyHires[h.company_id] = (companyHires[h.company_id] || 0) + 1;
+      });
+      const companiesWithHires = Object.keys(companyHires).length;
+      const repeatCompanies = Object.values(companyHires).filter(c => c >= 2).length;
+      const repeatRate = companiesWithHires > 0 ? Math.round((repeatCompanies / companiesWithHires) * 100) : null;
 
       // === NPS ===
       const candidateNPS = calcNPS(npsSurveys, 'candidate');
@@ -157,10 +202,16 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
           fillRate: { value: fillRate, label: 'Fill Rate', format: 'percent' },
           offerAcceptance: { value: offerAcceptance, label: 'Offer Accept', format: 'percent' },
           interviewToHire: { value: interviewToHire, label: 'Interview:Hire', format: 'ratio' },
+          repeatRate: { value: repeatRate, label: 'Repeat Rate', format: 'percent' },
         },
         nps: {
           candidateNPS: { value: candidateNPS, label: 'Candidate NPS', format: 'score' },
           partnerNPS: { value: partnerNPS, label: 'Partner NPS', format: 'score' },
+        },
+        pipeline: {
+          stageCounts,
+          bottleneck: (stageCounts[bottleneck] || 0) > 0 ? bottleneck : null,
+          overdue: overdueCount,
         },
       };
     },
