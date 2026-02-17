@@ -61,18 +61,15 @@ export function useLiveOperations() {
       const lastSeen = new Date(presence.last_seen).getTime();
       const minutesAgo = (now - lastSeen) / 60000;
 
-      if (minutesAgo < 15) {
-        online.push({
-          id: profile.id,
-          full_name: profile.full_name || 'Unknown',
-          avatar_url: profile.avatar_url,
-          status: minutesAgo < 5 ? 'online' : 'away',
-          lastSeenMinutes: Math.round(minutesAgo),
-          recentlyActive: minutesAgo < 1,
-        });
-      } else {
-        offline++;
-      }
+      // Anyone with status='online' is shown; last_seen determines the indicator
+      online.push({
+        id: profile.id,
+        full_name: profile.full_name || 'Unknown',
+        avatar_url: profile.avatar_url,
+        status: minutesAgo < 5 ? 'online' : 'away',
+        lastSeenMinutes: Math.round(minutesAgo),
+        recentlyActive: minutesAgo < 1,
+      });
     }
 
     // Sort: online first, then away; recently active first
@@ -148,6 +145,7 @@ export function useLiveOperations() {
 
     // Refresh health statuses + durations every 60s
     const interval = setInterval(() => {
+      loadPresence();
       loadActiveSessions();
     }, 60000);
 
