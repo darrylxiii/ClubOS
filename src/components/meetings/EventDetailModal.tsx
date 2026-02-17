@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { notify } from "@/lib/notify";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAttendeeProfiles } from "@/hooks/useAttendeeProfiles";
 
 interface EventDetailModalProps {
   event: UnifiedCalendarEvent | null;
@@ -28,6 +29,7 @@ interface EventDetailModalProps {
 
 export function EventDetailModal({ event, open, onOpenChange }: EventDetailModalProps) {
   const navigate = useNavigate();
+  const { profileMap } = useAttendeeProfiles(event?.attendees || []);
 
   if (!event) return null;
 
@@ -127,16 +129,26 @@ export function EventDetailModal({ event, open, onOpenChange }: EventDetailModal
                 <div className="flex-1">
                   <div className="font-medium mb-2">{event.attendees.length} attendees</div>
                   <div className="flex flex-wrap gap-2">
-                    {event.attendees.slice(0, 5).map((email, idx) => (
-                      <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs">
-                            {email.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs">{email}</span>
-                      </div>
-                    ))}
+                    {event.attendees.slice(0, 5).map((email, idx) => {
+                      const profile = profileMap.get(email.toLowerCase());
+                      const displayName = profile?.full_name || email;
+                      return (
+                        <div key={idx} className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1">
+                          <Avatar className="h-6 w-6">
+                            {profile?.avatar_url && (
+                              <AvatarImage src={profile.avatar_url} alt={displayName} />
+                            )}
+                            <AvatarFallback className="text-xs">
+                              {email.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs">{displayName}</span>
+                          {profile?.full_name && (
+                            <span className="text-xs text-muted-foreground hidden sm:inline">{email}</span>
+                          )}
+                        </div>
+                      );
+                    })}
                     {event.attendees.length > 5 && (
                       <div className="flex items-center px-3 py-1 text-xs text-muted-foreground">
                         +{event.attendees.length - 5} more
