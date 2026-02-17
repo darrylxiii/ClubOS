@@ -1,121 +1,123 @@
 
-# Ultimate Task Board UI/UX Revamp -- World-Class Execution
 
-## Current Issues Identified
+# Admin Homepage KPI Integration -- Four Pillars
 
-1. **Still too many vertical layers** -- CommandBar + Objectives strip + Toolbar (with search, view modes, actions) + Tabs bar = 4 distinct rows before the first task. Best-in-class boards (Linear, Notion, Asana) use 1-2 rows max.
-2. **Duplicate view switcher** -- The `TaskToolbar` has its own Board/List/Calendar/Analytics toggle AND the page has a separate `TabsList` with 7 tabs. Two competing navigation systems.
-3. **Toolbar is cluttered** -- SavedFilterPresets, CSVExport, TaskTemplates, SelectAll, Refresh, Keyboard hint all in one row with multiple Separators. Too many icon buttons without clear grouping.
-4. **Board skeleton is oversized** -- `BoardColumnSkeleton` still uses `min-w-[300px]` and `min-h-[400px]`, contradicting the compact design.
-5. **Task cards still feel amateur** -- The `TaskCardCompact` is better but still lacks visual hierarchy polish. Title and metadata lines have equal visual weight.
-6. **List view grid template is fragile** -- Using `grid-cols-[auto_auto_1fr_auto_auto_auto_auto]` with 7 columns and hidden responsive ones is messy.
-7. **No visual task count summary** -- No at-a-glance "12 tasks, 3 overdue, 5 blocked" summary anywhere on the page.
-8. **Detail sheet is basic** -- The `UnifiedTaskDetailSheet` status/priority bar uses emoji (emoji for statuses) which feels cheap. Section spacing is inconsistent.
-9. **Keyboard shortcuts bar is floating at bottom center** -- Takes up visual space permanently. Better as a dismissible tooltip or hidden until user presses `?`.
-10. **No empty state design** -- Empty board columns have a minimal "No tasks" + tiny Add button. No illustration or helpful messaging.
+## Overview
 
-## The Plan
+Add a new **KPI Scorecard Strip** to the Admin homepage between the Intelligence Row (Zone 2) and the Predictive Signals Strip (Zone 2.5). This is a single, compact horizontal widget showing the 8 most critical KPIs across four pillars: Efficiency, Profitability, Operations, and NPS. Each metric is calculated from real database records with no fabricated data.
 
-### Phase 1: Merge All Chrome Into a Single Command Surface
+Additionally, surface the existing `NPSPulseWidget` in the Operations Grid and add an `OperationalEfficiencyWidget` to replace the gap left by consolidating metrics.
 
-**Goal**: Collapse CommandBar + Objectives + Toolbar + Tabs into 2 rows maximum.
+## New Components
 
-**Row 1: Unified Command Bar** (~44px)
-- Left: Board selector dropdown (existing) + task count summary badge ("42 tasks, 3 overdue")
-- Center: Inline search input (replaces the separate `TaskSearchBar`)
-- Right: View toggle (icon-only: Board | List | Calendar | Timeline | Analytics), Filter button, "My Tasks" toggle, "New Task" button
+### 1. `KPIScorecard.tsx` -- The Core Addition
 
-**Row 2: Context Strip** (~32px, conditional)
-- Objective pills (existing `CollapsedObjectivesSummary` but slimmer)
-- Active filter badges inline (moved from the separate filter display below toolbar)
-- Bulk action bar (replaces the current one when selections are active)
+A single full-width card with 4 pillar sections, each containing 2 metrics. Compact, high-density, horizontal layout matching the existing `CommandStrip` aesthetic.
 
-**What gets removed**:
-- The separate `TaskToolbar` component -- functionality absorbed into Row 1
-- The separate `TabsList` with 7 triggers -- view modes in Row 1 toggle, AI/Team tabs become overflow menu items
-- The floating keyboard shortcuts bar at the bottom -- replaced by `?` key trigger showing a small modal
-- The duplicate view mode switcher inside TaskToolbar
+**Efficiency Pillar**
+- **Time-to-Shortlist** (avg days from `applications.created_at` to `status = 'screening'` or `stage_updated_at`)
+- **SLA Compliance %** (applications updated within 7 days / total active applications)
 
-### Phase 2: Elevate Task Card Design
+**Profitability Pillar**
+- **Revenue per Placement** (total placement fees from `continuous_pipeline_hires.placement_fee` / total hires)
+- **Pipeline Conversion Rate** (hired count / total applications, trailing 90 days)
 
-**TaskCardCompact v2**:
-- Add a subtle left-border color based on urgency score (red for urgent/overdue, amber for high priority, default for rest)
-- Title: `text-[13px] font-medium leading-snug` (slightly larger than 10px meta, smaller than current)
-- Task number: move to tooltip on hover instead of always visible (reduces noise)
-- Assignee avatar: show on hover or when card is focused (not always -- reduces clutter for cards without assignees)
-- Add a subtle "urgency glow" for overdue items: `shadow-[inset_0_0_0_1px_rgba(239,68,68,0.3)]`
-- Progress bar for subtasks: keep, but make it 1px height instead of 2px (more refined)
-- On hover: show a mini action row (status cycle dot, priority cycle, quick assign) -- eliminates need to open detail sheet for simple changes
+**Operations Pillar**
+- **Fill Rate %** (jobs with `hired_count > 0` / total closed+filled jobs)
+- **Offer Acceptance Rate** (hired / (hired + rejected at offer stage) -- derived from applications data)
 
-### Phase 3: Board Column Polish
+**NPS Pillar**
+- **Candidate NPS** (from `nps_surveys` where `respondent_type = 'candidate'`)
+- **Partner NPS** (from `nps_surveys` where `respondent_type = 'partner'` or `'client'`)
 
-- Column headers: reduce to 28px height, icon + label + count only
-- Remove the "blocked/ready" counts from column headers (too noisy at column level -- this info is on each card)
-- Empty column: show a centered dashed border area with "Drop here" text (for drag target clarity)
-- Column backgrounds: pure transparent with `border-t-2` accent only (already done but ensure consistency)
-- Board grid: use `grid-cols-5` on desktop but allow collapsing "Done" and "Cancelled" into a single "Resolved" column on smaller screens
+Each metric shows: value, trend arrow (vs prior period), and a semantic color (emerald/amber/red).
 
-### Phase 4: List View Upgrade to Data Table
+### 2. `OperationalEfficiencyWidget.tsx`
 
-- Replace custom grid with a proper data table pattern
-- Sticky header row
-- Alternating row backgrounds (`even:bg-muted/5`) for readability
-- Sort indicators on column headers (clickable to sort by that column)
-- Row hover: show inline quick actions (change status, priority) without opening sheet
-- Group-by support: allow grouping by status, priority, or assignee with collapsible section headers
+A compact widget for the Operations Grid showing:
+- Avg Days in Stage (per pipeline stage, horizontal bar chart)
+- Bottleneck indicator (which stage has the longest dwell)
+- Repeat Placement Rate (companies with 2+ placements / total companies with placements)
 
-### Phase 5: Detail Sheet Refinement
+## Layout Changes to `AdminHome.tsx`
 
-- Replace emoji in status select (`emoji Pending`) with colored dot + text
-- Add a "Time in status" indicator (e.g., "In Progress for 3 days")
-- Description: use markdown rendering (react-markdown is already installed)
-- Dependencies section: add a visual mini-graph showing the dependency chain
-- Add activity feed tab showing status changes, comments, and assignments chronologically
+```text
+Zone 0:   DailyBriefingBanner (unchanged)
+Zone 0.5: ClubAIHomeChatWidget (unchanged)
+Zone 1:   CommandStrip (unchanged)
+Zone 2:   RevenueSparkline + PipelineFunnel (unchanged)
+Zone 2.5: KPIScorecard (NEW -- replaces nothing, inserted here)
+Zone 3:   PredictiveSignalsStrip (unchanged)
+Zone 3.5: TeamCapacity + PartnerEngagement (unchanged)
+Zone 4:   OperationalEfficiencyWidget + NPSPulseWidget (NEW arrangement)
+Zone 4.5: AdminTasks + ActiveMeetings (unchanged)
+Zone 5:   LiveOperations (unchanged)
+Zone 6:   AgentActivity (unchanged)
+```
 
-### Phase 6: Task Summary Statistics Bar
+## Data Queries (all from existing tables)
 
-Add a compact stats row below the command bar showing:
-- Total tasks | Overdue (red) | Blocked (amber) | In Progress | Completed today
-- These are clickable to filter the view
-- Uses semantic color coding (emerald for success, amber for urgency per brand guidelines)
+**Efficiency metrics:**
+```sql
+-- Time to shortlist: avg days from created_at to stage_updated_at where status moved past 'applied'
+SELECT AVG(EXTRACT(EPOCH FROM (stage_updated_at - created_at)) / 86400)
+FROM applications
+WHERE stage_updated_at IS NOT NULL AND status != 'applied';
 
-### Phase 7: Micro-Interactions and Polish
+-- SLA compliance: % updated within 7 days
+SELECT COUNT(*) FILTER (WHERE updated_at > created_at + interval '0 days' 
+  AND EXTRACT(EPOCH FROM (updated_at - created_at)) / 86400 <= 7) * 100.0 / NULLIF(COUNT(*), 0)
+FROM applications WHERE status IN ('active', 'screening', 'interview');
+```
 
-- Card transitions: `transition-all duration-150` on hover (border color + shadow)
-- Drag overlay: clean shadow, no rotation, scale to 1.02
-- Column drop target highlight: subtle `ring-2 ring-primary/20` when dragging over
-- Skeleton loading: match compact card sizes (not oversized old skeletons)
-- Toast actions: ensure all mutations have undo capability
-- Keyboard `?` shortcut: show a centered modal with all shortcuts, dismissible
+**Profitability metrics:**
+```sql
+-- Revenue per placement
+SELECT AVG(placement_fee) FROM continuous_pipeline_hires WHERE placement_fee > 0;
 
-## Technical Breakdown
+-- Pipeline conversion (90d)
+SELECT COUNT(*) FILTER (WHERE status = 'hired') * 100.0 / NULLIF(COUNT(*), 0)
+FROM applications WHERE created_at > now() - interval '90 days';
+```
 
-### Modified Files
-- `src/pages/UnifiedTasks.tsx` -- Major restructure: remove separate toolbar/tabs, integrate unified command bar, add stats row
-- `src/components/unified-tasks/TasksCommandBar.tsx` -- Expand to include search, view toggle, filter trigger, new task button (absorb toolbar)
-- `src/components/unified-tasks/TaskCardCompact.tsx` -- Hover actions, urgency glow, refined typography, task number on hover
-- `src/components/unified-tasks/UnifiedTaskBoard.tsx` -- Simplified columns, better drag targets, remove internal toolbar
-- `src/components/unified-tasks/UnifiedTasksList.tsx` -- Data table pattern with sticky header, sort, group-by
-- `src/components/unified-tasks/UnifiedTaskDetailSheet.tsx` -- Remove emoji, add time-in-status, markdown description
-- `src/components/unified-tasks/CollapsedObjectivesSummary.tsx` -- Slimmer, integrate active filters inline
-- `src/components/unified-tasks/TaskCardSkeleton.tsx` -- Match new compact card sizes
+**Operations metrics:**
+```sql
+-- Fill rate
+SELECT COUNT(*) FILTER (WHERE hired_count > 0) * 100.0 / NULLIF(COUNT(*), 0)
+FROM jobs WHERE status IN ('closed') OR hired_count > 0;
 
-### New Files
-- `src/components/unified-tasks/TaskStatsBar.tsx` -- Compact statistics row with clickable filters
-- `src/components/unified-tasks/KeyboardShortcutsModal.tsx` -- `?` triggered shortcuts reference
+-- Offer acceptance (approximated from hired vs rejected-at-offer)
+SELECT COUNT(*) FILTER (WHERE status = 'hired') * 100.0 
+  / NULLIF(COUNT(*) FILTER (WHERE status IN ('hired', 'rejected')), 0)
+FROM applications;
+```
 
-### Removed/Deprecated
-- `src/components/unified-tasks/TaskToolbar.tsx` -- Functionality absorbed into `TasksCommandBar`
-- `src/components/unified-tasks/TaskSearchBar.tsx` -- Search input moved inline into command bar
+**NPS metrics:**
+```sql
+-- Candidate NPS
+SELECT 
+  (COUNT(*) FILTER (WHERE nps_score >= 9) - COUNT(*) FILTER (WHERE nps_score <= 6)) * 100.0 / NULLIF(COUNT(*), 0)
+FROM nps_surveys WHERE respondent_type = 'candidate';
+```
 
-## Implementation Order
+## Technical Details
 
-1. **TasksCommandBar expansion + page restructure** (merge all chrome, remove duplicate nav)
-2. **TaskStatsBar** (at-a-glance metrics)
-3. **TaskCardCompact v2** (hover actions, urgency visual system, refined typography)
-4. **Board column polish + skeleton fix** (compact headers, better empty/drag states)
-5. **List view data table** (sticky header, sort, alternating rows, group-by)
-6. **Detail sheet refinement** (remove emoji, markdown, time-in-status)
-7. **KeyboardShortcutsModal + micro-interactions** (final polish pass)
+### Files to Create
+- `src/components/clubhome/KPIScorecard.tsx` -- Four-pillar horizontal scorecard
+- `src/components/clubhome/OperationalEfficiencyWidget.tsx` -- Stage dwell times + repeat rate
+- `src/hooks/useAdminKPIScorecard.ts` -- Single hook that fetches all 8 metrics in parallel
 
-No database changes required. This is purely a UI/UX restructuring using existing data.
+### Files to Modify
+- `src/components/clubhome/AdminHome.tsx` -- Insert `KPIScorecard` at Zone 2.5, add `NPSPulseWidget` and `OperationalEfficiencyWidget` to Operations Grid
+
+### Design Approach
+- Each pillar is a visually distinct section separated by a thin vertical border
+- Metrics use `text-2xl font-bold` for the value, `text-[10px]` for the label
+- Trend arrows use emerald (up/good), amber (flat), red (down/bad) with the direction flipped for "time" metrics (lower is better)
+- The entire strip fits in approximately 80px of vertical height
+- Matches the glass-subtle card style used by all existing widgets
+- No database schema changes required -- all queries use existing tables
+
+### No Database Changes Required
+All KPIs are derived from existing `applications`, `jobs`, `continuous_pipeline_hires`, and `nps_surveys` tables.
+
