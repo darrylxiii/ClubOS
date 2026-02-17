@@ -14,6 +14,29 @@ const requestSchema = z.object({
   confirm_password: z.string(),
 });
 
+// Check if security alert should be raised
+async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: string, correlationId: string | null) {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+  const { count } = await supabaseAdmin
+    .from('password_reset_attempts')
+    .select('*', { count: 'exact', head: true })
+    .eq('email', email)
+    .eq('success', false)
+    .in('attempt_type', ['validate_otp', 'validate_token', 'set_password'])
+    .gte('attempted_at', oneHourAgo);
+
+  if (count && count >= 3) {
+    console.log(`[PasswordReset][${correlationId}][SECURITY_ALERT] ${count} failed attempts for email in last hour`);
+    await supabaseAdmin.from('security_alerts').insert({
+      alert_type: 'password_reset_brute_force',
+      email,
+      ip_address: clientIp,
+      details: { failed_attempts: count, correlation_id: correlationId, stage: 'set_password' },
+    });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -32,16 +55,11 @@ serve(async (req) => {
     if (new_password !== confirm_password) {
       return new Response(
         JSON.stringify({ error: "Passwords do not match" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`[Set Password] Processing password change request`);
-
-    // FIX BUG A: Require validated_by IN ('otp', 'magic_link') -- not 'invalidated'
+    // Require validated_by IN ('otp', 'magic_link')
     const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
     const { data: tokens, error: lookupError } = await supabaseAdmin
@@ -54,72 +72,64 @@ serve(async (req) => {
       .limit(1);
 
     if (lookupError) {
-      console.error('[Set Password] Lookup error:', lookupError);
+      console.error('[PasswordReset][set_password] Lookup error:', lookupError);
       throw lookupError;
     }
 
-    if (!tokens || tokens.length === 0) {
-      console.log('[Set Password] No valid validated token found');
+    const resetToken = tokens?.[0];
+    const correlationId = resetToken?.correlation_id || null;
 
-      // FIX BUG G: Log set_password attempt
+    console.log(`[PasswordReset][${correlationId}][set_password] Processing password change`);
+
+    if (!resetToken) {
+      console.log(`[PasswordReset][${correlationId}][set_password] No valid validated token found`);
+
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: 'unknown',
         ip_address: clientIp,
         success: false,
-        attempt_type: 'set_password'
+        attempt_type: 'set_password',
+        correlation_id: correlationId,
       });
 
       return new Response(
         JSON.stringify({ error: "Invalid or expired token. Please start over." }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const resetToken = tokens[0];
     const userId = resetToken.user_id;
 
     // Hash new password
     const newPasswordHash = await hash(new_password);
 
     // Check password history (last 5 passwords)
-    const { data: history, error: historyError } = await supabaseAdmin
+    const { data: history } = await supabaseAdmin
       .from('password_history')
       .select('password_hash')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (historyError) {
-      console.error('[Set Password] History lookup error:', historyError);
-      throw historyError;
-    }
-
-    // Check if new password matches any recent password
     if (history && history.length > 0) {
       for (const record of history) {
         const matches = await compare(new_password, record.password_hash);
         if (matches) {
-          console.log('[Set Password] Password reuse detected');
+          console.log(`[PasswordReset][${correlationId}][set_password] Password reuse detected`);
 
           await supabaseAdmin.from('password_reset_attempts').insert({
             email: resetToken.email,
             ip_address: clientIp,
             success: false,
-            attempt_type: 'set_password'
+            attempt_type: 'set_password',
+            correlation_id: correlationId,
           });
 
+          await checkAndRaiseAlert(supabaseAdmin, resetToken.email, clientIp, correlationId);
+
           return new Response(
-            JSON.stringify({
-              reused: true,
-              error: "Cannot reuse recent passwords"
-            }),
-            {
-              status: 400,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            }
+            JSON.stringify({ reused: true, error: "Cannot reuse recent passwords" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
       }
@@ -132,27 +142,25 @@ serve(async (req) => {
     );
 
     if (updateError) {
-      console.error('[Set Password] Update password error:', updateError);
+      console.error(`[PasswordReset][${correlationId}][set_password] Update error:`, updateError);
       throw updateError;
     }
 
     // Store password in history
-    await supabaseAdmin
-      .from('password_history')
-      .insert({
-        user_id: userId,
-        password_hash: newPasswordHash,
-      });
+    await supabaseAdmin.from('password_history').insert({
+      user_id: userId,
+      password_hash: newPasswordHash,
+    });
 
     // Invalidate ALL existing sessions globally
     try {
       await supabaseAdmin.auth.admin.signOut(userId, 'global');
-      console.log(`[Set Password] All sessions invalidated for user`);
+      console.log(`[PasswordReset][${correlationId}][set_password] All sessions invalidated`);
     } catch (signOutError) {
-      console.error('[Set Password] Session invalidation error:', signOutError);
+      console.error(`[PasswordReset][${correlationId}][set_password] Session invalidation error:`, signOutError);
     }
 
-    // Get user email for confirmation
+    // Send confirmation email
     const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId);
 
     if (user?.email) {
@@ -166,45 +174,34 @@ serve(async (req) => {
       });
     }
 
-    // FIX BUG G: Log successful set_password attempt
+    // Log successful attempt
     await supabaseAdmin.from('password_reset_attempts').insert({
       email: resetToken.email,
       ip_address: clientIp,
       success: true,
-      attempt_type: 'set_password'
+      attempt_type: 'set_password',
+      correlation_id: correlationId,
     });
 
-    console.log(`[Set Password] Password changed successfully`);
+    console.log(`[PasswordReset][${correlationId}][set_password] Password changed successfully`);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Password changed successfully"
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, message: "Password changed successfully" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("[Set Password] Error:", error);
+    console.error("[PasswordReset][set_password] Error:", error);
     
     if (error.name === 'ZodError') {
       return new Response(
         JSON.stringify({ error: "Invalid request format" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
       JSON.stringify({ error: "An error occurred while resetting password" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

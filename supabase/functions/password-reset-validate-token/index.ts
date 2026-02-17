@@ -26,8 +26,6 @@ serve(async (req) => {
     const { token } = requestSchema.parse(body);
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
-    console.log(`[Token Validation] Validating token`);
-
     // Look up token
     const { data: tokens, error: lookupError } = await supabaseAdmin
       .from('password_reset_tokens')
@@ -38,90 +36,66 @@ serve(async (req) => {
       .limit(1);
 
     if (lookupError) {
-      console.error('[Token Validation] Lookup error:', lookupError);
+      console.error('[PasswordReset][validate_token] Lookup error:', lookupError);
       throw lookupError;
     }
 
-    if (!tokens || tokens.length === 0) {
-      console.log('[Token Validation] No valid token found');
+    const resetToken = tokens?.[0];
+    const correlationId = resetToken?.correlation_id || null;
 
-      // FIX BUG G: Log validate_token attempt
+    console.log(`[PasswordReset][${correlationId}][validate_token] Validating magic link token`);
+
+    if (!resetToken) {
+      console.log(`[PasswordReset][${correlationId}][validate_token] No valid token found`);
+
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: 'unknown',
         ip_address: clientIp,
         success: false,
-        attempt_type: 'validate_token'
+        attempt_type: 'validate_token',
+        correlation_id: correlationId,
       });
 
       return new Response(
-        JSON.stringify({
-          valid: false,
-          message: "Invalid or expired token"
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ valid: false, message: "Invalid or expired token" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const resetToken = tokens[0];
-
-    // FIX BUG A: Mark token as used AND set validated_by = 'magic_link'
-    const { error: updateError } = await supabaseAdmin
+    // Mark token as used with validated_by = 'magic_link'
+    await supabaseAdmin
       .from('password_reset_tokens')
-      .update({
-        is_used: true,
-        used_at: new Date().toISOString(),
-        validated_by: 'magic_link'
-      })
+      .update({ is_used: true, used_at: new Date().toISOString(), validated_by: 'magic_link' })
       .eq('id', resetToken.id);
 
-    if (updateError) {
-      console.error('[Token Validation] Failed to mark token as used:', updateError);
-      throw updateError;
-    }
-
-    // FIX BUG G: Log successful validate_token attempt
+    // Log successful attempt
     await supabaseAdmin.from('password_reset_attempts').insert({
       email: resetToken.email,
       ip_address: clientIp,
       success: true,
-      attempt_type: 'validate_token'
+      attempt_type: 'validate_token',
+      correlation_id: correlationId,
     });
 
-    console.log(`[Token Validation] Token validated and marked as used`);
+    console.log(`[PasswordReset][${correlationId}][validate_token] Token validated successfully`);
 
     return new Response(
-      JSON.stringify({
-        valid: true,
-        user_id: resetToken.user_id,
-        email: resetToken.email
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ valid: true, user_id: resetToken.user_id, email: resetToken.email }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("[Token Validation] Error:", error);
+    console.error("[PasswordReset][validate_token] Error:", error);
     
     if (error.name === 'ZodError') {
       return new Response(
         JSON.stringify({ valid: false, error: "Invalid request format" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
       JSON.stringify({ valid: false, error: "An error occurred during validation" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

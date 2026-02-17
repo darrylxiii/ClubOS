@@ -34533,6 +34533,8 @@ export type Database = {
         Row: {
           attempt_type: string | null
           attempted_at: string | null
+          correlation_id: string | null
+          device_fingerprint: string | null
           email: string
           id: string
           ip_address: string | null
@@ -34541,6 +34543,8 @@ export type Database = {
         Insert: {
           attempt_type?: string | null
           attempted_at?: string | null
+          correlation_id?: string | null
+          device_fingerprint?: string | null
           email: string
           id?: string
           ip_address?: string | null
@@ -34549,6 +34553,8 @@ export type Database = {
         Update: {
           attempt_type?: string | null
           attempted_at?: string | null
+          correlation_id?: string | null
+          device_fingerprint?: string | null
           email?: string
           id?: string
           ip_address?: string | null
@@ -34559,6 +34565,7 @@ export type Database = {
       password_reset_tokens: {
         Row: {
           attempts: number | null
+          correlation_id: string | null
           created_at: string | null
           email: string
           expires_at: string
@@ -34574,6 +34581,7 @@ export type Database = {
         }
         Insert: {
           attempts?: number | null
+          correlation_id?: string | null
           created_at?: string | null
           email: string
           expires_at: string
@@ -34589,6 +34597,7 @@ export type Database = {
         }
         Update: {
           attempts?: number | null
+          correlation_id?: string | null
           created_at?: string | null
           email?: string
           expires_at?: string
@@ -54468,6 +54477,20 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_funnel_stats: {
+        Row: {
+          completion_rate_pct: number | null
+          completions: number | null
+          day: string | null
+          otp_failures: number | null
+          otp_validations: number | null
+          requests: number | null
+          set_failures: number | null
+          token_failures: number | null
+          token_validations: number | null
+        }
+        Relationships: []
+      }
       pipeline_conversion_metrics: {
         Row: {
           avg_days_to_convert: number | null
@@ -55132,10 +55155,16 @@ export type Database = {
         Args: { p_domain: string; p_kpi_name: string; p_status: string }
         Returns: string
       }
-      check_password_reset_rate_limit: {
-        Args: { p_email: string; p_ip_address: string }
-        Returns: Json
-      }
+      check_password_reset_rate_limit:
+        | { Args: { p_email: string; p_ip_address: string }; Returns: Json }
+        | {
+            Args: {
+              p_device_fingerprint?: string
+              p_email: string
+              p_ip_address: string
+            }
+            Returns: Json
+          }
       check_profile_auth_integrity: {
         Args: never
         Returns: {
@@ -55479,6 +55508,18 @@ export type Database = {
           path: string[]
           reports_to_member_id: string
           user_id: string
+        }[]
+      }
+      get_password_reset_health: {
+        Args: { p_days?: number }
+        Returns: {
+          completion_rate: number
+          most_common_failure: string
+          total_completions: number
+          total_failures: number
+          total_otp_validations: number
+          total_requests: number
+          total_token_validations: number
         }[]
       }
       get_pending_booking_reminders: {
