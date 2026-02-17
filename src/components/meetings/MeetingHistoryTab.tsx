@@ -26,6 +26,8 @@ export function MeetingHistoryTab() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSyncingFathom, setIsSyncingFathom] = useState(false);
   const [fathomSyncResult, setFathomSyncResult] = useState<{ newly_imported: number; total_found: number } | null>(null);
+  const [isSyncingFireflies, setIsSyncingFireflies] = useState(false);
+  const [firefliesSyncResult, setFirefliesSyncResult] = useState<{ newly_imported: number; total_found: number } | null>(null);
 
   // Use the new hook for real data
   const { recordings, isLoading, error, deleteRecording, refresh } = useMeetingRecordings({
@@ -164,6 +166,29 @@ export function MeetingHistoryTab() {
     }
   };
 
+  const handleSyncFireflies = async () => {
+    setIsSyncingFireflies(true);
+    setFirefliesSyncResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-fireflies-recordings', {
+        body: {}
+      });
+      if (error) throw error;
+      setFirefliesSyncResult(data);
+      if (data.newly_imported > 0) {
+        toast.success(`Imported ${data.newly_imported} new Fireflies recording${data.newly_imported !== 1 ? 's' : ''}`);
+        refresh();
+      } else {
+        toast.info('All Fireflies recordings already synced');
+      }
+    } catch (err: any) {
+      console.error('[MeetingHistoryTab] Fireflies sync error:', err);
+      toast.error('Failed to sync Fireflies recordings');
+    } finally {
+      setIsSyncingFireflies(false);
+    }
+  };
+
   // Check if calendar is connected
   const hasCalendarConnected = (() => {
     const savedCalendars = localStorage.getItem('connected_calendars');
@@ -229,6 +254,7 @@ export function MeetingHistoryTab() {
                   <SelectItem value="live_hub">Live Hub</SelectItem>
                   <SelectItem value="conversation_call">Calls</SelectItem>
                   <SelectItem value="fathom">Fathom</SelectItem>
+                  <SelectItem value="fireflies">Fireflies</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -236,6 +262,7 @@ export function MeetingHistoryTab() {
                 variant="outline"
                 onClick={handleSyncFathom}
                 disabled={isSyncingFathom}
+                size="sm"
               >
                 {isSyncingFathom ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -243,6 +270,20 @@ export function MeetingHistoryTab() {
                   <RefreshCw className="w-4 h-4 mr-2" />
                 )}
                 {isSyncingFathom ? 'Syncing...' : 'Sync Fathom'}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleSyncFireflies}
+                disabled={isSyncingFireflies}
+                size="sm"
+              >
+                {isSyncingFireflies ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                {isSyncingFireflies ? 'Syncing...' : 'Sync Fireflies'}
               </Button>
 
               <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
