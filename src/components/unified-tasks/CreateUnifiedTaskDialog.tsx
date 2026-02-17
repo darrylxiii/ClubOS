@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTaskBoard } from "@/contexts/TaskBoardContext";
 import { toast } from "sonner";
 import { Calendar as CalendarIcon, User, Users, X } from "lucide-react";
 import { format } from "date-fns";
@@ -40,6 +41,7 @@ export const CreateUnifiedTaskDialog = ({
   initialPriority = "medium",
 }: CreateUnifiedTaskDialogProps) => {
   const { user } = useAuth();
+  const { currentBoard } = useTaskBoard();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange || setInternalOpen;
@@ -158,6 +160,7 @@ export const CreateUnifiedTaskDialog = ({
 
           objective_id: selectedObjective || null,
           project_id: selectedProject || null,
+          board_id: currentBoard?.id || null,
           user_id: user.id,
           created_by: user.id,
         }])
