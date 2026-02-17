@@ -10,6 +10,7 @@ import { DashboardSection } from "./DashboardSection";
 import { DailyBriefingBanner } from "./DailyBriefingBanner";
 import { PredictiveSignalsStrip } from "./PredictiveSignalsStrip";
 import { AgentActivityWidget } from "./AgentActivityWidget";
+import { LiveOperationsWidget } from "./LiveOperationsWidget";
 
 const AdminHomeContent = () => {
   return (
@@ -32,11 +33,14 @@ const AdminHomeContent = () => {
       {/* Zone 2.5: Predictive Signals Strip */}
       <PredictiveSignalsStrip />
 
-      {/* Zone 3: Operations Grid — essential detail widgets */}
-      <DashboardSection columns={3} mobileColumns={1}>
+      {/* Zone 3: Operations Grid — 2×2 layout */}
+      <DashboardSection columns={2} mobileColumns={1}>
         <TeamCapacityWidget />
         <PartnerEngagementWidget />
+      </DashboardSection>
+      <DashboardSection columns={2} mobileColumns={1}>
         <ActiveMeetingsWidget />
+        <LiveOperationsWidget />
       </DashboardSection>
 
       {/* Zone 4: Agent Activity Stream */}
