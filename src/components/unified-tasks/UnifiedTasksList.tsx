@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
+import { useTaskCompletion } from "@/hooks/useTaskCompletion";
+import { TaskCompletionFeedbackModal } from "./TaskCompletionFeedbackModal";
 
 interface UnifiedTask {
   id: string;
@@ -43,6 +45,13 @@ export const UnifiedTasksList = ({
 }: UnifiedTasksListProps) => {
   const [tasks, setTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const { requestComplete, feedbackModalProps } = useTaskCompletion({
+    onCompleted: () => {
+      loadTasks();
+      onRefresh();
+    },
+  });
 
   useEffect(() => {
     loadTasks();
@@ -77,18 +86,22 @@ export const UnifiedTasksList = ({
   };
 
   const handleToggleTask = async (taskId: string, currentStatus: string) => {
+    if (currentStatus !== 'completed') {
+      // Going to completed -> open debrief modal
+      const task = tasks.find((t) => t.id === taskId);
+      requestComplete(taskId, task?.title || "Task");
+      return;
+    }
+
+    // Reopening a completed task — no modal needed
     try {
-      const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
       const { error } = await supabase
         .from("unified_tasks")
-        .update({ 
-          status: newStatus,
-          completed_at: newStatus === 'completed' ? new Date().toISOString() : null
-        })
+        .update({ status: 'pending', completed_at: null })
         .eq("id", taskId);
 
       if (error) throw error;
-      toast.success(newStatus === 'completed' ? 'Task completed!' : 'Task reopened');
+      toast.success('Task reopened');
       loadTasks();
       onRefresh();
     } catch (error) {
@@ -313,6 +326,7 @@ export const UnifiedTasksList = ({
           </div>
         </div>
       )}
+      <TaskCompletionFeedbackModal {...feedbackModalProps} />
     </div>
   );
 };

@@ -1,8 +1,10 @@
 import { useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAttendeeProfiles } from "@/hooks/useAttendeeProfiles";
+import { useTaskCompletion } from "@/hooks/useTaskCompletion";
+import { TaskCompletionFeedbackModal } from "@/components/unified-tasks/TaskCompletionFeedbackModal";
 import { DashboardWidget } from "./DashboardWidget";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,12 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Target, CheckCircle2, ArrowRight, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 import {
   differenceInCalendarDays,
   format,
-  isToday,
-  isTomorrow,
   startOfDay,
 } from "date-fns";
 
@@ -99,11 +98,9 @@ const AssigneeStack = ({ emails }: { emails: string[] }) => {
 const TaskItem = ({
   task,
   onComplete,
-  isCompleting,
 }: {
   task: TaskRow;
-  onComplete: (id: string) => void;
-  isCompleting: boolean;
+  onComplete: (id: string, title: string) => void;
 }) => {
   const dueLabel = useDueDateLabel(task.due_date, task.is_overdue);
   const assigneeEmails = task.assignees
@@ -111,14 +108,9 @@ const TaskItem = ({
     .filter((e): e is string => !!e);
 
   return (
-    <div
-      className={cn(
-        "group flex items-center gap-2 py-2 px-1 rounded-lg transition-colors hover:bg-muted/30",
-        isCompleting && "opacity-50 pointer-events-none",
-      )}
-    >
+    <div className="group flex items-center gap-2 py-2 px-1 rounded-lg transition-colors hover:bg-muted/30">
       <button
-        onClick={() => onComplete(task.id)}
+        onClick={() => onComplete(task.id, task.title)}
         className="flex-shrink-0 text-muted-foreground hover:text-emerald-400 transition-colors"
         aria-label="Complete task"
       >
@@ -143,13 +135,19 @@ export const AdminTasksWidget = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  const { requestComplete, feedbackModalProps } = useTaskCompletion({
+    onCompleted: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-action-items"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-task-streak"] });
+    },
+  });
+
   // Fetch top 7 incomplete tasks for current user
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["admin-action-items", user?.id],
     queryFn: async (): Promise<TaskRow[]> => {
       if (!user) return [];
 
-      // Get task IDs where user is assigned
       const { data: assignments } = await supabase
         .from("unified_task_assignees")
         .select("task_id")
@@ -157,7 +155,6 @@ export const AdminTasksWidget = () => {
 
       const assignedIds = assignments?.map((a) => a.task_id) || [];
 
-      // Also include tasks created by user
       let query = supabase
         .from("unified_tasks")
         .select("id, title, status, priority, due_date, is_overdue")
@@ -166,7 +163,6 @@ export const AdminTasksWidget = () => {
         .order("due_date", { ascending: true, nullsFirst: false })
         .limit(20);
 
-      // Filter: assigned OR created by
       if (assignedIds.length > 0) {
         query = query.or(`created_by.eq.${user.id},id.in.(${assignedIds.join(",")})`);
       } else {
@@ -177,11 +173,8 @@ export const AdminTasksWidget = () => {
       if (error) throw error;
       if (!rawTasks || rawTasks.length === 0) return [];
 
-      // Sort by priority within the DB-ordered results
       const sorted = rawTasks
         .sort((a, b) => {
-          // Already ordered by is_overdue desc, due_date asc from DB
-          // Secondary sort by priority
           if (a.is_overdue === b.is_overdue && a.due_date === b.due_date) {
             return (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2);
           }
@@ -189,14 +182,12 @@ export const AdminTasksWidget = () => {
         })
         .slice(0, 7);
 
-      // Fetch assignees for these tasks
       const taskIds = sorted.map((t) => t.id);
       const { data: allAssignees } = await supabase
         .from("unified_task_assignees")
         .select("task_id, user_id")
         .in("task_id", taskIds);
 
-      // Resolve assignee emails from profiles
       const assigneeUserIds = [...new Set(allAssignees?.map((a) => a.user_id) || [])];
       let emailMap = new Map<string, string>();
       if (assigneeUserIds.length > 0) {
@@ -220,7 +211,6 @@ export const AdminTasksWidget = () => {
     staleTime: 60_000,
   });
 
-  // Streak: count of tasks completed today
   const { data: streakCount = 0 } = useQuery({
     queryKey: ["admin-task-streak", user?.id],
     queryFn: async () => {
@@ -238,34 +228,6 @@ export const AdminTasksWidget = () => {
     staleTime: 30_000,
   });
 
-  // Complete mutation
-  const completeMutation = useMutation({
-    mutationFn: async (taskId: string) => {
-      const { error } = await supabase
-        .from("unified_tasks")
-        .update({ status: "completed", completed_at: new Date().toISOString() })
-        .eq("id", taskId);
-      if (error) throw error;
-    },
-    onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: ["admin-action-items"] });
-      const prev = queryClient.getQueryData<TaskRow[]>(["admin-action-items", user?.id]);
-      queryClient.setQueryData<TaskRow[]>(
-        ["admin-action-items", user?.id],
-        (old) => old?.filter((t) => t.id !== taskId) ?? [],
-      );
-      return { prev };
-    },
-    onError: (_err, _id, context) => {
-      queryClient.setQueryData(["admin-action-items", user?.id], context?.prev);
-      toast.error("Failed to complete task");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-action-items"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-task-streak"] });
-    },
-  });
-
   const streakBadge =
     streakCount > 0 ? (
       <div className="flex items-center gap-1 text-emerald-400">
@@ -275,34 +237,37 @@ export const AdminTasksWidget = () => {
     ) : null;
 
   return (
-    <DashboardWidget
-      title="Action Items"
-      icon={Target}
-      iconClassName="text-primary"
-      isLoading={isLoading}
-      isEmpty={tasks.length === 0}
-      emptyMessage="All caught up — no pending tasks"
-      headerAction={streakBadge}
-    >
-      <div className="space-y-0.5 -mx-1">
-        {tasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onComplete={(id) => completeMutation.mutate(id)}
-            isCompleting={completeMutation.isPending && completeMutation.variables === task.id}
-          />
-        ))}
-      </div>
+    <>
+      <DashboardWidget
+        title="Action Items"
+        icon={Target}
+        iconClassName="text-primary"
+        isLoading={isLoading}
+        isEmpty={tasks.length === 0}
+        emptyMessage="All caught up — no pending tasks"
+        headerAction={streakBadge}
+      >
+        <div className="space-y-0.5 -mx-1">
+          {tasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onComplete={requestComplete}
+            />
+          ))}
+        </div>
 
-      <div className="pt-3 border-t border-border/40 mt-3">
-        <Button variant="ghost" size="sm" asChild className="w-full text-muted-foreground hover:text-foreground">
-          <Link to="/tasks">
-            Open Task Board
-            <ArrowRight className="h-3.5 w-3.5 ml-1" />
-          </Link>
-        </Button>
-      </div>
-    </DashboardWidget>
+        <div className="pt-3 border-t border-border/40 mt-3">
+          <Button variant="ghost" size="sm" asChild className="w-full text-muted-foreground hover:text-foreground">
+            <Link to="/tasks">
+              Open Task Board
+              <ArrowRight className="h-3.5 w-3.5 ml-1" />
+            </Link>
+          </Button>
+        </div>
+      </DashboardWidget>
+
+      <TaskCompletionFeedbackModal {...feedbackModalProps} />
+    </>
   );
 };
