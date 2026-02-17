@@ -3,8 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { useEdgeFunctionStats } from '@/hooks/useEdgeFunctionRegistry';
 import { useEdgeFunctionUsageSummary } from '@/hooks/useEdgeFunctionDailyStats';
 import { EdgeFunctionHealthSection } from './EdgeFunctionHealthSection';
-import { Activity, CheckCircle, XCircle, Zap, TrendingUp, Clock, AlertTriangle, DollarSign } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Activity, CheckCircle, XCircle, Zap, TrendingUp, Clock, AlertTriangle, DollarSign, Loader2 } from 'lucide-react';
+import { useRecharts } from '@/hooks/useRecharts';
 
 const COLORS = [
   'hsl(var(--primary))',
@@ -22,6 +22,7 @@ const COLORS = [
 export function EdgeFunctionOverviewTab() {
   const { data: stats, isLoading: statsLoading } = useEdgeFunctionStats();
   const { data: usage, isLoading: usageLoading } = useEdgeFunctionUsageSummary(7);
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const categoryData = stats
     ? Object.entries(stats.byCategory)
@@ -30,6 +31,8 @@ export function EdgeFunctionOverviewTab() {
     : [];
 
   const topFunctions = usage?.topFunctions.slice(0, 10) || [];
+
+  const chartsReady = !rechartsLoading && recharts;
 
   return (
     <div className="space-y-6">
@@ -130,30 +133,39 @@ export function EdgeFunctionOverviewTab() {
             <CardTitle className="text-base">Functions by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            {categoryData.length > 0 ? (
-              <div className="flex items-center gap-6">
-                <ResponsiveContainer width={200} height={200}>
-                  <PieChart>
-                    <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
-                      {categoryData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-1.5 max-h-[200px] overflow-y-auto">
-                  {categoryData.map((cat, i) => (
-                    <div key={cat.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        <span className="text-muted-foreground">{cat.name}</span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">{cat.value}</Badge>
-                    </div>
-                  ))}
-                </div>
+            {!chartsReady ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
+            ) : categoryData.length > 0 ? (
+              (() => {
+                const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } = recharts;
+                return (
+                  <div className="flex items-center gap-6">
+                    <ResponsiveContainer width={200} height={200}>
+                      <PieChart>
+                        <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
+                          {categoryData.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex-1 space-y-1.5 max-h-[200px] overflow-y-auto">
+                      {categoryData.map((cat, i) => (
+                        <div key={cat.name} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                            <span className="text-muted-foreground">{cat.name}</span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">{cat.value}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()
             ) : (
               <p className="text-sm text-muted-foreground">No data available</p>
             )}
@@ -169,16 +181,25 @@ export function EdgeFunctionOverviewTab() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {topFunctions.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={topFunctions.slice(0, 10)} layout="vertical" margin={{ left: 80 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis type="number" className="text-xs" />
-                  <YAxis type="category" dataKey="function_name" className="text-xs" width={80} tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            {!chartsReady ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : topFunctions.length > 0 ? (
+              (() => {
+                const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = recharts;
+                return (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={topFunctions.slice(0, 10)} layout="vertical" margin={{ left: 80 }}>
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                      <XAxis type="number" className="text-xs" />
+                      <YAxis type="category" dataKey="function_name" className="text-xs" width={80} tick={{ fontSize: 10 }} />
+                      <Tooltip />
+                      <Bar dataKey="total" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                );
+              })()
             ) : (
               <p className="text-sm text-muted-foreground">No usage data yet</p>
             )}
@@ -187,28 +208,31 @@ export function EdgeFunctionOverviewTab() {
       </div>
 
       {/* Daily Trend */}
-      {usage && usage.dailyTrend.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Daily Invocations (7d)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={usage.dailyTrend}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="date" className="text-xs" tick={{ fontSize: 10 }} />
-                <YAxis className="text-xs" />
-                <Tooltip />
-                <Bar dataKey="invocations" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Invocations" />
-                <Bar dataKey="errors" fill="hsl(0, 65%, 55%)" radius={[4, 4, 0, 0]} name="Errors" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+      {chartsReady && usage && usage.dailyTrend.length > 0 && (() => {
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = recharts;
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Daily Invocations (7d)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={usage.dailyTrend}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis dataKey="date" className="text-xs" tick={{ fontSize: 10 }} />
+                  <YAxis className="text-xs" />
+                  <Tooltip />
+                  <Bar dataKey="invocations" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Invocations" />
+                  <Bar dataKey="errors" fill="hsl(0, 65%, 55%)" radius={[4, 4, 0, 0]} name="Errors" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        );
+      })()}
     </div>
   );
 }
