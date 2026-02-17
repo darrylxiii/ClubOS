@@ -2,6 +2,7 @@
 // Lazy-load Sentry to reduce initial bundle size (~150KB)
 import("@/lib/sentry").then(({ initSentry }) => initSentry()).catch(() => {});
 
+import { lazy, Suspense, memo, useEffect } from "react";
 import { TracingProvider } from "@/lib/tracing/TracingProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,7 +22,6 @@ import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
 import { TranslationProvider } from "@/providers/TranslationProvider";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { HelmetProvider } from "react-helmet-async";
-import { lazy, Suspense, memo, useEffect } from "react";
 import { PageLoader } from "@/components/PageLoader";
 import i18n from "@/i18n/config";
 import { useQueryClient } from "@tanstack/react-query";
