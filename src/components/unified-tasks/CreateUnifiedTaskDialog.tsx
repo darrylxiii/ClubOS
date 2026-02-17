@@ -50,6 +50,7 @@ export const CreateUnifiedTaskDialog = ({
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [assignToSelf, setAssignToSelf] = useState(true);
   const [showAssignOthers, setShowAssignOthers] = useState(false);
+  const [assigneeSearch, setAssigneeSearch] = useState("");
 
   const [objectives, setObjectives] = useState<any[]>([]);
   const [selectedObjective, setSelectedObjective] = useState<string | undefined>(objectiveId || undefined);
@@ -246,6 +247,7 @@ export const CreateUnifiedTaskDialog = ({
     setSelectedAssignees([]);
     setAssignToSelf(true);
     setShowAssignOthers(false);
+    setAssigneeSearch("");
     setBlockingTasks([]);
     setBlockedByTasks([]);
 
@@ -498,28 +500,48 @@ export const CreateUnifiedTaskDialog = ({
             )}
 
             {/* Dropdown for selecting others */}
-            {showAssignOthers && (
-              <div className="max-h-48 overflow-y-auto space-y-2 border rounded-lg p-3 bg-card">
-                {profiles.map((profile) => (
-                  <button
-                    key={profile.id}
-                    type="button"
-                    onClick={() => toggleAssignee(profile.id)}
-                    className={`flex items-center gap-3 w-full p-2 rounded hover:bg-accent transition-colors ${selectedAssignees.includes(profile.id) ? "bg-accent" : ""
-                      }`}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile.avatar_url || undefined} />
-                      <AvatarFallback>{profile.full_name?.charAt(0) || "?"}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm flex-1 text-left">{profile.full_name || "Unknown"}</span>
-                    {selectedAssignees.includes(profile.id) && (
-                      <Badge variant="default" className="text-xs">Selected</Badge>
+            {showAssignOthers && (() => {
+              const filteredProfiles = assigneeSearch.trim()
+                ? profiles.filter(p => p.full_name?.toLowerCase().includes(assigneeSearch.toLowerCase()))
+                : profiles;
+              return (
+                <div className="space-y-2 border rounded-lg p-3 bg-card">
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by name..."
+                      value={assigneeSearch}
+                      onChange={(e) => setAssigneeSearch(e.target.value)}
+                      className="pl-9 h-9 text-sm"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {filteredProfiles.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-3">No results found</p>
+                    ) : (
+                      filteredProfiles.map((profile) => (
+                        <button
+                          key={profile.id}
+                          type="button"
+                          onClick={() => toggleAssignee(profile.id)}
+                          className={`flex items-center gap-3 w-full p-2 rounded hover:bg-accent transition-colors ${selectedAssignees.includes(profile.id) ? "bg-accent" : ""}`}
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={profile.avatar_url || undefined} />
+                            <AvatarFallback>{profile.full_name?.charAt(0) || "?"}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm flex-1 text-left">{profile.full_name || "Unknown"}</span>
+                          {selectedAssignees.includes(profile.id) && (
+                            <Badge variant="default" className="text-xs">Selected</Badge>
+                          )}
+                        </button>
+                      ))
                     )}
-                  </button>
-                ))}
-              </div>
-            )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="space-y-3">
