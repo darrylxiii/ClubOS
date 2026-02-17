@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Lock, ArrowLeft, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { parseEdgeFunctionError, getEdgeFunctionErrorMessage } from "@/utils/edgeFunctionErrors";
 
 export default function ResetPasswordVerify() {
   const [searchParams] = useSearchParams();
@@ -65,13 +66,32 @@ export default function ResetPasswordVerify() {
         body: { email, otp_code: otp }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Parse the actual response body from the edge function error
+        const body = await parseEdgeFunctionError(error);
+        if (body) {
+          const remaining = typeof body.attempts_remaining === 'number'
+            ? body.attempts_remaining
+            : Math.max(0, attemptsRemaining - 1);
+          setAttemptsRemaining(remaining);
+
+          if (remaining === 0) {
+            toast.error("Too many failed attempts. Please request a new code.");
+          } else {
+            toast.error(body.message || `Invalid code. ${remaining} attempts remaining.`);
+          }
+        } else {
+          const msg = await getEdgeFunctionErrorMessage(error, "Verification failed");
+          toast.error(msg);
+        }
+        setOtp("");
+        return;
+      }
 
       if (data?.success) {
         toast.success("Code verified!");
         navigate(`/reset-password/new?token=${data.reset_token}`);
       } else {
-        // FIX ISSUE 11: Use server-side attempts count when available
         const remaining = typeof data?.attempts_remaining === 'number' 
           ? data.attempts_remaining 
           : Math.max(0, attemptsRemaining - 1);
@@ -86,7 +106,7 @@ export default function ResetPasswordVerify() {
       }
     } catch (error: unknown) {
       console.error('OTP verification error:', error);
-      toast.error(error instanceof Error ? error.message : "Verification failed");
+      toast.error("Verification failed. Please try again.");
       setOtp("");
     } finally {
       setIsVerifying(false);
@@ -100,7 +120,16 @@ export default function ResetPasswordVerify() {
         body: { email }
       });
 
-      if (error) throw error;
+      if (error) {
+        const body = await parseEdgeFunctionError(error);
+        if (body?.rate_limited) {
+          toast.error(body.message || "Too many requests. Please try again later.");
+        } else {
+          const msg = body?.message || body?.error || "Failed to resend code";
+          toast.error(msg);
+        }
+        return;
+      }
 
       if (data?.rate_limited) {
         toast.error(data.message || "Too many requests. Please try again later.");

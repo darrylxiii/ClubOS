@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, Lock, AlertCircle } from "lucide-react";
 import { validatePasswordStrength } from "@/utils/passwordReset";
+import { parseEdgeFunctionError, getEdgeFunctionErrorMessage } from "@/utils/edgeFunctionErrors";
 
 export default function ResetPasswordNew() {
   const [searchParams] = useSearchParams();
@@ -41,7 +42,18 @@ export default function ResetPasswordNew() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        const body = await parseEdgeFunctionError(error);
+        if (body?.reused) {
+          toast.error("Cannot reuse recent passwords. Please choose a different one.", {
+            duration: 5000
+          });
+        } else {
+          const msg = body?.message || body?.error || "Failed to reset password. The link may have expired.";
+          toast.error(msg, { duration: 5000 });
+        }
+        return;
+      }
 
       if (data?.reused) {
         toast.error("Cannot reuse recent passwords. Please choose a different one.", {
@@ -56,7 +68,8 @@ export default function ResetPasswordNew() {
       }
     } catch (error: unknown) {
       console.error('Password reset error:', error);
-      toast.error(error instanceof Error ? error.message : "Failed to reset password");
+      const msg = await getEdgeFunctionErrorMessage(error, "Failed to reset password");
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

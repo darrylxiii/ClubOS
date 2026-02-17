@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { XCircle } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
+import { parseEdgeFunctionError } from "@/utils/edgeFunctionErrors";
 
 export default function ResetPasswordMagicLink() {
   const [searchParams] = useSearchParams();
@@ -28,12 +29,13 @@ export default function ResetPasswordMagicLink() {
 
       if (error) {
         console.error('Token validation error:', error);
-        setError("This reset link has expired or is invalid");
+        const body = await parseEdgeFunctionError(error);
+        setError(body?.message || body?.error || "This reset link has expired or is invalid");
         return;
       }
 
       if (!data?.valid) {
-        setError("This reset link has expired or is invalid");
+        setError(data?.message || "This reset link has expired or is invalid");
         return;
       }
 
