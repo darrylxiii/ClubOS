@@ -23,7 +23,7 @@ import {
 } from "date-fns";
 import { Clock, ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from "lucide-react";
 import { TaskCardSkeleton } from "./TaskCardSkeleton";
-import { UnifiedTaskDetailDialog } from "./UnifiedTaskDetailDialog";
+import { UnifiedTaskDetailSheet } from "./UnifiedTaskDetailSheet";
 import { cn } from "@/lib/utils";
 
 interface UnifiedTaskCalendarProps {
@@ -359,9 +359,9 @@ export const UnifiedTaskCalendar = ({
         })}
       </div>
 
-      {/* Task detail dialog */}
+      {/* Task detail sheet */}
       {selectedTask && (
-        <UnifiedTaskDetailDialog
+        <UnifiedTaskDetailSheet
           task={selectedTask}
           open={!!selectedTask}
           onClose={() => setSelectedTask(null)}

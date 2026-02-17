@@ -8,11 +8,14 @@ import {
   BarChart3,
   RefreshCw,
   CheckSquare,
-  Keyboard
+  Keyboard,
+  UserCircle
 } from "lucide-react";
 import { TaskSearchBar } from "./TaskSearchBar";
 import { BulkTaskActions } from "./BulkTaskActions";
+import { SavedFilterPresets } from "./SavedFilterPresets";
 import { useUnifiedTasks } from "@/contexts/UnifiedTasksContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -26,6 +29,7 @@ interface TaskToolbarProps {
 }
 
 export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
+  const { user } = useAuth();
   const {
     searchQuery,
     setSearchQuery,
@@ -40,6 +44,17 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
     filteredTasks,
     loading,
   } = useUnifiedTasks();
+
+  const isMyTasksActive = filters.assignee?.includes(user?.id || "");
+
+  const toggleMyTasks = () => {
+    if (!user) return;
+    if (isMyTasksActive) {
+      setFilters({ ...filters, assignee: undefined });
+    } else {
+      setFilters({ ...filters, assignee: [user.id] });
+    }
+  };
 
   const viewModes = [
     { key: 'board' as const, icon: LayoutDashboard, label: 'Board' },
@@ -91,6 +106,36 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
               </TooltipProvider>
             ))}
           </div>
+
+          <Separator orientation="vertical" className="h-8" />
+
+          {/* My Tasks toggle */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={isMyTasksActive ? "default" : "ghost"}
+                  size="sm"
+                  className="h-8 px-3 gap-1.5 text-xs"
+                  onClick={toggleMyTasks}
+                >
+                  <UserCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">My Tasks</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Toggle My Tasks</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Saved filter presets */}
+          <SavedFilterPresets
+            currentFilters={filters}
+            currentSearchQuery={searchQuery}
+            onApplyPreset={(newFilters, query) => {
+              setFilters(newFilters);
+              setSearchQuery(query);
+            }}
+          />
 
           <Separator orientation="vertical" className="h-8" />
 

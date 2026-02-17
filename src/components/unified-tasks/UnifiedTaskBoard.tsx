@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
-import { UnifiedTaskDetailDialog } from "./UnifiedTaskDetailDialog";
+import { UnifiedTaskDetailSheet } from "./UnifiedTaskDetailSheet";
 import { UnifiedTaskCard } from "./UnifiedTaskCard";
 import {
   DndContext,
@@ -170,13 +170,20 @@ export const UnifiedTaskBoard = ({
         // Batch fetch all dependency counts in two queries instead of N+1
         const taskIds = data.map(t => t.id);
 
-        const [{ data: blockingCounts }, { data: blockedByCounts }] = await Promise.all([
+        const [{ data: blockingCounts }, { data: blockedByCounts }, { data: subtaskRows }, { data: commentRows }] = await Promise.all([
           supabase
             .from("task_dependencies")
             .select("depends_on_task_id")
             .in("depends_on_task_id", taskIds),
           supabase
             .from("task_dependencies")
+            .select("task_id")
+            .in("task_id", taskIds),
+          (supabase.from("unified_tasks") as any)
+            .select("parent_task_id, status")
+            .in("parent_task_id", taskIds),
+          supabase
+            .from("task_comments")
             .select("task_id")
             .in("task_id", taskIds),
         ]);
@@ -192,10 +199,27 @@ export const UnifiedTaskBoard = ({
           blockedByMap.set(row.task_id, (blockedByMap.get(row.task_id) || 0) + 1);
         });
 
+        const subtaskCountMap = new Map<string, number>();
+        const subtaskCompletedMap = new Map<string, number>();
+        subtaskRows?.forEach((row: any) => {
+          subtaskCountMap.set(row.parent_task_id, (subtaskCountMap.get(row.parent_task_id) || 0) + 1);
+          if (row.status === 'completed') {
+            subtaskCompletedMap.set(row.parent_task_id, (subtaskCompletedMap.get(row.parent_task_id) || 0) + 1);
+          }
+        });
+
+        const commentCountMap = new Map<string, number>();
+        commentRows?.forEach((row: any) => {
+          commentCountMap.set(row.task_id, (commentCountMap.get(row.task_id) || 0) + 1);
+        });
+
         const tasksWithDeps = data.map(task => ({
           ...task,
           blockingCount: blockingMap.get(task.id) || 0,
           blockedByCount: blockedByMap.get(task.id) || 0,
+          subtaskCount: subtaskCountMap.get(task.id) || 0,
+          subtaskCompleted: subtaskCompletedMap.get(task.id) || 0,
+          commentCount: commentCountMap.get(task.id) || 0,
         }));
 
         setTasks(tasksWithDeps as UnifiedTask[]);
@@ -415,9 +439,9 @@ export const UnifiedTaskBoard = ({
           )}
         </div>
 
-        {/* Task Detail Dialog */}
+        {/* Task Detail Sheet (non-blocking slide-over) */}
         {selectedTask && (
-          <UnifiedTaskDetailDialog
+          <UnifiedTaskDetailSheet
             task={selectedTask}
             open={!!selectedTask}
             onClose={() => setSelectedTask(null)}

@@ -33,9 +33,9 @@ export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: Unified
         }
     };
 
-    // Calculate progress override or default
-    const subtaskCount = 0; // TODO: Fetch from actual relation if available in board query
-    const commentCount = 0; // TODO: Fetch from actual relation
+    const subtaskCount = task.subtaskCount || 0;
+    const subtaskCompleted = task.subtaskCompleted || 0;
+    const commentCount = task.commentCount || 0;
 
     return (
         <div
@@ -121,13 +121,18 @@ export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: Unified
                             </div>
                         )}
 
-                        {/* Indicators (Mocked for now until query updates) */}
-                        {/* 
-               <div className="flex items-center gap-1 text-[10px]">
-                  <CheckSquare className="h-3 w-3" />
-                  <span>0/3</span>
-               </div> 
-               */}
+                        {subtaskCount > 0 && (
+                            <div className="flex items-center gap-1 text-[10px]" title={`${subtaskCompleted}/${subtaskCount} subtasks`}>
+                                <CheckSquare className="h-3 w-3" />
+                                <span>{subtaskCompleted}/{subtaskCount}</span>
+                            </div>
+                        )}
+                        {commentCount > 0 && (
+                            <div className="flex items-center gap-1 text-[10px]" title={`${commentCount} comments`}>
+                                <MessageSquare className="h-3 w-3" />
+                                <span>{commentCount}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </Card>

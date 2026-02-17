@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   LayoutDashboard, 
   Users, 
@@ -58,7 +59,7 @@ const UnifiedTasks = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("board");
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || "board");
 
   useEffect(() => {
     const init = async () => {
@@ -77,6 +78,20 @@ const UnifiedTasks = () => {
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
+
+  // Sync active tab to URL
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (tab === 'board') {
+        next.delete('tab');
+      } else {
+        next.set('tab', tab);
+      }
+      return next;
+    });
+  };
 
   const loadPreferences = async () => {
     if (!user) return;
@@ -311,41 +326,36 @@ const UnifiedTasks = () => {
               </div>
 
               {/* Objective Filter */}
-              <Card className="border-border/40">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4 overflow-x-auto pb-1">
-                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                      🎯 Objective:
-                    </span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant={!selectedObjective ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedObjective(null)}
-                      >
-                        All
-                      </Button>
-                      {objectives.map((objective) => (
-                        <Button
-                          key={objective.id}
-                          variant={selectedObjective === objective.id ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedObjective(objective.id)}
-                          className="whitespace-nowrap"
-                        >
-                          {objective.title}
-                        </Button>
+              {objectives.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Target className="h-4 w-4" />
+                    Objective:
+                  </span>
+                  <Select
+                    value={selectedObjective || "__all__"}
+                    onValueChange={(v) => setSelectedObjective(v === "__all__" ? null : v)}
+                  >
+                    <SelectTrigger className="h-9 w-[220px]">
+                      <SelectValue placeholder="All objectives" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">All objectives</SelectItem>
+                      {objectives.map((obj) => (
+                        <SelectItem key={obj.id} value={obj.id}>
+                          {obj.title}
+                        </SelectItem>
                       ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Task Toolbar with Search, Filters, Bulk Actions */}
               <TaskToolbar onRefresh={handleRefresh} />
 
               {/* Task Views */}
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
                 <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-6' : 'grid-cols-5'} lg:w-auto`}>
                   <TabsTrigger value="board" className="gap-2">
                     <LayoutDashboard className="h-4 w-4" />
