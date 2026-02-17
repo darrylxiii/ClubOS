@@ -1,17 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { Loader2, Timer } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface EstimationVsActualChartProps {
   objectiveId?: string | null;
@@ -20,6 +12,7 @@ interface EstimationVsActualChartProps {
 export function EstimationVsActualChart({ objectiveId }: EstimationVsActualChartProps) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   useEffect(() => {
     loadData();
@@ -57,7 +50,7 @@ export function EstimationVsActualChart({ objectiveId }: EstimationVsActualChart
     }
   };
 
-  if (loading) {
+  if (loading || rechartsLoading || !recharts) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center h-[250px]">
@@ -77,6 +70,8 @@ export function EstimationVsActualChart({ objectiveId }: EstimationVsActualChart
       </Card>
     );
   }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } = recharts;
 
   return (
     <Card>

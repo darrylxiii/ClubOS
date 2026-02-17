@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, eachDayOfInterval, startOfDay } from "date-fns";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { TrendingDown, Loader2 } from "lucide-react";
 
 interface BurndownData {
@@ -21,6 +21,7 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
   const [data, setData] = useState<BurndownData[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("14");
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   useEffect(() => {
     loadBurndownData();
@@ -35,7 +36,6 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
       
       const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
 
-      // Get all tasks in the range
       let query = supabase
         .from("unified_tasks")
         .select("id, status, created_at, completed_at")
@@ -49,19 +49,14 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
 
       if (error) throw error;
 
-      // Calculate burndown for each day
       const totalTasks = tasks?.length || 0;
       const idealBurnRate = totalTasks / days;
 
       const burndownData: BurndownData[] = dateRange.map((date, index) => {
-        const dayStart = startOfDay(date);
-        
-        // Count tasks created before or on this day
         const tasksCreatedByDate = tasks?.filter(t => 
           new Date(t.created_at) <= date
         ).length || 0;
 
-        // Count tasks completed before or on this day
         const tasksCompletedByDate = tasks?.filter(t => 
           t.completed_at && new Date(t.completed_at) <= date
         ).length || 0;
@@ -85,7 +80,7 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
     }
   };
 
-  if (loading) {
+  if (loading || rechartsLoading || !recharts) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center h-[300px]">
@@ -94,6 +89,8 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
       </Card>
     );
   }
+
+  const { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } = recharts;
 
   return (
     <Card>

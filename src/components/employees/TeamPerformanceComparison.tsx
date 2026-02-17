@@ -1,17 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line
-} from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRecharts } from "@/hooks/useRecharts";
 import { Trophy, TrendingUp, Medal } from "lucide-react";
 import { motion } from "framer-motion";
 import { EmployeeProfile } from "@/hooks/useEmployeeProfile";
@@ -35,16 +26,17 @@ export function TeamPerformanceComparison({
   performanceData,
   isLoading 
 }: TeamPerformanceComparisonProps) {
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
   const sortedByRevenue = [...performanceData].sort((a, b) => b.revenue - a.revenue);
   const topPerformers = sortedByRevenue.slice(0, 3);
 
   const chartData = performanceData.map(p => ({
-    name: p.name.split(' ')[0], // First name only
+    name: p.name.split(' ')[0],
     revenue: p.revenue,
     placements: p.placements,
   }));
 
-  if (isLoading) {
+  if (isLoading || rechartsLoading || !recharts) {
     return (
       <Card>
         <CardHeader>
@@ -56,6 +48,8 @@ export function TeamPerformanceComparison({
       </Card>
     );
   }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } = recharts;
 
   return (
     <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">

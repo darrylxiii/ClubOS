@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, Users, Briefcase, TrendingUp, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 
 const MarketplaceAnalytics = () => {
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
+
   // Fetch all marketplace data
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ['admin-marketplace-projects'],
@@ -105,7 +107,7 @@ const MarketplaceAnalytics = () => {
 
   const isLoading = projectsLoading || contractsLoading || freelancersLoading;
 
-  if (isLoading) {
+  if (isLoading || rechartsLoading || !recharts) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -115,6 +117,8 @@ const MarketplaceAnalytics = () => {
       </div>
     );
   }
+
+  const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } = recharts;
 
   return (
     <div className="container mx-auto p-6 space-y-6">

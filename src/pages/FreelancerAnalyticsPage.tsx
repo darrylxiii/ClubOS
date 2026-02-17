@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, Eye, FileText, DollarSign, Clock, Star } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { format, subDays } from "date-fns";
 
 const FreelancerAnalyticsPage = () => {
   const { user } = useAuth();
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const { data: profile } = useQuery({
     queryKey: ['freelance-profile-analytics', user?.id],
@@ -78,7 +79,7 @@ const FreelancerAnalyticsPage = () => {
     ? (reviews.reduce((sum, r) => sum + (r.expertise_rating || 0), 0) / reviews.length).toFixed(1)
     : 'N/A';
 
-  // Generate mock trend data (would come from analytics table in production)
+  // Generate mock trend data
   const last30Days = Array.from({ length: 30 }, (_, i) => {
     const date = subDays(new Date(), 29 - i);
     return {
@@ -107,6 +108,17 @@ const FreelancerAnalyticsPage = () => {
       </div>
     );
   }
+
+  if (rechartsLoading || !recharts) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-[300px] w-full" />
+      </div>
+    );
+  }
+
+  const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } = recharts;
 
   return (
     <div className="container mx-auto p-6 space-y-6">

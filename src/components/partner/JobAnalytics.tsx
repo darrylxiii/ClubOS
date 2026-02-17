@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useJobAnalytics } from "@/hooks/useJobAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { useRecharts } from "@/hooks/useRecharts";
 import { TrendingUp, Clock, Users, Target, Zap, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,8 +14,9 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))'
 
 export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
   const { data, loading, error } = useJobAnalytics(jobId);
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
-  if (loading) {
+  if (loading || rechartsLoading || !recharts) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-32 w-full" />
@@ -44,6 +45,8 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
       </Card>
     );
   }
+
+  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } = recharts;
 
   // Prepare sourcing data for pie chart
   const sourcingData = [
