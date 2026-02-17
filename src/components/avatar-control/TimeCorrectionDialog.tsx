@@ -35,7 +35,7 @@ export function TimeCorrectionDialog({
   const [correctedMinutes, setCorrectedMinutes] = useState(String(originalMinutes));
   const [correctionType, setCorrectionType] = useState('');
   const [reason, setReason] = useState('');
-  const { submitCorrection } = useSessionJobs();
+  const { submitCorrection } = useSessionJobs(sessionId);
 
   const handleSubmit = () => {
     if (!correctionType || !reason.trim() || !correctedMinutes) return;

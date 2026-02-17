@@ -4,14 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { useAvatarSessions } from '@/hooks/useAvatarSessions';
 import { useAvailableJobs } from '@/hooks/useSessionJobs';
+import { CompanyJobSelector } from '@/components/avatar-control/CompanyJobSelector';
 import { addMinutes, format } from 'date-fns';
-import { Check, ChevronsUpDown, Briefcase } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronsUpDown, Briefcase } from 'lucide-react';
 
 interface StartSessionModalProps {
   account: AvatarAccount | null;
@@ -70,7 +69,7 @@ export function StartSessionModal({ account, open, onOpenChange }: StartSessionM
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Job selector */}
+          {/* Company → Job selector */}
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
               <Briefcase className="h-3.5 w-3.5" />
@@ -86,37 +85,18 @@ export function StartSessionModal({ account, open, onOpenChange }: StartSessionM
                 >
                   {selectedJob
                     ? `${selectedJob.title}${selectedJob.companies?.name ? ` — ${selectedJob.companies.name}` : ''}`
-                    : 'Select a job…'}
+                    : 'Select company → job…'}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                <Command>
-                  <CommandInput placeholder="Search jobs…" />
-                  <CommandList>
-                    <CommandEmpty>No jobs found.</CommandEmpty>
-                    <CommandGroup>
-                      {jobs.map(job => (
-                        <CommandItem
-                          key={job.id}
-                          value={`${job.title} ${job.companies?.name ?? ''} ${job.location ?? ''}`}
-                          onSelect={() => {
-                            setSelectedJobId(job.id);
-                            setJobSearchOpen(false);
-                          }}
-                        >
-                          <Check className={cn('mr-2 h-4 w-4', selectedJobId === job.id ? 'opacity-100' : 'opacity-0')} />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{job.title}</p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {[job.companies?.name, job.location].filter(Boolean).join(' · ')}
-                            </p>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
+                <CompanyJobSelector
+                  selectedJobId={selectedJobId}
+                  onSelect={(id) => {
+                    setSelectedJobId(id);
+                    setJobSearchOpen(false);
+                  }}
+                />
               </PopoverContent>
             </Popover>
           </div>

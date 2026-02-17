@@ -31,7 +31,7 @@ export function useAvatarSessions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('linkedin_avatar_sessions')
-        .select('*, profiles(full_name, avatar_url), linkedin_avatar_accounts(label), jobs(id, title, companies(name))')
+        .select('*, profiles(full_name, avatar_url), linkedin_avatar_accounts(label), jobs(id, title, companies(name)), linkedin_avatar_session_jobs(id, job_id, minutes_logged, is_primary, jobs(title))')
         .order('created_at', { ascending: false })
         .limit(200);
       if (error) throw error;

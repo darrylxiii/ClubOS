@@ -43,6 +43,20 @@ export interface JobInsight {
   accounts_used: string[];
 }
 
+export interface CompanyWithJobCount {
+  id: string;
+  name: string;
+  open_jobs: number;
+}
+
+export interface AvailableJob {
+  id: string;
+  title: string;
+  company_id: string | null;
+  companies: { id: string; name: string } | null;
+  location: string | null;
+}
+
 export function useSessionJobs(sessionId?: string) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -80,7 +94,6 @@ export function useSessionJobs(sessionId?: string) {
   const endSessionJob = useMutation({
     mutationFn: async (sessionJobId: string) => {
       const now = new Date();
-      // Get the record first to calculate minutes
       const { data: existing } = await supabase
         .from('linkedin_avatar_session_jobs')
         .select('started_at')
@@ -105,7 +118,6 @@ export function useSessionJobs(sessionId?: string) {
 
   const switchJob = useMutation({
     mutationFn: async (params: { session_id: string; current_session_job_id: string; new_job_id: string }) => {
-      // End current job tracking
       const now = new Date();
       const { data: existing } = await supabase
         .from('linkedin_avatar_session_jobs')
@@ -122,7 +134,6 @@ export function useSessionJobs(sessionId?: string) {
         .update({ ended_at: now.toISOString(), minutes_logged: minutes })
         .eq('id', params.current_session_job_id);
 
-      // Start new job tracking
       const { data, error } = await supabase
         .from('linkedin_avatar_session_jobs')
         .insert({
@@ -152,7 +163,6 @@ export function useSessionJobs(sessionId?: string) {
       reason: string;
       correction_type: string;
     }) => {
-      // Insert correction record
       const { error: corrErr } = await supabase
         .from('linkedin_avatar_time_corrections')
         .insert({
@@ -166,14 +176,12 @@ export function useSessionJobs(sessionId?: string) {
         });
       if (corrErr) throw corrErr;
 
-      // Update minutes_logged on session_job
       const { error: updateErr } = await supabase
         .from('linkedin_avatar_session_jobs')
         .update({ minutes_logged: params.corrected_minutes })
         .eq('id', params.session_job_id);
       if (updateErr) throw updateErr;
 
-      // Log event
       await supabase.from('linkedin_avatar_events').insert({
         account_id: null as any,
         user_id: user!.id,
@@ -202,7 +210,7 @@ export function useSessionJobs(sessionId?: string) {
   };
 }
 
-/** Fetch all published jobs for the job selector */
+/** Fetch all published jobs with company info */
 export function useAvailableJobs() {
   const { user } = useAuth();
   return useQuery({
@@ -210,14 +218,34 @@ export function useAvailableJobs() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, companies(name), location')
+        .select('id, title, company_id, companies(id, name), location')
         .eq('status', 'published')
         .order('title');
       if (error) throw error;
-      return data as { id: string; title: string; companies: { name: string } | null; location: string | null }[];
+      return data as AvailableJob[];
     },
     enabled: !!user,
   });
+}
+
+/** Companies with open job counts, sorted desc */
+export function useCompaniesWithJobCounts() {
+  const { data: jobs = [] } = useAvailableJobs();
+
+  const companies = jobs.reduce<CompanyWithJobCount[]>((acc, job) => {
+    const companyId = job.companies?.id ?? job.company_id;
+    const companyName = job.companies?.name ?? 'Unknown';
+    if (!companyId) return acc;
+    const existing = acc.find(c => c.id === companyId);
+    if (existing) {
+      existing.open_jobs++;
+    } else {
+      acc.push({ id: companyId, name: companyName, open_jobs: 1 });
+    }
+    return acc;
+  }, []);
+
+  return companies.sort((a, b) => b.open_jobs - a.open_jobs);
 }
 
 /** Job-level analytics across all sessions */
@@ -236,7 +264,6 @@ export function useJobInsights() {
         .order('started_at', { ascending: false });
       if (error) throw error;
 
-      // Aggregate in JS
       const map = new Map<string, JobInsight>();
       for (const row of data as any[]) {
         const jobId = row.job_id;
@@ -244,7 +271,6 @@ export function useJobInsights() {
         const companyName = row.jobs?.companies?.name ?? null;
         const minutes = row.minutes_logged ?? 0;
         const accountLabel = row.linkedin_avatar_sessions?.linkedin_avatar_accounts?.label ?? 'Unknown';
-        const userId = row.linkedin_avatar_sessions?.user_id;
 
         if (!map.has(jobId)) {
           map.set(jobId, {
@@ -266,13 +292,11 @@ export function useJobInsights() {
         if (!insight.accounts_used.includes(accountLabel)) {
           insight.accounts_used.push(accountLabel);
         }
-        // Track unique users via a temporary set (we'll store count)
         if (!insight.last_activity || row.started_at > insight.last_activity) {
           insight.last_activity = row.started_at;
         }
       }
 
-      // Compute averages and unique counts
       const insights = Array.from(map.values());
       for (const i of insights) {
         i.avg_session_minutes = i.total_sessions > 0 ? Math.round(i.total_minutes / i.total_sessions) : 0;
