@@ -1,84 +1,102 @@
 
 
-# Memory Optimization Audit -- Fix Plan
+# Memory Optimization Audit -- Remaining Heavy Dependencies
 
-## Diagnosis
+## Current State
 
-The build is hitting the Vite memory ceiling (OOM / HTTP 412). The previous fix migrated Recharts to lazy loading, but several other heavy dependencies are still eagerly pulled into the root chunk via import chains.
+The previous rounds successfully migrated Recharts to lazy loading, made Sentry lazy in error boundaries and logger, and converted confetti/jsPDF to dynamic imports. However, Sentry is **still** being pulled into the root chunk through 4 forgotten files, and PostHog (~90KB) is eagerly loaded on every page. Several dead-code files also contribute to build memory.
 
-## Issues Found (ordered by impact)
+---
 
-### 1. Sentry still eagerly loaded via error boundaries (~150KB)
+## Issues Found (ordered by memory impact)
 
-Even though `initSentry()` is now lazy-loaded, `@sentry/react` is **still** pulled into the root chunk through three eager import paths:
+### 1. Sentry STILL eagerly imported in 4 files (~150KB back in root chunk)
 
-- `SentryErrorBoundary.tsx` (line 2: `import * as Sentry from '@sentry/react'`) -- used directly in `App.tsx`
-- `RouteErrorBoundary.tsx` (line 6: `import * as Sentry from '@sentry/react'`) -- used in every route wrapper in `App.tsx`
-- `logger.ts` (line 2: `import * as Sentry from '@sentry/react'`) -- imported by `RouteErrorBoundary` and many other files
+Despite the previous fix, these files use `import * as Sentry from '@sentry/react'` at the top level, pulling the entire Sentry bundle back in:
 
-**This completely negates the lazy-load fix from the previous round.** Sentry's ~150KB is still in the initial bundle.
+| File | Used by anything? |
+|------|-------------------|
+| `src/lib/sentry.ts` (line 6) | Yes -- lazy-loaded from App.tsx, but also re-exports `Sentry` which other files may statically import |
+| `src/lib/errorGrouping.ts` (line 7) | **NO** -- dead code, nothing imports it |
+| `src/hooks/useSentryTransaction.ts` (line 2) | **NO** -- dead code, nothing imports it |
+| `src/components/ui/SectionErrorBoundary.tsx` (line 12) | **NO** -- dead code, nothing imports it |
+| `src/utils/performanceMonitoring.ts` (line 8) | Yes -- imported by `PerformanceMonitor.tsx`, `usePerformanceTracking.ts`, `Home.tsx` |
 
-### 2. `canvas-confetti` imported eagerly in 17 files (~30KB each import site)
+The first file (`sentry.ts`) is fine since it is only reached via dynamic import. But `performanceMonitoring.ts` is imported eagerly by `Home.tsx` (a lazy page) and `PerformanceMonitor.tsx`. If `PerformanceMonitor` is used in the root layout, Sentry gets pulled in.
 
-`canvas-confetti` is imported directly (not lazily) in 17 components. While each import resolves to the same module, the build still processes it as part of the dependency graph for those chunks. Lazy-loading it would remove it from the critical path.
+### 2. PostHog eagerly loaded in root chunk (~90KB)
 
-### 3. `jsPDF` + `jspdf-autotable` imported eagerly in 2 files (~250KB combined)
+`PostHogProvider` is imported directly in `App.tsx` line 13, which imports `src/lib/posthog.ts`, which does `import posthog from 'posthog-js'`. This puts the entire PostHog SDK (~90KB) into the initial chunk -- even though PostHog is not configured (API key missing per console logs).
 
-`CoverLetterPreview.tsx` and `FinancialExportMenu.tsx` import jsPDF at the top level. These are heavy libraries only needed when a user clicks "Download PDF".
+### 3. Dead code files with heavy imports (build processes them anyway)
 
-### 4. `@blocknote` imported eagerly in 15 workspace editor files
+Three files import `@sentry/react` but are **never used anywhere**:
+- `src/lib/errorGrouping.ts` -- 249 lines, imports Sentry
+- `src/hooks/useSentryTransaction.ts` -- imports Sentry
+- `src/components/ui/SectionErrorBoundary.tsx` -- imports Sentry
 
-While these are marked external in dev mode, in **production builds** they are bundled. The 15 files importing from `@blocknote/react`, `@blocknote/core`, and `@blocknote/mantine` should be consolidated behind a single lazy boundary.
+While tree-shaking should remove dead code, the build still **parses and processes** these files, consuming memory during bundling.
 
-### 5. `react-markdown` imported eagerly in 7 files (~60KB)
+### 4. `performanceMonitoring.ts` eagerly imports Sentry
 
-A `LazyMarkdown` wrapper already exists at `src/components/ui/LazyMarkdown.tsx` but 7 files bypass it and import `react-markdown` directly.
+This utility file does `import * as Sentry from '@sentry/react'` at the top. It is imported by `Home.tsx` and `PerformanceMonitor.tsx`. The Sentry usage is minimal (just `setMeasurement` and `getClient`), and can be converted to a dynamic import.
+
+### 5. `framer-motion` in 332 files (already chunked but adds build pressure)
+
+framer-motion is imported in 332 files. The `manualChunks` config already splits it into a `motion` chunk, so it does not bloat the root bundle. However, the sheer number of import sites increases Rollup's internal graph size during build. No immediate action needed, but noted for future optimization.
 
 ---
 
 ## Fix Plan
 
-### Step 1: Remove Sentry from root chunk (highest impact)
+### Step 1: Delete 3 dead-code files (instant memory savings)
 
-Replace all eager `import * as Sentry from '@sentry/react'` with dynamic imports in the three root-chain files:
+Remove these unused files entirely -- they are never imported anywhere:
+- `src/lib/errorGrouping.ts`
+- `src/hooks/useSentryTransaction.ts`
+- `src/components/ui/SectionErrorBoundary.tsx`
 
-- **`SentryErrorBoundary.tsx`**: Remove the Sentry import. In the `componentDidCatch` method, use `import('@sentry/react').then(s => s.captureException(error))` instead.
-- **`RouteErrorBoundary.tsx`**: Same pattern -- dynamic import in `componentDidCatch` only.
-- **`logger.ts`**: Replace the top-level Sentry import with a lazy getter that caches the module after first load. All existing Sentry calls become async (fire-and-forget for logging, which is acceptable).
+This removes 3 files that the bundler currently parses and processes, each importing Sentry.
 
-This removes ~150KB from the initial chunk.
+### Step 2: Lazy-load PostHog (~90KB savings)
 
-### Step 2: Lazy-load `canvas-confetti` in all 17 files
-
-Replace every `import confetti from 'canvas-confetti'` with a dynamic import wrapper:
+Convert the `PostHogProvider` import in `App.tsx` to a lazy wrapper:
 
 ```typescript
-const fireConfetti = async (opts?: any) => {
-  const { default: confetti } = await import('canvas-confetti');
-  confetti(opts);
+// Instead of eager import:
+// import { PostHogProvider } from "@/providers/PostHogProvider";
+
+// Use a lazy wrapper:
+const LazyPostHogProvider = lazy(() => 
+  import("@/providers/PostHogProvider").then(m => ({ default: m.PostHogProvider }))
+);
+```
+
+Since PostHog is not even configured (no API key), this is zero-risk. The entire `posthog-js` SDK (~90KB) will be deferred.
+
+### Step 3: Convert `performanceMonitoring.ts` to lazy Sentry
+
+Replace the eager `import * as Sentry from '@sentry/react'` in `src/utils/performanceMonitoring.ts` with a dynamic import pattern (same as was done in `logger.ts`):
+
+```typescript
+let _sentry: typeof import('@sentry/react') | null = null;
+const getSentry = async () => {
+  if (!_sentry) {
+    try { _sentry = await import('@sentry/react'); } catch {}
+  }
+  return _sentry;
 };
 ```
 
-This is safe because confetti is always triggered by a user action (click), never on mount.
+### Step 4: Add `posthog-js` to manualChunks (safety net)
 
-### Step 3: Lazy-load jsPDF in 2 files
+Add PostHog to the Vite `manualChunks` config so even if it gets pulled in through other paths, it stays in its own chunk:
 
-Move `import jsPDF` inside the download handler functions in `CoverLetterPreview.tsx` and `FinancialExportMenu.tsx`. These only fire on button click.
+```typescript
+if (id.includes('posthog')) return 'analytics';  // already present
+```
 
-### Step 4: Migrate 7 files from `react-markdown` to `LazyMarkdown`
-
-Replace direct `import ReactMarkdown from 'react-markdown'` with the existing `LazyMarkdown` wrapper in:
-- `ClubAI.tsx`
-- `UnifiedTaskDetailSheet.tsx`
-- `DisasterRecoveryDashboard.tsx`
-- `CourseAIChat.tsx`
-- `AIModuleAssistant.tsx`
-- `ClubAIHomeChatWidget.tsx`
-- `MessageFormatter.tsx`
-
-### Step 5: Verify BlockNote is behind lazy boundary
-
-Confirm all `@blocknote` imports are only reachable through lazy-loaded page components (they appear to be, through the workspace routes). No code change expected, just verification.
+This is already configured -- just verifying it stays in place.
 
 ---
 
@@ -86,15 +104,17 @@ Confirm all `@blocknote` imports are only reachable through lazy-loaded page com
 
 | File | Change |
 |------|--------|
-| `src/components/SentryErrorBoundary.tsx` | Dynamic import for Sentry |
-| `src/components/RouteErrorBoundary.tsx` | Dynamic import for Sentry |
-| `src/lib/logger.ts` | Lazy Sentry getter |
-| 17 files with `canvas-confetti` | Dynamic import wrapper |
-| `src/components/applications/CoverLetterPreview.tsx` | Move jsPDF inside handler |
-| `src/components/financial/FinancialExportMenu.tsx` | Move jsPDF + autotable inside handler |
-| 7 files with `react-markdown` | Switch to `LazyMarkdown` |
+| `src/lib/errorGrouping.ts` | **DELETE** (dead code) |
+| `src/hooks/useSentryTransaction.ts` | **DELETE** (dead code) |
+| `src/components/ui/SectionErrorBoundary.tsx` | **DELETE** (dead code) |
+| `src/App.tsx` | Lazy-load PostHogProvider |
+| `src/utils/performanceMonitoring.ts` | Replace eager Sentry import with lazy getter |
 
 ## Expected Result
 
-Removing Sentry (~150KB), canvas-confetti (~30KB), jsPDF (~250KB), and react-markdown (~60KB) from the eager dependency graph should reduce peak build memory by ~400-500KB of parsed JS, bringing the build well under the OOM threshold.
+- Removing PostHog from root chunk: **~90KB** savings
+- Removing dead Sentry import files: **~150KB** less for bundler to process
+- Lazy Sentry in performanceMonitoring: prevents accidental re-introduction
+
+Total estimated reduction: **~240KB** from the eager bundle, plus reduced build-time memory from 3 fewer files to parse.
 
