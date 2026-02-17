@@ -1,59 +1,67 @@
 
+# Show Profile Pictures for Meeting Attendees (Multi-Source)
 
-# Fix: Show Team Members in Live Operations Widget
+## What changes
 
-## Problem
+Replace the initial-only avatars in the ActiveMeetingsWidget and EventDetailModal with real profile pictures, pulling from two sources:
 
-The "Team Online" section never appears because the `useLiveOperations` hook has a strict 15-minute `last_seen` filter. Users like Sebastiaan and Darryl have `status = 'online'` in the database but their `last_seen` timestamps are stale (hours or days old). The filter discards them, resulting in an empty list every time.
+1. **`profiles` table** -- for team members / platform users (matched by email)
+2. **`emails` table** -- for external contacts whose Gravatar URLs were captured during Gmail sync (matched by `from_email` to `from_avatar_url`)
 
-## Root Cause
-
-The presence heartbeat (`useUserPresence`) updates `last_seen` every 30 seconds while a user is active. But if a user closes their browser without triggering the `beforeunload` event (common on mobile, crash, etc.), the `status` stays stuck at `online` with an old `last_seen`. The current logic requires both `status === 'online'` AND `last_seen` within 15 minutes -- which is too strict.
-
-## Fix
-
-### 1. Relax the filtering in `useLiveOperations.ts`
-
-Change the logic so that:
-- If `status === 'online'` AND `last_seen` within 5 minutes = show as **online** (green dot, pulse if < 1 min)
-- If `status === 'online'` AND `last_seen` between 5-30 minutes = show as **away** (amber dot)
-- If `status === 'online'` AND `last_seen` older than 30 minutes = still show but as **away** with "last seen Xh ago" (these are likely stale -- but better to show than hide)
-- If `status === 'offline'` = do not show (count as offline)
-
-This means: anyone with `status = 'online'` always appears in the Team Online section. The `last_seen` timestamp determines their status indicator, not their visibility.
-
-### 2. Always render the Team Online section in `LiveOperationsWidget.tsx`
-
-Currently the section is wrapped in `{onlineMembers.length > 0 && ...}`. Change this so the section always renders when not loading. If no members are online, show a subtle "No team members online" message instead of hiding the section entirely. This makes the widget feel complete even when nobody is active.
-
-### 3. Add presence refresh interval
-
-Add a 60-second interval in `useLiveOperations` that also refreshes presence (not just sessions), so the status dots update as members come and go.
+This covers both internal users and external contacts, so nearly every attendee will have a photo.
 
 ---
 
-## Technical Details
+## New file: `src/hooks/useAttendeeProfiles.ts`
 
-### File: `src/hooks/useLiveOperations.ts`
+A hook that accepts an array of email addresses and returns a map of email to avatar URL + display name.
 
-- Remove the `minutesAgo < 15` gate that skips users to `offline++`
-- Instead: if `presence.status === 'online'`, always push to the `online` array
-- Compute `status` and `recentlyActive` purely from `last_seen` time deltas
-- Add `loadPresence()` to the existing 60-second refresh interval
-
-### File: `src/components/clubhome/LiveOperationsWidget.tsx`
-
-- Remove the `{onlineMembers.length > 0 && ...}` conditional wrapper on the Team Online section
-- Add a fallback message when `onlineMembers.length === 0` and not loading
-- Always show the section header "Team Online" for consistency
+**Logic:**
+- Deduplicate incoming emails
+- Query 1: `profiles` table -- `SELECT email, full_name, avatar_url WHERE email IN (...)`
+- Query 2: `emails` table -- `SELECT DISTINCT ON (from_email) from_email, from_name, from_avatar_url WHERE from_email IN (...)` (only for emails not already resolved from profiles)
+- Merge results: profiles take priority over email-synced avatars
+- Return `Map<string, { avatar_url: string | null; full_name: string | null }>`
+- Uses React Query with a stable cache key derived from sorted emails
+- Skips queries when the email list is empty
 
 ---
 
-## Files Changed
+## Edit: `src/components/clubhome/ActiveMeetingsWidget.tsx`
 
-| File | Change |
+- Import `useAttendeeProfiles` and `AvatarImage`
+- Collect all attendee emails from loaded events into a flat array
+- Pass to `useAttendeeProfiles` to get the profile map
+- Update `AttendeeAvatars` to accept the profile map as a prop
+- Render `<AvatarImage src={...} />` when a match exists; keep initials as `<AvatarFallback>`
+
+---
+
+## Edit: `src/components/meetings/EventDetailModal.tsx`
+
+- Import `useAttendeeProfiles` and `AvatarImage`
+- Call hook with event attendees
+- In the attendee pills section, add `<AvatarImage>` to each `<Avatar>`
+- Show `full_name` from the resolved profile as primary text (email as secondary) when available
+
+---
+
+## Lookup priority
+
+```
+1. profiles.avatar_url  (platform user photo -- highest trust)
+2. emails.from_avatar_url  (Gravatar from Gmail sync -- external contacts)
+3. Initials fallback  (unchanged behavior for unknowns)
+```
+
+---
+
+## Files
+
+| File | Action |
 |---|---|
-| `src/hooks/useLiveOperations.ts` | Relax presence filter, add presence to refresh interval |
-| `src/components/clubhome/LiveOperationsWidget.tsx` | Always show Team Online section with empty state |
+| `src/hooks/useAttendeeProfiles.ts` | Create -- multi-source email-to-avatar resolver |
+| `src/components/clubhome/ActiveMeetingsWidget.tsx` | Edit -- render profile photos in stacked avatars |
+| `src/components/meetings/EventDetailModal.tsx` | Edit -- render profile photos in attendee pills |
 
 No database changes needed.
