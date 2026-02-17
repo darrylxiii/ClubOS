@@ -1,58 +1,53 @@
 
-# Show Profile Pictures for Meeting Attendees (Multi-Source)
+# Fix Attendee Avatars Comprehensively
 
-## What changes
+## Root Cause (two issues)
 
-Replace the initial-only avatars in the ActiveMeetingsWidget and EventDetailModal with real profile pictures, pulling from two sources:
+1. **Email mismatch**: Team members register with one email (e.g., `sebastiaan.brouwer@live.nl`) but their calendar events use a different email (e.g., `sebastiaan@thequantumclub.nl`). The current hook only matches by exact email against the `profiles` table, so it never finds their avatar.
 
-1. **`profiles` table** -- for team members / platform users (matched by email)
-2. **`emails` table** -- for external contacts whose Gravatar URLs were captured during Gmail sync (matched by `from_email` to `from_avatar_url`)
+2. **Gravatar silhouettes**: The `emails` table stores Gravatar URLs with `?d=mp`, which returns a generic gray person silhouette for emails without a real Gravatar. The `<AvatarImage>` loads this silhouette "successfully", blocking the initials fallback -- resulting in the blank white/gray circles you see.
 
-This covers both internal users and external contacts, so nearly every attendee will have a photo.
+## Solution
 
----
+### 1. Add a third lookup source: `calendar_connections`
 
-## New file: `src/hooks/useAttendeeProfiles.ts`
+The `calendar_connections` table maps `user_id` to `email` (the calendar email). By joining this with `profiles`, we can resolve calendar emails like `darryl@thequantumclub.nl` back to the user's profile avatar.
 
-A hook that accepts an array of email addresses and returns a map of email to avatar URL + display name.
+**Lookup priority becomes:**
+1. `profiles` table (match by email directly) -- covers users who registered with the same email
+2. `calendar_connections` joined with `profiles` (match calendar email to user_id, then get avatar from profiles) -- covers team members with different login vs calendar emails
+3. `emails` table `from_avatar_url` (Gravatar from Gmail sync) -- covers external contacts
+4. Initials fallback -- when nothing else works
 
-**Logic:**
-- Deduplicate incoming emails
-- Query 1: `profiles` table -- `SELECT email, full_name, avatar_url WHERE email IN (...)`
-- Query 2: `emails` table -- `SELECT DISTINCT ON (from_email) from_email, from_name, from_avatar_url WHERE from_email IN (...)` (only for emails not already resolved from profiles)
-- Merge results: profiles take priority over email-synced avatars
-- Return `Map<string, { avatar_url: string | null; full_name: string | null }>`
-- Uses React Query with a stable cache key derived from sorted emails
-- Skips queries when the email list is empty
+### 2. Filter out Gravatar placeholder URLs
 
----
+Gravatar URLs with `?d=mp` return a generic silhouette for ANY email. Replace `d=mp` with `d=404` in stored URLs so the browser gets a 404 instead of a placeholder image. When the `<AvatarImage>` fails to load, Radix Avatar automatically falls back to `<AvatarFallback>` (initials).
 
-## Edit: `src/components/clubhome/ActiveMeetingsWidget.tsx`
+### 3. Always render `<AvatarImage>` (remove conditional)
 
-- Import `useAttendeeProfiles` and `AvatarImage`
-- Collect all attendee emails from loaded events into a flat array
-- Pass to `useAttendeeProfiles` to get the profile map
-- Update `AttendeeAvatars` to accept the profile map as a prop
-- Render `<AvatarImage src={...} />` when a match exists; keep initials as `<AvatarFallback>`
+Currently: `{profile?.avatar_url && <AvatarImage ... />}` -- this skips rendering the image element entirely when there is no URL, which is fine. But when there IS a URL, the image always "succeeds" even if it is a Gravatar placeholder.
+
+Change: Always render `<AvatarImage>` when a URL exists (keep the conditional), but transform the URL to use `d=404` so fake Gravatars fail and show initials instead.
 
 ---
 
-## Edit: `src/components/meetings/EventDetailModal.tsx`
+## Technical Changes
 
-- Import `useAttendeeProfiles` and `AvatarImage`
-- Call hook with event attendees
-- In the attendee pills section, add `<AvatarImage>` to each `<Avatar>`
-- Show `full_name` from the resolved profile as primary text (email as secondary) when available
+### File: `src/hooks/useAttendeeProfiles.ts`
 
----
+- After Query 1 (profiles), add Query 2: fetch `calendar_connections` where `email IN (unresolvedEmails)`, join with `profiles` via `user_id` to get `avatar_url` and `full_name`
+- Move the existing `emails` table query to Query 3 (only for still-unresolved emails)
+- In Query 3, transform any Gravatar URL: replace `d=mp` with `d=404` so placeholder silhouettes become 404s
+- Add a helper function `sanitizeGravatarUrl(url)` that swaps `d=mp` to `d=404`
 
-## Lookup priority
+### File: `src/components/clubhome/ActiveMeetingsWidget.tsx`
 
-```
-1. profiles.avatar_url  (platform user photo -- highest trust)
-2. emails.from_avatar_url  (Gravatar from Gmail sync -- external contacts)
-3. Initials fallback  (unchanged behavior for unknowns)
-```
+- No structural changes needed -- already uses `useAttendeeProfiles` correctly
+- The fix in the hook will automatically resolve the avatars
+
+### File: `src/components/meetings/EventDetailModal.tsx`
+
+- No structural changes needed -- already uses `useAttendeeProfiles` correctly
 
 ---
 
@@ -60,8 +55,6 @@ A hook that accepts an array of email addresses and returns a map of email to av
 
 | File | Action |
 |---|---|
-| `src/hooks/useAttendeeProfiles.ts` | Create -- multi-source email-to-avatar resolver |
-| `src/components/clubhome/ActiveMeetingsWidget.tsx` | Edit -- render profile photos in stacked avatars |
-| `src/components/meetings/EventDetailModal.tsx` | Edit -- render profile photos in attendee pills |
+| `src/hooks/useAttendeeProfiles.ts` | Edit -- add calendar_connections lookup, sanitize Gravatar URLs |
 
-No database changes needed.
+No other files need changes. The widget and modal already consume the hook correctly -- the hook just needs to return better data.
