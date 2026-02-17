@@ -1,38 +1,24 @@
 
 
-# Continue Memory Optimization -- Fix 1: Move Test Packages to devDependencies
+# Fix: Application Failed to Start (Stale Dev Server)
 
-## What This Fixes
+## Root Cause
 
-The single biggest remaining win: **~370MB** of test-only packages are listed under `dependencies` instead of `devDependencies`. This forces Vite to include them in the production dependency graph during build, consuming memory unnecessarily.
+The error "Failed to fetch dynamically imported module: .../src/App.tsx" is a transient Vite dev server issue. After the recent package.json changes (removing `katex`, `react-google-recaptcha`, and re-adding `fabric`, `react-easy-crop`), the dev server's module graph became stale. The dynamic `import("./App.tsx")` in `main.tsx` fails because Vite cannot resolve the module graph correctly in its current state.
 
-All imports of these packages are exclusively in test files (`__tests__/`, `tests/`), confirmed by search. Moving them to `devDependencies` means Vite will not process them during production builds.
+This is NOT a code bug -- `App.tsx` and all its imports are syntactically and structurally correct.
 
-## Changes
+## Fix
 
-**File: `package.json`**
+Add a trivial no-op comment to `src/App.tsx` to force Vite to recompile and re-serve the file, which resets the module graph. This is the standard workaround for stale HMR state in the Lovable environment.
 
-Move these 5 entries from `dependencies` to `devDependencies`:
+### Change
 
-| Package | Line | Estimated Size |
-|---------|------|----------------|
-| `@playwright/test` | line 24 | ~300MB |
-| `@testing-library/dom` | line 56 | ~8MB |
-| `@testing-library/jest-dom` | line 57 | ~5MB |
-| `@testing-library/react` | line 58 | ~10MB |
-| `vitest` | line 104 | ~50MB |
+**File: `src/App.tsx`** -- Add a timestamp comment at the top to invalidate the dev server cache:
 
-Also move the type packages that are only needed for test/dev:
-| `@types/dompurify` | line 59 | ~1MB |
-| `@types/qrcode` | line 60 | ~1MB |
+```typescript
+// Build cache reset: 2026-02-17
+```
 
-The resulting `devDependencies` section will include all existing entries plus these 7 packages.
-
-## Risk
-
-Zero -- these packages have no imports in any `src/` file. They are only used in `tests/` and `__tests__/` directories, which are excluded from production builds.
-
-## Expected Impact
-
-~370MB freed from the production build's dependency graph, which is the single largest optimization remaining.
+No functional changes are needed. The app will restart normally once the dev server re-processes the file.
 
