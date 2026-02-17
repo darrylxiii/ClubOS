@@ -1,26 +1,13 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
-import { TrendingUp, Users, Clock, Target } from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+import { TrendingUp, Users, Clock, Target, Loader2 } from 'lucide-react';
+import { useRecharts } from '@/hooks/useRecharts';
 
 export function InviteAnalyticsTab() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   useEffect(() => {
     loadAnalytics();
@@ -34,7 +21,6 @@ export function InviteAnalyticsTab() {
         .eq('created_by_type', 'member');
 
       if (invites) {
-        // Process analytics data
         const total = invites.length;
         const used = invites.filter(i => i.uses_count && i.uses_count > 0).length;
         const revoked = invites.filter(i => !i.is_active).length;
@@ -143,25 +129,34 @@ export function InviteAnalyticsTab() {
         {/* Status Distribution */}
         <Card className="p-6">
           <h3 className="font-semibold mb-4">Invitation Status</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={analytics.trendData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {analytics.trendData.map((entry: any, index: number) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {rechartsLoading || !recharts ? (
+            <div className="flex items-center justify-center h-[250px]">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (() => {
+            const { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } = recharts;
+            return (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={analytics.trendData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }: any) => `${name}: ${value}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {analytics.trendData.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            );
+          })()}
         </Card>
 
         {/* Summary */}

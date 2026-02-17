@@ -94,23 +94,18 @@ ${colorConfig
   );
 };
 
-// Re-export Tooltip components directly since they are used as children of ChartContainer
-// and will be rendered by Recharts internally. We don't lazy load these individually
-// as they depend on the Recharts context being available.
-import { Tooltip as RechartsTooltip, Legend as RechartsLegend } from "recharts";
-
-const ChartTooltip = RechartsTooltip;
+// Lazy Tooltip and Legend wrappers that load from recharts dynamically
+const ChartTooltip = React.forwardRef<any, any>((props, ref) => {
+  const { recharts } = useRecharts();
+  if (!recharts) return null;
+  const RechartsTooltip = recharts.Tooltip;
+  return <RechartsTooltip ref={ref} {...props} />;
+});
+ChartTooltip.displayName = "ChartTooltip";
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsTooltip> &
-    React.ComponentProps<"div"> & {
-      hideLabel?: boolean;
-      hideIndicator?: boolean;
-      indicator?: "line" | "dot" | "dashed";
-      nameKey?: string;
-      labelKey?: string;
-    }
+  any
 >(
   (
     {
@@ -172,7 +167,7 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
-          {payload.map((item, index) => {
+          {payload.map((item: any, index: number) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
             const indicatorColor = color || item.payload.fill || item.color;
@@ -237,15 +232,22 @@ const ChartTooltipContent = React.forwardRef<
 );
 ChartTooltipContent.displayName = "ChartTooltip";
 
-const ChartLegend = RechartsLegend;
+const ChartLegend = React.forwardRef<any, any>((props, ref) => {
+  const { recharts } = useRecharts();
+  if (!recharts) return null;
+  const RechartsLegend = recharts.Legend;
+  return <RechartsLegend ref={ref} {...props} />;
+});
+ChartLegend.displayName = "ChartLegend";
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> &
-    Pick<React.ComponentProps<typeof RechartsLegend>, "payload" | "verticalAlign"> & {
-      hideIcon?: boolean;
-      nameKey?: string;
-    }
+  React.ComponentProps<"div"> & {
+    payload?: any[];
+    verticalAlign?: string;
+    hideIcon?: boolean;
+    nameKey?: string;
+  }
 >(({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }, ref) => {
   const { config } = useChart();
 

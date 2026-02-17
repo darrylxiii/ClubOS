@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEdgeFunctionUsageSummary } from '@/hooks/useEdgeFunctionDailyStats';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download, Calendar } from 'lucide-react';
+import { useRecharts } from '@/hooks/useRecharts';
+import { Download, Calendar, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const DATE_RANGES = [
@@ -16,6 +16,7 @@ const DATE_RANGES = [
 export function EdgeFunctionUsageTab() {
   const [days, setDays] = useState(7);
   const { data: usage, isLoading } = useEdgeFunctionUsageSummary(days);
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const exportCSV = () => {
     if (!usage) return;
@@ -61,17 +62,26 @@ export function EdgeFunctionUsageTab() {
           <CardTitle className="text-base">Invocations Over Time</CardTitle>
         </CardHeader>
         <CardContent>
-          {usage && usage.dailyTrend.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={usage.dailyTrend}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="date" className="text-xs" tick={{ fontSize: 10 }} />
-                <YAxis className="text-xs" />
-                <Tooltip />
-                <Area type="monotone" dataKey="invocations" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.15} name="Invocations" />
-                <Area type="monotone" dataKey="errors" stroke="hsl(0, 65%, 55%)" fill="hsl(0, 65%, 55%)" fillOpacity={0.1} name="Errors" />
-              </AreaChart>
-            </ResponsiveContainer>
+          {rechartsLoading || !recharts ? (
+            <div className="flex items-center justify-center h-[250px]">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : usage && usage.dailyTrend.length > 0 ? (
+            (() => {
+              const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = recharts;
+              return (
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart data={usage.dailyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis dataKey="date" className="text-xs" tick={{ fontSize: 10 }} />
+                    <YAxis className="text-xs" />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="invocations" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.15} name="Invocations" />
+                    <Area type="monotone" dataKey="errors" stroke="hsl(0, 65%, 55%)" fill="hsl(0, 65%, 55%)" fillOpacity={0.1} name="Errors" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              );
+            })()
           ) : (
             <p className="text-sm text-muted-foreground py-8 text-center">
               {isLoading ? 'Loading...' : 'No data for selected period'}

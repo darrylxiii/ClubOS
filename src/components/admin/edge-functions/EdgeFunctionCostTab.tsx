@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useEdgeFunctionRegistry, useToggleEdgeFunction } from '@/hooks/useEdgeFunctionRegistry';
-import { DollarSign, TrendingDown, AlertTriangle, PowerOff } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { DollarSign, TrendingDown, AlertTriangle, PowerOff, Loader2 } from 'lucide-react';
+import { useRecharts } from '@/hooks/useRecharts';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const COLORS = [
@@ -15,6 +15,7 @@ const COLORS = [
 export function EdgeFunctionCostTab() {
   const { data: functions = [], isLoading } = useEdgeFunctionRegistry();
   const toggleFn = useToggleEdgeFunction();
+  const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   // Calculate cost per function (daily estimate based on invocation_count / 30)
   const costData = functions
@@ -104,30 +105,39 @@ export function EdgeFunctionCostTab() {
             <CardTitle className="text-base">Cost by Service Tag</CardTitle>
           </CardHeader>
           <CardContent>
-            {tagData.length > 0 ? (
-              <div className="flex items-center gap-6">
-                <ResponsiveContainer width={180} height={180}>
-                  <PieChart>
-                    <Pie data={tagData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={2} dataKey="value">
-                      {tagData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(val: number) => `$${val.toFixed(2)}/day`} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-1.5">
-                  {tagData.map((t, i) => (
-                    <div key={t.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        <span className="text-muted-foreground">{t.name}</span>
-                      </div>
-                      <span className="font-mono text-xs">${t.value}/day</span>
-                    </div>
-                  ))}
-                </div>
+            {rechartsLoading || !recharts ? (
+              <div className="flex items-center justify-center h-[180px]">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
+            ) : tagData.length > 0 ? (
+              (() => {
+                const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } = recharts;
+                return (
+                  <div className="flex items-center gap-6">
+                    <ResponsiveContainer width={180} height={180}>
+                      <PieChart>
+                        <Pie data={tagData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={2} dataKey="value">
+                          {tagData.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(val: number) => `$${val.toFixed(2)}/day`} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex-1 space-y-1.5">
+                      {tagData.map((t, i) => (
+                        <div key={t.name} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                            <span className="text-muted-foreground">{t.name}</span>
+                          </div>
+                          <span className="font-mono text-xs">${t.value}/day</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()
             ) : (
               <p className="text-sm text-muted-foreground py-4 text-center">No cost tags configured. Add tags and cost estimates in the Registry tab.</p>
             )}
