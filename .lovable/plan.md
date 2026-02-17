@@ -1,37 +1,23 @@
 
-# Fix: "useTaskBoard must be used within a TaskBoardProvider"
+# Replace Assignee Dropdown with Searchable Input
 
-## Root Cause
+## Problem
+The "Assign to others" section shows a flat scrollable list of all users (up to 50). For admins managing many users, this is unwieldy -- no way to filter or search by name.
 
-`TaskBoardProvider` is only rendered inside `src/pages/UnifiedTasks.tsx`, but components that call `useTaskBoard()` are used across the entire app:
-
-- **`RadialMenuProvider`** (inside `AppLayout`, wraps all pages) renders `QuickTaskDialog` and `CreateUnifiedTaskDialog` -- both call `useTaskBoard()`
-- **`FeedbackDatabase`** page renders `CreateUnifiedTaskDialog`
-
-When any page other than `/tasks` loads, the provider is missing and the app crashes.
-
-## Fix
-
-Move `TaskBoardProvider` from `UnifiedTasks.tsx` into `ProtectedProviders.tsx` so it wraps the entire authenticated application. Then remove the now-redundant provider wrapper from `UnifiedTasks.tsx`.
-
----
+## Solution
+Replace the static list (lines 501-522) with a searchable text input that filters profiles as the admin types. Uses the same data source (`profiles` state) but adds client-side filtering with a dedicated search input.
 
 ## Changes
 
-### 1. `src/contexts/ProtectedProviders.tsx`
-- Import `TaskBoardProvider`
-- Add it inside the provider tree (after `RoleProvider`, since it depends on `useAuth`)
+### `src/components/unified-tasks/CreateUnifiedTaskDialog.tsx`
 
-### 2. `src/pages/UnifiedTasks.tsx`
-- Remove `TaskBoardProvider` import
-- Remove the two `<TaskBoardProvider>` wrappers (loading state and main render)
-- The page content stays the same, it just no longer needs its own provider
+1. Add a `assigneeSearch` state variable (string, default "")
+2. Replace the current "Assign to others" block (the `max-h-48` scrollable div at lines 502-521) with:
+   - A search `Input` with placeholder "Search by name..." and a `Users` icon
+   - Filter the `profiles` array client-side: `profiles.filter(p => p.full_name?.toLowerCase().includes(assigneeSearch.toLowerCase()))`
+   - Show "No results" text when filter returns empty
+   - Keep the same avatar + click-to-toggle UI for each result
+   - Auto-focus the search input when `showAssignOthers` is toggled on
+3. Clear `assigneeSearch` when `showAssignOthers` is toggled off or when the dialog closes (inside the existing `resetForm`)
 
----
-
-## Files
-
-| File | Action |
-|------|--------|
-| `src/contexts/ProtectedProviders.tsx` | Add `TaskBoardProvider` to the provider tree |
-| `src/pages/UnifiedTasks.tsx` | Remove redundant `TaskBoardProvider` wrapper |
+No new dependencies, no database changes, no new files. Just a search filter on the existing profile list.
