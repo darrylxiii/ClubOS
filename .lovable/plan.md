@@ -1,60 +1,58 @@
 
-# Fix Attendee Avatars Comprehensively
+# Admin Action Items Widget
 
-## Root Cause (two issues)
+## What it does
 
-1. **Email mismatch**: Team members register with one email (e.g., `sebastiaan.brouwer@live.nl`) but their calendar events use a different email (e.g., `sebastiaan@thequantumclub.nl`). The current hook only matches by exact email against the `profiles` table, so it never finds their avatar.
+A high-impact task widget for the **Admin Home** dashboard that surfaces the most urgent and important tasks from the admin's Task Board. Uses behavioral psychology to maximize task completion directly from the dashboard.
 
-2. **Gravatar silhouettes**: The `emails` table stores Gravatar URLs with `?d=mp`, which returns a generic gray person silhouette for emails without a real Gravatar. The `<AvatarImage>` loads this silhouette "successfully", blocking the initials fallback -- resulting in the blank white/gray circles you see.
+## Psychological triggers baked in
 
-## Solution
+- **Loss aversion**: Overdue tasks shown first with red "2d overdue" labels -- framing what's being lost
+- **Progress momentum**: Completion streak counter ("3 done today") triggers the endowment effect
+- **Micro-commitment**: One-click complete button directly in the widget -- zero friction, no navigation
+- **Accountability**: Assignee avatars (using the multi-source resolver we just built) show who's watching
+- **Zeigarnik effect**: Incomplete tasks displayed front-and-center keep them top of mind
+- **Scarcity framing**: "Due today" and "Due tomorrow" labels create urgency without aggression
 
-### 1. Add a third lookup source: `calendar_connections`
+## What each task row shows
 
-The `calendar_connections` table maps `user_id` to `email` (the calendar email). By joining this with `profiles`, we can resolve calendar emails like `darryl@thequantumclub.nl` back to the user's profile avatar.
+- Circle-check button (completes task inline with optimistic update)
+- Task title (single line, truncated)
+- Assignee avatar stack (from `useAttendeeProfiles` -- real photos where available)
+- Priority badge (high = red, medium = amber, low = blue)
+- Due date label with urgency coloring ("2d overdue" in red, "Due today" in amber, "Due Thu" in muted)
 
-**Lookup priority becomes:**
-1. `profiles` table (match by email directly) -- covers users who registered with the same email
-2. `calendar_connections` joined with `profiles` (match calendar email to user_id, then get avatar from profiles) -- covers team members with different login vs calendar emails
-3. `emails` table `from_avatar_url` (Gravatar from Gmail sync) -- covers external contacts
-4. Initials fallback -- when nothing else works
+## Widget header
 
-### 2. Filter out Gravatar placeholder URLs
+- "Action Items" title with Target icon
+- Completion streak badge ("2 done today" in emerald) when count > 0
 
-Gravatar URLs with `?d=mp` return a generic silhouette for ANY email. Replace `d=mp` with `d=404` in stored URLs so the browser gets a 404 instead of a placeholder image. When the `<AvatarImage>` fails to load, Radix Avatar automatically falls back to `<AvatarFallback>` (initials).
+## Widget footer
 
-### 3. Always render `<AvatarImage>` (remove conditional)
+- "Open Task Board" link to `/tasks`
 
-Currently: `{profile?.avatar_url && <AvatarImage ... />}` -- this skips rendering the image element entirely when there is no URL, which is fine. But when there IS a URL, the image always "succeeds" even if it is a Gravatar placeholder.
+## Data
 
-Change: Always render `<AvatarImage>` when a URL exists (keep the conditional), but transform the URL to use `d=404` so fake Gravatars fail and show initials instead.
+- Queries `unified_tasks` joined with `unified_task_assignees` for the current user
+- Filters: status NOT in `completed` or `cancelled`
+- Sort: overdue first, then by due date ascending, then by priority
+- Limit: 7 tasks
+- Separate count query for tasks completed today (streak)
+- Inline complete: updates `status = 'completed'` and `completed_at = now()`, removes row optimistically
 
----
+## Placement in Admin Home
 
-## Technical Changes
+Inserted into **Zone 3** (Operations Grid) alongside the `ActiveMeetingsWidget`, replacing `LiveOperationsWidget` to the row below. This puts tasks at a high-visibility position right after metrics.
 
-### File: `src/hooks/useAttendeeProfiles.ts`
-
-- After Query 1 (profiles), add Query 2: fetch `calendar_connections` where `email IN (unresolvedEmails)`, join with `profiles` via `user_id` to get `avatar_url` and `full_name`
-- Move the existing `emails` table query to Query 3 (only for still-unresolved emails)
-- In Query 3, transform any Gravatar URL: replace `d=mp` with `d=404` so placeholder silhouettes become 404s
-- Add a helper function `sanitizeGravatarUrl(url)` that swaps `d=mp` to `d=404`
-
-### File: `src/components/clubhome/ActiveMeetingsWidget.tsx`
-
-- No structural changes needed -- already uses `useAttendeeProfiles` correctly
-- The fix in the hook will automatically resolve the avatars
-
-### File: `src/components/meetings/EventDetailModal.tsx`
-
-- No structural changes needed -- already uses `useAttendeeProfiles` correctly
-
----
+```
+Zone 3 row 1: TeamCapacityWidget | PartnerEngagementWidget
+Zone 3 row 2: AdminTasksWidget   | ActiveMeetingsWidget
+Zone 3 row 3: LiveOperationsWidget (full width or paired)
+```
 
 ## Files
 
 | File | Action |
 |---|---|
-| `src/hooks/useAttendeeProfiles.ts` | Edit -- add calendar_connections lookup, sanitize Gravatar URLs |
-
-No other files need changes. The widget and modal already consume the hook correctly -- the hook just needs to return better data.
+| `src/components/clubhome/AdminTasksWidget.tsx` | Create -- urgency-sorted task widget with inline completion and streak counter |
+| `src/components/clubhome/AdminHome.tsx` | Edit -- import and place AdminTasksWidget in Zone 3 alongside ActiveMeetingsWidget |
