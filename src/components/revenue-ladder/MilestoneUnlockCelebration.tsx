@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Sparkles, PartyPopper, X } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { RevenueMilestone } from '@/hooks/useRevenueLadder';
@@ -25,14 +25,14 @@ export function MilestoneUnlockCelebration({ milestone, onClose }: MilestoneUnlo
       const colors = ['#C9A24E', '#FFD700', '#FFA500', '#FF6347'];
       
       const frame = () => {
-        confetti({
+        fireConfetti({
           particleCount: 3,
           angle: 60,
           spread: 55,
           origin: { x: 0 },
           colors,
         });
-        confetti({
+        fireConfetti({
           particleCount: 3,
           angle: 120,
           spread: 55,
@@ -49,7 +49,7 @@ export function MilestoneUnlockCelebration({ milestone, onClose }: MilestoneUnlo
 
       // Center burst
       setTimeout(() => {
-        confetti({
+        fireConfetti({
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },

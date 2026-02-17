@@ -9,8 +9,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { exportToCSV } from '@/utils/analyticsExport';
 
 interface ExportableData {
@@ -61,8 +59,12 @@ export function FinancialExportMenu({ datasets, plSummary, year }: FinancialExpo
     }
   };
 
-  const handlePLPdf = () => {
+  const handlePLPdf = async () => {
     if (!plSummary) return;
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF();
     const y = year || new Date().getFullYear();
 

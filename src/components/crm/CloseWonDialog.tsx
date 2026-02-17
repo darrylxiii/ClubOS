@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trophy, Sparkles, PartyPopper } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 
 interface CloseWonDialogProps {
   open: boolean;
@@ -45,7 +45,7 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
   const [showSuccess, setShowSuccess] = useState(false);
 
   const triggerConfetti = () => {
-    confetti({
+    fireConfetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },

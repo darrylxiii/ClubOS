@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Star, TrendingUp, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 
 interface Achievement {
   id: string;
@@ -35,14 +35,14 @@ export function KPIAchievementCelebration({
       const colors = ['#C9A24E', '#F5F4EF', '#10B981'];
 
       (function frame() {
-        confetti({
+        fireConfetti({
           particleCount: 3,
           angle: 60,
           spread: 55,
           origin: { x: 0 },
           colors: colors
         });
-        confetti({
+        fireConfetti({
           particleCount: 3,
           angle: 120,
           spread: 55,

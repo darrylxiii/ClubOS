@@ -15,7 +15,7 @@ import { MinimalHeader } from "@/components/MinimalHeader";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 import { getAvailableSlots } from "@/services/availability";
 import { getBookingPage } from "@/services/booking-page";
 import { safeFormatTime } from "@/lib/safeTimeFormat";
@@ -200,7 +200,7 @@ export default function BookingPage() {
     setStep("confirmation");
 
     // Trigger success confetti
-    confetti({
+    fireConfetti({
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },

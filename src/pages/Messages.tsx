@@ -38,7 +38,7 @@ import { OnlineStatusIndicator } from '@/components/messages/OnlineStatusIndicat
 import { CallNotificationManager } from '@/components/messages/CallNotificationManager';
 import { SystemMessageBubble } from '@/components/messages/SystemMessageBubble';
 import { MessageLoadMoreTrigger } from '@/components/messages/MessageLoadMoreTrigger';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -119,7 +119,7 @@ export default function Messages() {
     try {
       await sendMessage(content, attachment ? [attachment] : [], metadata);
       if (messages.length === 0) {
-        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        fireConfetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
       }
     } catch (error) {
       toast.error('Failed to send message');
@@ -428,7 +428,7 @@ export default function Messages() {
         onConversationCreated={(id) => {
           setSelectedConversationId(id);
           loadConversations();
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+          fireConfetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         }}
       />
 

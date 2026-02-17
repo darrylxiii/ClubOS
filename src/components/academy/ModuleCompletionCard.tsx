@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Check, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 
 interface ModuleCompletionCardProps {
   moduleId: string;
@@ -45,7 +45,7 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
 
       if (error) throw error;
 
-      confetti({
+      fireConfetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },

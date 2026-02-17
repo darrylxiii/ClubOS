@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Download, Share2, TrendingUp } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '@/utils/fireConfetti';
 import { CertificatePreview } from './CertificatePreview';
 
 interface CourseCompletionModalProps {
@@ -33,13 +33,13 @@ export const CourseCompletionModal = memo<CourseCompletionModalProps>(({
       const end = Date.now() + duration;
 
       const frame = () => {
-        confetti({
+        fireConfetti({
           particleCount: 2,
           angle: 60,
           spread: 55,
           origin: { x: 0 },
         });
-        confetti({
+        fireConfetti({
           particleCount: 2,
           angle: 120,
           spread: 55,

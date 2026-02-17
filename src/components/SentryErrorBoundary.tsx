@@ -1,5 +1,4 @@
 import { Component, ReactNode } from 'react';
-import * as Sentry from '@sentry/react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Home, RefreshCw, MessageCircle } from 'lucide-react';
 
@@ -15,7 +14,7 @@ interface State {
 
 /**
  * Top-level Sentry Error Boundary
- * Catches React errors, reports to Sentry, and provides user feedback option
+ * Catches React errors, reports to Sentry (lazy-loaded), and provides user feedback option
  */
 export class SentryErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, eventId: null };
@@ -25,16 +24,20 @@ export class SentryErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    const eventId = Sentry.captureException(error, {
-      extra: {
-        componentStack: errorInfo.componentStack,
-      },
+    // Dynamically import Sentry to avoid pulling ~150KB into root chunk
+    import('@sentry/react').then((Sentry) => {
+      const eventId = Sentry.captureException(error, {
+        extra: {
+          componentStack: errorInfo.componentStack,
+        },
+      });
+      this.setState({ eventId });
+    }).catch(() => {
+      // Sentry unavailable, just log
     });
-    this.setState({ eventId });
     
     console.error('[SentryErrorBoundary] Error captured:', {
       error: error.message,
-      eventId,
     });
   }
 
@@ -46,7 +49,9 @@ export class SentryErrorBoundary extends Component<Props, State> {
   
   handleFeedback = () => {
     if (this.state.eventId) {
-      Sentry.showReportDialog({ eventId: this.state.eventId });
+      import('@sentry/react').then((Sentry) => {
+        Sentry.showReportDialog({ eventId: this.state.eventId! });
+      }).catch(() => {});
     }
   };
 
