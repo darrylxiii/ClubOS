@@ -1,196 +1,174 @@
 
 
-# Job-Linked Sessions, Time Tracking, Manual Corrections, and Intelligence Layer
+# Avatar Traffic Control -- Full Audit and Plan to 100/100
 
-## Overview
-
-Transform the Avatar Traffic Control from a simple session manager into a full **operational intelligence system** that tracks exactly which job every session minute is spent on, enables manual time corrections with an audit trail, and builds a comprehensive metadata layer for reporting.
+## Current Score: 61 / 100
 
 ---
 
-## Part 1: Database Schema
+## Scorecard Breakdown
 
-### New table: `linkedin_avatar_session_jobs`
+| Category | Score | Max | Notes |
+|---|---|---|---|
+| Core session management | 8 | 10 | Sessions, start/end, realtime, conflict trigger, anomaly detection |
+| Job-linked tracking | 6 | 10 | Session-job linking works, switch job works, but job selector is flat list -- unusable with 30+ jobs |
+| **Job selector UX** | **2** | **10** | **No company filter. Flat list of all jobs. No job count per company. Hard to navigate.** |
+| LinkedIn data sync | 7 | 10 | Captures 20+ fields from Apify. No scheduled auto-sync. |
+| Data model completeness | 8 | 10 | 6 tables, 40+ columns, session_jobs, time_corrections, daily_stats |
+| Security / credentials | 3 | 10 | Base64 is NOT encryption. Passwords decoded client-side with `atob()`. |
+| Risk engine / intelligence | 5 | 10 | Auto-calc function exists + trigger. Missing: consecutive-day tracking, user diversity scoring |
+| Usage analytics / reporting | 4 | 10 | Job Insights tab exists. No daily usage charts, no heat maps, no per-account time trends |
+| Session timeout enforcement | 4 | 5 | Cron job every 5 min -- working |
+| Bulk operations | 4 | 5 | Bulk sync + delete implemented |
+| Apify data extraction depth | 7 | 10 | Extended fields stored. Missing: parsing experience/education for display |
+| **UI polish / information density** | **5** | **10** | **Session history is a flat table with no grouping. No account detail drawer. Cards good but dense.** |
+| Audit trail completeness | 3 | 5 | Events table logs session start/end + time_corrected. Missing: credential_accessed, sync_started, account_created, status_changed |
+| Time correction system | 3 | 5 | Dialog exists but uses `session.id` instead of actual `session_job_id` -- broken reference |
+| **Scheduled auto-sync** | **0** | **5** | **No `sync-all-avatars` edge function. No daily cron. Only manual.** |
+| **Real encryption** | **0** | **5** | **Still using btoa/atob (Base64). Not implemented from Phase 2 of prior plan.** |
 
-Links sessions to jobs with tracked time. A session can have multiple jobs (user switches between jobs during one session).
+---
 
-| Column | Type | Purpose |
+## What is Broken Right Now
+
+1. **Time correction passes `session.id` as `sessionJobId`** (line 209 of AvatarControlHub). It should query `linkedin_avatar_session_jobs` to get the actual session_job record ID.
+
+2. **`useSessionJobs()` called without `sessionId`** in `TimeCorrectionDialog` (line 38). The hook requires a `sessionId` parameter -- currently undefined so `submitCorrection` is from a parameterless call.
+
+3. **Job selector in StartSessionModal is a flat list** -- with 30+ jobs across 17 companies, users must scroll through everything. No company grouping.
+
+---
+
+## Implementation Plan
+
+### Phase A: Company-First Job Selector (Score impact: +8)
+
+Replace the current flat job list in both `StartSessionModal` and the "Switch Job" dialog with a two-step selector:
+
+**Step 1 -- Company Selector:**
+- Searchable dropdown of all companies that have at least 1 published job
+- Each item shows: company name + badge with open job count (e.g., "Merrachi (10)")
+- Sorted by open job count descending
+
+**Step 2 -- Job Selector (filtered by company):**
+- Once a company is selected, show only that company's published jobs
+- Each item shows: job title, location, employment type
+- A "Show all companies" link to go back to step 1
+
+**Changes:**
+- `useAvailableJobs()` in `useSessionJobs.ts`: also fetch `company_id` and return company-level grouping
+- New helper: `useAvailableCompaniesWithJobCounts()` that queries companies with job counts
+- `StartSessionModal.tsx`: Replace single Popover with two-step flow (company then job)
+- `ActiveSessionBanner.tsx` Switch Job dialog: Same two-step pattern
+
+### Phase B: Fix Time Correction Plumbing (Score impact: +3)
+
+- `AvatarControlHub.tsx` session history: query `linkedin_avatar_session_jobs` for each session to get the actual `session_job.id`
+- Pass the real `session_job_id` to `TimeCorrectionDialog`
+- Fix `TimeCorrectionDialog` to pass `sessionId` to `useSessionJobs()` so `submitCorrection` actually works
+
+### Phase C: Audit Trail Expansion (Score impact: +2)
+
+Log these events to `linkedin_avatar_events`:
+- `account_created` (in `useAvatarAccounts.createAccount`)
+- `account_updated` (in `updateAccount`)
+- `account_deleted` (in `deleteAccount`)
+- `credentials_viewed` (in `EditAvatarAccountDialog` when passwords are fetched)
+- `sync_started` + `sync_completed` (in `syncLinkedIn` mutation)
+- `status_changed` (when account status changes)
+
+No DB changes -- just additional `.insert()` calls in existing hooks.
+
+### Phase D: Enriched Session History (Score impact: +5)
+
+- Group sessions by date in the history tab
+- Show the actual job name from `linkedin_avatar_session_jobs` (not just `primary_job_id`)
+- Show correction indicator if a time correction exists for that session
+- Add expandable row to show all job switches within a session
+- Fix the "Possibly left running" badge to show on active sessions exceeding their expected end time
+
+### Phase E: Account Detail Drawer (Score impact: +3)
+
+New component that opens when clicking an account card:
+- Full "About" text
+- Work history timeline (from `experience_json`)
+- Education list (from `education_json`)
+- Session history for this account
+- Risk score breakdown
+- All synced metadata with last-sync timestamp
+
+### Phase F: Daily Usage Charts (Score impact: +4)
+
+- Populate `linkedin_avatar_daily_stats` via a DB trigger on session completion
+- Add a "Usage" sub-tab in Job Insights with:
+  - Bar chart: sessions per day (last 30 days) using recharts
+  - Per-account daily minutes chart
+  - Account utilization gauge (minutes used / max_daily_minutes)
+
+### Phase G: Real Encryption (Score impact: +5)
+
+- Enable `pgcrypto` extension
+- Create `encrypt_credential()` / `decrypt_credential()` DB functions using `pgp_sym_encrypt` with a server-side key from Vault/env
+- Update `avatar-account-credentials` edge function to use real encryption
+- Remove all `atob()` / `btoa()` from client code
+- Decrypt only server-side, return plaintext only to authenticated admin users via edge function
+
+### Phase H: Scheduled Auto-Sync (Score impact: +5)
+
+- Create `sync-all-avatars` edge function that iterates all accounts with a `linkedin_url` and calls Apify
+- Add cron job (daily at 06:00 UTC) to trigger it
+- Show "Last auto-sync" timestamp in the hub header
+- Add `sync_status` and `last_sync_error` columns to accounts
+
+---
+
+## Revised Scorecard After All Phases
+
+| Category | Before | After | Max |
+|---|---|---|---|
+| Core session management | 8 | 9 | 10 |
+| Job-linked tracking | 6 | 9 | 10 |
+| Job selector UX | 2 | 10 | 10 |
+| LinkedIn data sync | 7 | 10 | 10 |
+| Data model completeness | 8 | 10 | 10 |
+| Security / credentials | 3 | 8 | 10 |
+| Risk engine / intelligence | 5 | 7 | 10 |
+| Usage analytics / reporting | 4 | 8 | 10 |
+| Session timeout enforcement | 4 | 5 | 5 |
+| Bulk operations | 4 | 5 | 5 |
+| Apify data extraction depth | 7 | 9 | 10 |
+| UI polish / information density | 5 | 8 | 10 |
+| Audit trail completeness | 3 | 5 | 5 |
+| Time correction system | 3 | 5 | 5 |
+| Scheduled auto-sync | 0 | 5 | 5 |
+| Real encryption | 0 | 5 | 5 |
+| **TOTAL** | **61** | **108 (capped 100)** | **100** |
+
+---
+
+## Priority Order
+
+1. **Phase A** -- Company-first job selector (biggest UX win, addresses main request)
+2. **Phase B** -- Fix broken time correction (critical bug)
+3. **Phase D** -- Enriched session history (high visibility)
+4. **Phase C** -- Audit trail (low effort, high compliance value)
+5. **Phase G** -- Real encryption (security critical, but more complex)
+6. **Phase F** -- Usage charts (nice to have, uses existing recharts)
+7. **Phase E** -- Account detail drawer (depth feature)
+8. **Phase H** -- Auto-sync cron (operational convenience)
+
+---
+
+## Files Changed Summary
+
+| Phase | Files | DB Changes |
 |---|---|---|
-| `id` | uuid PK | |
-| `session_id` | uuid FK -> sessions | Which session |
-| `job_id` | uuid FK -> jobs | Which job |
-| `started_at` | timestamptz | When work on this job began |
-| `ended_at` | timestamptz (nullable) | When work on this job ended |
-| `minutes_logged` | integer | Calculated or manually overridden minutes |
-| `is_primary` | boolean default true | Was this the job selected at session start |
-| `created_at` | timestamptz | |
-
-### New table: `linkedin_avatar_time_corrections`
-
-Audit trail for manual adjustments to logged time.
-
-| Column | Type | Purpose |
-|---|---|---|
-| `id` | uuid PK | |
-| `session_job_id` | uuid FK -> session_jobs | Which session-job link is corrected |
-| `session_id` | uuid FK -> sessions | For easy querying |
-| `corrected_by` | uuid FK -> profiles | Who made the correction |
-| `original_minutes` | integer | Before correction |
-| `corrected_minutes` | integer | After correction |
-| `reason` | text NOT NULL | Why ("left session running", "forgot to end", "wrong job selected") |
-| `correction_type` | text | `too_long`, `too_short`, `wrong_job`, `split` |
-| `created_at` | timestamptz | |
-
-### Modify: `linkedin_avatar_sessions`
-
-Add one column:
-
-| Column | Type | Purpose |
-|---|---|---|
-| `primary_job_id` | uuid FK -> jobs (nullable) | The job selected when starting the session |
-
-### Modify: `linkedin_avatar_daily_stats`
-
-Add columns:
-
-| Column | Type | Purpose |
-|---|---|---|
-| `jobs_worked` | integer | Number of distinct jobs worked that day |
-| `top_job_id` | uuid (nullable) | Job with most minutes that day |
-
-### RLS policies
-
-- `linkedin_avatar_session_jobs`: Authenticated users can read all, insert/update own (user_id match via session join)
-- `linkedin_avatar_time_corrections`: Authenticated users can read all, insert own (corrected_by = auth.uid())
-
----
-
-## Part 2: Start Session Modal -- Job Selector
-
-### Changes to `StartSessionModal.tsx`
-
-- Fetch all jobs with status `published` from the `jobs` table
-- Add a searchable dropdown (using cmdk/command or a Select with filter) showing:
-  - Job title
-  - Company name
-  - Location (if any)
-- The selected job becomes `primary_job_id` on the session
-- After session insert, also insert into `linkedin_avatar_session_jobs` with `is_primary: true`
-- Job selection is **required** (cannot start session without choosing a job)
-
-### Changes to `useAvatarSessions.ts`
-
-- `startSession` mutation params gain `job_id: string`
-- After inserting the session, insert into `linkedin_avatar_session_jobs`
-- Update session event metadata to include `job_id` and `job_title`
-
----
-
-## Part 3: Active Session Banner -- Show Current Job
-
-### Changes to `ActiveSessionBanner.tsx`
-
-- Query `linkedin_avatar_session_jobs` for the active session to get the job title
-- Display: "Active session: [Account] -- [Job Title] -- until HH:mm"
-- Add a small "Switch Job" button that opens a mini-dialog to:
-  - End the current session_job entry (set `ended_at`)
-  - Create a new session_job entry for the newly selected job
-
----
-
-## Part 4: Session History -- Job Column + Time Details
-
-### Changes to `AvatarControlHub.tsx` (Session History tab)
-
-- Join `linkedin_avatar_session_jobs` and `jobs` to show the job title per session
-- Show calculated duration (ended_at - started_at) in minutes
-- Add a "Correction" icon button on each completed session row that opens the correction dialog
-- Flag sessions that seem anomalous:
-  - Session ran > 2x expected duration = "Possibly left running" warning
-  - Session < 5 minutes = "Very short" indicator
-
----
-
-## Part 5: Time Correction Dialog
-
-### New component: `TimeCorrection.tsx`
-
-A dialog that allows manual adjustment of session time:
-
-- Shows original duration (auto-calculated)
-- Input for corrected minutes
-- Dropdown for correction type: `too_long`, `too_short`, `wrong_job`, `split`
-- Required reason text field
-- On submit:
-  - Insert into `linkedin_avatar_time_corrections`
-  - Update `minutes_logged` on the `linkedin_avatar_session_jobs` row
-  - Log event `time_corrected` to `linkedin_avatar_events`
-
----
-
-## Part 6: Job Analytics View
-
-### New tab "Job Insights" on AvatarControlHub
-
-A table/card view showing per-job statistics:
-
-- Total sessions worked on this job
-- Total minutes (with corrections applied)
-- Number of unique accounts used
-- Number of unique users who worked on it
-- Average session length
-- Last activity date
-- Which accounts were used (list)
-
-This is computed by querying `linkedin_avatar_session_jobs` joined with `jobs` and `linkedin_avatar_accounts`.
-
----
-
-## Part 7: Elevating the System -- Intelligence Features
-
-### 7a. Anomaly Detection flags
-
-Add a DB function `flag_session_anomalies()` that runs when a session ends:
-- If actual duration > expected duration * 2 = flag `possibly_abandoned`
-- If actual duration < 5 minutes = flag `suspiciously_short`
-- Store flag in session metadata or a new `anomaly_flags` text[] column on sessions
-
-### 7b. Job-Account Affinity Matrix
-
-A computed view showing which accounts perform best for which jobs (based on session count and total time invested). Displayed as a simple grid in the UI.
-
-### 7c. Cost-per-job estimation
-
-Add an optional `hourly_cost_rate` (decimal) to `linkedin_avatar_accounts`. Multiply by hours worked per job to show estimated cost-per-role in the Job Insights tab.
-
-### 7d. Session productivity scoring
-
-After ending a session, prompt user with an optional 1-5 rating of how productive the session was. Store in `linkedin_avatar_session_jobs.productivity_rating`. Over time this reveals which account + job + user combos are most effective.
-
----
-
-## File Changes Summary
-
-| File | Change |
-|---|---|
-| Migration SQL | Create `session_jobs` table, `time_corrections` table, add `primary_job_id` to sessions, add columns to daily_stats, RLS policies, anomaly function |
-| `StartSessionModal.tsx` | Add job selector dropdown with search, pass job_id to mutation |
-| `useAvatarSessions.ts` | Extend startSession params, insert session_job row, update endSession to finalize session_job |
-| `ActiveSessionBanner.tsx` | Show job title, add "Switch Job" mini-dialog |
-| `AvatarControlHub.tsx` | Add "Job Insights" tab, show job column in history, add correction button |
-| New: `TimeCorrection.tsx` | Correction dialog component |
-| New: `useSessionJobs.ts` | Hook for session-job CRUD and job analytics queries |
-
----
-
-## Implementation Order
-
-1. Database migration (tables + RLS + anomaly function)
-2. `useSessionJobs.ts` hook
-3. `StartSessionModal.tsx` with job selector
-4. `useAvatarSessions.ts` updates
-5. `ActiveSessionBanner.tsx` job display + switch
-6. `TimeCorrection.tsx` dialog
-7. `AvatarControlHub.tsx` history enrichment + Job Insights tab
-8. Anomaly flags + productivity rating
+| A | `useSessionJobs.ts`, `StartSessionModal.tsx`, `ActiveSessionBanner.tsx` | None |
+| B | `AvatarControlHub.tsx`, `TimeCorrectionDialog.tsx` | None |
+| C | `useAvatarAccounts.ts`, `EditAvatarAccountDialog.tsx` | None |
+| D | `AvatarControlHub.tsx` (session history section) | None |
+| E | New: `AvatarAccountDrawer.tsx` | None |
+| F | `AvatarControlHub.tsx`, new chart component | Trigger to populate daily_stats |
+| G | `avatar-account-credentials` edge fn, `EditAvatarAccountDialog.tsx` | pgcrypto functions |
+| H | New: `sync-all-avatars` edge fn | 2 columns + cron job |
 
