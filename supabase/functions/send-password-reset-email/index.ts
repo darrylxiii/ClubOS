@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const html = baseEmailTemplate({
-      preheader: `Your password reset code: ${otpCode}`,
+      preheader: 'You requested a password reset for The Quantum Club',
       content: emailContent,
       showHeader: true,
       showFooter: true,

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,8 +28,8 @@ serve(async (req) => {
 
     const body = await req.json();
     const { email, otp_code } = requestSchema.parse(body);
+    const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
-    // FIX ISSUE 6: Never log OTP codes
     console.log(`[OTP Validation] Validating OTP for email`);
 
     // Look up the latest active token for this email
@@ -48,6 +49,15 @@ serve(async (req) => {
 
     if (!tokens || tokens.length === 0) {
       console.log('[OTP Validation] No active token found');
+
+      // FIX BUG G: Log validate_otp attempt
+      await supabaseAdmin.from('password_reset_attempts').insert({
+        email: email.toLowerCase(),
+        ip_address: clientIp,
+        success: false,
+        attempt_type: 'validate_otp'
+      });
+
       return new Response(
         JSON.stringify({
           success: false,
@@ -65,6 +75,14 @@ serve(async (req) => {
     // Check attempts BEFORE incrementing (already at max)
     if (token.attempts >= MAX_ATTEMPTS) {
       console.log('[OTP Validation] Max attempts already reached');
+
+      await supabaseAdmin.from('password_reset_attempts').insert({
+        email: email.toLowerCase(),
+        ip_address: clientIp,
+        success: false,
+        attempt_type: 'validate_otp'
+      });
+
       return new Response(
         JSON.stringify({
           success: false,
@@ -78,7 +96,7 @@ serve(async (req) => {
       );
     }
 
-    // FIX BUG 5: Always increment attempts counter FIRST
+    // Always increment attempts counter FIRST
     const { error: incrementError } = await supabaseAdmin
       .from('password_reset_tokens')
       .update({ attempts: token.attempts + 1 })
@@ -91,9 +109,18 @@ serve(async (req) => {
     const currentAttempts = token.attempts + 1;
     const attemptsRemaining = MAX_ATTEMPTS - currentAttempts;
 
-    // Now check if OTP matches
-    if (token.otp_code !== otp_code) {
+    // FIX BUG C: Compare using bcrypt instead of plaintext
+    const otpMatches = await compare(otp_code, token.otp_code);
+
+    if (!otpMatches) {
       console.log(`[OTP Validation] Invalid OTP, ${attemptsRemaining} attempts remaining`);
+
+      await supabaseAdmin.from('password_reset_attempts').insert({
+        email: email.toLowerCase(),
+        ip_address: clientIp,
+        success: false,
+        attempt_type: 'validate_otp'
+      });
 
       if (attemptsRemaining <= 0) {
         return new Response(
@@ -122,12 +149,13 @@ serve(async (req) => {
       );
     }
 
-    // Valid OTP - mark as used
+    // FIX BUG A: Valid OTP - mark as used AND set validated_by = 'otp'
     const { error: updateError } = await supabaseAdmin
       .from('password_reset_tokens')
       .update({
         is_used: true,
-        used_at: new Date().toISOString()
+        used_at: new Date().toISOString(),
+        validated_by: 'otp'
       })
       .eq('id', token.id);
 
@@ -135,6 +163,14 @@ serve(async (req) => {
       console.error('[OTP Validation] Update error:', updateError);
       throw updateError;
     }
+
+    // FIX BUG G: Log successful validate_otp attempt
+    await supabaseAdmin.from('password_reset_attempts').insert({
+      email: email.toLowerCase(),
+      ip_address: clientIp,
+      success: true,
+      attempt_type: 'validate_otp'
+    });
 
     console.log(`[OTP Validation] OTP verified successfully`);
 
