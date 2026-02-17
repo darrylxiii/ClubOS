@@ -91,7 +91,7 @@ serve(async (req) => {
     let page = 0;
 
     do {
-      const params: Record<string, string> = { include_transcript: 'true' };
+      const params: Record<string, string> = { include_transcript: 'true', limit: '100' };
       if (cursor) params.cursor = cursor;
 
       const res = await fathomFetch('/meetings', fathomApiKey, params);
@@ -102,19 +102,25 @@ serve(async (req) => {
       page++;
 
       console.log(`[sync-fathom] Page ${page}: fetched ${data.items?.length || 0} meetings`);
-    } while (cursor && page < 20);
+    } while (cursor && page < 50);
 
     console.log(`[sync-fathom] Total Fathom meetings found: ${allMeetings.length}`);
 
     // Use the meeting URL as a stable external ID
     const meetingIds = allMeetings.map(m => m.url || m.title).filter(Boolean);
-    const { data: existingRecords } = await supabaseAdmin
-      .from('meeting_recordings_extended')
-      .select('external_source_id')
-      .eq('source_type', 'fathom')
-      .in('external_source_id', meetingIds);
 
-    const existingIds = new Set((existingRecords || []).map(r => r.external_source_id));
+    // Batch dedup query in chunks of 200 to avoid .in() truncation
+    const DEDUP_BATCH = 200;
+    const existingIds = new Set<string>();
+    for (let i = 0; i < meetingIds.length; i += DEDUP_BATCH) {
+      const chunk = meetingIds.slice(i, i + DEDUP_BATCH);
+      const { data: existingRecords } = await supabaseAdmin
+        .from('meeting_recordings_extended')
+        .select('external_source_id')
+        .eq('source_type', 'fathom')
+        .in('external_source_id', chunk);
+      (existingRecords || []).forEach(r => existingIds.add(r.external_source_id));
+    }
     const newMeetings = allMeetings.filter(m => !existingIds.has(m.url || m.title));
 
     console.log(`[sync-fathom] New meetings to import: ${newMeetings.length} (${existingIds.size} already imported)`);

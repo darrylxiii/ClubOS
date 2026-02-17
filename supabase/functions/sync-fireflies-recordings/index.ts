@@ -135,15 +135,19 @@ serve(async (req) => {
 
     console.log(`[sync-fireflies] Total Fireflies transcripts found: ${allTranscripts.length}`);
 
-    // Deduplicate
+    // Deduplicate -- batch .in() queries in chunks of 200 to avoid truncation
     const externalIds = allTranscripts.map(t => t.id).filter(Boolean);
-    const { data: existingRecords } = await supabaseAdmin
-      .from('meeting_recordings_extended')
-      .select('external_source_id')
-      .eq('source_type', 'fireflies')
-      .in('external_source_id', externalIds);
-
-    const existingIds = new Set((existingRecords || []).map(r => r.external_source_id));
+    const DEDUP_BATCH = 200;
+    const existingIds = new Set<string>();
+    for (let i = 0; i < externalIds.length; i += DEDUP_BATCH) {
+      const chunk = externalIds.slice(i, i + DEDUP_BATCH);
+      const { data: existingRecords } = await supabaseAdmin
+        .from('meeting_recordings_extended')
+        .select('external_source_id')
+        .eq('source_type', 'fireflies')
+        .in('external_source_id', chunk);
+      (existingRecords || []).forEach(r => existingIds.add(r.external_source_id));
+    }
     const newTranscripts = allTranscripts.filter(t => !existingIds.has(t.id));
 
     console.log(`[sync-fireflies] New transcripts to import: ${newTranscripts.length} (${existingIds.size} already imported)`);
