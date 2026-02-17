@@ -11,6 +11,7 @@ import { DailyBriefingBanner } from "./DailyBriefingBanner";
 import { PredictiveSignalsStrip } from "./PredictiveSignalsStrip";
 import { AgentActivityWidget } from "./AgentActivityWidget";
 import { LiveOperationsWidget } from "./LiveOperationsWidget";
+import { AdminTasksWidget } from "./AdminTasksWidget";
 
 const AdminHomeContent = () => {
   return (
@@ -39,7 +40,10 @@ const AdminHomeContent = () => {
         <PartnerEngagementWidget />
       </DashboardSection>
       <DashboardSection columns={2} mobileColumns={1}>
+        <AdminTasksWidget />
         <ActiveMeetingsWidget />
+      </DashboardSection>
+      <DashboardSection columns={2} mobileColumns={1}>
         <LiveOperationsWidget />
       </DashboardSection>
 
