@@ -119,7 +119,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
       { name: "Club Pilot", icon: Sparkles, path: "/club-pilot" },
-      { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
+      { name: "Tasks", icon: ListTodo, path: "/tasks" },
       { name: "Club Radio", icon: Video, path: "/club-dj" },
     ],
   },

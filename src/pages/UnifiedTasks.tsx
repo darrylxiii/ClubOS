@@ -409,7 +409,7 @@ const UnifiedTasks = () => {
             />
             
             <AIPageCopilot 
-              currentPage="/unified-tasks" 
+              currentPage="/tasks" 
               contextData={{ objectivesCount: objectives.length }}
             />
           </div>

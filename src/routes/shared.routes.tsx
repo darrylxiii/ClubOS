@@ -73,7 +73,7 @@ export const sharedRoutes = (
     <Route path="/meeting-insights/:meetingId" element={<ProtectedRoute><MeetingInsights /></ProtectedRoute>} />
     
     {/* Tasks */}
-    <Route path="/unified-tasks" element={<ProtectedRoute><UnifiedTasks /></ProtectedRoute>} />
+    <Route path="/tasks" element={<ProtectedRoute><UnifiedTasks /></ProtectedRoute>} />
     <Route path="/objectives/:id" element={<ProtectedRoute><ObjectiveWorkspace /></ProtectedRoute>} />
     
     {/* AI */}
