@@ -1,130 +1,121 @@
 
+# Ultimate Task Board UI/UX Revamp -- World-Class Execution
 
-# /tasks Page UI/UX Revamp -- Billion-Dollar Upgrade
+## Current Issues Identified
 
-## Problems Identified
-
-1. **Objectives section dominates the page** -- Full 4-column Kanban board with large cards takes up the entire viewport before you even see tasks. This is backwards; tasks are the daily driver, objectives are context.
-2. **Board columns are oversized** -- Each column is `min-w-[300px]` with large cards (`p-6`, `text-lg` headers), wasting space. Five columns overflow horizontally.
-3. **Page has too many stacked sections** -- Header, Objectives (with its own tabs), Board Navigation bar, Board Context Header, Objective filter dropdown, Task Toolbar, Task view tabs -- that is 7 vertical layers before the first task card.
-4. **Board Navigation and Context Header are bulky** -- `BoardNavigationBar` (type filter buttons + board pills) and `BoardContextHeader` (56px icon, 2xl title, stats, actions) together consume ~200px of vertical space.
-5. **Task cards lack dependency intelligence** -- `blockingCount` and `blockedByCount` are fetched but never rendered on the card. This is the most critical missing signal for prioritization.
-6. **No visual urgency system** -- Overdue tasks look the same as future tasks. No red glow, no sorting by urgency, no "needs attention" grouping.
-7. **Redundant toolbars** -- The board has its own "Group By" toolbar inside, plus the page-level `TaskToolbar`, plus the view tabs. Three control surfaces.
-8. **List view is too basic** -- Simple checkbox + title + badge. No dependency info, no progress indicators, no inline status cycling.
+1. **Still too many vertical layers** -- CommandBar + Objectives strip + Toolbar (with search, view modes, actions) + Tabs bar = 4 distinct rows before the first task. Best-in-class boards (Linear, Notion, Asana) use 1-2 rows max.
+2. **Duplicate view switcher** -- The `TaskToolbar` has its own Board/List/Calendar/Analytics toggle AND the page has a separate `TabsList` with 7 tabs. Two competing navigation systems.
+3. **Toolbar is cluttered** -- SavedFilterPresets, CSVExport, TaskTemplates, SelectAll, Refresh, Keyboard hint all in one row with multiple Separators. Too many icon buttons without clear grouping.
+4. **Board skeleton is oversized** -- `BoardColumnSkeleton` still uses `min-w-[300px]` and `min-h-[400px]`, contradicting the compact design.
+5. **Task cards still feel amateur** -- The `TaskCardCompact` is better but still lacks visual hierarchy polish. Title and metadata lines have equal visual weight.
+6. **List view grid template is fragile** -- Using `grid-cols-[auto_auto_1fr_auto_auto_auto_auto]` with 7 columns and hidden responsive ones is messy.
+7. **No visual task count summary** -- No at-a-glance "12 tasks, 3 overdue, 5 blocked" summary anywhere on the page.
+8. **Detail sheet is basic** -- The `UnifiedTaskDetailSheet` status/priority bar uses emoji (emoji for statuses) which feels cheap. Section spacing is inconsistent.
+9. **Keyboard shortcuts bar is floating at bottom center** -- Takes up visual space permanently. Better as a dismissible tooltip or hidden until user presses `?`.
+10. **No empty state design** -- Empty board columns have a minimal "No tasks" + tiny Add button. No illustration or helpful messaging.
 
 ## The Plan
 
-### 1. Restructure Page Layout (Collapse the Chrome)
+### Phase 1: Merge All Chrome Into a Single Command Surface
 
-**Merge header, board context, and controls into a single compact command bar:**
+**Goal**: Collapse CommandBar + Objectives + Toolbar + Tabs into 2 rows maximum.
 
-- Remove the separate `BoardNavigationBar` and `BoardContextHeader` sections
-- Create a new `TasksCommandBar` component: one horizontal bar with:
-  - Left: Board selector (dropdown, not pill list), board name + icon
-  - Center: Search input (always visible)
-  - Right: View tabs (icon-only toggle group), New Task button, settings gear
-- This replaces ~200px of vertical chrome with a single 48px bar
+**Row 1: Unified Command Bar** (~44px)
+- Left: Board selector dropdown (existing) + task count summary badge ("42 tasks, 3 overdue")
+- Center: Inline search input (replaces the separate `TaskSearchBar`)
+- Right: View toggle (icon-only: Board | List | Calendar | Timeline | Analytics), Filter button, "My Tasks" toggle, "New Task" button
 
-**Collapse Objectives into a collapsible summary strip:**
+**Row 2: Context Strip** (~32px, conditional)
+- Objective pills (existing `CollapsedObjectivesSummary` but slimmer)
+- Active filter badges inline (moved from the separate filter display below toolbar)
+- Bulk action bar (replaces the current one when selections are active)
 
-- Replace the full Objectives Board/List tabs section with a `CollapsedObjectivesSummary`:
-  - Single horizontal row showing objective pills (name + progress %) 
-  - Click an objective pill to filter tasks by it (replaces the separate dropdown)
-  - Small expand arrow to open the full objectives board in a Sheet/drawer (not inline)
-- This converts ~400px of objectives content into a ~48px summary row
+**What gets removed**:
+- The separate `TaskToolbar` component -- functionality absorbed into Row 1
+- The separate `TabsList` with 7 triggers -- view modes in Row 1 toggle, AI/Team tabs become overflow menu items
+- The floating keyboard shortcuts bar at the bottom -- replaced by `?` key trigger showing a small modal
+- The duplicate view mode switcher inside TaskToolbar
 
-### 2. Redesign Task Cards (Compact + Intelligence)
+### Phase 2: Elevate Task Card Design
 
-**New `TaskCardCompact` replacing current `UnifiedTaskCard`:**
+**TaskCardCompact v2**:
+- Add a subtle left-border color based on urgency score (red for urgent/overdue, amber for high priority, default for rest)
+- Title: `text-[13px] font-medium leading-snug` (slightly larger than 10px meta, smaller than current)
+- Task number: move to tooltip on hover instead of always visible (reduces noise)
+- Assignee avatar: show on hover or when card is focused (not always -- reduces clutter for cards without assignees)
+- Add a subtle "urgency glow" for overdue items: `shadow-[inset_0_0_0_1px_rgba(239,68,68,0.3)]`
+- Progress bar for subtasks: keep, but make it 1px height instead of 2px (more refined)
+- On hover: show a mini action row (status cycle dot, priority cycle, quick assign) -- eliminates need to open detail sheet for simple changes
 
-- Reduce padding from `p-4` to `p-3`
-- Single-line layout for priority + title + task number (no stacked sections)
-- Show dependency indicators prominently:
-  - Red lock icon with count if task is blocked (`blockedByCount > 0`)
-  - Amber chain icon with count if task is blocking others (`blockingCount > 0`)
-  - Green checkmark if no blockers and ready to work
-- Overdue visual treatment: left border turns red, subtle red background tint
-- Subtask progress shown as a thin inline progress bar (not just text)
-- Comment count as a small icon + number
-- Remove the large avatar stack; show single avatar or initials dot
-- Total card height target: ~72px (down from ~120px)
+### Phase 3: Board Column Polish
 
-### 3. Board Column Redesign
+- Column headers: reduce to 28px height, icon + label + count only
+- Remove the "blocked/ready" counts from column headers (too noisy at column level -- this info is on each card)
+- Empty column: show a centered dashed border area with "Drop here" text (for drag target clarity)
+- Column backgrounds: pure transparent with `border-t-2` accent only (already done but ensure consistency)
+- Board grid: use `grid-cols-5` on desktop but allow collapsing "Done" and "Cancelled" into a single "Resolved" column on smaller screens
 
-- Remove `min-w-[300px]` constraint; use fluid `flex-1` columns
-- Compact column headers: icon + label + count in a single 36px row
-- Remove the colored background tints on columns; use subtle top-border accent only
-- Column content area: reduce `min-h-[400px]` to `min-h-[200px]`
-- Add column task count summary: "3 blocked, 2 ready" inline text
+### Phase 4: List View Upgrade to Data Table
 
-### 4. Add Urgency-Based Smart Sorting
+- Replace custom grid with a proper data table pattern
+- Sticky header row
+- Alternating row backgrounds (`even:bg-muted/5`) for readability
+- Sort indicators on column headers (clickable to sort by that column)
+- Row hover: show inline quick actions (change status, priority) without opening sheet
+- Group-by support: allow grouping by status, priority, or assignee with collapsible section headers
 
-Inside each board column, sort tasks by computed urgency:
+### Phase 5: Detail Sheet Refinement
 
-```text
-urgency = (isOverdue ? 100 : 0)
-        + (blockedByCount > 0 ? -50 : 0)   // blocked tasks sink
-        + (blockingCount * 10)              // blocking tasks rise  
-        + (priority === 'high' ? 30 : priority === 'medium' ? 15 : 0)
-        + (daysUntilDue <= 2 ? 20 : daysUntilDue <= 7 ? 10 : 0)
-```
+- Replace emoji in status select (`emoji Pending`) with colored dot + text
+- Add a "Time in status" indicator (e.g., "In Progress for 3 days")
+- Description: use markdown rendering (react-markdown is already installed)
+- Dependencies section: add a visual mini-graph showing the dependency chain
+- Add activity feed tab showing status changes, comments, and assignments chronologically
 
-Tasks that block others and are high priority should float to the top with a visual "Unblock this first" indicator.
+### Phase 6: Task Summary Statistics Bar
 
-### 5. Upgrade List View
+Add a compact stats row below the command bar showing:
+- Total tasks | Overdue (red) | Blocked (amber) | In Progress | Completed today
+- These are clickable to filter the view
+- Uses semantic color coding (emerald for success, amber for urgency per brand guidelines)
 
-- Convert to a table-like dense layout with columns: Status, Priority, Title, Due, Blockers, Assignee, Progress
-- Each row is ~40px tall (compact)
-- Inline status badge that cycles on click (not a checkbox toggle)
-- Show blocking/blocked counts with colored indicators
-- Sort by urgency score by default
+### Phase 7: Micro-Interactions and Polish
 
-### 6. Unified Toolbar Consolidation
-
-- Merge the board's "Group By" toolbar into the main `TaskToolbar`
-- Remove the separate `TabsList` for view switching (already in toolbar)
-- Single control surface: Search | Filters | View Mode | Group By | Actions
-- This eliminates one entire toolbar row
-
-### 7. Visual Polish for Luxury Aesthetic
-
-- Cards: `bg-card` with `border-border/20`, no `backdrop-blur-md` (performance)
-- Use `border-l-2` color accents instead of full background tints
-- Priority colors: use the dot/pip pattern (small colored circle) instead of full badges
-- Muted, professional typography: `text-sm` for titles, `text-xs` for metadata
-- Hover states: subtle `border-primary/30` transition, no `translate-y` bounce
-- Remove `rotate-2` on drag overlay (unprofessional)
-
----
+- Card transitions: `transition-all duration-150` on hover (border color + shadow)
+- Drag overlay: clean shadow, no rotation, scale to 1.02
+- Column drop target highlight: subtle `ring-2 ring-primary/20` when dragging over
+- Skeleton loading: match compact card sizes (not oversized old skeletons)
+- Toast actions: ensure all mutations have undo capability
+- Keyboard `?` shortcut: show a centered modal with all shortcuts, dismissible
 
 ## Technical Breakdown
 
-### New Files
-- `src/components/unified-tasks/TasksCommandBar.tsx` -- Merged header/board/controls
-- `src/components/unified-tasks/CollapsedObjectivesSummary.tsx` -- Objective pills strip
-- `src/components/unified-tasks/TaskCardCompact.tsx` -- Redesigned compact card
-
 ### Modified Files
-- `src/pages/UnifiedTasks.tsx` -- Remove objectives section, board nav, context header; replace with CommandBar + ObjectivesSummary; consolidate tabs
-- `src/components/unified-tasks/UnifiedTaskBoard.tsx` -- Use compact cards, remove internal toolbar, add urgency sorting, fluid columns
-- `src/components/unified-tasks/UnifiedTaskCard.tsx` -- Replace with compact design showing blockers/urgency
-- `src/components/unified-tasks/UnifiedTasksList.tsx` -- Dense table layout with blocker columns
-- `src/components/unified-tasks/TaskToolbar.tsx` -- Add Group By control, remove redundant view switcher
+- `src/pages/UnifiedTasks.tsx` -- Major restructure: remove separate toolbar/tabs, integrate unified command bar, add stats row
+- `src/components/unified-tasks/TasksCommandBar.tsx` -- Expand to include search, view toggle, filter trigger, new task button (absorb toolbar)
+- `src/components/unified-tasks/TaskCardCompact.tsx` -- Hover actions, urgency glow, refined typography, task number on hover
+- `src/components/unified-tasks/UnifiedTaskBoard.tsx` -- Simplified columns, better drag targets, remove internal toolbar
+- `src/components/unified-tasks/UnifiedTasksList.tsx` -- Data table pattern with sticky header, sort, group-by
+- `src/components/unified-tasks/UnifiedTaskDetailSheet.tsx` -- Remove emoji, add time-in-status, markdown description
+- `src/components/unified-tasks/CollapsedObjectivesSummary.tsx` -- Slimmer, integrate active filters inline
+- `src/components/unified-tasks/TaskCardSkeleton.tsx` -- Match new compact card sizes
 
-### No Database Changes Required
+### New Files
+- `src/components/unified-tasks/TaskStatsBar.tsx` -- Compact statistics row with clickable filters
+- `src/components/unified-tasks/KeyboardShortcutsModal.tsx` -- `?` triggered shortcuts reference
 
-All data (blockingCount, blockedByCount, due_date, priority) is already fetched. This is purely a UI/UX restructuring.
+### Removed/Deprecated
+- `src/components/unified-tasks/TaskToolbar.tsx` -- Functionality absorbed into `TasksCommandBar`
+- `src/components/unified-tasks/TaskSearchBar.tsx` -- Search input moved inline into command bar
 
 ## Implementation Order
 
-1. **TasksCommandBar + page restructure** (biggest visual impact, removes chrome bloat)
-2. **TaskCardCompact with dependency indicators** (makes the board actually useful)
-3. **Urgency sorting** (smart defaults)
-4. **CollapsedObjectivesSummary** (moves objectives out of the way)
-5. **List view upgrade** (dense table)
-6. **Toolbar consolidation** (final cleanup)
-7. **Visual polish pass** (luxury aesthetic alignment)
+1. **TasksCommandBar expansion + page restructure** (merge all chrome, remove duplicate nav)
+2. **TaskStatsBar** (at-a-glance metrics)
+3. **TaskCardCompact v2** (hover actions, urgency visual system, refined typography)
+4. **Board column polish + skeleton fix** (compact headers, better empty/drag states)
+5. **List view data table** (sticky header, sort, alternating rows, group-by)
+6. **Detail sheet refinement** (remove emoji, markdown, time-in-status)
+7. **KeyboardShortcutsModal + micro-interactions** (final polish pass)
 
-Each step is independently shippable and the page improves progressively.
-
+No database changes required. This is purely a UI/UX restructuring using existing data.
