@@ -1,13 +1,22 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAdminKPIScorecard, type KPIPillarMetric } from "@/hooks/useAdminKPIScorecard";
-import { TrendingUp, TrendingDown, Minus, Zap, DollarSign, Settings2, MessageSquare } from "lucide-react";
+import { useAdminKPIScorecard, type KPIPillarMetric, type KPIRange } from "@/hooks/useAdminKPIScorecard";
+import { Zap, DollarSign, Settings2, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 
+const rangeOptions: { value: KPIRange; label: string }[] = [
+  { value: '30d', label: '30d' },
+  { value: '3m', label: '3m' },
+  { value: '6m', label: '6m' },
+  { value: '1y', label: '1y' },
+  { value: 'all', label: 'All' },
+];
+
 const pillarConfig = [
-  { key: 'efficiency' as const, label: 'Efficiency', icon: Zap, metrics: ['timeToShortlist', 'slaCompliance'] as const },
-  { key: 'profitability' as const, label: 'Profitability', icon: DollarSign, metrics: ['revenuePerPlacement', 'pipelineConversion'] as const },
-  { key: 'operations' as const, label: 'Operations', icon: Settings2, metrics: ['fillRate', 'offerAcceptance'] as const },
+  { key: 'efficiency' as const, label: 'Efficiency', icon: Zap, metrics: ['timeToShortlist', 'slaCompliance', 'timeToHire'] as const },
+  { key: 'profitability' as const, label: 'Profitability', icon: DollarSign, metrics: ['revenuePerPlacement', 'pipelineConversion', 'totalRevenue'] as const },
+  { key: 'operations' as const, label: 'Operations', icon: Settings2, metrics: ['fillRate', 'offerAcceptance', 'interviewToHire'] as const },
   { key: 'nps' as const, label: 'NPS', icon: MessageSquare, metrics: ['candidateNPS', 'partnerNPS'] as const },
 ];
 
@@ -18,6 +27,7 @@ function formatValue(metric: KPIPillarMetric): string {
     case 'percent': return `${metric.value}%`;
     case 'currency': return `€${(metric.value / 1000).toFixed(1)}k`;
     case 'score': return `${metric.value > 0 ? '+' : ''}${metric.value}`;
+    case 'ratio': return `${metric.value}:1`;
     default: return String(metric.value);
   }
 }
@@ -27,6 +37,11 @@ function getValueColor(metric: KPIPillarMetric): string {
   if (metric.format === 'score') {
     if (metric.value >= 50) return 'text-emerald-500';
     if (metric.value >= 0) return 'text-amber-500';
+    return 'text-rose-500';
+  }
+  if (metric.format === 'ratio') {
+    if (metric.value <= 5) return 'text-emerald-500';
+    if (metric.value <= 10) return 'text-amber-500';
     return 'text-rose-500';
   }
   if (metric.format === 'percent') {
@@ -59,7 +74,8 @@ function MetricCell({ metric }: { metric: KPIPillarMetric }) {
 }
 
 export const KPIScorecard = () => {
-  const { data, isLoading } = useAdminKPIScorecard();
+  const [range, setRange] = useState<KPIRange>('30d');
+  const { data, isLoading } = useAdminKPIScorecard(range);
 
   if (isLoading) {
     return (
@@ -87,6 +103,26 @@ export const KPIScorecard = () => {
       transition={{ duration: 0.3, delay: 0.15 }}
     >
       <Card className="glass-subtle rounded-2xl px-3 py-3">
+        {/* Header with range toggle */}
+        <div className="flex items-center justify-end mb-2">
+          <div className="flex items-center gap-0.5 rounded-full bg-muted/50 p-0.5">
+            {rangeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setRange(opt.value)}
+                className={`h-6 px-2 text-[10px] font-medium rounded-full transition-colors ${
+                  range === opt.value
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Pillar grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border/30">
           {pillarConfig.map((pillar) => {
             const Icon = pillar.icon;
@@ -101,7 +137,7 @@ export const KPIScorecard = () => {
                     {pillar.label}
                   </span>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 flex-wrap justify-center">
                   {metrics.map((m, i) => (
                     <MetricCell key={i} metric={m} />
                   ))}
