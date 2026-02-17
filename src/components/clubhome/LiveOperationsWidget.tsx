@@ -175,12 +175,12 @@ export function LiveOperationsWidget() {
       headerAction={!isLoading && !isEmpty ? headerBadge : undefined}
     >
       <div className="space-y-3">
-        {/* Section 1: Team Online */}
-        {onlineMembers.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-              Team Online
-            </p>
+        {/* Section 1: Team Online — always visible */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            Team Online
+          </p>
+          {onlineMembers.length > 0 ? (
             <div className="flex flex-wrap gap-2 items-center">
               {onlineMembers.map((m) => (
                 <MemberAvatar key={m.id} member={m} />
@@ -191,8 +191,12 @@ export function LiveOperationsWidget() {
                 </span>
               )}
             </div>
-          </div>
-        )}
+          ) : (
+            !isLoading && (
+              <p className="text-[10px] text-muted-foreground">No team members online</p>
+            )
+          )}
+        </div>
 
         {/* Divider when both sections have content */}
         {onlineMembers.length > 0 && activeSessions.length > 0 && (
