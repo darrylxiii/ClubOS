@@ -1,88 +1,84 @@
 
 
-# Live Preview Build Crash (HTTP 412) -- Fix Plan
+# Memory Optimization Audit -- Fix Plan
 
-## Root Cause
+## Diagnosis
 
-The preview returns HTTP 412 because the Vite build runs out of memory (OOM) before it can produce output. Your project has 170+ pages and imports several heavy libraries. The build configuration already has aggressive memory guards (`maxParallelFileOps: 1`, `minify: false`, `sourcemap: false`), meaning you are at the memory ceiling. Any small increase in bundle complexity can tip the build over.
+The build is hitting the Vite memory ceiling (OOM / HTTP 412). The previous fix migrated Recharts to lazy loading, but several other heavy dependencies are still eagerly pulled into the root chunk via import chains.
 
-## Issues Found
+## Issues Found (ordered by impact)
 
-### 1. 16 files import directly from `recharts` (bypassing lazy loading)
+### 1. Sentry still eagerly loaded via error boundaries (~150KB)
 
-The project has a `DynamicChart` wrapper designed to lazy-load Recharts, but 16 files still import directly from `"recharts"`. This forces the entire Recharts + D3 dependency tree into the main bundle graph during build, increasing peak memory.
+Even though `initSentry()` is now lazy-loaded, `@sentry/react` is **still** pulled into the root chunk through three eager import paths:
 
-**Affected files:**
-- `src/pages/FreelancerAnalyticsPage.tsx`
-- `src/pages/admin/MarketplaceAnalytics.tsx`
-- `src/pages/ClientAnalyticsPage.tsx`
-- `src/components/admin/webhooks/WebhookReliabilityDashboard.tsx`
-- `src/components/analytics/StoryAnalytics.tsx`
-- `src/components/unified-tasks/TaskAnalyticsDashboard.tsx`
-- `src/components/unified-tasks/TaskBurndownChart.tsx`
-- `src/components/unified-tasks/EstimationVsActualChart.tsx`
-- `src/components/partner/JobAnalytics.tsx`
-- `src/components/partner/ApplicationsAnalytics.tsx`
-- `src/components/partner/EnhancedAnalytics.tsx`
-- `src/components/admin/security/RateLimitDashboard.tsx`
-- `src/components/employees/TeamPerformanceComparison.tsx`
-- `src/components/admin/PerformanceDashboard.tsx`
-- `src/components/admin/activity/EngagementAnalyticsTab.tsx`
-- `src/components/ui/chart.tsx`
+- `SentryErrorBoundary.tsx` (line 2: `import * as Sentry from '@sentry/react'`) -- used directly in `App.tsx`
+- `RouteErrorBoundary.tsx` (line 6: `import * as Sentry from '@sentry/react'`) -- used in every route wrapper in `App.tsx`
+- `logger.ts` (line 2: `import * as Sentry from '@sentry/react'`) -- imported by `RouteErrorBoundary` and many other files
 
-### 2. Sentry is eagerly imported at app root
+**This completely negates the lazy-load fix from the previous round.** Sentry's ~150KB is still in the initial bundle.
 
-`src/lib/sentry.ts` does `import * as Sentry from '@sentry/react'` and is called synchronously in `App.tsx` line 2-3 before the app even renders. The Sentry bundle (~150KB parsed) is loaded into the initial chunk.
+### 2. `canvas-confetti` imported eagerly in 17 files (~30KB each import site)
 
-### 3. `TracingProvider` is eagerly imported
+`canvas-confetti` is imported directly (not lazily) in 17 components. While each import resolves to the same module, the build still processes it as part of the dependency graph for those chunks. Lazy-loading it would remove it from the critical path.
 
-`src/App.tsx` line 5 imports `TracingProvider` eagerly. If it pulls in `@opentelemetry` packages, that adds another heavy dependency to the initial bundle.
+### 3. `jsPDF` + `jspdf-autotable` imported eagerly in 2 files (~250KB combined)
 
-### 4. Password reset pages are eagerly imported
+`CoverLetterPreview.tsx` and `FinancialExportMenu.tsx` import jsPDF at the top level. These are heavy libraries only needed when a user clicks "Download PDF".
 
-Lines 118-121 of `App.tsx` eagerly import 4 password reset pages. While these are small individually, every eager import adds to the root chunk that must be processed in a single pass.
+### 4. `@blocknote` imported eagerly in 15 workspace editor files
+
+While these are marked external in dev mode, in **production builds** they are bundled. The 15 files importing from `@blocknote/react`, `@blocknote/core`, and `@blocknote/mantine` should be consolidated behind a single lazy boundary.
+
+### 5. `react-markdown` imported eagerly in 7 files (~60KB)
+
+A `LazyMarkdown` wrapper already exists at `src/components/ui/LazyMarkdown.tsx` but 7 files bypass it and import `react-markdown` directly.
 
 ---
 
 ## Fix Plan
 
-### Step 1: Convert all direct `recharts` imports to `DynamicChart`
+### Step 1: Remove Sentry from root chunk (highest impact)
 
-Migrate the 16 files listed above to use the existing `DynamicChart` lazy wrapper instead of importing from `"recharts"` directly. This is the highest-impact change -- Recharts + D3 is one of the heaviest dependency trees in the project.
+Replace all eager `import * as Sentry from '@sentry/react'` with dynamic imports in the three root-chain files:
 
-### Step 2: Lazy-load Sentry initialization
+- **`SentryErrorBoundary.tsx`**: Remove the Sentry import. In the `componentDidCatch` method, use `import('@sentry/react').then(s => s.captureException(error))` instead.
+- **`RouteErrorBoundary.tsx`**: Same pattern -- dynamic import in `componentDidCatch` only.
+- **`logger.ts`**: Replace the top-level Sentry import with a lazy getter that caches the module after first load. All existing Sentry calls become async (fire-and-forget for logging, which is acceptable).
 
-Change `src/App.tsx` to dynamically import Sentry so the ~150KB bundle is not part of the initial chunk:
+This removes ~150KB from the initial chunk.
 
-```typescript
-// Instead of:
-import { initSentry } from "@/lib/sentry";
-initSentry();
+### Step 2: Lazy-load `canvas-confetti` in all 17 files
 
-// Use:
-import("@/lib/sentry").then(({ initSentry }) => initSentry()).catch(() => {});
-```
-
-### Step 3: Lazy-load TracingProvider
-
-Wrap the `TracingProvider` import with `React.lazy` or a dynamic import, since tracing is only enabled in dev mode anyway.
-
-### Step 4: Lazy-load password reset pages
-
-Convert the 4 eager imports (lines 118-121 of App.tsx) to lazy imports:
+Replace every `import confetti from 'canvas-confetti'` with a dynamic import wrapper:
 
 ```typescript
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPasswordVerify = lazy(() => import("./pages/ResetPasswordVerify"));
-const ResetPasswordMagicLink = lazy(() => import("./pages/ResetPasswordMagicLink"));
-const ResetPasswordNew = lazy(() => import("./pages/ResetPasswordNew"));
+const fireConfetti = async (opts?: any) => {
+  const { default: confetti } = await import('canvas-confetti');
+  confetti(opts);
+};
 ```
 
-And wrap their routes in `<Suspense>` like the other public routes.
+This is safe because confetti is always triggered by a user action (click), never on mount.
 
-### Step 5: Add `extend` to optimizeDeps exclude list
+### Step 3: Lazy-load jsPDF in 2 files
 
-The `optimizeDeps.include` has `['extend']` which forces pre-bundling of a package that may not need it. Removing it reduces pre-bundling memory.
+Move `import jsPDF` inside the download handler functions in `CoverLetterPreview.tsx` and `FinancialExportMenu.tsx`. These only fire on button click.
+
+### Step 4: Migrate 7 files from `react-markdown` to `LazyMarkdown`
+
+Replace direct `import ReactMarkdown from 'react-markdown'` with the existing `LazyMarkdown` wrapper in:
+- `ClubAI.tsx`
+- `UnifiedTaskDetailSheet.tsx`
+- `DisasterRecoveryDashboard.tsx`
+- `CourseAIChat.tsx`
+- `AIModuleAssistant.tsx`
+- `ClubAIHomeChatWidget.tsx`
+- `MessageFormatter.tsx`
+
+### Step 5: Verify BlockNote is behind lazy boundary
+
+Confirm all `@blocknote` imports are only reachable through lazy-loaded page components (they appear to be, through the workspace routes). No code change expected, just verification.
 
 ---
 
@@ -90,11 +86,15 @@ The `optimizeDeps.include` has `['extend']` which forces pre-bundling of a packa
 
 | File | Change |
 |------|--------|
-| `src/App.tsx` | Lazy-load Sentry, TracingProvider, and 4 password reset pages |
-| 16 component/page files | Replace `from "recharts"` with `DynamicChart` usage |
-| `vite.config.ts` | Remove `extend` from optimizeDeps.include |
+| `src/components/SentryErrorBoundary.tsx` | Dynamic import for Sentry |
+| `src/components/RouteErrorBoundary.tsx` | Dynamic import for Sentry |
+| `src/lib/logger.ts` | Lazy Sentry getter |
+| 17 files with `canvas-confetti` | Dynamic import wrapper |
+| `src/components/applications/CoverLetterPreview.tsx` | Move jsPDF inside handler |
+| `src/components/financial/FinancialExportMenu.tsx` | Move jsPDF + autotable inside handler |
+| 7 files with `react-markdown` | Switch to `LazyMarkdown` |
 
 ## Expected Result
 
-Reducing the root chunk size by ~300-400KB (Recharts + Sentry + OTel) should bring peak build memory well under the limit, resolving the 412 error and stabilizing the preview.
+Removing Sentry (~150KB), canvas-confetti (~30KB), jsPDF (~250KB), and react-markdown (~60KB) from the eager dependency graph should reduce peak build memory by ~400-500KB of parsed JS, bringing the build well under the OOM threshold.
 
