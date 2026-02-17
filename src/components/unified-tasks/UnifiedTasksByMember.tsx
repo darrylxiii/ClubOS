@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { User, CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import { UnifiedTaskDetailDialog } from "./UnifiedTaskDetailDialog";
+import { UnifiedTaskDetailSheet } from "./UnifiedTaskDetailSheet";
 
 interface TasksByMember {
   member: {
@@ -294,7 +294,7 @@ export function UnifiedTasksByMember({ objectiveId, onRefresh }: UnifiedTasksByM
       </div>
 
       {selectedTask && (
-        <UnifiedTaskDetailDialog
+        <UnifiedTaskDetailSheet
           task={selectedTask}
           open={!!selectedTask}
           onClose={() => setSelectedTask(null)}
