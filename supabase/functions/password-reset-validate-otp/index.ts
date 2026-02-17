@@ -15,6 +15,29 @@ const requestSchema = z.object({
   otp_code: z.string().length(6),
 });
 
+// Check if security alert should be raised
+async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: string, correlationId: string | null) {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+  const { count } = await supabaseAdmin
+    .from('password_reset_attempts')
+    .select('*', { count: 'exact', head: true })
+    .eq('email', email)
+    .eq('success', false)
+    .in('attempt_type', ['validate_otp', 'validate_token', 'set_password'])
+    .gte('attempted_at', oneHourAgo);
+
+  if (count && count >= 3) {
+    console.log(`[PasswordReset][${correlationId}][SECURITY_ALERT] ${count} failed attempts for email in last hour`);
+    await supabaseAdmin.from('security_alerts').insert({
+      alert_type: 'password_reset_brute_force',
+      email,
+      ip_address: clientIp,
+      details: { failed_attempts: count, correlation_id: correlationId, stage: 'validate_otp' },
+    });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,8 +53,6 @@ serve(async (req) => {
     const { email, otp_code } = requestSchema.parse(body);
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
-    console.log(`[OTP Validation] Validating OTP for email`);
-
     // Look up the latest active token for this email
     const { data: tokens, error: lookupError } = await supabaseAdmin
       .from('password_reset_tokens')
@@ -43,167 +64,121 @@ serve(async (req) => {
       .limit(1);
 
     if (lookupError) {
-      console.error('[OTP Validation] Lookup error:', lookupError);
+      console.error('[PasswordReset][validate_otp] Lookup error:', lookupError);
       throw lookupError;
     }
 
-    if (!tokens || tokens.length === 0) {
-      console.log('[OTP Validation] No active token found');
+    const token = tokens?.[0];
+    const correlationId = token?.correlation_id || null;
 
-      // FIX BUG G: Log validate_otp attempt
+    console.log(`[PasswordReset][${correlationId}][validate_otp] Validating OTP for email`);
+
+    if (!token) {
+      console.log(`[PasswordReset][${correlationId}][validate_otp] No active token found`);
+
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: email.toLowerCase(),
         ip_address: clientIp,
         success: false,
-        attempt_type: 'validate_otp'
+        attempt_type: 'validate_otp',
+        correlation_id: correlationId,
       });
 
       return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Invalid or expired code"
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ success: false, message: "Invalid or expired code" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const token = tokens[0];
-
-    // Check attempts BEFORE incrementing (already at max)
+    // Check attempts BEFORE incrementing
     if (token.attempts >= MAX_ATTEMPTS) {
-      console.log('[OTP Validation] Max attempts already reached');
+      console.log(`[PasswordReset][${correlationId}][validate_otp] Max attempts reached`);
 
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: email.toLowerCase(),
         ip_address: clientIp,
         success: false,
-        attempt_type: 'validate_otp'
+        attempt_type: 'validate_otp',
+        correlation_id: correlationId,
       });
 
+      await checkAndRaiseAlert(supabaseAdmin, email.toLowerCase(), clientIp, correlationId);
+
       return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Too many failed attempts. Please request a new code.",
-          attempts_remaining: 0
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ success: false, message: "Too many failed attempts. Please request a new code.", attempts_remaining: 0 }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Always increment attempts counter FIRST
-    const { error: incrementError } = await supabaseAdmin
+    await supabaseAdmin
       .from('password_reset_tokens')
       .update({ attempts: token.attempts + 1 })
       .eq('id', token.id);
 
-    if (incrementError) {
-      console.error('[OTP Validation] Failed to increment attempts:', incrementError);
-    }
-
     const currentAttempts = token.attempts + 1;
     const attemptsRemaining = MAX_ATTEMPTS - currentAttempts;
 
-    // FIX BUG C: Compare using bcrypt instead of plaintext
+    // Compare using bcrypt
     const otpMatches = await compare(otp_code, token.otp_code);
 
     if (!otpMatches) {
-      console.log(`[OTP Validation] Invalid OTP, ${attemptsRemaining} attempts remaining`);
+      console.log(`[PasswordReset][${correlationId}][validate_otp] Invalid OTP, ${attemptsRemaining} remaining`);
 
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: email.toLowerCase(),
         ip_address: clientIp,
         success: false,
-        attempt_type: 'validate_otp'
+        attempt_type: 'validate_otp',
+        correlation_id: correlationId,
       });
 
-      if (attemptsRemaining <= 0) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            message: "Too many failed attempts. Please request a new code.",
-            attempts_remaining: 0
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
+      await checkAndRaiseAlert(supabaseAdmin, email.toLowerCase(), clientIp, correlationId);
+
+      const message = attemptsRemaining <= 0
+        ? "Too many failed attempts. Please request a new code."
+        : "Invalid code";
 
       return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Invalid code",
-          attempts_remaining: attemptsRemaining
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ success: false, message, attempts_remaining: Math.max(attemptsRemaining, 0) }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // FIX BUG A: Valid OTP - mark as used AND set validated_by = 'otp'
-    const { error: updateError } = await supabaseAdmin
+    // Valid OTP — mark as used with validated_by = 'otp'
+    await supabaseAdmin
       .from('password_reset_tokens')
-      .update({
-        is_used: true,
-        used_at: new Date().toISOString(),
-        validated_by: 'otp'
-      })
+      .update({ is_used: true, used_at: new Date().toISOString(), validated_by: 'otp' })
       .eq('id', token.id);
 
-    if (updateError) {
-      console.error('[OTP Validation] Update error:', updateError);
-      throw updateError;
-    }
-
-    // FIX BUG G: Log successful validate_otp attempt
+    // Log successful attempt
     await supabaseAdmin.from('password_reset_attempts').insert({
       email: email.toLowerCase(),
       ip_address: clientIp,
       success: true,
-      attempt_type: 'validate_otp'
+      attempt_type: 'validate_otp',
+      correlation_id: correlationId,
     });
 
-    console.log(`[OTP Validation] OTP verified successfully`);
+    console.log(`[PasswordReset][${correlationId}][validate_otp] OTP verified successfully`);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        reset_token: token.magic_token,
-        user_id: token.user_id
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, reset_token: token.magic_token, user_id: token.user_id }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("[OTP Validation] Error:", error);
+    console.error("[PasswordReset][validate_otp] Error:", error);
     
     if (error.name === 'ZodError') {
       return new Response(
         JSON.stringify({ error: "Invalid request format" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
       JSON.stringify({ error: "An error occurred during validation" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

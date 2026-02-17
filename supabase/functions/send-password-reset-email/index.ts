@@ -19,6 +19,7 @@ interface PasswordResetEmailRequest {
   expiresInMinutes: number;
   ipAddress: string;
   deviceInfo: string;
+  correlationId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -34,10 +35,11 @@ const handler = async (req: Request): Promise<Response> => {
       magicLink,
       expiresInMinutes,
       ipAddress,
-      deviceInfo
+      deviceInfo,
+      correlationId
     }: PasswordResetEmailRequest = await req.json();
 
-    console.log('Sending password reset email to:', email);
+    console.log(`[PasswordReset][${correlationId}][email] Sending to: ${email}`);
 
     const emailContent = `
       ${Heading({ text: 'Reset Your Password', level: 1, align: 'center' })}
@@ -121,23 +123,17 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const result = await emailResponse.json();
-    console.log("Password reset email sent successfully:", result);
+    console.log(`[PasswordReset][${correlationId}][email] Sent successfully:`, result);
 
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("Error sending password reset email:", error);
+    console.error("[PasswordReset][email] Error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

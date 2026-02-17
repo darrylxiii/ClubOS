@@ -10,6 +10,8 @@ const corsHeaders = {
 
 const requestSchema = z.object({
   email: z.string().email(),
+  recaptchaToken: z.string().optional(),
+  deviceFingerprint: z.string().optional(),
 });
 
 // Generate 64-character hex token
@@ -29,10 +31,34 @@ function generateOTP(): string {
   return num.toString();
 }
 
+// Verify reCAPTCHA v3 token
+async function verifyRecaptcha(token: string): Promise<{ success: boolean; score: number }> {
+  const secretKey = Deno.env.get("RECAPTCHA_SECRET_KEY");
+  if (!secretKey) {
+    // reCAPTCHA not configured — skip gracefully
+    return { success: true, score: 1.0 };
+  }
+
+  try {
+    const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `secret=${encodeURIComponent(secretKey)}&response=${encodeURIComponent(token)}`,
+    });
+    const data = await response.json();
+    return { success: data.success === true, score: data.score ?? 0 };
+  } catch (err) {
+    console.error("[PasswordReset][reCAPTCHA] Verification failed:", err);
+    return { success: false, score: 0 };
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const correlationId = crypto.randomUUID();
 
   try {
     const supabaseAdmin = createClient(
@@ -41,27 +67,47 @@ serve(async (req) => {
     );
 
     const body = await req.json();
-    const { email } = requestSchema.parse(body);
+    const { email, recaptchaToken, deviceFingerprint } = requestSchema.parse(body);
 
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
-    console.log(`[Password Reset] Request received for email`);
+    console.log(`[PasswordReset][${correlationId}][request] Received for email`);
 
-    // Check rate limit
+    // Step 4: reCAPTCHA verification
+    if (recaptchaToken) {
+      const captchaResult = await verifyRecaptcha(recaptchaToken);
+      console.log(`[PasswordReset][${correlationId}][request] reCAPTCHA score: ${captchaResult.score}`);
+
+      if (!captchaResult.success || captchaResult.score < 0.5) {
+        console.log(`[PasswordReset][${correlationId}][request] reCAPTCHA failed`);
+        return new Response(
+          JSON.stringify({ error: "Security verification failed. Please try again." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Check rate limit (with device fingerprint)
     const { data: rateLimitData } = await supabaseAdmin.rpc(
       'check_password_reset_rate_limit',
-      { p_email: email.toLowerCase(), p_ip_address: clientIp }
+      {
+        p_email: email.toLowerCase(),
+        p_ip_address: clientIp,
+        p_device_fingerprint: deviceFingerprint || null,
+      }
     );
 
     if (rateLimitData && !rateLimitData.allowed) {
-      console.log(`[Password Reset] Rate limit exceeded`);
+      console.log(`[PasswordReset][${correlationId}][request] Rate limit exceeded: ${rateLimitData.reason}`);
       
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: email.toLowerCase(),
         ip_address: clientIp,
         success: false,
-        attempt_type: 'request'
+        attempt_type: 'request',
+        correlation_id: correlationId,
+        device_fingerprint: deviceFingerprint || null,
       });
 
       return new Response(
@@ -76,7 +122,7 @@ serve(async (req) => {
       );
     }
 
-    // FIX BUG B: Profile table is the source of truth. No auth fallback.
+    // Profile table is the source of truth. No auth fallback.
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, email, full_name')
@@ -84,7 +130,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (profileError) {
-      console.error('[Password Reset] Profile lookup error:', profileError);
+      console.error(`[PasswordReset][${correlationId}][request] Profile lookup error:`, profileError);
     }
 
     let userId: string | null = null;
@@ -96,12 +142,11 @@ serve(async (req) => {
       userName = profile.full_name;
       userEmail = profile.email || email;
     }
-    // No fallback - if no profile, silently return success (anti-enumeration)
 
-    console.log(`[Password Reset] User lookup: ${userId ? 'found' : 'not found'}`);
+    console.log(`[PasswordReset][${correlationId}][request] User lookup: ${userId ? 'found' : 'not found'}`);
 
     if (userId && userEmail) {
-      // FIX BUG A: Mark old tokens as 'invalidated' instead of just is_used=true
+      // Mark old tokens as 'invalidated'
       await supabaseAdmin
         .from('password_reset_tokens')
         .update({ 
@@ -115,14 +160,14 @@ serve(async (req) => {
       // Generate tokens
       const magicToken = generateSecureToken();
       const otpCode = generateOTP();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-      // FIX BUG C: Hash the OTP before storing
+      // Hash the OTP before storing
       const otpHash = await bcryptHash(otpCode);
 
-      console.log(`[Password Reset] Token generated, expires at ${expiresAt.toISOString()}`);
+      console.log(`[PasswordReset][${correlationId}][request] Token generated, expires at ${expiresAt.toISOString()}`);
 
-      // Store reset token with hashed OTP
+      // Store reset token with hashed OTP and correlation ID
       const { error: insertError } = await supabaseAdmin
         .from('password_reset_tokens')
         .insert({
@@ -133,14 +178,15 @@ serve(async (req) => {
           expires_at: expiresAt.toISOString(),
           ip_address: clientIp,
           user_agent: userAgent,
+          correlation_id: correlationId,
         });
 
       if (insertError) {
-        console.error('[Password Reset] Token insert error:', insertError);
+        console.error(`[PasswordReset][${correlationId}][request] Token insert error:`, insertError);
         throw insertError;
       }
 
-      // Send hybrid email (magic link + OTP) with retry logic
+      // Send hybrid email with retry logic
       const appUrl = Deno.env.get("APP_URL") || "https://thequantumclub.lovable.app";
       const magicLink = `${appUrl}/reset-password/verify-token?token=${magicToken}`;
       
@@ -155,23 +201,24 @@ serve(async (req) => {
             body: {
               email: userEmail,
               userName: userName || userEmail.split('@')[0],
-              otpCode, // Send plaintext OTP to email (not the hash)
+              otpCode,
               magicLink,
               expiresInMinutes: 10,
               ipAddress: clientIp,
               deviceInfo: userAgent,
+              correlationId,
             }
           }
         );
 
         if (!error) {
-          console.log(`[Password Reset] Email sent on attempt ${attempt}`);
+          console.log(`[PasswordReset][${correlationId}][request] Email sent on attempt ${attempt}`);
           emailSent = true;
           break;
         }
 
         emailError = error;
-        console.error(`[Password Reset] Email attempt ${attempt} failed`);
+        console.error(`[PasswordReset][${correlationId}][request] Email attempt ${attempt} failed`);
 
         if (attempt < MAX_RETRIES) {
           const waitTime = Math.pow(2, attempt) * 1000;
@@ -180,12 +227,12 @@ serve(async (req) => {
       }
 
       if (!emailSent) {
-        console.error('[Password Reset] All email attempts failed');
+        console.error(`[PasswordReset][${correlationId}][request] All email attempts failed`);
       }
 
-      console.log(`[Password Reset] Process completed - Email sent: ${emailSent}`);
+      console.log(`[PasswordReset][${correlationId}][request] Completed - Email sent: ${emailSent}`);
     } else {
-      console.log(`[Password Reset] No user found (returning success for security)`);
+      console.log(`[PasswordReset][${correlationId}][request] No user found (returning success for security)`);
     }
 
     // Log attempt
@@ -193,10 +240,11 @@ serve(async (req) => {
       email: email.toLowerCase(),
       ip_address: clientIp,
       success: true,
-      attempt_type: 'request'
+      attempt_type: 'request',
+      correlation_id: correlationId,
+      device_fingerprint: deviceFingerprint || null,
     });
 
-    // Always return success to prevent email enumeration
     return new Response(
       JSON.stringify({
         success: true,
@@ -208,7 +256,7 @@ serve(async (req) => {
       }
     );
   } catch (error: any) {
-    console.error("[Password Reset Request] Error:", error);
+    console.error(`[PasswordReset][${correlationId}][request] Error:`, error);
     return new Response(
       JSON.stringify({ 
         error: "An error occurred while processing your request" 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,20 @@ import { toast } from "sonner";
 import { Lock, ArrowLeft, Mail } from "lucide-react";
 import { z } from "zod";
 import { parseEdgeFunctionError } from "@/utils/edgeFunctionErrors";
+import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
+import { RECAPTCHA_ENABLED, RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 const emailSchema = z.string().email("Invalid email address");
 
-export default function ForgotPassword() {
+function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const navigate = useNavigate();
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
@@ -31,12 +35,30 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
+      // Get reCAPTCHA token
+      let recaptchaToken: string | undefined;
+      if (RECAPTCHA_ENABLED && executeRecaptcha) {
+        try {
+          recaptchaToken = await executeRecaptcha('password_reset');
+        } catch (err) {
+          console.warn('reCAPTCHA execution failed, proceeding without:', err);
+        }
+      }
+
+      // Get device fingerprint
+      let deviceFingerprint: string | undefined;
+      try {
+        deviceFingerprint = await getDeviceFingerprint();
+      } catch (err) {
+        console.warn('Device fingerprint generation failed:', err);
+      }
+
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timeout')), 30000)
       );
 
       const requestPromise = supabase.functions.invoke('password-reset-request', {
-        body: { email }
+        body: { email, recaptchaToken, deviceFingerprint }
       });
 
       const { data, error } = await Promise.race([requestPromise, timeoutPromise]) as any;
@@ -77,7 +99,7 @@ export default function ForgotPassword() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [email, executeRecaptcha]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-background/95 p-4">
@@ -108,7 +130,6 @@ export default function ForgotPassword() {
                   We also sent a magic link you can click directly from your email
                 </p>
               </div>
-              {/* FIX BUG 2: Primary action navigates to OTP entry */}
               <RainbowButton
                 className="w-full"
                 onClick={() => navigate(`/reset-password/verify?email=${encodeURIComponent(email)}`)}
@@ -162,4 +183,16 @@ export default function ForgotPassword() {
       </Card>
     </div>
   );
+}
+
+export default function ForgotPassword() {
+  if (RECAPTCHA_ENABLED) {
+    return (
+      <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
+        <ForgotPasswordForm />
+      </GoogleReCaptchaProvider>
+    );
+  }
+
+  return <ForgotPasswordForm />;
 }
