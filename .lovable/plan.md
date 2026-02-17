@@ -1,56 +1,43 @@
 
-# Sync Meetings from Fireflies.ai
 
-## Overview
+# Fix Fireflies Sync + Import All Fathom Meetings
 
-Add a Fireflies.ai integration that mirrors the existing Fathom sync pattern -- a new Edge Function fetches transcripts via the Fireflies GraphQL API, deduplicates against `meeting_recordings_extended`, inserts new records, and triggers AI analysis. The frontend gets a "Sync Fireflies" button and a filter option.
+## Root Causes Found
 
-## Prerequisites
+### Fireflies: Check Constraint Blocks All Inserts
+The `meeting_recordings_extended` table has a CHECK constraint that only allows these `source_type` values: `tqc_meeting`, `live_hub`, `conversation_call`, `fathom`. The value `'fireflies'` is rejected, causing all 339 transcripts to fail with error code `23514`. The Fireflies API call itself works perfectly -- it found 339 transcripts -- but every insert was rejected by the database.
 
-A `FIREFLIES_API_KEY` secret is needed. You can get it from your Fireflies.ai account under **Settings > Developer > API Key**.
+### Fathom: Pagination Not Fetching All Meetings
+Only 10 Fathom meetings were imported. The sync function does not send a `limit` parameter to the Fathom API, so it uses the API's default page size (likely 10 or 25). Combined with potential cursor issues, this means only the first page of results is being fetched. Additionally, the `.in()` dedup query can silently truncate if the ID list exceeds Supabase's internal limits, so dedup should be batched for large sets.
 
 ---
 
-## Step 1: Add FIREFLIES_API_KEY Secret
+## Step 1: Database Migration -- Add 'fireflies' to Check Constraint
 
-Request the API key from you before proceeding with deployment.
+Drop and re-create the check constraint to include `'fireflies'`:
 
-## Step 2: Create Edge Function `sync-fireflies-recordings`
+```sql
+ALTER TABLE meeting_recordings_extended
+  DROP CONSTRAINT meeting_recordings_extended_source_type_check;
 
-**File**: `supabase/functions/sync-fireflies-recordings/index.ts`
-
-Pattern mirrors `sync-fathom-recordings` exactly:
-
-1. Authenticate the calling user via Authorization header
-2. Call Fireflies GraphQL API (`https://api.fireflies.ai/graphql`) with the `transcripts` query:
-   - Fields: `id`, `title`, `dateString`, `duration`, `transcript_url`, `audio_url`, `sentences { speaker_name text raw_text start_time end_time }`, `meeting_attendees { displayName email }`, `summary { overview action_items }`, `organizer_email`
-   - Paginate using `skip` + `limit` (50 per page, max 20 pages)
-3. Deduplicate against `meeting_recordings_extended` where `source_type = 'fireflies'` and `external_source_id` matches the Fireflies transcript ID
-4. Insert new records with:
-   - `source_type: 'fireflies'`
-   - `external_source_id`: Fireflies transcript `id`
-   - `transcript`: Joined sentences as `"Speaker: text"` lines
-   - `transcript_json`: Raw sentences array
-   - `executive_summary`: From `summary.overview`
-   - `participants`: From `meeting_attendees`
-   - `duration_seconds`: From `duration` (Fireflies returns seconds)
-5. Trigger `analyze-meeting-recording-advanced` for records with transcripts
-6. Return `{ total_found, already_imported, newly_imported, errors }`
-
-## Step 3: Update Frontend -- MeetingHistoryTab.tsx
-
-- Add `isSyncingFireflies` and `firefliesSyncResult` state
-- Add `handleSyncFireflies` function (identical pattern to `handleSyncFathom` but invoking `sync-fireflies-recordings`)
-- Add `<SelectItem value="fireflies">Fireflies</SelectItem>` to the source filter dropdown
-- Add a "Sync Fireflies" button next to the existing "Sync Fathom" button
-
-## Step 4: Update MeetingRecordingCard.tsx
-
-Add a badge case for `fireflies`:
+ALTER TABLE meeting_recordings_extended
+  ADD CONSTRAINT meeting_recordings_extended_source_type_check
+  CHECK (source_type = ANY (ARRAY['tqc_meeting','live_hub','conversation_call','fathom','fireflies']));
 ```
-case 'fireflies':
-  return <Badge variant="secondary" className="bg-green-500/10 text-green-500">Fireflies</Badge>;
-```
+
+This is the only fix needed for Fireflies. The edge function code is correct.
+
+## Step 2: Fix Fathom Pagination
+
+Update `supabase/functions/sync-fathom-recordings/index.ts`:
+
+- Add an explicit `limit` parameter (e.g., `100`) to each Fathom API call so it fetches the maximum per page
+- Increase `MAX_PAGES` from 20 to 50 to handle larger meeting histories
+- Batch the `.in()` dedup query into chunks of 200 IDs to avoid silent truncation
+
+## Step 3: Batch Fireflies Dedup Query
+
+Same `.in()` batching fix for `sync-fireflies-recordings/index.ts` -- split the dedup query into chunks of 200 IDs to handle the 339+ transcripts properly.
 
 ---
 
@@ -58,10 +45,11 @@ case 'fireflies':
 
 | File | Action |
 |------|--------|
-| `supabase/functions/sync-fireflies-recordings/index.ts` | Create -- GraphQL-based sync function |
-| `src/components/meetings/MeetingHistoryTab.tsx` | Edit -- add sync button + filter option |
-| `src/components/meetings/MeetingRecordingCard.tsx` | Edit -- add Fireflies badge |
+| Database migration | Add `'fireflies'` to `source_type` check constraint |
+| `supabase/functions/sync-fathom-recordings/index.ts` | Add `limit` param, increase max pages, batch dedup |
+| `supabase/functions/sync-fireflies-recordings/index.ts` | Batch dedup query into chunks |
 
 ## Risk
 
-Low. This is an additive feature following an established pattern. The Fireflies GraphQL API is well-documented and stable. Graceful degradation if the API key is not configured (returns 400 with clear message).
+Low. The constraint change is additive. The pagination fixes follow the same patterns already in use. No schema changes beyond the constraint update.
+
