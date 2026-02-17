@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { RoleProvider } from "@/contexts/RoleContext";
+import { TaskBoardProvider } from "@/contexts/TaskBoardContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
 import { NavigationHistoryProvider } from "@/contexts/NavigationHistoryContext";
@@ -29,21 +30,23 @@ export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
     <TooltipProvider>
       <AppearanceProvider>
         <RoleProvider>
-          <SubscriptionProvider>
-            <VideoPlayerProvider>
-              <NavigationHistoryProvider>
-                <MotionProvider>
-                  <ActivityTracker>
-                    <TrackingProvider>
-                      <NavigationTracer />
-                      <FloatingVideoPlayer />
-                      {children}
+          <TaskBoardProvider>
+            <SubscriptionProvider>
+              <VideoPlayerProvider>
+                <NavigationHistoryProvider>
+                  <MotionProvider>
+                    <ActivityTracker>
+                      <TrackingProvider>
+                        <NavigationTracer />
+                        <FloatingVideoPlayer />
+                        {children}
                     </TrackingProvider>
                   </ActivityTracker>
                 </MotionProvider>
               </NavigationHistoryProvider>
             </VideoPlayerProvider>
           </SubscriptionProvider>
+          </TaskBoardProvider>
         </RoleProvider>
       </AppearanceProvider>
     </TooltipProvider>

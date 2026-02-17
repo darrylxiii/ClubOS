@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TaskBoardProvider } from "@/contexts/TaskBoardContext";
+
 import { UnifiedTasksProvider } from "@/contexts/UnifiedTasksContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
@@ -148,107 +148,103 @@ const UnifiedTasks = () => {
 
   if (loading || !preferences) {
     return (
-      <TaskBoardProvider>
-        <AppLayout>
-          <div className="px-4 sm:px-6 lg:px-8 py-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="animate-pulse rounded bg-muted/60 h-8 w-48" />
-              <div className="animate-pulse rounded bg-muted/60 h-8 w-28" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="border border-border/20 rounded-lg h-[200px] animate-pulse bg-muted/5" />
-              ))}
-            </div>
+      <AppLayout>
+        <div className="px-4 sm:px-6 lg:px-8 py-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="animate-pulse rounded bg-muted/60 h-8 w-48" />
+            <div className="animate-pulse rounded bg-muted/60 h-8 w-28" />
           </div>
-        </AppLayout>
-      </TaskBoardProvider>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="border border-border/20 rounded-lg h-[200px] animate-pulse bg-muted/5" />
+            ))}
+          </div>
+        </div>
+      </AppLayout>
     );
   }
 
   const currentObjective = objectives.find((obj) => obj.id === selectedObjective);
 
   return (
-    <TaskBoardProvider>
-      <UnifiedTasksProvider objectiveId={selectedObjective}>
-        <AppLayout>
-          <div className="px-4 sm:px-6 lg:px-8 py-3 space-y-2 animate-fade-in">
-            {/* Row 1: Unified Command Bar */}
-            <TasksCommandBar
-              onAutoSchedule={handleAutoSchedule}
-              scheduling={scheduling}
-              aiSchedulingEnabled={preferences.ai_scheduling_enabled}
-              onOpenSettings={() => setSettingsOpen(true)}
-              onRefresh={handleRefresh}
-              activeView={activeView}
-              onViewChange={handleViewChange}
-            />
+    <UnifiedTasksProvider objectiveId={selectedObjective}>
+      <AppLayout>
+        <div className="px-4 sm:px-6 lg:px-8 py-3 space-y-2 animate-fade-in">
+          {/* Row 1: Unified Command Bar */}
+          <TasksCommandBar
+            onAutoSchedule={handleAutoSchedule}
+            scheduling={scheduling}
+            aiSchedulingEnabled={preferences.ai_scheduling_enabled}
+            onOpenSettings={() => setSettingsOpen(true)}
+            onRefresh={handleRefresh}
+            activeView={activeView}
+            onViewChange={handleViewChange}
+          />
 
-            {/* Row 2: Context strip — objectives + stats + new task */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 min-w-0 overflow-hidden">
-                <CollapsedObjectivesSummary
-                  objectives={objectives}
-                  selectedObjective={selectedObjective}
-                  onSelectObjective={setSelectedObjective}
-                />
-              </div>
-              <TaskStatsBar stats={stats} activeFilter={statsFilter} onFilterClick={setStatsFilter} />
-              <CreateUnifiedTaskDialog
-                objectiveId={selectedObjective}
-                defaultStatus="pending"
-                onTaskCreated={handleRefresh}
-                open={createDialogOpen}
-                onOpenChange={setCreateDialogOpen}
-              >
-                <Button size="sm" className="h-7 gap-1 text-[11px] px-2.5 shrink-0">
-                  <Plus className="h-3 w-3" />
-                  <span className="hidden sm:inline">New Task</span>
-                </Button>
-              </CreateUnifiedTaskDialog>
+          {/* Row 2: Context strip — objectives + stats + new task */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <CollapsedObjectivesSummary
+                objectives={objectives}
+                selectedObjective={selectedObjective}
+                onSelectObjective={setSelectedObjective}
+              />
             </div>
-
-            {/* Views */}
-            <div className="mt-1">
-              {activeView === "board" && (
-                <UnifiedTaskBoard
-                  objectiveId={selectedObjective}
-                  objectiveName={currentObjective?.title}
-                  onRefresh={handleRefresh}
-                  aiSchedulingEnabled={preferences.ai_scheduling_enabled}
-                />
-              )}
-              {activeView === "list" && (
-                <UnifiedTasksList
-                  objectiveId={selectedObjective}
-                  onRefresh={handleRefresh}
-                  aiSchedulingEnabled={preferences.ai_scheduling_enabled}
-                />
-              )}
-              {activeView === "calendar" && (
-                <UnifiedTaskCalendar objectiveId={selectedObjective} onRefresh={handleRefresh} />
-              )}
-              {activeView === "timeline" && (
-                <TaskTimelineView objectiveId={selectedObjective} onRefresh={handleRefresh} />
-              )}
-              {activeView === "analytics" && (
-                <TaskAnalyticsDashboard objectiveId={selectedObjective} />
-              )}
-              {(activeView === "members" && (role === "admin" || role === "partner")) && (
-                <UnifiedTasksByMember objectiveId={selectedObjective} onRefresh={handleRefresh} />
-              )}
-              {activeView === "ai-scheduling" && <TaskSchedulingPreferences />}
-            </div>
-
-            <DueDateReminder />
-            <QuickAddTask objectiveId={selectedObjective} onTaskCreated={handleRefresh} />
-            <AISchedulingSettings open={settingsOpen} onOpenChange={setSettingsOpen} onSettingsUpdated={handleRefresh} />
-            <KeyboardShortcutsModal open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
-            <AIPageCopilot currentPage="/tasks" contextData={{ objectivesCount: objectives.length }} />
+            <TaskStatsBar stats={stats} activeFilter={statsFilter} onFilterClick={setStatsFilter} />
+            <CreateUnifiedTaskDialog
+              objectiveId={selectedObjective}
+              defaultStatus="pending"
+              onTaskCreated={handleRefresh}
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
+            >
+              <Button size="sm" className="h-7 gap-1 text-[11px] px-2.5 shrink-0">
+                <Plus className="h-3 w-3" />
+                <span className="hidden sm:inline">New Task</span>
+              </Button>
+            </CreateUnifiedTaskDialog>
           </div>
-        </AppLayout>
-      </UnifiedTasksProvider>
-    </TaskBoardProvider>
+
+          {/* Views */}
+          <div className="mt-1">
+            {activeView === "board" && (
+              <UnifiedTaskBoard
+                objectiveId={selectedObjective}
+                objectiveName={currentObjective?.title}
+                onRefresh={handleRefresh}
+                aiSchedulingEnabled={preferences.ai_scheduling_enabled}
+              />
+            )}
+            {activeView === "list" && (
+              <UnifiedTasksList
+                objectiveId={selectedObjective}
+                onRefresh={handleRefresh}
+                aiSchedulingEnabled={preferences.ai_scheduling_enabled}
+              />
+            )}
+            {activeView === "calendar" && (
+              <UnifiedTaskCalendar objectiveId={selectedObjective} onRefresh={handleRefresh} />
+            )}
+            {activeView === "timeline" && (
+              <TaskTimelineView objectiveId={selectedObjective} onRefresh={handleRefresh} />
+            )}
+            {activeView === "analytics" && (
+              <TaskAnalyticsDashboard objectiveId={selectedObjective} />
+            )}
+            {(activeView === "members" && (role === "admin" || role === "partner")) && (
+              <UnifiedTasksByMember objectiveId={selectedObjective} onRefresh={handleRefresh} />
+            )}
+            {activeView === "ai-scheduling" && <TaskSchedulingPreferences />}
+          </div>
+
+          <DueDateReminder />
+          <QuickAddTask objectiveId={selectedObjective} onTaskCreated={handleRefresh} />
+          <AISchedulingSettings open={settingsOpen} onOpenChange={setSettingsOpen} onSettingsUpdated={handleRefresh} />
+          <KeyboardShortcutsModal open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+          <AIPageCopilot currentPage="/tasks" contextData={{ objectivesCount: objectives.length }} />
+        </div>
+      </AppLayout>
+    </UnifiedTasksProvider>
   );
 };
 
