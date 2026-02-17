@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { meetingZIndex, meetingInteractions, meetingShadows, meetingBackdrop } from '@/config/meeting-design-tokens';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 interface ControlsPanelProps {
   isAudioEnabled: boolean;

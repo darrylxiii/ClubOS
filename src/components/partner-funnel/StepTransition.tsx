@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 interface StepTransitionProps {
   children: ReactNode;

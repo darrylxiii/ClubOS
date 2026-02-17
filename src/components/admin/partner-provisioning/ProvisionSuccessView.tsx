@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { CheckCircle, Copy, ExternalLink, UserPlus, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ProvisionResult } from '@/hooks/usePartnerProvisioning';

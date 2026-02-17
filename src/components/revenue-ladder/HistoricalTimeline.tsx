@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import {
   Unlock, Trophy, Gavel, Plus, CheckCircle2, XCircle,
   Clock, AlertTriangle, CalendarDays

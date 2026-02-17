@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from '@/lib/motion';
+import type { PanInfo } from '@/lib/motion';
 import { Pin, Eye, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { KPIMetric } from '@/hooks/useQuantumKPIs';

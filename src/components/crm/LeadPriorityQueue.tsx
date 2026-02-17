@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { 
   Target, 
   Clock, 

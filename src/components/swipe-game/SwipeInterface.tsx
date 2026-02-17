@@ -4,7 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { SkipForward } from 'lucide-react';
 import { SwipeCard } from './SwipeCard';
 import { SwipeScenario, SwipeDirection } from '@/types/assessment';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from '@/lib/motion';
 
 interface SwipeInterfaceProps {
   scenarios: SwipeScenario[];

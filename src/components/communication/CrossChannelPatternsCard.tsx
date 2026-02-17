@@ -11,7 +11,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 interface CrossChannelPatternsCardProps {
   entityType?: string;

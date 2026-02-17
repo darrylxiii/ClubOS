@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/notify';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 interface WorkflowActionsPanelProps {
   entityType: string;

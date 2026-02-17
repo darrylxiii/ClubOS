@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Circle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 interface RecordingConsentBannerProps {
   isRecording?: boolean;

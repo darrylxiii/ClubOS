@@ -19,7 +19,7 @@ import { useKPIOwnership, useKPIActions } from '@/hooks/useKPIOwnership';
 import { useUnifiedKPIs, UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { KPIActionPlanCard } from '../actions/KPIActionPlanCard';
 import { formatDistanceToNow } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 export function MyKPIsDashboard() {
   const { myOwnerships, loadingOwnerships } = useKPIOwnership();

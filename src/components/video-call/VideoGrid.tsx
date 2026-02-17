@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { ParticipantTile } from './ParticipantTile';
 import { RemoteAudioRenderer } from '@/components/meetings/RemoteAudioRenderer';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { meetingAnimations } from '@/config/meeting-design-tokens';
 
 interface Participant {

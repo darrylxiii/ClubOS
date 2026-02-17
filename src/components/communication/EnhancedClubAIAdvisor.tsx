@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { Bot, X, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Clock, MessageSquare, Lightbulb, Sparkles, Send, Loader2, Copy, Check, Wand2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

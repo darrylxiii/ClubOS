@@ -5,7 +5,7 @@ import { useClubAIHomeChat } from '@/hooks/useClubAIHomeChat';
 import { useClubAIVoice } from '@/hooks/useClubAIVoice';
 import { cn } from '@/lib/utils';
 import { LazyMarkdown } from '@/components/ui/LazyMarkdown';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 export function ClubAIHomeChatWidget() {
   const {

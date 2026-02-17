@@ -1,5 +1,5 @@
 import { format, formatDistanceToNow } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { TrendingUp, TrendingDown, Clock, MessageSquare, AlertTriangle, CheckCircle, XCircle, Phone, Mail, User, Building2, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { TrendingUp } from 'lucide-react';
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics';
 import { useRecharts } from '@/hooks/useRecharts';

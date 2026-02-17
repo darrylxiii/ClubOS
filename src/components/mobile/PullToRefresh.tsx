@@ -1,5 +1,6 @@
 import { useState, useCallback, ReactNode } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from '@/lib/motion';
+import type { PanInfo } from '@/lib/motion';
 import { Loader2 } from 'lucide-react';
 import { useHaptics } from '@/hooks/useHaptics';
 import { cn } from '@/lib/utils';

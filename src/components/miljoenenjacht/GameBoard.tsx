@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { BriefCase } from '@/types/miljoenenjacht';
 import { formatCurrency } from '@/lib/miljoenenjacht/utils';

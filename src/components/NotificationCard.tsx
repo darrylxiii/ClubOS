@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   Bell, Mail, Calendar, Briefcase, CheckCircle, 

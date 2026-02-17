@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { RefreshCw, TrendingUp, Mail, Eye, MessageSquare, MousePointer } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 interface SequenceStep {
   id: string;

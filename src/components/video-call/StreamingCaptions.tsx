@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Mic, MicOff } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 interface StreamingCaptionsProps {
   enabled: boolean;

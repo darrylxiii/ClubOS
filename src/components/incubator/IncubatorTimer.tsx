@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { Clock } from 'lucide-react';
 
 interface IncubatorTimerProps {

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { formatCurrency, type StageBreakdown } from '@/hooks/useEmployeePipelineValue';
 
 interface EarningsFunnelVisualizationProps {

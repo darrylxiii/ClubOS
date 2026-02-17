@@ -8,7 +8,7 @@ import { RefreshCw, CheckCircle2, AlertCircle, Globe, TrendingUp, Shield, Star, 
 import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
 import { useTranslationsNeedingReview, useMarkAsReviewed } from '@/hooks/use-translation-editor';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 export default function TranslationCoverage() {
   const { data: coverage, isLoading, refetch } = useTranslationCoverage();

@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadScoringRulesBuilder } from '@/components/crm/LeadScoringRulesBuilder';
 import { LeadScoreHistory } from '@/components/crm/LeadScoreHistory';
 import { ProspectScoreCard } from '@/components/crm/ProspectScoreCard';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { Zap, History, BarChart3 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';

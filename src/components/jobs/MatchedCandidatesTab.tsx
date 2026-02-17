@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sparkles, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 interface MatchedCandidate {
   id: string;

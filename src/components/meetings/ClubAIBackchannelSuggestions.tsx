@@ -9,7 +9,7 @@ import {
   RefreshCw, ThumbsUp, ThumbsDown, Copy, Check 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/motion';
 
 interface Suggestion {
   id: string;

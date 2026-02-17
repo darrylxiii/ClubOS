@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Brain, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 
