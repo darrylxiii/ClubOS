@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ interface SetPasswordModalProps {
 
 export function SetPasswordModal({ open, onOpenChange }: SetPasswordModalProps) {
   const { t } = useTranslation('auth');
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -60,6 +62,11 @@ export function SetPasswordModal({ open, onOpenChange }: SetPasswordModalProps) 
     onOpenChange(value);
   };
 
+  const handleEnterCode = () => {
+    handleClose(false);
+    navigate(`/reset-password/verify?email=${encodeURIComponent(email)}`);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -84,6 +91,10 @@ export function SetPasswordModal({ open, onOpenChange }: SetPasswordModalProps) 
                 {t('setPassword.checkEmailDescription', { email })}
               </p>
             </div>
+            {/* FIX BUG 3: Primary action navigates to OTP entry */}
+            <RainbowButton className="w-full" onClick={handleEnterCode}>
+              {t('setPassword.enterCode', { defaultValue: 'Enter Code' })}
+            </RainbowButton>
             <Button variant="outline" className="w-full" onClick={() => handleClose(false)}>
               {t('resetPassword.backToLogin')}
             </Button>

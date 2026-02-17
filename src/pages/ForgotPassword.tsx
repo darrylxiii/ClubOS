@@ -30,7 +30,6 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      // Add timeout to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timeout')), 30000)
       );
@@ -52,7 +51,6 @@ export default function ForgotPassword() {
         return;
       }
 
-      // Always show success (security best practice)
       setSent(true);
       toast.success("If an account exists, you'll receive reset instructions", {
         description: "Check your email inbox and spam folder"
@@ -97,12 +95,19 @@ export default function ForgotPassword() {
               <div>
                 <h3 className="font-semibold text-foreground mb-2">Check your email</h3>
                 <p className="text-sm text-muted-foreground">
-                  We've sent password reset instructions to <span className="text-foreground font-medium">{email}</span>
+                  We've sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Didn't receive it? Check your spam folder
+                  We also sent a magic link you can click directly from your email
                 </p>
               </div>
+              {/* FIX BUG 2: Primary action navigates to OTP entry */}
+              <RainbowButton
+                className="w-full"
+                onClick={() => navigate(`/reset-password/verify?email=${encodeURIComponent(email)}`)}
+              >
+                Enter Code
+              </RainbowButton>
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/auth')}

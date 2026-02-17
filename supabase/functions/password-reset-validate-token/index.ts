@@ -25,7 +25,7 @@ serve(async (req) => {
     const body = await req.json();
     const { token } = requestSchema.parse(body);
 
-    console.log(`[Token Validation] Token: ${token.substring(0, 10)}...`);
+    console.log(`[Token Validation] Validating token`);
 
     // Look up token
     const { data: tokens, error: lookupError } = await supabaseAdmin
@@ -56,7 +56,22 @@ serve(async (req) => {
     }
 
     const resetToken = tokens[0];
-    console.log(`[Token Validation] Valid token for user ${resetToken.user_id}`);
+
+    // FIX BUG 4: Mark token as used immediately to prevent replay attacks
+    const { error: updateError } = await supabaseAdmin
+      .from('password_reset_tokens')
+      .update({
+        is_used: true,
+        used_at: new Date().toISOString()
+      })
+      .eq('id', resetToken.id);
+
+    if (updateError) {
+      console.error('[Token Validation] Failed to mark token as used:', updateError);
+      throw updateError;
+    }
+
+    console.log(`[Token Validation] Token validated and marked as used`);
 
     return new Response(
       JSON.stringify({

@@ -7,6 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-application-name",
 };
 
+const MAX_ATTEMPTS = 5;
+
 const requestSchema = z.object({
   email: z.string().email(),
   otp_code: z.string().length(6),
@@ -26,14 +28,14 @@ serve(async (req) => {
     const body = await req.json();
     const { email, otp_code } = requestSchema.parse(body);
 
-    console.log(`[OTP Validation] Email: ${email}, OTP: ${otp_code}`);
+    // FIX ISSUE 6: Never log OTP codes
+    console.log(`[OTP Validation] Validating OTP for email`);
 
-    // Look up active token
+    // Look up the latest active token for this email
     const { data: tokens, error: lookupError } = await supabaseAdmin
       .from('password_reset_tokens')
       .select('*')
       .eq('email', email.toLowerCase())
-      .eq('otp_code', otp_code)
       .eq('is_used', false)
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
@@ -45,7 +47,7 @@ serve(async (req) => {
     }
 
     if (!tokens || tokens.length === 0) {
-      console.log('[OTP Validation] No valid token found');
+      console.log('[OTP Validation] No active token found');
       return new Response(
         JSON.stringify({
           success: false,
@@ -60,14 +62,58 @@ serve(async (req) => {
 
     const token = tokens[0];
 
-    // Check attempts
-    if (token.attempts >= 5) {
-      console.log('[OTP Validation] Max attempts reached');
+    // Check attempts BEFORE incrementing (already at max)
+    if (token.attempts >= MAX_ATTEMPTS) {
+      console.log('[OTP Validation] Max attempts already reached');
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Too many failed attempts",
+          message: "Too many failed attempts. Please request a new code.",
           attempts_remaining: 0
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // FIX BUG 5: Always increment attempts counter FIRST
+    const { error: incrementError } = await supabaseAdmin
+      .from('password_reset_tokens')
+      .update({ attempts: token.attempts + 1 })
+      .eq('id', token.id);
+
+    if (incrementError) {
+      console.error('[OTP Validation] Failed to increment attempts:', incrementError);
+    }
+
+    const currentAttempts = token.attempts + 1;
+    const attemptsRemaining = MAX_ATTEMPTS - currentAttempts;
+
+    // Now check if OTP matches
+    if (token.otp_code !== otp_code) {
+      console.log(`[OTP Validation] Invalid OTP, ${attemptsRemaining} attempts remaining`);
+
+      if (attemptsRemaining <= 0) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Too many failed attempts. Please request a new code.",
+            attempts_remaining: 0
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Invalid code",
+          attempts_remaining: attemptsRemaining
         }),
         {
           status: 400,
@@ -90,7 +136,7 @@ serve(async (req) => {
       throw updateError;
     }
 
-    console.log(`[OTP Validation] Success for ${email}`);
+    console.log(`[OTP Validation] OTP verified successfully`);
 
     return new Response(
       JSON.stringify({

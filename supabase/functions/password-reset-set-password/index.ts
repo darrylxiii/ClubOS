@@ -38,14 +38,18 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[Set Password] Token: ${token.substring(0, 10)}...`);
+    console.log(`[Set Password] Processing password change request`);
 
-    // Validate token (allow tokens marked used by OTP step, within 15-min window)
+    // FIX ISSUE 9: Token must have been validated (is_used = true by validate-token or validate-otp)
+    // and used_at must be within 15 minutes
+    const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+
     const { data: tokens, error: lookupError } = await supabaseAdmin
       .from('password_reset_tokens')
       .select('*')
       .eq('magic_token', token)
-      .gt('expires_at', new Date().toISOString())
+      .eq('is_used', true)
+      .gt('used_at', fifteenMinAgo)
       .limit(1);
 
     if (lookupError) {
@@ -54,30 +58,14 @@ serve(async (req) => {
     }
 
     if (!tokens || tokens.length === 0) {
-      console.log('[Set Password] Invalid token');
+      console.log('[Set Password] No valid validated token found');
       return new Response(
-        JSON.stringify({ error: "Invalid or expired token" }),
+        JSON.stringify({ error: "Invalid or expired token. Please start over." }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
-    }
-
-    // If token was already used (by OTP step), ensure it was used within 15 minutes
-    if (tokens[0].is_used && tokens[0].used_at) {
-      const usedAt = new Date(tokens[0].used_at).getTime();
-      const fifteenMinAgo = Date.now() - 15 * 60 * 1000;
-      if (usedAt < fifteenMinAgo) {
-        console.log('[Set Password] Token used_at too old, rejecting');
-        return new Response(
-          JSON.stringify({ error: "Token has expired. Please start over." }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
     }
 
     const resetToken = tokens[0];
@@ -138,14 +126,14 @@ serve(async (req) => {
         password_hash: newPasswordHash,
       });
 
-    // Update used_at to reflect when password was actually set
-    await supabaseAdmin
-      .from('password_reset_tokens')
-      .update({
-        is_used: true,
-        used_at: new Date().toISOString()
-      })
-      .eq('id', resetToken.id);
+    // FIX ISSUE 8: Invalidate ALL existing sessions globally
+    try {
+      await supabaseAdmin.auth.admin.signOut(userId, 'global');
+      console.log(`[Set Password] All sessions invalidated for user`);
+    } catch (signOutError) {
+      console.error('[Set Password] Session invalidation error:', signOutError);
+      // Continue anyway - password was already changed
+    }
 
     // Get user email for confirmation
     const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId);
@@ -162,7 +150,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[Set Password] Success for user ${userId}`);
+    console.log(`[Set Password] Password changed successfully`);
 
     return new Response(
       JSON.stringify({
