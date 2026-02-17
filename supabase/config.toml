@@ -373,6 +373,9 @@ verify_jwt = true
 [functions.sync-fathom-recordings]
 verify_jwt = true
 
+[functions.sync-fireflies-recordings]
+verify_jwt = true
+
 # =============================================================================
 # Scheduling & Tasks (JWT Required)
 # =============================================================================

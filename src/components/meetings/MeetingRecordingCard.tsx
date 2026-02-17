@@ -111,7 +111,8 @@ export function MeetingRecordingCard({
   };
 
   const getSourceTypeBadge = () => {
-    switch (recording.source_type) {
+    const sourceType = recording.source_type as string;
+    switch (sourceType) {
       case 'tqc_meeting':
         return <Badge variant="secondary">TQC Meeting</Badge>;
       case 'live_hub':
@@ -120,6 +121,8 @@ export function MeetingRecordingCard({
         return <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">Call</Badge>;
       case 'fathom':
         return <Badge variant="secondary" className="bg-amber-500/10 text-amber-500">Fathom</Badge>;
+      case 'fireflies':
+        return <Badge variant="secondary" className="bg-green-500/10 text-green-500">Fireflies</Badge>;
       default:
         return null;
     }
