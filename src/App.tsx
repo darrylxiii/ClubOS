@@ -10,7 +10,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicProviders } from "@/contexts/PublicProviders";
 import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { PostHogProvider } from "@/providers/PostHogProvider";
+// PostHog lazy-loaded to defer ~90KB posthog-js SDK from root chunk
+const LazyPostHogProvider = lazy(() =>
+  import("@/providers/PostHogProvider").then(m => ({ default: m.PostHogProvider }))
+);
 import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
@@ -154,7 +157,7 @@ const App = () => {
           <TranslationProvider>
           <BrowserRouter>
             <AuthProvider>
-              <PostHogProvider>
+              <Suspense fallback={null}><LazyPostHogProvider>
                 <Toaster />
                 <Sonner />
                 <LanguageSync />
@@ -348,7 +351,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
-              </PostHogProvider>
+              </LazyPostHogProvider></Suspense>
             </AuthProvider>
           </BrowserRouter>
         </TranslationProvider>

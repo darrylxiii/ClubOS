@@ -4,8 +4,14 @@
  * Enhanced with Sentry integration for enterprise observability
  */
 
-import { supabase } from "@/integrations/supabase/client";
-import * as Sentry from '@sentry/react';
+// Lazy Sentry getter — prevents pulling ~150KB into eager chunks
+let _sentry: typeof import('@sentry/react') | null = null;
+const getSentry = async () => {
+  if (!_sentry) {
+    try { _sentry = await import('@sentry/react'); } catch { /* Sentry unavailable */ }
+  }
+  return _sentry;
+};
 
 export interface PerformanceContext {
   page?: string;
@@ -26,7 +32,8 @@ export const logPerformanceMetric = async (
     console.log(`[PERF] ${metricName}: ${value}ms`, context);
     
     // Send to Sentry as a measurement if initialized
-    if (Sentry.getClient()) {
+    const Sentry = await getSentry();
+    if (Sentry?.getClient()) {
       Sentry.setMeasurement(metricName, value, 'millisecond');
     }
   } catch (error) {
@@ -40,7 +47,6 @@ export const logPerformanceMetric = async (
 export const trackPageLoad = (pageName: string): void => {
   if (typeof window === 'undefined') return;
   
-  // Use Performance API to get accurate timing
   window.addEventListener('load', () => {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     
