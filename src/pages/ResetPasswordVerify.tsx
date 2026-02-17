@@ -71,7 +71,10 @@ export default function ResetPasswordVerify() {
         toast.success("Code verified!");
         navigate(`/reset-password/new?token=${data.reset_token}`);
       } else {
-        const remaining = data?.attempts_remaining || attemptsRemaining - 1;
+        // FIX ISSUE 11: Use server-side attempts count when available
+        const remaining = typeof data?.attempts_remaining === 'number' 
+          ? data.attempts_remaining 
+          : Math.max(0, attemptsRemaining - 1);
         setAttemptsRemaining(remaining);
         
         if (remaining === 0) {

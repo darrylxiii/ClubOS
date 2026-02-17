@@ -45,7 +45,7 @@ serve(async (req) => {
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
-    console.log(`[Password Reset] Step 1: Initial request - Email: ${email}, IP: ${clientIp}`);
+    console.log(`[Password Reset] Request received for email`);
 
     // Check rate limit
     const { data: rateLimitData } = await supabaseAdmin.rpc(
@@ -53,12 +53,9 @@ serve(async (req) => {
       { p_email: email.toLowerCase(), p_ip_address: clientIp }
     );
 
-    console.log(`[Password Reset] Step 2: Rate limit check - ${rateLimitData?.allowed ? 'PASSED' : 'BLOCKED'}`);
-
     if (rateLimitData && !rateLimitData.allowed) {
-      console.log(`[Password Reset] Rate limit exceeded for ${email}. Reason: ${rateLimitData.reason}`);
+      console.log(`[Password Reset] Rate limit exceeded`);
       
-      // Log attempt
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: email.toLowerCase(),
         ip_address: clientIp,
@@ -78,53 +75,85 @@ serve(async (req) => {
       );
     }
 
-    // Look up user by email with proper pagination handling (fixes pagination bug)
-    let user = null;
-    let page = 1;
-    const perPage = 1000; // Max per page
-    
-    while (user === null) {
-      const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers({
-        page,
-        perPage
-      });
-      
-      if (userError) {
-        console.error('[Password Reset] Error listing users:', userError);
-        break;
-      }
-      
-      if (!users || users.length === 0) {
-        // No more users to check
-        break;
-      }
-      
-      // Find user in this page
-      user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
-      
-      if (!user && users.length < perPage) {
-        // Last page, user not found
-        break;
-      }
-      
-      page++;
+    // FIX BUG 7: Direct profile lookup instead of paginating all users
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email, full_name')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('[Password Reset] Profile lookup error:', profileError);
     }
 
-    console.log(`[Password Reset] Step 3: User lookup - ${user ? 'FOUND' : 'NOT FOUND'} for ${email}`);
+    // If no profile found, try auth admin as fallback (single call)
+    let userId: string | null = null;
+    let userName: string | null = null;
+    let userEmail: string | null = null;
 
-    if (user) {
+    if (profile) {
+      userId = profile.id;
+      userName = profile.full_name;
+      userEmail = profile.email || email;
+    } else {
+      // Fallback: try to get user directly by email from auth
+      const { data: { users }, error: authError } = await supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1,
+      });
+
+      if (!authError && users) {
+        const foundUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+        if (foundUser) {
+          userId = foundUser.id;
+          userName = foundUser.user_metadata?.full_name;
+          userEmail = foundUser.email;
+        }
+      }
+
+      // If still not found with first page, do a broader search
+      if (!userId) {
+        let page = 1;
+        const perPage = 1000;
+        while (!userId) {
+          const { data: { users: pageUsers }, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+          if (error || !pageUsers || pageUsers.length === 0) break;
+          const found = pageUsers.find(u => u.email?.toLowerCase() === email.toLowerCase());
+          if (found) {
+            userId = found.id;
+            userName = found.user_metadata?.full_name;
+            userEmail = found.email;
+            break;
+          }
+          if (pageUsers.length < perPage) break;
+          page++;
+        }
+      }
+    }
+
+    console.log(`[Password Reset] User lookup: ${userId ? 'found' : 'not found'}`);
+
+    if (userId && userEmail) {
+      // FIX ISSUE 12: Invalidate all existing unused tokens for this email
+      await supabaseAdmin
+        .from('password_reset_tokens')
+        .update({ is_used: true, used_at: new Date().toISOString() })
+        .eq('email', email.toLowerCase())
+        .eq('is_used', false);
+
       // Generate tokens
       const magicToken = generateSecureToken();
       const otpCode = generateOTP();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      console.log(`[Password Reset] Step 4: Token generation - Magic: ${magicToken.substring(0, 8)}..., OTP: ${otpCode}`);
+      // FIX ISSUE 6: Never log OTP or full token
+      console.log(`[Password Reset] Token generated, expires at ${expiresAt.toISOString()}`);
 
       // Store reset token
       const { error: insertError } = await supabaseAdmin
         .from('password_reset_tokens')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           email: email.toLowerCase(),
           magic_token: magicToken,
           otp_code: otpCode,
@@ -134,14 +163,12 @@ serve(async (req) => {
         });
 
       if (insertError) {
-        console.error('[Password Reset] Error inserting token:', insertError);
+        console.error('[Password Reset] Token insert error:', insertError);
         throw insertError;
       }
 
-      console.log(`[Password Reset] Step 5: Token stored in database successfully`);
-
       // Send hybrid email (magic link + OTP) with retry logic
-      const appUrl = Deno.env.get("APP_URL") || "https://thequantumclub.app";
+      const appUrl = Deno.env.get("APP_URL") || "https://thequantumclub.lovable.app";
       const magicLink = `${appUrl}/reset-password/verify-token?token=${magicToken}`;
       
       const MAX_RETRIES = 3;
@@ -149,14 +176,12 @@ serve(async (req) => {
       let emailSent = false;
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        console.log(`[Password Reset] Step 6: Email send attempt ${attempt}/${MAX_RETRIES}`);
-        
         const { error } = await supabaseAdmin.functions.invoke(
           'send-password-reset-email',
           {
             body: {
-              email: user.email,
-              userName: user.user_metadata?.full_name || user.email?.split('@')[0],
+              email: userEmail,
+              userName: userName || userEmail.split('@')[0],
               otpCode,
               magicLink,
               expiresInMinutes: 10,
@@ -167,30 +192,27 @@ serve(async (req) => {
         );
 
         if (!error) {
-          console.log(`[Password Reset] ✅ Email sent successfully on attempt ${attempt}`);
+          console.log(`[Password Reset] Email sent on attempt ${attempt}`);
           emailSent = true;
           break;
         }
 
         emailError = error;
-        console.error(`[Password Reset] ❌ Email attempt ${attempt} failed:`, error);
+        console.error(`[Password Reset] Email attempt ${attempt} failed`);
 
-        // Wait before retry with exponential backoff
         if (attempt < MAX_RETRIES) {
-          const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-          console.log(`[Password Reset] Waiting ${waitTime}ms before retry...`);
+          const waitTime = Math.pow(2, attempt) * 1000;
           await new Promise(resolve => setTimeout(resolve, waitTime));
         }
       }
 
       if (!emailSent) {
-        console.error('[Password Reset] ⚠️ All email attempts failed. Last error:', emailError);
-        // Don't throw - still return success to prevent email enumeration
+        console.error('[Password Reset] All email attempts failed');
       }
 
-      console.log(`[Password Reset] Step 7: Process completed for ${email} - Email sent: ${emailSent}`);
+      console.log(`[Password Reset] Process completed - Email sent: ${emailSent}`);
     } else {
-      console.log(`[Password Reset] Step 3: No user found for ${email} (returning success for security)`);
+      console.log(`[Password Reset] No user found (returning success for security)`);
     }
 
     // Log attempt
