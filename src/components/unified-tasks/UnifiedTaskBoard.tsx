@@ -176,21 +176,25 @@ export const UnifiedTaskBoard = ({
 
               return (
                 <SortableContext key={col.key} id={col.key} items={colTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-                  <div className={cn("rounded-lg border border-border/20 border-t-2 bg-transparent", col.accent)}>
+                  <div className={cn(
+                    "rounded-lg border border-border/20 border-t-2 bg-transparent transition-all",
+                    col.accent,
+                    "data-[drop-target=true]:ring-2 data-[drop-target=true]:ring-primary/20"
+                  )}>
                     {/* Header — 28px */}
                     <div className="flex items-center justify-between px-2.5 py-1.5">
                       <div className="flex items-center gap-1">
                         <Icon className="h-3 w-3 text-muted-foreground" />
                         <span className="text-[11px] font-semibold text-foreground">{col.label}</span>
-                        <Badge variant="secondary" className="h-4 min-w-[16px] px-1 text-[10px] font-normal">{colTasks.length}</Badge>
+                        <Badge variant="secondary" className="h-4 min-w-[16px] px-1 text-[10px] font-normal tabular-nums">{colTasks.length}</Badge>
                       </div>
                     </div>
 
                     {/* Tasks */}
                     <div className="px-1 pb-1 space-y-1 min-h-[80px]">
                       {colTasks.length === 0 ? (
-                        <div className="border border-dashed border-border/20 rounded-md p-3 text-center">
-                          <p className="text-[10px] text-muted-foreground/40 mb-1.5">Drop here</p>
+                        <div className="border border-dashed border-border/15 rounded-md p-4 text-center my-1 mx-0.5">
+                          <p className="text-[10px] text-muted-foreground/30 mb-1.5">Drop tasks here</p>
                           <CreateUnifiedTaskDialog objectiveId={objectiveId} defaultStatus={col.key} onTaskCreated={() => { loadTasks(); onRefresh(); }}>
                             <Button variant="ghost" size="sm" className="h-5 text-[10px] gap-0.5 px-1.5">
                               <Plus className="h-2.5 w-2.5" /> Add
@@ -224,9 +228,9 @@ export const UnifiedTaskBoard = ({
           />
         )}
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeTask && (
-            <div className="opacity-95 shadow-xl scale-[1.02] p-2 rounded-lg border border-primary/40 bg-card max-w-[240px]">
+            <div className="shadow-2xl shadow-black/20 scale-[1.02] p-2 rounded-lg border border-primary/30 bg-card/95 backdrop-blur-sm max-w-[240px]">
               <div className="flex items-center gap-1.5">
                 <div className={cn("h-1.5 w-1.5 rounded-full", activeTask.priority === "high" ? "bg-destructive" : activeTask.priority === "medium" ? "bg-amber-500" : "bg-emerald-500")} />
                 <span className="text-[13px] font-medium truncate">{activeTask.title}</span>

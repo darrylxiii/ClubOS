@@ -46,14 +46,13 @@ export const TaskCardSkeleton = ({ variant = "card" }: TaskCardSkeletonProps) =>
 };
 
 export const BoardColumnSkeleton = () => (
-  <div className="rounded-lg border border-border/30 border-t-2 border-t-muted bg-muted/5">
-    <div className="flex items-center gap-1.5 px-3 py-2">
-      <Shimmer className="h-3.5 w-3.5 rounded" />
-      <Shimmer className="h-3.5 w-16" />
-      <Shimmer className="h-4 w-5 rounded-full" />
+  <div className="rounded-lg border border-border/20 border-t-2 border-t-muted bg-transparent">
+    <div className="flex items-center gap-1 px-2.5 py-1.5">
+      <Shimmer className="h-3 w-3 rounded" />
+      <Shimmer className="h-3 w-14" />
+      <Shimmer className="h-4 w-4 rounded-full" />
     </div>
-    <div className="px-1.5 pb-1.5 space-y-1.5 min-h-[120px]">
-      <TaskCardSkeleton />
+    <div className="px-1 pb-1 space-y-1 min-h-[80px]">
       <TaskCardSkeleton />
       <TaskCardSkeleton />
     </div>

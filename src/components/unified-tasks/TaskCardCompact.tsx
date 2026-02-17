@@ -79,11 +79,12 @@ export const TaskCardCompact = ({
     >
       <div
         className={cn(
-          "flex items-start gap-2 p-2 rounded-lg cursor-pointer border border-l-2 bg-card transition-all duration-150",
-          "hover:border-primary/30 hover:shadow-sm",
+          "flex items-start gap-2 p-2 rounded-lg cursor-pointer border border-l-2 bg-card",
+          "transition-[border-color,box-shadow] duration-150 ease-out",
+          "hover:border-primary/25 hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.06)]",
           isOverdue
-            ? cn("border-l-destructive shadow-[inset_0_0_0_1px_rgba(239,68,68,0.15)]", "border-t-border/20 border-r-border/20 border-b-border/20")
-            : cn(PRIORITY_ACCENT[task.priority] || PRIORITY_ACCENT.low, "border-t-border/15 border-r-border/15 border-b-border/15")
+            ? cn("border-l-destructive shadow-[inset_0_0_0_1px_rgba(239,68,68,0.12)]", "border-t-border/20 border-r-border/20 border-b-border/20")
+            : cn(PRIORITY_ACCENT[task.priority] || PRIORITY_ACCENT.low, "border-t-border/12 border-r-border/12 border-b-border/12")
         )}
       >
         {/* Content */}
