@@ -1,104 +1,59 @@
 
 
-# Live Presence and Avatar Activity Widget for Admin Home
+# Fix: Show Team Members in Live Operations Widget
 
-## What will be built
+## Problem
 
-A new **"Live Operations"** widget on the Admin Home that combines two real-time feeds into one unified view:
+The "Team Online" section never appears because the `useLiveOperations` hook has a strict 15-minute `last_seen` filter. Users like Sebastiaan and Darryl have `status = 'online'` in the database but their `last_seen` timestamps are stale (hours or days old). The filter discards them, resulting in an empty list every time.
 
-1. **Team Members Online** -- who on your team is active in the platform right now (from `user_presence`)
-2. **Avatar Accounts In Use** -- which LinkedIn avatar accounts currently have active sessions, who is operating them, and on which job (from `linkedin_avatar_sessions`)
+## Root Cause
 
-This gives admins instant situational awareness: who can I reach, and what accounts are being worked right now.
+The presence heartbeat (`useUserPresence`) updates `last_seen` every 30 seconds while a user is active. But if a user closes their browser without triggering the `beforeunload` event (common on mobile, crash, etc.), the `status` stays stuck at `online` with an old `last_seen`. The current logic requires both `status === 'online'` AND `last_seen` within 15 minutes -- which is too strict.
 
----
+## Fix
 
-## Widget Design
+### 1. Relax the filtering in `useLiveOperations.ts`
 
-The widget uses the existing `DashboardWidget` shell (glass card with title/icon) and contains two stacked sections:
+Change the logic so that:
+- If `status === 'online'` AND `last_seen` within 5 minutes = show as **online** (green dot, pulse if < 1 min)
+- If `status === 'online'` AND `last_seen` between 5-30 minutes = show as **away** (amber dot)
+- If `status === 'online'` AND `last_seen` older than 30 minutes = still show but as **away** with "last seen Xh ago" (these are likely stale -- but better to show than hide)
+- If `status === 'offline'` = do not show (count as offline)
 
-### Section 1: "Team Online" (top)
-- Row of avatar circles with green/amber/gray dot indicators (online/away/offline)
-- Only shows online + away members (offline are hidden, count shown as "+N offline")
-- Hover tooltip shows full name and "last seen X min ago"
-- Clicking an avatar could later link to messaging (no action for now)
+This means: anyone with `status = 'online'` always appears in the Team Online section. The `last_seen` timestamp determines their status indicator, not their visibility.
 
-### Section 2: "Accounts Active" (bottom, separated by a subtle divider)
-- Each active session shown as a compact row:
-  - Account avatar + label (e.g., "Sarah Mitchell")
-  - Operator name (who started the session)
-  - Job title being worked
-  - Duration running (live counter, e.g., "1h 23m")
-  - A small risk-level dot (green/amber/red based on account `risk_level`)
-- If no active sessions: "No accounts in use" empty state
-- Realtime subscription on `linkedin_avatar_sessions` to auto-update
+### 2. Always render the Team Online section in `LiveOperationsWidget.tsx`
 
-### Header
-- Title: "Live Operations"
-- Icon: `Radio` (matches nav)
-- Badge in header: total count of online members + active accounts (e.g., "5 online")
+Currently the section is wrapped in `{onlineMembers.length > 0 && ...}`. Change this so the section always renders when not loading. If no members are online, show a subtle "No team members online" message instead of hiding the section entirely. This makes the widget feel complete even when nobody is active.
+
+### 3. Add presence refresh interval
+
+Add a 60-second interval in `useLiveOperations` that also refreshes presence (not just sessions), so the status dots update as members come and go.
 
 ---
 
-## Placement on Admin Home
+## Technical Details
 
-Insert into **Zone 3** (Operations Grid) as a 4th widget, making it a 2-column layout on desktop instead of 3, or better: replace the current 3-column Zone 3 with a 2+2 layout:
+### File: `src/hooks/useLiveOperations.ts`
 
-```
-Row 1: TeamCapacity | PartnerEngagement
-Row 2: ActiveMeetings | LiveOperations (NEW)
-```
+- Remove the `minutesAgo < 15` gate that skips users to `offline++`
+- Instead: if `presence.status === 'online'`, always push to the `online` array
+- Compute `status` and `recentlyActive` purely from `last_seen` time deltas
+- Add `loadPresence()` to the existing 60-second refresh interval
 
-This keeps the grid balanced.
+### File: `src/components/clubhome/LiveOperationsWidget.tsx`
 
----
-
-## Technical Implementation
-
-### New file: `src/components/clubhome/LiveOperationsWidget.tsx`
-
-- Uses `DashboardWidget` wrapper
-- Calls a new hook `useLiveOperations()` that combines:
-  - `user_presence` joined with `profiles` (online/away members)
-  - `linkedin_avatar_sessions` where `status = 'active'`, joined with `profiles`, `linkedin_avatar_accounts`, and `jobs`
-- Realtime subscriptions on both `user_presence` and `linkedin_avatar_sessions` tables
-- Live duration timer using `useState` + `setInterval` every 60s
-
-### New file: `src/hooks/useLiveOperations.ts`
-
-- Fetches online team members (reuses the proven logic from `useLiveHubPresence` -- 5min = online, 15min = away)
-- Fetches active avatar sessions with account label, operator name, job title
-- Sets up realtime channels for both tables
-- Returns `{ onlineMembers, activeSessions, isLoading }`
-
-### Modified file: `src/components/clubhome/AdminHome.tsx`
-
-- Import `LiveOperationsWidget`
-- Add it to Zone 3 grid, change columns from 3 to 2 on that row, and split into two `DashboardSection` rows of 2
+- Remove the `{onlineMembers.length > 0 && ...}` conditional wrapper on the Team Online section
+- Add a fallback message when `onlineMembers.length === 0` and not loading
+- Always show the section header "Team Online" for consistency
 
 ---
 
-## Elevating to 0.1% -- Additional Enhancements
+## Files Changed
 
-### Within this widget:
-- **Typing/activity indicator**: Show a subtle pulse animation on members who were active in the last 60 seconds vs just "online"
-- **Session health dot**: Green if session is within expected time, amber if approaching end time, red if past expected end time (possibly abandoned)
-- **Quick action**: "Message" button next to online team members (links to internal messaging if available)
-
-### Future additions (not in this build, but designed for):
-- **Page presence**: Show which admin page each online member is viewing (using existing `page_presence` table)
-- **Account queue**: Show upcoming scheduled sessions (accounts reserved for later today)
-- **Daily ops summary line**: "Today: 12 sessions across 6 accounts, 4 jobs" as a footer stat
-
----
-
-## Files Summary
-
-| File | Action |
+| File | Change |
 |---|---|
-| `src/hooks/useLiveOperations.ts` | Create -- combined presence + active sessions hook |
-| `src/components/clubhome/LiveOperationsWidget.tsx` | Create -- the widget component |
-| `src/components/clubhome/AdminHome.tsx` | Edit -- add widget to Zone 3 grid layout |
+| `src/hooks/useLiveOperations.ts` | Relax presence filter, add presence to refresh interval |
+| `src/components/clubhome/LiveOperationsWidget.tsx` | Always show Team Online section with empty state |
 
-No database changes needed -- all data already exists in `user_presence` and `linkedin_avatar_sessions`.
-
+No database changes needed.
