@@ -431,6 +431,16 @@ const UnifiedTasks = () => {
               onSettingsUpdated={handleRefresh}
             />
             
+            {/* Keyboard shortcuts hint */}
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-4 px-4 py-2 rounded-full bg-card/90 backdrop-blur border border-border/50 shadow-lg text-xs text-muted-foreground z-40">
+              <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">↑↓</kbd> Navigate</span>
+              <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">Enter</kbd> Open</span>
+              <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">x</kbd> Select</span>
+              <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">s</kbd> Status</span>
+              <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">p</kbd> Priority</span>
+              <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">⌘K</kbd> Quick Add</span>
+            </div>
+
             <AIPageCopilot 
               currentPage="/tasks" 
               contextData={{ objectivesCount: objectives.length }}
