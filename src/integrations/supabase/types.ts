@@ -25869,6 +25869,7 @@ export type Database = {
           experience_json: Json | null
           featured_json: Json | null
           followers_count: number | null
+          hourly_cost_rate: number | null
           id: string
           is_creator: boolean | null
           is_influencer: boolean | null
@@ -25913,6 +25914,7 @@ export type Database = {
           experience_json?: Json | null
           featured_json?: Json | null
           followers_count?: number | null
+          hourly_cost_rate?: number | null
           id?: string
           is_creator?: boolean | null
           is_influencer?: boolean | null
@@ -25957,6 +25959,7 @@ export type Database = {
           experience_json?: Json | null
           featured_json?: Json | null
           followers_count?: number | null
+          hourly_cost_rate?: number | null
           id?: string
           is_creator?: boolean | null
           is_influencer?: boolean | null
@@ -26105,13 +26108,66 @@ export type Database = {
           },
         ]
       }
+      linkedin_avatar_session_jobs: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          is_primary: boolean | null
+          job_id: string
+          minutes_logged: number | null
+          productivity_rating: number | null
+          session_id: string
+          started_at: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          job_id: string
+          minutes_logged?: number | null
+          productivity_rating?: number | null
+          session_id: string
+          started_at?: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          job_id?: string
+          minutes_logged?: number | null
+          productivity_rating?: number | null
+          session_id?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_avatar_session_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_session_jobs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       linkedin_avatar_sessions: {
         Row: {
           account_id: string
+          anomaly_flags: string[] | null
           created_at: string
           ended_at: string | null
           expected_end_at: string
           id: string
+          primary_job_id: string | null
           purpose: string
           started_at: string
           status: string
@@ -26119,10 +26175,12 @@ export type Database = {
         }
         Insert: {
           account_id: string
+          anomaly_flags?: string[] | null
           created_at?: string
           ended_at?: string | null
           expected_end_at: string
           id?: string
+          primary_job_id?: string | null
           purpose?: string
           started_at?: string
           status?: string
@@ -26130,10 +26188,12 @@ export type Database = {
         }
         Update: {
           account_id?: string
+          anomaly_flags?: string[] | null
           created_at?: string
           ended_at?: string | null
           expected_end_at?: string
           id?: string
+          primary_job_id?: string | null
           purpose?: string
           started_at?: string
           status?: string
@@ -26145,6 +26205,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "linkedin_avatar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_sessions_primary_job_id_fkey"
+            columns: ["primary_job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
           {
@@ -26166,6 +26233,57 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_avatar_time_corrections: {
+        Row: {
+          corrected_by: string
+          corrected_minutes: number
+          correction_type: string
+          created_at: string
+          id: string
+          original_minutes: number
+          reason: string
+          session_id: string
+          session_job_id: string
+        }
+        Insert: {
+          corrected_by: string
+          corrected_minutes: number
+          correction_type: string
+          created_at?: string
+          id?: string
+          original_minutes: number
+          reason: string
+          session_id: string
+          session_job_id: string
+        }
+        Update: {
+          corrected_by?: string
+          corrected_minutes?: number
+          correction_type?: string
+          created_at?: string
+          id?: string
+          original_minutes?: number
+          reason?: string
+          session_id?: string
+          session_job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_avatar_time_corrections_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_time_corrections_session_job_id_fkey"
+            columns: ["session_job_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_session_jobs"
             referencedColumns: ["id"]
           },
         ]
