@@ -669,6 +669,6 @@ export default function EnhancedMLDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </div>
   );
 }
