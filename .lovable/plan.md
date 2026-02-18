@@ -1,67 +1,80 @@
 
-# Fix: Full Screen Utilization -- Root Cause Found
+# Fix: Root Cause -- App.css Is Never Imported (Dead Code)
 
-## The Real Problem
+## Discovery
 
-**`src/App.css` line 2** contains the Vite starter boilerplate:
+The `#root { width: 100%; min-height: 100vh; }` fix applied in `src/App.css` has **zero effect** because `App.css` is never imported anywhere in the application. It is leftover boilerplate from the Vite starter template.
 
-```css
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+- `src/main.tsx` imports `./index.css` only
+- No file in the project imports `App.css`
+- The actual `#root` styles come from an inline `<style>` block in `index.html` (line 140-144)
+
+This means every "fix" applied to `App.css` was silently ignored.
+
+## Fix Plan
+
+### 1. Move the root fix to where it actually applies
+
+Add `width: 100%` to the `#root` rule in `index.html` inline styles (the only place `#root` is actually styled). Also remove `contain: layout style paint` which can interfere with layout calculations.
+
+### 2. Delete the dead `App.css` boilerplate
+
+Remove `src/App.css` entirely -- it contains only unused Vite starter template styles (`.logo`, `.card`, `.read-the-docs`, `logo-spin` animation) that are never loaded.
+
+### 3. Continue batch cleanup of remaining ~80 pages
+
+With the root cause truly fixed this time, continue removing `container mx-auto`, `max-w-*xl`, and redundant `<AppLayout>` wrappers from the remaining pages across Partner, Feature, Meeting, Support, and Project modules.
+
+### Pages still needing updates (from the approved plan)
+
+**Partner pages:** PartnerRejections, PartnerTargetCompanies, IntegrationsManagement, AuditLog, BillingDashboard, SLADashboard
+
+**Feature pages:** Meetings, MeetingNotes, MeetingInsights, MeetingHistory, PersonalMeetingRoom, HiringIntelligenceHub, Academy, LeaderboardPage, SocialManagement, Pricing, Subscription, ExpertMarketplace, CoverLetterGenerator, LiveHub, ClubAI, ModuleEdit, ValuesPoker, Radio, SalesKPIDashboard, UnifiedKPICommandCenter, AgentDashboard
+
+**Remaining pages:** ProjectProposalsPage, ProjectApplyPage, SupportTicketList, SupportTicketNew, KnowledgeBase, InviteDashboard, Scheduling, and others still using old patterns
+
+**Components with redundant AppLayout:** ContactProfileView, EmailTemplateEditor, RecordingPlaybackPage -- these wrap in AppLayout despite being rendered within ProtectedLayout routes
+
+## Technical Details
+
+### Why the previous fix didn't work
+
+```
+src/main.tsx:
+  import "./index.css";    // <-- This is the only CSS import
+  // App.css is NEVER imported
+
+src/App.css:              // <-- Dead file, changes here do nothing
+  #root { width: 100%; }
 ```
 
-This caps the ENTIRE application at 1280px and centers it with 2rem padding on all sides. Every page, every widget, every grid is imprisoned inside this 1280px box. No amount of per-page fixes will help -- this is the ceiling above everything.
+### The actual fix location
 
-This is leftover from the Vite "Hello World" template and should have been removed on day one.
+```html
+<!-- index.html inline <style> (line 140) -->
+<!-- BEFORE -->
+#root { 
+  min-height: 100vh;
+  position: relative;
+  contain: layout style paint;
+}
 
-## Fix (3 layers)
-
-### Layer 1: Remove the root cap (App.css)
-
-Replace the `#root` block with:
-
-```css
-#root {
+<!-- AFTER -->
+#root { 
   width: 100%;
   min-height: 100vh;
+  position: relative;
 }
 ```
 
-This single change will immediately unlock all pages to use the full viewport width. The sidebar, header, and all content will expand to fill the screen.
+### Why removing `contain: layout style paint`
 
-### Layer 2: Upgrade DashboardSection grid for wider screens
+The CSS `contain` property tells the browser the element's rendering is independent. While usually a performance optimization, `contain: paint` creates a new stacking context and `contain: layout` can affect how flex children calculate their available width. Removing it eliminates any possibility of layout containment interfering with full-width rendering.
 
-Currently `DashboardSection` maxes out at `lg:grid-cols-3`. On 2xl+ screens (1536px+), the grid should expand further. Also, it uses dynamic Tailwind class interpolation (`` `grid-cols-${mobileColumns}` ``) which gets purged by JIT.
+## Expected Impact
 
-Fix by using explicit class maps and adding `xl`/`2xl` breakpoints:
-
-```
-columns=2 --> grid-cols-1 lg:grid-cols-2
-columns=3 --> grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
-columns=4 --> grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
-```
-
-### Layer 3: Continue batch cleanup of remaining ~98 pages
-
-With the root cap removed, pages that still wrap in redundant `<AppLayout>` (causing double sidebar) or use `container mx-auto` (centering within a centered box) need cleanup. This is the same pattern from the approved plan -- removing `container mx-auto`, `max-w-7xl`, and redundant `<AppLayout>` wrappers.
-
-Priority files (Partner pages the user is looking at):
-- PartnerRejections, PartnerTargetCompanies, PartnerOnboarding
-- IntegrationsManagement, AuditLog, PartnerAnalyticsDashboard
-- BillingDashboard, SLADashboard, LiveInterview
-
-Then remaining ~90 pages across Feature, Meeting, Support, and Project modules.
-
-## Scope
-
-- **1 critical fix**: `App.css` root cap removal (this alone fixes ~70% of the problem)
-- **1 component fix**: `DashboardSection.tsx` grid scaling
-- **~100 page files**: Remove `container mx-auto`, `max-w-*xl`, and redundant `<AppLayout>` wrappers
+This is the actual root-cause fix. Combined with the per-page cleanup already done and the remaining batch, content will dynamically fill the available screen width on all monitor sizes.
 
 ## Risk
 
-Very low. The `App.css` change removes constraints, it doesn't add any. The `AppLayout` component already handles full-width layout correctly (`min-h-screen flex w-full`). Internal card/grid layouts use responsive Tailwind that will naturally expand.
+Very low. Removing `contain` from `#root` has negligible performance impact (React already manages its own rendering boundaries). Deleting `App.css` removes only unused styles. The page-level changes are the same CSS-only class modifications from the approved plan.
