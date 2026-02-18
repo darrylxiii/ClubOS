@@ -1,59 +1,80 @@
 
+# Fix: Mobile Layout Broken Across All Pages (Batch 2)
 
-# Fix: Mobile Layout Broken Across All Pages
+## Problem
 
-## Root Cause
+After fixing the first batch of ~15 pages, there are still 52 files using width-capping patterns (`container mx-auto`, `max-w-*xl mx-auto`) and/or redundant `<AppLayout>` wrappers. These pages render at constrained desktop widths on mobile instead of adapting to the smaller viewport.
 
-In `index.html` (lines 147-150), there is a global CSS rule:
+Pages wrapped in redundant `<AppLayout>` cause double sidebars (the page's own AppLayout + the ProtectedLayout's AppLayout), which steals space from content on all viewports and especially hurts mobile.
 
-```css
-.absolute {
-  contain: layout style paint;
-  will-change: transform;
-}
+## Pages to Fix (grouped by priority)
+
+### Group A: Pages with redundant AppLayout wrappers (highest impact -- double sidebar)
+
+These pages render INSIDE ProtectedLayout which already provides AppLayout. Wrapping again causes double sidebar:
+
+1. `src/pages/CourseDetail.tsx` -- `<AppLayout>` + `container max-w-7xl mx-auto`
+2. `src/pages/SubscriptionSuccess.tsx` -- `<AppLayout>` + `container max-w-2xl mx-auto`
+3. `src/pages/SchedulingSettings.tsx` -- `<AppLayout>` + `container mx-auto`
+4. `src/pages/ModuleEdit.tsx` -- `<AppLayout>` + `container max-w-5xl mx-auto`
+5. `src/pages/admin/InvestorDashboard.tsx` -- `<AppLayout>` + `container max-w-7xl mx-auto`
+6. `src/pages/ReferralProgram.tsx` -- `<AppLayout>` + wrapping pattern
+
+For each: Remove `<AppLayout>` wrapper + replace `container mx-auto max-w-*xl` with `w-full px-4 sm:px-6 lg:px-8`.
+
+### Group B: Pages with container/max-w constraints (no redundant AppLayout)
+
+7. `src/pages/Admin.tsx` -- `container mx-auto px-4`
+8. `src/pages/Meetings.tsx` -- `container mx-auto px-4`
+9. `src/pages/ConnectsStorePage.tsx` -- `container max-w-6xl`
+10. `src/pages/BookingPage.tsx` -- `container mx-auto max-w-5xl`
+11. `src/pages/WhatsAppImport.tsx` -- `container mx-auto max-w-4xl`
+12. `src/pages/KnowledgeBase.tsx` -- `container max-w-7xl`
+13. `src/pages/support/SupportTicketList.tsx` -- `container max-w-6xl`
+14. `src/pages/support/SupportTicketNew.tsx` -- `container max-w-3xl`
+15. `src/pages/support/SupportTicketDetail.tsx` -- likely `container`
+16. `src/pages/JobsMap.tsx` -- `container mx-auto` in header
+
+For each: Replace `container mx-auto` / `container max-w-*xl` with `w-full px-4 sm:px-6 lg:px-8`.
+
+### Group C: Public/standalone pages (use their own layout, not inside ProtectedLayout)
+
+17. `src/pages/legal/LegalHub.tsx` -- `container mx-auto` (OK to keep, not inside ProtectedLayout)
+18. `src/pages/legal/AccessibilityStatement.tsx` -- same
+19. `src/pages/PartnershipSubmitted.tsx` -- `container mx-auto` (standalone page)
+
+For public pages: Replace `container mx-auto` with `w-full px-4 sm:px-6 lg:px-8` but keep any intentional max-width on content cards (not page wrapper).
+
+## Fix Pattern (applied consistently)
+
+```text
+BEFORE:
+  <AppLayout>
+    <div className="container max-w-7xl mx-auto p-6">
+      ...content...
+    </div>
+  </AppLayout>
+
+AFTER:
+  <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+    ...content...
+  </div>
 ```
 
-This targets **every element** with Tailwind's `absolute` utility class across the entire application. The `contain: layout style paint` declaration is extremely destructive because:
+## Technical Details
 
-- `contain: layout` prevents absolutely-positioned elements from influencing their parent's layout and from being visible outside their own box
-- Hundreds of components use Tailwind's `absolute` class for overlays, dropdowns, centered logos, tooltips, modals, mobile sidebar backdrops, and more
-- On mobile specifically, this breaks the sidebar overlay, the centered header logo, dropdown menus, popover content, and any content that relies on absolute positioning to layer above other elements
+For each file:
+- Remove `<AppLayout>` import and wrapper (if present and page is in ProtectedLayout routes)
+- Replace `container mx-auto` with `w-full`
+- Replace `max-w-*xl mx-auto` with responsive padding `px-4 sm:px-6 lg:px-8`
+- Keep existing `py-*` padding values
+- Leave max-width on modal/dialog/card internals untouched
+- Leave public pages' structural containers if they provide their own header/footer
 
-This single rule is why "the content is all the same as browser" -- it effectively breaks CSS containment for all overlays and responsive layout elements that use absolute positioning.
+## Execution
 
-## Fix
-
-### Step 1: Remove the destructive global `.absolute` rule from `index.html`
-
-**File: `index.html` (lines 146-150)**
-
-Remove:
-```css
-/* Prevent absolute elements from causing layout shifts */
-.absolute {
-  contain: layout style paint;
-  will-change: transform;
-}
-```
-
-This rule was added as a performance optimization but it conflicts with Tailwind's `absolute` utility class. The `optimize-paint` class in `index.css` already provides an opt-in version (`contain: layout style paint`) for components that actually need it.
-
-### Step 2: Verify no other global containment rules exist
-
-The `content-auto` classes in `index.css` (lines 837-868) are fine -- they are opt-in utility classes, not global selectors. No changes needed there.
-
----
-
-## Why This Is The Only Change Needed
-
-- The `AppLayout` flex structure is correct (`min-h-screen flex w-full` container, `flex-1 min-w-0` main)
-- The mobile sidebar, header, and overlay code are all correct
-- The CRM page and other pages use proper responsive classes (`w-full px-4 sm:px-6 lg:px-8`)
-- The `#root` styles are correct (`width: 100%`, no contain)
-- The viewport meta tag is correct (`width=device-width, initial-scale=1.0`)
-
-The only problem is that global `.absolute` containment rule silently breaking layout for every absolutely-positioned element on every page.
+Will process all ~16 highest-impact files (Groups A and B) in this batch. Group C (public pages) can follow if needed.
 
 ## Risk
 
-None. Removing this rule restores standard CSS behavior. Components that genuinely need paint containment can use the existing `.optimize-paint` utility class on a case-by-case basis.
+Low. All changes are CSS class replacements following the same pattern successfully applied to the first batch of 15 files. The AppLayout already provides the correct full-width flex layout structure.
