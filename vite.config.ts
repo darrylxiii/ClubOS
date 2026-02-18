@@ -18,7 +18,7 @@ export default defineConfig(({ mode, command }) => ({
     // Force pre-bundling for CJS/ESM compatibility issues
     include: [],
     // Exclude heavy libraries from pre-bundling
-    exclude: ['mermaid', 'katex', '@blocknote/core', '@blocknote/react'],
+    exclude: ['mermaid', 'katex'],
   },
   plugins: [
     react(),
@@ -212,8 +212,6 @@ export default defineConfig(({ mode, command }) => ({
     rollupOptions: {
       maxParallelFileOps: 1, // Minimum parallelism to reduce peak memory
       treeshake: mode === 'production',
-      
-      
       output: {
         // OOM FIX: Static object for manualChunks is cheaper than a function
         // and forces the heaviest libs into separate chunks
