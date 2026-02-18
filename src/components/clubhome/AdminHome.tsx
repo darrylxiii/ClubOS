@@ -1,7 +1,7 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
 import { CommandStrip } from "./CommandStrip";
-import { RevenueSparkline } from "./RevenueSparkline";
+import { RevenueGrowthWidget } from "./RevenueGrowthWidget";
 import { TeamCapacityWidget } from "./TeamCapacityWidget";
 import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
 import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
@@ -26,10 +26,8 @@ const AdminHomeContent = () => {
       {/* Zone 1: Command Strip */}
       <CommandStrip />
 
-      {/* Zone 2: Revenue */}
-      <DashboardSection>
-        <RevenueSparkline />
-      </DashboardSection>
+      {/* Zone 2: Revenue & Growth */}
+      <RevenueGrowthWidget />
 
       {/* Zone 2.5: KPI Scorecard (merged power widget) */}
       <KPIScorecard />
