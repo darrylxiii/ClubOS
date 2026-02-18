@@ -29,6 +29,7 @@ import { TeamLoadDashboard } from "@/components/scheduling/TeamLoadDashboard";
 import { EmbedCodeGenerator } from "@/components/booking/EmbedCodeGenerator";
 import { BookingWorkflowBuilder } from "@/components/booking/BookingWorkflowBuilder";
 import { BookingLinkBrandingSettings } from "@/components/booking/BookingLinkBrandingSettings";
+import { CreditCard } from "lucide-react";
 
 interface BookingLink {
   id: string;
@@ -108,6 +109,9 @@ export default function Scheduling() {
     confirmation_message: "",
     redirect_url: "",
     custom_logo_url: null as string | null,
+    payment_required: false,
+    payment_amount: null as number | null,
+    payment_currency: "eur",
   });
 
   useEffect(() => {
@@ -260,6 +264,9 @@ export default function Scheduling() {
         confirmation_message: "",
         redirect_url: "",
         custom_logo_url: null,
+        payment_required: false,
+        payment_amount: null,
+        payment_currency: "eur",
       });
       setDialogOpen(false);
     } catch (error: unknown) {
@@ -721,6 +728,59 @@ export default function Scheduling() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Payment Settings */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Payment
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="payment_required">Require payment</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Guests must pay before confirming their booking
+                      </p>
+                    </div>
+                    <Switch
+                      id="payment_required"
+                      checked={newLink.payment_required}
+                      onCheckedChange={(checked) => setNewLink({ ...newLink, payment_required: checked })}
+                    />
+                  </div>
+                  {newLink.payment_required && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="payment_amount">Amount</Label>
+                        <Input
+                          id="payment_amount"
+                          type="number"
+                          min="0.50"
+                          step="0.50"
+                          placeholder="25.00"
+                          value={newLink.payment_amount || ""}
+                          onChange={(e) => setNewLink({ ...newLink, payment_amount: e.target.value ? parseFloat(e.target.value) : null })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="payment_currency">Currency</Label>
+                        <Select
+                          value={newLink.payment_currency}
+                          onValueChange={(value) => setNewLink({ ...newLink, payment_currency: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="eur">EUR (€)</SelectItem>
+                            <SelectItem value="usd">USD ($)</SelectItem>
+                            <SelectItem value="gbp">GBP (£)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Branding & Customization */}
