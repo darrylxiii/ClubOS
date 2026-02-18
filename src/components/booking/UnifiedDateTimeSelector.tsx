@@ -16,6 +16,7 @@ import { getAvailableSlots } from "@/services/availability";
 import { useTimeFormatPreference } from "@/hooks/useTimeFormatPreference";
 import { formatSlotWithDualTimezone } from "@/lib/safeTimeFormat";
 import { useBookingRealtime } from "@/hooks/useBookingRealtime";
+import { useSmartRecommendations, SmartSlotBadge } from "@/components/booking/SmartSlotRecommendation";
 
 interface TimeSlot {
   start: string;
@@ -55,6 +56,7 @@ export function UnifiedDateTimeSelector({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const showDualTimezone = hostTimezone && hostTimezone !== guestTimezone;
+  const recommendations = useSmartRecommendations(bookingLink.id, selectedDate || null);
 
   // Memoized slot loader for real-time refresh
   const loadSlotsForDateCallback = useCallback(async (date: Date) => {
@@ -444,7 +446,7 @@ export function UnifiedDateTimeSelector({
                           aria-label={ariaLabel}
                         >
                           <Clock className="mr-2 h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                          <div className="flex flex-col items-start">
+                          <div className="flex flex-col items-start flex-1">
                             <span className="text-base">{primary}</span>
                             {secondary && (
                               <span className={cn(
@@ -457,6 +459,7 @@ export function UnifiedDateTimeSelector({
                               </span>
                             )}
                           </div>
+                          <SmartSlotBadge isRecommended={recommendations.has(slot.start)} />
                         </Button>
                       </motion.div>
                     );
