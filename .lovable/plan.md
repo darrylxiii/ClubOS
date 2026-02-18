@@ -1,14 +1,14 @@
 
-# Fix: Add Missing JSX Runtime to optimizeDeps.include
+# Fix: Add `use-sync-external-store` to optimizeDeps.include
 
 ## Problem
-With `noDiscovery: true`, Vite only pre-bundles packages explicitly listed in `optimizeDeps.include`. The list includes `react` and `react-dom` but is missing `react/jsx-runtime` and `react/jsx-dev-runtime`. These are the modules that every JSX component imports (automatically by the compiler), and without pre-bundling they get served as raw CommonJS from node_modules, which breaks ESM named exports like `Fragment`.
+Same root cause as the previous `Fragment` fix. With `noDiscovery: true`, Vite only pre-bundles explicitly listed packages. The `use-sync-external-store/shim` module (used internally by React Query, Zustand, and other state libraries) is CommonJS and needs pre-bundling to expose proper ESM named exports like `useSyncExternalStore`.
 
 ## Fix
 
-### File: `vite.config.ts` (lines 19-31)
+### File: `vite.config.ts` (line 33)
 
-Add `react/jsx-runtime` and `react/jsx-dev-runtime` to the `optimizeDeps.include` array:
+Add `use-sync-external-store/shim` and `use-sync-external-store/shim/with-selector` to the `optimizeDeps.include` array:
 
 ```typescript
 include: [
@@ -18,6 +18,8 @@ include: [
   'react-router-dom',
   '@supabase/supabase-js',
   '@tanstack/react-query',
+  'use-sync-external-store/shim',
+  'use-sync-external-store/shim/with-selector',
   'sonner', 'clsx', 'tailwind-merge',
   'class-variance-authority',
   'lucide-react', 'date-fns',
@@ -29,11 +31,10 @@ include: [
 ],
 ```
 
-## Why This Fixes It
-- `noDiscovery: true` means Vite will NOT auto-detect that `react/jsx-runtime` needs pre-bundling
-- Without pre-bundling, the raw CJS module from `node_modules/react/jsx-runtime.js` is served directly
-- CJS modules don't have named ESM exports like `Fragment` -- they only have a default export
-- Adding it to `include` forces Vite to pre-bundle it into a proper ESM module with all named exports
+## Why
+- `use-sync-external-store` ships as CommonJS
+- Without pre-bundling, Vite serves the raw CJS file which has no ESM named exports
+- Adding it to `include` forces Vite to convert it to ESM with proper named exports
 
 ## Risk
-None. This is the exact fix documented for `noDiscovery: true` setups.
+None. Standard fix for `noDiscovery: true` setups.
