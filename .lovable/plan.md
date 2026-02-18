@@ -1,35 +1,76 @@
 
+# Fix: Stabilize Preview by Reducing Vite Dev Server Memory Pressure
 
-# Fix: Suppress All Uncaught Errors from Crashing the Preview
+## Problem Identified
+The "HTTP ERROR 412" is happening at the **server level** -- the Vite dev server itself is crashing or rejecting requests before any JavaScript runs. This is NOT a JavaScript error that can be fixed with `preventDefault()`.
 
-## Problem
-The previous fixes only addressed **promise rejections** (`unhandledrejection`). But the Lovable preview iframe also crashes on regular **error events** that propagate to the browser's default handler. There are three places where errors still propagate:
+The root cause is **memory exhaustion** on the Lovable preview server. Your project has grown extremely large:
+- 446+ hooks in `src/hooks/`
+- 150+ pages across `src/pages/`
+- 80+ dependencies in `package.json`
+- Massive import chains from `App.tsx` that eagerly import 11 route files, each importing dozens of lazy pages
 
-1. **`index.html` boot-phase `error` handler** (line 280): Captures the error but does NOT call `e.preventDefault()` -- any error during boot (script load, module resolution, Vite HMR reconnect) triggers the preview crash overlay.
+When Vite starts, it scans the entire dependency graph starting from `src/main.tsx`. With this project size, the dev server runs out of memory and returns 412 before it can serve the HTML.
 
-2. **`globalErrorHandlers.ts` `handleWindowError`** (line 129): Returns `false`, which explicitly tells the browser "I did NOT handle this error, use your default behavior" -- which in the preview iframe means showing the crash overlay.
+## Solution: Reduce Vite Startup Memory
 
-3. **`globalErrorHandlers.ts` `handleReactError`** (line 167): Logs the error but never calls `event.preventDefault()` -- React rendering errors propagate and crash the preview.
+### Change 1: `vite.config.ts` -- Reduce dependency scanning overhead
 
-## Root Cause
-The "Sorry, we ran into an error" overlay is triggered whenever ANY uncaught error or unhandled rejection reaches the browser's default handler. We fixed rejections but left errors wide open.
+**Remove `optimizeDeps.entries`** -- Currently set to `['src/main.tsx']`, which tells Vite to eagerly crawl the entire app from main. Removing it lets Vite discover dependencies lazily (on-demand), drastically reducing startup memory.
 
-## Changes
+**Add `optimizeDeps.noDiscovery: true`** -- Prevents Vite from scanning the entire source tree for dependencies at startup. Combined with the `include` list for critical deps, this prevents the memory spike.
 
-### File 1: `index.html` (line 280-284)
-Add `e.preventDefault()` to the boot-phase `error` handler. Errors are still logged and stored in `__BOOT_ERROR__` for diagnostics.
+**Expand `optimizeDeps.include`** to pre-bundle only the core libraries that every page uses (React, React-DOM, react-router-dom, Supabase, Tanstack Query, etc.) so Vite doesn't need to discover them on the fly.
 
-### File 2: `src/utils/globalErrorHandlers.ts`
-Two changes:
-- **Line 129**: Change `return false` to `return true` in `handleWindowError`. Returning `true` from `window.onerror` tells the browser "I handled it" and suppresses the default error behavior.
-- **Line 191**: Add `event.preventDefault()` at the end of `handleReactError` to prevent React errors from propagating.
+### Change 2: `vite.config.ts` -- Reduce server memory usage
 
-## Why This Is Safe
-- All errors are still logged via `logger.error()` and reported to Sentry
-- The boot error UI (`#boot-error` div) still works via `__BOOT_ERROR__` and the timeout system
-- React error boundaries still catch and display component-level errors
-- The only thing that changes is that errors no longer trigger the preview iframe's crash detection
+**Add `server.warmup.ssrFiles: []`** and **`server.warmup.clientFiles: []`** to prevent Vite from eagerly warming up modules on startup.
+
+### Change 3: `vite.config.ts` -- Remove the `componentTagger` plugin in dev
+
+The `lovable-tagger` plugin processes every component during dev, adding memory pressure. Disable it temporarily to stabilize the preview.
+
+## Technical Summary of `vite.config.ts` changes
+
+```text
+Before:
+  optimizeDeps: {
+    entries: ['src/main.tsx'],
+    include: [],
+    exclude: ['mermaid', 'katex'],
+  }
+
+After:
+  optimizeDeps: {
+    include: [
+      'react', 'react-dom', 'react-dom/client',
+      'react-router-dom',
+      '@supabase/supabase-js',
+      '@tanstack/react-query',
+      'sonner', 'clsx', 'tailwind-merge',
+      'class-variance-authority',
+      'lucide-react', 'date-fns',
+      'react-hook-form', 'zod',
+      '@hookform/resolvers',
+      'framer-motion',
+      'react-helmet-async',
+      'i18next', 'react-i18next',
+    ],
+    exclude: ['mermaid', 'katex'],
+    noDiscovery: true,
+  }
+```
+
+The key change is removing `entries` and adding `noDiscovery: true` with an explicit `include` list. This tells Vite: "Don't scan the entire source tree. Only pre-bundle these specific packages. Discover everything else lazily." This eliminates the memory spike that crashes the dev server.
+
+## Why Previous Fixes Didn't Work
+
+All previous fixes (adding `preventDefault()`, changing return values) targeted JavaScript error handling AFTER the page loads. But the 412 error means the server itself can't serve the page -- no JavaScript ever runs. The error handler changes were correct for stability once the app loads, but they can't help if the server crashes during startup.
 
 ## Expected Result
-The preview will stop showing "Sorry, we ran into an error" for transient issues. Real errors still surface through the app's own error UI, console logs, and Sentry.
 
+The Vite dev server will start with significantly less memory usage, allowing it to serve the HTML document and begin loading modules. The preview should load instead of showing "HTTP ERROR 412" or "This page isn't working."
+
+## Risk
+
+Low. The `include` list covers all critical shared dependencies. Any missing dependency will be discovered and bundled on-demand (slightly slower first load for that module, but no crash). The `noDiscovery` flag is a standard Vite optimization for large projects.
