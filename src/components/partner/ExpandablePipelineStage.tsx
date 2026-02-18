@@ -77,6 +77,7 @@ interface ExpandablePipelineStageProps {
   onDelete: () => void;
   onAdvanceCandidate: (app: Application) => void;
   onRejectCandidate: (app: Application) => void;
+  onMoveBackCandidate?: (app: Application) => void;
   onViewProfile: (app: Application) => void;
   displaySettings: DisplaySettings;
   totalStages: number;
@@ -97,6 +98,7 @@ export function ExpandablePipelineStage({
   onDelete,
   onAdvanceCandidate,
   onRejectCandidate,
+  onMoveBackCandidate,
   onViewProfile,
   displaySettings,
   totalStages,
@@ -267,6 +269,7 @@ export function ExpandablePipelineStage({
                   jobId={jobId}
                   onAdvance={onAdvanceCandidate}
                   onReject={onRejectCandidate}
+                  onMoveBack={onMoveBackCandidate}
                   onViewDetails={onViewProfile}
                 />
               </div>

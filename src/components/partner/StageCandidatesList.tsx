@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   ArrowRight, 
+  ArrowLeft,
   X, 
   Clock,
   Mail,
@@ -42,6 +43,7 @@ interface StageCandidatesListProps {
   jobId?: string;
   onAdvance: (candidate: Candidate) => void;
   onReject: (candidate: Candidate) => void;
+  onMoveBack?: (candidate: Candidate) => void;
   onViewDetails: (candidate: Candidate) => void;
 }
 
@@ -53,6 +55,7 @@ export function StageCandidatesList({
   jobId,
   onAdvance,
   onReject,
+  onMoveBack,
   onViewDetails,
 }: StageCandidatesListProps) {
   if (candidates.length === 0) {
@@ -68,6 +71,7 @@ export function StageCandidatesList({
   }
 
   const canAdvance = stageIndex < totalStages - 1;
+  const canMoveBack = stageIndex > 0;
 
   return (
     <div className="space-y-3">
@@ -222,6 +226,20 @@ export function StageCandidatesList({
                       <X className="w-3.5 h-3.5 mr-1.5" />
                       Decline
                     </Button>
+                    {canMoveBack && onMoveBack && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMoveBack(candidate);
+                        }}
+                        className="text-xs font-medium text-amber-600 hover:text-amber-700"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+                        Step Back
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
