@@ -1,43 +1,30 @@
 
 
-# Revenue & Growth: Collapsed + Expanded Mode
+# Revenue & Growth: Inline Expand/Collapse (No Modal)
 
 ## What changes
 
-Split the current widget into two views inside the same component:
+Replace the Dialog/modal approach with an inline expand/collapse within the same card. The full analytics content slides open below the compact summary when the user clicks "Expand", and collapses back when they click "Collapse".
 
-### Collapsed (default on dashboard)
-A compact card showing only the essentials:
-- Premium gradient top bar (keep)
-- Total Revenue number with delta badge
-- Mini sparkline (60px tall, inline)
-- Period selector pills
-- "Expand" button (Maximize icon) in the header
+## Single file change: `src/components/clubhome/RevenueGrowthWidget.tsx`
 
-Roughly 120px tall -- fits naturally in the dashboard flow.
+1. Remove the `Dialog`, `DialogContent`, `DialogTitle` imports and the entire `<Dialog>` block (lines 401-427)
+2. Change the Maximize2 button to toggle `expanded` state (already does this), and swap the icon to `ChevronUp` when expanded
+3. Below the compact `<CardContent>` section (after line 398), add the full `<RevenueFullContent>` wrapped in an animated collapse container:
 
-### Expanded (dialog/modal)
-Clicking the expand button opens a Dialog containing the full current widget:
-- All metrics strip (Avg/Placement, Per Working Day, Best Month, Placements)
-- Full 200px interactive chart
-- Growth indicators grid
-- Pipeline intelligence section
-- Forecasting strip
-- Period selector stays interactive inside the modal
+```text
+Card
+  |-- gradient bar
+  |-- Header (period pills + expand/collapse button)
+  |-- Compact content (always visible):
+  |     revenue number + delta + sparkline + pipeline one-liner
+  |-- Expanded content (animated slide, only when expanded):
+        metrics strip, full chart, growth grid,
+        pipeline intelligence, forecasting
+```
 
-The dialog uses the existing `Dialog` component, full-width on mobile, max-w-3xl on desktop.
+4. The animation uses `framer-motion`'s `AnimatePresence` + `motion.div` with `height: auto` transition (same pattern used elsewhere in the codebase) for a smooth slide-open effect
+5. When expanded, the button shows `ChevronUp`; when collapsed, shows `ChevronDown`
 
-## Technical approach
+No other files change. The component API stays identical.
 
-### Single file change: `src/components/clubhome/RevenueGrowthWidget.tsx`
-
-1. Add `const [expanded, setExpanded] = useState(false)` state
-2. Extract the full content (lines 200-373) into a `RevenueFullContent` inner component
-3. The default render shows a compact card with:
-   - Header with period pills + expand button (Maximize2 icon)
-   - Total revenue + delta + mini inline sparkline (reuse chartData, 60px height)
-   - Weighted pipeline value (one line)
-4. Wrap `RevenueFullContent` in a `<Dialog open={expanded} onOpenChange={setExpanded}>` that renders the full analytics view
-5. Inside the dialog, include the period selector so users can interact without closing
-
-No changes needed to `AdminHome.tsx` -- the component API stays the same.
