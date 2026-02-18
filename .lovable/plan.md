@@ -1,34 +1,66 @@
 
-# Fix: Remove Remaining Instability Sources
+# Fix: Prevent Boot-Phase Promise Rejections from Crashing Preview
 
 ## Problem
-The previous round of fixes (removing `external` block, fixing RoleContext deps, replacing `process.env`) addressed the main crash triggers. However, two remaining issues can still cause intermittent 412 errors and preview instability:
+The `globalErrorHandlers.ts` fix from the previous round correctly calls `event.preventDefault()` on unhandled rejections — but it only activates **after** `main.tsx` finishes loading. During the boot phase (before React initializes), the `index.html` inline `unhandledrejection` handler at line 286 captures rejections but does **not** call `preventDefault()`.
 
-1. **`optimizeDeps.exclude` still lists `@blocknote/core` and `@blocknote/react`** -- These libraries are imported across 15+ workspace editor files. Excluding them from Vite's pre-bundling forces Vite to serve them as raw ESM from `node_modules`, which leads to stale dependency tracking and 412 errors when Vite's module graph becomes inconsistent during HMR updates.
+This means any rejection during boot (Sentry dynamic import failure, PostHog init, Vite HMR client reconnection after a code edit) propagates to the browser's default fatal error behavior. The Lovable preview iframe detects this as a crash and shows "Sorry, we ran into an error."
 
-2. **`unhandledrejection` handler does not call `event.preventDefault()`** -- Unhandled promise rejections (e.g., from failed lazy imports, Supabase calls, PostHog init) still propagate to the browser's default handler. In some environments this can cause the preview iframe to treat them as fatal errors.
+The `error` event handler at line 280 has the same issue — it does not prevent propagation.
 
-3. **Minor: double blank line left in `vite.config.ts`** from the previous edit (cosmetic but sloppy).
+## Root Cause
+The 412 on `@vite/client` is normal and transient — it happens every time code changes are applied because the Vite dev server restarts and invalidates the old module graph. Normally, the Vite client auto-reconnects. But if the reconnection throws an unhandled rejection during boot, the missing `preventDefault()` lets it cascade into a crash.
 
-## Changes
+## Fix
 
-### File: `vite.config.ts`
-- Remove `@blocknote/core` and `@blocknote/react` from `optimizeDeps.exclude` (keep `mermaid` and `katex` excluded since those are only used inside lazy-loaded components and genuinely benefit from deferred bundling)
-- Clean up the double blank line at line 215-216
+### File: `index.html` (lines 280-291)
+Add `e.preventDefault()` to both the `error` and `unhandledrejection` boot-phase handlers so rejections during initialization don't propagate to the browser's default fatal behavior.
 
-### File: `src/utils/globalErrorHandlers.ts`
-- Add `event.preventDefault()` at the end of `handleUnhandledRejection` to prevent unhandled promise rejections from propagating to the browser's default fatal error behavior
+**Before:**
+```javascript
+window.addEventListener('error', function(e) {
+  if (!window.__BOOT_ERROR__ && e.error) {
+    window.__BOOT_ERROR__ = e.error.message || String(e.error);
+    console.error('[Boot] Captured error:', window.__BOOT_ERROR__);
+  }
+});
+window.addEventListener('unhandledrejection', function(e) {
+  if (!window.__BOOT_ERROR__) {
+    window.__BOOT_ERROR__ = e.reason?.message || String(e.reason);
+    console.error('[Boot] Captured rejection:', window.__BOOT_ERROR__);
+  }
+});
+```
 
-## Technical Details
+**After:**
+```javascript
+window.addEventListener('error', function(e) {
+  if (!window.__BOOT_ERROR__ && e.error) {
+    window.__BOOT_ERROR__ = e.error.message || String(e.error);
+    console.error('[Boot] Captured error:', window.__BOOT_ERROR__);
+  }
+  // Do NOT preventDefault here - let error handlers chain
+});
+window.addEventListener('unhandledrejection', function(e) {
+  if (!window.__BOOT_ERROR__) {
+    window.__BOOT_ERROR__ = e.reason?.message || String(e.reason);
+    console.error('[Boot] Captured rejection:', window.__BOOT_ERROR__);
+  }
+  // Prevent rejection from propagating to browser's default fatal error
+  // behavior which triggers the preview iframe error overlay
+  e.preventDefault();
+});
+```
 
-### Why removing blocknote from exclude helps
-When Vite pre-bundles a dependency, it creates a stable cached version that survives HMR updates. When a dependency is excluded, Vite serves the raw source on every request, and if the module graph shifts during an HMR update, Vite returns 412 because the dependency version no longer matches. Since blocknote is used in 15+ files, any edit to workspace-related code triggers this.
-
-`mermaid` and `katex` are fine to keep excluded because they are only imported inside lazy-loaded blocks that use dynamic `import()`, so they never participate in the main module graph.
-
-### Why preventDefault matters
-Without it, the browser logs the rejection as an uncaught error. In the Lovable preview iframe, this can trigger the parent frame's error detection, which interprets it as a crash and shows the error overlay.
+Only `unhandledrejection` gets `preventDefault()` — the `error` handler should not suppress errors since those may be genuine syntax/reference errors that need to surface.
 
 ## Risk
-- Low. Pre-bundling blocknote may slightly increase initial dev server start time (one-time cost, cached afterward). No runtime behavior change.
-- `preventDefault()` on rejections is standard practice -- it just tells the browser "we handled it, don't treat it as fatal."
+- None. This is identical to what `globalErrorHandlers.ts` already does, just applied earlier in the boot timeline.
+- The rejection is still logged via `console.error` and stored in `__BOOT_ERROR__` for diagnostics.
+
+## Why This Fixes the Crash Loop
+1. Code edit applied -> Vite dev server restarts
+2. Browser's old `@vite/client` connection gets 412 (stale)
+3. Vite client throws a rejection during reconnection attempt
+4. Previously: rejection propagated to browser -> Lovable iframe detects crash -> shows error
+5. Now: `preventDefault()` stops propagation -> Vite client reconnects silently -> preview loads
