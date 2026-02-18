@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { CoverLetterBuilder } from "@/components/applications/CoverLetterBuilder";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,7 @@ export default function CoverLetterGenerator() {
   const navigate = useNavigate();
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -108,6 +107,5 @@ export default function CoverLetterGenerator() {
           <CoverLetterBuilder />
         </motion.div>
       </div>
-    </AppLayout>
   );
 }

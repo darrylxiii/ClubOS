@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
 import { Clock, Target, TrendingUp, AlertCircle } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
+
 
 export default function SLADashboard() {
   const { companyId } = useRole();
@@ -84,8 +84,7 @@ export default function SLADashboard() {
   ];
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -163,6 +162,5 @@ export default function SLADashboard() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
   );
 }

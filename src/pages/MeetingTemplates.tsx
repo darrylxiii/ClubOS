@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AppLayout } from '@/components/AppLayout';
+// AppLayout removed - rendered within ProtectedLayout
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -206,8 +207,7 @@ export default function MeetingTemplates() {
   const templateIcons = ['📅', '💼', '👥', '🎯', '🚀', '⚡', '🎓', '🎤', '📊', '💡'];
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Meeting Templates</h1>
@@ -473,6 +473,5 @@ export default function MeetingTemplates() {
           </div>
         )}
       </div>
-    </AppLayout>
   );
 }

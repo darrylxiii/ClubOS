@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AppLayout } from '@/components/AppLayout';
+// AppLayout removed
+
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,9 +98,8 @@ export default function EmailSequencingHub() {
     { label: 'Hot Leads', value: hotLeads, icon: Target, color: 'text-red-500', bgColor: 'bg-red-500/10' },
   ];
   return (
-    <AppLayout>
       <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Hero Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -231,6 +231,5 @@ export default function EmailSequencingHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
   );
 }

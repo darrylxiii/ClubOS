@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/AppLayout";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,17 +92,15 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <SectionLoader />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center h-64">
+        <SectionLoader />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+    <>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Profile Header */}
         <Card className="relative overflow-visible">
           {/* Header Media (Image or Video Wallpaper) */}
@@ -398,6 +396,6 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
           />
         </>
       )}
-    </AppLayout>
+    </>
   );
 }

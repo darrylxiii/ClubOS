@@ -1,12 +1,9 @@
 import { Leaderboard } from '@/components/academy/Leaderboard';
-import { AppLayout } from '@/components/AppLayout';
 
 export default function LeaderboardPage() {
   return (
-    <AppLayout>
-      <div className="container mx-auto p-6 max-w-6xl">
-        <Leaderboard />
-      </div>
-    </AppLayout>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <Leaderboard />
+    </div>
   );
 }

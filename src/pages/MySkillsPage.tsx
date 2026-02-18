@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Award, CheckCircle, Download, TrendingUp } from 'lucide-react';
-import { AppLayout } from '@/components/AppLayout';
+
 
 interface Skill {
   id: string;
@@ -59,20 +59,17 @@ export default function MySkillsPage() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto p-6 max-w-6xl">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-1/3" />
             <div className="h-32 bg-muted rounded" />
           </div>
         </div>
-      </AppLayout>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto p-6 max-w-6xl space-y-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">My Skills</h1>
@@ -146,7 +143,6 @@ export default function MySkillsPage() {
             <Button>Browse Courses</Button>
           </Card>
         )}
-      </div>
-    </AppLayout>
+    </div>
   );
 }

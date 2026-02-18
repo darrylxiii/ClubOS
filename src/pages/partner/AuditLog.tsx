@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
 import { format } from "date-fns";
 import { Shield, Search, Filter } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
+
 
 export default function AuditLog() {
   const { companyId } = useRole();
@@ -57,7 +57,6 @@ export default function AuditLog() {
   };
 
   return (
-    <AppLayout>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -143,6 +142,5 @@ export default function AuditLog() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
   );
 }

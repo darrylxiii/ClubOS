@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -81,7 +81,6 @@ export default function IntegrationsManagement() {
   };
 
   return (
-    <AppLayout>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -180,6 +179,5 @@ export default function IntegrationsManagement() {
           })}
         </div>
       </div>
-    </AppLayout>
   );
 }
