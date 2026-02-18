@@ -14,7 +14,7 @@ import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Building2, Users, Briefcase, TrendingUp, Clock, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AppLayout } from "@/components/AppLayout";
+// AppLayout removed - provided by ProtectedLayout
 
 interface Analytics {
   totalJobs: number;
@@ -157,8 +157,7 @@ const GlobalAnalytics = () => {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <Skeleton className="h-10 w-64 mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             {[...Array(4)].map((_, i) => (
@@ -166,15 +165,13 @@ const GlobalAnalytics = () => {
             ))}
           </div>
           <Skeleton className="h-96 w-full" />
-        </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (!analytics) return null;
 
   return (
-    <AppLayout>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Global Analytics</h1>
@@ -339,8 +336,7 @@ const GlobalAnalytics = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </AppLayout>
+    </div>
   );
 };
 

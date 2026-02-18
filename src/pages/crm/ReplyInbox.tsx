@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -472,12 +471,10 @@ function ReplyInboxContent() {
 
 export default function ReplyInbox() {
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <CRMRealtimeProvider onReplyUpdate={() => {}}>
-          <ReplyInboxContent />
-        </CRMRealtimeProvider>
-      </RoleGate>
-    </AppLayout>
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <CRMRealtimeProvider onReplyUpdate={() => {}}>
+        <ReplyInboxContent />
+      </CRMRealtimeProvider>
+    </RoleGate>
   );
 }

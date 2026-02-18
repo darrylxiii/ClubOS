@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DollarSign } from 'lucide-react';
@@ -38,8 +37,7 @@ export default function FinanceHub() {
   };
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
+    <RoleGate allowedRoles={['admin', 'strategist']}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
@@ -77,7 +75,6 @@ export default function FinanceHub() {
             </Suspense>
           </Tabs>
         </div>
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 }

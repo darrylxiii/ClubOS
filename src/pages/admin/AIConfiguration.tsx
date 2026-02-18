@@ -207,7 +207,7 @@ const AIConfiguration = () => {
   const isWeightValid = totalWeight === 100;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">AI Model Configuration</h1>
         <p className="text-muted-foreground">

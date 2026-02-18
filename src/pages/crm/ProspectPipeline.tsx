@@ -1,5 +1,4 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { motion } from '@/lib/motion';
 import { Button } from '@/components/ui/button';
@@ -582,12 +581,10 @@ function ProspectPipelineContent() {
 
 export default function ProspectPipeline() {
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <CRMRealtimeProvider>
-          <ProspectPipelineContent />
-        </CRMRealtimeProvider>
-      </RoleGate>
-    </AppLayout>
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <CRMRealtimeProvider>
+        <ProspectPipelineContent />
+      </CRMRealtimeProvider>
+    </RoleGate>
   );
 }

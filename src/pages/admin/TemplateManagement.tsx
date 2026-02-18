@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,30 +62,27 @@ export default function TemplateManagement() {
   // Show editor if creating or editing
   if (isCreating || editingTemplate) {
     return (
-      <AppLayout>
-        <RoleGate allowedRoles={['admin', 'strategist']}>
-          <div className="container mx-auto px-4 py-6 max-w-7xl">
-            <TemplateEditor
-              template={editingTemplate || undefined}
-              onSave={() => {
-                setIsCreating(false);
-                setEditingTemplate(null);
-              }}
-              onCancel={() => {
-                setIsCreating(false);
-                setEditingTemplate(null);
-              }}
-            />
-          </div>
-        </RoleGate>
-      </AppLayout>
+      <RoleGate allowedRoles={['admin', 'strategist']}>
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+          <TemplateEditor
+            template={editingTemplate || undefined}
+            onSave={() => {
+              setIsCreating(false);
+              setEditingTemplate(null);
+            }}
+            onCancel={() => {
+              setIsCreating(false);
+              setEditingTemplate(null);
+            }}
+          />
+        </div>
+      </RoleGate>
     );
   }
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
@@ -294,7 +290,6 @@ export default function TemplateManagement() {
           open={showImporter}
           onOpenChange={setShowImporter}
         />
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 }
