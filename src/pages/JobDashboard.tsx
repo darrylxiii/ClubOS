@@ -299,6 +299,7 @@ export default function JobDashboard() {
 
   const fetchApplicationsForMetrics = async (stages: any[]) => {
     try {
+      // Step 1: Fetch all applications (single query)
       const { data, error } = await supabase
         .from('applications')
         .select('*')
@@ -307,104 +308,87 @@ export default function JobDashboard() {
 
       if (error) throw error;
 
-       // Enrich with candidate profile data
-      const enrichedApps = await Promise.all((data || []).map(async (app) => {
-        let profileData = null;
-        let linkedUserId = app.user_id;
-         let candidateIdToUse = app.candidate_id;
+      const apps = data || [];
 
-         // PRIORITY 1: Direct lookup via candidate_id (for manually-added candidates)
-         if (app.candidate_id) {
-           const { data: candidateProfile } = await supabase
-             .from('candidate_profiles')
-             .select(`
-               user_id,
-               full_name,
-               email,
-               phone,
-               avatar_url,
-               current_title,
-               current_company,
-               linkedin_url
-             `)
-             .eq('id', app.candidate_id)
-             .maybeSingle();
- 
-           if (candidateProfile) {
-             profileData = candidateProfile;
-             // Use linked user_id from candidate_profile if available
-             if (candidateProfile.user_id) {
-               linkedUserId = candidateProfile.user_id;
- 
-               // If candidate_profile is linked to user, get user's latest avatar
-               const { data: userProfile } = await supabase
-                 .from('profiles')
-                 .select('avatar_url')
-                 .eq('id', candidateProfile.user_id)
-                 .maybeSingle();
- 
-               if (userProfile?.avatar_url) {
-                 profileData.avatar_url = userProfile.avatar_url;
-               }
-             }
-           }
-         }
- 
-         // PRIORITY 2: Fallback to candidate_interactions lookup (legacy path)
-         if (!profileData) {
-           const { data: interaction } = await supabase
-             .from('candidate_interactions')
-             .select(`
-               candidate_id,
-               candidate_profiles!candidate_interactions_candidate_id_fkey (
-                 user_id,
-                 full_name,
-                 email,
-                 phone,
-                 avatar_url,
-                 current_title,
-                 current_company,
-                 linkedin_url
-               )
-             `)
-             .eq('application_id', app.id)
-             .maybeSingle();
- 
-           if (interaction?.candidate_profiles) {
-             profileData = interaction.candidate_profiles;
-             candidateIdToUse = interaction.candidate_id;
-             
-             // Use linked user_id from candidate_profile if available
-             if (profileData.user_id) {
-               linkedUserId = profileData.user_id;
- 
-               // If candidate_profile is linked to user, get user's latest avatar
-               const { data: userProfile } = await supabase
-                 .from('profiles')
-                 .select('avatar_url')
-                 .eq('id', profileData.user_id)
-                 .maybeSingle();
- 
-               if (userProfile?.avatar_url) {
-                 profileData.avatar_url = userProfile.avatar_url;
-               }
-             }
-           }
-         }
- 
-         // PRIORITY 3: Final fallback to user profile if no candidate_profile found
-         if (!profileData && app.user_id) {
-           const { data: userProfile } = await supabase
-             .from('profiles')
-             .select('full_name, email, phone, avatar_url')
-             .eq('id', app.user_id)
-             .maybeSingle();
-           profileData = userProfile;
-         }
- 
-         return {
-           ...app,
-           candidate_id: candidateIdToUse, // Use direct candidate_id or from interactions
+      // Step 2: Collect unique IDs for batch fetching
+      const candidateIds = [...new Set(apps.map(a => a.candidate_id).filter(Boolean))] as string[];
+      const userIds = [...new Set(apps.map(a => a.user_id).filter(Boolean))] as string[];
+
+      // Step 3 & 4: Batch-fetch candidate_profiles and profiles in parallel (2 queries)
+      const [candidateProfilesResult, profilesResult] = await Promise.all([
+        candidateIds.length > 0
+          ? supabase
+              .from('candidate_profiles')
+              .select('id, user_id, full_name, email, phone, avatar_url, current_title, current_company, linkedin_url')
+              .in('id', candidateIds)
+          : Promise.resolve({ data: [], error: null }),
+        userIds.length > 0
+          ? supabase
+              .from('profiles')
+              .select('id, full_name, email, phone, avatar_url')
+              .in('id', userIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      // Step 5: Build lookup maps
+      const candidateProfilesMap = new Map<string, any>();
+      (candidateProfilesResult.data || []).forEach((cp: any) => {
+        candidateProfilesMap.set(cp.id, cp);
+      });
+
+      const profilesMap = new Map<string, any>();
+      (profilesResult.data || []).forEach((p: any) => {
+        profilesMap.set(p.id, p);
+      });
+
+      // Also collect user_ids from candidate_profiles that we haven't fetched yet
+      const additionalUserIds = (candidateProfilesResult.data || [])
+        .map((cp: any) => cp.user_id)
+        .filter((uid: string | null) => uid && !profilesMap.has(uid)) as string[];
+
+      if (additionalUserIds.length > 0) {
+        const { data: additionalProfiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, phone, avatar_url')
+          .in('id', additionalUserIds);
+
+        (additionalProfiles || []).forEach((p: any) => {
+          profilesMap.set(p.id, p);
+        });
+      }
+
+      // Step 6: Enrich applications using maps (no per-row DB calls)
+      const enrichedApps = apps.map((app) => {
+        let profileData: any = null;
+        let linkedUserId = app.user_id;
+        let candidateIdToUse = app.candidate_id;
+
+        // PRIORITY 1: Direct lookup via candidate_id
+        if (app.candidate_id && candidateProfilesMap.has(app.candidate_id)) {
+          const cp = candidateProfilesMap.get(app.candidate_id);
+          profileData = { ...cp };
+
+          if (cp.user_id) {
+            linkedUserId = cp.user_id;
+            // Merge avatar from user profile if available
+            const userProfile = profilesMap.get(cp.user_id);
+            if (userProfile?.avatar_url) {
+              profileData.avatar_url = userProfile.avatar_url;
+            }
+          }
+        }
+
+        // PRIORITY 2: Fallback to user profile
+        if (!profileData && app.user_id) {
+          const userProfile = profilesMap.get(app.user_id);
+          if (userProfile) {
+            profileData = userProfile;
+          }
+        }
+
+        return {
+          ...app,
+          candidate_id: candidateIdToUse,
           full_name: profileData?.full_name || 'Candidate',
           email: profileData?.email,
           phone: profileData?.phone,
@@ -414,9 +398,9 @@ export default function JobDashboard() {
           linkedin_url: profileData?.linkedin_url,
           user_id: linkedUserId,
           stages: app.stages || [],
-          is_linked_user: !!profileData?.user_id, // Flag to show linked status
+          is_linked_user: !!profileData?.user_id,
         };
-      }));
+      });
 
       setApplications(enrichedApps);
 
