@@ -4,13 +4,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DynamicChart } from "@/components/charts/DynamicChart";
 import { useRevenueAnalytics, type PeriodType } from "@/hooks/useRevenueAnalytics";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 import {
   DollarSign, TrendingUp, TrendingDown, ArrowRight, CalendarIcon,
-  Users, Building2, Briefcase, FileText, Target, Zap, Maximize2,
+  Users, Building2, Briefcase, FileText, Target, Zap, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -331,9 +330,7 @@ export const RevenueGrowthWidget = () => {
     onDateSelect: handleDateSelect,
   };
 
-  return (
-    <>
-      {/* ─── Collapsed card ─── */}
+    return (
       <Card className="glass-subtle rounded-2xl overflow-hidden">
         <div className="h-1 bg-gradient-to-r from-premium/60 via-premium to-premium/60" />
 
@@ -346,8 +343,8 @@ export const RevenueGrowthWidget = () => {
               Revenue & Growth
             </div>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpanded(true)} title="Expand analytics">
-                <Maximize2 className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpanded(!expanded)} title={expanded ? "Collapse" : "Expand analytics"}>
+                {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               </Button>
               <Button variant="ghost" size="sm" asChild className="text-xs">
                 <Link to="/admin/kpi-command-center">
@@ -396,34 +393,24 @@ export const RevenueGrowthWidget = () => {
             <span className="text-[11px] text-muted-foreground">{data?.expectedClosings || 0} expected</span>
           </div>
         </CardContent>
-      </Card>
 
-      {/* ─── Expanded dialog ─── */}
-      <Dialog open={expanded} onOpenChange={setExpanded}>
-        <DialogContent className="max-w-3xl w-[calc(100%-2rem)]">
-          <div className="h-1 -mt-4 -mx-4 sm:-mt-6 sm:-mx-6 mb-3 rounded-t-xl bg-gradient-to-r from-premium/60 via-premium to-premium/60" />
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <div className="p-1.5 rounded-lg bg-premium/10">
-              <DollarSign className="h-4 w-4 text-premium" />
-            </div>
-            Revenue & Growth Analytics
-          </DialogTitle>
-
-          <PeriodSelector {...periodSelectorProps} />
-
-          <AnimatePresence mode="wait">
+        {/* ─── Inline expanded content ─── */}
+        <AnimatePresence initial={false}>
+          {expanded && (
             <motion.div
-              key={period + (customRange?.start?.toISOString() || '')}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              key="expanded-content"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden"
             >
-              <RevenueFullContent data={data} formatCurrency={formatCurrency} period={period} />
+              <div className="px-6 pb-6 pt-2 border-t border-border/20">
+                <RevenueFullContent data={data} formatCurrency={formatCurrency} period={period} />
+              </div>
             </motion.div>
-          </AnimatePresence>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-};
+          )}
+        </AnimatePresence>
+      </Card>
+    );
+  };
