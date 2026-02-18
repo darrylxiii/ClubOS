@@ -1,102 +1,92 @@
 
 
-# Full Layout Audit: Maximize Screen Utilization
+# Fix: Decline Error and Email Dump Failure
 
-## Current Score: 45/100
+## Root Cause (Both Issues)
 
-The application has a significant layout inconsistency that wastes screen real estate on most pages.
+Both failures share a single root cause: the `generate_partner_smart_alerts()` database trigger function.
 
-## Problem
+This trigger fires on **every INSERT and UPDATE** to the `applications` table. It tries to insert into `partner_smart_alerts` using four columns that do not exist on the table:
 
-The Tailwind `container` class is configured with `max-width: 1400px` and centered positioning. Combined with the 80px sidebar, this creates large empty gutters on both sides of the content on any screen wider than ~1480px. Approximately 139 pages use `container mx-auto`, while only 19 pages follow the correct full-width pattern (`w-full px-4 sm:px-6 lg:px-8`).
+- `description` (table has `message` instead)
+- `priority` (does not exist)
+- `entity_type` (does not exist)
+- `entity_id` (does not exist)
 
-```text
-Current (container mx-auto):
-+--------+--80px--+-----1400px max-----+----dead space----+
-| Sidebar|        |   Centered Content  |                  |
-+--------+--------+---------------------+------------------+
+This causes a `column does not exist` error that rolls back the entire transaction:
 
-Target (w-full px-4 sm:px-6 lg:px-8):
-+--------+--80px--+----------fills remaining space---------+
-| Sidebar|        |   Content stretches to edge            |
-+--------+--------+----------------------------------------+
+- **Decline**: Updates application status to `rejected` -- trigger fires -- fails -- rollback
+- **Email dump import**: Inserts new applications -- trigger fires -- fails -- rollback
+
+The database logs confirm this:
+```
+ERROR: column "description" of relation "partner_smart_alerts" does not exist
 ```
 
-## Fix Strategy
+## Fix
 
-### 1. Update Tailwind container config (tailwind.config.ts)
+### Database Migration: Fix `generate_partner_smart_alerts()` function
 
-Remove the max-width cap on `container` so any remaining uses aren't artificially constrained:
+Update the function to use the correct column names that actually exist on the `partner_smart_alerts` table:
 
-```typescript
-container: {
-  center: false,        // was: true
-  padding: "0",         // was: "2rem" (padding handled per-page)
-  screens: {},          // remove 2xl: 1400px cap
-},
+| Trigger uses (wrong) | Table has (correct) |
+|---|---|
+| `description` | `message` |
+| `priority` | `severity` |
+| `entity_type` | stored in `metadata` |
+| `entity_id` | stored in `metadata` |
+
+The corrected function will:
+1. Use `message` instead of `description`
+2. Use `severity` instead of `priority`
+3. Store `entity_type` and `entity_id` inside the existing `metadata` JSONB column
+4. Add a safety check so it never crashes the parent transaction (wrap in exception handler)
+
+```sql
+CREATE OR REPLACE FUNCTION generate_partner_smart_alerts()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_company_id uuid;
+  v_job_title text;
+  v_days_in_stage integer;
+BEGIN
+  SELECT j.company_id, j.title
+  INTO v_company_id, v_job_title
+  FROM jobs j WHERE j.id = NEW.job_id;
+
+  IF v_company_id IS NULL THEN RETURN NEW; END IF;
+
+  v_days_in_stage := EXTRACT(DAY FROM
+    (NOW() - COALESCE(NEW.stage_updated_at, NEW.updated_at)));
+
+  IF v_days_in_stage > 7 THEN
+    INSERT INTO partner_smart_alerts (
+      company_id, alert_type, title, message, severity, metadata
+    ) VALUES (
+      v_company_id,
+      'stale_candidate',
+      'Candidate awaiting action',
+      format('Candidate has been in current stage for %s days', v_days_in_stage),
+      CASE WHEN v_days_in_stage > 14 THEN 'high' ELSE 'medium' END,
+      jsonb_build_object('entity_type','application','entity_id',NEW.id)
+    ) ON CONFLICT DO NOTHING;
+  END IF;
+
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  RAISE WARNING 'generate_partner_smart_alerts failed: %', SQLERRM;
+  RETURN NEW;
+END;
+$$;
 ```
 
-### 2. Create a reusable `PageContainer` component
+The `EXCEPTION WHEN OTHERS` block ensures that even if unexpected issues arise in the future, this trigger will never block the primary application operation (decline, advance, import, etc.).
 
-A single shared wrapper that replaces both `container mx-auto` and `w-full px-4 sm:px-6 lg:px-8` with one consistent API:
+## No Code Changes Needed
 
-```typescript
-// src/components/ui/page-container.tsx
-export function PageContainer({ children, maxWidth, className }) {
-  return (
-    <div className={cn(
-      "w-full px-4 sm:px-6 lg:px-8 py-6",
-      maxWidth && `max-w-${maxWidth}`,  // opt-in cap for forms/settings
-      className
-    )}>
-      {children}
-    </div>
-  );
-}
-```
-
-### 3. Migrate all pages (batch by category)
-
-Replace `container mx-auto px-4 ...` with `w-full px-4 sm:px-6 lg:px-8` across all 139 affected pages. Pages that legitimately need a narrower width (like Settings at `max-w-5xl`, or forms at `max-w-4xl`) keep their `max-w-*` class but drop the `container mx-auto`.
-
-**High-traffic pages (fix first):**
-- `/jobs` (Jobs.tsx) -- `container mx-auto px-4` on admin/partner view
-- `/admin/candidates` (AdminCandidates.tsx) -- `container mx-auto px-4 py-8`
-- `/settings` (Settings.tsx) -- `container mx-auto px-4 py-8 max-w-5xl` (keep max-w-5xl, drop container)
-- `/candidates/:id` (UnifiedCandidateProfile.tsx) -- `container mx-auto px-4 py-6 max-w-7xl`
-- JobDashboard, Companies, TalentPool, Analytics, MeetingHistory, etc.
-
-**Admin hub pages (already correct):**
-- GlobalAnalytics, SalaryInsights, DataHealth, all Hub pages -- already use `w-full px-4 sm:px-6 lg:px-8`
-
-**Public/standalone pages (keep centered):**
-- Auth, BookingPage, ApplicationStatusPortal, legal pages -- these are standalone and benefit from centered layouts
-
-### 4. Remove redundant AppLayout double-wrapping
-
-Several pages wrap content in `<AppLayout>` even though `ProtectedLayout` already provides it via the router. This creates double-wrapping. These should be audited and the inner `<AppLayout>` removed where the route already uses `ProtectedLayout`.
-
-### 5. Main content area adjustment (AppLayout.tsx)
-
-The `<main>` element already uses `flex-1 min-w-0 md:ml-20` which is correct. No changes needed to the shell itself.
-
-## Pages Affected (~120 authenticated pages)
-
-The migration touches the outer wrapper `className` in each page file. The change per file is a single line: replacing `container mx-auto px-N ...` with `w-full px-4 sm:px-6 lg:px-8 ...`.
-
-Due to the volume (~120 files), this will be done in batches:
-- Batch 1: Top 15 highest-traffic pages (Jobs, Candidates, Settings, Dashboard, Tasks, TalentPool, Companies, Analytics, Meetings, etc.)
-- Batch 2: Admin pages (~30 files)
-- Batch 3: CRM/Partner pages (~20 files)
-- Batch 4: Remaining pages (~55 files)
-
-## Expected Score After Fix: 92/100
-
-Remaining 8 points would come from:
-- Fine-tuning responsive breakpoints for ultra-wide monitors (3440px+)
-- Content-specific density improvements per page
-- Ensuring all grid layouts use responsive columns that scale with available width
+The front-end code for both decline (`EnhancedCandidateActionDialog.tsx`) and email dump import (`ExtractedCandidatesPreview.tsx`) is correct. The error originates entirely in the database trigger. Once the migration is applied, both features will work immediately.
 
 ## Risk
 
-Low. This is a CSS-only change (class names). No logic, data, or functionality is modified. Each page's internal layout (grids, cards, tabs) will naturally expand to fill the available width since they already use responsive Tailwind classes.
+Very low. This is a single function fix. The trigger's purpose (generating stale-candidate alerts) is non-critical and already fires silently. Adding the exception handler makes it resilient to any future schema drift.
+
