@@ -344,7 +344,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         <CardContent>
           <p className="text-sm text-muted-foreground">
             No upcoming interviews scheduled
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <span className="block text-xs mt-2 text-muted-foreground/60">
                 Debug: Checked at {new Date().toISOString()}
               </span>

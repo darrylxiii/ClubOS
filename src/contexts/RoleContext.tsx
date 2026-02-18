@@ -129,7 +129,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, availableRoles, currentRole]); // Include currentRole to update ref when it changes
+  }, [user, availableRoles]); // Do NOT include currentRole -- lastKnownRoleRef handles it
 
   const switchRole = async (newRole: UserRole) => {
     // Prevent switching to the same role

@@ -45,7 +45,7 @@ export class WhatsAppTabErrorBoundary extends Component<Props, State> {
             <RefreshCw className="w-4 h-4" />
             Try Again
           </Button>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {import.meta.env.DEV && this.state.error && (
             <pre className="mt-4 p-3 bg-muted rounded text-xs text-left max-w-md overflow-auto">
               {this.state.error.message}
             </pre>
