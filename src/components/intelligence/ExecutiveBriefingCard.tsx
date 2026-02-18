@@ -23,7 +23,18 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
         body: { candidateId, jobId }
       });
 
-      if (error) throw error;
+      if (error) {
+        // supabase.functions.invoke wraps non-2xx as FunctionsHttpError
+        const msg = typeof data?.error === 'string' ? data.error : 'Failed to generate briefing';
+        if (msg.includes('credits exhausted') || msg.includes('402')) {
+          toast.error("AI credits exhausted. Please top up your workspace usage in Settings.");
+        } else if (msg.includes('rate limit') || msg.includes('429')) {
+          toast.error("AI rate limit reached. Please try again in a moment.");
+        } else {
+          toast.error(msg);
+        }
+        return;
+      }
       setBriefing(data.briefing);
       toast.success("Executive briefing generated");
     } catch (error: unknown) {
