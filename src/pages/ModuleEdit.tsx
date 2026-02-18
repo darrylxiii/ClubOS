@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -259,30 +259,25 @@ export default function ModuleEdit() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <SectionLoader />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <SectionLoader />
+      </div>
     );
   }
 
   if (!module) {
     return (
-      <AppLayout>
-        <div className="container max-w-6xl mx-auto p-6 text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Module not found</h2>
-          <Button onClick={() => navigate("/academy/creator")}>
-            Back to Creator Hub
-          </Button>
-        </div>
-      </AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
+        <h2 className="text-2xl font-bold mb-4">Module not found</h2>
+        <Button onClick={() => navigate("/academy/creator")}>
+          Back to Creator Hub
+        </Button>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container max-w-5xl mx-auto p-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -588,7 +583,6 @@ export default function ModuleEdit() {
             </Tabs>
           </form>
         </Card>
-      </div>
-    </AppLayout>
+    </div>
   );
 }

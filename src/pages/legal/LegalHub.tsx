@@ -142,7 +142,7 @@ export default function LegalHub() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
           <Link to="/" className="flex items-center">
             <img 
               src={quantumLogoDark} 
@@ -160,7 +160,7 @@ export default function LegalHub() {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-12 max-w-6xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12 max-w-6xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">

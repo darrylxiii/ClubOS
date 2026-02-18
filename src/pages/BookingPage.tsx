@@ -278,7 +278,7 @@ export default function BookingPage() {
   const pageContent = (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
       <MinimalHeader showBackButton={false} showHelpLink={true} />
-      <div className="container mx-auto py-8 px-4 max-w-5xl flex-1">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex-1">
           {/* Header */}
           <div className="mb-8 text-center">
             <Avatar className="h-20 w-20 mx-auto mb-4">

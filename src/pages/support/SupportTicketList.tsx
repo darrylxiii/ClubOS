@@ -16,7 +16,6 @@ import { Plus, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const statusColors = {
@@ -67,8 +66,7 @@ export default function SupportTicketList() {
   );
 
   return (
-    <AppLayout>
-      <div className="container max-w-6xl py-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <Breadcrumb items={[
           { label: 'Home', path: '/home' },
           { label: 'Support Tickets' }
@@ -165,7 +163,6 @@ export default function SupportTicketList() {
           </Button>
         </Card>
       )}
-      </div>
-    </AppLayout>
+    </div>
   );
 }

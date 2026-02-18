@@ -39,7 +39,7 @@ const Admin = () => {
   // Wait for role to be loaded before making any decisions
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -56,7 +56,7 @@ const Admin = () => {
         <OceanBackgroundVideo />
 
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">
+        <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           <Breadcrumb
             items={[
               { label: 'Home', path: '/home' },

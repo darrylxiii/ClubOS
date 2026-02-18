@@ -15,7 +15,6 @@ import {
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { migrateToast as toast } from "@/lib/notify";
-import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const categories = [
@@ -100,8 +99,7 @@ export default function SupportTicketNew() {
     formData.priority === 'medium' ? '4 hours' : '24 hours';
 
   return (
-    <AppLayout>
-      <div className="container max-w-3xl py-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <Breadcrumb items={[
           { label: 'Home', path: '/home' },
           { label: 'Support', path: '/support/tickets' },
@@ -223,7 +221,6 @@ export default function SupportTicketNew() {
           </Button>
         </div>
       </form>
-      </div>
-    </AppLayout>
+    </div>
   );
 }

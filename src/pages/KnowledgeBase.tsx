@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, BookOpen, TrendingUp, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
 const categories = [
@@ -90,9 +89,8 @@ export default function KnowledgeBase() {
   const displayArticles = searchResults || categoryArticles || featuredArticles;
 
   return (
-    <AppLayout>
-      <div className="container max-w-7xl py-8">
-        <Breadcrumb items={[
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      <Breadcrumb items={[
           { label: 'Home', path: '/home' },
           { label: 'Knowledge Base' }
         ]} />
@@ -222,7 +220,6 @@ export default function KnowledgeBase() {
           </Card>
         </div>
       </div>
-      </div>
-    </AppLayout>
+    </div>
   );
 }

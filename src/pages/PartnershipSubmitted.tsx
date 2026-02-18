@@ -78,7 +78,7 @@ export default function PartnershipSubmitted() {
     <div className="min-h-screen bg-background">
       {/* Top Banner */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-1 relative flex justify-center items-center">
           <img 
             src={quantumLogoDark} 
             alt="Quantum Club" 
@@ -96,7 +96,7 @@ export default function PartnershipSubmitted() {
       </div>
 
       {/* Success Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
         <Card className="max-w-4xl mx-auto p-8 md:p-12">
           <div className="py-8">
             <div className="text-center mb-8">
