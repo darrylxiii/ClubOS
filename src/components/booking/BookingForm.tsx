@@ -16,6 +16,7 @@ import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { GuestEmailInput, GuestWithPermissions } from "./GuestEmailInput";
 import { GuestPlatformSelector } from "./GuestPlatformSelector";
 import { TimezoneWarning } from "./TimezoneWarning";
+import { RecurringBookingToggle, type RecurrenceConfig } from "./RecurringBookingToggle";
 import { logger } from "@/lib/logger";
 import { getAvailableSlots } from "@/services/availability";
 import { createBooking } from "@/services/booking";
@@ -65,6 +66,11 @@ export function BookingForm({
     smsReminders: false,
   });
   const [guests, setGuests] = useState<GuestWithPermissions[]>([]);
+  const [recurrence, setRecurrence] = useState<RecurrenceConfig>({
+    enabled: false,
+    frequency: "weekly",
+    occurrences: 4,
+  });
 
   // Platform selection state
   const [selectedVideoPlatform, setSelectedVideoPlatform] = useState<string>(
@@ -385,6 +391,9 @@ export function BookingForm({
             Invite team members to join this meeting
           </p>
         </div>
+
+        {/* Recurring booking toggle */}
+        <RecurringBookingToggle value={recurrence} onChange={setRecurrence} />
 
         <div className="space-y-2">
           <Label htmlFor="notes">Additional Notes (optional)</Label>

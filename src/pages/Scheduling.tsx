@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat, CheckCircle, Brain, UsersRound } from "lucide-react";
+import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat, CheckCircle, Brain, UsersRound, Code, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { BookingAvailabilitySettings } from "@/components/scheduling/BookingAvailabilitySettings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,6 +26,8 @@ import { useAvailabilityOnboarding } from "@/hooks/useAvailabilityOnboarding";
 import { SchedulingSkeleton } from "@/components/LoadingSkeletons";
 import { SchedulingAITab } from "@/components/scheduling/SchedulingAITab";
 import { TeamLoadDashboard } from "@/components/scheduling/TeamLoadDashboard";
+import { EmbedCodeGenerator } from "@/components/booking/EmbedCodeGenerator";
+import { BookingWorkflowBuilder } from "@/components/booking/BookingWorkflowBuilder";
 
 interface BookingLink {
   id: string;
@@ -773,6 +775,14 @@ export default function Scheduling() {
               <UsersRound className="h-4 w-4" />
               Team
             </TabsTrigger>
+            <TabsTrigger value="embed" className="gap-2">
+              <Code className="h-4 w-4" />
+              Embed
+            </TabsTrigger>
+            <TabsTrigger value="workflows" className="gap-2">
+              <Zap className="h-4 w-4" />
+              Workflows
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="links" className="space-y-4 mt-6">
@@ -977,6 +987,19 @@ export default function Scheduling() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="embed" className="mt-6">
+            <EmbedCodeGenerator
+              bookingLinks={bookingLinks.map((l) => ({ id: l.id, slug: l.slug, title: l.title }))}
+            />
+          </TabsContent>
+
+          <TabsContent value="workflows" className="mt-6">
+            <BookingWorkflowBuilder
+              bookingLinks={bookingLinks.map((l) => ({ id: l.id, title: l.title }))}
+              userId={user?.id || ""}
+            />
           </TabsContent>
         </Tabs>
       </div>

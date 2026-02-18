@@ -12,6 +12,7 @@ import { UnifiedDateTimeSelector } from "@/components/booking/UnifiedDateTimeSel
 import { AIBookingAssistant } from "@/components/booking/AIBookingAssistant";
 import { TimezoneSelector } from "@/components/booking/TimezoneSelector";
 import { MinimalHeader } from "@/components/MinimalHeader";
+import { BookingProgressStepper } from "@/components/booking/BookingProgressStepper";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
@@ -287,6 +288,9 @@ export default function BookingPage() {
             </Avatar>
             <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "The Quantum Club"}</h1>
           </div>
+
+          {/* Progress Stepper */}
+          <BookingProgressStepper currentStep={step} />
 
           <Card className="mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
             <CardHeader>

@@ -416,10 +416,12 @@ export function UnifiedDateTimeSelector({
             )}
 
             {selectedDate && !loading && availableSlots.length > 0 && (
-              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2" role="listbox" aria-label="Available time slots">
                 <AnimatePresence mode="popLayout">
                   {availableSlots.map((slot, index) => {
                     const { primary, secondary } = formatSlotDisplay(slot);
+                    const slotDate = selectedDate ? format(selectedDate, "EEEE, MMMM d") : "";
+                    const ariaLabel = `Book ${primary} on ${slotDate}${secondary ? ` (${secondary})` : ""}`;
                     return (
                       <motion.div
                         key={index}
@@ -437,8 +439,11 @@ export function UnifiedDateTimeSelector({
                               : "hover:bg-accent hover:text-accent-foreground border-border/60 hover:scale-[1.01]"
                           )}
                           onClick={() => handleTimeSelect(slot)}
+                          role="option"
+                          aria-selected={selectedSlot?.start === slot.start}
+                          aria-label={ariaLabel}
                         >
-                          <Clock className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <Clock className="mr-2 h-4 w-4 flex-shrink-0" aria-hidden="true" />
                           <div className="flex flex-col items-start">
                             <span className="text-base">{primary}</span>
                             {secondary && (

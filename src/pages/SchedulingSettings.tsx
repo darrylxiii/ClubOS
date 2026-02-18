@@ -11,6 +11,8 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, Calendar, Globe, Bell, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { WeeklyAvailabilityGrid, type WeekSchedule } from "@/components/scheduling/WeeklyAvailabilityGrid";
+import { DateOverrideManager, type DateOverride } from "@/components/scheduling/DateOverrideManager";
 
 interface AvailabilitySettings {
   default_start_time: string;
@@ -44,6 +46,8 @@ export default function SchedulingSettings() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [weekSchedule, setWeekSchedule] = useState<WeekSchedule | undefined>(undefined);
+  const [dateOverrides, setDateOverrides] = useState<DateOverride[]>([]);
   const [settings, setSettings] = useState<AvailabilitySettings>({
     default_start_time: "09:00",
     default_end_time: "17:00",
@@ -332,6 +336,12 @@ export default function SchedulingSettings() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Per-Day Availability */}
+      <WeeklyAvailabilityGrid value={weekSchedule} onChange={setWeekSchedule} />
+
+      {/* Date Overrides */}
+      <DateOverrideManager overrides={dateOverrides} onChange={setDateOverrides} />
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
