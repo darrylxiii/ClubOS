@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGate } from "@/components/RoleGate";
@@ -15,9 +15,8 @@ export default function PartnerBilling() {
   const [activeTab, setActiveTab] = useState("billing-details");
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['partner', 'company_admin']} showLoading>
-        <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <RoleGate allowedRoles={['partner', 'company_admin']} showLoading>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Billing & Invoices</h1>
             <p className="text-muted-foreground">
@@ -67,6 +66,5 @@ export default function PartnerBilling() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
   );
 }

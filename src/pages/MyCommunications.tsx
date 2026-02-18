@@ -1,5 +1,5 @@
 import { RefreshCw, MessageSquare, Settings, TrendingUp, User } from 'lucide-react';
-import { AppLayout } from '@/components/AppLayout';
+
 import { PageTitle, Subtitle } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,8 +21,7 @@ export default function MyCommunications() {
   } = useCandidateCommunications();
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -78,7 +77,6 @@ export default function MyCommunications() {
             <CommunicationStatsCard stats={stats} />
           </div>
         </div>
-      </div>
-    </AppLayout>
+    </div>
   );
 }

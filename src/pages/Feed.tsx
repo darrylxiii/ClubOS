@@ -4,7 +4,7 @@ import { Stories } from "@/components/feed/Stories";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AppLayout } from "@/components/AppLayout";
+
 import { TrendingUp, Users, Sparkles } from "lucide-react";
 import { useAlgorithmicFeed } from "@/hooks/useAlgorithmicFeed";
 import { BackgroundVideo } from "@/components/BackgroundVideo";
@@ -14,7 +14,7 @@ export default function Feed() {
   const { posts, loading, feedType, setFeedType, refetch } = useAlgorithmicFeed();
 
   return (
-    <AppLayout>
+    <>
       <BackgroundVideo />
 
       <div className="relative z-10 max-w-3xl mx-auto py-8 px-4 space-y-6">
@@ -106,6 +106,6 @@ export default function Feed() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

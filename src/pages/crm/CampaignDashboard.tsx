@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,25 +12,24 @@ import {
   Plus, 
   RefreshCw, 
   Mail, 
-  Users,
-  TrendingUp,
-  Eye,
-  MessageSquare,
-  AlertCircle,
-  Pause,
-  Play,
-  Archive,
-  MoreHorizontal,
-  Upload,
-  BarChart3,
-  Calendar
+  Users, 
+  TrendingUp, 
+  Eye, 
+  MessageSquare, 
+  AlertCircle, 
+  Pause, 
+  Play, 
+  Archive, 
+  MoreHorizontal, 
+  Upload, 
+  BarChart3, 
+  Calendar 
 } from 'lucide-react';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
 import type { CRMCampaign } from '@/types/crm-enterprise';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { CSVImportDialog } from '@/components/crm/CSVImportDialog';
 import { CreateCampaignDialog } from '@/components/crm/CreateCampaignDialog';
-import { CRMEmptyState } from '@/components/crm/CRMEmptyState';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,136 +73,134 @@ export default function CampaignDashboard() {
   ];
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-          >
-            <div>
-              <h1 className="text-2xl font-bold">Campaigns</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage your cold outreach campaigns
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search campaigns..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 w-48 bg-muted/20 border-border/30"
-                />
-              </div>
-              <Button variant="outline" size="icon" onClick={() => refetch()}>
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
-                <Upload className="w-4 h-4 mr-2" />
-                Import
-              </Button>
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Campaign
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                        <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                      </div>
-                      <div>
-                        {loading ? (
-                          <Skeleton className="h-7 w-12" />
-                        ) : (
-                          <p className="text-2xl font-bold">{stat.value}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground">{stat.label}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        >
+          <div>
+            <h1 className="text-2xl font-bold">Campaigns</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your cold outreach campaigns
+            </p>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search campaigns..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 w-48 bg-muted/20 border-border/30"
+              />
+            </div>
+            <Button variant="outline" size="icon" onClick={() => refetch()}>
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Campaign
+            </Button>
+          </div>
+        </motion.div>
 
-          {/* Campaign List */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center justify-between">
-                  <span>All Campaigns</span>
-                  <Badge variant="outline">{filteredCampaigns.length} campaigns</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => (
-                      <Skeleton key={i} className="h-24 w-full" />
-                    ))}
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                      <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                    </div>
+                    <div>
+                      {loading ? (
+                        <Skeleton className="h-7 w-12" />
+                      ) : (
+                        <p className="text-2xl font-bold">{stat.value}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    </div>
                   </div>
-                ) : filteredCampaigns.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredCampaigns.map((campaign) => (
-                      <CampaignCard 
-                        key={campaign.id} 
-                        campaign={campaign}
-                        onStatusChange={handleStatusChange}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No campaigns found</p>
-                    <Button className="mt-4" onClick={() => setImportDialogOpen(true)}>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Import from Instantly
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
 
-        <CSVImportDialog
-          open={importDialogOpen}
-          onOpenChange={setImportDialogOpen}
-          onSuccess={() => {
-            refetch();
-            setImportDialogOpen(false);
-          }}
-        />
+        {/* Campaign List */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span>All Campaigns</span>
+                <Badge variant="outline">{filteredCampaigns.length} campaigns</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : filteredCampaigns.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredCampaigns.map((campaign) => (
+                    <CampaignCard 
+                      key={campaign.id} 
+                      campaign={campaign}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No campaigns found</p>
+                  <Button className="mt-4" onClick={() => setImportDialogOpen(true)}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import from Instantly
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
 
-        <CreateCampaignDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          onSuccess={refetch}
-        />
-      </RoleGate>
-    </AppLayout>
+      <CSVImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onSuccess={() => {
+          refetch();
+          setImportDialogOpen(false);
+        }}
+      />
+
+      <CreateCampaignDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={refetch}
+      />
+    </RoleGate>
   );
 }
 
