@@ -48,7 +48,7 @@ export default function GigDetailPage() {
   if (!gig) {
     return (
       <AppLayout>
-        <div className="container mx-auto py-12 text-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Gig Not Found</h1>
           <Button onClick={() => navigate("/projects/gigs")}>Browse Gigs</Button>
         </div>
@@ -88,7 +88,7 @@ export default function GigDetailPage() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 px-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">

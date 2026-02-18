@@ -20,7 +20,7 @@ export const PressureCookerResults = memo(({ results, onBack }: PressureCookerRe
   ];
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <Card>
         <CardHeader>
           <div className="text-6xl mb-4 text-center">🏆</div>

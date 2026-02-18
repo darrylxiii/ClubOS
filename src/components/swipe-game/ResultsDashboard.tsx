@@ -32,7 +32,7 @@ export const ResultsDashboard = memo(({ result }: ResultsDashboardProps) => {
 
   return (
     <div className="min-h-screen p-4 bg-gradient-to-br from-background to-background/80">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Hero Card */}
         <Card>
           <CardHeader className="text-center pb-4">

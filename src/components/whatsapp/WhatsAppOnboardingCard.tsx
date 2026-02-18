@@ -69,7 +69,7 @@ export function WhatsAppOnboardingCard({
   const progress = (completedSteps / steps.length) * 100;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 w-full space-y-6">
       {/* Hero Section */}
       <Card className="border-[#25d366]/20 bg-gradient-to-br from-[#25d366]/5 to-transparent">
         <CardHeader className="text-center pb-2">

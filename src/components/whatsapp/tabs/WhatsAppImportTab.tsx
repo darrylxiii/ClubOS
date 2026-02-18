@@ -152,7 +152,7 @@ export function WhatsAppImportTab() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 w-full space-y-6">
       <div>
         <h2 className="text-xl font-bold">Import WhatsApp Chat</h2>
         <p className="text-sm text-muted-foreground">Upload a WhatsApp chat export to track company interactions</p>

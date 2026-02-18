@@ -63,7 +63,7 @@ export default function EmployeeManagement() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <div>
             <h1 className="text-3xl font-bold">Employee Management</h1>
