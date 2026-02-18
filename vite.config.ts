@@ -18,6 +18,8 @@ export default defineConfig(({ mode, command }) => ({
   optimizeDeps: {
     include: [
       'react', 'react-dom', 'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
       'react-router-dom',
       '@supabase/supabase-js',
       '@tanstack/react-query',
