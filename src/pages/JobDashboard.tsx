@@ -110,7 +110,7 @@ export default function JobDashboard() {
   const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<any>(null);
   const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<{
     candidate: any;
-    action: 'advance' | 'decline';
+    action: 'advance' | 'decline' | 'move_back';
   } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [rejectedCount, setRejectedCount] = useState(0);
@@ -902,6 +902,9 @@ export default function JobDashboard() {
                             }}
                             onRejectCandidate={(candidate) => {
                               setSelectedCandidateForAction({ candidate, action: 'decline' });
+                            }}
+                            onMoveBackCandidate={(candidate) => {
+                              setSelectedCandidateForAction({ candidate, action: 'move_back' });
                             }}
                             onViewProfile={(candidate) => {
                               const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;

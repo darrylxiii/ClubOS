@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, ArrowRight, XCircle } from "lucide-react";
+import { Loader2, ArrowRight, XCircle, ArrowLeft } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -36,7 +36,7 @@ interface Props {
   currentStageIndex: number;
   stages: any[];
   nextStage?: string;
-  actionType: 'advance' | 'decline';
+  actionType: 'advance' | 'decline' | 'move_back';
   onComplete: () => void;
 }
 
@@ -105,9 +105,11 @@ export function EnhancedCandidateActionDialog({
   useEffect(() => {
     if (open) {
       resetForm();
-      // Set default target to next stage
+      // Set default target stage
       if (actionType === 'advance' && currentStageIndex !== undefined) {
         setTargetStageIndex(currentStageIndex + 1);
+      } else if (actionType === 'move_back' && currentStageIndex !== undefined && currentStageIndex > 0) {
+        setTargetStageIndex(currentStageIndex - 1);
       }
     }
   }, [open, actionType, currentStageIndex]);
@@ -118,8 +120,13 @@ export function EnhancedCandidateActionDialog({
       return;
     }
 
-    if (actionType === 'advance' && targetStageIndex === null) {
+    if ((actionType === 'advance' || actionType === 'move_back') && targetStageIndex === null) {
       toast.error("Please select a target stage");
+      return;
+    }
+
+    if (actionType === 'move_back' && !feedbackText.trim()) {
+      toast.error("Please provide a reason for moving back");
       return;
     }
 
@@ -144,7 +151,7 @@ export function EnhancedCandidateActionDialog({
       const companyId = jobData?.company_id;
       const candidateProfileId = candidateData?.id;
 
-      if (actionType === 'advance' && targetStageIndex !== null) {
+      if ((actionType === 'advance' || actionType === 'move_back') && targetStageIndex !== null) {
         // Validate target stage
         if (targetStageIndex < 0 || targetStageIndex >= stages.length) {
           toast.error("Invalid target stage");
@@ -154,7 +161,8 @@ export function EnhancedCandidateActionDialog({
         const targetStage = stages[targetStageIndex];
 
         // Update application with detailed error logging
-        console.log('[Pipeline] Advancing candidate:', {
+        const moveDirection = actionType === 'move_back' ? 'Moving back' : 'Advancing';
+        console.log(`[Pipeline] ${moveDirection} candidate:`, {
           applicationId,
           candidateName,
           fromStage: currentStage,
@@ -190,7 +198,7 @@ export function EnhancedCandidateActionDialog({
           await supabase.from('pipeline_audit_logs').insert({
             job_id: jobId,
             user_id: user.id,
-            action: 'candidate_advanced',
+            action: actionType === 'move_back' ? 'candidate_moved_back' : 'candidate_advanced',
             stage_data: {
               candidate_name: candidateName,
               candidate_id: candidateProfileId,
@@ -198,9 +206,10 @@ export function EnhancedCandidateActionDialog({
               to_stage: targetStage.name,
               from_stage_index: currentStageIndex,
               to_stage_index: targetStageIndex,
-              skills_match: skillsMatch[0],
-              culture_fit: cultureFit[0],
-              communication: communication[0]
+              skills_match: actionType === 'advance' ? skillsMatch[0] : undefined,
+              culture_fit: actionType === 'advance' ? cultureFit[0] : undefined,
+              communication: actionType === 'advance' ? communication[0] : undefined,
+              move_back_reason: actionType === 'move_back' ? feedbackText : undefined,
             },
             metadata: {
               application_id: applicationId,
@@ -255,10 +264,10 @@ export function EnhancedCandidateActionDialog({
               application_id: applicationId,
               interaction_type: 'status_change',
               interaction_direction: 'internal',
-              title: `Advanced to ${targetStage.name}`,
-              content: feedbackText || `Candidate advanced from ${currentStage} to ${targetStage.name} for ${jobTitle}`,
+              title: actionType === 'move_back' ? `Moved back to ${targetStage.name}` : `Advanced to ${targetStage.name}`,
+              content: feedbackText || `Candidate ${actionType === 'move_back' ? 'moved back' : 'advanced'} from ${currentStage} to ${targetStage.name} for ${jobTitle}`,
               metadata: {
-                action: 'advance',
+                action: actionType === 'move_back' ? 'move_back' : 'advance',
                 previous_stage: currentStage,
                 new_stage: targetStage.name,
                 job_id: jobId,
@@ -404,9 +413,11 @@ export function EnhancedCandidateActionDialog({
       }
 
       toast.success(
-        actionType === 'advance' 
-          ? `${candidateName} advanced to ${stages[targetStageIndex!].name}` 
-          : `${candidateName} declined`,
+        actionType === 'decline'
+          ? `${candidateName} declined`
+          : actionType === 'move_back'
+            ? `${candidateName} moved back to ${stages[targetStageIndex!].name}`
+            : `${candidateName} advanced to ${stages[targetStageIndex!].name}`,
         { duration: 3000 }
       );
       
@@ -454,6 +465,11 @@ export function EnhancedCandidateActionDialog({
                 <ArrowRight className="h-5 w-5 text-primary" />
                 Advance Candidate
               </>
+            ) : actionType === 'move_back' ? (
+              <>
+                <ArrowLeft className="h-5 w-5 text-amber-500" />
+                Move Candidate Back
+              </>
             ) : (
               <>
                 <XCircle className="h-5 w-5 text-destructive" />
@@ -464,7 +480,9 @@ export function EnhancedCandidateActionDialog({
           <DialogDescription>
             {actionType === 'advance' 
               ? `Moving ${candidateName} forward in the pipeline for ${jobTitle} at ${companyName}`
-              : `Declining ${candidateName} for ${jobTitle} at ${companyName}`
+              : actionType === 'move_back'
+                ? `Moving ${candidateName} to a previous stage for ${jobTitle} at ${companyName}`
+                : `Declining ${candidateName} for ${jobTitle} at ${companyName}`
             }
           </DialogDescription>
         </DialogHeader>
@@ -502,37 +520,37 @@ export function EnhancedCandidateActionDialog({
                     onValueChange={setCommunication}
                     max={10}
                     step={1}
-                  className="mt-2"
-                />
+                    className="mt-2"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <Label htmlFor="target-stage">Advance to Stage *</Label>
-              <Select 
-                value={targetStageIndex?.toString()} 
-                onValueChange={(value) => setTargetStageIndex(parseInt(value))}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select target stage..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {stages
-                    .filter((stage) => stage.order > currentStageIndex)
-                    .map((stage) => (
-                      <SelectItem key={stage.order} value={stage.order.toString()}>
-                        {stage.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Select which stage to move this candidate to
-              </p>
-            </div>
+              <div>
+                <Label htmlFor="target-stage">Advance to Stage *</Label>
+                <Select 
+                  value={targetStageIndex?.toString()} 
+                  onValueChange={(value) => setTargetStageIndex(parseInt(value))}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select target stage..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages
+                      .filter((stage) => stage.order > currentStageIndex)
+                      .map((stage) => (
+                        <SelectItem key={stage.order} value={stage.order.toString()}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Select which stage to move this candidate to
+                </p>
+              </div>
 
-            <div>
-              <Label htmlFor="advancement-notes">Notes (Optional)</Label>
+              <div>
+                <Label htmlFor="advancement-notes">Notes (Optional)</Label>
                 <Textarea
                   id="advancement-notes"
                   value={feedbackText}
@@ -541,6 +559,47 @@ export function EnhancedCandidateActionDialog({
                   rows={3}
                   className="mt-2"
                 />
+              </div>
+            </>
+          ) : actionType === 'move_back' ? (
+            <>
+              <div>
+                <Label htmlFor="target-stage">Move Back to Stage *</Label>
+                <Select 
+                  value={targetStageIndex?.toString()} 
+                  onValueChange={(value) => setTargetStageIndex(parseInt(value))}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select target stage..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages
+                      .filter((stage) => stage.order < currentStageIndex)
+                      .map((stage) => (
+                        <SelectItem key={stage.order} value={stage.order.toString()}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Select which previous stage to move this candidate to
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="move-back-reason">Reason for Moving Back *</Label>
+                <Textarea
+                  id="move-back-reason"
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="Explain why this candidate needs to return to a previous stage..."
+                  rows={4}
+                  className="mt-2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  A reason is required for accountability
+                </p>
               </div>
             </>
           ) : (
@@ -601,7 +660,7 @@ export function EnhancedCandidateActionDialog({
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {actionType === 'advance' ? 'Advance Candidate' : 'Decline Candidate'}
+            {actionType === 'advance' ? 'Advance Candidate' : actionType === 'move_back' ? 'Move Back' : 'Decline Candidate'}
           </Button>
         </DialogFooter>
       </DialogContent>
