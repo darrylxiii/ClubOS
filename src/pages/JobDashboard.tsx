@@ -433,13 +433,14 @@ export default function JobDashboard() {
           : 0;
       });
 
-      // Calculate conversion rates
+      // Calculate conversion rates — ratio of candidates who passed stage i vs all who reached it
       const conversionRates: { [key: string]: number } = {};
       for (let i = 0; i < stages.length - 1; i++) {
-        const current = stageBreakdown[i] || 0;
-        const next = stageBreakdown[i + 1] || 0;
-        const totalPassed = enrichedApps.filter(app => app.current_stage_index > i).length;
-        conversionRates[`${i}-${i + 1}`] = current > 0 ? Math.round((totalPassed / (current + totalPassed)) * 100) : 0;
+        const reachedStage = enrichedApps.filter(app => app.current_stage_index >= i).length;
+        const passedStage = enrichedApps.filter(app => app.current_stage_index > i).length;
+        conversionRates[`${i}-${i + 1}`] = reachedStage > 0
+          ? Math.round((passedStage / reachedStage) * 100)
+          : 0;
       }
 
       // Find last activity
@@ -451,8 +452,10 @@ export default function JobDashboard() {
         ? `${Math.floor((Date.now() - new Date(lastApp.updated_at || lastApp.applied_at).getTime()) / (1000 * 60 * 60))}h ago`
         : 'No activity yet';
 
-      // Mock "needs club check" - in production, filter by club_check_status field
-      const needsClubCheck = Math.min(enrichedApps.filter(app => app.current_stage_index === 0).length, 3);
+      // Candidates in stage 0 still awaiting initial screening
+      const needsClubCheck = enrichedApps.filter(
+        app => app.current_stage_index === 0 && app.status === 'applied'
+      ).length;
 
       setMetrics({
         totalApplicants: enrichedApps.length,
@@ -715,7 +718,20 @@ export default function JobDashboard() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          toast.success("Pipeline template saved");
+                          const name = window.prompt("Template name:");
+                          if (!name?.trim()) return;
+                          try {
+                            const existing = JSON.parse(localStorage.getItem('pipeline-templates') || '[]');
+                            existing.push({
+                              name: name.trim(),
+                              stages: stages.map(({ name, order }) => ({ name, order })),
+                              created_at: new Date().toISOString(),
+                            });
+                            localStorage.setItem('pipeline-templates', JSON.stringify(existing));
+                            toast.success(`Template "${name.trim()}" saved`);
+                          } catch {
+                            toast.error("Failed to save template");
+                          }
                         }}
                         className="gap-2"
                       >
@@ -828,20 +844,57 @@ export default function JobDashboard() {
                               }
                             }}
                             onDelete={async () => {
-                              const updatedStages = stages
-                                .filter((_, i) => i !== index)
-                                .map((s, i) => ({ ...s, order: i }));
+                              const stageApps = applications.filter(a => a.current_stage_index === index);
+                              const targetIndex = index > 0 ? index - 1 : 0;
+                              const targetStageName = index > 0 ? stages[targetIndex]?.name : stages.length > 1 ? stages[1]?.name : 'the first stage';
 
-                              const { error } = await supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId);
+                              const message = stageApps.length > 0
+                                ? `This stage has ${stageApps.length} candidate(s). They will be moved to "${targetStageName}". Delete "${stage.name}"?`
+                                : `Delete stage "${stage.name}"?`;
 
-                              if (!error) {
-                                await fetchJobDetails();
-                                toast.success("Stage deleted successfully");
-                              } else {
-                                toast.error("Failed to delete stage");
+                              if (!window.confirm(message)) return;
+
+                              try {
+                                // Migrate candidates out of the deleted stage
+                                if (stageApps.length > 0) {
+                                  const appIds = stageApps.map(a => a.id);
+                                  const { error: migrateError } = await supabase
+                                    .from('applications')
+                                    .update({ current_stage_index: targetIndex })
+                                    .in('id', appIds);
+                                  if (migrateError) throw migrateError;
+                                }
+
+                                // Also shift down candidates in stages above the deleted one
+                                const appsAbove = applications.filter(a => a.current_stage_index > index);
+                                if (appsAbove.length > 0) {
+                                  for (const app of appsAbove) {
+                                    await supabase
+                                      .from('applications')
+                                      .update({ current_stage_index: app.current_stage_index - 1 })
+                                      .eq('id', app.id);
+                                  }
+                                }
+
+                                // Remove stage and reindex
+                                const updatedStages = stages
+                                  .filter((_, i) => i !== index)
+                                  .map((s, i) => ({ ...s, order: i }));
+
+                                const { error } = await supabase
+                                  .from('jobs')
+                                  .update({ pipeline_stages: updatedStages })
+                                  .eq('id', jobId);
+
+                                if (!error) {
+                                  await fetchJobDetails();
+                                  toast.success("Stage deleted successfully");
+                                } else {
+                                  toast.error("Failed to delete stage");
+                                }
+                              } catch (err) {
+                                console.error('Stage deletion error:', err);
+                                toast.error("Failed to delete stage — candidates were not moved");
                               }
                             }}
                             onAdvanceCandidate={(candidate) => {
