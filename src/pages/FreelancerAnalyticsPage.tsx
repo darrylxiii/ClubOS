@@ -100,7 +100,7 @@ const FreelancerAnalyticsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
@@ -111,7 +111,7 @@ const FreelancerAnalyticsPage = () => {
 
   if (rechartsLoading || !recharts) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-[300px] w-full" />
       </div>
@@ -121,7 +121,7 @@ const FreelancerAnalyticsPage = () => {
   const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } = recharts;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Freelancer Analytics</h1>
         <p className="text-muted-foreground">Track your performance and growth</p>

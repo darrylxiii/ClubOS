@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -312,12 +311,12 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
     toast.success("Applications exported");
   };
 
-  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   if (loading) {
     return (
       <Wrapper>
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-center text-muted-foreground">Loading applications...</p>
         </div>
       </Wrapper>
@@ -326,7 +325,7 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
 
   return (
     <Wrapper>
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

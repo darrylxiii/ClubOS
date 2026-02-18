@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,7 +70,6 @@ export default function PartnerRejections() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Get user's company
       const { data: membership } = await supabase
         .from('company_members')
         .select('company_id')
@@ -86,7 +84,6 @@ export default function PartnerRejections() {
 
       setCompanyId(membership.company_id);
 
-      // Fetch jobs for this company
       const { data: companyJobs, error: jobsError } = await supabase
         .from('jobs')
         .select('*')
@@ -97,7 +94,6 @@ export default function PartnerRejections() {
 
       const jobIds = companyJobs?.map(j => j.id) || [];
 
-      // Fetch rejected applications for these jobs
       const { data: applications, error: appsError } = await supabase
         .from('applications')
         .select(`
@@ -115,14 +111,12 @@ export default function PartnerRejections() {
 
       if (appsError) throw appsError;
 
-      // Fetch candidate profiles
       const candidateIds = applications?.map(app => app.candidate_id).filter(Boolean) || [];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, email')
         .in('id', candidateIds);
 
-      // Fetch feedback
       const applicationIds = applications?.map(app => app.id) || [];
       const { data: feedbacks } = await supabase
         .from('company_candidate_feedback')
@@ -130,7 +124,6 @@ export default function PartnerRejections() {
         .in('application_id', applicationIds)
         .eq('feedback_type', 'rejection');
 
-      // Merge data
       const enrichedCandidates = (applications || []).map(app => {
         const profile = profiles?.find(p => p.id === app.candidate_id);
         const feedback = feedbacks?.find(f => f.application_id === app.id);
@@ -173,7 +166,6 @@ export default function PartnerRejections() {
     return matchesSearch && matchesJob && matchesReason;
   });
 
-  // Calculate statistics
   const stats = {
     total: rejectedCandidates.length,
     thisMonth: rejectedCandidates.filter(c => {
@@ -219,169 +211,165 @@ export default function PartnerRejections() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-8">
-          <PageLoadingSkeleton />
-        </div>
-      </AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <PageLoadingSkeleton />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-black uppercase tracking-tight">
-              Rejected Candidates
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Manage rejected candidates and identify talent pool opportunities
-            </p>
-          </div>
-          <Button onClick={handleExport} variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-black uppercase tracking-tight">
+            Rejected Candidates
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Manage rejected candidates and identify talent pool opportunities
+          </p>
         </div>
+        <Button onClick={handleExport} variant="outline">
+          <Download className="w-4 h-4 mr-2" />
+          Export
+        </Button>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Rejections</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <TrendingDown className="w-5 h-5 text-destructive" />
-                <span className="text-3xl font-bold">{stats.total}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-orange-500" />
-                <span className="text-3xl font-bold">{stats.thisMonth}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Top Reason</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                <span className="text-lg font-bold">
-                  {stats.topReason ? REJECTION_LABELS[stats.topReason[0]] : 'N/A'}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Talent Pool</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-blue-500" />
-                <span className="text-3xl font-bold">{stats.talentPool}</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Candidates for future roles
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Info Banner */}
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="py-4">
-            <div className="flex items-start gap-3">
-              <Lightbulb className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium">💡 Talent Pool Opportunity</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Candidates rejected for seniority mismatches might be perfect for other roles. 
-                  Review your talent pool regularly for cross-role opportunities.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Filters */}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search candidates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-
-              <Select value={filterJob} onValueChange={setFilterJob}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Jobs" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Jobs</SelectItem>
-                  {jobs.map(job => (
-                    <SelectItem key={job.id} value={job.id}>
-                      {job.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={filterReason} onValueChange={setFilterReason}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Reasons" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Reasons</SelectItem>
-                  {Object.entries(REJECTION_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Rejected Candidates ({filteredCandidates.length})
-            </CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Rejections</CardTitle>
           </CardHeader>
           <CardContent>
-            <VirtualizedPartnerRejectionList
-              candidates={filteredCandidates}
-              onSelectCandidate={(candidate) => {
-                setSelectedCandidate(candidate);
-                setDetailDialogOpen(true);
-              }}
-            />
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-destructive" />
+              <span className="text-3xl font-bold">{stats.total}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-orange-500" />
+              <span className="text-3xl font-bold">{stats.thisMonth}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Top Reason</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              <span className="text-lg font-bold">
+                {stats.topReason ? REJECTION_LABELS[stats.topReason[0]] : 'N/A'}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Talent Pool</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-blue-500" />
+              <span className="text-3xl font-bold">{stats.talentPool}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Candidates for future roles
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Info Banner */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="py-4">
+          <div className="flex items-start gap-3">
+            <Lightbulb className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium">💡 Talent Pool Opportunity</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Candidates rejected for seniority mismatches might be perfect for other roles. 
+                Review your talent pool regularly for cross-role opportunities.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search candidates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            <Select value={filterJob} onValueChange={setFilterJob}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Jobs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Jobs</SelectItem>
+                {jobs.map(job => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {job.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filterReason} onValueChange={setFilterReason}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Reasons" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Reasons</SelectItem>
+                {Object.entries(REJECTION_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Rejected Candidates ({filteredCandidates.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <VirtualizedPartnerRejectionList
+            candidates={filteredCandidates}
+            onSelectCandidate={(candidate) => {
+              setSelectedCandidate(candidate);
+              setDetailDialogOpen(true);
+            }}
+          />
+        </CardContent>
+      </Card>
 
       {/* Detail Dialog */}
       {selectedCandidate && (
@@ -394,11 +382,10 @@ export default function PartnerRejections() {
           onRefresh={loadData}
         />
       )}
-    </AppLayout>
+    </div>
   );
 }
 
-// Virtualized rejection list for partner view
 function VirtualizedPartnerRejectionList({
   candidates,
   onSelectCandidate,

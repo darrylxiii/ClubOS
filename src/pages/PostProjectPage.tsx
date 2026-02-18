@@ -4,7 +4,7 @@ import { PostProjectWizard } from "@/components/projects/client/PostProjectWizar
 export default function PostProjectPage() {
   return (
     <RoleGate allowedRoles={['admin', 'partner', 'strategist']}>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <PostProjectWizard />
       </div>
     </RoleGate>

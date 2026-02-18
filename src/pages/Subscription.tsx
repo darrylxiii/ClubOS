@@ -1,4 +1,3 @@
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,17 +47,14 @@ export default function Subscription() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container max-w-4xl mx-auto py-8 px-4">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Subscription Management</h1>
           <p className="text-muted-foreground">Manage your subscription and billing</p>
@@ -176,7 +172,6 @@ export default function Subscription() {
             </Card>
           </div>
         )}
-      </div>
-    </AppLayout>
+    </div>
   );
 }

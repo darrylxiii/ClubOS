@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { useWhatsAppConversations } from "@/hooks/useWhatsAppConversations";
 import { useWhatsAppMessages } from "@/hooks/useWhatsAppMessages";
@@ -104,8 +103,7 @@ export default function WhatsAppInbox() {
   };
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist', 'partner']}>
+    <RoleGate allowedRoles={['admin', 'strategist', 'partner']}>
         <div className="h-[calc(100vh-4rem)] flex flex-col">
           {/* Header */}
           <div className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4">
@@ -207,7 +205,6 @@ export default function WhatsAppInbox() {
             )}
           </SheetContent>
         </Sheet>
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 }

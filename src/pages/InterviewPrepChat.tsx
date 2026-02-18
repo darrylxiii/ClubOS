@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -214,143 +213,141 @@ export default function InterviewPrepChat() {
   };
 
   return (
-    <AppLayout>
-      <div className="container max-w-4xl mx-auto py-8 px-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/applications')}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Applications
-        </Button>
+    <div className="container max-w-4xl mx-auto py-8 px-4">
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/applications')}
+        className="mb-6"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back to Applications
+      </Button>
 
-        <div className="space-y-6">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Interview Prep Room</h1>
-            <p className="text-muted-foreground">
-              Practice your interview with an AI interviewer that knows your company and role
-            </p>
-          </div>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Interview Prep Room</h1>
+          <p className="text-muted-foreground">
+            Practice your interview with an AI interviewer that knows your company and role
+          </p>
+        </div>
 
-          {/* Company & Role Info */}
-          {applicationData && (
-            <Card className="p-6 bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)]">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex items-start gap-3">
-                  <Building2 className="h-5 w-5 text-primary mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Company</p>
-                    <p className="font-medium">{applicationData.company_name}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Briefcase className="h-5 w-5 text-primary mt-1" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Position</p>
-                    <p className="font-medium">{applicationData.position}</p>
-                  </div>
+        {/* Company & Role Info */}
+        {applicationData && (
+          <Card className="p-6 bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)]">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <Building2 className="h-5 w-5 text-primary mt-1" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Company</p>
+                  <p className="font-medium">{applicationData.company_name}</p>
                 </div>
               </div>
-            </Card>
-          )}
-
-          {/* Stage Selection */}
-          {!isInitialized && applicationData?.stages && (
-            <Card className="p-6 bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)]">
-              <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <Briefcase className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Select Interview Stage to Practice
-                  </label>
-                  <Select value={selectedStage} onValueChange={setSelectedStage}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {applicationData.stages.map((stage: any, index: number) => (
-                        <SelectItem key={index} value={stage.name}>
-                          {stage.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <p className="text-sm text-muted-foreground">Position</p>
+                  <p className="font-medium">{applicationData.position}</p>
                 </div>
-                <Button onClick={startInterview} className="w-full" size="lg">
-                  Start Interview Practice
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Stage Selection */}
+        {!isInitialized && applicationData?.stages && (
+          <Card className="p-6 bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)]">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Select Interview Stage to Practice
+                </label>
+                <Select value={selectedStage} onValueChange={setSelectedStage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {applicationData.stages.map((stage: any, index: number) => (
+                      <SelectItem key={index} value={stage.name}>
+                        {stage.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={startInterview} className="w-full" size="lg">
+                Start Interview Practice
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Chat Interface */}
+        {isInitialized && (
+          <Card className="h-[600px] flex flex-col bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)]">
+            <div className="p-4 border-b border-border/20">
+              <p className="text-sm font-medium">Practicing: {selectedStage}</p>
+            </div>
+
+            <ScrollArea className="flex-1 p-6" ref={scrollRef}>
+              <div className="space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted/50'
+                        }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                  <div className="flex justify-start">
+                    <div className="bg-muted/50 rounded-2xl px-4 py-3">
+                      <InlineLoader />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            <div className="p-4 border-t border-border/20">
+              <div className="flex gap-2">
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder="Type your response..."
+                  className="min-h-[60px] resize-none"
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={isLoading || !input.trim()}
+                  size="icon"
+                  className="h-[60px] w-[60px] flex-shrink-0"
+                >
+                  {isLoading ? (
+                    <InlineLoader />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
                 </Button>
               </div>
-            </Card>
-          )}
-
-          {/* Chat Interface */}
-          {isInitialized && (
-            <Card className="h-[600px] flex flex-col bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)]">
-              <div className="p-4 border-b border-border/20">
-                <p className="text-sm font-medium">Practicing: {selectedStage}</p>
-              </div>
-
-              <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-                <div className="space-y-4">
-                  {messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted/50'
-                          }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                  {isLoading && messages[messages.length - 1]?.role === 'user' && (
-                    <div className="flex justify-start">
-                      <div className="bg-muted/50 rounded-2xl px-4 py-3">
-                        <InlineLoader />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-
-              <div className="p-4 border-t border-border/20">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    placeholder="Type your response..."
-                    className="min-h-[60px] resize-none"
-                    disabled={isLoading}
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    disabled={isLoading || !input.trim()}
-                    size="icon"
-                    className="h-[60px] w-[60px] flex-shrink-0"
-                  >
-                    {isLoading ? (
-                      <InlineLoader />
-                    ) : (
-                      <Send className="h-5 w-5" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-        </div>
+            </div>
+          </Card>
+        )}
       </div>
-    </AppLayout>
+    </div>
   );
 }
