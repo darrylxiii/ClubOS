@@ -1,56 +1,113 @@
 
-# Fix: Full Screen Utilization Across All Pages
+# Holistic Layout Fix: Full Screen Utilization
 
 ## Problem
 
-Despite the previous Tailwind config fix (removing the container max-width cap), **121 pages** still use explicit `max-w-*xl` classes (e.g., `max-w-7xl` = 1280px, `max-w-6xl` = 1152px, `max-w-5xl` = 1024px) that hard-cap the content width. Combined with `mx-auto`, this centers content in a narrow column, leaving large empty gutters on wide screens.
+The screenshot confirms content is crammed into roughly 35% of the screen width on wide monitors. Despite the previous Tailwind config fix (removing the global container cap), **individual pages** still self-constrain their width through three patterns:
 
-Additionally, **~50 pages** still wrap content in `<AppLayout>` even though `ProtectedLayout` already provides it via the router, causing double sidebar/header rendering.
+1. **95 pages** still use `container mx-auto` -- artificially centering and capping width
+2. **76 pages** still use explicit `max-w-7xl` / `max-w-6xl` / `max-w-5xl` -- hard-capping at 1280px, 1152px, or 1024px
+3. **133 pages** redundantly wrap in `<AppLayout>` even though `ProtectedLayout` already provides it -- causing double sidebar/header rendering
 
-## Strategy
+The ClubHome page wrapper itself is correct (`w-full px-4 sm:px-6 lg:px-8`), but many other pages are not. This is a systematic issue across the entire application.
 
-### 1. Batch remove explicit max-width constraints from page wrappers
+## Fix Strategy
 
-For pages that should use full width (dashboards, lists, tables, analytics, CRM, admin):
-- Remove `max-w-7xl`, `max-w-6xl` from page wrapper divs
-- Replace `container mx-auto px-4` with `w-full px-4 sm:px-6 lg:px-8`
+### Rule: Which pages get full-width vs. narrow
 
-For pages that legitimately need narrower widths (forms, editors, contract signing, legal pages):
-- Keep their `max-w-*` but drop `container mx-auto`
+- **Full-width** (remove all constraints): Dashboards, lists, tables, analytics, CRM views, admin panels, pipeline views, talent pools, meeting views, social management, agent dashboards
+- **Narrow** (keep `max-w-*` but drop `container mx-auto`): Forms, settings, onboarding wizards, import tools, legal pages, contract signing, standalone public pages
 
-### 2. Remove redundant AppLayout wrapping
+### Changes by batch
 
-Pages rendered inside `ProtectedLayout` (which already wraps with `AppLayout`) should not also wrap themselves in `<AppLayout>`. This creates double sidebars/headers. Remove the inner `<AppLayout>` from these pages.
+**Batch 1 -- Admin pages (~25 files):**
+WhatsAppAnalytics, WhatsAppBookingPage, WhatsAppSettings, BulkOperationsHub, CompanyRelationships, ActivationFunnelDashboard, JobAnalyticsIndex, JobAnalyticsDashboard, AIConfiguration, GreenhouseSync, EnterpriseDashboard, TemplateManagement, FinanceHub, PerformanceHub, GlobalAnalytics, Achievements, EnhancedMLDashboard, RevenueDashboard, SystemHealth, EdgeFunctionCommandCenter, AdminExports, InvestorMetrics, EmployeeDetailPage
 
-### 3. Pages to update (by category)
+For each: Remove `container mx-auto`, remove `max-w-*xl`, replace with `w-full px-4 sm:px-6 lg:px-8`. Remove redundant `<AppLayout>` wrapper.
 
-**Full-width pages (remove max-w-* and container):**
-- CRM pages: CRMDashboard, CampaignDashboard, SuppressionList, ContactManagement, EmailTemplates, SequenceBuilder, DealPipeline
-- Admin pages: BulkOperationsHub, WhatsAppAnalytics, TemplateManagement, Achievements, EnhancedMLDashboard
-- Partner pages: PartnerBilling, PartnerTargetCompanies, LiveInterview
-- Feature pages: OfferComparison, MeetingIntelligenceHub, FreelancerAnalytics, Feed
-- And approximately 80 more pages
+**Batch 2 -- CRM pages (~15 files):**
+CRMIntegrations, CRMDashboard, CRMSettings, CRMAnalytics, CampaignDashboard, ContactManagement, DealPipeline, EmailTemplates, SequenceBuilder, SuppressionList, FocusView, LeadScoringConfig, ProspectAuditTrail, CRMAutomations
 
-**Narrow pages (keep max-w-*, remove container only):**
-- InteractionEntry (form, max-w-3xl) -- keep narrow
-- ContractSignaturePage (signing UI) -- keep narrow
-- WhatsAppImport (import wizard, max-w-4xl) -- keep narrow
-- Settings (already fixed with max-w-5xl) -- keep as-is
+Same transformation as Batch 1.
 
-### 4. Remove redundant AppLayout from pages using ProtectedLayout routes
+**Batch 3 -- Partner / Client pages (~15 files):**
+PartnerBilling, PartnerRejections, PartnerTargetCompanies, PartnerOnboarding, IntegrationsManagement, AuditLog, PartnerRelationships, PartnerAnalyticsDashboard, ClientAnalyticsPage, ContractDetailPage, CreateContractPage
 
-Pages like `EnhancedMLDashboard`, `Achievements`, `ModuleEdit`, `OfferComparison`, `PartnerBilling`, `LiveInterview`, `PartnerTargetCompanies`, etc. that wrap in `<AppLayout>` despite being rendered within `ProtectedLayout` routes will have the redundant `<AppLayout>` removed.
+Same transformation.
+
+**Batch 4 -- Feature pages (~30 files):**
+Meetings, MeetingNotes, MeetingInsights, MeetingHistory, BookingManagement, PersonalMeetingRoom, HiringIntelligenceHub, ApplicationDetail, Academy, LeaderboardPage, SocialManagement, Pricing, Subscription, ExpertMarketplace, CoverLetterGenerator, CareerPath, Feed, Referrals, LiveHub, ClubAI, ModuleEdit, ValuesPoker, Miljoenenjacht, Radio, SalesKPIDashboard, UnifiedKPICommandCenter, AgentDashboard
+
+Same transformation for dashboards/lists. Keep narrow constraints for focused content pages.
+
+**Batch 5 -- Remaining pages (~30 files):**
+ProjectProposalsPage, ProjectApplyPage, FreelancerSetupPage, PostProjectPage, SupportTicketList, SupportTicketNew, KnowledgeBase, InviteDashboard, Scheduling, Assessments, TalentPoolLists, and remaining pages
+
+Same transformation.
+
+**Pages to keep narrow (no change to max-w, only drop container):**
+- BookingPage (max-w-5xl) -- standalone public booking
+- WhatsAppImport (max-w-4xl) -- import wizard
+- AIConfiguration (max-w-4xl) -- settings form
+- WhatsAppSettings (max-w-4xl) -- settings form
+- Settings (max-w-5xl) -- already correct
+- CandidateOnboarding -- standalone onboarding flow
+- Legal pages (CookiePolicy, LegalHub) -- standalone public pages
+- DossierView (max-w-4xl) -- document view
+- WorkspacePage (max-w-4xl) -- editor
+- InteractionEntry (max-w-3xl) -- form
+
+### Per-file change pattern
+
+For full-width pages currently showing:
+```tsx
+// BEFORE
+<AppLayout>
+  <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    ...
+  </div>
+</AppLayout>
+```
+
+```tsx
+// AFTER
+<div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  ...
+</div>
+```
+
+For narrow pages:
+```tsx
+// BEFORE
+<AppLayout>
+  <div className="container mx-auto px-4 py-6 max-w-4xl">
+    ...
+  </div>
+</AppLayout>
+```
+
+```tsx
+// AFTER
+<div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
+  ...
+</div>
+```
 
 ## Scope
 
-Approximately 100 file changes, each a 1-2 line CSS class modification. No logic changes.
+Approximately 120 file changes, each a 1-3 line CSS class modification plus removing redundant `<AppLayout>` imports/wrappers. No logic, data, or functionality changes.
 
-## Expected Impact
+## Technical Details
 
-- Current effective score: **65/100** (config was fixed but pages still self-constrain)
-- After this fix: **92/100** (all dashboard/list/analytics pages fill available width)
-- Remaining 8 points: ultra-wide (3440px+) refinements and per-widget density tuning
+### Why removing `<AppLayout>` is safe
+All pages listed are children of `ProtectedLayout` in `App.tsx`. `ProtectedLayout` already wraps every child in `<AppLayout>`. The inner `<AppLayout>` creates a nested sidebar+header, which is wrong. Removing it is a bug fix.
+
+### Why removing `container mx-auto` is safe
+The `container` class was already neutered in `tailwind.config.ts` (center: false, no screen cap), but it still applies `width: 100%` with the old padding. Replacing with explicit `w-full px-4 sm:px-6 lg:px-8` is the standard pattern and matches the already-fixed pages.
+
+### Why removing `max-w-7xl` is safe
+`max-w-7xl` = 1280px. On a 1920px screen with an 80px sidebar, this leaves 560px of dead space. Internal grids (`grid-cols-2 lg:grid-cols-3`) already use responsive breakpoints and will naturally expand to fill available width.
 
 ## Risk
 
-Very low -- CSS-only class changes. Internal widget layouts already use responsive grids that will naturally expand to fill available width.
+Very low. CSS-only changes. Each page's internal card/grid/widget layouts already use responsive Tailwind classes that scale with available width.
