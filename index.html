@@ -282,6 +282,9 @@
             window.__BOOT_ERROR__ = e.error.message || String(e.error);
             console.error('[Boot] Captured error:', window.__BOOT_ERROR__);
           }
+          // Prevent error from propagating to browser's default fatal error
+          // behavior which triggers the preview iframe error overlay
+          e.preventDefault();
         });
         window.addEventListener('unhandledrejection', function(e) {
           if (!window.__BOOT_ERROR__) {

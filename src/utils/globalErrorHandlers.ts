@@ -125,8 +125,9 @@ function handleWindowError(
     ...context,
   });
   
-  // Return false to allow default browser error handling
-  return false;
+  // Return true to tell the browser we handled it, preventing the
+  // preview iframe's crash overlay from triggering
+  return true;
 }
 
 /**
@@ -189,6 +190,9 @@ function handleReactError(event: ErrorEvent): void {
     componentName: 'GlobalErrorHandler',
     ...context,
   });
+  
+  // Prevent React errors from propagating to browser's default handler
+  event.preventDefault();
 }
 
 /**
