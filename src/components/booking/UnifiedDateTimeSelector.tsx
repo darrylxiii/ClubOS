@@ -17,6 +17,8 @@ import { useTimeFormatPreference } from "@/hooks/useTimeFormatPreference";
 import { formatSlotWithDualTimezone } from "@/lib/safeTimeFormat";
 import { useBookingRealtime } from "@/hooks/useBookingRealtime";
 import { useSmartRecommendations, SmartSlotBadge } from "@/components/booking/SmartSlotRecommendation";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileTimeSlotDrawer } from "@/components/booking/MobileTimeSlotDrawer";
 
 interface TimeSlot {
   start: string;
@@ -54,6 +56,8 @@ export function UnifiedDateTimeSelector({
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [availabilityMap, setAvailabilityMap] = useState<Map<string, AvailabilityInfo>>(new Map());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const isMobile = useIsMobile();
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const showDualTimezone = hostTimezone && hostTimezone !== guestTimezone;
   const recommendations = useSmartRecommendations(bookingLink.id, selectedDate || null);
@@ -471,14 +475,38 @@ export function UnifiedDateTimeSelector({
         </Card>
       </div>
 
-      {/* Mobile View Helper */}
-      <div className="lg:hidden">
-        {selectedDate && availableSlots.length > 0 && (
-          <p className="text-xs text-center text-muted-foreground">
-            Scroll to see more time slots
-          </p>
-        )}
-      </div>
+      {/* Mobile Bottom-Sheet Drawer */}
+      {isMobile && selectedDate && availableSlots.length > 0 && (
+        <>
+          <div className="lg:hidden">
+            <Button
+              variant="outline"
+              className="w-full min-h-[48px]"
+              onClick={() => setMobileDrawerOpen(true)}
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              {selectedSlot
+                ? `Selected: ${formatSlotDisplay(selectedSlot).primary}`
+                : `${availableSlots.length} slots available — tap to select`}
+            </Button>
+          </div>
+          <MobileTimeSlotDrawer
+            open={mobileDrawerOpen}
+            onOpenChange={setMobileDrawerOpen}
+            slots={availableSlots}
+            selectedSlot={selectedSlot}
+            onSelect={(slot) => {
+              setSelectedSlot(slot);
+              trackSlotView(slot.start);
+              trackStep("time_select");
+              onDateTimeSelected(selectedDate, slot);
+            }}
+            recommendations={recommendations}
+            formatSlot={formatSlotDisplay}
+            dateLabel={format(selectedDate, "EEEE, MMMM d")}
+          />
+        </>
+      )}
     </div>
   );
 }

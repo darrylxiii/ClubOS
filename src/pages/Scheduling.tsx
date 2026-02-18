@@ -28,6 +28,7 @@ import { SchedulingAITab } from "@/components/scheduling/SchedulingAITab";
 import { TeamLoadDashboard } from "@/components/scheduling/TeamLoadDashboard";
 import { EmbedCodeGenerator } from "@/components/booking/EmbedCodeGenerator";
 import { BookingWorkflowBuilder } from "@/components/booking/BookingWorkflowBuilder";
+import { BookingLinkBrandingSettings } from "@/components/booking/BookingLinkBrandingSettings";
 
 interface BookingLink {
   id: string;
@@ -104,6 +105,9 @@ export default function Scheduling() {
       allow_guest_add_attendees: false,
       booker_can_delegate: true,
     },
+    confirmation_message: "",
+    redirect_url: "",
+    custom_logo_url: null as string | null,
   });
 
   useEffect(() => {
@@ -253,6 +257,9 @@ export default function Scheduling() {
           allow_guest_add_attendees: false,
           booker_can_delegate: true,
         },
+        confirmation_message: "",
+        redirect_url: "",
+        custom_logo_url: null,
       });
       setDialogOpen(false);
     } catch (error: unknown) {
@@ -715,6 +722,21 @@ export default function Scheduling() {
                     </div>
                   </div>
                 </div>
+
+                {/* Branding & Customization */}
+                <BookingLinkBrandingSettings
+                  value={{
+                    custom_logo_url: newLink.custom_logo_url,
+                    confirmation_message: newLink.confirmation_message,
+                    redirect_url: newLink.redirect_url,
+                  }}
+                  onChange={(branding) => setNewLink({
+                    ...newLink,
+                    custom_logo_url: branding.custom_logo_url,
+                    confirmation_message: branding.confirmation_message,
+                    redirect_url: branding.redirect_url,
+                  })}
+                />
 
                 <Button
                   onClick={createBookingLink}
