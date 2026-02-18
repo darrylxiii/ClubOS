@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -433,7 +433,7 @@ const Jobs = () => {
   // ═══════════════════════════════════════════════
   if (isAdminOrPartner) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <Tabs value={activeHubTab} onValueChange={setActiveHubTab} className="space-y-6">
             <div className="sticky top-14 sm:top-16 z-30 bg-background/95 backdrop-blur-lg py-2 -mx-4 px-4 border-b border-border/10">
@@ -490,7 +490,7 @@ const Jobs = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -498,7 +498,7 @@ const Jobs = () => {
   // CANDIDATE: Jobs Hub
   // ═══════════════════════════════════════════════
   return (
-    <AppLayout>
+    <>
       <OceanBackgroundVideo />
       
       <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 pb-safe">
@@ -806,7 +806,7 @@ const Jobs = () => {
           if (action === 'search_jobs') navigate('/club-ai');
         }}
       />
-    </AppLayout>
+    </>
   );
 };
 

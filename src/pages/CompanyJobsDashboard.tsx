@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -218,7 +218,7 @@ const CompanyJobsDashboard = () => {
 
   if (!companyId && role !== 'admin') {
     return (
-      <AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardHeader>
@@ -232,12 +232,12 @@ const CompanyJobsDashboard = () => {
             </CardHeader>
           </Card>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-4 md:py-8 space-y-4 md:space-y-6">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-4 md:py-8 space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-foreground pb-4 md:pb-6">
@@ -623,7 +623,7 @@ const CompanyJobsDashboard = () => {
           onJobCreated={fetchJobs}
         />
       </div>
-    </AppLayout>
+    </div>
   );
 };
 

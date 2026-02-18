@@ -161,45 +161,41 @@ export default function MeetingInsights() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="text-center space-y-4">
-            <Brain className="h-12 w-12 mx-auto animate-pulse text-purple-500" />
-            <p className="text-muted-foreground">Loading meeting insights...</p>
-          </div>
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="text-center space-y-4">
+          <Brain className="h-12 w-12 mx-auto animate-pulse text-purple-500" />
+          <p className="text-muted-foreground">Loading meeting insights...</p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (!insights) {
     return (
-      <AppLayout>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground" />
-                <h2 className="text-xl font-semibold">No Insights Available</h2>
-                <p className="text-muted-foreground">
-                  This meeting hasn't been analyzed yet or the AI Notetaker wasn't enabled.
-                </p>
-                <Button asChild>
-                  <Link to="/meetings">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Meetings
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground" />
+              <h2 className="text-xl font-semibold">No Insights Available</h2>
+              <p className="text-muted-foreground">
+                This meeting hasn't been analyzed yet or the AI Notetaker wasn't enabled.
+              </p>
+              <Button asChild>
+                <Link to="/meetings">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Meetings
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -432,6 +428,6 @@ export default function MeetingInsights() {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }

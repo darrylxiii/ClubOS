@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { useRole } from "@/contexts/RoleContext";
 import { Loader2, Music2, Radio, Upload } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -129,11 +128,9 @@ export default function ClubDJ() {
 
   if (loading || !currentRole) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
@@ -143,8 +140,7 @@ export default function ClubDJ() {
   }
 
   return (
-    <AppLayout>
-      <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -250,6 +246,5 @@ export default function ClubDJ() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 }
