@@ -50,7 +50,7 @@ serve(async (req) => {
           'video_platform',
           'host_display_mode',
           'guest_permissions',
-          
+          'custom_logo_url',
           'payment_required',
           'payment_amount',
           'payment_currency',

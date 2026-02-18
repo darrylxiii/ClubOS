@@ -4456,6 +4456,7 @@ export type Database = {
           confirmation_message: string | null
           create_quantum_meeting: boolean | null
           created_at: string
+          custom_logo_url: string | null
           custom_questions: Json | null
           description: string | null
           duration_minutes: number
@@ -4502,6 +4503,7 @@ export type Database = {
           confirmation_message?: string | null
           create_quantum_meeting?: boolean | null
           created_at?: string
+          custom_logo_url?: string | null
           custom_questions?: Json | null
           description?: string | null
           duration_minutes?: number
@@ -4548,6 +4550,7 @@ export type Database = {
           confirmation_message?: string | null
           create_quantum_meeting?: boolean | null
           created_at?: string
+          custom_logo_url?: string | null
           custom_questions?: Json | null
           description?: string | null
           duration_minutes?: number

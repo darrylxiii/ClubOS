@@ -1,0 +1,1 @@
+ALTER TABLE public.booking_links ADD COLUMN IF NOT EXISTS custom_logo_url text;
