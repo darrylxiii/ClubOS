@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -112,17 +112,14 @@ export default function AcademyCreatorHub() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container max-w-7xl mx-auto p-6 space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -329,6 +326,5 @@ export default function AcademyCreatorHub() {
           onSuccess={loadCreatorData}
         />
       </div>
-    </AppLayout>
   );
 }

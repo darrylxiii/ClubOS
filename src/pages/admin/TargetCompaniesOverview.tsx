@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -221,8 +221,7 @@ const TargetCompaniesOverview = () => {
   ];
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Target Companies Overview</h1>
@@ -397,7 +396,6 @@ const TargetCompaniesOverview = () => {
         onSuccess={loadTargetCompanies}
       />
       </div>
-    </AppLayout>
   );
 };
 

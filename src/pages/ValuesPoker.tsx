@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
+
 import { useValuesPokerSession } from '@/hooks/useValuesPokerSession';
 import { WORK_VALUES, VALUE_TRADEOFF_SCENARIOS } from '@/data/valuesPokerData';
 import { ValuesPokerIntro } from '@/components/values-poker/ValuesPokerIntro';
@@ -37,7 +37,7 @@ const ValuesPoker = memo(() => {
   };
 
   return (
-    <AppLayout>
+    <>
       {phase === 'intro' && (
         <ValuesPokerIntro onStart={handleStart} />
       )}
@@ -64,7 +64,7 @@ const ValuesPoker = memo(() => {
           onBack={handleBackToAssessments}
         />
       )}
-    </AppLayout>
+    </>
   );
 });
 

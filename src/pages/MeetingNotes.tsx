@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { AppLayout } from '@/components/AppLayout';
+
 import { SendToPilotButton } from '@/components/meetings/SendToPilotButton';
 
 export default function MeetingNotes() {
@@ -141,8 +141,7 @@ export default function MeetingNotes() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <Button 
             variant="ghost" 
             onClick={() => navigate('/meetings')}
@@ -156,15 +155,13 @@ export default function MeetingNotes() {
             <Skeleton className="h-96 lg:col-span-2" />
             <Skeleton className="h-96" />
           </div>
-        </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (!recording) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <Button 
             variant="ghost" 
             onClick={() => navigate('/meetings')}
@@ -180,8 +177,7 @@ export default function MeetingNotes() {
               This meeting recording could not be found or you don't have access to it.
             </AlertDescription>
           </Alert>
-        </div>
-      </AppLayout>
+      </div>
     );
   }
 
@@ -190,8 +186,7 @@ export default function MeetingNotes() {
   const decisionGuidance = analysis.decisionGuidance || {};
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/meetings')}
@@ -499,8 +494,7 @@ export default function MeetingNotes() {
               </Card>
             )}
           </div>
-        </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }
