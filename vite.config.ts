@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-// import { componentTagger } from "lovable-tagger"; // Disabled to reduce dev server memory
+import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
@@ -35,6 +35,7 @@ export default defineConfig(({ mode, command }) => ({
   },
   plugins: [
     react(),
+    mode === 'development' && componentTagger(),
     // PWA is only needed for production builds; it is memory-heavy during build
     command === 'build' && mode === 'production' &&
       VitePWA({
@@ -208,6 +209,12 @@ export default defineConfig(({ mode, command }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+    ],
   },
   build: {
     modulePreload: false,
