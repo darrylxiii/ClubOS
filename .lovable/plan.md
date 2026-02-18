@@ -1,59 +1,113 @@
 
-# Plan 1 of 4: Fix N+1 Query Problem in Job Pipeline
+# Plan 2 of 4: Fix Broken Features in Job Pipeline
 
-## Problem
-The `fetchApplicationsForMetrics` function in `JobDashboard.tsx` (lines 300-484) performs **sequential database queries for every single candidate**. For a pipeline with 50 candidates, this means:
+## Overview
+Four features in the Job Pipeline are currently non-functional or produce incorrect results. This plan fixes each one without changing the page architecture.
 
-- 1 query for all applications
-- Then for EACH application: 1 query to `candidate_profiles`, potentially 1 to `profiles` (avatar), 1 to `candidate_interactions` as fallback, plus another `profiles` query
-- **Result: 150-200+ individual DB calls per page load**
+---
 
-Every action (advance, decline, add stage) calls `fetchJobDetails()` which re-runs this entire waterfall.
+## Fix 1: Conversion Rate Math (lines 436-443)
 
-## Solution
-Replace the N+1 per-candidate queries with **3 batch queries** using Supabase `.in()` filters, then join client-side.
-
-## Changes
-
-### File: `src/pages/JobDashboard.tsx`
-
-**Replace lines 300-419** (the `fetchApplicationsForMetrics` enrichment loop) with:
-
+**Current (broken):**
 ```
-Step 1: Fetch all applications (existing, unchanged)
+const totalPassed = enrichedApps.filter(app => app.current_stage_index > i).length;
+conversionRates[`${i}-${i+1}`] = current > 0
+  ? Math.round((totalPassed / (current + totalPassed)) * 100)
+  : 0;
+```
+This conflates "all candidates who ever passed stage i" with "candidates currently in stage i", producing inflated or misleading percentages.
 
-Step 2: Collect all unique candidate_ids and user_ids from applications
-
-Step 3: Batch-fetch candidate_profiles for all candidate_ids in ONE query
-  SELECT id, user_id, full_name, email, phone, avatar_url, 
-         current_title, current_company, linkedin_url
-  FROM candidate_profiles WHERE id IN (...candidateIds)
-
-Step 4: Batch-fetch profiles for all user_ids in ONE query
-  SELECT id, full_name, email, phone, avatar_url
-  FROM profiles WHERE id IN (...userIds)
-
-Step 5: Build lookup maps (candidateProfilesMap, profilesMap)
-
-Step 6: Enrich applications using maps (no DB calls)
-  - For each app, look up candidate_profiles by app.candidate_id
-  - Fall back to profiles by app.user_id
-  - Merge avatar from profiles if candidate_profile has a linked user_id
+**Fix:**
+Replace with a straightforward ratio: candidates who moved past stage i divided by total candidates who reached stage i or beyond.
+```
+const reachedStage = enrichedApps.filter(app => app.current_stage_index >= i).length;
+const passedStage = enrichedApps.filter(app => app.current_stage_index > i).length;
+conversionRates[`${i}-${i+1}`] = reachedStage > 0
+  ? Math.round((passedStage / reachedStage) * 100)
+  : 0;
 ```
 
-This reduces ~150 queries down to exactly **3 queries** regardless of candidate count.
+---
 
-### Metrics calculation (lines 424-480)
-No changes needed -- it already operates on the enriched array in memory.
+## Fix 2: "Needs Club Check" -- Remove Mock (lines 454-455)
 
-### Removal of `candidate_interactions` fallback
-The legacy lookup via `candidate_interactions` (lines 354-393) is removed from the hot path. This was a per-row query that rarely matched. If needed later, it can be added as a single batch query.
+**Current (mocked):**
+```
+const needsClubCheck = Math.min(
+  enrichedApps.filter(app => app.current_stage_index === 0).length, 3
+);
+```
+This is hardcoded to cap at 3 and just counts first-stage candidates.
 
-## Impact
-- Page load: ~150 DB calls reduced to 3
-- Every pipeline action refresh: same improvement
-- No UI changes, no schema changes, no new dependencies
+**Fix:**
+Replace with accurate count of candidates in stage 0 whose status is still "applied" (not yet screened). No artificial cap.
+```
+const needsClubCheck = enrichedApps.filter(
+  app => app.current_stage_index === 0 && app.status === 'applied'
+).length;
+```
 
-## Risk
-- Low. Same data, same output shape. The enriched application objects keep the same fields (`full_name`, `email`, `avatar_url`, etc.)
-- The `candidate_interactions` fallback removal could affect edge-case candidates added through a very old flow. These would show as "Candidate" with no profile data until their `candidate_id` is set on the application row.
+---
+
+## Fix 3: "Save as Template" Button (line 718)
+
+**Current (fake toast):**
+```
+onClick={() => {
+  toast.success("Pipeline template saved");
+}}
+```
+Does nothing -- just shows a success message.
+
+**Fix:**
+Save the current `pipeline_stages` JSON to a `pipeline_templates` table. Since creating a new table adds complexity, we will instead save to `localStorage` as a named template (simpler, no migration needed, still functional).
+
+Implementation:
+- Prompt the user for a template name via `window.prompt`
+- Save `{ name, stages, created_at }` to localStorage key `pipeline-templates`
+- On "Add Stage" dialog, add a "Load Template" option that reads from this store
+- Show toast with the template name on success
+
+---
+
+## Fix 4: Stage Deletion Safety (lines 830-846)
+
+**Current (destructive, no confirmation):**
+```
+onDelete={async () => {
+  const updatedStages = stages
+    .filter((_, i) => i !== index)
+    .map((s, i) => ({ ...s, order: i }));
+  // ...updates jobs table, no confirmation, no candidate handling
+}}
+```
+Deletes the stage immediately. Candidates in that stage become orphaned (their `current_stage_index` points to a non-existent stage).
+
+**Fix (two parts):**
+
+**Part A -- Confirmation dialog:**
+- Before deleting, check if any candidates are in the stage (`stageApplications.length > 0`)
+- If yes, show a confirmation dialog: "This stage has X candidate(s). They will be moved to [previous stage]. Continue?"
+- If no candidates, show a simpler confirmation: "Delete stage [name]?"
+
+**Part B -- Candidate migration:**
+- When a stage is deleted, update all applications in that stage to move to `current_stage_index - 1` (or 0 if first stage)
+- Execute this as a batch update before removing the stage from the JSONB array
+- Then reindex all remaining stages
+
+---
+
+## Technical Details
+
+### Files Modified
+- `src/pages/JobDashboard.tsx` -- all four fixes
+
+### No New Dependencies
+- Uses existing `Dialog` / `AlertDialog` components for confirmation
+- Uses `localStorage` for template storage (no DB migration)
+
+### Risk Assessment
+- **Conversion rate fix**: Pure math change. No data mutation.
+- **Club check fix**: Removes mock. If no candidates have `status === 'applied'`, count shows 0 (correct).
+- **Save as Template**: localStorage-only. No backend impact.
+- **Stage deletion**: Adds a DB call to update applications before deleting stage. Wrapped in error handling. If the application update fails, the stage is not deleted.
