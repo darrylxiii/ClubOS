@@ -1,33 +1,39 @@
 
-# Fix: Add React Dedupe to Resolve Duplicate React Instances
+# Fix: Add Missing JSX Runtime to optimizeDeps.include
 
 ## Problem
-The error `"does not provide an export named 'Fragment'"` means multiple incompatible copies of React are being loaded. With `noDiscovery: true` enabled in the last change, Vite no longer automatically deduplicates dependencies, so different libraries resolve their own copy of React instead of sharing one.
+With `noDiscovery: true`, Vite only pre-bundles packages explicitly listed in `optimizeDeps.include`. The list includes `react` and `react-dom` but is missing `react/jsx-runtime` and `react/jsx-dev-runtime`. These are the modules that every JSX component imports (automatically by the compiler), and without pre-bundling they get served as raw CommonJS from node_modules, which breaks ESM named exports like `Fragment`.
 
 ## Fix
 
-### File: `vite.config.ts` (line 207-211)
+### File: `vite.config.ts` (lines 19-31)
 
-Add `dedupe` to the existing `resolve` block to force all React imports to resolve to a single instance:
+Add `react/jsx-runtime` and `react/jsx-dev-runtime` to the `optimizeDeps.include` array:
 
 ```typescript
-resolve: {
-  alias: {
-    "@": path.resolve(__dirname, "./src"),
-  },
-  dedupe: [
-    'react',
-    'react-dom',
-    'react/jsx-runtime',
-    'react/jsx-dev-runtime',
-  ],
-},
+include: [
+  'react', 'react-dom', 'react-dom/client',
+  'react/jsx-runtime',
+  'react/jsx-dev-runtime',
+  'react-router-dom',
+  '@supabase/supabase-js',
+  '@tanstack/react-query',
+  'sonner', 'clsx', 'tailwind-merge',
+  'class-variance-authority',
+  'lucide-react', 'date-fns',
+  'react-hook-form', 'zod',
+  '@hookform/resolvers',
+  'framer-motion',
+  'react-helmet-async',
+  'i18next', 'react-i18next',
+],
 ```
 
-This tells Vite: "No matter which dependency asks for React, always use the same single copy." This is a standard fix for large projects with many React-dependent libraries.
-
-## Why This Happened
-The `noDiscovery: true` change (to fix memory exhaustion) stopped Vite from automatically scanning and deduplicating dependencies. Without deduplication, libraries like `@radix-ui`, `framer-motion`, `react-hook-form`, etc. each resolve their own React copy, which breaks shared features like `Fragment`, `createContext`, and hooks.
+## Why This Fixes It
+- `noDiscovery: true` means Vite will NOT auto-detect that `react/jsx-runtime` needs pre-bundling
+- Without pre-bundling, the raw CJS module from `node_modules/react/jsx-runtime.js` is served directly
+- CJS modules don't have named ESM exports like `Fragment` -- they only have a default export
+- Adding it to `include` forces Vite to pre-bundle it into a proper ESM module with all named exports
 
 ## Risk
-None. This is a standard Vite configuration recommended in the official docs for monorepos and large projects. It does not change any application code.
+None. This is the exact fix documented for `noDiscovery: true` setups.
