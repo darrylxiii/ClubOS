@@ -372,7 +372,7 @@ export default function Companies() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-8 animate-fade-in">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">

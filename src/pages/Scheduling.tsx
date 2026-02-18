@@ -312,7 +312,7 @@ export default function Scheduling() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="container mx-auto py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <SchedulingSkeleton />
         </div>
       </AppLayout>
@@ -321,7 +321,7 @@ export default function Scheduling() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold">Scheduling</h1>

@@ -59,7 +59,7 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-64 w-full" />

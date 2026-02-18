@@ -33,7 +33,7 @@ export default function SystemHealth() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="container mx-auto p-6 space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
@@ -54,7 +54,7 @@ export default function SystemHealth() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

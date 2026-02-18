@@ -502,7 +502,7 @@ export default function JobDashboard() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6 animate-fade-in">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
         {/* Admin Tools Bar - Only visible to admins */}
         {role === 'admin' && (
           <AdminJobTools

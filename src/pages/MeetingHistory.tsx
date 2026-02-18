@@ -282,7 +282,7 @@ const MeetingHistory = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-black uppercase tracking-tight mb-2">Meeting Recordings</h1>
           <p className="text-muted-foreground">

@@ -82,7 +82,7 @@ export default function IntegrationsManagement() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
