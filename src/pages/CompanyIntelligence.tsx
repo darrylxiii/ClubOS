@@ -86,7 +86,7 @@ export default function CompanyIntelligence() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="container mx-auto py-8 flex items-center justify-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center">
           <SectionLoader />
         </div>
       </AppLayout>
@@ -96,7 +96,7 @@ export default function CompanyIntelligence() {
   if (!company) {
     return (
       <AppLayout>
-        <div className="container mx-auto py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-muted-foreground">Company not found</p>
         </div>
       </AppLayout>
@@ -134,7 +134,7 @@ export default function CompanyIntelligence() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>

@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 export default function Radio() {
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <RadioIcon className="h-8 w-8 text-primary" />

@@ -190,7 +190,7 @@ export default function UnifiedCandidateProfile() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <Skeleton className="h-64 w-full rounded-2xl" />
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
             <div className="space-y-6">
@@ -207,7 +207,7 @@ export default function UnifiedCandidateProfile() {
   if (!candidate) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-12 text-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
           <p className="text-muted-foreground">Candidate not found</p>
         </div>
       </AppLayout>
@@ -219,7 +219,7 @@ export default function UnifiedCandidateProfile() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-4 max-w-7xl space-y-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         {/* Back Button */}
         <BackButton
           fromJob={fromJob || undefined}

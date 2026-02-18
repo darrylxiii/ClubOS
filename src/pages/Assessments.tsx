@@ -7,7 +7,7 @@ import { AppLayout } from '@/components/AppLayout';
 const Assessments = memo(() => {
   return (
     <AppLayout>
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         {/* Breadcrumb */}
         <Breadcrumb 
           items={[

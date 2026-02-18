@@ -175,7 +175,7 @@ export default function MeetingInsights() {
   if (!insights) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card className="max-w-2xl mx-auto">
             <CardContent className="pt-6">
               <div className="text-center space-y-4">
@@ -200,7 +200,7 @@ export default function MeetingInsights() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">

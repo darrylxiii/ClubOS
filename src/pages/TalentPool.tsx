@@ -165,7 +165,7 @@ export default function TalentPool() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <DashboardHeader
           title="Talent Pool"
           description="AI-powered talent intelligence and pipeline management"

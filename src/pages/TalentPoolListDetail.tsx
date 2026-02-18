@@ -62,7 +62,7 @@ export default function TalentPoolListDetail() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-48 bg-muted rounded" />
           <div className="h-64 bg-muted rounded-lg" />
@@ -73,7 +73,7 @@ export default function TalentPoolListDetail() {
 
   if (!list) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FolderOpen className="w-12 h-12 text-muted-foreground mb-4" />
@@ -88,7 +88,7 @@ export default function TalentPoolListDetail() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate('/admin/talent-pool/lists')}>

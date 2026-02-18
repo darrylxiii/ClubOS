@@ -434,7 +434,7 @@ const Jobs = () => {
   if (isAdminOrPartner) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 pt-2 pb-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <Tabs value={activeHubTab} onValueChange={setActiveHubTab} className="space-y-6">
             <div className="sticky top-14 sm:top-16 z-30 bg-background/95 backdrop-blur-lg py-2 -mx-4 px-4 border-b border-border/10">
               <TabsList className="h-auto flex-wrap">
@@ -501,7 +501,7 @@ const Jobs = () => {
     <AppLayout>
       <OceanBackgroundVideo />
       
-      <div className="relative z-10 container mx-auto px-4 py-8 pb-safe">
+      <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 pb-safe">
         <div className="space-y-6">
           {/* Search Bar - Full Width */}
           <div className="relative">

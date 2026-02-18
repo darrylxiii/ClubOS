@@ -220,7 +220,7 @@ export default function AdminExports() {
   return (
     <AppLayout>
       <RoleGate allowedRoles={['admin']}>
-        <div className="container mx-auto px-4 py-6 max-w-3xl">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-3xl">
           <Card>
             <CardHeader>
               <CardTitle>Database exports</CardTitle>
