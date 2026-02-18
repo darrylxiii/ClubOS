@@ -29,20 +29,16 @@
 
 ---
 
-## 🔲 Remaining (95 → 100)
+## ✅ Phase 4: Final Features (95 → 100)
 
-### Phase 4: Final Features
+- ✅ **Payments Integration** — `PaymentStep.tsx`, `process-booking-payment` edge function, payment columns on `booking_links` + `bookings`, Stripe Checkout redirect, payment step in stepper
+- ✅ **Webhook Events Table** — `booking_webhook_events` table with auto-emit trigger on booking INSERT/UPDATE/DELETE, RLS scoped to booking link owners, delivery tracking columns
 
-**8. Payments Integration (+3)**
-- New columns on `booking_links`: `payment_amount`, `payment_currency`, `payment_required`
-- New component: `src/components/booking/PaymentStep.tsx`
-- Stripe Checkout redirect before booking confirmation
-- New edge function: `process-booking-payment`
-- Refund on cancellation (configurable)
+---
 
-**11. Additional Integrations (+2)**
-- Zoom meeting auto-creation
-- Webhook events table for external consumers (n8n, Zapier)
+## 🔲 Remaining
+
+**Zoom Auto-Creation** — Not yet implemented (requires Zoom OAuth app setup)
 
 ---
 

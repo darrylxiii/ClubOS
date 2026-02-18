@@ -4469,6 +4469,9 @@ export type Database = {
           max_bookings_per_day: number | null
           max_uses: number | null
           min_notice_hours: number | null
+          payment_amount: number | null
+          payment_currency: string | null
+          payment_required: boolean | null
           preferred_video_provider: string | null
           primary_calendar_id: string | null
           redirect_url: string | null
@@ -4512,6 +4515,9 @@ export type Database = {
           max_bookings_per_day?: number | null
           max_uses?: number | null
           min_notice_hours?: number | null
+          payment_amount?: number | null
+          payment_currency?: string | null
+          payment_required?: boolean | null
           preferred_video_provider?: string | null
           primary_calendar_id?: string | null
           redirect_url?: string | null
@@ -4555,6 +4561,9 @@ export type Database = {
           max_bookings_per_day?: number | null
           max_uses?: number | null
           min_notice_hours?: number | null
+          payment_amount?: number | null
+          payment_currency?: string | null
+          payment_required?: boolean | null
           preferred_video_provider?: string | null
           primary_calendar_id?: string | null
           redirect_url?: string | null
@@ -4897,6 +4906,57 @@ export type Database = {
           },
         ]
       }
+      booking_webhook_events: {
+        Row: {
+          booking_id: string | null
+          booking_link_id: string | null
+          created_at: string
+          delivered: boolean | null
+          delivery_attempts: number | null
+          event_type: string
+          id: string
+          last_delivery_at: string | null
+          payload: Json
+        }
+        Insert: {
+          booking_id?: string | null
+          booking_link_id?: string | null
+          created_at?: string
+          delivered?: boolean | null
+          delivery_attempts?: number | null
+          event_type: string
+          id?: string
+          last_delivery_at?: string | null
+          payload?: Json
+        }
+        Update: {
+          booking_id?: string | null
+          booking_link_id?: string | null
+          created_at?: string
+          delivered?: boolean | null
+          delivery_attempts?: number | null
+          event_type?: string
+          id?: string
+          last_delivery_at?: string | null
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_webhook_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_webhook_events_booking_link_id_fkey"
+            columns: ["booking_link_id"]
+            isOneToOne: false
+            referencedRelation: "booking_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_workflows: {
         Row: {
           booking_link_id: string
@@ -4985,6 +5045,8 @@ export type Database = {
           metadata: Json | null
           no_show: boolean | null
           notes: string | null
+          payment_amount: number | null
+          payment_status: string | null
           quantum_meeting_code: string | null
           quantum_meeting_link: string | null
           recurrence_index: number | null
@@ -4997,6 +5059,7 @@ export type Database = {
           series_id: string | null
           sms_reminders: boolean | null
           status: string
+          stripe_checkout_session_id: string | null
           sync_error_message: string | null
           synced_to_calendar: boolean | null
           timezone: string
@@ -5049,6 +5112,8 @@ export type Database = {
           metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
+          payment_amount?: number | null
+          payment_status?: string | null
           quantum_meeting_code?: string | null
           quantum_meeting_link?: string | null
           recurrence_index?: number | null
@@ -5061,6 +5126,7 @@ export type Database = {
           series_id?: string | null
           sms_reminders?: boolean | null
           status?: string
+          stripe_checkout_session_id?: string | null
           sync_error_message?: string | null
           synced_to_calendar?: boolean | null
           timezone: string
@@ -5113,6 +5179,8 @@ export type Database = {
           metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
+          payment_amount?: number | null
+          payment_status?: string | null
           quantum_meeting_code?: string | null
           quantum_meeting_link?: string | null
           recurrence_index?: number | null
@@ -5125,6 +5193,7 @@ export type Database = {
           series_id?: string | null
           sms_reminders?: boolean | null
           status?: string
+          stripe_checkout_session_id?: string | null
           sync_error_message?: string | null
           synced_to_calendar?: boolean | null
           timezone?: string

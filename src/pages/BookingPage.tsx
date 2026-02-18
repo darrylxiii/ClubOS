@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
+import { PaymentStep } from "@/components/booking/PaymentStep";
 import { UnifiedDateTimeSelector } from "@/components/booking/UnifiedDateTimeSelector";
 import { AIBookingAssistant } from "@/components/booking/AIBookingAssistant";
 import { TimezoneSelector } from "@/components/booking/TimezoneSelector";
 import { MinimalHeader } from "@/components/MinimalHeader";
-import { BookingProgressStepper } from "@/components/booking/BookingProgressStepper";
+import { BookingProgressStepper, type BookingStep } from "@/components/booking/BookingProgressStepper";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
@@ -41,6 +42,9 @@ interface BookingLink {
   video_platform?: string;
   host_display_mode?: 'full' | 'discreet' | 'avatar_only' | 'name_only';
   custom_logo_url?: string | null;
+  payment_required?: boolean;
+  payment_amount?: number | null;
+  payment_currency?: string;
   guest_permissions?: {
     allow_guest_cancel?: boolean;
     allow_guest_reschedule?: boolean;
@@ -62,7 +66,7 @@ interface SelectedSlot {
   end: string;
 }
 
-type BookingStep = "datetime" | "details" | "confirmation";
+// BookingStep type imported from BookingProgressStepper
 
 type ErrorType = 'network' | 'not_found' | 'inactive' | 'unknown';
 
@@ -198,10 +202,26 @@ export default function BookingPage() {
   };
 
   const handleBookingComplete = (id: string) => {
+    // If payment is required and not yet paid, show payment step
+    if (bookingLink?.payment_required && bookingLink?.payment_amount) {
+      setBookingId(id);
+      setStep("payment");
+      return;
+    }
+
     setBookingId(id);
     setStep("confirmation");
 
-    // Trigger success confetti
+    fireConfetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#4ade80', '#22c55e', '#16a34a']
+    });
+  };
+
+  const handlePaymentComplete = () => {
+    setStep("confirmation");
     fireConfetti({
       particleCount: 150,
       spread: 70,
@@ -300,7 +320,7 @@ export default function BookingPage() {
           </div>
 
           {/* Progress Stepper */}
-          <BookingProgressStepper currentStep={step} />
+          <BookingProgressStepper currentStep={step} showPayment={!!bookingLink.payment_required} />
 
           <Card className="mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
             <CardHeader>
@@ -411,6 +431,27 @@ export default function BookingPage() {
                       selectedSlot={selectedSlot}
                       onComplete={handleBookingComplete}
                       hasGoogleCalendar={hasGoogleCalendar}
+                    />
+                  </motion.div>
+                )}
+
+                {step === "payment" && bookingLink.payment_required && bookingLink.payment_amount && selectedSlot && (
+                  <motion.div
+                    key="payment"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <PaymentStep
+                      bookingLinkSlug={bookingLink.slug}
+                      paymentAmount={bookingLink.payment_amount}
+                      paymentCurrency={bookingLink.payment_currency || "eur"}
+                      guestEmail=""
+                      guestName=""
+                      scheduledStart={selectedSlot.start}
+                      scheduledEnd={selectedSlot.end}
+                      timezone={timezone}
                     />
                   </motion.div>
                 )}
