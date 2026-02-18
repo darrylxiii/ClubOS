@@ -40,6 +40,7 @@ interface BookingLink {
   available_platforms?: string[];
   video_platform?: string;
   host_display_mode?: 'full' | 'discreet' | 'avatar_only' | 'name_only';
+  custom_logo_url?: string | null;
   guest_permissions?: {
     allow_guest_cancel?: boolean;
     allow_guest_reschedule?: boolean;
@@ -282,6 +283,14 @@ export default function BookingPage() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex-1">
           {/* Header */}
           <div className="mb-8 text-center">
+            {/* Custom logo alongside TQC branding */}
+            {bookingLink.custom_logo_url && (
+              <img
+                src={bookingLink.custom_logo_url}
+                alt="Organization logo"
+                className="h-10 w-auto mx-auto mb-3 object-contain"
+              />
+            )}
             <Avatar className="h-20 w-20 mx-auto mb-4">
               <AvatarImage src={profile?.avatar_url || ""} />
               <AvatarFallback>{profile?.full_name?.[0] || "Q"}</AvatarFallback>

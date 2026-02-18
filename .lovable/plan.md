@@ -2,7 +2,7 @@
 
 # Booking System Upgrade -- Beating Calendly (Revised Audit)
 
-## Current Score: ~88/100 (up from 68)
+## Current Score: ~95/100 (up from 88)
 
 ---
 
@@ -22,29 +22,23 @@
 - ✅ **Routing Forms** — `RoutingFormBuilder.tsx` (admin) + `RoutingFormRenderer.tsx` (guest-facing)
 - ✅ **Branding** — "Powered by The Quantum Club" permanent label on booking page
 
+### Phase 3: Revenue & Polish (88 → 95)
+- ✅ **Branding UI in Admin** — `BookingLinkBrandingSettings.tsx` with custom logo URL, confirmation message, redirect URL in create dialog
+- ✅ **Custom Logo on Booking Page** — Shows custom logo above host avatar on `BookingPage.tsx`
+- ✅ **Mobile Optimization** — `MobileTimeSlotDrawer.tsx` bottom-sheet for time slots, sticky confirm button, 48px touch targets
+
 ---
 
-## 🔲 Remaining (88 → 100)
+## 🔲 Remaining (95 → 100)
 
-### Phase 3: Revenue & Polish
+### Phase 4: Final Features
 
-**8. Payments Integration (+5)**
+**8. Payments Integration (+3)**
 - New columns on `booking_links`: `payment_amount`, `payment_currency`, `payment_required`
 - New component: `src/components/booking/PaymentStep.tsx`
 - Stripe Checkout redirect before booking confirmation
 - New edge function: `process-booking-payment`
 - Refund on cancellation (configurable)
-
-**9. Branding UI in Admin (+3)**
-- Custom logo upload UI in booking link management (maps to new `custom_logo_url` column)
-- Custom confirmation message UI (maps to existing `confirmation_message` column)
-- Redirect URL UI (maps to existing `redirect_url` column)
-- "Powered by The Quantum Club" stays permanently — never removable
-
-**10. Mobile Optimization (+2)**
-- Bottom-sheet time slot selector on mobile (using Vaul drawer)
-- Sticky "Confirm" button on mobile form
-- Touch-optimized calendar swipe
 
 **11. Additional Integrations (+2)**
 - Zoom meeting auto-creation
@@ -60,12 +54,14 @@
 - `src/components/booking/SmartSlotRecommendation.tsx`
 - `src/components/booking/RoutingFormBuilder.tsx`
 - `src/components/booking/RoutingFormRenderer.tsx`
+- `src/components/booking/BookingLinkBrandingSettings.tsx`
+- `src/components/booking/MobileTimeSlotDrawer.tsx`
 - `src/components/scheduling/WeeklyAvailabilityGrid.tsx`
 - `src/components/scheduling/DateOverrideManager.tsx`
 
 ## Files Modified
-- `src/pages/BookingPage.tsx` — stepper, "Powered by TQC" branding
-- `src/pages/Scheduling.tsx` — Embed + Workflows tabs
+- `src/pages/BookingPage.tsx` — stepper, "Powered by TQC" branding, custom logo display
+- `src/pages/Scheduling.tsx` — Embed + Workflows tabs, branding settings in create dialog
 - `src/pages/SchedulingSettings.tsx` — weekly grid, date overrides
-- `src/components/booking/BookingForm.tsx` — recurring toggle
-- `src/components/booking/UnifiedDateTimeSelector.tsx` — smart recommendations, a11y labels
+- `src/components/booking/BookingForm.tsx` — recurring toggle, sticky mobile confirm
+- `src/components/booking/UnifiedDateTimeSelector.tsx` — smart recommendations, a11y labels, mobile drawer

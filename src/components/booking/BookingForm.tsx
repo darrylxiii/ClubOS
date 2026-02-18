@@ -413,25 +413,27 @@ export function BookingForm({
           )}
         </div>
 
-        {/* Phase 4: 44px touch target */}
-        <Button type="submit" disabled={loading} className="w-full min-h-[44px]" size="lg">
-          {loading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <div className="flex flex-col items-start">
-                <span className="text-sm font-medium">Processing...</span>
-                {loadingStage && (
-                  <span className="text-xs opacity-80">{loadingStage}</span>
-                )}
+        {/* Phase 4: 44px touch target + sticky on mobile */}
+        <div className="sticky bottom-0 bg-background pt-3 pb-1 -mx-1 px-1 sm:static sm:bg-transparent sm:pt-0 sm:pb-0">
+          <Button type="submit" disabled={loading} className="w-full min-h-[48px]" size="lg">
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-medium">Processing...</span>
+                  {loadingStage && (
+                    <span className="text-xs opacity-80">{loadingStage}</span>
+                  )}
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              Confirm Booking
-            </>
-          )}
-        </Button>
+            ) : (
+              <>
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Confirm Booking
+              </>
+            )}
+          </Button>
+        </div>
 
         <p className="text-xs text-center text-muted-foreground">
           By scheduling, you agree to receive email {formData.phone && "and SMS"} confirmations and reminders.
