@@ -33,6 +33,7 @@ export default defineConfig(({ mode, command }) => ({
       'framer-motion',
       'react-helmet-async',
       'i18next', 'react-i18next',
+      'recharts', 'lodash',
     ],
     exclude: ['mermaid', 'katex'],
     noDiscovery: true,
