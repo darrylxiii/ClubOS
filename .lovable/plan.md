@@ -1,75 +1,125 @@
 
 
-# Fix: Mobile Layout Not Filling Viewport Width
+# Revenue and Growth Widget -- Elite Upgrade
 
-## Root Cause
+## Current Score: 32/100
 
-The `RadialMenuProvider` component wraps `<main>` inside a bare unstyled `<div>`:
+| Category | Current | Target | Gap |
+|---|---|---|---|
+| Period selection | 0 | 15 | No user control, hardcoded 6 months |
+| Revenue depth | 5 | 15 | Only "this month" total, no breakdown |
+| Chart quality | 5 | 10 | Tiny 80px sparkline, single line, no interactivity |
+| Growth integration | 5 | 10 | PlatformGrowthCard exists but not shown here |
+| Pipeline intelligence | 7 | 10 | Decent but no weighted stages |
+| Visual polish | 5 | 15 | Generic card, no premium feel |
+| Comparative analytics | 0 | 10 | No period-over-period, no targets |
+| Forecasting | 5 | 10 | Basic pipeline value only |
+| Data granularity | 0 | 5 | Monthly only |
 
-```text
-AppLayout flex container (flex-row, w-full)
-  |
-  +-- DynamicBackground (fixed, no flex space)
-  +-- header (fixed, no flex space)
-  +-- DesktopSidebar (hidden on mobile)
-  +-- RadialMenuProvider
-  |     |
-  |     +-- <div onContextMenu={...}>   <-- UNSTYLED FLEX ITEM (no flex-1!)
-  |           |
-  |           +-- <main class="flex-1 min-w-0 ...">   <-- flex-1 is MEANINGLESS here
-  |                 |
-  |                 +-- page content
-  +-- CommandPalette (portal)
-  +-- ClubAIVoice (portal)
-```
+---
 
-The problem: that intermediate `<div>` is a flex item in the AppLayout's row-direction flex container. It has **no flex properties**, so it defaults to `flex: 0 1 auto` -- meaning it **will not grow** to fill available space. Its width is determined by content width, not viewport width.
+## Plan to reach 100/100
 
-The `flex-1` on `<main>` has no effect because its parent (the bare `<div>`) is not a flex container -- it's just a regular block element.
+### 1. Period Selector (0 to 15)
 
-On desktop, the content happens to be wide enough to appear normal, but on mobile (narrower viewport), the content area visibly fails to stretch to the full viewport width.
+Add a pill-toggle strip at the top of the widget with these options:
+- This Month
+- Last Month
+- Last 3 Months
+- Last 6 Months
+- YTD (Year to Date)
+- Last Year
+- Custom (date picker)
 
-## Fix (2 changes)
+All data in the widget reacts to the selected period. The comparison period is automatically set to the equivalent preceding period (e.g., "Last 3 Months" compares to the 3 months before that).
 
-### 1. RadialMenuProvider wrapper div (the actual fix)
+### 2. Revenue Depth (5 to 15)
 
-**File: `src/components/ui/radial-menu-provider.tsx` (line 55)**
+Replace the single "This Month" number with a rich metrics strip:
 
-Change:
-```tsx
-<div onContextMenu={handleContextMenu}>{children}</div>
-```
+- **Total Revenue** -- sum of all placements in selected period
+- **Avg. Revenue per Placement** -- total / hires count
+- **Revenue per Working Day** -- total / business days in period
+- **Best Month** -- highest single month in range
+- **Placements Count** -- total hires in period
 
-To:
-```tsx
-<div onContextMenu={handleContextMenu} className="flex-1 min-w-0 flex flex-col">
-  {children}
-</div>
-```
+Each metric shows value + delta vs comparison period (green/red arrow + percentage).
 
-This makes the wrapper a proper flex item that fills the container, AND makes it a flex container itself so `<main>`'s `flex-1` works correctly.
+### 3. Chart Quality (5 to 10)
 
-### 2. Remaining redundant AppLayout wrappers (secondary cleanup)
+Replace the 80px sparkline with a proper 200px interactive area chart:
+- Revenue bars (primary) + placement count line (secondary axis)
+- Hover tooltip showing exact values
+- Previous period shown as a faded overlay line for instant comparison
+- Monthly granularity for 3m+, weekly for shorter periods
 
-54 page files still wrap themselves in `<AppLayout>` despite being rendered inside `ProtectedLayout` (which already provides AppLayout). This causes double sidebar rendering on desktop and wasted layout on mobile. The highest-impact pages to fix in this batch:
+### 4. Growth Integration (5 to 10)
 
-- `ModuleManagement.tsx` -- AppLayout + container max-w-5xl
-- `ClubDJ.tsx` -- AppLayout + container max-w-7xl
-- `SocialManagement.tsx` -- AppLayout + container mx-auto
-- `Academy.tsx` -- AppLayout + container max-w-7xl
-- `Jobs.tsx` -- AppLayout (already fluid width)
-- `CompanyJobsDashboard.tsx` -- AppLayout
-- `UnifiedTasks.tsx` -- AppLayout
-- `TimeTrackingPage.tsx` -- AppLayout
-- `MeetingHistory.tsx` -- AppLayout
-- `MeetingInsights.tsx` -- AppLayout
+Add a compact "Growth Indicators" strip below the chart showing 4 mini-metrics side by side:
+- User growth % (period)
+- Company growth % (period)
+- Job growth % (period)  
+- Application volume (period)
 
-For each: remove the `<AppLayout>` wrapper and replace any `container mx-auto` / `max-w-*xl` with `w-full px-4 sm:px-6 lg:px-8`.
+These reuse the existing `usePlatformGrowth` hook data but filtered to the selected period.
 
-## Technical Details
+### 5. Pipeline Intelligence (7 to 10)
 
-The fix applies the same refactoring pattern used in Batch 1 and 2. The RadialMenuProvider change is the critical one that makes the mobile content area fill the viewport. The AppLayout cleanup prevents double sidebar rendering and ensures consistent fluid layouts.
+Upgrade the pipeline value section:
+- Show weighted pipeline value per stage (applied/screening/interview/offer each with different conversion probability)
+- Mini horizontal funnel visualization (reuse the KPIScorecard pattern)
+- "Expected closings this month" count
 
-## Risk
+### 6. Visual Polish (5 to 15)
 
-Low. The RadialMenuProvider change only adds flex properties to an existing wrapper div. The AppLayout cleanup follows the same proven pattern from earlier batches.
+- Animated count-up on numbers when data loads (using framer-motion)
+- Subtle gradient header strip with the DollarSign icon
+- Premium gold accent on the total revenue number
+- Micro-sparkline next to each metric showing its trend direction
+- Smooth transitions when switching periods
+- Dark glass card with refined border treatment
+
+### 7. Comparative Analytics (0 to 10)
+
+- Auto-calculate comparison period (previous equivalent period)
+- Show delta badges on every metric ("+12% vs last period")
+- Optional revenue target/goal line on the chart (from platform_settings)
+- "On track" / "Behind" indicator if target is set
+
+### 8. Forecasting (5 to 10)
+
+- Linear projection line on chart extending 1 month forward based on current trend
+- "Projected month-end" value based on days elapsed + current pace
+- Pipeline-weighted forecast combining trend + active pipeline
+
+### 9. Data Granularity (0 to 5)
+
+- Auto-select granularity based on period: daily for "This Month", weekly for 3m, monthly for 6m+
+- Toggle between daily/weekly/monthly when period allows
+
+---
+
+## Technical approach
+
+### Files to create
+- `src/components/clubhome/RevenueGrowthWidget.tsx` -- new combined widget replacing `RevenueSparkline`
+- `src/hooks/useRevenueAnalytics.ts` -- new hook that accepts a period parameter and returns all revenue + growth metrics
+
+### Files to modify
+- `src/components/clubhome/AdminHome.tsx` -- swap `RevenueSparkline` for new `RevenueGrowthWidget`
+
+### Data fetching strategy
+The new `useRevenueAnalytics` hook will:
+1. Accept a period type (thisMonth, lastMonth, 3m, 6m, ytd, 1y, custom)
+2. Calculate date ranges for both selected period and comparison period
+3. Fetch placement counts grouped by month/week from `applications` table (status = 'hired')
+4. Fetch pipeline counts by stage from `applications` table
+5. Use `usePlatformSettings` for placement fee + conversion rate
+6. Calculate all derived metrics (avg per placement, per working day, projections)
+7. Return a structured object with all metrics, chart data, and comparison deltas
+
+All queries use the existing `applications`, `profiles`, `companies`, and `jobs` tables. No database changes required.
+
+### Period selector UX
+Compact pill toggle (same pattern as the KPIScorecard range selector) placed in the widget header. "Custom" option opens a date range popover using the existing Calendar component.
+
