@@ -107,7 +107,7 @@ export default function ConnectsStorePage() {
   }
 
   return (
-    <div className="container max-w-6xl py-8 space-y-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -197,7 +197,7 @@ export default function Meetings() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold mb-2">Meetings & Intelligence</h1>
