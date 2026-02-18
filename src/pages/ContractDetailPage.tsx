@@ -30,7 +30,6 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { UnifiedLoader, SectionLoader } from "@/components/ui/unified-loader";
-import { AppLayout } from "@/components/AppLayout";
 
 export default function ContractDetailPage() {
   const { contractId } = useParams();
@@ -123,7 +122,6 @@ export default function ContractDetailPage() {
 
       if (error) throw error;
 
-      // Trigger payment release via edge function
       try {
         const { error: paymentError } = await supabase.functions.invoke('release-milestone-payment', {
           body: { milestoneId, contractId },
@@ -160,8 +158,7 @@ export default function ContractDetailPage() {
   };
 
   const handleRefreshMilestones = () => {
-    // Refetch milestones after actions
-    window.location.reload(); // Simple refresh, could use query invalidation instead
+    window.location.reload();
   };
 
   const handleOpenDispute = () => {
@@ -170,11 +167,9 @@ export default function ContractDetailPage() {
 
   if (contractLoading || !contract) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <SectionLoader />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <SectionLoader />
+      </div>
     );
   }
 
@@ -189,270 +184,265 @@ export default function ContractDetailPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/contracts')}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Contracts
-        </Button>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      {/* Back button */}
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/contracts')}
+        className="mb-6"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back to Contracts
+      </Button>
 
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">
-                Contract #{contract.id.slice(0, 8)}
-              </h1>
-              <Badge className={`${getStatusColor(contract.contract_status)} border`}>
-                {contract.contract_status.split('_').map(w =>
-                  w.charAt(0).toUpperCase() + w.slice(1)
-                ).join(' ')}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground">
-              {userView === 'freelancer' ? 'You are the freelancer' : 'You are the client'}
-            </p>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">
+              Contract #{contract.id.slice(0, 8)}
+            </h1>
+            <Badge className={`${getStatusColor(contract.contract_status)} border`}>
+              {contract.contract_status.split('_').map(w =>
+                w.charAt(0).toUpperCase() + w.slice(1)
+              ).join(' ')}
+            </Badge>
           </div>
+          <p className="text-muted-foreground">
+            {userView === 'freelancer' ? 'You are the freelancer' : 'You are the client'}
+          </p>
+        </div>
 
+        <div className="flex items-center gap-3">
+          {contract.contract_status === 'pending_signature' && (
+            <Button onClick={() => navigate(`/contracts/${contractId}/sign`)}>
+              Sign Contract
+            </Button>
+          )}
+          {contract.contract_status === 'active' && (
+            <>
+              <Button variant="outline" onClick={handleOpenDispute}>
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Open Dispute
+              </Button>
+              <Button>
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Message {userView === 'freelancer' ? 'Client' : 'Freelancer'}
+              </Button>
+            </>
+          )}
+          {contract.contract_document_url && (
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Download Contract
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Contract info cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card className="p-4 border border-border/50">
           <div className="flex items-center gap-3">
-            {contract.contract_status === 'pending_signature' && (
-              <Button onClick={() => navigate(`/contracts/${contractId}/sign`)}>
-                Sign Contract
-              </Button>
-            )}
-            {contract.contract_status === 'active' && (
-              <>
-                <Button variant="outline" onClick={handleOpenDispute}>
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Open Dispute
-                </Button>
-                <Button>
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Message {userView === 'freelancer' ? 'Client' : 'Freelancer'}
-                </Button>
-              </>
-            )}
-            {contract.contract_document_url && (
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Download Contract
-              </Button>
-            )}
+            <DollarSign className="h-8 w-8 text-primary" />
+            <div>
+              <div className="text-xs text-muted-foreground">Total Budget</div>
+              <div className="text-xl font-bold text-foreground">
+                &euro;{contract.total_budget?.toLocaleString()}
+              </div>
+            </div>
           </div>
-        </div>
+        </Card>
 
-        {/* Contract info cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4 border border-border/50">
-            <div className="flex items-center gap-3">
-              <DollarSign className="h-8 w-8 text-primary" />
-              <div>
-                <div className="text-xs text-muted-foreground">Total Budget</div>
-                <div className="text-xl font-bold text-foreground">
-                  €{contract.total_budget?.toLocaleString()}
-                </div>
+        <Card className="p-4 border border-border/50">
+          <div className="flex items-center gap-3">
+            <FileText className="h-8 w-8 text-primary" />
+            <div>
+              <div className="text-xs text-muted-foreground">Contract Type</div>
+              <div className="text-xl font-bold text-foreground capitalize">
+                {contract.contract_type}
               </div>
             </div>
-          </Card>
+          </div>
+        </Card>
 
-          <Card className="p-4 border border-border/50">
-            <div className="flex items-center gap-3">
-              <FileText className="h-8 w-8 text-primary" />
-              <div>
-                <div className="text-xs text-muted-foreground">Contract Type</div>
-                <div className="text-xl font-bold text-foreground capitalize">
-                  {contract.contract_type}
-                </div>
+        <Card className="p-4 border border-border/50">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-8 w-8 text-primary" />
+            <div>
+              <div className="text-xs text-muted-foreground">Timeline</div>
+              <div className="text-sm font-bold text-foreground">
+                {contract.start_date && contract.end_date ? (
+                  <>
+                    {format(new Date(contract.start_date), 'MMM d')} - {' '}
+                    {format(new Date(contract.end_date), 'MMM d')}
+                  </>
+                ) : 'TBD'}
               </div>
             </div>
-          </Card>
+          </div>
+        </Card>
 
-          <Card className="p-4 border border-border/50">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-primary" />
-              <div>
-                <div className="text-xs text-muted-foreground">Timeline</div>
-                <div className="text-sm font-bold text-foreground">
-                  {contract.start_date && contract.end_date ? (
-                    <>
-                      {format(new Date(contract.start_date), 'MMM d')} - {' '}
-                      {format(new Date(contract.end_date), 'MMM d')}
-                    </>
-                  ) : 'TBD'}
-                </div>
+        <Card className="p-4 border border-border/50">
+          <div className="flex items-center gap-3">
+            <Clock className="h-8 w-8 text-primary" />
+            <div>
+              <div className="text-xs text-muted-foreground">Milestones</div>
+              <div className="text-xl font-bold text-foreground">
+                {milestones.filter(m => m.status === 'paid').length} / {milestones.length}
               </div>
             </div>
-          </Card>
+          </div>
+        </Card>
+      </div>
 
-          <Card className="p-4 border border-border/50">
-            <div className="flex items-center gap-3">
-              <Clock className="h-8 w-8 text-primary" />
-              <div>
-                <div className="text-xs text-muted-foreground">Milestones</div>
-                <div className="text-xl font-bold text-foreground">
-                  {milestones.filter(m => m.status === 'paid').length} / {milestones.length}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
+      {/* Main content tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="milestones">Milestones</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
+          {contract.contract_type === 'hourly' && (
+            <TabsTrigger value="time">Time Tracking</TabsTrigger>
+          )}
+          <TabsTrigger value="documents">Documents</TabsTrigger>
+        </TabsList>
 
-        {/* Main content tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="milestones">Milestones</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-            {contract.contract_type === 'hourly' && (
-              <TabsTrigger value="time">Time Tracking</TabsTrigger>
-            )}
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                {/* Milestones preview */}
-                <Card className="p-6 border border-border/50">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">
-                    Milestone Progress
-                  </h3>
-                  <MilestoneTimeline
-                    milestones={milestones}
-                    view={userView}
-                    onStartMilestone={handleStartMilestone}
-                    onUploadDeliverable={handleUploadDeliverable}
-                    onSubmitForReview={handleSubmitForReview}
-                    onApproveMilestone={handleApproveMilestone}
-                    onRequestRevision={handleRequestRevision}
-                    onViewComments={handleViewComments}
-                  />
-                </Card>
-              </div>
-
-              <div className="space-y-6">
-                {/* Payment schedule */}
-                <PaymentSchedule
-                  contract={contract}
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="p-6 border border-border/50">
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Milestone Progress
+                </h3>
+                <MilestoneTimeline
                   milestones={milestones}
                   view={userView}
+                  onStartMilestone={handleStartMilestone}
+                  onUploadDeliverable={handleUploadDeliverable}
+                  onSubmitForReview={handleSubmitForReview}
+                  onApproveMilestone={handleApproveMilestone}
+                  onRequestRevision={handleRequestRevision}
+                  onViewComments={handleViewComments}
                 />
-
-                {/* Party info */}
-                <Card className="p-6 border border-border/50">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">
-                    {userView === 'freelancer' ? 'Client' : 'Freelancer'} Information
-                  </h3>
-                  <div className="flex items-center gap-3 mb-4">
-                    {userView === 'freelancer' ? (
-                      <>
-                        <Building2 className="h-10 w-10 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium text-foreground">Company Name</div>
-                          <div className="text-sm text-muted-foreground">
-                            Company ID: {contract.company_id}
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <User className="h-10 w-10 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium text-foreground">Freelancer Name</div>
-                          <div className="text-sm text-muted-foreground">
-                            Freelancer ID: {contract.freelancer_id}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Send Message
-                  </Button>
-                </Card>
-              </div>
+              </Card>
             </div>
-          </TabsContent>
 
-          <TabsContent value="milestones">
-            <MilestoneTimeline
-              milestones={milestones}
-              view={userView}
-              onStartMilestone={handleStartMilestone}
-              onUploadDeliverable={handleUploadDeliverable}
-              onSubmitForReview={handleSubmitForReview}
-              onApproveMilestone={handleApproveMilestone}
-              onRequestRevision={handleRequestRevision}
-              onViewComments={handleViewComments}
-            />
-          </TabsContent>
+            <div className="space-y-6">
+              <PaymentSchedule
+                contract={contract}
+                milestones={milestones}
+                view={userView}
+              />
 
-          <TabsContent value="payments">
-            <PaymentSchedule
-              contract={contract}
-              milestones={milestones}
-              view={userView}
-            />
-          </TabsContent>
-
-          <TabsContent value="time">
-            <Card className="p-6 border border-border/50">
-              <div className="text-center py-8">
-                <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Time Tracking
+              <Card className="p-6 border border-border/50">
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  {userView === 'freelancer' ? 'Client' : 'Freelancer'} Information
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Track hours, submit timesheets, and manage approvals
-                </p>
-                <Button onClick={() => navigate(`/contracts/${contractId}/time-tracking`)}>
-                  <Clock className="h-4 w-4 mr-2" />
-                  Open Time Tracking
+                <div className="flex items-center gap-3 mb-4">
+                  {userView === 'freelancer' ? (
+                    <>
+                      <Building2 className="h-10 w-10 text-muted-foreground" />
+                      <div>
+                        <div className="font-medium text-foreground">Company Name</div>
+                        <div className="text-sm text-muted-foreground">
+                          Company ID: {contract.company_id}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <User className="h-10 w-10 text-muted-foreground" />
+                      <div>
+                        <div className="font-medium text-foreground">Freelancer Name</div>
+                        <div className="text-sm text-muted-foreground">
+                          Freelancer ID: {contract.freelancer_id}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <Button variant="outline" className="w-full">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Send Message
                 </Button>
-              </div>
-            </Card>
-          </TabsContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="documents">
-            <Card className="p-6 border border-border/50">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold">Contract Documents</h3>
-                <ContractDocumentUpload contractId={contractId!} />
-              </div>
-              <ContractDocumentsList contractId={contractId!} />
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <TabsContent value="milestones">
+          <MilestoneTimeline
+            milestones={milestones}
+            view={userView}
+            onStartMilestone={handleStartMilestone}
+            onUploadDeliverable={handleUploadDeliverable}
+            onSubmitForReview={handleSubmitForReview}
+            onApproveMilestone={handleApproveMilestone}
+            onRequestRevision={handleRequestRevision}
+            onViewComments={handleViewComments}
+          />
+        </TabsContent>
 
-        {/* Modals and Drawers */}
-        {selectedMilestoneId && (
-          <>
-            <MilestoneRevisionModal
-              open={revisionModalOpen}
-              onOpenChange={setRevisionModalOpen}
-              milestoneId={selectedMilestoneId}
-              onRevisionRequested={handleRefreshMilestones}
-            />
-            <MilestoneFileUploadModal
-              open={uploadModalOpen}
-              onOpenChange={setUploadModalOpen}
-              milestoneId={selectedMilestoneId}
-              onUploadComplete={handleRefreshMilestones}
-            />
-            <MilestoneCommentsDrawer
-              open={commentsDrawerOpen}
-              onOpenChange={setCommentsDrawerOpen}
-              milestoneId={selectedMilestoneId}
-            />
-          </>
-        )}
-      </div>
-    </AppLayout>
+        <TabsContent value="payments">
+          <PaymentSchedule
+            contract={contract}
+            milestones={milestones}
+            view={userView}
+          />
+        </TabsContent>
+
+        <TabsContent value="time">
+          <Card className="p-6 border border-border/50">
+            <div className="text-center py-8">
+              <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Time Tracking
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Track hours, submit timesheets, and manage approvals
+              </p>
+              <Button onClick={() => navigate(`/contracts/${contractId}/time-tracking`)}>
+                <Clock className="h-4 w-4 mr-2" />
+                Open Time Tracking
+              </Button>
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <Card className="p-6 border border-border/50">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Contract Documents</h3>
+              <ContractDocumentUpload contractId={contractId!} />
+            </div>
+            <ContractDocumentsList contractId={contractId!} />
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Modals and Drawers */}
+      {selectedMilestoneId && (
+        <>
+          <MilestoneRevisionModal
+            open={revisionModalOpen}
+            onOpenChange={setRevisionModalOpen}
+            milestoneId={selectedMilestoneId}
+            onRevisionRequested={handleRefreshMilestones}
+          />
+          <MilestoneFileUploadModal
+            open={uploadModalOpen}
+            onOpenChange={setUploadModalOpen}
+            milestoneId={selectedMilestoneId}
+            onUploadComplete={handleRefreshMilestones}
+          />
+          <MilestoneCommentsDrawer
+            open={commentsDrawerOpen}
+            onOpenChange={setCommentsDrawerOpen}
+            milestoneId={selectedMilestoneId}
+          />
+        </>
+      )}
+    </div>
   );
 }

@@ -118,7 +118,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
   return (
     <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
       <div className="border-b bg-card p-4">
-        <div className="max-w-7xl mx-auto space-y-2">
+        <div className="w-full space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <div className="h-full max-w-7xl mx-auto grid grid-cols-2 gap-6 p-6">
+        <div className="h-full w-full grid grid-cols-2 gap-6 p-6">
           <Card className="flex flex-col">
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold">Task Inbox</h2>

@@ -491,7 +491,7 @@ export function WhatsAppSettingsTab() {
   );
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 w-full space-y-6">
       {/* Session Status Banner */}
       {sessionStatus === 'expired' && (
         <Card className="border-destructive bg-destructive/10">

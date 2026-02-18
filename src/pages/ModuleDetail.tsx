@@ -259,7 +259,7 @@ export default function ModuleDetail() {
   if (!module) {
     return (
       <AppLayout>
-        <div className="container max-w-6xl mx-auto p-6 text-center py-12">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
           <h2 className="text-2xl font-bold mb-4">Module not found</h2>
           <Link to="/academy">
             <Button>Back to Academy</Button>
@@ -274,7 +274,7 @@ export default function ModuleDetail() {
 
   return (
     <AppLayout>
-      <div className="container max-w-5xl mx-auto p-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link to="/academy" className="hover:text-foreground">

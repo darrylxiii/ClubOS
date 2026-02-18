@@ -165,7 +165,7 @@ export default function ProjectDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse space-y-6">
           <div className="h-12 bg-muted rounded" />
           <div className="h-64 bg-muted rounded" />
@@ -177,7 +177,7 @@ export default function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardContent className="py-12 text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -196,7 +196,7 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
       {/* Back Button */}
       <Button 
         variant="ghost" 

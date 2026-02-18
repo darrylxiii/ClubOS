@@ -80,7 +80,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
   if (isLoading) {
     return (
       <Wrapper>
-        <div className="container mx-auto px-4 py-8 space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           <div className="space-y-2">
             <Skeleton className="h-10 w-64" />
             <Skeleton className="h-4 w-96" />
@@ -109,7 +109,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
