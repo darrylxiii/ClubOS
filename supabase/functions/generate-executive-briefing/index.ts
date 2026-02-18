@@ -132,8 +132,8 @@ Generate a JSON response:
     });
 
     if (!aiResponse.ok) {
-      const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded' :
-                          aiResponse.status === 402 ? 'AI credits exhausted' :
+      const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded, please try again shortly.' :
+                          aiResponse.status === 402 ? 'AI credits exhausted. Please top up your workspace usage in Settings.' :
                           'AI service error';
       
       await logAIUsage({
@@ -144,6 +144,14 @@ Generate a JSON response:
         success: false,
         errorMessage
       });
+
+      // Return the actual status to the client instead of wrapping in 500
+      if (aiResponse.status === 402 || aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: errorMessage }), {
+          status: aiResponse.status,
+          headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
       throw new Error(`AI API error: ${aiResponse.status}`);
     }
