@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -158,8 +157,7 @@ const PartnerOnboarding = () => {
   ];
 
   return (
-    <AppLayout>
-      <div className="container max-w-3xl mx-auto px-4 py-8 lg:py-12">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-12 max-w-3xl mx-auto">
         <div className="space-y-4 mb-8">
           <div className="flex items-center gap-2">
             <Building2 className="w-8 h-8" />
@@ -333,7 +331,6 @@ const PartnerOnboarding = () => {
           </div>
         </form>
       </div>
-    </AppLayout>
   );
 };
 

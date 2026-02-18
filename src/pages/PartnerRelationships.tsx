@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { Brain, RefreshCw, Download, Settings } from 'lucide-react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/notify';
@@ -27,7 +26,6 @@ export default function PartnerRelationships() {
   };
 
   const handleSendMessage = (candidateId: string, channel: 'whatsapp' | 'email' | 'phone') => {
-    // Navigate to messages with candidate context
     navigate(`/messages?candidate=${candidateId}&channel=${channel}`);
   };
 
@@ -41,8 +39,7 @@ export default function PartnerRelationships() {
 
   return (
     <RoleGate allowedRoles={['partner', 'admin', 'strategist']}>
-      <AppLayout>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -111,7 +108,6 @@ export default function PartnerRelationships() {
           {/* Club AI Advisor */}
           <ClubAIAdvisorWidget context="pipeline" />
         </div>
-      </AppLayout>
     </RoleGate>
   );
 }

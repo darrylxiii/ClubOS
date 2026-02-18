@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,9 +85,8 @@ export default function WhatsAppSettings() {
   };
 
   return (
-    <AppLayout>
       <RoleGate allowedRoles={['admin']}>
-        <div className="container mx-auto px-4 py-6 max-w-4xl space-y-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl space-y-6">
           <div>
             <h1 className="text-2xl font-bold">WhatsApp Settings</h1>
             <p className="text-muted-foreground">Configure your WhatsApp Business integration</p>
@@ -277,6 +275,5 @@ export default function WhatsAppSettings() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
   );
 }

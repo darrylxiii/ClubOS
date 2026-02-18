@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,8 +74,7 @@ export default function AvatarControlHub() {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <ActiveSessionBanner />
 
         <DashboardHeader
@@ -299,6 +297,5 @@ export default function AvatarControlHub() {
           />
         )}
       </div>
-    </AppLayout>
   );
 }

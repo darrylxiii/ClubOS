@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -280,8 +279,7 @@ export default function BookingManagement() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-12 w-48" />
           <div className="grid gap-4">
@@ -290,13 +288,11 @@ export default function BookingManagement() {
             <Skeleton className="h-32 w-full" />
           </div>
         </div>
-      </AppLayout>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <Breadcrumb />
       
       <div className="flex justify-between items-center">
@@ -648,6 +644,5 @@ export default function BookingManagement() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-    </AppLayout>
   );
 }

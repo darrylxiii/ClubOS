@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -193,18 +193,15 @@ export default function ApplicationDetail() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-center text-muted-foreground">Loading application details...</p>
         </div>
-      </AppLayout>
     );
   }
 
   if (!application) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">Application not found</p>
@@ -215,7 +212,6 @@ export default function ApplicationDetail() {
             </CardContent>
           </Card>
         </div>
-      </AppLayout>
     );
   }
 
@@ -230,8 +226,7 @@ export default function ApplicationDetail() {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
@@ -662,6 +657,5 @@ export default function ApplicationDetail() {
           </div>
         </div>
       </div>
-    </AppLayout>
   );
 }

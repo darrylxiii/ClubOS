@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { useRole } from "@/contexts/RoleContext";
 import EnhancedProfile from "@/pages/EnhancedProfile";
 import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
-import { AppLayout } from "@/components/AppLayout";
+
 
 export default function AdminUserProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -68,31 +68,26 @@ export default function AdminUserProfile() {
 
   if (loading) {
     return (
-      <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </AppLayout>
     );
   }
 
   if (!profile) {
     return (
-      <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
           <Alert>
             <AlertDescription>User profile not found.</AlertDescription>
           </Alert>
         </div>
-      </AppLayout>
     );
   }
 
   const candidateProfile = profile.candidate_profiles?.[0];
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Back Button */}
         <Button 
           variant="ghost" 
@@ -305,6 +300,5 @@ export default function AdminUserProfile() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -243,11 +243,9 @@ const ObjectiveWorkspace = () => {
 
   if (loading || !objective) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">Loading objective...</div>
         </div>
-      </AppLayout>
     );
   }
 
@@ -256,8 +254,7 @@ const ObjectiveWorkspace = () => {
   const daysRemaining = dueDate ? differenceInDays(new Date(dueDate), new Date()) : null;
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-4 flex-1">
@@ -621,7 +618,6 @@ const ObjectiveWorkspace = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 };
 

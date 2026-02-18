@@ -21,11 +21,12 @@ export const DashboardSection = ({
   columns = 1,
   mobileColumns = 1,
 }: DashboardSectionProps) => {
+  const mobileClass = mobileColumns === 2 ? 'grid-cols-2' : 'grid-cols-1';
   const gridClass = {
     1: 'grid-cols-1',
-    2: `grid-cols-${mobileColumns} lg:grid-cols-2`,
-    3: `grid-cols-${mobileColumns} sm:grid-cols-2 lg:grid-cols-3`,
-    4: `grid-cols-${mobileColumns} sm:grid-cols-2 lg:grid-cols-4`,
+    2: `${mobileClass} lg:grid-cols-2`,
+    3: `${mobileClass} sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3`,
+    4: `${mobileClass} sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`,
   }[columns];
 
   return (
