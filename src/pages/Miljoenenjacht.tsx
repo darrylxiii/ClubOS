@@ -1,5 +1,4 @@
 import { memo, useState, useCallback } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { IntroScreen } from '@/components/miljoenenjacht/IntroScreen';
 import { CaseSelection } from '@/components/miljoenenjacht/CaseSelection';
 import { CaseGrid } from '@/components/miljoenenjacht/CaseGrid';
@@ -297,18 +296,18 @@ const Miljoenenjacht = memo(() => {
   // Render based on stage
   if (gameState.stage === 'intro') {
     return (
-      <AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {showTutorial && <TutorialOverlay onComplete={() => setShowTutorial(false)} />}
         <IntroScreen onStart={initializeGame} />
-      </AppLayout>
+      </div>
     );
   }
 
   if (gameState.stage === 'case-selection') {
     return (
-      <AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <CaseSelection onSelectCase={selectPlayerCase} />
-      </AppLayout>
+      </div>
     );
   }
 
@@ -318,7 +317,7 @@ const Miljoenenjacht = memo(() => {
     const bankerOffer = calculateBankerOffer(remainingCases, gameState.currentRound, gameState.decisions);
 
     return (
-      <AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <BankerOffer
           offer={bankerOffer}
           expectedValue={expectedValue}
@@ -326,7 +325,7 @@ const Miljoenenjacht = memo(() => {
           onNoDeal={handleNoDeal}
           onHesitation={handleHesitation}
         />
-      </AppLayout>
+      </div>
     );
   }
 
@@ -334,13 +333,13 @@ const Miljoenenjacht = memo(() => {
     const results = (window as any)._miljoenenJachtResults;
     if (results) {
       return (
-        <AppLayout>
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <ResultsDashboard
             profile={results.profile}
             outcome={results.outcome}
             jobMatches={results.jobMatches}
           />
-        </AppLayout>
+        </div>
       );
     }
   }
@@ -351,72 +350,70 @@ const Miljoenenjacht = memo(() => {
   const progress = (casesOpenedInRound / totalCasesInRound) * 100;
 
   return (
-    <AppLayout>
-      <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-background via-background/95 to-primary/5">
-        {/* Sound Toggle Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleSound}
-          className="fixed top-4 right-4 z-10"
-          aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
-        >
-          {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </Button>
+    <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-background via-background/95 to-primary/5">
+      {/* Sound Toggle Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={toggleSound}
+        className="fixed top-4 right-4 z-10"
+        aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
+      >
+        {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+      </Button>
 
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Round {gameState.currentRound}
-            </h2>
-            <div className="space-y-2">
-              <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                <span>Open {gameState.casesToOpenThisRound} more case{gameState.casesToOpenThisRound !== 1 ? 's' : ''}</span>
-                <div className="h-4 w-px bg-border" />
-                <span>Your case: #{gameState.playerCase}</span>
-              </div>
-              <Progress value={progress} className="h-2 max-w-md mx-auto" />
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl md:text-4xl font-bold">
+            Round {gameState.currentRound}
+          </h2>
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+              <span>Open {gameState.casesToOpenThisRound} more case{gameState.casesToOpenThisRound !== 1 ? 's' : ''}</span>
+              <div className="h-4 w-px bg-border" />
+              <span>Your case: #{gameState.playerCase}</span>
             </div>
+            <Progress value={progress} className="h-2 max-w-md mx-auto" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Prize Board */}
+          <div className="lg:col-span-1 space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4 text-center">Prize Board</h3>
+                <GameBoard
+                  cases={gameState.cases}
+                  playerCase={gameState.playerCase || 0}
+                  onSelectCase={() => {}}
+                  selectableCases={false}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Live Insights */}
+            <InsightPanel
+              currentRound={gameState.currentRound}
+              avgDecisionTime={avgDecisionTime}
+              riskTrend={riskTrend}
+              recentBehavior={recentBehavior}
+            />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Prize Board */}
-            <div className="lg:col-span-1 space-y-4">
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-4 text-center">Prize Board</h3>
-                  <GameBoard
-                    cases={gameState.cases}
-                    playerCase={gameState.playerCase || 0}
-                    onSelectCase={() => {}}
-                    selectableCases={false}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Live Insights */}
-              <InsightPanel
-                currentRound={gameState.currentRound}
-                avgDecisionTime={avgDecisionTime}
-                riskTrend={riskTrend}
-                recentBehavior={recentBehavior}
-              />
-            </div>
-
-            {/* Case Grid */}
-            <div className="lg:col-span-2">
-              <CaseGrid
-                cases={gameState.cases}
-                playerCase={gameState.playerCase || 0}
-                onSelectCase={openCase}
-                disabled={gameState.casesToOpenThisRound === 0}
-              />
-            </div>
+          {/* Case Grid */}
+          <div className="lg:col-span-2">
+            <CaseGrid
+              cases={gameState.cases}
+              playerCase={gameState.playerCase || 0}
+              onSelectCase={openCase}
+              disabled={gameState.casesToOpenThisRound === 0}
+            />
           </div>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 });
 

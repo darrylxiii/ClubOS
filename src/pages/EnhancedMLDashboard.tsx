@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Brain, TrendingUp, Users, Target, Zap, Database, Building2, AlertTriangle, CheckCircle, BarChart3, Briefcase } from 'lucide-react';
-import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -170,8 +169,7 @@ export default function EnhancedMLDashboard() {
   const runningTests = abTests.filter(t => t.status === 'running');
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

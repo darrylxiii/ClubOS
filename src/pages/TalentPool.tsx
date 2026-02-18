@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -164,8 +163,7 @@ export default function TalentPool() {
   }, [quickViewCandidate]);
 
   return (
-    <AppLayout>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <DashboardHeader
           title="Talent Pool"
           description="AI-powered talent intelligence and pipeline management"
@@ -309,7 +307,6 @@ export default function TalentPool() {
           onOpenChange={setAddDialogOpen}
           onSuccess={() => refetch()}
         />
-      </div>
-    </AppLayout>
+    </div>
   );
 }

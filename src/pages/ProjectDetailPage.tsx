@@ -1,4 +1,3 @@
-import { AppLayout } from "@/components/AppLayout";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,343 +165,334 @@ export default function ProjectDetailPage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-8 px-4">
-          <div className="animate-pulse space-y-6">
-            <div className="h-12 bg-muted rounded" />
-            <div className="h-64 bg-muted rounded" />
-            <div className="h-96 bg-muted rounded" />
-          </div>
+      <div className="container mx-auto py-8 px-4">
+        <div className="animate-pulse space-y-6">
+          <div className="h-12 bg-muted rounded" />
+          <div className="h-64 bg-muted rounded" />
+          <div className="h-96 bg-muted rounded" />
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (!project) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-8 px-4">
-          <Card>
-            <CardContent className="py-12 text-center">
-              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
-              <p className="text-muted-foreground mb-6">
-                This project may have been removed or is no longer available.
-              </p>
-              <Button onClick={() => navigate("/projects")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Projects
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
+      <div className="container mx-auto py-8 px-4">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
+            <p className="text-muted-foreground mb-6">
+              This project may have been removed or is no longer available.
+            </p>
+            <Button onClick={() => navigate("/projects")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Projects
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
-        {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          className="mb-6"
-          onClick={() => navigate("/projects")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Projects
-        </Button>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+      {/* Back Button */}
+      <Button 
+        variant="ghost" 
+        className="mb-6"
+        onClick={() => navigate("/projects")}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back to Projects
+      </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Project Header */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      {isFreelancer && matchBreakdown && (
-                        <Badge 
-                          className={`gap-1 ${
-                            matchBreakdown.total >= 80 ? "bg-green-50 text-green-600 border-green-200" :
-                            matchBreakdown.total >= 60 ? "bg-blue-50 text-blue-600 border-blue-200" :
-                            matchBreakdown.total >= 40 ? "bg-yellow-50 text-yellow-600 border-yellow-200" :
-                            "bg-gray-50 text-gray-600 border-gray-200"
-                          }`}
-                        >
-                          <Sparkles className="h-3 w-3" />
-                          {matchBreakdown.total}% Match
-                        </Badge>
-                      )}
-                      {project.category && (
-                        <Badge variant="secondary">{project.category}</Badge>
-                      )}
-                      <Badge variant="outline" className="capitalize">
-                        {project.status}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Project Header */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    {isFreelancer && matchBreakdown && (
+                      <Badge 
+                        className={`gap-1 ${
+                          matchBreakdown.total >= 80 ? "bg-green-50 text-green-600 border-green-200" :
+                          matchBreakdown.total >= 60 ? "bg-blue-50 text-blue-600 border-blue-200" :
+                          matchBreakdown.total >= 40 ? "bg-yellow-50 text-yellow-600 border-yellow-200" :
+                          "bg-gray-50 text-gray-600 border-gray-200"
+                        }`}
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        {matchBreakdown.total}% Match
                       </Badge>
-                    </div>
-                    <CardTitle className="text-3xl mb-2">{project.title}</CardTitle>
-                    <CardDescription className="text-base">
-                      Posted {formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}
-                    </CardDescription>
-                  </div>
-                </div>
-
-                {/* Key Details */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Budget</p>
-                      <p className="font-semibold">
-                        €{project.budget_min?.toLocaleString()} - €{project.budget_max?.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Duration</p>
-                      <p className="font-semibold">
-                        {project.timeline_weeks ? `${project.timeline_weeks} weeks` : "Flexible"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Type</p>
-                      <p className="font-semibold capitalize">{project.engagement_type}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Location</p>
-                      <p className="font-semibold capitalize">{project.remote_policy}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Project Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Description</CardTitle>
-              </CardHeader>
-              <CardContent className="prose prose-sm max-w-none">
-                <p className="text-muted-foreground whitespace-pre-wrap">
-                  {project.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Requirements */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Requirements & Skills</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {project.required_skills && project.required_skills.length > 0 && (
-                  <div>
-                    <h4 className="font-medium mb-3">Required Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {project.required_skills.map((skill: string) => (
-                        <Badge key={skill} variant="default">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {project.preferred_skills && project.preferred_skills.length > 0 && (
-                  <div>
-                    <h4 className="font-medium mb-3">Nice to Have</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {project.preferred_skills.map((skill: string) => (
-                        <Badge key={skill} variant="outline">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {project.experience_level && (
-                  <div>
-                    <h4 className="font-medium mb-2">Experience Level</h4>
-                    <Badge variant="secondary" className="capitalize">
-                      {project.experience_level}
+                    )}
+                    {project.category && (
+                      <Badge variant="secondary">{project.category}</Badge>
+                    )}
+                    <Badge variant="outline" className="capitalize">
+                      {project.status}
                     </Badge>
                   </div>
+                  <CardTitle className="text-3xl mb-2">{project.title}</CardTitle>
+                  <CardDescription className="text-base">
+                    Posted {formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}
+                  </CardDescription>
+                </div>
+              </div>
+
+              {/* Key Details */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Budget</p>
+                    <p className="font-semibold">
+                      €{project.budget_min?.toLocaleString()} - €{project.budget_max?.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Duration</p>
+                    <p className="font-semibold">
+                      {project.timeline_weeks ? `${project.timeline_weeks} weeks` : "Flexible"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Type</p>
+                    <p className="font-semibold capitalize">{project.engagement_type}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Location</p>
+                    <p className="font-semibold capitalize">{project.remote_policy}</p>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Project Description */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Description</CardTitle>
+            </CardHeader>
+            <CardContent className="prose prose-sm max-w-none">
+              <p className="text-muted-foreground whitespace-pre-wrap">
+                {project.description}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Requirements */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Requirements & Skills</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {project.required_skills && project.required_skills.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-3">Required Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {project.required_skills.map((skill: string) => (
+                      <Badge key={skill} variant="default">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {project.preferred_skills && project.preferred_skills.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-3">Nice to Have</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {project.preferred_skills.map((skill: string) => (
+                      <Badge key={skill} variant="outline">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {project.experience_level && (
+                <div>
+                  <h4 className="font-medium mb-2">Experience Level</h4>
+                  <Badge variant="secondary" className="capitalize">
+                    {project.experience_level}
+                  </Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Match Breakdown - Only for freelancers */}
+          {isFreelancer && matchBreakdown && (
+            <Card className="border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Why This Match?
+                </CardTitle>
+                <CardDescription>
+                  Club AI analyzed your profile and calculated a {matchBreakdown.total}% match
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {matchBreakdown.factors.map((factor) => (
+                  <div key={factor.label} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{factor.label}</span>
+                      <span className="text-muted-foreground">
+                        {factor.score}/{factor.max} pts
+                      </span>
+                    </div>
+                    <Progress value={(factor.score / factor.max) * 100} />
+                    <p className="text-xs text-muted-foreground">{factor.reason}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Similar Projects */}
+          {similarProjects && similarProjects.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Similar Projects</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {similarProjects.slice(0, 2).map((similarProject: any) => (
+                  <ProjectCard 
+                    key={similarProject.id}
+                    project={similarProject}
+                    isFreelancer={isFreelancer}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Apply CTA */}
+          {isFreelancer && (
+            <Card className="sticky top-6">
+              <CardHeader>
+                <CardTitle>Ready to Apply?</CardTitle>
+                <CardDescription>
+                  Submit your proposal and stand out with Club AI
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  className="w-full gap-2" 
+                  size="lg"
+                  onClick={() => navigate(`/projects/${projectId}/apply`)}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Apply Now
+                </Button>
+                
+                {matchBreakdown && matchBreakdown.total < 50 && (
+                  <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs">
+                      <p className="font-medium text-yellow-900 mb-1">Lower Match Score</p>
+                      <p className="text-yellow-700">
+                        Your profile has a {matchBreakdown.total}% match. Consider highlighting relevant experience in your proposal.
+                      </p>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
+          )}
 
-            {/* Match Breakdown - Only for freelancers */}
-            {isFreelancer && matchBreakdown && (
-              <Card className="border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" />
-                    Why This Match?
-                  </CardTitle>
-                  <CardDescription>
-                    Club AI analyzed your profile and calculated a {matchBreakdown.total}% match
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {matchBreakdown.factors.map((factor) => (
-                    <div key={factor.label} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{factor.label}</span>
-                        <span className="text-muted-foreground">
-                          {factor.score}/{factor.max} pts
-                        </span>
-                      </div>
-                      <Progress value={(factor.score / factor.max) * 100} />
-                      <p className="text-xs text-muted-foreground">{factor.reason}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Similar Projects */}
-            {similarProjects && similarProjects.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Similar Projects</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {similarProjects.slice(0, 2).map((similarProject: any) => (
-                    <ProjectCard 
-                      key={similarProject.id}
-                      project={similarProject}
-                      isFreelancer={isFreelancer}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Apply CTA */}
-            {isFreelancer && (
-              <Card className="sticky top-6">
-                <CardHeader>
-                  <CardTitle>Ready to Apply?</CardTitle>
-                  <CardDescription>
-                    Submit your proposal and stand out with Club AI
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    className="w-full gap-2" 
-                    size="lg"
-                    onClick={() => navigate(`/projects/${projectId}/apply`)}
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Apply Now
-                  </Button>
-                  
-                  {matchBreakdown && matchBreakdown.total < 50 && (
-                    <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-xs">
-                        <p className="font-medium text-yellow-900 mb-1">Lower Match Score</p>
-                        <p className="text-yellow-700">
-                          Your profile has a {matchBreakdown.total}% match. Consider highlighting relevant experience in your proposal.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Client Information */}
-            {project.company && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    About the Client
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={project.company.logo_url} />
-                      <AvatarFallback>
-                        {project.company.name?.charAt(0) || 'C'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h4 className="font-semibold">{project.company.name}</h4>
-                      {project.company.industry && (
-                        <p className="text-sm text-muted-foreground">{project.company.industry}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {project.company.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {project.company.description}
-                    </p>
-                  )}
-
-                  {project.company.size && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{project.company.size} employees</span>
-                    </div>
-                  )}
-
-                  {project.company.website && (
-                    <a 
-                      href={project.company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      Visit Website
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Project Stats */}
+          {/* Client Information */}
+          {project.company && (
             <Card>
               <CardHeader>
-                <CardTitle>Project Activity</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  About the Client
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Proposals</span>
-                  <span className="font-medium">{project.proposal_count || 0}</span>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={project.company.logo_url} />
+                    <AvatarFallback>
+                      {project.company.name?.charAt(0) || 'C'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-semibold">{project.company.name}</h4>
+                    {project.company.industry && (
+                      <p className="text-sm text-muted-foreground">{project.company.industry}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Views</span>
-                  <span className="font-medium">{project.view_count || 0}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Bookmarks</span>
-                  <span className="font-medium">{project.bookmark_count || 0}</span>
+
+                {project.company.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {project.company.description}
+                  </p>
+                )}
+
+                {project.company.website && (
+                  <Button variant="outline" size="sm" className="w-full gap-2" asChild>
+                    <a href={project.company.website} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                      Visit Website
+                    </a>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Posted By */}
+          {project.posted_by && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Posted By
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={project.posted_by.avatar_url} />
+                    <AvatarFallback>
+                      {project.posted_by.full_name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-medium text-sm">{project.posted_by.full_name}</h4>
+                    {project.posted_by.current_title && (
+                      <p className="text-xs text-muted-foreground">{project.posted_by.current_title}</p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }

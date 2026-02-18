@@ -1,4 +1,3 @@
-import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { EmployeeOverviewCard } from "@/components/employees/EmployeeOverviewCard";
 import { CommissionsTracker } from "@/components/employees/CommissionsTracker";
@@ -63,9 +62,8 @@ export default function MyPerformance() {
   const isLoading = employeeLoading || targetsLoading || commissionsLoading || metricsLoading;
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist', 'partner']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    <RoleGate allowedRoles={['admin', 'strategist', 'partner']}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -215,8 +213,7 @@ export default function MyPerformance() {
               </Tabs>
             </motion.div>
           )}
-        </div>
-      </RoleGate>
-    </AppLayout>
+      </div>
+    </RoleGate>
   );
 }

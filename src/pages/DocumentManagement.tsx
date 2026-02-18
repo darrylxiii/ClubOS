@@ -1,4 +1,3 @@
-import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -230,8 +229,7 @@ const DocumentManagement = () => {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <Breadcrumb
           items={[
             { label: 'Home', path: '/home' },
@@ -387,9 +385,8 @@ const DocumentManagement = () => {
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </AppLayout>
+      </AlertDialog>
+    </div>
   );
 };
 
