@@ -94,7 +94,7 @@ export default function CareerPath() {
   const displayPaths = careerPaths.length > 0 ? careerPaths : samplePaths;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-black uppercase mb-2">Career Progression</h1>
         <p className="text-muted-foreground">

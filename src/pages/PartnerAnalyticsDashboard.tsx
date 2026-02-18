@@ -56,14 +56,14 @@ export default function PartnerAnalyticsDashboard() {
 
   if (!companyId) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <p className="text-muted-foreground">No company associated with your account</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Enterprise Analytics</h1>
