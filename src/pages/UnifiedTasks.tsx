@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,9 +148,8 @@ const UnifiedTasks = () => {
 
   if (loading || !preferences) {
     return (
-      <AppLayout>
-        <div className="px-4 sm:px-6 lg:px-8 py-4 space-y-3">
-          <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 space-y-3">
+        <div className="flex items-center justify-between">
             <div className="animate-pulse rounded bg-muted/60 h-8 w-48" />
             <div className="animate-pulse rounded bg-muted/60 h-8 w-28" />
           </div>
@@ -158,9 +157,8 @@ const UnifiedTasks = () => {
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="border border-border/20 rounded-lg h-[200px] animate-pulse bg-muted/5" />
             ))}
-          </div>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
@@ -168,7 +166,7 @@ const UnifiedTasks = () => {
 
   return (
     <UnifiedTasksProvider objectiveId={selectedObjective}>
-      <AppLayout>
+      <div className="px-4 sm:px-6 lg:px-8 py-3 space-y-2 animate-fade-in">
         <div className="px-4 sm:px-6 lg:px-8 py-3 space-y-2 animate-fade-in">
           {/* Row 1: Unified Command Bar */}
           <TasksCommandBar
@@ -243,7 +241,7 @@ const UnifiedTasks = () => {
           <KeyboardShortcutsModal open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
           <AIPageCopilot currentPage="/tasks" contextData={{ objectivesCount: objectives.length }} />
         </div>
-      </AppLayout>
+      </div>
     </UnifiedTasksProvider>
   );
 };

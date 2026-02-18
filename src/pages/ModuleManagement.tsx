@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,7 +48,6 @@ export default function ModuleManagement() {
 
       if (courseError) throw courseError;
 
-      // Check if user owns this course
       if (courseData.created_by !== user?.id) {
         notify.error("Access denied", { description: "You don't have permission to manage these modules" });
         navigate("/academy/creator");
@@ -85,21 +83,16 @@ export default function ModuleManagement() {
       if (error) throw error;
 
       notify.success("Module deleted", { description: "The module has been removed successfully" });
-
       loadData();
     } catch (error: unknown) {
       notify.error("Error deleting module", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
-
-
   const handleModulesChange = async (newModules: Module[]) => {
-    // Optimistic update
     setModules(newModules);
 
     try {
-      // Prepare updates for all affected modules
       const updates = newModules.map((module, index) => ({
         id: module.id,
         display_order: index,
@@ -114,101 +107,93 @@ export default function ModuleManagement() {
       );
 
       await Promise.all(promises);
-
     } catch (error: unknown) {
       notify.error("Error reordering modules", { description: error instanceof Error ? error.message : 'Unknown error' });
-      // Revert to original order (reload data)
       loadData();
     }
   };
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   if (!course) {
     return (
-      <AppLayout>
-        <div className="container max-w-6xl mx-auto p-6 text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Course not found</h2>
-          <Link to="/academy/creator">
-            <Button>Back to Creator Hub</Button>
-          </Link>
-        </div>
-      </AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
+        <h2 className="text-2xl font-bold mb-4">Course not found</h2>
+        <Link to="/academy/creator">
+          <Button>Back to Creator Hub</Button>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="container max-w-5xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/academy/courses/${id}/edit`)}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Course
-            </Button>
-          </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Module
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-5xl">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(`/academy/courses/${id}/edit`)}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Course
           </Button>
         </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Module
+        </Button>
+      </div>
 
-        {/* Course Info */}
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 squircle-sm bg-primary/10">
-              <BookOpen className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">{course.title}</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage modules for this course
-              </p>
-            </div>
+      {/* Course Info */}
+      <Card className="p-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 squircle-sm bg-primary/10">
+            <BookOpen className="h-5 w-5 text-primary" />
           </div>
-        </Card>
-
-        {/* Modules List */}
-        <Card className="p-6">
-          <div className="mb-4">
-            <h3 className="font-bold text-lg">Course Modules</h3>
+          <div>
+            <h1 className="text-2xl font-bold">{course.title}</h1>
             <p className="text-sm text-muted-foreground">
-              {modules.length} module{modules.length !== 1 ? "s" : ""} in this course
+              Manage modules for this course
             </p>
           </div>
+        </div>
+      </Card>
 
-          {modules.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No modules yet</p>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create First Module
-              </Button>
-            </div>
-          ) : (
-            <CourseBuilder
-              modules={modules}
-              onModulesChange={handleModulesChange}
-              onEditModule={(id) => navigate(`/modules/${id}/edit`)}
-              onDeleteModule={handleDeleteModule}
-              onAddModule={() => setShowCreateDialog(true)}
-            />
-          )}
-        </Card>
-      </div>
+      {/* Modules List */}
+      <Card className="p-6">
+        <div className="mb-4">
+          <h3 className="font-bold text-lg">Course Modules</h3>
+          <p className="text-sm text-muted-foreground">
+            {modules.length} module{modules.length !== 1 ? "s" : ""} in this course
+          </p>
+        </div>
+
+        {modules.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">No modules yet</p>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create First Module
+            </Button>
+          </div>
+        ) : (
+          <CourseBuilder
+            modules={modules}
+            onModulesChange={handleModulesChange}
+            onEditModule={(id) => navigate(`/modules/${id}/edit`)}
+            onDeleteModule={handleDeleteModule}
+            onAddModule={() => setShowCreateDialog(true)}
+          />
+        )}
+      </Card>
 
       <CreateModuleDialog
         open={showCreateDialog}
@@ -217,6 +202,6 @@ export default function ModuleManagement() {
         onSuccess={loadData}
         nextDisplayOrder={modules.length}
       />
-    </AppLayout>
+    </div>
   );
 }

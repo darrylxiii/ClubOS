@@ -52,7 +52,7 @@ export const RadialMenuProvider = ({ children }: RadialMenuProviderProps) => {
 
   return (
     <>
-      <div onContextMenu={handleContextMenu}>{children}</div>
+      <div onContextMenu={handleContextMenu} className="flex-1 min-w-0 flex flex-col">{children}</div>
 
       <AnimatePresence>
         {open && (

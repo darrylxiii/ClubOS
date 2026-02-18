@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -213,31 +213,26 @@ export default function Academy() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-pulse text-muted-foreground">Loading academy...</div>
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-pulse text-muted-foreground">Loading academy...</div>
+      </div>
     );
   }
 
   if (!academy) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="text-4xl font-bold mb-4">Academy Not Found</h1>
-          <Link to="/home">
-            <Button>Return Home</Button>
-          </Link>
-        </div>
-      </AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
+        <h1 className="text-4xl font-bold mb-4">Academy Not Found</h1>
+        <Link to="/home">
+          <Button>Return Home</Button>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Tabs defaultValue="dashboard" className="space-y-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -513,6 +508,5 @@ export default function Academy() {
           onSuccess={loadAcademyData}
         />
       </div>
-    </AppLayout>
   );
 }
