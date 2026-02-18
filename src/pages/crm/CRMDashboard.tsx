@@ -1,4 +1,3 @@
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -122,10 +121,9 @@ export default function CRMDashboard() {
   ];
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <CRMRealtimeProvider>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <CRMRealtimeProvider>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -348,8 +346,7 @@ export default function CRMDashboard() {
             </TabsContent>
           </Tabs>
         </div>
-        </CRMRealtimeProvider>
-      </RoleGate>
-    </AppLayout>
+      </CRMRealtimeProvider>
+    </RoleGate>
   );
 }

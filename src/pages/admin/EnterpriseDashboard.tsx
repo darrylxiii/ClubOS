@@ -1,4 +1,3 @@
-import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Clock, Palette, FileCheck, Building2 } from 'lucide-react';
 import { SLADashboard } from '@/components/admin/enterprise/SLADashboard';
@@ -8,8 +7,7 @@ import { DisasterRecoveryDashboard } from '@/components/admin/DisasterRecoveryDa
 
 export default function EnterpriseDashboard() {
   return (
-    <AppLayout>
-      <div className="space-y-6 p-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Enterprise Management</h1>
@@ -57,6 +55,5 @@ export default function EnterpriseDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 }

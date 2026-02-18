@@ -1,4 +1,3 @@
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CRMAutomationBuilder } from '@/components/crm/CRMAutomationBuilder';
@@ -8,9 +7,8 @@ import { Zap, History } from 'lucide-react';
 
 export default function CRMAutomations() {
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -45,7 +43,6 @@ export default function CRMAutomations() {
             </TabsContent>
           </Tabs>
         </div>
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 }

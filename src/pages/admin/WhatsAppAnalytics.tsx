@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -69,9 +68,8 @@ export default function WhatsAppAnalytics() {
   ];
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">WhatsApp Analytics</h1>
@@ -300,7 +298,6 @@ export default function WhatsAppAnalytics() {
             </TabsContent>
           </Tabs>
         </div>
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 }

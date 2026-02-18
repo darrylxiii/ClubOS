@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Button } from '@/components/ui/button';
@@ -106,9 +105,8 @@ export default function FocusView() {
   );
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -309,7 +307,6 @@ export default function FocusView() {
             shortcuts={shortcuts}
           />
         </div>
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 }

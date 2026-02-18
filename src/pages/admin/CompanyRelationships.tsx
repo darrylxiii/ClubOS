@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { RefreshCw, Download, Building2, Users, Mail, TrendingUp, Zap, Loader2 } from 'lucide-react';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
 import { PageTitle } from '@/components/ui/typography';
@@ -63,8 +62,7 @@ export default function CompanyRelationships() {
 
   return (
     <RoleGate allowedRoles={['admin', 'strategist']}>
-      <AppLayout>
-        <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -239,7 +237,6 @@ export default function CompanyRelationships() {
             </div>
           </div>
         </div>
-      </AppLayout>
     </RoleGate>
   );
 }

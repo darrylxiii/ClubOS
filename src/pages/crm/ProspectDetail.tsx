@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -177,38 +176,33 @@ export default function ProspectDetail() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
-          <Skeleton className="h-10 w-48" />
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 space-y-4">
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-            <Skeleton className="h-96 w-full" />
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-4">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-64 w-full" />
           </div>
+          <Skeleton className="h-96 w-full" />
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (!prospect) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-6 text-center">
-          <p className="text-muted-foreground">Prospect not found</p>
-          <Button asChild className="mt-4">
-            <Link to="/crm/prospects">Back to Pipeline</Link>
-          </Button>
-        </div>
-      </AppLayout>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center">
+        <p className="text-muted-foreground">Prospect not found</p>
+        <Button asChild className="mt-4">
+          <Link to="/crm/prospects">Back to Pipeline</Link>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={['admin', 'strategist']}>
-        <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
+    <RoleGate allowedRoles={['admin', 'strategist']}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -565,7 +559,6 @@ export default function ProspectDetail() {
             </div>
           </div>
         </div>
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 }

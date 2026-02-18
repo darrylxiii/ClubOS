@@ -79,7 +79,7 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
   return (
     <Wrapper>
       <RoleGate allowedRoles={["admin", "strategist"]} showLoading>
-        <div className="container mx-auto py-8 max-w-7xl">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <div className="flex items-center gap-3">
               <BarChart3 className="h-8 w-8 text-primary" />

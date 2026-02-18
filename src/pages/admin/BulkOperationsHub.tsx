@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/components/AppLayout";
 import { RoleGate } from "@/components/RoleGate";
 import { Mail, ClipboardCheck, Calendar, Download, UserPlus, History } from "lucide-react";
 import { BulkEmailTab } from "@/components/admin/bulk-ops/BulkEmailTab";
@@ -15,9 +14,8 @@ const BulkOperationsHub = () => {
   const [activeTab, setActiveTab] = useState("email");
 
   return (
-    <AppLayout>
-      <RoleGate allowedRoles={["admin"]} showLoading>
-        <div className="container mx-auto py-8 max-w-7xl">
+    <RoleGate allowedRoles={["admin"]} showLoading>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Bulk Operations Hub</h1>
             <p className="text-muted-foreground">
@@ -156,8 +154,7 @@ const BulkOperationsHub = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </RoleGate>
-    </AppLayout>
+    </RoleGate>
   );
 };
 

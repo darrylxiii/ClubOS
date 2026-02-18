@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AppLayout } from '@/components/AppLayout';
+// AppLayout removed - provided by ProtectedLayout
 import { useJobAnalytics } from '@/hooks/useJobAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, TrendingUp, Clock, Target, Zap, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
@@ -16,29 +16,25 @@ export default function JobAnalyticsDashboard() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-8 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
           </div>
           <Skeleton className="h-96" />
-        </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (error || !data) {
     return (
-      <AppLayout>
-        <div className="container mx-auto py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">Failed to load analytics</p>
             </CardContent>
           </Card>
-        </div>
-      </AppLayout>
+      </div>
     );
   }
 
@@ -62,14 +58,13 @@ export default function JobAnalyticsDashboard() {
   }));
 
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Job Analytics</h1>
-          <p className="text-muted-foreground">Detailed performance metrics for this role</p>
-        </div>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Job Analytics</h1>
+        <p className="text-muted-foreground">Detailed performance metrics for this role</p>
+      </div>
 
-        {/* Key Metrics */}
+      {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
@@ -197,7 +192,6 @@ export default function JobAnalyticsDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </AppLayout>
+    </div>
   );
 }
