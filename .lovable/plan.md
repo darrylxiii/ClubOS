@@ -1,80 +1,75 @@
 
-# Fix: Mobile Layout Broken Across All Pages (Batch 2)
 
-## Problem
+# Fix: Mobile Layout Not Filling Viewport Width
 
-After fixing the first batch of ~15 pages, there are still 52 files using width-capping patterns (`container mx-auto`, `max-w-*xl mx-auto`) and/or redundant `<AppLayout>` wrappers. These pages render at constrained desktop widths on mobile instead of adapting to the smaller viewport.
+## Root Cause
 
-Pages wrapped in redundant `<AppLayout>` cause double sidebars (the page's own AppLayout + the ProtectedLayout's AppLayout), which steals space from content on all viewports and especially hurts mobile.
-
-## Pages to Fix (grouped by priority)
-
-### Group A: Pages with redundant AppLayout wrappers (highest impact -- double sidebar)
-
-These pages render INSIDE ProtectedLayout which already provides AppLayout. Wrapping again causes double sidebar:
-
-1. `src/pages/CourseDetail.tsx` -- `<AppLayout>` + `container max-w-7xl mx-auto`
-2. `src/pages/SubscriptionSuccess.tsx` -- `<AppLayout>` + `container max-w-2xl mx-auto`
-3. `src/pages/SchedulingSettings.tsx` -- `<AppLayout>` + `container mx-auto`
-4. `src/pages/ModuleEdit.tsx` -- `<AppLayout>` + `container max-w-5xl mx-auto`
-5. `src/pages/admin/InvestorDashboard.tsx` -- `<AppLayout>` + `container max-w-7xl mx-auto`
-6. `src/pages/ReferralProgram.tsx` -- `<AppLayout>` + wrapping pattern
-
-For each: Remove `<AppLayout>` wrapper + replace `container mx-auto max-w-*xl` with `w-full px-4 sm:px-6 lg:px-8`.
-
-### Group B: Pages with container/max-w constraints (no redundant AppLayout)
-
-7. `src/pages/Admin.tsx` -- `container mx-auto px-4`
-8. `src/pages/Meetings.tsx` -- `container mx-auto px-4`
-9. `src/pages/ConnectsStorePage.tsx` -- `container max-w-6xl`
-10. `src/pages/BookingPage.tsx` -- `container mx-auto max-w-5xl`
-11. `src/pages/WhatsAppImport.tsx` -- `container mx-auto max-w-4xl`
-12. `src/pages/KnowledgeBase.tsx` -- `container max-w-7xl`
-13. `src/pages/support/SupportTicketList.tsx` -- `container max-w-6xl`
-14. `src/pages/support/SupportTicketNew.tsx` -- `container max-w-3xl`
-15. `src/pages/support/SupportTicketDetail.tsx` -- likely `container`
-16. `src/pages/JobsMap.tsx` -- `container mx-auto` in header
-
-For each: Replace `container mx-auto` / `container max-w-*xl` with `w-full px-4 sm:px-6 lg:px-8`.
-
-### Group C: Public/standalone pages (use their own layout, not inside ProtectedLayout)
-
-17. `src/pages/legal/LegalHub.tsx` -- `container mx-auto` (OK to keep, not inside ProtectedLayout)
-18. `src/pages/legal/AccessibilityStatement.tsx` -- same
-19. `src/pages/PartnershipSubmitted.tsx` -- `container mx-auto` (standalone page)
-
-For public pages: Replace `container mx-auto` with `w-full px-4 sm:px-6 lg:px-8` but keep any intentional max-width on content cards (not page wrapper).
-
-## Fix Pattern (applied consistently)
+The `RadialMenuProvider` component wraps `<main>` inside a bare unstyled `<div>`:
 
 ```text
-BEFORE:
-  <AppLayout>
-    <div className="container max-w-7xl mx-auto p-6">
-      ...content...
-    </div>
-  </AppLayout>
-
-AFTER:
-  <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-    ...content...
-  </div>
+AppLayout flex container (flex-row, w-full)
+  |
+  +-- DynamicBackground (fixed, no flex space)
+  +-- header (fixed, no flex space)
+  +-- DesktopSidebar (hidden on mobile)
+  +-- RadialMenuProvider
+  |     |
+  |     +-- <div onContextMenu={...}>   <-- UNSTYLED FLEX ITEM (no flex-1!)
+  |           |
+  |           +-- <main class="flex-1 min-w-0 ...">   <-- flex-1 is MEANINGLESS here
+  |                 |
+  |                 +-- page content
+  +-- CommandPalette (portal)
+  +-- ClubAIVoice (portal)
 ```
+
+The problem: that intermediate `<div>` is a flex item in the AppLayout's row-direction flex container. It has **no flex properties**, so it defaults to `flex: 0 1 auto` -- meaning it **will not grow** to fill available space. Its width is determined by content width, not viewport width.
+
+The `flex-1` on `<main>` has no effect because its parent (the bare `<div>`) is not a flex container -- it's just a regular block element.
+
+On desktop, the content happens to be wide enough to appear normal, but on mobile (narrower viewport), the content area visibly fails to stretch to the full viewport width.
+
+## Fix (2 changes)
+
+### 1. RadialMenuProvider wrapper div (the actual fix)
+
+**File: `src/components/ui/radial-menu-provider.tsx` (line 55)**
+
+Change:
+```tsx
+<div onContextMenu={handleContextMenu}>{children}</div>
+```
+
+To:
+```tsx
+<div onContextMenu={handleContextMenu} className="flex-1 min-w-0 flex flex-col">
+  {children}
+</div>
+```
+
+This makes the wrapper a proper flex item that fills the container, AND makes it a flex container itself so `<main>`'s `flex-1` works correctly.
+
+### 2. Remaining redundant AppLayout wrappers (secondary cleanup)
+
+54 page files still wrap themselves in `<AppLayout>` despite being rendered inside `ProtectedLayout` (which already provides AppLayout). This causes double sidebar rendering on desktop and wasted layout on mobile. The highest-impact pages to fix in this batch:
+
+- `ModuleManagement.tsx` -- AppLayout + container max-w-5xl
+- `ClubDJ.tsx` -- AppLayout + container max-w-7xl
+- `SocialManagement.tsx` -- AppLayout + container mx-auto
+- `Academy.tsx` -- AppLayout + container max-w-7xl
+- `Jobs.tsx` -- AppLayout (already fluid width)
+- `CompanyJobsDashboard.tsx` -- AppLayout
+- `UnifiedTasks.tsx` -- AppLayout
+- `TimeTrackingPage.tsx` -- AppLayout
+- `MeetingHistory.tsx` -- AppLayout
+- `MeetingInsights.tsx` -- AppLayout
+
+For each: remove the `<AppLayout>` wrapper and replace any `container mx-auto` / `max-w-*xl` with `w-full px-4 sm:px-6 lg:px-8`.
 
 ## Technical Details
 
-For each file:
-- Remove `<AppLayout>` import and wrapper (if present and page is in ProtectedLayout routes)
-- Replace `container mx-auto` with `w-full`
-- Replace `max-w-*xl mx-auto` with responsive padding `px-4 sm:px-6 lg:px-8`
-- Keep existing `py-*` padding values
-- Leave max-width on modal/dialog/card internals untouched
-- Leave public pages' structural containers if they provide their own header/footer
-
-## Execution
-
-Will process all ~16 highest-impact files (Groups A and B) in this batch. Group C (public pages) can follow if needed.
+The fix applies the same refactoring pattern used in Batch 1 and 2. The RadialMenuProvider change is the critical one that makes the mobile content area fill the viewport. The AppLayout cleanup prevents double sidebar rendering and ensures consistent fluid layouts.
 
 ## Risk
 
-Low. All changes are CSS class replacements following the same pattern successfully applied to the first batch of 15 files. The AppLayout already provides the correct full-width flex layout structure.
+Low. The RadialMenuProvider change only adds flex properties to an existing wrapper div. The AppLayout cleanup follows the same proven pattern from earlier batches.
