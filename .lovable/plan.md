@@ -1,55 +1,34 @@
 
-# Full Audit: Layout Fix and Build Error Resolution
+# Fix: Recharts/Lodash Loading Failure
 
-## Issue 1: Build Error in EnhancedMLDashboard.tsx
+## Root Cause
 
-The TypeScript compiler reports `')' expected` at line 672 and `Expression expected` at line 673. The file content appears structurally correct on inspection, which suggests either invisible/zero-width characters or a stale parser state. The safest fix is to rewrite the closing section (lines 670-674) cleanly to eliminate any hidden character issues.
+The error `The requested module '/node_modules/lodash/get.js' does not provide an export named 'default'` occurs because:
 
-**Fix**: Rewrite the final 5 lines of the return statement to ensure clean bytes.
+1. `vite.config.ts` has `optimizeDeps.noDiscovery: true` (line 38) -- this tells Vite to NOT auto-discover transitive dependencies
+2. `recharts` depends on `lodash` (a CommonJS-only package)
+3. `lodash` is not listed in `optimizeDeps.include`, so Vite never pre-bundles it for ESM compatibility
+4. When `DynamicChart` dynamically imports `recharts`, the lodash CJS modules fail to load as ESM
 
----
+## Fix
 
-## Issue 2: Layout Not Filling Full Width
+Add `recharts` and `lodash` to the `optimizeDeps.include` array in `vite.config.ts`. This tells Vite to pre-bundle them into ESM-compatible modules during dev server startup.
 
-The root `#root` fix in `index.html` has been correctly applied (`width: 100%`, `contain` removed). The `AppLayout` component chain is correct (`min-h-screen flex w-full` on the container, `flex-1 min-w-0` on `<main>`).
+**File: `vite.config.ts` -- line 36 (inside `optimizeDeps.include`)**
 
-However, there are still **75 page files** and several key components that use width-capping patterns (`container mx-auto`, `max-w-7xl`, etc.) at the page level. These override the full-width layout.
+Add these two entries before the closing bracket:
 
-### Pages still needing cleanup (page-level constraints only, not dialog/modal contexts):
+```
+'recharts',
+'lodash',
+```
 
-**Key pages with `container mx-auto` or `max-w-*xl` at page root level:**
+This is a one-line config change that resolves the chart rendering failure across the entire application.
 
-1. `InteractionEntry.tsx` -- wraps in `AppLayout` + `container mx-auto max-w-3xl`
-2. `ContractDetailPage.tsx` -- wraps in `AppLayout` + `max-w-7xl mx-auto`
-3. `InteractionsFeed.tsx` -- uses `container mx-auto`
-4. `CreateContractPage.tsx` -- uses `max-w-4xl mx-auto`
-5. `WhatsAppAnalyticsTab.tsx` -- uses `max-w-7xl mx-auto`
-6. `WhatsAppAutomationsTab.tsx` -- uses `max-w-6xl mx-auto`
-7. `BlindSpotIntro.tsx` -- uses `container mx-auto max-w-3xl`
-8. `PressureCookerGame.tsx` -- uses `max-w-7xl mx-auto`
-9. `SwipeGame ResultsDashboard.tsx` -- uses `max-w-4xl mx-auto`
-10. Plus ~65 more files
+## Why This Works
 
-**Components with redundant `AppLayout` wrappers** (causing double sidebar when rendered inside `ProtectedLayout`):
-- `InteractionEntry.tsx`
-- `ContractDetailPage.tsx`
-
-### Fix approach
-
-For each file:
-- Remove `container mx-auto` from page-level wrappers
-- Replace `max-w-*xl mx-auto` with `w-full px-4 sm:px-6 lg:px-8`
-- Remove redundant `AppLayout` imports and wrappers
-- Leave `max-w-*xl` on dialog/modal content untouched (those are intentionally constrained)
-
----
-
-## Execution Order
-
-1. Fix `EnhancedMLDashboard.tsx` build error (rewrite closing lines)
-2. Clean up the ~15 highest-impact page files (the ones users visit most)
-3. Continue with remaining ~60 files in subsequent batches
+Vite's `optimizeDeps` pre-bundles CommonJS packages into ESM format. With `noDiscovery: true`, only explicitly listed packages get this treatment. Since `lodash` is CommonJS and was never listed, it breaks when imported as ESM. Adding it to the include list fixes the compatibility layer.
 
 ## Risk
 
-Low. All changes are CSS class replacements -- removing width caps and redundant wrappers. The `AppLayout` component already provides the correct full-width flex layout. Content will naturally expand to fill available space.
+None. This only affects dev-server dependency pre-bundling. Production builds already handle this via Rollup's `manualChunks` (line 243: `recharts` goes into the `charts` chunk).
