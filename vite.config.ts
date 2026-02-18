@@ -1,29 +1,40 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
+// import { componentTagger } from "lovable-tagger"; // Disabled to reduce dev server memory
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => ({
   server: {
-    host: true, // Listen on all interfaces (localhost + network IP)
+    host: true,
     port: 8080,
-    strictPort: false, // Allow Vite to use next available port if 8080 is busy
+    strictPort: false,
+    warmup: {
+      ssrFiles: [],
+      clientFiles: [],
+    },
   },
-  // Optimize dependency pre-bundling to reduce memory
   optimizeDeps: {
-    // Limit entries to reduce initial scan
-    entries: ['src/main.tsx'],
-    // Force pre-bundling for CJS/ESM compatibility issues
-    include: [],
-    // Exclude heavy libraries from pre-bundling
+    include: [
+      'react', 'react-dom', 'react-dom/client',
+      'react-router-dom',
+      '@supabase/supabase-js',
+      '@tanstack/react-query',
+      'sonner', 'clsx', 'tailwind-merge',
+      'class-variance-authority',
+      'lucide-react', 'date-fns',
+      'react-hook-form', 'zod',
+      '@hookform/resolvers',
+      'framer-motion',
+      'react-helmet-async',
+      'i18next', 'react-i18next',
+    ],
     exclude: ['mermaid', 'katex'],
+    noDiscovery: true,
   },
   plugins: [
     react(),
-    // Only used for the editor/devtools while running the dev server
-    command === 'serve' && mode === 'development' && componentTagger(),
     // PWA is only needed for production builds; it is memory-heavy during build
     command === 'build' && mode === 'production' &&
       VitePWA({
