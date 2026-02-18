@@ -74,7 +74,7 @@ export default function ProjectTalentPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2, BarChart3, Link2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { AppLayout } from "@/components/AppLayout";
+
 import { ReferralEarningsOverview } from "@/components/referrals/ReferralEarningsOverview";
 import { CompanyReferralCard } from "@/components/referrals/CompanyReferralCard";
 import { MemberReferralCard } from "@/components/referrals/MemberReferralCard";
@@ -61,8 +61,7 @@ export default function Referrals() {
   };
 
   return (
-    <AppLayout>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-7xl space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -188,8 +187,7 @@ export default function Referrals() {
 
         <ClaimReferralDialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen} />
         <ReferralShareSheet open={shareSheetOpen} onOpenChange={setShareSheetOpen} />
-      </div>
-    </AppLayout>
+    </div>
   );
 }
 
