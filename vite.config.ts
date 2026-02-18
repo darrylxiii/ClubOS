@@ -213,29 +213,6 @@ export default defineConfig(({ mode, command }) => ({
       maxParallelFileOps: 1, // Minimum parallelism to reduce peak memory
       treeshake: mode === 'production',
       
-      // CRITICAL: Mark heavy dependencies as external in dev mode
-      // They won't be bundled, reducing memory significantly
-      ...(mode === 'development' ? {
-        external: [
-          'mermaid',
-          '@mediapipe/selfie_segmentation',
-          '@mediapipe/camera_utils',
-          'fabric',
-          'katex',
-          '@blocknote/core',
-          '@blocknote/react',
-          '@blocknote/mantine',
-          // LiveKit removed - must be bundled for lazy loading to work
-          'jspdf',
-          'jspdf-autotable',
-          '@tiptap/core',
-          '@tiptap/react',
-          '@tiptap/extensions',
-          'prosemirror-state',
-          'prosemirror-view',
-          'prosemirror-model',
-        ],
-      } : {}),
       
       output: {
         // OOM FIX: Static object for manualChunks is cheaper than a function

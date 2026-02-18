@@ -38,7 +38,7 @@ export const T = ({ k, fallback, values, as: Component = 'span', ...props }: TPr
   const translated = t(k, { ...values, defaultValue: fallback || key });
   
   // In development, show visual indicator when translation is missing
-  if (process.env.NODE_ENV === 'development' && translated === k) {
+  if (import.meta.env.DEV && translated === k) {
     logger.warn('Missing translation', { componentName: 'T', key: k, language: i18n.language });
     return (
       <Component {...props} title={`Missing: ${k}`} style={{ backgroundColor: 'rgba(255, 0, 0, 0.1)' }}>

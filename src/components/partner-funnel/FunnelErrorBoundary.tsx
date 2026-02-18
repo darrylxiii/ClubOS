@@ -84,7 +84,7 @@ export class FunnelErrorBoundary extends Component<Props, State> {
               </Button>
             </div>
 
-            {process.env.NODE_ENV === "development" && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mt-4 text-left text-xs">
                 <summary className="cursor-pointer text-muted-foreground">
                   Error details (dev only)

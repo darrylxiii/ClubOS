@@ -197,7 +197,7 @@ i18n
     // Log missing keys in development
     saveMissing: false,
     missingKeyHandler: (lngs, ns, key) => {
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.warn(`[i18n] Missing key: ${ns}:${key} for languages: ${lngs.join(', ')}`);
       }
     },
