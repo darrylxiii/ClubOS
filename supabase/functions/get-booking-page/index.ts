@@ -50,6 +50,12 @@ serve(async (req) => {
           'video_platform',
           'host_display_mode',
           'guest_permissions',
+          
+          'payment_required',
+          'payment_amount',
+          'payment_currency',
+          'confirmation_message',
+          'redirect_url',
         ].join(', '),
       )
       .eq('slug', slug)

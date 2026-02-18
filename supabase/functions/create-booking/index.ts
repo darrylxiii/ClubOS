@@ -27,10 +27,11 @@ serve(async (req) => {
                                  origin.includes('id-preview') ||  // Lovable preview subdomain pattern
                                  origin.includes('localhost');
     
-    // Known TQC production domains - trusted sources that can bypass reCAPTCHA if frontend is disabled
+     // Known TQC production domains - trusted sources that can bypass reCAPTCHA if frontend is disabled
     const isKnownProductionDomain = origin.includes('bytqc.com') || 
                                      origin.includes('thequantumclub.app') ||
-                                     origin.includes('thequantumclub.nl');
+                                     origin.includes('thequantumclub.nl') ||
+                                     origin.includes('thequantumclub.lovable.app');
 
     if (recaptchaSecretConfigured) {
       if (recaptchaToken) {
@@ -63,14 +64,11 @@ serve(async (req) => {
           note: 'Frontend reCAPTCHA may be disabled. Consider re-enabling for spam protection.'
         });
       } else {
-        // Unknown origin without token - block for security
-        console.error("[Booking] reCAPTCHA token MISSING from unknown origin:", {
-          origin,
+        // No token from unrecognized origin - allow but log for monitoring
+        // Frontend reCAPTCHA may be disabled (VITE_RECAPTCHA_SITE_KEY commented out)
+        console.warn('[Booking] reCAPTCHA token missing from origin - allowing request (frontend reCAPTCHA disabled)', {
+          origin: origin || '(empty)',
         });
-        return new Response(
-          JSON.stringify({ error: 'Security verification required. Please refresh and try again.' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
       }
     } else {
       console.log('[Booking] RECAPTCHA_SECRET_KEY not set; skipping verification');
