@@ -287,6 +287,7 @@ export default function BookingPage() {
               <AvatarFallback>{profile?.full_name?.[0] || "Q"}</AvatarFallback>
             </Avatar>
             <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "The Quantum Club"}</h1>
+            <p className="text-xs text-muted-foreground">Powered by The Quantum Club</p>
           </div>
 
           {/* Progress Stepper */}
