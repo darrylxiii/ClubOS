@@ -155,6 +155,10 @@ function handleUnhandledRejection(event: PromiseRejectionEvent): void {
     promiseReason: typeof error === 'object' ? JSON.stringify(error) : String(error),
     ...context,
   });
+  
+  // Prevent the rejection from propagating to the browser's default
+  // fatal error behavior which can crash the preview iframe
+  event.preventDefault();
 }
 
 /**
