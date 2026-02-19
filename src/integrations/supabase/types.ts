@@ -24224,6 +24224,77 @@ export type Database = {
           },
         ]
       }
+      job_pipeline_shares: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          job_id: string
+          label: string | null
+          password_hash: string | null
+          show_ai_summary: boolean
+          show_candidate_emails: boolean
+          show_candidate_linkedin: boolean
+          show_candidate_names: boolean
+          show_contact_info: boolean
+          show_match_scores: boolean
+          show_salary_data: boolean
+          token: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          job_id: string
+          label?: string | null
+          password_hash?: string | null
+          show_ai_summary?: boolean
+          show_candidate_emails?: boolean
+          show_candidate_linkedin?: boolean
+          show_candidate_names?: boolean
+          show_contact_info?: boolean
+          show_match_scores?: boolean
+          show_salary_data?: boolean
+          token?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          job_id?: string
+          label?: string | null
+          password_hash?: string | null
+          show_ai_summary?: boolean
+          show_candidate_emails?: boolean
+          show_candidate_linkedin?: boolean
+          show_candidate_names?: boolean
+          show_contact_info?: boolean
+          show_match_scores?: boolean
+          show_salary_data?: boolean
+          token?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_pipeline_shares_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_pipelines: {
         Row: {
           company_name: string
@@ -55859,6 +55930,10 @@ export type Database = {
             }
             Returns: Json
           }
+      check_pipeline_share_requires_password: {
+        Args: { _token: string }
+        Returns: Json
+      }
       check_profile_auth_integrity: {
         Args: never
         Returns: {
@@ -56835,6 +56910,10 @@ export type Database = {
       user_in_video_session: {
         Args: { session_id_param: string; user_id_param: string }
         Returns: boolean
+      }
+      validate_job_pipeline_share: {
+        Args: { _password?: string; _token: string }
+        Returns: Json
       }
     }
     Enums: {
