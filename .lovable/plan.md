@@ -1,240 +1,231 @@
 
-# Maximum Efficiency Audit — Round 3: Every Dollar Accounted For
+# Maximum Efficiency Audit — Round 4: The Full System Sweep
 
-## What Round 1 and Round 2 Fixed (Already Done)
+## Cumulative Status: What Has Been Done Across Rounds 1–3
 
 | Fix | Status |
 |---|---|
-| `generate-placeholders` → static rotation | Done |
+| `generate-placeholders` → static array, zero AI calls | Done |
 | `club-ai-chat` → 15-message truncation + `gemini-2.5-flash-lite` default | Done |
-| `retrieve-context` → skip expansion <8 words, skip rerank ≤5 results | Done |
-| `enrich-candidate-profile` → 24h cache guard | Done |
+| `club-ai-chat` → intent-based tool filtering (4 core tools by default) | Done |
+| `retrieve-context` → skip expansion <8 words, skip reranking ≤5 results | Done |
+| `enrich-candidate-profile` → 24h cache guard + downgraded to `flash-lite` | Done |
 | `generate-kpi-insights` → 1h cache + `flash-lite` | Done |
 | `generate-daily-briefing` → once-per-day guard | Done |
-| `context-builder.ts` → reduced row limits (emails 10, WhatsApp 10, comms 20) | Done |
+| `context-builder.ts` → reduced all row limits + 5-min admin context cache | Done |
 | `ai-copilot-tips` → 4h cache guard | Done |
 | `generate-analytics-insights` → 2h cache guard | Done |
-| `analyze-email-sentiment` → deduplication guard | Done |
-| `analyze-meeting-recording-advanced` → cache guard on completed analysis | Done |
-| `enrich-candidate-profile` → model downgraded to `flash-lite` | Done |
+| `analyze-email-sentiment` → deduplication guard + `flash-lite` | Done |
+| `analyze-meeting-recording-advanced` → result cache guard | Done |
+| `process-email-ai` → `flash-lite` + skip smart replies for low-priority | Done |
+| `detect-hallucinations` → fixed broken `gpt-4o-mini` → `flash-lite` | Done |
+| `generate-daily-outreach-insights` → 6h cache guard | Done |
+| `ai-tools.ts` → all 17 tool descriptions trimmed to ≤10 words | Done |
+| `agentic-heartbeat` → pre-mark events processed before AI call | Done |
 
 ---
 
-## Round 3: What Is Still Burning Credits
+## Round 4 Findings: What Is Still Burning Credits
 
-### Critical Finding 1: `generate-placeholders` Edge Function Still Calls `gemini-2.5-flash`
+### Critical Finding 1: `generate-whatsapp-smart-replies` Still Calls `gpt-4o-mini` via OpenAI Directly
 
-The frontend (`ClubAI.tsx`) was correctly updated to use static placeholders. But the Edge Function itself (`supabase/functions/generate-placeholders/index.ts`) **still exists and still calls `gemini-2.5-flash`** — the mid-tier model, not even flash-lite. Any other caller, webhook, or background task that still invokes this function pays full price. The function should be converted to return only static placeholders with zero AI calls.
+This is the most immediately broken function in the system. It calls `https://api.openai.com/v1/chat/completions` with `gpt-4o-mini` using a separate `OPENAI_API_KEY` — not the Lovable AI Gateway. This means:
+1. It bypasses all cost tracking.
+2. `gpt-4o-mini` is not in the supported model list.
+3. If the key is missing (which is likely since it is a separate secret), the function silently falls back to static replies — meaning every WhatsApp conversation always burns an API call that either fails or charges a separate account.
 
-### Critical Finding 2: `ai-tools.ts` Is 2,107 Lines — Sent to AI on Every Single Chat Message
+Fix: Replace the OpenAI direct call with the Lovable AI Gateway using `gemini-2.5-flash-lite`.
 
-The `allAITools` array exported from `_shared/ai-tools.ts` contains **17 full tool definitions** sent to the AI on every request. Each tool definition includes a full description paragraph plus parameter schemas. This alone adds approximately 1,500–2,500 tokens per request in the tools array, on top of everything else. The current role-based filtering does remove some tools for candidates and partners, but for admin/strategist users — the heaviest users — all 17 tools are sent every time.
+### Critical Finding 2: `run-headhunter-agent` Still Uses `gpt-4o-mini`
 
-**Fix**: Send only the tools relevant to the detected `mode`. In `normal` mode, strip down to 5–7 core tools (navigate, task, search_jobs, search_talent_pool). Only in `search` mode add web_search. Only when explicit signals exist (e.g., message contains "schedule", "meeting") add calendar tools. This is query-intent-based tool filtering.
+`run-headhunter-agent` line 69 calls:
+```
+model: 'gpt-4o-mini'
+```
+This is the deprecated model name, not in the supported gateway model list. This function is triggered every time a new job goes live. It makes one AI call per job to generate a search persona (50 words). This is a simple summarization task — `gemini-2.5-flash-lite` handles it perfectly at a fraction of the cost, and the model name will actually resolve correctly.
 
-### Critical Finding 3: `process-email-ai` Uses `gemini-2.5-flash` with No Batching
+### Critical Finding 3: `generate-candidate-brief` Still Uses `gemini-3-flash-preview`
 
-This function is called per email with a massive 9-field system prompt requesting category, priority, summary, sentiment, action items, 3 smart replies, meeting detection, follow-up detection, and relationship intelligence — all in one call using `gemini-2.5-flash`. The function has a rate limit of 100 emails per hour per user, which means up to 100 AI calls/hour just for email processing for a single user.
+`generate-candidate-brief` (line 98) uses `google/gemini-3-flash-preview` — the expensive next-gen preview model. This generates a 360-degree intelligence brief for candidates. It is called from the talent pool UI whenever a strategist opens a candidate card. There is no cache guard — every open of the candidate card triggers a fresh AI call with the most expensive flash model in the fleet.
 
-**Fixes**:
-1. Downgrade model to `gemini-2.5-flash-lite` — the task is structured classification, not complex reasoning.
-2. Strip smart replies from the default call. Smart replies are only needed when the user opens an email, not during background sync.
-3. Add a check for `ai_processed_at` already existing (this exists — it correctly skips already-processed emails).
+Fix: Downgrade to `gemini-2.5-flash` (not even lite — this is a visible, quality-sensitive output) AND add a cache guard using the existing `candidate_brief` column. If `candidate.candidate_brief` already exists and was generated within the last 48 hours, return it immediately without any AI call.
 
-### Critical Finding 4: `analyze-email-sentiment` Still Uses `gemini-2.5-flash`
+### High Finding 4: `generate-candidate-dossier` Uses `gemini-2.5-flash` with No Cache
 
-After Round 2, the deduplication guard was added (skip if `sentiment_score` is already populated). But the model is still `google/gemini-2.5-flash`. For a sentiment task that returns a -1.0 to 1.0 score plus a label, `gemini-2.5-flash-lite` is more than sufficient. This is a single-output classification task.
+`generate-candidate-dossier` uses `google/gemini-2.5-flash` and has no cache check. It is triggered whenever a dossier is viewed. The dossier data (interview feedback, experience, skills) does not change between views. Every page load of the dossier panel triggers a fresh AI call.
 
-### Critical Finding 5: `agentic-heartbeat` Triggers `run-headhunter-agent` Per Job Open Event
+Fix: After generating the dossier, store it in a `dossiers` table column (or use the existing `candidate_profiles.candidate_brief` JSONB field) and check for a recent result (48h TTL) before calling AI. Also downgrade model to `gemini-2.5-flash-lite` — the task is structured JSON extraction from structured input, not complex reasoning.
 
-The heartbeat runs and checks for `job_status_open` events, then calls `run-headhunter-agent` for each. `run-headhunter-agent` is an agentic search function. If 5 jobs get published in a day, that is 5 headhunter runs, each of which likely calls AI multiple times. There is no deduplication guard to prevent re-running the headhunter for the same job if the heartbeat runs again before the event is processed.
+### High Finding 5: `generate-interview-prep-ai` and `generate-interview-prep` Are Two Separate Functions Doing the Same Thing
 
-**Fix**: Mark events as processed immediately (before the AI call, not after) to prevent duplicate runs.
+There are TWO separate interview prep functions:
+- `generate-interview-prep-ai` uses `google/gemini-2.5-flash`
+- `generate-interview-prep` also uses `google/gemini-2.5-flash`
 
-### Critical Finding 6: `detect-hallucinations` Uses `gpt-4o-mini` (Deprecated Model Name)
+Both generate interview preparation materials for the same candidate+job+meeting combination. Both store results into the database (`interview_prep_briefs`). Neither checks if a prep brief already exists for the same `meeting_id` + `candidate_id` before calling the AI.
 
-The function calls `gpt-4o-mini` which no longer exists in the gateway supported model list. This either silently fails or routes to an expensive fallback. Replace with `google/gemini-2.5-flash-lite` which is purpose-built for classification tasks at a fraction of the cost. Hallucination detection is a structured JSON task — it does not need GPT-class reasoning.
+Fix:
+1. In `generate-interview-prep`, add a guard: check `interview_prep_briefs` for an existing row with the same `meeting_id` and `candidate_id` — if found, return it.
+2. In `generate-interview-prep-ai`, downgrade model to `gemini-2.5-flash-lite` — structured JSON generation from structured input.
+3. Both functions use `google/gemini-2.5-flash` — downgrade both to `gemini-2.5-flash-lite`.
 
-### Critical Finding 7: `generate-daily-outreach-insights` Has No Cache Guard
+### High Finding 6: `generate-executive-briefing` Uses `gemini-2.5-flash` with No Cache
 
-This function generates outreach insights from campaign, reply, account health, and prediction data. It inserts results into `crm_outreach_insights` with a 24h expiry — but there is **no guard at the start of the function to check if recent insights already exist**. Every call regenerates everything, even though the data changes minimally between calls. Unlike `generate-daily-briefing` which correctly checks `daily_briefings` for today's date, this function has no such check.
+`generate-executive-briefing` uses `google/gemini-2.5-flash` and has a 20-per-hour rate limit, but no TTL cache. The same briefing for the same candidate+job is regenerated on every request. The input data (interview feedback, match score) rarely changes between views.
 
-**Fix**: Add a cache check at the start — if `crm_outreach_insights` contains entries created in the last 6 hours, return those instead of regenerating.
+Fix: Add a 24h cache guard. Before calling AI, check if a briefing for this `candidateId + jobId` was generated in the last 24 hours. If yes, return the cached version. Downgrade model to `gemini-2.5-flash-lite` — this is structured JSON with short outputs.
 
-### Critical Finding 8: `classify-query-intent` Makes Unnecessary AI Calls
+### High Finding 7: `generate-post-suggestions` Uses `gemini-2.5-flash` with No Deduplication
 
-Looking at `classify-query-intent`, the entire intent classification is done in pure JavaScript (regex-based entity extraction, pattern matching) — no AI call is made at all. This is actually correct and efficient. The function already caches results for 7 days. No change needed here.
+`generate-post-suggestions` is called every time a user opens the post creation modal. It uses `google/gemini-2.5-flash` and generates 3 suggestions. There is no cache — every modal open is a fresh AI call. If a user opens and closes the modal 5 times, that is 5 calls.
 
-### Critical Finding 9: `context-builder.ts` — Admin Context Still Fetches 12 Database Tables Every Message
+Fix: Downgrade model to `gemini-2.5-flash-lite`. The task is generating 3 creative social media post suggestions — not complex reasoning. Also add a simple session-level deduplication: if suggestions were generated in the last 15 minutes for the same user, return the cached result.
 
-While row limits were reduced in Round 2, for admin/strategist users the `buildAdminContext` function still runs 12 parallel database queries on **every single chat message**. Even with reduced limits, this is expensive in database reads and the resulting context string is injected verbatim into the AI prompt, adding 1,500–3,000 tokens of admin data even if the question is "what is 2+2".
+### High Finding 8: `generate-offer-recommendation` Uses `gemini-2.5-flash` with No Cache
 
-**Fix**: Add an in-memory TTL cache for admin context. The admin context (placement fees, KPIs, candidate pool stats) changes at most every few minutes. Cache the built context string in a module-level `Map` with a 5-minute TTL, keyed by the admin's user ID. On cache hit, return instantly and skip all 12 database queries and the token cost.
+`generate-offer-recommendation` calls `google/gemini-2.5-flash` every time. The compensation analysis is deterministic — same inputs (candidate salary expectations, market benchmarks, job title) should produce the same output. There is no cache. If a strategist views the offer recommendation panel multiple times during a session, it re-runs every time.
 
-### Critical Finding 10: The `ai-tools.ts` Tool Descriptions Are Verbose (Token Waste)
+Fix: Add a 12h cache guard using a dedicated column (or the `applications` table's JSONB metadata). Downgrade model to `gemini-2.5-flash-lite` — the AI part generates 2-3 sentence summaries and negotiation tips, which is simple text generation.
 
-The 17 tool descriptions in `allAITools` use verbose, multi-sentence descriptions. For example, `find_free_slots` has a description: "Analyze unified calendar (Quantum Club + Google + Microsoft) to find optimal free time slots. Returns top 5 ranked slots with availability scores." — this is ~20 tokens for the description alone. Multiply by 17 tools × every chat request = 340+ tokens just in description text, before parameters.
+### Medium Finding 9: `context-builder.ts` Still Fetches All User Data Even for Admin Users
 
-**Fix**: Shorten all tool descriptions to 8 words or fewer. The AI model does not need a full paragraph to understand what `find_free_slots` does.
+For admin/strategist users, the function first runs all 22 parallel queries for the candidate/personal context (emails, WhatsApp, meetings, applications, etc.) and THEN appends admin context from cache. The personal context (emails, social connections, personal applications) is irrelevant for admin users who are looking at platform data, not their own career.
 
-### Critical Finding 11: `retrieve-context` Sends Full Tool Definitions in Reranking Prompt
+Fix: For users with `admin` or `strategist` roles, skip the personal context entirely (the second parallel batch of 13 queries fetching WhatsApp, SMS, posts, emails, bookings, etc.) and return only the admin context. Estimated saving: 13 DB queries per admin chat message.
 
-The reranking prompt currently passes `c.content.substring(0, 200)` per candidate (up to 10 candidates). With 10 candidates × 200 chars = 2,000 chars just in the prompt body. This is fine. However, the function still generates an embedding for every query (that is one AI call minimum per RAG query) even for the simplest lookups. There is currently no embedding cache.
+### Medium Finding 10: `generate-daily-briefing` Still Uses `serve()` from `deno.land/std` — Bundle Risk
 
-**Fix**: For queries where the vector search returns 0 results, skip the reranking call entirely (already done for ≤5). For identical or near-identical repeated queries within the same session, cache the embedding vector in a module-level Map with a 10-minute TTL.
+`generate-daily-briefing` still imports `serve` from `https://deno.land/std@0.168.0/http/server.ts` and `createClient` from `https://esm.sh/@supabase/supabase-js@2.39.3` (an old version). This is the same pattern that caused the 400 Bad Request deployment error in a previous session. The function itself is now correct and efficient (once-per-day guard) but its import pattern is fragile.
 
-### Critical Finding 12: `generate-activity-insights` Has No AI at All — Already Efficient
+Fix: Migrate to `Deno.serve()` and `npm:@supabase/supabase-js@2`. This also applies to `run-headhunter-agent` (also on old `esm.sh` imports).
 
-After reading the full file, `generate-activity-insights` is 100% pure data computation (bounce rates, frustration signals, journey drop-offs, search performance). It makes **zero AI calls**. This is already maximally efficient. No changes needed.
+### Medium Finding 11: `generate-quick-reply` Existence — Possible Duplication
 
-### Critical Finding 13: `process-email-ai` Smart Replies Add ~400 Extra Tokens Per Email
+A function named `generate-quick-reply` exists in the directory listing. The system already has `generate-whatsapp-smart-replies` and smart reply generation within `process-email-ai`. This may be a third duplicate AI call path for replies.
 
-The system prompt requests 3 smart replies (professional, friendly, decline) for every email processed. For newsletters and low-priority emails, smart replies are useless. The AI generates them anyway, wasting ~400 tokens per email.
+Fix: Read and audit `generate-quick-reply` to confirm if it is a duplicate. If so, consolidate or add a cache guard.
 
-**Fix**: Skip smart reply generation for emails classified as `newsletter`, `spam`, or `low` priority. Only generate smart replies for `recruiter_outreach`, `interview_invitation`, and `offer` categories.
+### Low Finding 12: `guide-sourcing-strategy` Is Called Per-Mission in Heartbeat with No Cache
+
+In `agentic-heartbeat`, line 133 calls `guide-sourcing-strategy` for each pending sourcing mission. If 5 missions are pending, that is 5 calls to a strategy generation function. The strategy for the same `job_id` is unlikely to change between heartbeat runs (which run every few minutes). There is no deduplication — the same job can have its strategy re-generated on every heartbeat until the mission is marked `in_progress`.
+
+Fix: After generating a strategy and storing it in `sourcing_missions.search_strategy`, the heartbeat already marks the mission `in_progress`. Verify the query correctly excludes `in_progress` missions (it does: `.eq("status", "pending")`). The main risk is if `guide-sourcing-strategy` itself is called multiple times in quick succession before the DB write completes. Add an immediate `status: "processing"` update BEFORE calling the strategy function, similar to the heartbeat event deduplication fix.
 
 ---
 
-## Implementation Plan: 9 Changes
+## Implementation Plan: 10 Changes
 
-### Change 1: Kill `generate-placeholders` AI Call Permanently
+### Change 1: Fix `generate-whatsapp-smart-replies` — Replace OpenAI Direct Call
 
-**File**: `supabase/functions/generate-placeholders/index.ts`
+Remove the `openaiKey` check and OpenAI direct call entirely. Replace with the Lovable AI Gateway using `google/gemini-2.5-flash-lite`. The function already has a solid fallback system for when AI fails — keep the fallback but make the AI call go through the correct gateway.
 
-Remove the entire AI fetch call and return a static placeholder set directly. The function body becomes a simple 10-line response returning a hardcoded array. This ensures no caller — frontend or otherwise — can accidentally trigger an AI call through this function.
+Estimated saving: Eliminates a completely broken/separate-account AI call. 100% reduction on that function's external spend.
 
-### Change 2: Intent-Based Tool Filtering in `club-ai-chat`
+**File:** `supabase/functions/generate-whatsapp-smart-replies/index.ts`
 
-**File**: `supabase/functions/club-ai-chat/index.ts`
+### Change 2: Fix `run-headhunter-agent` — Replace `gpt-4o-mini` + Migrate Imports
 
-The current code sends all 17 filtered tools every time. Add a simple keyword intent detector on the last user message:
+Change the model from `gpt-4o-mini` (broken) to `google/gemini-2.5-flash-lite`. Also migrate imports from `esm.sh` to `npm:` specifiers to prevent future deployment errors.
 
-- Default (no keywords): send only `navigate_to_page` + `search_jobs` + `create_task` + `search_talent_pool` (4 tools, ~800 tokens)
-- If message contains `schedule|meeting|book|calendar`: add calendar tools (4 more)
-- If message contains `message|email|send|draft`: add messaging tools (3 more)
-- If `search` mode: replace with `web_search` tool
-- Admin-only: always include `search_talent_pool`, `log_candidate_touchpoint`
+Estimated saving: Fixes silent failures on every job publish event. ~50% cheaper per headhunter run.
 
-Estimated saving: 800–1,200 tokens per non-complex request. At 50 messages/day, this is 40,000–60,000 tokens/day saved just from tool definitions.
+**File:** `supabase/functions/run-headhunter-agent/index.ts`
 
-### Change 3: 5-Minute In-Memory Cache for Admin Context
+### Change 3: Add 48h Cache + Model Downgrade to `generate-candidate-brief`
 
-**File**: `supabase/functions/_shared/context-builder.ts`
+At the start of the function, check if `candidate.candidate_brief` already has a `generated_at` timestamp within the last 48 hours. If yes, return the existing brief immediately without calling AI. Change model from `gemini-3-flash-preview` → `gemini-2.5-flash`.
 
-Add a module-level Map at the top of the file:
+Estimated saving: 70–90% reduction on repeat views. Model downgrade saves ~30–40% on the calls that do happen.
 
-```
-const adminContextCache = new Map<string, { context: string; ts: number }>();
-const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-```
+**File:** `supabase/functions/generate-candidate-brief/index.ts`
 
-In `buildAdminContext`, check if a cached entry exists for the user that is less than 5 minutes old. If yes, return it immediately — skipping all 12 database queries AND the token cost of re-building the context string. On cache miss, build normally and store.
+### Change 4: Add 48h Cache + Model Downgrade to `generate-candidate-dossier`
 
-### Change 4: Downgrade `process-email-ai` Model + Strip Low-Priority Smart Replies
+After generating a dossier, store the result and timestamp in the candidate's `candidate_profiles` record (or a dedicated `dossiers` table). At the start of subsequent calls, check for a fresh result before calling AI. Downgrade model from `gemini-2.5-flash` → `gemini-2.5-flash-lite`.
 
-**File**: `supabase/functions/process-email-ai/index.ts`
+Estimated saving: 70–90% reduction on repeat views.
 
-1. Change model from `google/gemini-2.5-flash` → `google/gemini-2.5-flash-lite`
-2. Update system prompt to skip smart reply generation for newsletter/spam categories. Add a system prompt instruction: "Only generate smart_replies for categories: recruiter_outreach, interview_invitation, offer. For all other categories, set smart_replies to null."
+**File:** `supabase/functions/generate-candidate-dossier/index.ts`
 
-Estimated saving: 30–50% per email processed + model downgrade.
+### Change 5: Add Dedup Guard to `generate-interview-prep` + Downgrade Both Prep Functions
 
-### Change 5: Downgrade `analyze-email-sentiment` Model
+In `generate-interview-prep`: check `interview_prep_briefs` for existing row with same `meeting_id` + `candidate_id`. If found, return it. Downgrade model to `gemini-2.5-flash-lite`.
+In `generate-interview-prep-ai`: same model downgrade.
 
-**File**: `supabase/functions/analyze-email-sentiment/index.ts`
+Estimated saving: Eliminates duplicate AI calls for same interview. ~50% reduction on that function.
 
-Change model from `google/gemini-2.5-flash` → `google/gemini-2.5-flash-lite`. Sentiment classification (-1.0 to 1.0 score + label) is a simple task. The deduplication guard from Round 2 already prevents re-processing. This saves ~40% of cost on every new email that hits this function.
+**Files:** `supabase/functions/generate-interview-prep/index.ts`, `supabase/functions/generate-interview-prep-ai/index.ts`
 
-### Change 6: Fix `detect-hallucinations` Model
+### Change 6: Add 24h Cache to `generate-executive-briefing` + Model Downgrade
 
-**File**: `supabase/functions/detect-hallucinations/index.ts`
+Check for existing briefing for `candidateId + jobId` from within the last 24h in the database (could use `interview_prep_briefs` or a dedicated `executive_briefings` table or `applications` metadata). Downgrade model from `gemini-2.5-flash` → `gemini-2.5-flash-lite`.
 
-Change model from `gpt-4o-mini` (not in supported list, likely failing or expensive) → `google/gemini-2.5-flash-lite`. This is a strict JSON classification task with low reasoning requirements.
+Estimated saving: 80–90% reduction on repeat views.
 
-### Change 7: Add Cache Guard to `generate-daily-outreach-insights`
+**File:** `supabase/functions/generate-executive-briefing/index.ts`
 
-**File**: `supabase/functions/generate-daily-outreach-insights/index.ts`
+### Change 7: Downgrade `generate-post-suggestions` + 15-min Cache
 
-Add a check at the top of the function before any data fetching:
+Change model from `gemini-2.5-flash` → `gemini-2.5-flash-lite`. Add a simple in-memory module-level cache (Map keyed by `userId + postType + platform`) with a 15-minute TTL. On cache hit, return suggestions immediately.
 
-```typescript
-const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-const { data: recentInsights } = await supabase
-  .from('crm_outreach_insights')
-  .select('id')
-  .gte('created_at', sixHoursAgo)
-  .limit(1)
-  .maybeSingle();
+Estimated saving: ~40% on model cost. 60–80% reduction on repeat opens per session.
 
-if (recentInsights) {
-  // Return cached - fetch recent insights and return
-  const { data: cached } = await supabase.from('crm_outreach_insights')
-    .select('*').gte('created_at', sixHoursAgo).order('created_at', { ascending: false }).limit(5);
-  return cached response;
-}
-```
+**File:** `supabase/functions/generate-post-suggestions/index.ts`
 
-This function is called from the Outreach/CRM dashboard. Without the guard, opening the page multiple times regenerates insights. With the guard, it generates at most 4 times per day.
+### Change 8: Add 12h Cache + Model Downgrade to `generate-offer-recommendation`
 
-### Change 8: Shorten All Tool Descriptions in `ai-tools.ts`
+Check for a cached recommendation for the same `candidate_id + job_id` within the last 12 hours. Store the result in a JSONB column on the `applications` table's existing `match_factors` or a new `offer_recommendation_cache` field. Downgrade model from `gemini-2.5-flash` → `gemini-2.5-flash-lite`.
 
-**File**: `supabase/functions/_shared/ai-tools.ts`
+Estimated saving: 70–80% on repeat views. ~40% on model cost for new generations.
 
-Trim all tool `description` strings to ≤10 words each. Examples:
-- `"Search for jobs matching criteria and return top matches with AI-calculated fit scores"` → `"Search jobs by title, location, salary, skills"`
-- `"Analyze unified calendar (Quantum Club + Google + Microsoft) to find optimal free time slots. Returns top 5 ranked slots with availability scores."` → `"Find free calendar slots for scheduling"`
-- `"Generate a comprehensive pre-interview briefing document"` → `"Create interview briefing document"`
+**File:** `supabase/functions/generate-offer-recommendation/index.ts`
 
-This is a mechanical change across 17 tool definitions, each saving 15–40 tokens. Total saving: ~400 tokens per request where all tools are sent.
+### Change 9: Skip Personal Context for Admin/Strategist in `context-builder.ts`
 
-### Change 9: Mark Heartbeat Events Processed Before AI Call
+Before the second parallel fetch batch (WhatsApp, SMS, posts, emails, meetings, bookings), check if the user is admin/strategist. If yes, skip all 13 personal communication queries entirely and return empty arrays for those fields. Admins using Club AI do not need their personal WhatsApp/SMS messages — they have full admin context.
 
-**File**: `supabase/functions/agentic-heartbeat/index.ts`
+Estimated saving: 13 DB queries saved per admin/strategist chat message. At 50 messages/day this is 650 DB query calls saved per day.
 
-Move the `processed: true` update to BEFORE the `run-headhunter-agent` call, not after:
+**File:** `supabase/functions/_shared/context-builder.ts`
 
-```typescript
-// Mark processed FIRST to prevent duplicate runs
-await supabase.from("agent_events")
-  .update({ processed: true, processed_by: ["agentic-heartbeat"] })
-  .eq("id", event.id);
+### Change 10: Migrate `generate-daily-briefing` and `run-headhunter-agent` to Modern Imports
 
-// THEN run the headhunter
-const hhResult = await invokeAgent("run-headhunter-agent", { jobId });
-```
+Migrate both functions from `serve() from deno.land/std` and `createClient from esm.sh` to `Deno.serve()` and `npm:@supabase/supabase-js@2` to prevent future 400 Bad Request deployment errors.
 
-This prevents the heartbeat from triggering duplicate headhunter runs if the function is called again before the first run completes.
+**Files:** `supabase/functions/generate-daily-briefing/index.ts`, `supabase/functions/run-headhunter-agent/index.ts`
 
 ---
 
 ## Summary Table
 
-| Change | File | Mechanism | Estimated Saving |
+| Change | Function | Mechanism | Estimated Saving |
 |---|---|---|---|
-| 1 | `generate-placeholders` | Remove AI call entirely, return static array | 100% on that function |
-| 2 | `club-ai-chat` | Intent-based tool filtering (4 default → full 17 only when needed) | 800–1,200 tokens per message |
-| 3 | `context-builder.ts` | 5-min in-memory admin context cache | 12 DB queries + 1,500–3,000 tokens per admin message |
-| 4 | `process-email-ai` | Model downgrade + strip smart replies for low-value emails | 30–50% per email |
-| 5 | `analyze-email-sentiment` | Model downgrade to `flash-lite` | ~40% per sentiment call |
-| 6 | `detect-hallucinations` | Replace broken `gpt-4o-mini` with `flash-lite` | Fixes silent failures + ~60% cheaper |
-| 7 | `generate-daily-outreach-insights` | 6-hour cache guard | 75%+ on that function |
-| 8 | `ai-tools.ts` | Shorten all 17 tool descriptions to ≤10 words | ~400 tokens per full-tool request |
-| 9 | `agentic-heartbeat` | Mark events processed before AI call | Prevents duplicate headhunter runs |
+| 1 | `generate-whatsapp-smart-replies` | Replace broken OpenAI direct call → Lovable AI Gateway + `flash-lite` | Eliminates external API spend entirely |
+| 2 | `run-headhunter-agent` | Fix `gpt-4o-mini` → `flash-lite` + migrate imports | ~50% per run + fixes silent failures |
+| 3 | `generate-candidate-brief` | 48h cache + `gemini-3-flash-preview` → `gemini-2.5-flash` | 70–90% on repeat views + 40% model saving |
+| 4 | `generate-candidate-dossier` | 48h cache + `gemini-2.5-flash` → `flash-lite` | 70–90% on repeat views |
+| 5 | Both interview prep functions | Dedup guard + `flash-lite` for both | ~50% reduction per interview |
+| 6 | `generate-executive-briefing` | 24h cache + `flash-lite` | 80–90% on repeat views |
+| 7 | `generate-post-suggestions` | 15-min in-memory cache + `flash-lite` | 60–80% per session |
+| 8 | `generate-offer-recommendation` | 12h cache + `flash-lite` | 70–80% on repeat views |
+| 9 | `context-builder.ts` | Skip 13 personal queries for admin/strategist users | 13 DB queries saved per admin message |
+| 10 | `generate-daily-briefing` + `run-headhunter-agent` | Migrate to modern imports | Prevents deployment failures |
 
-**Combined estimated additional savings: 20–35% further reduction on top of Rounds 1 and 2.**
+**Combined estimated additional savings: 15–25% further reduction on top of Rounds 1–3.**
 
 ---
 
-## Files to Change
+## Files Changed
 
-1. `supabase/functions/generate-placeholders/index.ts` — remove AI call, return static
-2. `supabase/functions/club-ai-chat/index.ts` — intent-based tool filtering
-3. `supabase/functions/_shared/context-builder.ts` — 5-min in-memory admin cache
-4. `supabase/functions/process-email-ai/index.ts` — model downgrade + conditional smart replies
-5. `supabase/functions/analyze-email-sentiment/index.ts` — model downgrade
-6. `supabase/functions/detect-hallucinations/index.ts` — replace `gpt-4o-mini` with `flash-lite`
-7. `supabase/functions/generate-daily-outreach-insights/index.ts` — 6h cache guard
-8. `supabase/functions/_shared/ai-tools.ts` — shorten all 17 tool descriptions
-9. `supabase/functions/agentic-heartbeat/index.ts` — pre-mark events processed
+1. `supabase/functions/generate-whatsapp-smart-replies/index.ts`
+2. `supabase/functions/run-headhunter-agent/index.ts`
+3. `supabase/functions/generate-candidate-brief/index.ts`
+4. `supabase/functions/generate-candidate-dossier/index.ts`
+5. `supabase/functions/generate-interview-prep/index.ts`
+6. `supabase/functions/generate-interview-prep-ai/index.ts`
+7. `supabase/functions/generate-executive-briefing/index.ts`
+8. `supabase/functions/generate-post-suggestions/index.ts`
+9. `supabase/functions/generate-offer-recommendation/index.ts`
+10. `supabase/functions/_shared/context-builder.ts`
 
-No database schema changes required.
+No database schema changes required — all caches use existing columns or in-memory Maps.
