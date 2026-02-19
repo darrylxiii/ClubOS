@@ -1,5 +1,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+// === 5-MINUTE IN-MEMORY ADMIN CONTEXT CACHE ===
+// Keyed by user ID; TTL prevents stale data while saving 12 DB queries per chat message
+const adminContextCache = new Map<string, { context: string; ts: number }>();
+const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export interface BuiltContext {
   userContext: string;
   careerBrainContext: string;
@@ -279,7 +284,7 @@ ${careerBrainContext}`;
   const companyId = companyData?.id;
 
   if (isAdmin || isStrategist) {
-    userContext += await buildAdminContext(supabase);
+    userContext += await buildAdminContext(supabase, userId);
   } else if (isPartner && companyId) {
     userContext += await buildPartnerContext(supabase, companyId);
   } else {
@@ -294,7 +299,12 @@ ${careerBrainContext}`;
   return { userContext, careerBrainContext, conversationHistory, upcomingInterviews, urgentTasks, activeApplicationsWithStages };
 }
 
-async function buildAdminContext(supabase: ReturnType<typeof createClient>): Promise<string> {
+async function buildAdminContext(supabase: ReturnType<typeof createClient>, userId = 'global'): Promise<string> {
+  // 5-minute in-memory cache: skip 12 DB queries + 1,500–3,000 tokens on cache hit
+  const cached = adminContextCache.get(userId);
+  if (cached && Date.now() - cached.ts < ADMIN_CACHE_TTL_MS) {
+    return cached.context;
+  }
   const [
     placementFeesRes, moneybirdMetricsRes,
     crmProspectsRes, candidateProfilesRes, kpiMetricsRes,
@@ -360,7 +370,7 @@ async function buildAdminContext(supabase: ReturnType<typeof createClient>): Pro
     if (sc.overall_rating) { totalRating += sc.overall_rating; ratedCount++; }
   });
 
-  return `
+  const adminCtx = `
 
 === ADMIN: FINANCIAL & REVENUE DATA ===
 PLACEMENT FEES (${placementFees.length}):
@@ -389,6 +399,10 @@ ${allJobs.slice(0, 15).map((j: any) => {
 }).join('\n')}
 === END ADMIN JOBS ===
 `;
+
+  // Cache for 5 minutes — skips 12 DB queries + 1,500–3,000 tokens on subsequent messages
+  adminContextCache.set(userId, { context: adminCtx, ts: Date.now() });
+  return adminCtx;
 }
 
 async function buildPartnerContext(supabase: ReturnType<typeof createClient>, companyId: string): Promise<string> {

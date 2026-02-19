@@ -100,7 +100,7 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Capable enough for verification, faster/cheaper than gpt-4
+        model: 'google/gemini-2.5-flash-lite', // Structured JSON classification — flash-lite is sufficient
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage }

@@ -13,8 +13,32 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // === 6-HOUR CACHE GUARD: skip full regeneration if recent insights exist ===
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+    const { data: recentInsight } = await supabase
+      .from('crm_outreach_insights')
+      .select('id, created_at')
+      .gte('created_at', sixHoursAgo)
+      .limit(1)
+      .maybeSingle();
+
+    if (recentInsight) {
+      console.log('[generate-daily-outreach-insights] Cache hit — returning recent insights');
+      const { data: cachedInsights } = await supabase
+        .from('crm_outreach_insights')
+        .select('*')
+        .gte('created_at', sixHoursAgo)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      return new Response(JSON.stringify({
+        success: true,
+        cached: true,
+        insights: cachedInsights || [],
+        generatedAt: recentInsight.created_at,
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     // Gather data for analysis
     const today = new Date();

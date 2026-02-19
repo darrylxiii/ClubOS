@@ -74,9 +74,39 @@ Deno.serve(async (req) => {
       filteredAITools = allAITools.filter((t: any) => !partnerExcludedTools.includes(t.function?.name));
     }
 
-    const baseTools = [{ type: "function", function: { name: "navigate_to_page", description: "Navigate the user to a specific page in The Quantum Club app.", parameters: { type: "object", properties: { path: { type: "string", description: "The route path to navigate to." }, reason: { type: "string", description: "Brief explanation of why you're navigating them here" } }, required: ["path", "reason"] } } }];
-    const searchTools = mode === "search" ? [{ type: "function", function: { name: "web_search", description: "Search the web for current information.", parameters: { type: "object", properties: { query: { type: "string", description: "The search query to execute" } }, required: ["query"] } } }] : [];
-    const tools = [...baseTools, ...searchTools, ...filteredAITools];
+    const baseTools = [{ type: "function", function: { name: "navigate_to_page", description: "Navigate to a page in the app.", parameters: { type: "object", properties: { path: { type: "string" }, reason: { type: "string" } }, required: ["path", "reason"] } } }];
+
+    // Intent-based tool filtering: only expand tool set when message signals specific intent
+    const lastMsgText = typeof lastUserMessage?.content === 'string' ? lastUserMessage.content.toLowerCase() : '';
+    const wantsCalendar = /schedule|meeting|book|calendar|slot|reschedule|cancel meet/.test(lastMsgText);
+    const wantsMessaging = /\bemail|message|draft|send|follow.?up|reply\b/.test(lastMsgText);
+    const wantsSearch = mode === "search";
+    const wantsJobs = /job|apply|opportunit|position|role|vacancy/.test(lastMsgText);
+    const wantsTalent = isAdminUser && /candidate|talent|pool|source|shortlist/.test(lastMsgText);
+    const wantsTasks = /task|todo|remind|priority|workload|deadline/.test(lastMsgText);
+
+    // Core default tools always sent (4 tools, ~600 tokens)
+    const CORE_TOOL_NAMES = new Set(['search_jobs', 'create_task', 'search_talent_pool', 'navigate_to_page']);
+    // Conditionally expand based on intent
+    const CALENDAR_TOOL_NAMES = new Set(['schedule_meeting', 'find_free_slots', 'check_meeting_conflicts', 'reschedule_meeting', 'cancel_meeting', 'create_booking_link', 'suggest_meeting_times']);
+    const MESSAGING_TOOL_NAMES = new Set(['draft_message', 'send_message', 'schedule_follow_up', 'analyze_conversation_sentiment']);
+    const JOB_TOOL_NAMES = new Set(['analyze_job_fit', 'apply_to_job', 'generate_cover_letter', 'generate_interview_questions', 'research_company', 'create_interview_briefing']);
+    const TALENT_TOOL_NAMES = new Set(['get_candidate_move_probability', 'get_candidates_needing_attention', 'log_candidate_touchpoint', 'update_candidate_tier', 'search_communications', 'get_entity_communication_summary', 'get_relationship_health']);
+    const TASK_TOOL_NAMES = new Set(['bulk_create_tasks', 'reschedule_tasks', 'suggest_next_task', 'analyze_task_load']);
+
+    const intentFilteredTools = filteredAITools.filter((t: any) => {
+      const name = t.function?.name;
+      if (CORE_TOOL_NAMES.has(name)) return true;
+      if (wantsCalendar && CALENDAR_TOOL_NAMES.has(name)) return true;
+      if (wantsMessaging && MESSAGING_TOOL_NAMES.has(name)) return true;
+      if ((wantsJobs || wantsCalendar) && JOB_TOOL_NAMES.has(name)) return true;
+      if (wantsTalent && TALENT_TOOL_NAMES.has(name)) return true;
+      if (wantsTasks && TASK_TOOL_NAMES.has(name)) return true;
+      return false;
+    });
+
+    const searchTools = wantsSearch ? [{ type: "function", function: { name: "web_search", description: "Search web for current info.", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } }] : [];
+    const tools = [...baseTools, ...searchTools, ...intentFilteredTools];
 
     // Model selection
     let selectedModel = 'google/gemini-2.5-flash-lite';
