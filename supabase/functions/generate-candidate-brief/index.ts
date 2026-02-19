@@ -1,12 +1,14 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-serve(async (req) => {
+// 48h cache TTL for candidate briefs
+const BRIEF_CACHE_TTL_MS = 48 * 60 * 60 * 1000;
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
@@ -27,6 +29,19 @@ serve(async (req) => {
       .single();
 
     if (fetchErr || !candidate) throw new Error('Candidate not found');
+
+    // === 48h CACHE GUARD: Return existing brief if fresh ===
+    if (candidate.candidate_brief && candidate.candidate_brief.generated_at) {
+      const generatedAt = new Date(candidate.candidate_brief.generated_at).getTime();
+      if (Date.now() - generatedAt < BRIEF_CACHE_TTL_MS) {
+        console.log(`[generate-brief] Cache HIT for ${candidate.full_name} — returning cached brief`);
+        return new Response(JSON.stringify({
+          success: true,
+          data: candidate.candidate_brief,
+          cached: true,
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
 
     // Build comprehensive context
     const context: string[] = [];
@@ -87,6 +102,7 @@ You MUST respond with a valid JSON object using this exact structure:
 
     const userPrompt = `Generate a 360-degree intelligence brief for this candidate:\n\n${context.join('\n')}`;
 
+    // Downgraded from gemini-3-flash-preview → gemini-2.5-flash (quality-sensitive, not flash-lite)
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -94,7 +110,7 @@ You MUST respond with a valid JSON object using this exact structure:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -122,10 +138,8 @@ You MUST respond with a valid JSON object using this exact structure:
     const aiData = await aiResponse.json();
     const content = aiData.choices?.[0]?.message?.content || '';
 
-    // Parse the JSON response
     let brief: any;
     try {
-      // Extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
       brief = JSON.parse(jsonMatch[1].trim());
     } catch {
@@ -143,9 +157,8 @@ You MUST respond with a valid JSON object using this exact structure:
     }
 
     brief.generated_at = new Date().toISOString();
-    brief.model = 'google/gemini-3-flash-preview';
+    brief.model = 'google/gemini-2.5-flash';
 
-    // Build skill verification from brief
     const skillVerification = (brief.skill_verification || []).reduce((acc: any, sv: any) => {
       acc[sv.skill] = {
         confidence: sv.confidence,
@@ -155,7 +168,7 @@ You MUST respond with a valid JSON object using this exact structure:
       return acc;
     }, {});
 
-    // Update candidate
+    // Store brief with timestamp for cache invalidation
     await supabase
       .from('candidate_profiles')
       .update({
@@ -165,7 +178,6 @@ You MUST respond with a valid JSON object using this exact structure:
       })
       .eq('id', candidateId);
 
-    // Audit log
     await supabase.from('audit_logs').insert({
       action: 'enrichment.candidate_brief',
       entity_type: 'candidate_profile',
@@ -178,6 +190,7 @@ You MUST respond with a valid JSON object using this exact structure:
     return new Response(JSON.stringify({
       success: true,
       data: brief,
+      cached: false,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {

@@ -114,7 +114,25 @@ ${successPatterns.map((p: any) => `• [${p.pattern_type?.toUpperCase()}] ${p.pa
   const profileStrength = profileStrengthRes.data;
   const companyData = Array.isArray(companyMember?.companies) ? companyMember?.companies[0] : companyMember?.companies;
 
-  // === PARALLEL FETCH: Social & comms (reduced limits) ===
+  // === SKIP PERSONAL COMMS FOR ADMIN/STRATEGIST (saves 13 DB queries per chat message) ===
+  const userRolesEarly = (rolesRes.data || []).map((r: any) => r.role);
+  const isAdminOrStrategist = userRolesEarly.includes('admin') || userRolesEarly.includes('strategist');
+
+  if (isAdminOrStrategist) {
+    // Admins/strategists only need platform data, not personal comms context
+    const nowISO = new Date().toISOString();
+    const twoWeeksAhead = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: upcomingMeetings } = await supabase.from("meetings").select("id, title, start_time, end_time, location, meeting_type, meeting_url").gte("start_time", nowISO).lte("start_time", twoWeeksAhead).order("start_time", { ascending: true }).limit(5);
+    upcomingInterviews = [];
+    urgentTasks = (tasks || []).filter((t: any) => t.status !== "completed" && (t.priority === "high" || t.priority === "urgent")).map((t: any) => ({ title: t.title, priority: t.priority, dueDate: t.due_date }));
+    activeApplicationsWithStages = [];
+    careerBrainContext = `\n=== ADMIN/STRATEGIST MODE — Platform data only ===\n`;
+    userContext = `\n=== ADMIN/STRATEGIST CONTEXT ===\nName: ${profile?.full_name || "Not set"}\nRoles: ${userRolesEarly.join(", ")}\n`;
+    userContext += await buildAdminContext(supabase, userId);
+    return { userContext, careerBrainContext, conversationHistory, upcomingInterviews, urgentTasks, activeApplicationsWithStages };
+  }
+
+  // === PARALLEL FETCH: Social & comms (reduced limits — candidate/partner users only) ===
   const nowISO = new Date().toISOString();
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const twoWeeksAhead = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();

@@ -3,10 +3,10 @@
  * 
  * AI-powered offer builder that integrates salary benchmarks
  * to generate optimal compensation packages with market positioning.
+ * Round 4: Added 12h in-memory cache + downgraded model to flash-lite.
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,7 +28,11 @@ interface SalaryBenchmark {
   currency: string;
 }
 
-serve(async (req) => {
+// 12h in-memory cache keyed by candidateId+jobId
+const offerCache = new Map<string, { recommendation: any; ts: number }>();
+const OFFER_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -48,6 +52,17 @@ serve(async (req) => {
       );
     }
 
+    // === 12h IN-MEMORY CACHE GUARD ===
+    const cacheKey = `${candidate_id}:${job_id}`;
+    const cached = offerCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < OFFER_CACHE_TTL_MS) {
+      console.log(`[Offer Recommendation] Cache HIT for ${cacheKey}`);
+      return new Response(
+        JSON.stringify({ ...cached.recommendation, cached: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`[Offer Recommendation] Generating for candidate: ${candidate_id}, job: ${job_id}`);
 
     // Fetch candidate data
@@ -63,12 +78,11 @@ serve(async (req) => {
 
     if (candidateError) throw candidateError;
 
-    // Fetch job data
-    const { data: job, error: jobError } = await supabase
-      .from('jobs')
-      .select('*, companies(name, industry)')
-      .eq('id', job_id)
-      .single();
+    // Fetch job and benchmarks in parallel
+    const [{ data: job, error: jobError }, { data: benchmarks }] = await Promise.all([
+      supabase.from('jobs').select('*, companies(name, industry)').eq('id', job_id).single(),
+      supabase.from('salary_benchmarks').select('*').ilike('role_title', `%${candidate_id}%`).limit(5),
+    ]);
 
     if (jobError) throw jobError;
 
@@ -81,13 +95,6 @@ serve(async (req) => {
       totalYears += (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365);
     });
     totalYears = Math.round(totalYears);
-
-    // Fetch salary benchmarks
-    const { data: benchmarks } = await supabase
-      .from('salary_benchmarks')
-      .select('*')
-      .ilike('role_title', `%${job.title}%`)
-      .limit(5);
 
     // Get candidate salary expectations
     const compensation = candidate.candidate_compensation?.[0];
@@ -118,44 +125,25 @@ serve(async (req) => {
       }
     }
 
-    // Fallback market data if no benchmarks
     if (marketMedian === 0) {
       marketMin = expectedMin || 60000;
       marketMax = expectedMax || 100000;
       marketMedian = (marketMin + marketMax) / 2;
     }
 
-    // Calculate recommended offer
     let recommendedBase = marketMedian;
-    
-    // Adjust for candidate expectations
-    if (expectedMin > marketMedian) {
-      recommendedBase = Math.min(expectedMin, marketMax * 1.1);
-    }
-    
-    // Adjust for experience
-    if (totalYears > 10) {
-      recommendedBase *= 1.15;
-    } else if (totalYears > 5) {
-      recommendedBase *= 1.05;
-    }
-
-    // Adjust for current salary (don't lowball)
-    if (currentSalary > recommendedBase) {
-      recommendedBase = currentSalary * 1.10; // At least 10% raise
-    }
-
-    // Round to nearest 1000
+    if (expectedMin > marketMedian) recommendedBase = Math.min(expectedMin, marketMax * 1.1);
+    if (totalYears > 10) recommendedBase *= 1.15;
+    else if (totalYears > 5) recommendedBase *= 1.05;
+    if (currentSalary > recommendedBase) recommendedBase = currentSalary * 1.10;
     recommendedBase = Math.round(recommendedBase / 1000) * 1000;
 
-    // Calculate percentile
     let percentile = 50;
     if (marketMax > marketMin) {
       percentile = Math.round(((recommendedBase - marketMin) / (marketMax - marketMin)) * 100);
       percentile = Math.max(0, Math.min(100, percentile));
     }
 
-    // Calculate competitiveness score
     let competitiveness = 50;
     if (expectedMax > 0) {
       const offerRatio = recommendedBase / expectedMax;
@@ -165,7 +153,7 @@ serve(async (req) => {
       else competitiveness = 40;
     }
 
-    // Build AI recommendation
+    // Build AI recommendation — downgraded to flash-lite (short text generation)
     let aiInsights = {
       summary: '',
       risk_factors: [] as string[],
@@ -210,7 +198,7 @@ Provide a JSON response with:
             'Authorization': `Bearer ${lovableApiKey}`,
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'google/gemini-2.5-flash-lite',
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
           }),
@@ -228,7 +216,6 @@ Provide a JSON response with:
       }
     }
 
-    // Prepare response
     const recommendation = {
       recommended_base_salary: recommendedBase,
       recommended_bonus_percentage: totalYears > 5 ? 15 : 10,
@@ -252,6 +239,9 @@ Provide a JSON response with:
       ai_insights: aiInsights,
       generated_at: new Date().toISOString(),
     };
+
+    // Store in cache
+    offerCache.set(cacheKey, { recommendation, ts: Date.now() });
 
     console.log(`[Offer Recommendation] Generated: ${currency} ${recommendedBase.toLocaleString()} (${percentile}th percentile)`);
 
