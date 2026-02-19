@@ -60,11 +60,12 @@ Deno.serve(async (req) => {
 
     // ========== ACTION: estimate ==========
     if (action === 'estimate') {
-      // Use Apify to get a quick employee listing estimate
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
       let headcount = 0;
+
+      // Try Apify employee scraper with a larger sample to get real count
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
+
       try {
         const response = await fetch(
           `https://api.apify.com/v2/acts/apimaestro~linkedin-company-employees-scraper/run-sync-get-dataset-items?token=${apifyKey}`,
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
             signal: controller.signal,
             body: JSON.stringify({
               companyUrl: company.linkedin_url,
-              maxItems: 1, // Just get count estimate, not full listing
+              maxItems: 500, // Fetch enough to get a real count
             }),
           }
         );
@@ -82,28 +83,64 @@ Deno.serve(async (req) => {
 
         if (response.ok) {
           const results = await response.json();
-          // Apify returns items; the total count may be in the response metadata
-          // For a quick estimate, use company_size from DB or the result length
-          headcount = results?.length || 0;
+          headcount = Array.isArray(results) ? results.length : 0;
         } else {
-          await response.text(); // consume body
+          const errText = await response.text();
+          console.warn('Apify estimate response error:', response.status, errText);
         }
       } catch (e) {
         clearTimeout(timeoutId);
         console.warn('Estimate fetch failed, using company_size fallback:', e);
       }
 
-      // Fall back to stored company size if Apify didn't return a count
+      // Fall back to stored company size
       if (headcount === 0 && company.company_size) {
         headcount = company.company_size;
       }
+
+      // Backfill company_size for future fast lookups
+      if (headcount > 0 && headcount !== company.company_size) {
+        await supabase.from('companies')
+          .update({ company_size: headcount })
+          .eq('id', companyId);
+      }
+
+      // Calculate monthly spend so far from scan jobs this month
+      let monthlySpendSoFar = 0;
+      try {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const { data: monthJobs } = await supabase
+          .from('company_scan_jobs')
+          .select('credits_used')
+          .gte('started_at', startOfMonth.toISOString());
+
+        if (monthJobs) {
+          monthlySpendSoFar = monthJobs.reduce((sum: number, j: any) => sum + (j.credits_used || 0), 0);
+        }
+      } catch (e) {
+        console.warn('Failed to get monthly spend:', e);
+      }
+
+      const listingCredits = 1; // 1 actor run for employee listing
+      const enrichmentCredits = headcount; // ~1 per profile enrichment
+      const totalEstimate = listingCredits + enrichmentCredits;
 
       return new Response(JSON.stringify({
         success: true,
         estimate: {
           headcount,
-          totalEstimate: headcount, // Apify billing is per-actor-run, not per-profile
-          warning: headcount > 1000 ? 'Company has over 1000 employees. Consider scanning specific departments.' : null,
+          listingCredits,
+          enrichmentCredits,
+          totalEstimate,
+          monthlySpendSoFar,
+          warning: headcount > 1000
+            ? 'Company has over 1000 employees. Consider scanning specific departments.'
+            : headcount === 0
+              ? 'Could not determine employee count. The company LinkedIn URL may be incorrect.'
+              : null,
         },
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
