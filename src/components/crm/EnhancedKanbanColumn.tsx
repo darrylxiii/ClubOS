@@ -9,6 +9,7 @@ import { EnhancedProspectCard } from './EnhancedProspectCard';
 import { Plus, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import type { CRMProspect, ProspectStage } from '@/types/crm-enterprise';
 import { useStageProbabilities, formatCurrencyCompact } from '@/hooks/useCRMPipelineMetrics';
+import { useRole } from '@/contexts/RoleContext';
 interface StageConfig {
   value: ProspectStage;
   label: string;
@@ -86,6 +87,7 @@ export function EnhancedKanbanColumn({
   selectedIds,
   onToggleSelect,
 }: EnhancedKanbanColumnProps) {
+  const { currentRole } = useRole();
   const { setNodeRef, isOver } = useDroppable({
     id: stage.value,
   });
@@ -144,6 +146,8 @@ export function EnhancedKanbanColumn({
       </motion.div>
     );
   }
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   return (
     <motion.div

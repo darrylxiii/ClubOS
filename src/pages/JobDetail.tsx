@@ -521,7 +521,6 @@ export default function JobDetail() {
                 companyName={job.companies?.name || 'Company'}
                 salaryMin={job.salary_min}
                 salaryMax={job.salary_max}
-                feePercentage={job.companies?.placement_fee_percentage || 20}
                 referralBonusPercentage={job.referral_bonus_percentage || 10}
                 showReferralBonus={job.show_referral_bonus !== false}
               />

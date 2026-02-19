@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { FileText } from 'lucide-react';
+import { useRole } from '@/contexts/RoleContext';
 
 interface AdminNotesEditorProps {
   candidate: any;
@@ -9,7 +10,10 @@ interface AdminNotesEditorProps {
 }
 
 export function AdminNotesEditor({ candidate, onChange }: AdminNotesEditorProps) {
+  const { currentRole } = useRole();
   const [adminNotes, setAdminNotes] = useState(candidate.admin_notes || '');
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   useEffect(() => {
     onChange?.({

@@ -53,29 +53,17 @@ export function JobReferralBadge({
 }
 
 interface JobReferralChipProps {
-  salaryMax?: number;
-  salaryMin?: number;
-  feePercentage?: number;
-  referralPercentage?: number;
+  potentialEarnings?: number;
   showReferralBonus?: boolean;
   className?: string;
 }
 
 export function JobReferralChip({
-  salaryMax,
-  salaryMin,
-  feePercentage = 20,
-  referralPercentage = 10,
+  potentialEarnings = 0,
   showReferralBonus = true,
   className,
 }: JobReferralChipProps) {
-  if (!showReferralBonus) return null;
-
-  const avgSalary = salaryMax || salaryMin || 75000;
-  const expectedFee = avgSalary * (feePercentage / 100);
-  const potentialEarnings = expectedFee * (referralPercentage / 100);
-
-  if (potentialEarnings <= 0) return null;
+  if (!showReferralBonus || potentialEarnings <= 0) return null;
 
   return (
     <div className={cn(
