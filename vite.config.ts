@@ -34,6 +34,7 @@ export default defineConfig(({ mode, command }) => ({
       'react-helmet-async',
       'i18next', 'react-i18next',
       'recharts', 'lodash',
+      'react-dropzone', 'attr-accept', 'file-selector',
     ],
     exclude: ['mermaid', 'katex'],
     noDiscovery: true,
