@@ -1,174 +1,240 @@
 
-# Further AI Credit Optimizations — Deep Audit Round 2
+# Maximum Efficiency Audit — Round 3: Every Dollar Accounted For
 
-## What is Already Fixed (Round 1 Summary)
+## What Round 1 and Round 2 Fixed (Already Done)
 
-- `generate-placeholders` → Static rotation (100% saving on that function)
-- `club-ai-chat` → 15-message truncation + default `gemini-2.5-flash-lite`
-- `retrieve-context` → Skip expansion for <8 words, skip reranking for ≤5 results
-- `enrich-candidate-profile` → 24h cache guard
-- `generate-kpi-insights` → 1h cache guard
-- `generate-daily-briefing` → Once-per-day guard
-
----
-
-## What Is Still Burning Credits (Round 2 Findings)
-
-### Finding 1: `context-builder.ts` — The Hidden Mega-Token Bomb (Critical)
-
-Every single Club AI chat message triggers **37 database queries in parallel** and builds a context string that can reach **8,000–15,000 tokens before the user message is even included**. This is the single biggest remaining cost driver.
-
-What gets fetched and injected every call:
-- 50 recent emails (with full subjects and summaries)
-- 100 unified communications records
-- 50 WhatsApp messages
-- 30 SMS messages
-- 30 company interactions
-- 20 external context imports
-- 20 posts, 10 stories, 10 bookings
-- 20 AI memory entries
-- 10 career trend insights
-- All upcoming meetings (2 weeks ahead)
-- Recent meetings (1 week back)
-- 10 relationship alerts
-- Full admin context: 50 placement fees + 100 Moneybird invoices + 50 CRM prospects + 100 candidate profiles + 200 applications + 50 offers + 50 shortlists + 50 scorecards + 50 interview feedback rows
-
-**Every chat message pays for all of this, even if the user just types "Hi".**
-
-### Finding 2: `ai-copilot-tips` — Per-Page-Load AI Calls (High)
-
-This function fires an AI call using `gemini-2.5-flash` every time a user visits a page. It generates 1–3 tips and saves them, but there is no caching or deduplication guard. If a user browses 10 pages per session, that is 10 AI calls just for tooltip hints.
-
-### Finding 3: `generate-analytics-insights` — No Cache Guard (High)
-
-This runs a full AI call on `gemini-2.5-flash` (with tool calls) every time the analytics page loads. No TTL, no deduplication. If viewed 20 times a day, that is 20 AI calls for the same near-identical data.
-
-### Finding 4: `generate-placeholders` Is Still Calling AI (Medium)
-
-The edge function still exists and calls `gemini-2.5-flash` (not `flash-lite`). The frontend was updated to use static placeholders, but if anything else still calls this function, it burns credits.
-
-### Finding 5: `enrich-candidate-profile` Uses `gemini-3-flash-preview` (Medium)
-
-The enrichment function uses `google/gemini-3-flash-preview` (a next-gen preview model) instead of the cheaper `gemini-2.5-flash-lite`. This is an unnecessary premium for a background enrichment task.
-
-### Finding 6: `analyze-email-sentiment` — Per-Email AI Calls (Medium)
-
-Called individually per email with `gemini-2.5-flash` and tool calling. No cache check — if the same email is analyzed twice (e.g., on re-sync), it pays twice.
-
-### Finding 7: `analyze-meeting-recording-advanced` — Multi-Call Chunking (Medium)
-
-At 15,000 characters per chunk, a 1-hour meeting transcript triggers 5–10 AI calls at 4,000 max tokens each. No result caching — re-opening a meeting intelligence page can retrigger analysis.
-
-### Finding 8: Admin Context in `context-builder.ts` Fetches 200 Applications Every Call (Medium)
-
-The `buildAdminContext` function fetches up to 200 applications, 100 candidate profiles, 50 placement fees, and 100 Moneybird invoices on every admin chat message. This data rarely changes minute-to-minute and could be summarized once and reused.
-
-### Finding 9: `generate-analytics-insights` and `generate-activity-insights` Have No Rate Limits (Low)
-
-Multiple analytics insight functions share the same pattern of zero caching — every page load is a fresh AI call.
+| Fix | Status |
+|---|---|
+| `generate-placeholders` → static rotation | Done |
+| `club-ai-chat` → 15-message truncation + `gemini-2.5-flash-lite` default | Done |
+| `retrieve-context` → skip expansion <8 words, skip rerank ≤5 results | Done |
+| `enrich-candidate-profile` → 24h cache guard | Done |
+| `generate-kpi-insights` → 1h cache + `flash-lite` | Done |
+| `generate-daily-briefing` → once-per-day guard | Done |
+| `context-builder.ts` → reduced row limits (emails 10, WhatsApp 10, comms 20) | Done |
+| `ai-copilot-tips` → 4h cache guard | Done |
+| `generate-analytics-insights` → 2h cache guard | Done |
+| `analyze-email-sentiment` → deduplication guard | Done |
+| `analyze-meeting-recording-advanced` → cache guard on completed analysis | Done |
+| `enrich-candidate-profile` → model downgraded to `flash-lite` | Done |
 
 ---
 
-## Optimization Plan (7 Changes)
+## Round 3: What Is Still Burning Credits
 
-### Change 1: Slim Down `context-builder.ts` — Estimated 20-35% Savings
+### Critical Finding 1: `generate-placeholders` Edge Function Still Calls `gemini-2.5-flash`
 
-**Problem:** The context string sent with every chat message is massive. Most of it is noise — 50 emails, 100 communications, 30 SMS records are irrelevant for most queries.
+The frontend (`ClubAI.tsx`) was correctly updated to use static placeholders. But the Edge Function itself (`supabase/functions/generate-placeholders/index.ts`) **still exists and still calls `gemini-2.5-flash`** — the mid-tier model, not even flash-lite. Any other caller, webhook, or background task that still invokes this function pays full price. The function should be converted to return only static placeholders with zero AI calls.
 
-**Fix:** Apply hard caps and trim low-signal data:
+### Critical Finding 2: `ai-tools.ts` Is 2,107 Lines — Sent to AI on Every Single Chat Message
 
-- Emails: Reduce from 50 → 10 (only unread or action-type)
-- WhatsApp messages: 50 → 10 most recent
-- SMS messages: 30 → 5 most recent
-- Unified communications: 100 → 20 most recent
-- Company interactions: 30 → 10 most recent
-- External imports: 20 → 5 most recent
-- Posts/stories: 20 posts → 5 posts, 10 stories → 3 stories
+The `allAITools` array exported from `_shared/ai-tools.ts` contains **17 full tool definitions** sent to the AI on every request. Each tool definition includes a full description paragraph plus parameter schemas. This alone adds approximately 1,500–2,500 tokens per request in the tools array, on top of everything else. The current role-based filtering does remove some tools for candidates and partners, but for admin/strategist users — the heaviest users — all 17 tools are sent every time.
 
-For admin context:
-- Moneybird invoices: 100 → 20
-- Applications: 200 → 50 (already limited, but reduce further)
-- Candidate profiles: 100 → 30 (just top tiers)
-- CRM prospects: 50 → 20
+**Fix**: Send only the tools relevant to the detected `mode`. In `normal` mode, strip down to 5–7 core tools (navigate, task, search_jobs, search_talent_pool). Only in `search` mode add web_search. Only when explicit signals exist (e.g., message contains "schedule", "meeting") add calendar tools. This is query-intent-based tool filtering.
 
-Also truncate the content injected per row — conversation history messages are already truncated to 300 chars, but AI memory entries, email summaries, and interaction summaries have no character limit.
+### Critical Finding 3: `process-email-ai` Uses `gemini-2.5-flash` with No Batching
 
-**File:** `supabase/functions/_shared/context-builder.ts`
+This function is called per email with a massive 9-field system prompt requesting category, priority, summary, sentiment, action items, 3 smart replies, meeting detection, follow-up detection, and relationship intelligence — all in one call using `gemini-2.5-flash`. The function has a rate limit of 100 emails per hour per user, which means up to 100 AI calls/hour just for email processing for a single user.
 
-### Change 2: Add 4-Hour Cache to `ai-copilot-tips` — Estimated 80%+ Saving on that Function
+**Fixes**:
+1. Downgrade model to `gemini-2.5-flash-lite` — the task is structured classification, not complex reasoning.
+2. Strip smart replies from the default call. Smart replies are only needed when the user opens an email, not during background sync.
+3. Add a check for `ai_processed_at` already existing (this exists — it correctly skips already-processed emails).
 
-**Problem:** AI tips are generated fresh on every page load. Tips do not need to be unique per-load.
+### Critical Finding 4: `analyze-email-sentiment` Still Uses `gemini-2.5-flash`
 
-**Fix:** Before calling the AI, check `ai_copilot_tips` for a tip generated for this user + page within the last 4 hours. If found, return it. Only call AI when no recent tip exists.
+After Round 2, the deduplication guard was added (skip if `sentiment_score` is already populated). But the model is still `google/gemini-2.5-flash`. For a sentiment task that returns a -1.0 to 1.0 score plus a label, `gemini-2.5-flash-lite` is more than sufficient. This is a single-output classification task.
 
-**File:** `supabase/functions/ai-copilot-tips/index.ts`
+### Critical Finding 5: `agentic-heartbeat` Triggers `run-headhunter-agent` Per Job Open Event
 
-### Change 3: Add 2-Hour Cache to `generate-analytics-insights` — Estimated 90%+ Saving on that Function
+The heartbeat runs and checks for `job_status_open` events, then calls `run-headhunter-agent` for each. `run-headhunter-agent` is an agentic search function. If 5 jobs get published in a day, that is 5 headhunter runs, each of which likely calls AI multiple times. There is no deduplication guard to prevent re-running the headhunter for the same job if the heartbeat runs again before the event is processed.
 
-**Problem:** No caching at all — every analytics page view is a fresh AI call.
+**Fix**: Mark events as processed immediately (before the AI call, not after) to prevent duplicate runs.
 
-**Fix:** Check `analytics_insights` table for an insight generated for this user in the last 2 hours. Return cached if found. Only regenerate when stale.
+### Critical Finding 6: `detect-hallucinations` Uses `gpt-4o-mini` (Deprecated Model Name)
 
-**File:** `supabase/functions/generate-analytics-insights/index.ts`
+The function calls `gpt-4o-mini` which no longer exists in the gateway supported model list. This either silently fails or routes to an expensive fallback. Replace with `google/gemini-2.5-flash-lite` which is purpose-built for classification tasks at a fraction of the cost. Hallucination detection is a structured JSON task — it does not need GPT-class reasoning.
 
-### Change 4: Downgrade `enrich-candidate-profile` Model — Estimated 30-50% Saving per Enrichment
+### Critical Finding 7: `generate-daily-outreach-insights` Has No Cache Guard
 
-**Problem:** Uses `google/gemini-3-flash-preview` (next-gen, expensive) for background enrichment that the user never sees in real time.
+This function generates outreach insights from campaign, reply, account health, and prediction data. It inserts results into `crm_outreach_insights` with a 24h expiry — but there is **no guard at the start of the function to check if recent insights already exist**. Every call regenerates everything, even though the data changes minimally between calls. Unlike `generate-daily-briefing` which correctly checks `daily_briefings` for today's date, this function has no such check.
 
-**Fix:** Change model to `google/gemini-2.5-flash-lite`. The task is structured JSON extraction from a template — it does not require a premium model.
+**Fix**: Add a cache check at the start — if `crm_outreach_insights` contains entries created in the last 6 hours, return those instead of regenerating.
 
-**File:** `supabase/functions/enrich-candidate-profile/index.ts`
+### Critical Finding 8: `classify-query-intent` Makes Unnecessary AI Calls
 
-### Change 5: Add Deduplication to `analyze-email-sentiment` — Estimated 40-60% Saving on that Function
+Looking at `classify-query-intent`, the entire intent classification is done in pure JavaScript (regex-based entity extraction, pattern matching) — no AI call is made at all. This is actually correct and efficient. The function already caches results for 7 days. No change needed here.
 
-**Problem:** Same email can be analyzed multiple times on re-sync.
+### Critical Finding 9: `context-builder.ts` — Admin Context Still Fetches 12 Database Tables Every Message
 
-**Fix:** Before calling the AI, check if a sentiment result already exists for this email ID in `email_contact_matches`. If the `sentiment_score` column is already populated, skip the AI call and return the cached result.
+While row limits were reduced in Round 2, for admin/strategist users the `buildAdminContext` function still runs 12 parallel database queries on **every single chat message**. Even with reduced limits, this is expensive in database reads and the resulting context string is injected verbatim into the AI prompt, adding 1,500–3,000 tokens of admin data even if the question is "what is 2+2".
 
-**File:** `supabase/functions/analyze-email-sentiment/index.ts`
+**Fix**: Add an in-memory TTL cache for admin context. The admin context (placement fees, KPIs, candidate pool stats) changes at most every few minutes. Cache the built context string in a module-level `Map` with a 5-minute TTL, keyed by the admin's user ID. On cache hit, return instantly and skip all 12 database queries and the token cost.
 
-### Change 6: Cache Meeting Analysis Results in `analyze-meeting-recording-advanced` — Estimated 70-90% Saving on Repeat Views
+### Critical Finding 10: The `ai-tools.ts` Tool Descriptions Are Verbose (Token Waste)
 
-**Problem:** Meeting analysis re-runs on every view. 5–10 AI calls per recording.
+The 17 tool descriptions in `allAITools` use verbose, multi-sentence descriptions. For example, `find_free_slots` has a description: "Analyze unified calendar (Quantum Club + Google + Microsoft) to find optimal free time slots. Returns top 5 ranked slots with availability scores." — this is ~20 tokens for the description alone. Multiply by 17 tools × every chat request = 340+ tokens just in description text, before parameters.
 
-**Fix:** After analysis completes, store the full result in the `meeting_recordings` table's `analysis_summary` column. At the start of the function, check if `analysis_summary` is already populated — if yes, return it immediately without any AI calls.
+**Fix**: Shorten all tool descriptions to 8 words or fewer. The AI model does not need a full paragraph to understand what `find_free_slots` does.
 
-**File:** `supabase/functions/analyze-meeting-recording-advanced/index.ts`
+### Critical Finding 11: `retrieve-context` Sends Full Tool Definitions in Reranking Prompt
 
-### Change 7: Downgrade `generate-kpi-insights` Model — Minor Saving
+The reranking prompt currently passes `c.content.substring(0, 200)` per candidate (up to 10 candidates). With 10 candidates × 200 chars = 2,000 chars just in the prompt body. This is fine. However, the function still generates an embedding for every query (that is one AI call minimum per RAG query) even for the simplest lookups. There is currently no embedding cache.
 
-**Problem:** Still uses `gemini-2.5-flash` even though it has a 1h cache guard. When it does regenerate, it uses a mid-tier model for a simple structured summary.
+**Fix**: For queries where the vector search returns 0 results, skip the reranking call entirely (already done for ≤5). For identical or near-identical repeated queries within the same session, cache the embedding vector in a module-level Map with a 10-minute TTL.
 
-**Fix:** Downgrade to `gemini-2.5-flash-lite`. This is a simple business summary generation task with a strict JSON output format.
+### Critical Finding 12: `generate-activity-insights` Has No AI at All — Already Efficient
 
-**File:** `supabase/functions/generate-kpi-insights/index.ts`
+After reading the full file, `generate-activity-insights` is 100% pure data computation (bounce rates, frustration signals, journey drop-offs, search performance). It makes **zero AI calls**. This is already maximally efficient. No changes needed.
+
+### Critical Finding 13: `process-email-ai` Smart Replies Add ~400 Extra Tokens Per Email
+
+The system prompt requests 3 smart replies (professional, friendly, decline) for every email processed. For newsletters and low-priority emails, smart replies are useless. The AI generates them anyway, wasting ~400 tokens per email.
+
+**Fix**: Skip smart reply generation for emails classified as `newsletter`, `spam`, or `low` priority. Only generate smart replies for `recruiter_outreach`, `interview_invitation`, and `offer` categories.
+
+---
+
+## Implementation Plan: 9 Changes
+
+### Change 1: Kill `generate-placeholders` AI Call Permanently
+
+**File**: `supabase/functions/generate-placeholders/index.ts`
+
+Remove the entire AI fetch call and return a static placeholder set directly. The function body becomes a simple 10-line response returning a hardcoded array. This ensures no caller — frontend or otherwise — can accidentally trigger an AI call through this function.
+
+### Change 2: Intent-Based Tool Filtering in `club-ai-chat`
+
+**File**: `supabase/functions/club-ai-chat/index.ts`
+
+The current code sends all 17 filtered tools every time. Add a simple keyword intent detector on the last user message:
+
+- Default (no keywords): send only `navigate_to_page` + `search_jobs` + `create_task` + `search_talent_pool` (4 tools, ~800 tokens)
+- If message contains `schedule|meeting|book|calendar`: add calendar tools (4 more)
+- If message contains `message|email|send|draft`: add messaging tools (3 more)
+- If `search` mode: replace with `web_search` tool
+- Admin-only: always include `search_talent_pool`, `log_candidate_touchpoint`
+
+Estimated saving: 800–1,200 tokens per non-complex request. At 50 messages/day, this is 40,000–60,000 tokens/day saved just from tool definitions.
+
+### Change 3: 5-Minute In-Memory Cache for Admin Context
+
+**File**: `supabase/functions/_shared/context-builder.ts`
+
+Add a module-level Map at the top of the file:
+
+```
+const adminContextCache = new Map<string, { context: string; ts: number }>();
+const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+```
+
+In `buildAdminContext`, check if a cached entry exists for the user that is less than 5 minutes old. If yes, return it immediately — skipping all 12 database queries AND the token cost of re-building the context string. On cache miss, build normally and store.
+
+### Change 4: Downgrade `process-email-ai` Model + Strip Low-Priority Smart Replies
+
+**File**: `supabase/functions/process-email-ai/index.ts`
+
+1. Change model from `google/gemini-2.5-flash` → `google/gemini-2.5-flash-lite`
+2. Update system prompt to skip smart reply generation for newsletter/spam categories. Add a system prompt instruction: "Only generate smart_replies for categories: recruiter_outreach, interview_invitation, offer. For all other categories, set smart_replies to null."
+
+Estimated saving: 30–50% per email processed + model downgrade.
+
+### Change 5: Downgrade `analyze-email-sentiment` Model
+
+**File**: `supabase/functions/analyze-email-sentiment/index.ts`
+
+Change model from `google/gemini-2.5-flash` → `google/gemini-2.5-flash-lite`. Sentiment classification (-1.0 to 1.0 score + label) is a simple task. The deduplication guard from Round 2 already prevents re-processing. This saves ~40% of cost on every new email that hits this function.
+
+### Change 6: Fix `detect-hallucinations` Model
+
+**File**: `supabase/functions/detect-hallucinations/index.ts`
+
+Change model from `gpt-4o-mini` (not in supported list, likely failing or expensive) → `google/gemini-2.5-flash-lite`. This is a strict JSON classification task with low reasoning requirements.
+
+### Change 7: Add Cache Guard to `generate-daily-outreach-insights`
+
+**File**: `supabase/functions/generate-daily-outreach-insights/index.ts`
+
+Add a check at the top of the function before any data fetching:
+
+```typescript
+const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+const { data: recentInsights } = await supabase
+  .from('crm_outreach_insights')
+  .select('id')
+  .gte('created_at', sixHoursAgo)
+  .limit(1)
+  .maybeSingle();
+
+if (recentInsights) {
+  // Return cached - fetch recent insights and return
+  const { data: cached } = await supabase.from('crm_outreach_insights')
+    .select('*').gte('created_at', sixHoursAgo).order('created_at', { ascending: false }).limit(5);
+  return cached response;
+}
+```
+
+This function is called from the Outreach/CRM dashboard. Without the guard, opening the page multiple times regenerates insights. With the guard, it generates at most 4 times per day.
+
+### Change 8: Shorten All Tool Descriptions in `ai-tools.ts`
+
+**File**: `supabase/functions/_shared/ai-tools.ts`
+
+Trim all tool `description` strings to ≤10 words each. Examples:
+- `"Search for jobs matching criteria and return top matches with AI-calculated fit scores"` → `"Search jobs by title, location, salary, skills"`
+- `"Analyze unified calendar (Quantum Club + Google + Microsoft) to find optimal free time slots. Returns top 5 ranked slots with availability scores."` → `"Find free calendar slots for scheduling"`
+- `"Generate a comprehensive pre-interview briefing document"` → `"Create interview briefing document"`
+
+This is a mechanical change across 17 tool definitions, each saving 15–40 tokens. Total saving: ~400 tokens per request where all tools are sent.
+
+### Change 9: Mark Heartbeat Events Processed Before AI Call
+
+**File**: `supabase/functions/agentic-heartbeat/index.ts`
+
+Move the `processed: true` update to BEFORE the `run-headhunter-agent` call, not after:
+
+```typescript
+// Mark processed FIRST to prevent duplicate runs
+await supabase.from("agent_events")
+  .update({ processed: true, processed_by: ["agentic-heartbeat"] })
+  .eq("id", event.id);
+
+// THEN run the headhunter
+const hhResult = await invokeAgent("run-headhunter-agent", { jobId });
+```
+
+This prevents the heartbeat from triggering duplicate headhunter runs if the function is called again before the first run completes.
 
 ---
 
 ## Summary Table
 
-| Change | Function | Mechanism | Estimated Saving |
+| Change | File | Mechanism | Estimated Saving |
 |---|---|---|---|
-| 1 | `context-builder.ts` | Reduce row limits and field lengths | 20–35% of total |
-| 2 | `ai-copilot-tips` | 4-hour cache per user+page | 80%+ on that function |
-| 3 | `generate-analytics-insights` | 2-hour cache per user | 90%+ on that function |
-| 4 | `enrich-candidate-profile` | Cheaper model (`flash-lite`) | 30–50% per enrichment |
-| 5 | `analyze-email-sentiment` | Skip if already analyzed | 40–60% on that function |
-| 6 | `analyze-meeting-recording-advanced` | Cache result after first run | 70–90% on repeat views |
-| 7 | `generate-kpi-insights` | Cheaper model (`flash-lite`) | ~30% on regeneration |
+| 1 | `generate-placeholders` | Remove AI call entirely, return static array | 100% on that function |
+| 2 | `club-ai-chat` | Intent-based tool filtering (4 default → full 17 only when needed) | 800–1,200 tokens per message |
+| 3 | `context-builder.ts` | 5-min in-memory admin context cache | 12 DB queries + 1,500–3,000 tokens per admin message |
+| 4 | `process-email-ai` | Model downgrade + strip smart replies for low-value emails | 30–50% per email |
+| 5 | `analyze-email-sentiment` | Model downgrade to `flash-lite` | ~40% per sentiment call |
+| 6 | `detect-hallucinations` | Replace broken `gpt-4o-mini` with `flash-lite` | Fixes silent failures + ~60% cheaper |
+| 7 | `generate-daily-outreach-insights` | 6-hour cache guard | 75%+ on that function |
+| 8 | `ai-tools.ts` | Shorten all 17 tool descriptions to ≤10 words | ~400 tokens per full-tool request |
+| 9 | `agentic-heartbeat` | Mark events processed before AI call | Prevents duplicate headhunter runs |
 
-**Combined additional savings: estimated 25–40% further reduction on top of Round 1.**
+**Combined estimated additional savings: 20–35% further reduction on top of Rounds 1 and 2.**
 
 ---
 
-## Files Changed
+## Files to Change
 
-1. `supabase/functions/_shared/context-builder.ts` — reduce all row limits and per-row character limits
-2. `supabase/functions/ai-copilot-tips/index.ts` — add 4h cache check
-3. `supabase/functions/generate-analytics-insights/index.ts` — add 2h cache check
-4. `supabase/functions/enrich-candidate-profile/index.ts` — swap model to `gemini-2.5-flash-lite`
-5. `supabase/functions/analyze-email-sentiment/index.ts` — add deduplication guard
-6. `supabase/functions/analyze-meeting-recording-advanced/index.ts` — add result cache check
-7. `supabase/functions/generate-kpi-insights/index.ts` — swap model to `gemini-2.5-flash-lite`
+1. `supabase/functions/generate-placeholders/index.ts` — remove AI call, return static
+2. `supabase/functions/club-ai-chat/index.ts` — intent-based tool filtering
+3. `supabase/functions/_shared/context-builder.ts` — 5-min in-memory admin cache
+4. `supabase/functions/process-email-ai/index.ts` — model downgrade + conditional smart replies
+5. `supabase/functions/analyze-email-sentiment/index.ts` — model downgrade
+6. `supabase/functions/detect-hallucinations/index.ts` — replace `gpt-4o-mini` with `flash-lite`
+7. `supabase/functions/generate-daily-outreach-insights/index.ts` — 6h cache guard
+8. `supabase/functions/_shared/ai-tools.ts` — shorten all 17 tool descriptions
+9. `supabase/functions/agentic-heartbeat/index.ts` — pre-mark events processed
 
-No database schema changes required — all caches use existing tables.
+No database schema changes required.
