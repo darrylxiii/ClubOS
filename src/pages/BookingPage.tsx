@@ -319,7 +319,7 @@ export default function BookingPage() {
           {/* Progress Stepper */}
           <BookingProgressStepper currentStep={step} showPayment={!!bookingLink.payment_required} />
 
-          <Card className="max-w-2xl mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
+          <Card className="max-w-4xl mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
