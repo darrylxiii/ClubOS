@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-  const proxycurlKey = Deno.env.get('PROXYCURL_API_KEY');
+  const apifyKey = Deno.env.get('APIFY_API_KEY');
 
   // Auth check
   const authHeader = req.headers.get('Authorization');
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     const { companyId, action } = await req.json();
 
     if (!companyId) throw new Error('companyId is required');
-    if (!proxycurlKey) throw new Error('PROXYCURL_API_KEY not configured');
+    if (!apifyKey) throw new Error('APIFY_API_KEY not configured');
 
     // Get company details
     const { data: company, error: companyError } = await supabase
@@ -60,43 +60,49 @@ Deno.serve(async (req) => {
 
     // ========== ACTION: estimate ==========
     if (action === 'estimate') {
-      // Get employee count (1 credit)
-      const countRes = await fetch(
-        `https://nubela.co/proxycurl/api/linkedin/company/employees/count/?url=${encodeURIComponent(company.linkedin_url)}`,
-        { headers: { 'Authorization': `Bearer ${proxycurlKey}` } }
-      );
+      // Use Apify to get a quick employee listing estimate
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       let headcount = 0;
-      if (countRes.ok) {
-        const countData = await countRes.json();
-        headcount = countData.linkedin_employee_count || countData.total_employee_count || 0;
+      try {
+        const response = await fetch(
+          `https://api.apify.com/v2/acts/apimaestro~linkedin-company-employees-scraper/run-sync-get-dataset-items?token=${apifyKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              companyUrl: company.linkedin_url,
+              maxItems: 1, // Just get count estimate, not full listing
+            }),
+          }
+        );
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const results = await response.json();
+          // Apify returns items; the total count may be in the response metadata
+          // For a quick estimate, use company_size from DB or the result length
+          headcount = results?.length || 0;
+        } else {
+          await response.text(); // consume body
+        }
+      } catch (e) {
+        clearTimeout(timeoutId);
+        console.warn('Estimate fetch failed, using company_size fallback:', e);
       }
 
-      // Check monthly credit spend
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
-
-      const { data: ledgerData } = await supabase
-        .from('proxycurl_credit_ledger')
-        .select('credits_actual')
-        .gte('created_at', monthStart.toISOString());
-
-      const monthlySpend = (ledgerData || []).reduce((sum: number, r: any) => sum + (r.credits_actual || 0), 0);
-
-      // Estimate: 3 credits for listing (URL-only) + 10 per profile enrichment
-      const listingCredits = headcount * 3;
-      const enrichmentCredits = headcount * 10;
-      const totalEstimate = listingCredits + enrichmentCredits + 1; // +1 for count endpoint
+      // Fall back to stored company size if Apify didn't return a count
+      if (headcount === 0 && company.company_size) {
+        headcount = company.company_size;
+      }
 
       return new Response(JSON.stringify({
         success: true,
         estimate: {
           headcount,
-          listingCredits,
-          enrichmentCredits,
-          totalEstimate,
-          monthlySpendSoFar: monthlySpend,
+          totalEstimate: headcount, // Apify billing is per-actor-run, not per-profile
           warning: headcount > 1000 ? 'Company has over 1000 employees. Consider scanning specific departments.' : null,
         },
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -119,79 +125,53 @@ Deno.serve(async (req) => {
 
       if (jobError) throw new Error(`Failed to create scan job: ${jobError.message}`);
 
-      // Log credit estimate
-      await supabase.from('proxycurl_credit_ledger').insert({
-        scan_job_id: scanJob.id,
-        company_id: companyId,
-        endpoint_used: 'employee_count',
-        credits_estimated: 1,
-        credits_actual: 1,
-      });
-
-      // Fetch employee listing (URL-only mode for speed)
+      // Fetch employee listing via Apify
       let allProfileUrls: string[] = [];
-      let nextPage: string | null = `https://nubela.co/proxycurl/api/linkedin/company/employees/?url=${encodeURIComponent(company.linkedin_url)}&enrich_profiles=skip&page_size=100`;
 
       await supabase.from('company_scan_jobs')
         .update({ status: 'listing' })
         .eq('id', scanJob.id);
 
-      let pageCount = 0;
-      while (nextPage && pageCount < 20) { // Safety limit: 20 pages = 2000 people
-        const listRes = await fetch(nextPage, {
-          headers: { 'Authorization': `Bearer ${proxycurlKey}` },
-        });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min timeout
 
-        if (!listRes.ok) {
-          const errText = await listRes.text();
-          console.error('Employee listing error:', listRes.status, errText);
-          break;
+      try {
+        const response = await fetch(
+          `https://api.apify.com/v2/acts/apimaestro~linkedin-company-employees-scraper/run-sync-get-dataset-items?token=${apifyKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              companyUrl: company.linkedin_url,
+              maxItems: 2000, // Safety cap
+            }),
+          }
+        );
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error('Apify employee listing error:', response.status, errText);
+          throw new Error(`Apify employee listing failed: ${response.status}`);
         }
 
-        const listData = await listRes.json();
-        const employees = listData.employees || [];
-        const profileUrls = employees
-          .map((e: any) => e.profile_url)
-          .filter((url: string) => url && url.includes('linkedin.com'));
+        const results = await response.json();
+        const employees = Array.isArray(results) ? results : [];
 
-        allProfileUrls.push(...profileUrls);
-        nextPage = listData.next_page || null;
-        pageCount++;
-      }
-
-      // Log listing credits
-      await supabase.from('proxycurl_credit_ledger').insert({
-        scan_job_id: scanJob.id,
-        company_id: companyId,
-        endpoint_used: 'employee_listing',
-        credits_estimated: allProfileUrls.length * 3,
-        credits_actual: allProfileUrls.length * 3,
-      });
-
-      // If we got very few results, try employee search endpoint (works globally)
-      // This is the fallback for non-US/UK companies
-      if (allProfileUrls.length < 10 && company.linkedin_url) {
-        console.log('Few results from listing, trying search endpoint...');
-        const searchRes = await fetch(
-          `https://nubela.co/proxycurl/api/linkedin/company/employee/search/?linkedin_company_url=${encodeURIComponent(company.linkedin_url)}&page_size=100`,
-          { headers: { 'Authorization': `Bearer ${proxycurlKey}` } }
-        );
-
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          const searchUrls = (searchData.employees || [])
-            .map((e: any) => e.profile_url)
-            .filter((url: string) => url && url.includes('linkedin.com') && !allProfileUrls.includes(url));
-
-          allProfileUrls.push(...searchUrls);
-
-          await supabase.from('proxycurl_credit_ledger').insert({
-            scan_job_id: scanJob.id,
-            company_id: companyId,
-            endpoint_used: 'employee_search',
-            credits_estimated: searchUrls.length * 10,
-            credits_actual: searchUrls.length * 10,
-          });
+        // Extract LinkedIn profile URLs from results
+        for (const emp of employees) {
+          const url = emp.profileUrl || emp.linkedin_url || emp.url || emp.linkedinUrl || emp.profile_url;
+          if (url && typeof url === 'string' && url.includes('linkedin.com/in/')) {
+            allProfileUrls.push(url);
+          }
+        }
+      } catch (e: any) {
+        clearTimeout(timeoutId);
+        if (e.name === 'AbortError') {
+          console.error('Apify employee listing timed out');
+        } else {
+          throw e;
         }
       }
 
@@ -218,7 +198,6 @@ Deno.serve(async (req) => {
         .update({
           status: allProfileUrls.length > 0 ? 'enriching' : 'completed',
           total_employees_found: allProfileUrls.length,
-          credits_estimated: allProfileUrls.length * 13, // 3 listing + 10 enrichment
           completed_at: allProfileUrls.length === 0 ? new Date().toISOString() : null,
         })
         .eq('id', scanJob.id);

@@ -127,7 +127,7 @@ export const LinkedInImport = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Enter your LinkedIn profile URL to automatically import your professional information. 
-              We'll scrape publicly available data using Proxycurl.
+              We'll import publicly available data from your profile.
             </AlertDescription>
           </Alert>
 

@@ -5,6 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+function extractUsernameFromUrl(url: string): string | null {
+  const match = url.match(/linkedin\.com\/in\/([^\/\?#]+)/);
+  return match ? match[1] : null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -46,65 +51,85 @@ Deno.serve(async (req) => {
       throw new Error('LinkedIn URL is required');
     }
 
-    const proxycurlKey = Deno.env.get('PROXYCURL_API_KEY');
+    const apifyKey = Deno.env.get('APIFY_API_KEY');
     
-    if (!proxycurlKey) {
-      console.log('PROXYCURL_API_KEY not configured, using basic scraper');
-      throw new Error('Proxycurl API key not configured');
+    if (!apifyKey) {
+      console.log('APIFY_API_KEY not configured');
+      throw new Error('Apify API key not configured');
     }
+
+    const username = extractUsernameFromUrl(linkedinUrl);
+    if (!username) {
+      throw new Error('Could not extract LinkedIn username from URL');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
 
     const response = await fetch(
-      `https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`,
+      `https://api.apify.com/v2/acts/apimaestro~linkedin-profile-detail/run-sync-get-dataset-items?token=${apifyKey}`,
       {
-        headers: {
-          'Authorization': `Bearer ${proxycurlKey}`
-        }
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({ username }),
       }
     );
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error('Failed to scrape LinkedIn profile');
+      const errText = await response.text();
+      throw new Error(`Failed to scrape LinkedIn profile: ${response.status} ${errText}`);
     }
 
-    const data = await response.json();
+    const results = await response.json();
+    const rawData = Array.isArray(results) ? (results[0] || {}) : (results || {});
+    const basicInfo = rawData.basic_info || {};
+    const data = { ...basicInfo, ...rawData };
+
+    const rawExp = data.experience || data.experiences || data.positions || [];
+    const rawEdu = data.education || data.educations || [];
+    const rawSkills = data.skills || [];
+    const rawCerts = data.certifications || data.certificates || [];
 
     const candidateData = {
-      full_name: `${data.first_name} ${data.last_name}`,
+      full_name: data.fullname || data.fullName || data.full_name || data.name ||
+        (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : username),
       email: '',
       linkedin_url: linkedinUrl,
-      avatar_url: data.profile_pic_url,
-      current_title: data.occupation || data.experiences?.[0]?.title,
-      current_company: data.experiences?.[0]?.company,
-      years_of_experience: calculateExperience(data.experiences),
-      skills: data.skills || [],
-      work_history: data.experiences?.map((exp: any) => ({
-        title: exp.title,
-        company: exp.company,
-        location: exp.location,
-        start_date: exp.starts_at ? `${exp.starts_at.year}-${exp.starts_at.month || 1}-01` : null,
-        end_date: exp.ends_at ? `${exp.ends_at.year}-${exp.ends_at.month || 12}-01` : null,
-        description: exp.description
-      })) || [],
-      education: data.education?.map((edu: any) => ({
-        institution: edu.school,
-        degree: edu.degree_name,
-        field: edu.field_of_study,
-        start_date: edu.starts_at?.year,
-        end_date: edu.ends_at?.year
-      })) || [],
-      certifications: data.certifications?.map((cert: any) => ({
-        name: cert.name,
-        issuer: cert.authority,
-        issue_date: cert.starts_at ? `${cert.starts_at.year}-${cert.starts_at.month}` : null
-      })) || [],
-      linkedin_profile_data: data,
+      avatar_url: data.profile_picture_url || data.profilePicture || data.profilePictureUrl || data.profile_pic_url || null,
+      current_title: data.headline || data.title || data.occupation || rawExp[0]?.title || null,
+      current_company: rawExp[0]?.company || rawExp[0]?.companyName || rawExp[0]?.organization || null,
+      years_of_experience: calculateExperience(rawExp),
+      skills: rawSkills.map((s: any) => typeof s === 'string' ? s : (s.name || s.skill || '')).filter(Boolean),
+      work_history: rawExp.map((exp: any) => ({
+        title: exp.title || exp.role || exp.position || '',
+        company: exp.company || exp.companyName || exp.organization || '',
+        location: exp.location || exp.locationName || '',
+        start_date: exp.startDate || exp.start_date || null,
+        end_date: exp.endDate || exp.end_date || null,
+        description: exp.description || exp.summary || '',
+      })),
+      education: rawEdu.map((edu: any) => ({
+        institution: edu.school || edu.schoolName || edu.institution || '',
+        degree: edu.degree || edu.degreeName || edu.degree_name || '',
+        field: edu.field || edu.fieldOfStudy || edu.field_of_study || '',
+        start_date: edu.startYear || edu.start_year || (edu.starts_at?.year) || null,
+        end_date: edu.endYear || edu.end_year || (edu.ends_at?.year) || null,
+      })),
+      certifications: rawCerts.map((cert: any) => ({
+        name: typeof cert === 'string' ? cert : (cert.name || cert.title || ''),
+        issuer: cert.authority || cert.issuer || cert.issuingOrganization || '',
+        issue_date: cert.issueDate || cert.startDate || null,
+      })),
+      linkedin_profile_data: rawData,
       source_channel: 'linkedin',
       source_metadata: {
         scraped_at: new Date().toISOString(),
         profile_url: linkedinUrl,
-        scraper: 'proxycurl'
+        scraper: 'apify',
       },
-      enrichment_last_run: new Date().toISOString()
+      enrichment_last_run: new Date().toISOString(),
     };
 
     return new Response(JSON.stringify({ 
@@ -129,15 +154,31 @@ function calculateExperience(experiences: any[]): number {
   
   let totalMonths = 0;
   experiences.forEach(exp => {
-    if (exp.starts_at && exp.starts_at.year) {
-      const startDate = new Date(exp.starts_at.year, exp.starts_at.month || 1);
-      const endDate = exp.ends_at 
-        ? new Date(exp.ends_at.year, exp.ends_at.month || 12)
-        : new Date();
+    const startVal = exp.startDate || exp.start_date || exp.starts_at;
+    const endVal = exp.endDate || exp.end_date || exp.ends_at;
+    
+    if (startVal) {
+      let startDate: Date;
+      if (typeof startVal === 'object' && startVal.year) {
+        startDate = new Date(startVal.year, (startVal.month || 1) - 1);
+      } else {
+        startDate = new Date(startVal);
+      }
       
-      const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
-                     (endDate.getMonth() - startDate.getMonth());
-      totalMonths += Math.max(0, months);
+      let endDate: Date;
+      if (!endVal || endVal === 'Present') {
+        endDate = new Date();
+      } else if (typeof endVal === 'object' && endVal.year) {
+        endDate = new Date(endVal.year, (endVal.month || 12) - 1);
+      } else {
+        endDate = new Date(endVal);
+      }
+      
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                       (endDate.getMonth() - startDate.getMonth());
+        totalMonths += Math.max(0, months);
+      }
     }
   });
   

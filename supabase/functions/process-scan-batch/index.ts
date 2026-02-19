@@ -7,6 +7,11 @@ const corsHeaders = {
 
 const BATCH_SIZE = 10;
 
+function extractUsernameFromUrl(url: string): string | null {
+  const match = url.match(/linkedin\.com\/in\/([^\/\?#]+)/);
+  return match ? match[1] : null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -15,7 +20,7 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-  const proxycurlKey = Deno.env.get('PROXYCURL_API_KEY');
+  const apifyKey = Deno.env.get('APIFY_API_KEY');
 
   // Auth
   const authHeader = req.headers.get('Authorization');
@@ -40,7 +45,7 @@ Deno.serve(async (req) => {
   try {
     const { scanJobId } = await req.json();
     if (!scanJobId) throw new Error('scanJobId is required');
-    if (!proxycurlKey) throw new Error('PROXYCURL_API_KEY not configured');
+    if (!apifyKey) throw new Error('APIFY_API_KEY not configured');
 
     // Check scan job status
     const { data: scanJob, error: jobError } = await supabase
@@ -88,7 +93,6 @@ Deno.serve(async (req) => {
     // Process each profile
     let enriched = 0;
     let failed = 0;
-    let creditsUsed = 0;
 
     for (const item of queueItems) {
       // Mark as processing
@@ -97,79 +101,105 @@ Deno.serve(async (req) => {
         .eq('id', item.id);
 
       try {
-        // Fetch profile from Proxycurl
+        const username = extractUsernameFromUrl(item.linkedin_url);
+        if (!username) throw new Error('Could not extract username from URL');
+
+        // Fetch profile from Apify
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
+
         const profileRes = await fetch(
-          `https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(item.linkedin_url)}`,
-          { headers: { 'Authorization': `Bearer ${proxycurlKey}` } }
+          `https://api.apify.com/v2/acts/apimaestro~linkedin-profile-detail/run-sync-get-dataset-items?token=${apifyKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({ username }),
+          }
         );
+        clearTimeout(timeoutId);
 
         if (!profileRes.ok) {
           const errText = await profileRes.text();
-          throw new Error(`Proxycurl ${profileRes.status}: ${errText}`);
+          throw new Error(`Apify ${profileRes.status}: ${errText}`);
         }
 
-        const profile = await profileRes.json();
-        creditsUsed += 10;
+        const results = await profileRes.json();
+        const rawData = Array.isArray(results) ? (results[0] || {}) : (results || {});
+        const basicInfo = rawData.basic_info || {};
+        const profile = { ...basicInfo, ...rawData };
+
+        // Extract experience data
+        const rawExp = profile.experience || profile.experiences || profile.positions || [];
 
         // Calculate tenure at this company
-        const currentExperience = profile.experiences?.find((exp: any) =>
-          !exp.ends_at && exp.company_linkedin_profile_url
-        );
+        const currentExperience = rawExp.find((exp: any) => {
+          const endDate = exp.endDate || exp.end_date || exp.ends_at;
+          return !endDate || endDate === 'Present';
+        });
 
         let yearsAtCompany: number | null = null;
-        if (currentExperience?.starts_at?.year) {
-          const startDate = new Date(currentExperience.starts_at.year, (currentExperience.starts_at.month || 1) - 1);
-          const months = (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
-          yearsAtCompany = Math.round(months / 12 * 10) / 10;
+        if (currentExperience) {
+          const startDate = currentExperience.startDate || currentExperience.start_date || currentExperience.starts_at;
+          if (startDate) {
+            const parsed = new Date(typeof startDate === 'object' ? `${startDate.year}-${startDate.month || 1}` : startDate);
+            if (!isNaN(parsed.getTime())) {
+              const months = (Date.now() - parsed.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+              yearsAtCompany = Math.round(months / 12 * 10) / 10;
+            }
+          }
         }
 
         // Calculate total experience
         let totalExperience = 0;
-        if (profile.experiences) {
-          for (const exp of profile.experiences) {
-            if (exp.starts_at?.year) {
-              const start = new Date(exp.starts_at.year, (exp.starts_at.month || 1) - 1);
-              const end = exp.ends_at
-                ? new Date(exp.ends_at.year, (exp.ends_at.month || 12) - 1)
-                : new Date();
+        for (const exp of rawExp) {
+          const startVal = exp.startDate || exp.start_date || exp.starts_at;
+          const endVal = exp.endDate || exp.end_date || exp.ends_at;
+          if (startVal) {
+            const start = new Date(typeof startVal === 'object' ? `${startVal.year}-${startVal.month || 1}` : startVal);
+            const end = endVal && endVal !== 'Present'
+              ? new Date(typeof endVal === 'object' ? `${endVal.year}-${endVal.month || 12}` : endVal)
+              : new Date();
+            if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
               totalExperience += Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
             }
           }
         }
 
-        const currentTitle = profile.occupation || currentExperience?.title || profile.headline;
-        const linkedinPublicId = item.linkedin_url.split('/in/')[1]?.replace(/\/$/, '') || null;
+        const fullName = profile.fullname || profile.fullName || profile.full_name || profile.name ||
+          (profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : null);
+        const currentTitle = profile.headline || profile.title || profile.occupation || currentExperience?.title;
+        const linkedinPublicId = username;
 
         // Upsert into company_people
         const personData = {
           company_id: scanJob.company_id,
           linkedin_url: item.linkedin_url,
           linkedin_public_id: linkedinPublicId,
-          full_name: [profile.first_name, profile.last_name].filter(Boolean).join(' ') || null,
-          first_name: profile.first_name || null,
-          last_name: profile.last_name || null,
-          avatar_url: profile.profile_pic_url || null,
+          full_name: fullName || null,
+          first_name: profile.firstName || profile.first_name || null,
+          last_name: profile.lastName || profile.last_name || null,
+          avatar_url: profile.profile_picture_url || profile.profilePicture || profile.profilePictureUrl || profile.profile_pic_url || null,
           current_title: currentTitle,
-          location: profile.city ? `${profile.city}${profile.state ? ', ' + profile.state : ''}${profile.country_full_name ? ', ' + profile.country_full_name : ''}` : null,
+          location: profile.location || profile.addressLocality || profile.city || null,
           headline: profile.headline || null,
-          skills: (profile.skills || []).slice(0, 50),
+          skills: ((profile.skills || []).map((s: any) => typeof s === 'string' ? s : (s.name || s.skill || '')).filter(Boolean)).slice(0, 50),
           years_at_company: yearsAtCompany,
           total_experience_years: Math.round(totalExperience * 10) / 10,
-          work_history: (profile.experiences || []).map((exp: any) => ({
-            title: exp.title,
-            company: exp.company,
-            company_linkedin_url: exp.company_linkedin_profile_url,
-            location: exp.location,
-            start_date: exp.starts_at ? `${exp.starts_at.year}-${String(exp.starts_at.month || 1).padStart(2, '0')}-01` : null,
-            end_date: exp.ends_at ? `${exp.ends_at.year}-${String(exp.ends_at.month || 12).padStart(2, '0')}-01` : null,
-            description: exp.description,
+          work_history: rawExp.map((exp: any) => ({
+            title: exp.title || exp.role || exp.position || '',
+            company: exp.company || exp.companyName || exp.organization || '',
+            location: exp.location || exp.locationName || '',
+            start_date: exp.startDate || exp.start_date || null,
+            end_date: exp.endDate || exp.end_date || null,
+            description: exp.description || exp.summary || '',
           })),
-          education: (profile.education || []).map((edu: any) => ({
-            institution: edu.school,
-            degree: edu.degree_name,
-            field: edu.field_of_study,
-            start_year: edu.starts_at?.year,
-            end_year: edu.ends_at?.year,
+          education: (profile.education || profile.educations || []).map((edu: any) => ({
+            institution: edu.school || edu.schoolName || edu.institution || '',
+            degree: edu.degree || edu.degreeName || edu.degree_name || '',
+            field: edu.field || edu.fieldOfStudy || edu.field_of_study || '',
+            start_year: edu.startYear || edu.start_year || (edu.starts_at?.year) || null,
+            end_year: edu.endYear || edu.end_year || (edu.ends_at?.year) || null,
           })),
           is_still_active: true,
           employment_status: 'current',
@@ -177,7 +207,7 @@ Deno.serve(async (req) => {
           last_refreshed_at: new Date().toISOString(),
           auto_purge_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 12 months
           enrichment_status: 'enriched',
-          profile_data_raw: profile,
+          profile_data_raw: rawData,
           data_legal_basis: 'legitimate_interest',
           updated_at: new Date().toISOString(),
         };
@@ -231,23 +261,11 @@ Deno.serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    // Log credits
-    if (creditsUsed > 0) {
-      await supabase.from('proxycurl_credit_ledger').insert({
-        scan_job_id: scanJobId,
-        company_id: scanJob.company_id,
-        endpoint_used: 'profile_lookup',
-        credits_estimated: queueItems.length * 10,
-        credits_actual: creditsUsed,
-      });
-    }
-
     // Update scan job progress
     await supabase.from('company_scan_jobs')
       .update({
         profiles_enriched: (scanJob.profiles_enriched || 0) + enriched,
         profiles_failed: (scanJob.profiles_failed || 0) + failed,
-        credits_used: (scanJob.credits_used || 0) + creditsUsed,
       })
       .eq('id', scanJobId);
 
@@ -264,7 +282,6 @@ Deno.serve(async (req) => {
       success: true,
       enriched,
       failed,
-      creditsUsed,
       hasMore,
       remaining: remainingCount || 0,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
