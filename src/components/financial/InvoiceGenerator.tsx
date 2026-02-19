@@ -20,8 +20,12 @@ export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorP
   const [paymentTerms, setPaymentTerms] = useState('30');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const totalNet = fees.reduce((sum, f) => sum + f.fee_amount, 0);
-  const vatRate = 0.21;
+  // Use fee_amount_eur for consolidated totals, fallback to fee_amount
+  const totalNet = fees.reduce((sum, f) => sum + ((f as any).fee_amount_eur || f.fee_amount), 0);
+  // Detect entity from first fee for VAT rate
+  const entityCode = (fees[0] as any)?.legal_entity || 'tqc_nl';
+  const vatRate = entityCode === 'tqc_dubai' ? 0.05 : 0.21;
+  const vatLabel = entityCode === 'tqc_dubai' ? 'VAT (5%)' : 'BTW (21%)';
   const vatAmount = totalNet * vatRate;
   const totalGross = totalNet + vatAmount;
 
@@ -90,7 +94,7 @@ export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorP
       doc.setFontSize(9);
       doc.text('Subtotal (excl. VAT):', 130, totalsY);
       doc.text(formatCurrency(totalNet), 185, totalsY, { align: 'right' });
-      doc.text('BTW (21%):', 130, totalsY + 7);
+      doc.text(`${vatLabel}:`, 130, totalsY + 7);
       doc.text(formatCurrency(vatAmount), 185, totalsY + 7, { align: 'right' });
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
@@ -101,7 +105,10 @@ export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorP
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(120);
-      doc.text('The Quantum Club B.V. • KVK: XXXXXXXX • BTW: NLXXXXXXXXB01', 20, 280);
+      const footerText = entityCode === 'tqc_dubai'
+        ? 'The Quantum Club FZ-LLC • Dubai, UAE'
+        : 'The Quantum Club B.V. • KVK: XXXXXXXX • BTW: NLXXXXXXXXB01';
+      doc.text(footerText, 20, 280);
       doc.text(`Payment terms: ${paymentTerms} days net`, 20, 285);
 
       doc.save(`invoice-${invoiceNumber}.pdf`);
@@ -144,7 +151,7 @@ export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorP
               <span>{formatCurrency(totalNet)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">BTW (21%)</span>
+              <span className="text-muted-foreground">{vatLabel}</span>
               <span>{formatCurrency(vatAmount)}</span>
             </div>
             <div className="flex justify-between font-bold pt-1 border-t">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -22,6 +22,9 @@ import {
 } from '@/components/ui/select';
 import { Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Currency, CURRENCY_SYMBOLS, convertCurrency } from '@/lib/currencyConversion';
+
+const SALARY_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
 
 export function AddPlacementFeeDialog() {
   const queryClient = useQueryClient();
@@ -32,6 +35,8 @@ export function AddPlacementFeeDialog() {
     candidate_salary: '',
     fee_percentage: '20',
     hired_date: new Date().toISOString().split('T')[0],
+    currency_code: 'EUR' as Currency,
+    legal_entity: 'tqc_nl',
   });
 
   // Fetch closed jobs without fees
@@ -59,6 +64,16 @@ export function AddPlacementFeeDialog() {
     enabled: open,
   });
 
+  const salary = parseFloat(formData.candidate_salary || '0');
+  const feePercentage = parseFloat(formData.fee_percentage || '0');
+  const feeAmount = salary * (feePercentage / 100);
+  const feeAmountEur = useMemo(() => {
+    if (formData.currency_code === 'EUR') return feeAmount;
+    return convertCurrency(feeAmount, formData.currency_code, 'EUR');
+  }, [feeAmount, formData.currency_code]);
+
+  const currencySymbol = CURRENCY_SYMBOLS[formData.currency_code];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.job_id || !formData.candidate_salary) {
@@ -71,17 +86,15 @@ export function AddPlacementFeeDialog() {
       const selectedJob = availableJobs?.find((j: any) => j.id === formData.job_id);
       if (!selectedJob) throw new Error('Job not found');
 
-      const salary = parseFloat(formData.candidate_salary);
-      const feePercentage = parseFloat(formData.fee_percentage);
-      const feeAmount = salary * (feePercentage / 100);
-
       const { error } = await supabase.from('placement_fees').insert({
         job_id: formData.job_id,
         partner_company_id: (selectedJob as any).company_id,
         candidate_salary: salary,
         fee_percentage: feePercentage,
         fee_amount: feeAmount,
-        currency_code: 'EUR',
+        fee_amount_eur: feeAmountEur,
+        currency_code: formData.currency_code,
+        legal_entity: formData.legal_entity,
         status: 'pending',
         hired_date: formData.hired_date,
         payment_due_date: new Date(new Date(formData.hired_date).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -99,6 +112,8 @@ export function AddPlacementFeeDialog() {
         candidate_salary: '',
         fee_percentage: '20',
         hired_date: new Date().toISOString().split('T')[0],
+        currency_code: 'EUR',
+        legal_entity: 'tqc_nl',
       });
     } catch (error) {
       console.error('Error creating fee:', error);
@@ -143,9 +158,27 @@ export function AddPlacementFeeDialog() {
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-2 col-span-1">
+              <Label>Currency</Label>
+              <Select
+                value={formData.currency_code}
+                onValueChange={(v) => setFormData(prev => ({ ...prev, currency_code: v as Currency }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SALARY_CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {CURRENCY_SYMBOLS[c]} {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="salary">Candidate Salary (€)</Label>
+              <Label htmlFor="salary">Salary ({currencySymbol})</Label>
               <Input
                 id="salary"
                 type="number"
@@ -165,22 +198,49 @@ export function AddPlacementFeeDialog() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="hired_date">Hired Date</Label>
-            <Input
-              id="hired_date"
-              type="date"
-              value={formData.hired_date}
-              onChange={(e) => setFormData(prev => ({ ...prev, hired_date: e.target.value }))}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="hired_date">Hired Date</Label>
+              <Input
+                id="hired_date"
+                type="date"
+                value={formData.hired_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, hired_date: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Office</Label>
+              <Select
+                value={formData.legal_entity}
+                onValueChange={(v) => setFormData(prev => ({ ...prev, legal_entity: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tqc_nl">🇳🇱 Amsterdam</SelectItem>
+                  <SelectItem value="tqc_dubai">🇦🇪 Dubai</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {formData.candidate_salary && formData.fee_percentage && (
-            <div className="p-3 bg-muted rounded-lg">
-              <span className="text-sm text-muted-foreground">Calculated Fee: </span>
-              <span className="font-semibold">
-                €{(parseFloat(formData.candidate_salary || '0') * parseFloat(formData.fee_percentage || '0') / 100).toLocaleString('nl-NL')}
-              </span>
+          {salary > 0 && feePercentage > 0 && (
+            <div className="p-3 bg-muted rounded-lg space-y-1">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Calculated Fee</span>
+                <span className="font-semibold">
+                  {currencySymbol}{feeAmount.toLocaleString('nl-NL')}
+                </span>
+              </div>
+              {formData.currency_code !== 'EUR' && (
+                <div className="flex justify-between">
+                  <span className="text-xs text-muted-foreground">EUR equivalent</span>
+                  <span className="text-xs text-muted-foreground">
+                    ~€{feeAmountEur.toLocaleString('nl-NL')}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
