@@ -36,6 +36,7 @@ export default defineConfig(({ mode, command }) => ({
       'recharts', 'lodash',
       'react-dropzone', 'attr-accept', 'file-selector',
       'prop-types',
+      'classnames',
     ],
     exclude: ['mermaid', 'katex'],
     noDiscovery: true,
