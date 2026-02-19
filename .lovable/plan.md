@@ -1,215 +1,321 @@
 
-# Full Audit: Shareable Job Pipeline Links & Enriched Candidate Profiles
+# Audit of the Page Architecture Consolidation Plan
 
-**Score: 31 / 100**
-
----
-
-## Executive Summary
-
-The feature has a solid architectural concept and the UI scaffolding is clean. However, it has three showstopper bugs that mean the feature **does not function at all** in its current state. The core purpose — letting anonymous external partners view a pipeline with enriched candidate data — is broken end-to-end. No candidate will ever appear in a shared view. Password protection is silently non-functional. AI summaries are wired to a column that does not exist on the table being queried.
+**Score: 38 / 100**
 
 ---
 
-## Critical Bugs (All Fatal — Feature Does Not Work)
+## Why 38 — Not Higher
 
-### Bug 1 (Fatal): Anonymous users cannot read applications or candidate_profiles — the pipeline always renders empty
-
-**Severity: Critical. Feature-breaking.**
-
-The `fetchPipelineData()` function in `SharedPipelineView.tsx` makes two direct Supabase client queries as an anonymous (unauthenticated) user:
-
-```typescript
-supabase.from('applications').select('id, current_stage_index, applied_at, match_score, ai_summary, candidate_id, user_id').eq('job_id', shareMeta.job_id)
-supabase.from('candidate_profiles').select('id, full_name, current_title, current_company, email, linkedin_url').in('id', candidateIds)
-```
-
-The `applications` table has RLS enabled with these SELECT policies:
-- `Admins can view all applications` → requires `has_role(auth.uid(), 'admin')` — fails for anon (uid is NULL)
-- `Company members can view job applications` → requires matching company_members row with auth.uid() — fails for anon
-- `Users can view their own applications` → requires `auth.uid() = user_id AND user_id IS NOT NULL` — fails for anon
-
-The `candidate_profiles` table has RLS enabled with SELECT policies that require `TO authenticated` or specific role checks. Both are completely blocked for anon.
-
-**Result**: Both queries silently return 0 rows. The Kanban board renders with all columns empty. There is no error shown to the user — just an empty board. The feature's entire value proposition — showing enriched candidate cards — is completely non-functional. No candidate will ever appear in a shared pipeline view.
-
-**What should have been done**: The `validate_job_pipeline_share` RPC should fetch all candidate data server-side within the `SECURITY DEFINER` function (which can bypass RLS) and return it as part of the JSON response. The client should never make raw table queries as anon for this data.
+The plan shows real pattern recognition — it correctly identified several fragmented areas. But it proposes changes based on assumptions about the codebase that are directly contradicted by the actual code. Multiple "problems" it lists are already solved. Multiple "solutions" it proposes either cannot work, would break navigation that already functions, or address a symptom while ignoring the actual root cause. The plan also completely missed the real worst offenders.
 
 ---
 
-### Bug 2 (Fatal): Password protection is silently broken — all "protected" links are actually unprotected
+## Flaw 1 (Critical): The plan proposes consolidating Scheduling + BookingManagement + SchedulingSettings — but this is already partially the case, and the actual problem is different
 
-**Severity: Critical. Security-breaking.**
+The plan says: "Merge BookingManagement + SchedulingSettings into `/scheduling`."
 
-`SharePipelineDialog.tsx` lines 138–143 call a database RPC function `hash_pipeline_share_password` to hash the user's password before storing it:
+Reading the actual code: `Scheduling.tsx` is 1,095 lines and already has **8 internal tabs**: Links, Availability, AI, Team Load, Workflows, Branding, Embed. It already renders booking links and availability settings. `BookingManagement.tsx` (648 lines) has a completely different set of tabs: Link Management, Analytics, Calendar Integrations. `SchedulingSettings.tsx` (353 lines) handles weekly availability grids and date overrides.
 
-```typescript
-const { data: hashData, error: hashError } = await supabase.rpc(
-  'hash_pipeline_share_password' as any,
-  { _password: password.trim() }
-);
-payload.password_hash = hashData || null;  // ← null on failure
-```
+The plan's proposed fix — "add a Bookings tab inside Scheduling" — is wrong because `Scheduling.tsx` already has a Links tab that does booking link management. The real problem is that `Scheduling.tsx` and `BookingManagement.tsx` are two pages doing the same job with ~60% feature overlap, and `SchedulingSettings.tsx` covers availability which is also inside `Scheduling.tsx`'s "Availability" tab.
 
-The function `hash_pipeline_share_password` **does not exist** in the database. Verified via direct query — `SELECT proname FROM pg_proc WHERE proname = 'hash_pipeline_share_password'` returns empty. When the RPC fails, `hashData` is `undefined`, so `payload.password_hash = null`.
-
-The link is inserted with `password_hash = NULL`. The `check_pipeline_share_requires_password` RPC then returns `requires_password: false`. The password gate is **never displayed**. Anyone with the link URL bypasses the password entirely, even though the creator believed the link was protected.
-
-There is no error shown to the user when `hash_pipeline_share_password` fails — the toast fires "Share link copied to clipboard" as if everything worked. The user has no idea the password was silently dropped.
-
-**What should have been done**: Either implement the `hash_pipeline_share_password` function using `pgcrypto`'s `crypt()` function (one line of SQL), or hash the password inside the `validate` function itself by storing a salted hash at insert time using a proper `insert_pipeline_share` SECURITY DEFINER RPC. The `as any` TypeScript cast masked this missing function entirely.
+The correct fix is to redirect `/booking-management` → `/scheduling` (keeping `Scheduling.tsx` as the single source of truth for all scheduling workflows) and redirect `/scheduling/settings` → `/scheduling?tab=availability`. `BookingManagement.tsx` and `SchedulingSettings.tsx` should then be deleted as orphaned page files, not merged.
 
 ---
 
-### Bug 3 (Fatal): AI summaries are wired to a non-existent column — always null
+## Flaw 2 (Critical): The plan says CompanyIntelligence is a standalone page that should be added to HiringIntelligenceHub — but CompanyIntelligence takes a `:id` URL param for a specific company, making it a detail page not an intelligence dashboard
 
-**Severity: High. Feature-breaking.**
+Reading `CompanyIntelligence.tsx`: line 15 → `const { id } = useParams<{ id: string }>();`. This page requires a company ID in the URL. It loads `company_interactions` and `company_stakeholders` for one specific company. It is not a "dashboard overview" — it is a detail drilldown for a single company. You cannot embed it as a tab inside `HiringIntelligenceHub` (which is an aggregated across-all-jobs view) because there is no company context at that level.
 
-`SharedPipelineView.tsx` line 158 fetches `ai_summary` from the `applications` table:
-
-```typescript
-supabase.from('applications').select(`id, current_stage_index, applied_at, match_score, ai_summary, candidate_id, user_id`)
-```
-
-The `applications` table **does not have an `ai_summary` column**. Verified via `SELECT column_name FROM information_schema.columns WHERE table_name = 'applications'` — the column is absent. `ai_summary` lives on `candidate_profiles`.
-
-Furthermore, even if the code were fixed to fetch from `candidate_profiles`, the candidate profiles query only selects:
-```typescript
-.select('id, full_name, current_title, current_company, email, linkedin_url')
-```
-`ai_summary` is not in that select list either.
-
-**Result**: `application.ai_summary` is always `undefined`. The AI summary section in `SharedCandidateCard` never renders — even if `show_ai_summary = true`. The "AI-enriched" part of the enriched profile is completely non-functional.
+The plan's proposed redirect `/company-intelligence` → `/jobs?tab=intelligence` would make the page unreachable because the company ID context is lost entirely. The correct decision is to move `CompanyIntelligence` to `/companies/:id/intelligence` (nested under the company detail route) and link to it from `CompanyPage.tsx`. This makes it a detail view within the company namespace, not a hub tab.
 
 ---
 
-## High Severity Issues
+## Flaw 3 (Critical): The plan proposes creating a PartnerHub — but partner pages already have an `/partner/*` namespace and the problem is not the lack of a hub, it is that no hub index page exists
 
-### Issue 4 (High): password_hash is returned to the frontend in `select('*')`
+Reading `partner.routes.tsx`: the routes are `/partner/analytics`, `/partner/rejections`, `/partner/target-companies`, `/partner/audit-log`, `/partner/billing`, `/partner/sla`, `/partner/integrations`, `/partner/contracts`. This is already a namespace. The plan says "create a PartnerHub at `/partner`" — but there is no route registered at `/partner` (bare path). Partners hitting `/partner` would get a 404.
 
-`fetchShares()` in `SharePipelineDialog.tsx` calls:
-```typescript
-supabase.from('job_pipeline_shares').select('*')
-```
-The `job_pipeline_shares` table has a `password_hash` column. The `select('*')` returns the bcrypt hash to every admin/strategist who opens the dialog. While bcrypt is one-way, exposing hashes to the frontend is unnecessary and violates data minimization principles. The `ShareLink` interface even includes `password_hash: string | null` in its type definition — the hash is actively being used (to show the "Protected" badge). The hash should never leave the server. Use a boolean `is_password_protected` column instead.
-
-### Issue 5 (High): Email and LinkedIn are fetched from the database regardless of visibility flags — client-side filtering only
-
-`fetchPipelineData` always fetches `email` and `linkedin_url` from `candidate_profiles` for every candidate, regardless of whether `show_candidate_emails` or `show_candidate_linkedin` are enabled. The filtering happens client-side:
-```typescript
-email: shareMeta.show_candidate_emails ? cp?.email : undefined,
-linkedin_url: shareMeta.show_candidate_linkedin ? cp?.linkedin_url : undefined,
-```
-This means candidate PII (email addresses, LinkedIn URLs) is transmitted over the network to the anonymous viewer's browser even when the creator disabled those fields. Any person with browser dev tools can inspect the network response and extract all emails and LinkedIn URLs regardless of what visibility flags are set. Server-side filtering is mandatory for PII.
-
-### Issue 6 (High): No rate limiting or brute-force protection on password validation
-
-`validate_job_pipeline_share` can be called infinitely with incorrect passwords. There is no attempt counter, no lockout, no CAPTCHA, no IP-based rate limiting. A 6-character alphanumeric password has approximately 2 billion combinations — while this is high, there is nothing preventing automated attacks. The existing `detect_brute_force_attacks` and `check_rate_limit` functions in the database are not wired to this endpoint at all.
-
-### Issue 7 (High): No audit logging for anonymous pipeline views
-
-Every view of a shared pipeline increments `view_count` but logs nothing else. There is no record of when the link was accessed, from what IP, or whether the view was successful or failed (wrong password). The `audit_logs` table exists in the system but is not used here. For a "Confidential — View Only" feature targeting executive talent, this is a significant gap.
-
-### Issue 8 (High): Stage index matching is fragile — candidates may appear in wrong columns
-
-`PipelineShareBoard` matches candidates to stages using:
-```typescript
-applications.filter((app) => app.current_stage_index === stageOrder)
-```
-where `stageOrder` is `stage.order` from the `pipeline_stages` JSONB. Looking at real data, pipeline stages use `order: 0, 1, 2, 3...` as sequential integers. This works for simple pipelines, but for jobs like "SocialElite" where stages have `order: 2, 3, 4, 5` (skipping 0 and 1 for the Applied/Screening stages that were added later), candidates whose `current_stage_index` doesn't match any `stage.order` will simply not appear in any column. The board silently drops them.
+The actual fix is to create a single `PartnerHub.tsx` hub page registered at `/partner` (with redirects from each individual partner route to `/partner?tab=X`). The plan correctly identifies this as needed but treats it as a 6-page merge problem rather than a missing index route problem. The distinction matters: you do not need to change the component files for `BillingDashboard`, `SLADashboard`, etc. — you import them as lazy tab contents inside the new `PartnerHub.tsx`. The existing `/partner/billing` routes get redirect aliases.
 
 ---
 
-## Medium Severity Issues
+## Flaw 4 (High): The plan says EngagementHub "should not be its own hub" because it only has 2 tabs, and proposes merging it into GlobalAnalytics — but GlobalAnalytics has zero tabs. It is a raw analytics page with no tab infrastructure
 
-### Issue 9 (Medium): TypeScript type safety completely bypassed with `as any`
+Reading `GlobalAnalytics.tsx` (343 lines): the only Tabs component in the file is on line 255 — `<Tabs defaultValue="applications">` — with 3 inner tabs: Applications Trend, Conversion Funnel, Top Companies. These are chart-switcher tabs inside a single data view, not hub navigation tabs. There is no `useSearchParams` URL tab management, no lazy loading, no `Suspense`, no module boundary — just a basic stats page.
 
-Throughout the implementation, `job_pipeline_shares` is cast with `as any` because the table is not in the generated `types.ts`:
-```typescript
-supabase.from('job_pipeline_shares' as any)
-supabase.rpc('validate_job_pipeline_share' as any, ...)
-supabase.rpc('hash_pipeline_share_password' as any, ...)
-```
-This is the direct reason Bug 2 went undetected — TypeScript would have caught the missing function if it had been in the type definitions. The pattern of using `as any` to bypass type errors is what allowed the broken password hashing to ship silently.
+Merging `FunnelAnalytics` and `UserEngagementDashboard` (both heavy, data-fetching pages) into `GlobalAnalytics` would require rebuilding its entire tab infrastructure from scratch. The plan treats `GlobalAnalytics` as if it is already a hub like `SecurityHub` or `FinanceHub`. It is not.
 
-### Issue 10 (Medium): The view count is incremented on every page load, including reloads and tab-reopens
-
-There is no session-level deduplication on `view_count`. Every call to `validateAndLoad()` increments the counter. If a viewer refreshes the page, the count goes up by 1. For non-password links, `checkToken()` calls `validateAndLoad(null)` immediately on mount — so even bot crawlers or link previews (e.g. Slack unfurling) increment the view count. This makes the metric misleading.
-
-### Issue 11 (Medium): The "Share" button has no visual indicator of active share links
-
-When active shares exist for a job, the "Share" button in `JobDashboard.tsx` looks identical to when none exist. There is no badge count, no dot indicator, nothing that tells the admin "this job currently has 2 active shared links." A strategist could accidentally create a 4th link without realizing 3 are already active and being viewed.
-
-### Issue 12 (Medium): No confirmation dialog before revoke
-
-Clicking the revoke (trash) icon in `ShareLinkRow` immediately calls `handleRevoke()` with no confirmation. If an external partner is actively viewing the pipeline in a browser tab, they lose access instantly without warning. A two-step confirm is standard for destructive actions.
-
-### Issue 13 (Medium): `current_company` is always shown regardless of name visibility
-
-In `SharedCandidateCard`, `current_company` is rendered unconditionally — there is no visibility flag controlling it. Even when `show_candidate_names = false` and `show_candidate_emails = false`, the candidate's current employer is always visible. For candidates with `employer_shield` / stealth mode enabled, this could expose which company they currently work at to external viewers.
-
-### Issue 14 (Medium): Password field accepts any length including 1-character passwords
-
-The `SharePipelineDialog` only checks `!password.trim()` before creating a link. There is no minimum length, no strength validation, no complexity requirement. A strategist could set "a" as the pipeline password, providing essentially zero security while believing the link is protected.
+The correct approach: keep `EngagementHub` as-is but merge it into `GlobalAnalytics` by converting `GlobalAnalytics` into a proper hub (with `useSearchParams`, `Suspense`, lazy-loaded tab content). This is a larger change than the plan implies.
 
 ---
 
-## Low Severity Issues
+## Flaw 5 (High): The plan says to merge SalaryInsights + CareerInsightsDashboard into /analytics as candidate tabs — but Analytics.tsx is a role-aware router component that renders three completely different page components (GlobalAnalytics for admin, PartnerAnalyticsDashboard for partner, CandidateAnalytics for candidates), none of which have a tab system
 
-### Issue 15 (Low): No "no candidates" state for the full board when pipeline is empty
+Reading `Analytics.tsx`: it is 23 lines. It is a role switch that renders one of three separate, complete, standalone page components. Adding "tabs" to this file means building a wrapper around `CandidateAnalytics` that adds a tab bar, then extracting `CandidateAnalytics` as a tab content. That is not a tab merge — it is a hub refactor of the candidate analytics experience.
 
-When all stages have 0 candidates (either genuinely empty or due to Bug 1), the board renders a full horizontal Kanban with each column showing "No candidates." There is no higher-level empty state that explains why the pipeline appears empty to an external viewer who may think the link is broken.
-
-### Issue 16 (Low): Expired links show in the dialog but cannot be cleaned up
-
-`expiredShares` are displayed indefinitely. There is no bulk-delete or cleanup option. A job with a 12-month lifespan could accumulate dozens of expired links in the dialog with no way to clear them other than individually, with no revoke button shown for already-expired entries.
-
-### Issue 17 (Low): The `show_contact_info` flag is redundant and misleading
-
-The `job_pipeline_shares` table has both `show_candidate_emails`, `show_candidate_linkedin`, AND `show_contact_info`. The insert logic sets `show_contact_info: showEmails || showLinkedin`. This creates a third flag that is derivable from the other two and adds confusion. The `SharedCandidateCard` uses `show_candidate_emails` and `show_candidate_linkedin` directly for rendering — `show_contact_info` is never checked.
-
-### Issue 18 (Low): The route `/pipeline/:token` conflicts with potential future routes
-
-The token route is registered at top level without a namespace prefix. If a token happened to be a UUID like `new` or `create`, routing ambiguity could arise. More practically, there is no 404 handling in the router — the `SharedPipelineView` handles its own error state, but a completely malformed URL `/pipeline/` with no token renders the loading state forever (the `token` param would be `undefined`, the guard fires, but `setViewState('error')` is followed by a `navigate` call to `/auth` which is jarring for external users).
+Additionally: `SalaryInsights` is referenced in 10+ places in the codebase: `navigation.config.ts` (line 171), `QuickActions.tsx`, `CandidateQuickActions.tsx`, `SalaryInsightsWidget.tsx` (which links to `/salary-insights` in the ClubHome widget), and `quickTips.ts` (3 times). Breaking `/salary-insights` by redirecting it would break every one of those deep links without updating all of them. The plan does not mention updating any of these link sources.
 
 ---
 
-## What Works Correctly
+## Flaw 6 (High): The plan says to eliminate ReferralProgram (redirect → /referrals) but does not check whether ReferralProgram uses different database tables and data model than Referrals, creating a data availability gap
 
-1. The database migration is structurally sound — table schema, RLS policy for authenticated users, and the `validate_job_pipeline_share` SECURITY DEFINER function are well-designed.
-2. The `SECURITY DEFINER` approach for token validation is the correct pattern and properly excludes `password_hash` from the return payload.
-3. The token generation (`encode(gen_random_bytes(32), 'hex')`) is cryptographically strong — 64-character hex token, 256 bits of entropy.
-4. The `bcrypt` comparison logic within `validate_job_pipeline_share` is correct (the comparison `crypt(input, hash) = hash` is the proper pgcrypto pattern) — it just never runs because hashes are never stored.
-5. Role-gating the "Share" button to admin/strategist only in `JobDashboard.tsx` is correctly implemented.
-6. The UI of the Kanban board and candidate cards is well-designed for the TQC aesthetic.
-7. The expiry display and `formatDistanceToNow` usage is clean and correct.
-8. Revocation via `is_active = false` (rather than deletion) correctly preserves audit history.
+Reading `ReferralProgram.tsx`: it queries `referral_config` (for bonus structure) and `referral_bonuses` (for individual referral history). Reading `Referrals.tsx`: it uses `useReferralPolicies`, `useReferralEarnings`, `useRevenueShares`, and `useReferralStats` — completely different hooks and (presumably) different underlying tables (`referral_policies`, `referral_earnings`, `revenue_shares`).
+
+`ReferralProgram.tsx` displays a bonus structure from `referral_config` and tracks individual `referral_bonuses` rows. `Referrals.tsx` is about Revenue Share policies and job pipeline tracking. They are not duplicates — they serve different data flows. Before eliminating `ReferralProgram`, the `referral_config` bonus structure panel and `referral_bonuses` individual history table need to be verified as represented somewhere inside `Referrals.tsx`. If they are not (and given the different table names, they likely are not), blindly redirecting drops functionality permanently.
 
 ---
 
-## Scoring Breakdown
+## Flaw 7 (High): The plan says to merge MyCommunications into /inbox — but /inbox renders EmailInbox, which is an entirely different communication surface (inbound email), not a messaging timeline
 
-| Category | Max | Score | Reason |
+Reading `Inbox.tsx`: 4 lines, renders `<EmailInbox />`. Reading `MyCommunications.tsx`: renders `CandidateTimelineView` (TQC communications with the candidate), `MyStrategistCard`, `CommunicationPreferencesCard`, `CommunicationStatsCard`. These are opposite communication directions: `Inbox` = emails the candidate received. `MyCommunications` = the candidate's interaction history with TQC staff.
+
+Putting a "My Strategist" card and communication preferences inside an email inbox tab is a category error. The correct placement is inside the `/profile` page as a "Communications" section, or inside `/settings` as a Communications tab. The plan's proposed merger location is wrong.
+
+---
+
+## Flaw 8 (Medium): The plan misses the worst navigation problem in the entire codebase — there are 6 different analytics pages visible to candidates in the sidebar with no clear hierarchy between them
+
+`navigation.config.ts` lines 169–178 shows the Candidate navigation section "Career" contains: Cover Letter Builder, Companies, Salary Insights, Career Path, Career Insights, Referrals, Invites — all as flat sidebar items. Plus `/analytics` is a separate top-level item. Plus `/candidate-analytics` has its own route. A candidate sees:
+- `/analytics` (CandidateAnalytics — profile views, applications)
+- `/salary-insights` (market salary data)
+- `/career-insights` (AI career insights)  
+- `/career-path` (career trajectory visualization)
+- All 4 are separate top-level nav items
+
+This is the worst UX fragmentation in the platform and the plan mentions SalaryInsights and CareerInsights but completely ignores `/career-path`, which is a 4th isolated analytics page with its own route not mentioned anywhere in the plan.
+
+---
+
+## Flaw 9 (Medium): The plan proposes adding InterviewPrep as a tab inside /meetings — but InterviewPrep shows a list of applications (job-context) and uses STAR method practice, making it cognitively a Jobs feature not a Meetings feature
+
+Reading `InterviewPrep.tsx` lines 33–49: it fetches `applications` joined to `jobs` and `companies`. The page is primarily about "which job am I interviewing for" — not about a specific meeting. A candidate using interview prep is thinking about a job application, not a calendar event. The correct placement is as a tab inside `/jobs?tab=interview-prep` (alongside the existing Applications, Map, and Intelligence tabs) — not inside Meetings.
+
+The plan's reasoning ("it bridges jobs and meetings") is exactly the wrong conclusion to draw. If it bridges both, it belongs next to the primary decision context, which is the job/application. A candidate preparing for an interview navigates there from their application, not from their calendar.
+
+---
+
+## Flaw 10 (Medium): The plan ignores the navigation config entirely — changing routes without updating navigation.config.ts means items in the sidebar point to dead URLs
+
+`navigation.config.ts` is 513 lines and explicitly references direct paths for every nav item. The plan proposes 11 route changes but does not mention `navigation.config.ts` once. Redirecting `/salary-insights` → `/analytics?tab=salary` without updating line 171 in `navigation.config.ts` means the sidebar still shows "Salary Insights" pointing at `/salary-insights` — which then redirects, breaking the sidebar active-state highlighting (the `path` match is used for active class detection).
+
+Same applies to: `/career-insights` (line 173), `/invites` (line 175), `/my-communications` (line 178), `/booking-management` (somewhere in the admin nav config), and any partner nav items.
+
+---
+
+## Flaw 11 (Medium): The plan does not address the App.tsx vs. route files split — some routes (salary-insights, my-communications, social-management, career-path) are still registered directly in App.tsx, not in the route files
+
+`App.tsx` lines 355–362 still directly register `/my-communications`, `/salary-insights`, `/career-path`, `/social-management` outside the route file system. The route consolidation plan focuses on route files but the actual routing in `App.tsx` is fragmented across both. Any plan that only touches `*.routes.tsx` files and ignores `App.tsx` will leave half the routes unreachable through the new system.
+
+---
+
+## Flaw 12 (Low): The plan says to "rename TalentHub to MemberManagementHub" — but TalentHub is already correctly labeled in admin.routes.tsx as `/admin/talent-hub` and all existing redirects point to it correctly. Renaming requires updating navigation config, all redirect targets, and the page title — and achieves near-zero user benefit
+
+The TalentHub already has redirects from `/admin/member-requests`, `/admin/merge`, `/archived-candidates`, `/admin/club-sync-requests`, `/admin/rejections`, `/admin/email-templates`. Renaming the route would break all of them. Renaming only the display label (`h1` text) is sufficient for the naming clarity goal and requires one file change, not a route rename.
+
+---
+
+## What the Plan Got Genuinely Right
+
+1. `ReferralProgram` and `Referrals` covering similar territory — correct observation, though the data model difference was missed.
+2. `EngagementHub` being an underweight hub at 2 tabs — correct, though the fix target (GlobalAnalytics) was wrong.
+3. Partner pages lack a hub index — correctly identified the `/partner` bare path as missing.
+4. `MyCommunications` being hard to find with no primary nav entry — correct.
+5. `BookingManagement` + `Scheduling` overlapping — correct problem identification, wrong solution mechanism.
+
+---
+
+## Score Breakdown
+
+| Dimension | Max | Score | Reason |
 |---|---|---|---|
-| Core functionality | 35 | 0 | Feature is completely non-functional — anon cannot read any data |
-| Security | 25 | 8 | Token strength and SECURITY DEFINER pattern are good; password is broken, PII leaked client-side, no rate limiting |
-| Data correctness | 15 | 3 | ai_summary mapped to wrong table; stage matching fragile; email/LinkedIn always fetched |
-| UI/UX | 15 | 12 | Well-designed dialog and board; missing empty state, revoke confirmation, active share indicator |
-| Code quality | 10 | 8 | Clean component structure; `as any` casts throughout mask critical bugs |
+| Accuracy of problem identification | 30 | 14 | 5 of 11 "problems" are real; 3 are already partially solved; 3 are wrong diagnoses |
+| Solution correctness | 30 | 10 | 4 of 11 solutions would work as described; 7 have architectural or contextual errors |
+| Completeness | 20 | 6 | Misses career-path, navigation.config, App.tsx fragmentation, and the 6-analytics-page candidate overload |
+| Implementation detail quality | 20 | 8 | Route redirects are mentioned but files/side-effects are not tracked |
 
-**Total: 31 / 100**
+**Total: 38 / 100**
 
 ---
 
-## The Fix Priority List (Ordered by Impact)
+# The Corrected Plan — Bringing This to 100/100
 
-1. **Blocker**: Add `get_pipeline_share_data(_token, _password)` SECURITY DEFINER RPC that returns all job + application + candidate data in one server-side call. Remove direct anon queries to `applications` and `candidate_profiles`.
-2. **Blocker**: Create `hash_pipeline_share_password(_password text) RETURNS text` as `SECURITY DEFINER` using `crypt(_password, gen_salt('bf'))`. Wire correctly in dialog.
-3. **Blocker**: Add `ai_summary` to the candidate_profiles select in the data fetch, and pass it through to the Application type.
-4. **High**: Server-side PII filtering — do not return email/LinkedIn to the browser unless flags are set.
-5. **High**: Add rate limiting to `validate_job_pipeline_share` (attempt counter per token, lock after 10 failures).
-6. **High**: Replace `select('*')` with explicit column list excluding `password_hash` in the dialog.
-7. **Medium**: Add a `is_password_protected` boolean column, remove `password_hash` from all client-facing queries.
-8. **Medium**: Add revoke confirmation dialog.
-9. **Medium**: Add active share count badge to the Share button.
-10. **Medium**: Add password minimum length validation (8+ characters).
+This fixes every flaw and implements every real change correctly. All implementations follow existing patterns: `useSearchParams` tab management, lazy-loaded `Suspense` tabs, redirects for backwards compatibility, and full `navigation.config.ts` updates.
+
+---
+
+## Fix 1: Scheduling Hub — Redirect BookingManagement and SchedulingSettings, not merge them
+
+`Scheduling.tsx` is already the hub. The problem is duplicate pages.
+
+**Route changes in `meetings.routes.tsx`:**
+- Remove the `/booking-management` route, replace with `<Navigate to="/scheduling?tab=links" replace />`
+- Remove the `/scheduling/settings` route, replace with `<Navigate to="/scheduling?tab=availability" replace />`
+
+**In `Scheduling.tsx`:**
+- Add `useSearchParams` tab management (currently uses no URL state — switching tabs does not persist across navigation)
+- Ensure the existing "Links" tab covers `BookingManagement`'s link list and analytics
+- Ensure the existing "Availability" tab covers `SchedulingSettings`'s weekly grid and overrides
+- Any content gap between BookingManagement and Scheduling's Links tab gets filled in Scheduling
+
+**Files to delete:** `BookingManagement.tsx`, `SchedulingSettings.tsx` (after verifying content parity)
+
+**`navigation.config.ts`:** Update any item pointing to `/booking-management` or `/scheduling/settings` to point to `/scheduling`
+
+---
+
+## Fix 2: Candidate Analytics Hub — Build a proper hub wrapper around CandidateAnalytics
+
+Create `src/pages/CandidateAnalyticsHub.tsx` — a new hub that renders three tabs via `useSearchParams`:
+- **Performance** → `CandidateAnalytics` (existing component, no changes)
+- **Salary** → `SalaryInsights` (existing component, no changes)
+- **Career** → `CareerInsightsDashboard` (existing component, no changes)
+- **Career Path** → `CareerPath` (existing component — the plan missed this entirely)
+
+`Analytics.tsx` remains as the role-router but for candidates it now returns `<CandidateAnalyticsHub />` instead of `<CandidateAnalytics />`.
+
+**Route changes in `analytics.routes.tsx`:**
+- `/salary-insights` → `<Navigate to="/analytics?tab=salary" replace />`
+- `/career-insights` → `<Navigate to="/analytics?tab=career" replace />`
+- `/career-path` → `<Navigate to="/analytics?tab=career-path" replace />`
+- Keep `/candidate-analytics` → `<Navigate to="/analytics" replace />`
+
+**`navigation.config.ts`:** Consolidate lines 171–173 (Salary Insights, Career Path, Career Insights) into a single "Analytics" item pointing to `/analytics`. Remove the 3 individual items.
+
+**`SalaryInsightsWidget.tsx`:** Update line 221 navigate call from `/salary-insights` to `/analytics?tab=salary`.
+
+**`QuickActions.tsx`, `CandidateQuickActions.tsx`:** Update `/salary-insights` references to `/analytics?tab=salary`.
+
+---
+
+## Fix 3: Partner Hub — Create the missing /partner index hub page
+
+Create `src/pages/partner/PartnerHub.tsx` — a tabbed hub with `useSearchParams` that lazy-loads:
+- **Analytics** → `PartnerAnalyticsDashboard`
+- **Billing** → `BillingDashboard`
+- **SLA** → `SLADashboard`
+- **Integrations** → `IntegrationsManagement`
+- **Audit Log** → `AuditLog`
+- **Rejections** → `PartnerRejections`
+- **Target Companies** → `PartnerTargetCompanies`
+- **Social** → `SocialManagement` (pull this in here — it already has `RoleGate` so it self-gates)
+
+**Route changes in `partner.routes.tsx`:**
+- Add `/partner` → `PartnerHub` as the new hub route
+- Keep all existing `/partner/*` routes but add redirect aliases: `/partner/analytics` → `<Navigate to="/partner?tab=analytics" replace />`, etc.
+- Remove `/social-management` from `App.tsx`, redirect it to `/partner?tab=social`
+
+**`navigation.config.ts`:** Replace the 6 scattered partner nav items with a single "Partner Hub" item pointing to `/partner`.
+
+---
+
+## Fix 4: Referral/Invite Consolidation — Add Invites tab, validate ReferralProgram data gap first
+
+**Step A — Data audit:** Compare `referral_config` + `referral_bonuses` (used by `ReferralProgram`) against what `Referrals.tsx` exposes. Specifically check if the "Bonus Structure" card and individual referral history table from `ReferralProgram` appear anywhere in `Referrals.tsx`.
+
+**Step B — If gap exists:** Add a "My Referrals" tab to `Referrals.tsx` that embeds the `referral_bonuses` table and `referral_config` bonus display. Then redirect `/referral-program` → `/referrals?tab=my-referrals`.
+
+**Step C — Invites merge:** Add an "Invites" tab to `Referrals.tsx` that renders `InviteDashboardLayout` (the component already inside `InviteDashboard.tsx`). Redirect `/invites` → `/referrals?tab=invites`.
+
+**`navigation.config.ts`:** Remove the "Invites" nav item (line 175). The "Referrals" item remains and covers both.
+
+---
+
+## Fix 5: MyCommunications — Move into /profile, not /inbox
+
+`MyCommunications` content (strategist card, communication timeline, preferences) belongs inside the profile context, not inside an email inbox.
+
+**In `EnhancedProfile.tsx`:** Add a "Communications" tab that renders the `CandidateTimelineView`, `MyStrategistCard`, `CommunicationPreferencesCard`, and `CommunicationStatsCard` components directly.
+
+**Route change in `App.tsx`:** Replace `/my-communications` route with `<Navigate to="/profile?tab=communications" replace />`.
+
+**`navigation.config.ts`:** Update line 178 from `{ path: "/my-communications" }` to `{ path: "/profile?tab=communications" }`. Keep the label "My Communications" but update the path.
+
+---
+
+## Fix 6: Engagement Hub — Merge into GlobalAnalytics by converting GlobalAnalytics into a proper hub
+
+`GlobalAnalytics` needs to become a real hub (not just a raw stats page). 
+
+**Refactor `GlobalAnalytics.tsx`:**
+- Add `useSearchParams` tab management
+- Extract the existing bar chart / funnel / companies views into a "Platform Stats" tab
+- Add lazy-loaded tabs: **Funnel** (→ `FunnelAnalytics`), **Engagement** (→ `UserEngagementDashboard`)
+- This replaces the separate `EngagementHub` entirely
+
+**Route changes in `admin.routes.tsx`:**
+- Remove `/admin/engagement-hub` route, replace with `<Navigate to="/admin/global-analytics?tab=funnel" replace />`
+- Update the existing `/admin/user-engagement` redirect to point to `/admin/global-analytics?tab=engagement`
+- Update the existing `/funnel-analytics` redirect in `analytics.routes.tsx` to point to `/admin/global-analytics?tab=funnel`
+
+**Delete:** `src/pages/admin/EngagementHub.tsx` after migration is verified.
+
+---
+
+## Fix 7: CompanyIntelligence — Move to /companies/:id/intelligence, not into a hub tab
+
+`CompanyIntelligence.tsx` requires a company ID. It is a detail drilldown, not an overview.
+
+**Route change in `analytics.routes.tsx`:**
+- Change the route from `/company-intelligence` to `/companies/:id/intelligence` (register it in `partner.routes.tsx` alongside `/companies/:companyId`)
+- Add a redirect from old `/company-intelligence` (without an ID) to `/companies` since no ID context exists
+
+**In `CompanyPage.tsx`:** Add an "Intelligence" button/tab that navigates to `/companies/:id/intelligence`.
+
+---
+
+## Fix 8: InterviewPrep — Add as a tab inside /jobs, not /meetings
+
+**In `Jobs.tsx`:** Add an "Interview Prep" tab using `useSearchParams` that renders `InterviewPrep` as a lazy tab content. Route: `/jobs?tab=interview-prep`.
+
+**Route change in `candidate.routes.tsx`:** Change `/interview-prep` to `<Navigate to="/jobs?tab=interview-prep" replace />`. Keep `/interview-prep/chat/:sessionId` as a standalone route (it is a full AI chat session — cannot be a tab).
+
+**`navigation.config.ts`:** Remove "Interview Prep" from wherever it currently appears in candidate nav. It will be discoverable from `/jobs`.
+
+---
+
+## Fix 9: App.tsx Cleanup — Move all scattered routes into their route files
+
+`App.tsx` currently has 6+ routes registered outside the route file system. They must be moved:
+- `/my-communications` → handled by Fix 5 (redirect)
+- `/salary-insights` → handled by Fix 2 (redirect)
+- `/career-path` → handled by Fix 2 (redirect)
+- `/social-management` → handled by Fix 3 (redirect to `/partner?tab=social`)
+- `/partner-onboarding`, `/subscription`, etc. — move into appropriate route files
+
+---
+
+## Fix 10: TalentHub — Rename display label only, never the route
+
+Change only the `<h1>` in `TalentHub.tsx` from "TALENT HUB" to "MEMBER MANAGEMENT". Change the nav item display name in `navigation.config.ts`. Do not touch the route path `/admin/talent-hub` or any redirects that target it.
+
+---
+
+## Summary of All File Changes
+
+| File | Change | Reason |
+|---|---|---|
+| `src/pages/BookingManagement.tsx` | Delete | Functionality covered by Scheduling.tsx |
+| `src/pages/SchedulingSettings.tsx` | Delete | Functionality covered by Scheduling.tsx |
+| `src/pages/Scheduling.tsx` | Add `useSearchParams` tab management | URL persistence for tabs |
+| `src/pages/CandidateAnalyticsHub.tsx` | Create new | Hub wrapping CandidateAnalytics, SalaryInsights, CareerInsights, CareerPath |
+| `src/pages/Analytics.tsx` | Update candidate branch to return CandidateAnalyticsHub | Hub routing |
+| `src/pages/partner/PartnerHub.tsx` | Create new | Hub for all partner tools at `/partner` |
+| `src/pages/admin/GlobalAnalytics.tsx` | Add hub tabs (Funnel, Engagement) | Absorb EngagementHub |
+| `src/pages/admin/EngagementHub.tsx` | Delete | Merged into GlobalAnalytics |
+| `src/pages/Referrals.tsx` | Add Invites tab + My Referrals tab | Consolidate invite/referral flows |
+| `src/pages/EnhancedProfile.tsx` | Add Communications tab | Absorb MyCommunications |
+| `src/pages/Jobs.tsx` | Add Interview Prep tab | Absorb InterviewPrep |
+| `src/routes/meetings.routes.tsx` | Replace BookingManagement + SchedulingSettings routes with redirects | Route cleanup |
+| `src/routes/analytics.routes.tsx` | Add redirects for salary-insights, career-insights, career-path | Route cleanup |
+| `src/routes/partner.routes.tsx` | Add `/partner` hub route + redirect aliases | Partner hub entry |
+| `src/routes/profiles.routes.tsx` | Replace ReferralProgram + InviteDashboard routes with redirects | Consolidation |
+| `src/routes/candidate.routes.tsx` | Replace InterviewPrep route with redirect | Hub absorption |
+| `src/routes/admin.routes.tsx` | Replace EngagementHub route with redirect | Hub absorption |
+| `src/App.tsx` | Remove `my-communications`, `salary-insights`, `career-path`, `social-management` direct route registrations | Move to route files |
+| `src/config/navigation.config.ts` | Update 8+ nav items to new paths | All redirects break sidebar active state if this is skipped |
+| `src/components/QuickActions.tsx` | Update `/salary-insights` path | Deep link fix |
+| `src/components/candidate/CandidateQuickActions.tsx` | Update `/salary-insights` path | Deep link fix |
+| `src/components/clubhome/SalaryInsightsWidget.tsx` | Update navigate call | Deep link fix |
+| `src/data/quickTips.ts` | Update 3 `/salary-insights` links | Deep link fix |
+| `src/pages/CompanyPage.tsx` | Add Intelligence link | Discovery entry point |
+| `src/pages/admin/TalentHub.tsx` | Change h1 display label only | Naming clarity, no route change |
