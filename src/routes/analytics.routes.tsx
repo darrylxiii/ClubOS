@@ -17,6 +17,7 @@ const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
 const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
 const InvestorDashboard = lazy(() => import("@/pages/admin/InvestorDashboard"));
 // MessagingAnalytics consolidated into Communication Hub
+// CompanyIntelligence moved to /companies/:companyId/intelligence (partner.routes.tsx)
 
 export const analyticsRoutes = (
   <>
@@ -44,6 +45,12 @@ export const analyticsRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* Redirect old standalone analytics pages into candidate analytics hub */}
+    <Route path="/salary-insights" element={<Navigate to="/analytics?tab=salary" replace />} />
+    <Route path="/career-insights" element={<Navigate to="/analytics?tab=career" replace />} />
+    <Route path="/career-path" element={<Navigate to="/analytics?tab=career-path" replace />} />
+    <Route path="/candidate-analytics" element={<Navigate to="/analytics" replace />} />
+
     <Route
       path="/funnel-analytics"
       element={<Navigate to="/admin/engagement-hub?tab=funnel" replace />}
@@ -74,18 +81,8 @@ export const analyticsRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/company-intelligence"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CompanyIntelligence />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* /company-intelligence moved to /companies/:companyId/intelligence (partner.routes.tsx) */}
+    <Route path="/company-intelligence" element={<Navigate to="/companies" replace />} />
     <Route
       path="/meeting-intelligence"
       element={
@@ -110,18 +107,8 @@ export const analyticsRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/career-insights"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <CareerInsightsDashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* /career-insights redirected to /analytics?tab=career above */}
+
     <Route
       path="/investor-dashboard"
       element={

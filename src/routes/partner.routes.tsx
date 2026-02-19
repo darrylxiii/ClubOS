@@ -4,18 +4,15 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
 
-// Partner Pages
+// Partner Hub (consolidated index)
+const PartnerHub = lazy(() => import("@/pages/partner/PartnerHub"));
+
+// Individual Partner Pages (still used as embedded tab content via PartnerHub)
 const CompanyApplications = lazy(() => import("@/pages/CompanyApplications"));
 const CompanyJobsDashboard = lazy(() => import("@/pages/CompanyJobsDashboard"));
 const Companies = lazy(() => import("@/pages/Companies"));
 const CompanyPage = lazy(() => import("@/pages/CompanyPage"));
-const PartnerAnalyticsDashboard = lazy(() => import("@/pages/PartnerAnalyticsDashboard"));
-const PartnerRejections = lazy(() => import("@/pages/PartnerRejections"));
-const PartnerTargetCompanies = lazy(() => import("@/pages/PartnerTargetCompanies"));
-const AuditLog = lazy(() => import("@/pages/partner/AuditLog"));
-const BillingDashboard = lazy(() => import("@/pages/partner/BillingDashboard"));
-const SLADashboard = lazy(() => import("@/pages/partner/SLADashboard"));
-const IntegrationsManagement = lazy(() => import("@/pages/partner/IntegrationsManagement"));
+const CompanyIntelligence = lazy(() => import("@/pages/CompanyIntelligence"));
 const LiveInterview = lazy(() => import("@/pages/partner/LiveInterview"));
 const PartnerContractsPage = lazy(() => import("@/pages/partner/PartnerContractsPage"));
 const CreateContractPage = lazy(() => import("@/pages/partner/CreateContractPage"));
@@ -24,11 +21,44 @@ const CreateContractPage = lazy(() => import("@/pages/partner/CreateContractPage
  * Partner routes
  * 
  * CONSOLIDATION:
+ * - /partner (bare path) → PartnerHub (tabbed hub for all partner tools)
+ * - /partner/analytics, /partner/billing, /partner/sla, /partner/integrations,
+ *   /partner/audit-log, /partner/rejections, /partner/target-companies → redirects to /partner?tab=X
  * - /company-settings → redirects to /settings?tab=company
  * - /company-domains → redirects to /settings?tab=company
+ * - /company-intelligence → now at /companies/:companyId/intelligence
  */
 export const partnerRoutes = (
   <>
+    {/* ════════════════════════════════════════════ */}
+    {/* PARTNER HUB                                  */}
+    {/* ════════════════════════════════════════════ */}
+    <Route
+      path="/partner/hub"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PartnerHub />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+
+    {/* Partner sub-route redirects → PartnerHub */}
+    <Route path="/partner/analytics" element={<Navigate to="/partner/hub?tab=analytics" replace />} />
+    <Route path="/partner/billing" element={<Navigate to="/partner/hub?tab=billing" replace />} />
+    <Route path="/partner/sla" element={<Navigate to="/partner/hub?tab=sla" replace />} />
+    <Route path="/partner/integrations" element={<Navigate to="/partner/hub?tab=integrations" replace />} />
+    <Route path="/partner/audit-log" element={<Navigate to="/partner/hub?tab=audit-log" replace />} />
+    <Route path="/partner/rejections" element={<Navigate to="/partner/hub?tab=rejections" replace />} />
+    <Route path="/partner/target-companies" element={<Navigate to="/partner/hub?tab=target-companies" replace />} />
+    <Route path="/social-management" element={<Navigate to="/partner/hub?tab=social" replace />} />
+
+    {/* ════════════════════════════════════════════ */}
+    {/* LIVE INTERVIEW (standalone — no hub context) */}
+    {/* ════════════════════════════════════════════ */}
     <Route
       path="/partner/live-interview"
       element={
@@ -41,6 +71,10 @@ export const partnerRoutes = (
         </ProtectedRoute>
       }
     />
+
+    {/* ════════════════════════════════════════════ */}
+    {/* COMPANY ROUTES                               */}
+    {/* ════════════════════════════════════════════ */}
     <Route
       path="/company-applications"
       element={
@@ -89,96 +123,23 @@ export const partnerRoutes = (
         </ProtectedRoute>
       }
     />
+    {/* Company Intelligence — detail page requiring a companyId */}
     <Route
-      path="/partner/analytics"
+      path="/companies/:companyId/intelligence"
       element={
         <ProtectedRoute>
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <PartnerAnalyticsDashboard />
+              <CompanyIntelligence />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/partner/rejections"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <PartnerRejections />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/partner/target-companies"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <PartnerTargetCompanies />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    
-    {/* Legacy routes - redirect to unified Settings */}
-    <Route path="/company-settings" element={<Navigate to="/settings?tab=company" replace />} />
-    <Route path="/company-domains" element={<Navigate to="/settings?tab=company" replace />} />
-    <Route path="/company-domains/:id" element={<Navigate to="/settings?tab=company" replace />} />
-    
-    <Route
-      path="/partner/audit-log"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <AuditLog />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/partner/billing"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <BillingDashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/partner/sla"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <SLADashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/partner/integrations"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <IntegrationsManagement />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+
+    {/* ════════════════════════════════════════════ */}
+    {/* CONTRACTS                                    */}
+    {/* ════════════════════════════════════════════ */}
     <Route
       path="/partner/contracts"
       element={
@@ -203,5 +164,12 @@ export const partnerRoutes = (
         </ProtectedRoute>
       }
     />
+
+    {/* ════════════════════════════════════════════ */}
+    {/* LEGACY REDIRECTS                             */}
+    {/* ════════════════════════════════════════════ */}
+    <Route path="/company-settings" element={<Navigate to="/settings?tab=company" replace />} />
+    <Route path="/company-domains" element={<Navigate to="/settings?tab=company" replace />} />
+    <Route path="/company-domains/:id" element={<Navigate to="/settings?tab=company" replace />} />
   </>
 );

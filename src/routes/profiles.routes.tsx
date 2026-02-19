@@ -12,8 +12,8 @@ const UnifiedCandidateProfile = lazy(() => import("@/pages/UnifiedCandidateProfi
 const MySkillsPage = lazy(() => import("@/pages/MySkillsPage"));
 const Achievements = lazy(() => import("@/pages/Achievements"));
 const Referrals = lazy(() => import("@/pages/Referrals"));
-const ReferralProgram = lazy(() => import("@/pages/ReferralProgram"));
-const InviteDashboard = lazy(() => import("@/pages/InviteDashboard"));
+// ReferralProgram is now a redirect — data model differs but canonical page is Referrals
+// InviteDashboard is now a tab inside Referrals
 
 export const profilesRoutes = (
   <>
@@ -101,30 +101,10 @@ export const profilesRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/referral-program"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <ReferralProgram />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/invites"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <InviteDashboard />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* ReferralProgram redirect — Referrals is the canonical page */}
+    <Route path="/referral-program" element={<Navigate to="/referrals" replace />} />
+    {/* InviteDashboard redirect — now a tab inside Referrals */}
+    <Route path="/invites" element={<Navigate to="/referrals?tab=invites" replace />} />
     {/* Redirect /candidates/:id to /candidate/:id */}
     <Route
       path="/candidates/:id"

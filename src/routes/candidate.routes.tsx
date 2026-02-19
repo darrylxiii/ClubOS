@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Lazy load candidate-specific pages
@@ -47,8 +47,8 @@ export const candidateRoutes = (
     {/* Cover Letter Builder */}
     <Route path="/cover-letter-builder" element={<ProtectedRoute><CoverLetterGenerator /></ProtectedRoute>} />
     
-    {/* Interview Preparation */}
-    <Route path="/interview-prep" element={<ProtectedRoute><InterviewPrep /></ProtectedRoute>} />
+    {/* Interview Preparation — now a tab in /jobs?tab=interview-prep. Chat stays standalone. */}
+    <Route path="/interview-prep" element={<Navigate to="/jobs?tab=interview-prep" replace />} />
     <Route path="/interview-prep/chat/:sessionId" element={<ProtectedRoute><InterviewPrepChat /></ProtectedRoute>} />
     
     {/* Assessments & Games */}
