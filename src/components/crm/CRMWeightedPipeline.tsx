@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { PROSPECT_STAGES, type CRMProspect } from '@/types/crm-enterprise';
+import { useRole } from '@/contexts/RoleContext';
 
 interface PipelineStageMetrics {
   stage: string;
@@ -27,6 +28,7 @@ interface MonthlyForecast {
 }
 
 export function CRMWeightedPipeline() {
+  const { currentRole } = useRole();
   const [stageMetrics, setStageMetrics] = useState<PipelineStageMetrics[]>([]);
   const [monthlyForecast, setMonthlyForecast] = useState<MonthlyForecast[]>([]);
   const [totals, setTotals] = useState({
@@ -177,6 +179,8 @@ export function CRMWeightedPipeline() {
       </div>
     );
   }
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   return (
     <div className="space-y-6">

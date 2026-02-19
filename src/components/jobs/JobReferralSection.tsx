@@ -1,28 +1,19 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
   Gift, 
   Copy, 
   Check, 
   Share2, 
-  TrendingUp, 
   Users,
-  Info
 } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useJobReferralPotential } from "@/hooks/useReferralPipelineMetrics";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface JobReferralSectionProps {
   jobId: string;
@@ -30,7 +21,6 @@ interface JobReferralSectionProps {
   companyName: string;
   salaryMin?: number;
   salaryMax?: number;
-  feePercentage?: number;
   referralBonusPercentage?: number;
   showReferralBonus?: boolean;
 }
@@ -41,7 +31,6 @@ export function JobReferralSection({
   companyName,
   salaryMin,
   salaryMax,
-  feePercentage = 20,
   referralBonusPercentage = 10,
   showReferralBonus = true,
 }: JobReferralSectionProps) {
@@ -51,10 +40,7 @@ export function JobReferralSection({
 
   if (!showReferralBonus) return null;
 
-  // Calculate earnings breakdown
-  const avgSalary = referralPotential?.salaryUsed || salaryMax || salaryMin || 75000;
-  const estimatedFee = referralPotential?.estimatedFee || avgSalary * (feePercentage / 100);
-  const potentialEarnings = referralPotential?.potentialEarnings || estimatedFee * (referralBonusPercentage / 100);
+  const potentialEarnings = referralPotential?.potentialEarnings || 0;
 
   const referralLink = user 
     ? `${window.location.origin}/jobs/${jobId}?ref=${user.id}`
@@ -95,81 +81,27 @@ export function JobReferralSection({
     >
       <Card className="border-2 border-success/20 bg-gradient-to-br from-success/5 via-transparent to-accent/5">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/10">
-                <Gift className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Referral Opportunity</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Earn money by referring qualified candidates
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-success/10">
+              <Gift className="h-5 w-5 text-success" />
             </div>
-            <Badge variant="outline" className="bg-success/10 text-success border-success/30">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              {referralBonusPercentage}% Share
-            </Badge>
+            <div>
+              <CardTitle className="text-lg">Referral Opportunity</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Earn money by referring qualified candidates
+              </p>
+            </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Earnings Breakdown */}
-          <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-card/50 border">
-            <TooltipProvider>
-              <div className="text-center">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="cursor-help">
-                      <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                        Salary Base
-                        <Info className="h-3 w-3" />
-                      </p>
-                      <p className="text-lg font-bold">{formatCurrency(avgSalary)}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Expected salary for this position</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              <div className="text-center border-x border-border">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="cursor-help">
-                      <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                        Placement Fee
-                        <Info className="h-3 w-3" />
-                      </p>
-                      <p className="text-lg font-bold">{formatCurrency(estimatedFee)}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{feePercentage}% of salary as placement fee</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              <div className="text-center">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="cursor-help">
-                      <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                        Your Earnings
-                        <Info className="h-3 w-3" />
-                      </p>
-                      <p className="text-lg font-bold text-success">{formatCurrency(potentialEarnings)}</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{referralBonusPercentage}% of placement fee</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </TooltipProvider>
-          </div>
+          {/* Potential Reward */}
+          {potentialEarnings > 0 && (
+            <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center">
+              <p className="text-sm text-muted-foreground mb-1">Potential Referral Reward</p>
+              <p className="text-2xl font-bold text-success">{formatCurrency(potentialEarnings)}</p>
+            </div>
+          )}
 
           {/* Share Section */}
           <div className="space-y-3">

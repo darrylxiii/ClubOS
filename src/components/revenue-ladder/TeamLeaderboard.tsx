@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTeamRevenue, TeamMemberRevenue } from '@/hooks/useTeamRevenue';
+import { useRole } from '@/contexts/RoleContext';
 
 interface TeamLeaderboardProps {
   className?: string;
@@ -51,6 +52,7 @@ const yearOptions = [
 ];
 
 export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
+  const { currentRole } = useRole();
   const [selectedYear, setSelectedYear] = useState<string>(
     year ? String(year) : String(currentYear - 1) // Default to last year since current year may have less data
   );
@@ -137,6 +139,8 @@ export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
       </Card>
     );
   }
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   return (
     <Card variant="elevated" className={cn('p-6 space-y-4', className)}>

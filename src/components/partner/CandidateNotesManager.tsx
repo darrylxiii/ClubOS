@@ -35,6 +35,7 @@ interface Props {
 }
 
 export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Props) => {
+  if (userRole === 'candidate') return null;
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);

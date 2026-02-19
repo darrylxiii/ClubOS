@@ -28,6 +28,7 @@ import { Loader2, Percent, DollarSign, Shuffle, Info, ChevronDown, Building2, Cr
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRole } from "@/contexts/RoleContext";
 
 type FeeType = "percentage" | "fixed" | "hybrid";
 
@@ -83,6 +84,7 @@ export function CompanyFeeConfigDialog({
   onOpenChange,
   company,
 }: CompanyFeeConfigDialogProps) {
+  const { currentRole } = useRole();
   const queryClient = useQueryClient();
   const [feeType, setFeeType] = useState<FeeType>("percentage");
   const [percentage, setPercentage] = useState("");
@@ -204,6 +206,8 @@ export function CompanyFeeConfigDialog({
     const fixed = parseFloat(fixedAmount) || 0;
     return `Default ${pct}%, with option for fixed €${fixed.toLocaleString()} on specific roles`;
   };
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

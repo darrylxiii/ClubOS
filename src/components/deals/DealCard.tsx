@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useRole } from "@/contexts/RoleContext";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ const FEE_TYPE_CONFIG: Record<FeeType, { icon: typeof Percent; label: string; cl
 };
 
 function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardProps) {
+  const { currentRole } = useRole();
   // Memoize computed values to prevent recalculation on every render
   const {
     companies,
@@ -98,6 +100,8 @@ function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardPr
     if (!deal.expected_close_date) return null;
     return new Date(deal.expected_close_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }, [deal.expected_close_date]);
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   return (
     <Card

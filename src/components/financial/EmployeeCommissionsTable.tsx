@@ -6,12 +6,14 @@ import { useEmployeeCommissions, useCommissionStats } from "@/hooks/useEmployeeC
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import { Users, Clock, CheckCircle, Banknote } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
 
 interface EmployeeCommissionsTableProps {
   year?: number;
 }
 
 export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps) {
+  const { currentRole } = useRole();
   const { data: commissions, isLoading } = useEmployeeCommissions(year);
   const { data: stats } = useCommissionStats(year);
 
@@ -42,6 +44,8 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
       </div>
     );
   }
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   return (
     <div className="space-y-6">

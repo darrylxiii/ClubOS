@@ -5,6 +5,7 @@ import { TrendingUp, TrendingDown, Clock, CheckCircle, AlertTriangle, DollarSign
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRole } from "@/contexts/RoleContext";
 
 interface CompanyFinancialsTabProps {
   companyId: string;
@@ -23,6 +24,7 @@ interface CompanyFinancials {
 }
 
 export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancialsTabProps) {
+  const { currentRole } = useRole();
   const { data: financials, isLoading } = useQuery({
     queryKey: ['company-financials', companyId],
     queryFn: async (): Promise<CompanyFinancials | null> => {
@@ -84,6 +86,8 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
     : 0;
 
   const scoreBadge = getScoreBadge(financials?.payment_reliability_score ?? null);
+
+  if (currentRole !== 'admin' && currentRole !== 'strategist') return null;
 
   return (
     <div className="space-y-6">
