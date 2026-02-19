@@ -1,83 +1,61 @@
 
-# Migrate Organization Intelligence from Proxycurl to Apify
 
-Proxycurl is no longer available. All LinkedIn scraping must switch to **Apify**, which is already configured (`APIFY_API_KEY` is present in your secrets). This is the same provider used by your GitHub and Public Presence enrichment functions.
+# Fix Organization Scan Estimate (0 employees / blank credits)
 
----
+## Problem
 
-## Scope
+When opening the scan dialog for "Dore & Rose," the estimate shows 0 employees and blank credit values. Two root causes:
 
-### 4 Edge Functions to rewrite (Proxycurl -> Apify)
+1. **Apify estimate logic returns wrong count**: The current code requests `maxItems: 1` from the employee scraper and uses `results.length` as headcount -- yielding at most 1, not the real employee count. The fallback (`company_size`) is NULL for this company.
 
-1. **`scan-partner-organization/index.ts`** -- the main scan orchestrator
-   - Replace Proxycurl employee-count and employee-listing endpoints with Apify's LinkedIn Company Scraper actor
-   - Remove all `PROXYCURL_API_KEY` references; use `APIFY_API_KEY` instead
-   - Remove `proxycurl_credit_ledger` inserts (Apify uses a different billing model)
-
-2. **`process-scan-batch/index.ts`** -- enriches individual profiles from the queue
-   - Replace Proxycurl profile-lookup calls with Apify's LinkedIn Profile Scraper actor
-   - Map Apify's response fields to the existing `company_people` schema
-   - Remove credit ledger tracking
-
-3. **`detect-org-changes/index.ts`** -- delta scans for hires/departures
-   - Replace Proxycurl employee-count and employee-listing with Apify equivalents
-   - Remove credit ledger tracking
-
-4. **`linkedin-scraper-proxycurl/index.ts`** -- candidate self-import
-   - Replace Proxycurl person-profile endpoint with Apify LinkedIn Profile Scraper
-   - Map response fields to existing `candidateData` shape
-   - Rename to a more accurate function name or keep the file but update internals
-
-### 1 Frontend component to update
-
-5. **`src/components/profile/LinkedInImport.tsx`**
-   - Update the function invocation name if renamed
-   - Remove the user-facing "Proxycurl" text in the alert description
-   - Replace with neutral copy: "We'll import publicly available data from your profile."
-
-### 1 Hook -- minor text update
-
-6. **`src/hooks/usePartnerOrgIntelligence.ts`** -- no logic changes needed (it calls the same function names), just verify compatibility
+2. **Response shape mismatch**: The edge function returns `{ headcount, totalEstimate, warning }` but the frontend `ScanEstimate` interface expects additional fields: `listingCredits`, `enrichmentCredits`, `monthlySpendSoFar`. These render as blank/undefined in the dialog.
 
 ---
 
-## Technical Details
+## Changes
 
-### Apify Actors to use
+### 1. Edge Function: `supabase/functions/scan-partner-organization/index.ts`
 
-| Purpose | Apify Actor | How it works |
-|---|---|---|
-| Company employee listing | `apify/linkedin-company-employees-scraper` | Accepts company LinkedIn URL, returns employee profiles |
-| Individual profile enrichment | `apify/linkedin-profile-scraper` | Accepts profile URL(s), returns structured profile data |
+Update the `estimate` action to:
+- Use the Apify company scraper properly. Instead of requesting `maxItems: 1` and counting results, request a reasonable sample (e.g., `maxItems: 50`) and check whether Apify metadata exposes a total. If not available, fall back to a higher `maxItems` or the `company_size` column.
+- Alternatively, use the Apify LinkedIn Company Profile scraper to get the company page metadata (which includes employee count) rather than running the employee-listing actor just for a count.
+- Return the full shape the frontend expects: `headcount`, `listingCredits`, `enrichmentCredits`, `totalEstimate`, `monthlySpendSoFar`, and `warning`.
+- Query existing monthly Apify usage from `company_scan_jobs` to populate `monthlySpendSoFar`.
 
-### API pattern (already used in your codebase)
+### 2. Database: Populate `company_size` (optional improvement)
+
+- When the estimate fetches the real headcount from Apify/LinkedIn, write it back to `companies.company_size` so future estimates have a fast fallback.
+
+### 3. Frontend: No changes required
+
+The `ScanEstimate` interface and `ScanProgressDialog` are already correct -- they just need the edge function to return the expected fields.
+
+---
+
+## Technical Detail
+
+Updated estimate response shape from the edge function:
 
 ```text
-POST https://api.apify.com/v2/acts/{actorId}/run-sync-get-dataset-items?token={APIFY_API_KEY}
-Content-Type: application/json
-Body: { ...actor-specific input }
+{
+  success: true,
+  estimate: {
+    headcount: 45,
+    listingCredits: 1,        // Apify charges per actor run, not per profile
+    enrichmentCredits: 45,    // ~1 credit per profile enrichment run
+    totalEstimate: 46,
+    monthlySpendSoFar: 120,   // sum from company_scan_jobs this month
+    warning: null
+  }
+}
 ```
 
-### Data mapping
+Apify actor for company info (to get employee count without listing all employees):
+- Actor: `apify/linkedin-company-scraper` or similar -- accepts company URL, returns company metadata including employee count.
+- If no dedicated company-info actor is available, run the employee listing actor with a higher `maxItems` and count the results, or parse the total from the response.
 
-Apify returns a slightly different schema than Proxycurl. Key field mappings:
+### Sequence
 
-- `profile.firstName` / `profile.lastName` (vs Proxycurl `first_name` / `last_name`)
-- `profile.position` array with `companyName`, `title`, `startedOn`, `finishedOn`
-- `profile.educations` array with `schoolName`, `degree`, `fieldOfStudy`
-- `profile.skills` array of strings
-
-The existing `company_people` and `candidateData` structures will be preserved; only the mapping layer changes.
-
-### Credit ledger
-
-The `proxycurl_credit_ledger` table becomes unused. Rather than dropping it (which could affect existing data), we will simply stop writing to it. A future cleanup migration can remove it if desired.
-
----
-
-## What stays the same
-
-- All database tables (`company_people`, `company_scan_queue`, `company_scan_jobs`, `company_people_changes`)
-- The hook and all frontend components (same function names, same data shapes)
-- The scan workflow (estimate -> start -> batch enrich -> classify)
-- Authentication and RLS policies
+1. Fix the edge function estimate action (response shape + headcount logic)
+2. Deploy and verify with Dore & Rose
+3. Optionally backfill `company_size` on successful estimates
