@@ -62,6 +62,62 @@ serve(async (req) => {
             throw new Error("No active Google Calendar connection found");
           }
 
+          // --- Token refresh logic (enterprise-grade) ---
+          let accessToken = calendarConnection.access_token;
+          const tokenExpiresAt = calendarConnection.token_expires_at;
+          const now = new Date();
+          const bufferMs = 5 * 60 * 1000; // 5-minute buffer
+
+          const tokenIsExpired = tokenExpiresAt && 
+            (new Date(tokenExpiresAt).getTime() - now.getTime() < bufferMs);
+          
+          // Also check by updated_at as fallback (tokens last ~1 hour)
+          const tokenAge = now.getTime() - new Date(calendarConnection.updated_at || calendarConnection.created_at).getTime();
+          const fiftyMinutes = 50 * 60 * 1000;
+          const tokenIsStale = tokenAge > fiftyMinutes;
+
+          if (tokenIsExpired || tokenIsStale) {
+            console.log("[Video Link] Token expired or expiring soon, refreshing...", {
+              tokenIsExpired,
+              tokenIsStale,
+              tokenAge: Math.round(tokenAge / 1000) + 's',
+            });
+
+            if (!calendarConnection.refresh_token) {
+              throw new Error("Google token expired and no refresh token available. Please reconnect Google Calendar.");
+            }
+
+            const { data: refreshData, error: refreshError } = await supabase.functions.invoke(
+              'google-calendar-auth',
+              {
+                body: {
+                  action: 'refreshToken',
+                  refreshToken: calendarConnection.refresh_token,
+                }
+              }
+            );
+
+            if (refreshError || !refreshData?.access_token) {
+              console.error("[Video Link] Token refresh failed:", refreshError);
+              throw new Error("Failed to refresh Google token. Please reconnect Google Calendar.");
+            }
+
+            accessToken = refreshData.access_token;
+
+            // Persist the new token
+            await supabase
+              .from('calendar_connections')
+              .update({
+                access_token: accessToken,
+                token_expires_at: refreshData.expires_at || new Date(Date.now() + 3500 * 1000).toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', calendarConnection.id);
+
+            console.log("[Video Link] Token refreshed successfully");
+          }
+          // --- End token refresh ---
+
           // Create Google Calendar event with Meet link
           const eventDetails = {
             summary: `${booking.booking_links.title} - ${booking.guest_name}`,
@@ -89,11 +145,11 @@ serve(async (req) => {
 
           console.log("[Video Link] Calling Google Calendar API");
           const response = await fetch(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1',
+            'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all',
             {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${calendarConnection.access_token}`,
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify(eventDetails),
@@ -112,7 +168,7 @@ serve(async (req) => {
           meetingId = createdEvent.id;
           meetingPassword = createdEvent.conferenceData?.conferenceId || '';
           
-          console.log(`[Video Link] Real Google Meet link created: ${videoLink}`);
+          console.log(`[Video Link] Real Google Meet link created: ${videoLink}, eventId: ${meetingId}`);
         } else {
           // Fallback placeholder
           meetingId = `meet-${crypto.randomUUID().substring(0, 10)}`;
@@ -121,21 +177,17 @@ serve(async (req) => {
         break;
 
       case "zoom":
-        // Placeholder for Zoom integration
-        // In production, use Zoom API to create meetings
         meetingId = Math.floor(100000000 + Math.random() * 900000000).toString();
         meetingPassword = Math.random().toString(36).substring(2, 10);
         videoLink = `https://zoom.us/j/${meetingId}`;
         break;
 
       case "teams":
-        // Placeholder for Microsoft Teams integration
         meetingId = crypto.randomUUID();
         videoLink = `https://teams.microsoft.com/l/meetup-join/${meetingId}`;
         break;
 
       case "webex":
-        // Placeholder for Webex integration
         meetingId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
         videoLink = `https://meet.webex.com/${meetingId}`;
         break;
@@ -144,14 +196,24 @@ serve(async (req) => {
         throw new Error("Unsupported video provider");
     }
 
-    // Update booking with video link
+    // Update booking with video link and all canonical fields
+    const updateFields: Record<string, unknown> = {
+      video_meeting_link: videoLink,
+      video_meeting_id: meetingId,
+      video_meeting_password: meetingPassword || null,
+    };
+
+    // For real Google Meet integration, also set canonical fields
+    // so create-booking doesn't need to do a redundant second write
+    if (provider === 'google_meet' && realIntegration && videoLink) {
+      updateFields.google_meet_event_id = meetingId;
+      updateFields.google_meet_hangout_link = videoLink;
+      updateFields.active_video_platform = 'google_meet';
+    }
+
     const { error: updateError } = await supabase
       .from("bookings")
-      .update({
-        video_meeting_link: videoLink,
-        video_meeting_id: meetingId,
-        video_meeting_password: meetingPassword || null,
-      })
+      .update(updateFields)
       .eq("id", bookingId);
 
     if (updateError) throw updateError;
