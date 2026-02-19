@@ -1,12 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -23,6 +22,22 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // === DEDUP GUARD: Return existing brief if already generated for this meeting+candidate ===
+    const { data: existingBrief } = await supabase
+      .from('interview_prep_briefs')
+      .select('*')
+      .eq('meeting_id', meetingId)
+      .eq('candidate_id', candidateId)
+      .maybeSingle();
+
+    if (existingBrief) {
+      console.log(`[generate-interview-prep] Cache HIT for meeting ${meetingId} + candidate ${candidateId}`);
+      return new Response(
+        JSON.stringify({ brief: existingBrief }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Fetch candidate profile data
     const { data: candidate, error: candidateError } = await supabase
       .from('candidate_profiles')
@@ -34,17 +49,11 @@ serve(async (req) => {
       console.error('Error fetching candidate:', candidateError);
     }
 
-    // Fetch candidate's experience, skills, documents
-    const { data: experience } = await supabase
-      .from('experience')
-      .select('*')
-      .eq('user_id', candidate?.user_id)
-      .order('start_date', { ascending: false });
-
-    const { data: skills } = await supabase
-      .from('skills')
-      .select('*')
-      .eq('user_id', candidate?.user_id);
+    // Fetch candidate's experience, skills in parallel
+    const [{ data: experience }, { data: skills }] = await Promise.all([
+      supabase.from('experience').select('*').eq('user_id', candidate?.user_id).order('start_date', { ascending: false }),
+      supabase.from('skills').select('*').eq('user_id', candidate?.user_id),
+    ]);
 
     // Build candidate context
     const candidateContext = {
@@ -56,7 +65,7 @@ serve(async (req) => {
       education: candidate?.education_level,
     };
 
-    // Generate AI prep brief
+    // Generate AI prep brief — downgraded to flash-lite (structured JSON from structured input)
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -64,7 +73,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           {
             role: "system",
@@ -124,7 +133,6 @@ Provide response as valid JSON.`
     const data = await response.json();
     const analysisText = data.choices[0].message.content;
     
-    // Parse JSON response
     let prepBrief;
     try {
       const jsonMatch = analysisText.match(/\{[\s\S]*\}/);

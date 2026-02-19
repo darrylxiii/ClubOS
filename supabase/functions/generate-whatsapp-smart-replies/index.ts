@@ -1,12 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -14,6 +13,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { conversationId, tone = "professional" } = await req.json();
@@ -72,25 +72,23 @@ Looking for: ${Array.isArray(candidate.desired_roles) ? candidate.desired_roles.
     const intent = lastMessage?.intent_classification || "general";
     const sentiment = lastMessage?.sentiment_score || 0;
 
-    // Generate contextual smart replies based on intent and sentiment
     let replies: { text: string; tone: string; confidence: number }[] = [];
 
-    // Use AI to generate smart replies
-    const openaiKey = Deno.env.get("OPENAI_API_KEY");
-    
-    if (openaiKey) {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${openaiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are a recruiting assistant for The Quantum Club, an elite talent platform. Generate 3 smart reply suggestions for WhatsApp messages. 
+    // Use Lovable AI Gateway with flash-lite (replaces broken OpenAI direct call)
+    if (LOVABLE_API_KEY) {
+      try {
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              {
+                role: "system",
+                content: `You are a recruiting assistant for The Quantum Club, an elite talent platform. Generate 3 smart reply suggestions for WhatsApp messages.
 
 Context:
 ${candidateContext}
@@ -110,32 +108,37 @@ Respond in JSON format:
     { "text": "Reply 3", "tone": "brief", "confidence": 0.75 }
   ]
 }`
-            },
-            {
-              role: "user",
-              content: `Conversation history:
+              },
+              {
+                role: "user",
+                content: `Conversation history:
 ${conversationHistory}
 
 Last message intent: ${intent}
 Sentiment score: ${sentiment}
 
 Generate 3 appropriate reply suggestions.`
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 400,
+          }),
+        });
 
-      const aiResult = await response.json();
-      
-      if (aiResult.choices?.[0]?.message?.content) {
-        try {
-          const parsed = JSON.parse(aiResult.choices[0].message.content);
-          replies = parsed.replies || [];
-        } catch {
-          // Fallback to default replies
+        if (response.ok) {
+          const aiResult = await response.json();
+          if (aiResult.choices?.[0]?.message?.content) {
+            try {
+              const jsonMatch = aiResult.choices[0].message.content.match(/\{[\s\S]*\}/);
+              const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : aiResult.choices[0].message.content);
+              replies = parsed.replies || [];
+            } catch {
+              // Fall through to static fallback
+            }
+          }
         }
+      } catch (aiError) {
+        console.warn("[WhatsApp Smart Replies] AI call failed, using fallback:", aiError);
       }
     }
 

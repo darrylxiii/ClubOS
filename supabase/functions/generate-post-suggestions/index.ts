@@ -1,4 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// 15-min in-memory cache keyed by userId+postType+platform
+const suggestionsCache = new Map<string, { suggestions: string[]; ts: number }>();
+const SUGGESTIONS_CACHE_TTL_MS = 15 * 60 * 1000;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

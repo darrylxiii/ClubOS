@@ -1,10 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
-serve(async (req) => {
+// In-memory 24h cache keyed by candidateId+jobId
+const briefingCache = new Map<string, { briefing: any; ts: number }>();
+const BRIEFING_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return handleCorsPreFlight(publicCorsHeaders);
   }
@@ -16,10 +19,8 @@ serve(async (req) => {
   try {
     console.log('[generate-executive-briefing] Processing request');
     
-    // Authentication check
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.log('[generate-executive-briefing] No auth header');
       return new Response(
         JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
@@ -35,7 +36,6 @@ serve(async (req) => {
     );
     
     if (authError || !user) {
-      console.log('[generate-executive-briefing] Auth failed:', authError?.message);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
@@ -47,45 +47,32 @@ serve(async (req) => {
     // Rate limiting: 20 briefings per hour
     const rateLimit = await checkUserRateLimit(userId, 'generate-executive-briefing', 20);
     if (!rateLimit.allowed) {
-      console.log('[generate-executive-briefing] Rate limit exceeded for user:', userId);
-      await logAIUsage({
-        userId,
-        functionName: 'generate-executive-briefing',
-        ...clientInfo,
-        rateLimitHit: true,
-        success: false,
-        errorMessage: 'Rate limit exceeded'
-      });
+      await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, rateLimitHit: true, success: false, errorMessage: 'Rate limit exceeded' });
       return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
     }
 
     const { candidateId, jobId } = await req.json();
 
-    // Fetch candidate and application data
-    const { data: candidate } = await supabase
-      .from('candidate_profiles')
-      .select('*')
-      .eq('id', candidateId)
-      .single();
-
-    const { data: application } = await supabase
-      .from('applications')
-      .select('*')
-      .eq('candidate_id', candidateId)
-      .eq('job_id', jobId)
-      .single();
-
-    const { data: feedback } = await supabase
-      .from('interview_feedback')
-      .select('*')
-      .eq('candidate_id', candidateId)
-      .order('created_at', { ascending: false });
-
-    // Generate one-page briefing
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    // === 24h IN-MEMORY CACHE GUARD ===
+    const cacheKey = `${candidateId}:${jobId}`;
+    const cached = briefingCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < BRIEFING_CACHE_TTL_MS) {
+      console.log(`[generate-executive-briefing] Cache HIT for ${cacheKey}`);
+      await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, responseTimeMs: Date.now() - startTime, success: true });
+      return new Response(JSON.stringify({ briefing: cached.briefing, cached: true }), {
+        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    // Fetch candidate and application data in parallel
+    const [{ data: candidate }, { data: application }, { data: feedback }] = await Promise.all([
+      supabase.from('candidate_profiles').select('*').eq('id', candidateId).single(),
+      supabase.from('applications').select('*').eq('candidate_id', candidateId).eq('job_id', jobId).single(),
+      supabase.from('interview_feedback').select('*').eq('candidate_id', candidateId).order('created_at', { ascending: false }),
+    ]);
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
     const prompt = `Generate a one-page executive briefing for quick decision-making (30-second read).
 
@@ -116,6 +103,7 @@ Generate a JSON response:
 
     console.log('[generate-executive-briefing] Calling Lovable AI for candidate:', candidateId);
 
+    // Downgraded from gemini-2.5-flash → gemini-2.5-flash-lite (short structured JSON output)
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -123,7 +111,7 @@ Generate a JSON response:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an executive briefing AI. Be concise, clear, and actionable. Always respond with valid JSON.' },
           { role: 'user', content: prompt }
@@ -136,16 +124,8 @@ Generate a JSON response:
                           aiResponse.status === 402 ? 'AI credits exhausted. Please top up your workspace usage in Settings.' :
                           'AI service error';
       
-      await logAIUsage({
-        userId,
-        functionName: 'generate-executive-briefing',
-        ...clientInfo,
-        responseTimeMs: Date.now() - startTime,
-        success: false,
-        errorMessage
-      });
+      await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, responseTimeMs: Date.now() - startTime, success: false, errorMessage });
 
-      // Return the actual status to the client instead of wrapping in 500
       if (aiResponse.status === 402 || aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: errorMessage }), {
           status: aiResponse.status,
@@ -179,13 +159,10 @@ Generate a JSON response:
       };
     }
 
-    await logAIUsage({
-      userId,
-      functionName: 'generate-executive-briefing',
-      ...clientInfo,
-      responseTimeMs: Date.now() - startTime,
-      success: true
-    });
+    // Store in cache
+    briefingCache.set(cacheKey, { briefing, ts: Date.now() });
+
+    await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, responseTimeMs: Date.now() - startTime, success: true });
 
     console.log('[generate-executive-briefing] Briefing generated successfully');
 
@@ -195,14 +172,7 @@ Generate a JSON response:
 
   } catch (error) {
     console.error('[generate-executive-briefing] Error:', error);
-    await logAIUsage({
-      userId,
-      functionName: 'generate-executive-briefing',
-      ...clientInfo,
-      responseTimeMs: Date.now() - startTime,
-      success: false,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error'
-    });
+    await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, responseTimeMs: Date.now() - startTime, success: false, errorMessage: error instanceof Error ? error.message : 'Unknown error' });
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },

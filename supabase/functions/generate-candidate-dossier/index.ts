@@ -1,12 +1,15 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+// In-memory dossier cache: keyed by candidateId+jobId, TTL 48h
+const dossierCache = new Map<string, { dossier: any; ts: number }>();
+const DOSSIER_CACHE_TTL_MS = 48 * 60 * 60 * 1000;
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -14,6 +17,16 @@ serve(async (req) => {
   try {
     const { candidateId, jobId } = await req.json();
     
+    // === 48h IN-MEMORY CACHE GUARD ===
+    const cacheKey = `${candidateId}:${jobId}`;
+    const cached = dossierCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < DOSSIER_CACHE_TTL_MS) {
+      console.log(`[generate-dossier] Cache HIT for ${cacheKey}`);
+      return new Response(JSON.stringify({ dossier: cached.dossier, cached: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -25,38 +38,14 @@ serve(async (req) => {
       .eq('id', candidateId)
       .single();
 
-    // Fetch application and interview data
-    const { data: application } = await supabase
-      .from('applications')
-      .select('*, stages')
-      .eq('candidate_id', candidateId)
-      .eq('job_id', jobId)
-      .single();
-
-    // Fetch interview feedback
-    const { data: feedback } = await supabase
-      .from('interview_feedback')
-      .select('*, bookings(*)')
-      .eq('candidate_id', candidateId)
-      .order('created_at', { ascending: false });
-
-    // Fetch meeting transcripts
-    const { data: meetings } = await supabase
-      .from('bookings')
-      .select('*, meeting_transcripts(*)')
-      .eq('guest_email', candidate?.email)
-      .order('scheduled_start', { ascending: false });
-
-    // Fetch experience and skills
-    const { data: experience } = await supabase
-      .from('experience')
-      .select('*')
-      .eq('candidate_id', candidateId);
-
-    const { data: skills } = await supabase
-      .from('skills')
-      .select('*')
-      .eq('candidate_id', candidateId);
+    // Fetch application and interview data in parallel
+    const [{ data: application }, { data: feedback }, { data: meetings }, { data: experience }, { data: skills }] = await Promise.all([
+      supabase.from('applications').select('*, stages').eq('candidate_id', candidateId).eq('job_id', jobId).single(),
+      supabase.from('interview_feedback').select('*, bookings(*)').eq('candidate_id', candidateId).order('created_at', { ascending: false }),
+      supabase.from('bookings').select('*, meeting_transcripts(*)').eq('guest_email', candidate?.email).order('scheduled_start', { ascending: false }),
+      supabase.from('experience').select('*').eq('candidate_id', candidateId),
+      supabase.from('skills').select('*').eq('candidate_id', candidateId),
+    ]);
 
     // Generate AI dossier
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -136,6 +125,7 @@ Generate a JSON response with this exact structure:
   "timeToProductivity": "fast|average|slow"
 }`;
 
+    // Downgraded from gemini-2.5-flash → gemini-2.5-flash-lite (structured JSON extraction task)
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -143,7 +133,7 @@ Generate a JSON response with this exact structure:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a talent intelligence AI that generates comprehensive hiring insights. Always respond with valid JSON.' },
           { role: 'user', content: prompt }
@@ -179,6 +169,9 @@ Generate a JSON response with this exact structure:
         timeToProductivity: "average"
       };
     }
+
+    // Store in cache
+    dossierCache.set(cacheKey, { dossier, ts: Date.now() });
 
     return new Response(JSON.stringify({ dossier, rawData: { candidate, application, feedback, meetings, experience, skills } }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

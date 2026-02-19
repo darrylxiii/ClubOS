@@ -1,12 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -59,33 +58,28 @@ serve(async (req) => {
       { data: todayMeetings },
       { data: heartbeats },
     ] = await Promise.all([
-      // Active predictive signals
       supabase
         .from("predictive_signals")
         .select("id, signal_type, entity_type, entity_id, signal_strength, recommended_actions, contributing_factors")
         .eq("is_active", true)
         .order("signal_strength", { ascending: false })
         .limit(10),
-      // Stalled applications
       supabase
         .from("applications")
         .select("id, candidate_full_name, position, company_name, updated_at")
         .lt("updated_at", new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .not("status", "in", '("rejected","hired","archived","withdrawn")')
         .limit(20),
-      // Agent decisions from last 24h
       supabase
         .from("agent_decision_log")
         .select("id, agent_name, decision_type, decision_made, confidence_score, created_at")
         .gte("created_at", yesterday)
         .order("created_at", { ascending: false })
         .limit(20),
-      // New applications in last 24h
       supabase
         .from("applications")
         .select("id")
         .gte("created_at", yesterday),
-      // Today's meetings
       supabase
         .from("quantum_meetings")
         .select("id, title, scheduled_start, participant_count")
@@ -93,7 +87,6 @@ serve(async (req) => {
         .lte("scheduled_start", `${today}T23:59:59`)
         .order("scheduled_start", { ascending: true })
         .limit(10),
-      // Heartbeat runs in last 24h
       supabase
         .from("agentic_heartbeat_log")
         .select("events_processed, signals_detected, tasks_created, errors")

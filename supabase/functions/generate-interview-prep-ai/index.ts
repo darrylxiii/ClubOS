@@ -106,7 +106,7 @@ Generate a JSON response:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an interview preparation AI coach. Generate practical, insightful prep materials. Always respond with valid JSON.' },
           { role: 'user', content: prompt }
