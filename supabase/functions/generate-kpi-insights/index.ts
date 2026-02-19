@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -81,7 +81,7 @@ serve(async (req) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'google/gemini-2.5-flash',
+                model: 'google/gemini-2.5-flash-lite',
                 messages: [
                     { role: 'system', content: 'You are a strategic business analyst AI. Output valid JSON only.' },
                     { role: 'user', content: prompt }

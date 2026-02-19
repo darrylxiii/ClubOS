@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-flash-preview',
+            model: 'google/gemini-2.5-flash-lite',
             messages: [
               {
                 role: 'system',
@@ -204,7 +204,7 @@ Tier criteria:
             key_strengths: enrichment.key_strengths || [],
             recommended_roles: enrichment.recommended_roles || [],
             enriched_at: new Date().toISOString(),
-            model: 'google/gemini-3-flash-preview',
+            model: 'google/gemini-2.5-flash-lite',
           },
           updated_at: new Date().toISOString(),
         };

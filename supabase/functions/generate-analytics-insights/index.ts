@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,27 +30,44 @@ serve(async (req) => {
 
     const { userId } = await req.json();
 
-    // Fetch user's analytics data
+    // --- CACHE GUARD: 2-hour cache per user ---
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const { data: cachedInsights } = await supabase
+      .from("analytics_insights")
+      .select("insight_type, insight_title, insight_content, confidence_score")
+      .eq("user_id", userId)
+      .gte("created_at", twoHoursAgo)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (cachedInsights && cachedInsights.length > 0) {
+      console.log(`[generate-analytics-insights] Serving ${cachedInsights.length} cached insights`);
+      const insights = cachedInsights.map((i: any) => ({
+        type: i.insight_type,
+        title: i.insight_title,
+        content: i.insight_content,
+        confidence: i.confidence_score,
+      }));
+      return new Response(
+        JSON.stringify({ success: true, insights, cached: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fetch user's analytics data (reduced limits)
     const { data: profileAnalytics } = await supabase
       .from("profile_analytics")
-      .select("*")
+      .select("date, views, impressions, clicks")
       .eq("user_id", userId)
       .order("date", { ascending: false })
-      .limit(30);
-
-    const { data: postInteractions } = await supabase
-      .from("post_interactions")
-      .select("*, unified_posts(*)")
-      .eq("unified_posts.user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(14); // 2 weeks is enough
 
     const { data: userPosts } = await supabase
       .from("unified_posts")
-      .select("*")
+      .select("id, created_at, platform")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(20);
 
     // Generate AI insights
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -61,7 +78,6 @@ serve(async (req) => {
     const analyticsContext = {
       recentAnalytics: profileAnalytics,
       totalPosts: userPosts?.length || 0,
-      recentInteractions: postInteractions?.length || 0,
     };
 
     const prompt = `Analyze the following social media analytics data and generate 3-5 actionable insights:
@@ -95,7 +111,7 @@ Return JSON array with insights in this format:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: "You are an expert social media analytics advisor. Provide clear, actionable insights." },
           { role: "user", content: prompt }
