@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2, Mail, Shield } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2, Mail, Shield, Share2 } from "lucide-react";
+import { SharePipelineDialog } from "@/components/jobs/SharePipelineDialog";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
@@ -93,6 +94,7 @@ export default function JobDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddStage, setShowAddStage] = useState(false);
   const [showManualInterview, setShowManualInterview] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
@@ -503,6 +505,14 @@ export default function JobDashboard() {
   return (
     <AppLayout>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
+        {job && (
+          <SharePipelineDialog
+            open={showShareDialog}
+            onOpenChange={setShowShareDialog}
+            jobId={job.id}
+            jobTitle={job.title}
+          />
+        )}
         {/* Admin Tools Bar - Only visible to admins */}
         {role === 'admin' && (
           <AdminJobTools
@@ -570,6 +580,18 @@ export default function JobDashboard() {
                 <Brain className="w-4 h-4" />
                 Job Context
               </Button>
+
+              {(role === 'admin' || role === 'strategist') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowShareDialog(true)}
+                  className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share
+                </Button>
+              )}
 
               <Button
                 variant="outline"

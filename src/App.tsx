@@ -78,6 +78,7 @@ const Install = lazy(() => import("./pages/Install"));
 
 // Lazy load ALL other routes
 const SharedProfile = lazy(() => import("./pages/SharedProfile"));
+const SharedPipelineView = lazy(() => import("./pages/SharedPipelineView"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const GuestBookingPage = lazy(() => import("./pages/GuestBookingPage"));
 const GuestBookingPortal = lazy(() => import("./pages/GuestBookingPortal"));
@@ -191,6 +192,13 @@ const App = () => {
                   <PublicProviders>
                     <RouteErrorBoundary>
                       <Suspense fallback={<PageLoader />}><SharedProfile /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
+                <Route path="/pipeline/:token" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><SharedPipelineView /></Suspense>
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
