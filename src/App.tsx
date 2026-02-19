@@ -103,12 +103,12 @@ const DataProcessingAgreement = lazy(() => import("./pages/legal/DataProcessingA
 
 // Misc Protected Pages
 const ClubAI = lazy(() => import("./pages/ClubAI"));
-const SocialManagement = lazy(() => import("./pages/SocialManagement"));
+// SocialManagement is now redirected to /partner/hub?tab=social (handled in partner.routes.tsx)
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
 const PartnerWelcome = lazy(() => import("./pages/PartnerWelcome"));
 const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
-const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
-const CareerPath = lazy(() => import("./pages/CareerPath"));
+// SalaryInsights redirects to /analytics?tab=salary (handled in analytics.routes.tsx)
+// CareerPath redirects to /analytics?tab=career-path (handled in analytics.routes.tsx)
 const Subscription = lazy(() => import("./pages/Subscription"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -127,6 +127,7 @@ const ResetPasswordSuccess = lazy(() => import("./pages/ResetPasswordSuccess"));
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));
+// MyCommunications redirects to /profile?tab=communications (handled in App.tsx routes below)
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
 
@@ -352,13 +353,13 @@ const App = () => {
                   <Route path="/live-hub" element={<LiveHub />} />
                   <Route path="/club-ai" element={<ClubAI />} />
                   <Route path="/communication-intelligence" element={<Navigate to="/admin/communication-hub?tab=intelligence" replace />} />
-                  <Route path="/my-communications" element={<MyCommunications />} />
+                  <Route path="/my-communications" element={<Navigate to="/profile?tab=communications" replace />} />
                   <Route path="/communication-analytics" element={<Navigate to="/admin/communication-hub?tab=analytics" replace />} />
-                  <Route path="/social-management" element={<SocialManagement />} />
+                  <Route path="/social-management" element={<Navigate to="/partner/hub?tab=social" replace />} />
                   <Route path="/partner-onboarding" element={<PartnerOnboarding />} />
                   <Route path="/whatsapp-import" element={<Navigate to="/admin/whatsapp?tab=import" replace />} />
-                  <Route path="/salary-insights" element={<SalaryInsights />} />
-                  <Route path="/career-path" element={<CareerPath />} />
+                  <Route path="/salary-insights" element={<Navigate to="/analytics?tab=salary" replace />} />
+                  <Route path="/career-path" element={<Navigate to="/analytics?tab=career-path" replace />} />
                   <Route path="/subscription" element={<Subscription />} />
                   <Route path="/subscription/success" element={<SubscriptionSuccess />} />
                   <Route path="/pricing" element={<Pricing />} />

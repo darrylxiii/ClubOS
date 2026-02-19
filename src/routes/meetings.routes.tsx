@@ -16,8 +16,7 @@ const MeetingRoom = lazy(() => import("@/pages/MeetingRoom"));
 const JoinMeeting = lazy(() => import("@/pages/JoinMeeting"));
 const MeetingNotes = lazy(() => import("@/pages/MeetingNotes"));
 const Scheduling = lazy(() => import("@/pages/Scheduling"));
-const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
-const SchedulingSettings = lazy(() => import("@/pages/SchedulingSettings"));
+// BookingManagement and SchedulingSettings are now redirects — orphaned files removed
 const RecordingPlaybackPage = lazy(() => import("@/components/meetings/RecordingPlaybackPage"));
 const DossierView = lazy(() => import("@/pages/DossierView"));
 const InterviewComparison = lazy(() => import("@/pages/InterviewComparison"));
@@ -94,30 +93,11 @@ export const meetingsRoutes = (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/booking-management"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <BookingManagement />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/scheduling/settings"
-      element={
-        <ProtectedRoute>
-          <RouteErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <SchedulingSettings />
-            </Suspense>
-          </RouteErrorBoundary>
-        </ProtectedRoute>
-      }
-    />
+    {/* /scheduling is the canonical hub. Redirect duplicates. */}
+    <Route path="/booking-management" element={<Navigate to="/scheduling" replace />} />
+    <Route path="/scheduling/settings" element={<Navigate to="/scheduling?tab=availability" replace />} />
+
+
     <Route
       path="/recording/:recordingId"
       element={

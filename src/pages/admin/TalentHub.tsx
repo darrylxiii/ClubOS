@@ -37,7 +37,7 @@ export default function TalentHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Users className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">TALENT HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">MEMBER MANAGEMENT</h1>
             </div>
             <p className="text-muted-foreground">
               Member requests, profile merges, rejections, and email templates

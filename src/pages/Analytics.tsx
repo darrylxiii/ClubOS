@@ -1,12 +1,10 @@
 // Phase 1: Role-Aware Analytics Dashboard
 import { useRole } from "@/contexts/RoleContext";
-import { useAuth } from "@/contexts/AuthContext";
-import CandidateAnalytics from "./CandidateAnalytics";
+import CandidateAnalyticsHub from "./CandidateAnalyticsHub";
 import PartnerAnalyticsDashboard from "./PartnerAnalyticsDashboard";
 import GlobalAnalytics from "./admin/GlobalAnalytics";
 
 const Analytics = () => {
-  const { user } = useAuth();
   const { currentRole } = useRole();
 
   // Route to role-specific analytics dashboard
@@ -18,8 +16,8 @@ const Analytics = () => {
     return <PartnerAnalyticsDashboard />;
   }
 
-  // Default: Candidate analytics
-  return <CandidateAnalytics />;
+  // Default: Candidate analytics hub (Performance + Salary + Career + Career Path)
+  return <CandidateAnalyticsHub />;
 };
 
 export default Analytics;
