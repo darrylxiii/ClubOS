@@ -1,0 +1,240 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const proxycurlKey = Deno.env.get('PROXYCURL_API_KEY');
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    const targetCompanyId = body.companyId; // Optional: scan specific company
+
+    if (!proxycurlKey) throw new Error('PROXYCURL_API_KEY not configured');
+
+    // Find companies due for re-scan
+    // Companies with company_people records and a linkedin_url
+    let companiesQuery = supabase
+      .from('companies')
+      .select('id, name, linkedin_url')
+      .not('linkedin_url', 'is', null);
+
+    if (targetCompanyId) {
+      companiesQuery = companiesQuery.eq('id', targetCompanyId);
+    }
+
+    const { data: companies, error: companiesError } = await companiesQuery.limit(10);
+    if (companiesError) throw new Error(`Failed to fetch companies: ${companiesError.message}`);
+    if (!companies || companies.length === 0) {
+      return new Response(JSON.stringify({ success: true, message: 'No companies to scan', processed: 0 }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const results: Array<{ companyId: string; name: string; newHires: number; departures: number; titleChanges: number; skipped: boolean; reason?: string }> = [];
+
+    for (const company of companies) {
+      // Validate LinkedIn URL
+      if (!company.linkedin_url || !company.linkedin_url.includes('linkedin.com/company/')) {
+        results.push({ companyId: company.id, name: company.name, newHires: 0, departures: 0, titleChanges: 0, skipped: true, reason: 'Invalid LinkedIn URL' });
+        continue;
+      }
+
+      // Check if we have existing people for this company
+      const { count: existingCount } = await supabase
+        .from('company_people')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', company.id)
+        .eq('is_still_active', true);
+
+      if (!existingCount || existingCount === 0) {
+        results.push({ companyId: company.id, name: company.name, newHires: 0, departures: 0, titleChanges: 0, skipped: true, reason: 'No existing people data' });
+        continue;
+      }
+
+      // Step 1: Check employee count first (1 credit) to see if headcount changed
+      const countRes = await fetch(
+        `https://nubela.co/proxycurl/api/linkedin/company/employees/count/?url=${encodeURIComponent(company.linkedin_url)}`,
+        { headers: { 'Authorization': `Bearer ${proxycurlKey}` } }
+      );
+
+      // Log credit
+      await supabase.from('proxycurl_credit_ledger').insert({
+        company_id: company.id,
+        endpoint_used: 'employee_count',
+        credits_estimated: 1,
+        credits_actual: 1,
+      });
+
+      if (!countRes.ok) {
+        results.push({ companyId: company.id, name: company.name, newHires: 0, departures: 0, titleChanges: 0, skipped: true, reason: `Count API error: ${countRes.status}` });
+        continue;
+      }
+
+      // Step 2: Get current employee URLs (URL-only mode)
+      let currentUrls: string[] = [];
+      let nextPage: string | null = `https://nubela.co/proxycurl/api/linkedin/company/employees/?url=${encodeURIComponent(company.linkedin_url)}&enrich_profiles=skip&page_size=100`;
+      let pageCount = 0;
+
+      while (nextPage && pageCount < 20) {
+        const listRes = await fetch(nextPage, {
+          headers: { 'Authorization': `Bearer ${proxycurlKey}` },
+        });
+
+        if (!listRes.ok) break;
+
+        const listData = await listRes.json();
+        const urls = (listData.employees || [])
+          .map((e: any) => e.profile_url)
+          .filter((url: string) => url && url.includes('linkedin.com'));
+
+        currentUrls.push(...urls);
+        nextPage = listData.next_page || null;
+        pageCount++;
+      }
+
+      // Deduplicate
+      currentUrls = [...new Set(currentUrls)];
+
+      // Log credits for listing
+      await supabase.from('proxycurl_credit_ledger').insert({
+        company_id: company.id,
+        endpoint_used: 'employee_listing_delta',
+        credits_estimated: currentUrls.length * 3,
+        credits_actual: currentUrls.length * 3,
+      });
+
+      // Step 3: Get stored active people
+      const { data: storedPeople } = await supabase
+        .from('company_people')
+        .select('id, linkedin_url, current_title, full_name')
+        .eq('company_id', company.id)
+        .eq('is_still_active', true);
+
+      const storedUrlMap = new Map<string, { id: string; title: string | null; name: string | null }>();
+      (storedPeople || []).forEach(p => {
+        if (p.linkedin_url) {
+          storedUrlMap.set(p.linkedin_url, { id: p.id, title: p.current_title, name: p.full_name });
+        }
+      });
+
+      const storedUrls = new Set(storedUrlMap.keys());
+      const currentUrlSet = new Set(currentUrls);
+
+      // Step 4: Detect NEW hires (in current but not in stored)
+      const newHireUrls = currentUrls.filter(url => !storedUrls.has(url));
+      let newHireCount = 0;
+
+      for (const url of newHireUrls.slice(0, 20)) { // Cap at 20 per delta scan
+        // Create a placeholder record
+        const { data: newPerson } = await supabase
+          .from('company_people')
+          .upsert({
+            company_id: company.id,
+            linkedin_url: url,
+            is_still_active: true,
+            employment_status: 'new_hire',
+            first_seen_at: new Date().toISOString(),
+            last_seen_at: new Date().toISOString(),
+            enrichment_status: 'pending',
+            data_legal_basis: 'legitimate_interest',
+            auto_purge_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          }, { onConflict: 'company_id,linkedin_url' })
+          .select('id')
+          .single();
+
+        if (newPerson) {
+          await supabase.from('company_people_changes').insert({
+            company_id: company.id,
+            person_id: newPerson.id,
+            change_type: 'new_hire',
+            new_value: url,
+            detected_at: new Date().toISOString(),
+          });
+          newHireCount++;
+        }
+      }
+
+      // Step 5: Detect DEPARTURES (in stored but not in current)
+      const departedUrls = Array.from(storedUrls).filter(url => !currentUrlSet.has(url));
+      let departureCount = 0;
+
+      for (const url of departedUrls) {
+        const person = storedUrlMap.get(url);
+        if (!person) continue;
+
+        await supabase.from('company_people')
+          .update({
+            is_still_active: false,
+            employment_status: 'departed',
+            departed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', person.id);
+
+        await supabase.from('company_people_changes').insert({
+          company_id: company.id,
+          person_id: person.id,
+          change_type: 'departure',
+          old_value: person.title || person.name || url,
+          detected_at: new Date().toISOString(),
+        });
+
+        departureCount++;
+      }
+
+      // Step 6: Update last_seen_at for still-active people
+      const stillActiveUrls = currentUrls.filter(url => storedUrls.has(url));
+      if (stillActiveUrls.length > 0) {
+        // Batch update in chunks
+        for (let i = 0; i < stillActiveUrls.length; i += 50) {
+          const chunk = stillActiveUrls.slice(i, i + 50);
+          await supabase.from('company_people')
+            .update({ last_seen_at: new Date().toISOString() })
+            .eq('company_id', company.id)
+            .in('linkedin_url', chunk);
+        }
+      }
+
+      results.push({
+        companyId: company.id,
+        name: company.name,
+        newHires: newHireCount,
+        departures: departureCount,
+        titleChanges: 0, // Title changes require enrichment; detected during next full scan
+        skipped: false,
+      });
+
+      // Delay between companies
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    const totalChanges = results.reduce((sum, r) => sum + r.newHires + r.departures, 0);
+
+    return new Response(JSON.stringify({
+      success: true,
+      processed: results.length,
+      totalChanges,
+      results,
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+  } catch (error) {
+    console.error('detect-org-changes error:', error);
+    return new Response(JSON.stringify({
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

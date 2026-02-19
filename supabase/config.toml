@@ -1246,3 +1246,6 @@ verify_jwt = false
 
 [functions.classify-org-titles]
 verify_jwt = false
+
+[functions.detect-org-changes]
+verify_jwt = false
