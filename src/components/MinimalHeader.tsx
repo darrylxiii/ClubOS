@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, HelpCircle } from "lucide-react";
+import logoLight from "@/assets/quantum-club-logo.png";
+import logoDark from "@/assets/quantum-logo-dark.png";
 
 interface MinimalHeaderProps {
   showBackButton?: boolean;
@@ -43,13 +45,9 @@ export function MinimalHeader({
           )}
           
           {/* TQC Logo/Brand */}
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">Q</span>
-            </div>
-            <span className="text-sm font-semibold hidden sm:inline">
-              The Quantum Club
-            </span>
+          <div className="flex items-center">
+            <img src={logoLight} alt="The Quantum Club" className="h-8 w-auto dark:hidden" />
+            <img src={logoDark} alt="The Quantum Club" className="h-8 w-auto hidden dark:block" />
           </div>
         </div>
 

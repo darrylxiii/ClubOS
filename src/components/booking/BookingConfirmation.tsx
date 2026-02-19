@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, Calendar, Clock, Mail, MapPin, ExternalLink, Video, AlertTriangle } from "lucide-react";
+import logoLight from "@/assets/quantum-club-logo.png";
+import logoDark from "@/assets/quantum-logo-dark.png";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { BookingSyncStatus } from "./BookingSyncStatus";
@@ -139,8 +141,12 @@ export function BookingConfirmation({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
+        <div className="animate-pulse">
+          <img src={logoLight} alt="The Quantum Club" className="h-10 w-auto dark:hidden" />
+          <img src={logoDark} alt="The Quantum Club" className="h-10 w-auto hidden dark:block" />
+        </div>
+        <p className="text-xs text-muted-foreground">Loading confirmation...</p>
       </div>
     );
   }
