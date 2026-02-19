@@ -40,14 +40,27 @@ const STAGE_COLORS = [
 export function PipelineShareBoard({ stages, applications, visibility }: PipelineShareBoardProps) {
   const sortedStages = [...stages].sort((a, b) => a.order - b.order);
 
-  const candidatesByStage = (stageOrder: number) =>
-    applications.filter((app) => app.current_stage_index === stageOrder);
+  // Build a set of all valid stage orders for fast lookup
+  const validStageOrders = new Set(sortedStages.map((s) => s.order));
+
+  // Candidates whose stage index doesn't match any stage go into the first stage
+  const candidatesByStage = (stageOrder: number, stageIdx: number) => {
+    if (stageIdx === 0) {
+      // First column also collects "orphan" candidates with no matching stage
+      return applications.filter(
+        (app) =>
+          app.current_stage_index === stageOrder ||
+          !validStageOrders.has(app.current_stage_index),
+      );
+    }
+    return applications.filter((app) => app.current_stage_index === stageOrder);
+  };
 
   return (
     <ScrollArea className="w-full">
       <div className="flex gap-4 pb-4 min-w-max">
         {sortedStages.map((stage, idx) => {
-          const candidates = candidatesByStage(stage.order);
+          const candidates = candidatesByStage(stage.order, idx);
           const colorClass = STAGE_COLORS[idx % STAGE_COLORS.length];
 
           return (
