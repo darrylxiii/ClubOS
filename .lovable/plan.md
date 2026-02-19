@@ -1,219 +1,116 @@
 
-# Multi-Entity Financial System: The Quantum Club Dubai
+# Multi-Currency Salaries and Office Revenue Assignment
 
 ## What This Does
 
-Adds "The Quantum Club Dubai" as a second legal entity alongside the existing Netherlands entity, so revenue, invoices, VAT, P&L, and placement fees can be tracked, filtered, and reported per entity. Think of it as a "company within the company" toggle across the entire financial system.
+1. **Multi-currency salary support**: When creating placement fees, admins can select the salary currency (EUR, USD, GBP, AED, etc.) instead of everything defaulting to EUR. The fee is stored in the original currency, with an EUR-equivalent calculated for consolidated reporting.
+2. **Office assignment on placement fees**: Admins can assign each placement fee to Amsterdam or Dubai office. This leverages the existing `legal_entity` column, but makes it user-selectable instead of always defaulting to `tqc_nl`.
 
-## Why This Matters
+## Current State
 
-- Revenue earned in Dubai has different tax rules (0% corporate tax, 5% VAT vs NL 21% BTW)
-- Invoices from Dubai go through a separate Moneybird administration (or a separate invoicing system entirely)
-- P&L, cash flow, and VAT reports need to be split or consolidated
-- Placement fees need to be attributed to the correct entity for commission calculations
-
-## Architecture: The `legal_entity` Column
-
-Rather than building a complex multi-tenant system, we add a single `legal_entity` enum column to every financial table. This is the 0.1% approach -- minimal schema change, maximum impact.
-
-```text
-legal_entity: 'tqc_nl' | 'tqc_dubai'
-Default: 'tqc_nl' (all existing data stays Netherlands)
-```
-
-### Tables That Get the Column
-
-| Table | Purpose |
-|---|---|
-| `placement_fees` | Which entity earns the fee |
-| `moneybird_sales_invoices` | Which entity issued the invoice |
-| `moneybird_financial_metrics` | Aggregated metrics per entity |
-| `operating_expenses` | Which entity incurred the cost |
-| `employee_commissions` | Which entity pays the commission |
-| `referral_payouts` | Which entity pays the referral |
-| `financial_events` | Event attribution |
-| `vendor_subscriptions` | Which entity holds the subscription |
-| `financial_forecasts` | Forecast per entity |
+- `placement_fees.currency_code` exists but is always hardcoded to `'EUR'`
+- `placement_fees.legal_entity` exists but defaults to `'tqc_nl'` with no UI to change it
+- `AddPlacementFeeDialog` has no currency selector and no office selector
+- `PlacementFeesTable.formatCurrency` is hardcoded to EUR
+- `InvoiceGenerator` is hardcoded to EUR and 21% VAT
+- `MissingFeesAlert` hardcodes `currency_code: 'EUR'`
+- `automate-placement-fee` edge function hardcodes EUR, no `currency_code` or `legal_entity` in insert
+- The currency conversion library (`src/lib/currencyConversion.ts`) already supports EUR/USD/GBP/AED with live rates
 
 ## Database Changes
 
-### 1. Create `legal_entities` reference table
+### Add `fee_amount_eur` column to `placement_fees`
+
+Store the EUR-equivalent of the fee amount so consolidated reporting always works without on-the-fly conversion:
 
 ```sql
-CREATE TABLE public.legal_entities (
-  code text PRIMARY KEY,
-  display_name text NOT NULL,
-  country_code text NOT NULL,
-  currency_code text NOT NULL DEFAULT 'EUR',
-  vat_rate numeric NOT NULL DEFAULT 0,
-  vat_number text,
-  company_registration text,
-  bank_name text,
-  bank_iban text,
-  bank_bic text,
-  bank_account_holder text,
-  address_line1 text,
-  address_line2 text,
-  city text,
-  postal_code text,
-  country text,
-  is_active boolean DEFAULT true,
-  created_at timestamptz DEFAULT now()
-);
+ALTER TABLE placement_fees ADD COLUMN fee_amount_eur numeric;
 ```
 
-Seed with two rows:
-- `tqc_nl`: "The Quantum Club B.V." / NL / EUR / 21% VAT / BTW number
-- `tqc_dubai`: "The Quantum Club FZ-LLC" / AE / EUR (or AED) / 5% VAT
-
-### 2. Add `legal_entity` column to financial tables
-
+For existing rows (all EUR), backfill:
 ```sql
-ALTER TABLE placement_fees ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE moneybird_sales_invoices ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE moneybird_financial_metrics ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE operating_expenses ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE employee_commissions ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE referral_payouts ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE financial_events ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE vendor_subscriptions ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-ALTER TABLE financial_forecasts ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
+UPDATE placement_fees SET fee_amount_eur = fee_amount WHERE fee_amount_eur IS NULL;
 ```
 
-All existing data defaults to `tqc_nl` -- zero data loss.
-
-### 3. Update `moneybird_settings` for multi-admin support
-
-```sql
-ALTER TABLE moneybird_settings ADD COLUMN legal_entity text DEFAULT 'tqc_nl' REFERENCES legal_entities(code);
-```
-
-This allows connecting a second Moneybird administration for Dubai.
+This means reporting can always sum `fee_amount_eur` for consolidated views, while `fee_amount` + `currency_code` stores the original amount.
 
 ## Frontend Changes
 
-### 1. Entity Selector on Financial Dashboard
+### 1. AddPlacementFeeDialog -- Add Currency and Office Selectors
 
-Add an entity filter next to the existing Year and Currency selectors:
+- Add a currency dropdown (EUR, USD, GBP, AED) next to the salary field
+- Add an office/entity selector (Amsterdam / Dubai) below the date field
+- When submitting, pass `currency_code` and `legal_entity` to the insert
+- Update the "Calculated Fee" preview to show the selected currency symbol
+- Add a secondary line showing the EUR equivalent using `convertCurrency()`
 
-- **Options**: "All Entities" (consolidated) | "TQC Netherlands" | "TQC Dubai"
-- **Default**: "All Entities" (shows combined view)
-- When filtered, all cards, charts, tables, and P&L reflect only that entity
+### 2. PlacementFeesTable -- Show Currency per Row
 
-### 2. Update Financial Components
+- Update `formatCurrency()` to use each fee's `currency_code` instead of hardcoded EUR
+- Add the EntityBadge (already created) next to the company name to show office
+- Show EUR equivalent in a subtle subtitle when currency is not EUR
 
-These components need to accept and pass down a `legalEntity` filter parameter:
+### 3. InvoiceGenerator -- Currency-Aware
 
-| Component | Change |
-|---|---|
-| `RevenueSummaryCards` | Filter metrics by entity |
-| `FinancialOverviewChart` | Split/filter revenue by entity |
-| `TopClientsTable` | Filter clients by entity |
-| `PaymentAgingChart` | Filter aging by entity |
-| `ProfitLossCard` | P&L per entity (different VAT rates) |
-| `VATLiabilityCard` | Critical: NL shows 21% BTW, Dubai shows 5% VAT |
-| `VATRegisterTable` | Filter by entity |
-| `CashFlowProjection` | Per-entity cash flow |
-| `PlacementFeesTable` | Show entity column, allow filtering |
-| `MoneybirdInvoicesTable` | Show entity badge |
-| `EmployeeCommissionsTable` | Filter by entity |
-| `InvoiceStatusSummary` | Per-entity counts |
+- Group fees by currency when generating invoices (or convert all to EUR for invoicing)
+- Use the fee's `currency_code` for the "Base Salary" column
+- Invoice totals remain in EUR (since invoices are issued by the NL or Dubai entity in EUR)
+- When entity is Dubai, use 5% VAT instead of 21%
 
-### 3. VATLiabilityCard: Dual-Regime Support
+### 4. MissingFeesAlert -- Pass Currency from Job
 
-Currently hardcoded to "21% BTW" and "Belastingdienst". When entity is Dubai:
-- Show "5% VAT" instead of "21% BTW"
-- Remove BTW number badge
-- Show UAE tax reference instead
-- Change "Belastingdienst" to "FTA (Federal Tax Authority)"
+- Instead of hardcoding `currency_code: 'EUR'`, use the job's currency field
+- Default to EUR if not set
 
-### 4. Entity Badge Component
+### 5. RevenueSummaryCards / ProfitLossCard -- Use `fee_amount_eur`
 
-A small reusable badge:
-- `tqc_nl`: Flag NL + "Netherlands"
-- `tqc_dubai`: Flag AE + "Dubai"
-
-Used on placement fee rows, invoice rows, expense rows.
-
-### 5. Placement Fee Creation
-
-When creating a placement fee (manually or via `automate-placement-fee`), allow selecting which entity earns the fee. Default based on:
-- If the job/company is in UAE/Dubai region -> `tqc_dubai`
-- Otherwise -> `tqc_nl`
+- For consolidated views, sum `fee_amount_eur` instead of `fee_amount`
+- When filtered to a single entity, still use `fee_amount_eur` for consistency
 
 ## Edge Function Changes
 
-### `moneybird-fetch-financials`
-- Accept `legal_entity` parameter
-- Use the correct Moneybird administration credentials based on entity
-- Tag all stored invoices with the entity
-- Compute metrics per entity
-
-### `sync-company-revenue`
-- Group by entity when aggregating
-- Store entity-aware revenue totals
-
 ### `automate-placement-fee`
-- Auto-detect entity from company/job region
-- Store `legal_entity` on the placement fee
 
-## Hooks Changes
-
-### `useMoneybirdFinancials`
-- Accept optional `legalEntity` filter
-- Query `moneybird_financial_metrics` with `.eq('legal_entity', entity)` or omit for consolidated
-
-### `usePlacementFeesWithContext`, `useVATData`, etc.
-- Accept and apply entity filter
-
-## Consolidated vs Per-Entity Reporting
-
-When "All Entities" is selected:
-- Revenue cards show combined totals
-- P&L shows combined (with a note about mixed VAT regimes)
-- VAT card shows split: NL liability + Dubai liability side by side
-
-## Moneybird Settings Page
-
-Add ability to connect a second Moneybird administration for Dubai:
-- Show current connections with entity labels
-- "Add Dubai Administration" button
-- Each connection stores its own `administration_id` and tokens
-
-## Implementation Order
-
-1. Database migration: `legal_entities` table + columns on all financial tables
-2. Seed NL and Dubai entities
-3. Create `EntitySelector` component
-4. Update `FinancialDashboard` with entity filter state
-5. Update hooks to accept entity filter
-6. Update all financial components to use the filter
-7. Update `VATLiabilityCard` for dual-regime
-8. Update `moneybird-fetch-financials` for multi-admin
-9. Update `automate-placement-fee` for entity detection
-10. Update Moneybird settings UI for multi-connection
+- Accept optional `currency_code` and `legal_entity` in the request body
+- Auto-detect currency from the job's `currency` field if not provided
+- Auto-detect entity from company location (Dubai region = `tqc_dubai`)
+- Calculate `fee_amount_eur` using exchange rates (fetch from API or use stored rates)
+- Store `currency_code`, `legal_entity`, and `fee_amount_eur` on the placement fee
 
 ## Files to Create/Modify
 
 | File | Change |
 |---|---|
-| Migration SQL | New table + columns |
-| `src/components/financial/EntitySelector.tsx` | New component |
-| `src/components/financial/EntityBadge.tsx` | New component |
-| `src/pages/admin/FinancialDashboard.tsx` | Add entity filter, pass down |
-| `src/hooks/useMoneybirdFinancials.ts` | Accept entity param |
-| `src/hooks/useVATData.ts` | Accept entity param |
-| `src/hooks/useFinancialData.ts` | Accept entity param |
-| `src/hooks/usePlacementFeesWithContext.ts` | Accept entity param |
-| `src/components/financial/RevenueSummaryCards.tsx` | Entity-aware |
-| `src/components/financial/ProfitLossCard.tsx` | Entity-aware VAT |
-| `src/components/financial/VATLiabilityCard.tsx` | Dual-regime |
-| `src/components/financial/PlacementFeesTable.tsx` | Entity column |
-| `src/components/financial/MoneybirdInvoicesTable.tsx` | Entity badge |
-| `src/components/financial/FinancialOverviewChart.tsx` | Entity filter |
-| `src/components/financial/TopClientsTable.tsx` | Entity filter |
-| `src/components/financial/CashFlowProjection.tsx` | Entity filter |
-| `src/components/financial/EmployeeCommissionsTable.tsx` | Entity filter |
-| `supabase/functions/moneybird-fetch-financials/index.ts` | Multi-admin |
-| `supabase/functions/automate-placement-fee/index.ts` | Entity detection |
-| `supabase/functions/sync-company-revenue/index.ts` | Entity-aware |
+| Migration SQL | Add `fee_amount_eur` column, backfill existing data |
+| `src/components/financial/AddPlacementFeeDialog.tsx` | Add currency selector, office selector, EUR equivalent preview |
+| `src/components/financial/PlacementFeesTable.tsx` | Currency-aware formatting, EntityBadge per row |
+| `src/components/financial/InvoiceGenerator.tsx` | Use fee currency for salary column, entity-aware VAT |
+| `src/components/financial/MissingFeesAlert.tsx` | Use job currency instead of hardcoded EUR |
+| `supabase/functions/automate-placement-fee/index.ts` | Accept and store currency_code, legal_entity, fee_amount_eur |
+| `src/hooks/usePlacementFeesWithContext.ts` | Include currency_code and legal_entity in select |
+| `src/hooks/useFinancialData.ts` | Update PlacementFee type to include currency_code and legal_entity |
+
+## Technical Details
+
+### EUR Equivalent Calculation
+
+When a fee is in USD (e.g. $90,000 salary, 20% fee = $18,000):
+- Fetch current EUR/USD rate
+- `fee_amount_eur = fee_amount / exchange_rate` (e.g. $18,000 / 1.09 = ~EUR 16,514)
+- Stored at time of creation, not recalculated (snapshot)
+
+### Office Assignment Logic
+
+- Default: `tqc_nl` (Amsterdam)
+- Admin can override to `tqc_dubai` in the form
+- `automate-placement-fee` auto-detects based on company/job location containing "dubai", "uae", "abu dhabi"
+- The EntitySelector already exists on the dashboard for filtering; this just makes each fee carry its own entity
+
+### Currency Display Pattern
+
+```
+Salary: $90,000 USD
+Fee: $18,000 (20%)
+EUR equiv: ~EUR 16,514
+Office: Dubai
+```
