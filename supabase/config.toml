@@ -1234,3 +1234,15 @@ verify_jwt = false
 
 [functions.notetaker-collect-artifacts]
 verify_jwt = false
+
+# =============================================================================
+# Partner Organization Intelligence
+# =============================================================================
+[functions.scan-partner-organization]
+verify_jwt = false
+
+[functions.process-scan-batch]
+verify_jwt = false
+
+[functions.classify-org-titles]
+verify_jwt = false
