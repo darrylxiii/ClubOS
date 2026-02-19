@@ -5049,6 +5049,7 @@ export type Database = {
           metadata: Json | null
           no_show: boolean | null
           notes: string | null
+          notetaker_enabled: boolean | null
           payment_amount: number | null
           payment_status: string | null
           quantum_meeting_code: string | null
@@ -5117,6 +5118,7 @@ export type Database = {
           metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
+          notetaker_enabled?: boolean | null
           payment_amount?: number | null
           payment_status?: string | null
           quantum_meeting_code?: string | null
@@ -5185,6 +5187,7 @@ export type Database = {
           metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
+          notetaker_enabled?: boolean | null
           payment_amount?: number | null
           payment_status?: string | null
           quantum_meeting_code?: string | null
@@ -28033,42 +28036,73 @@ export type Database = {
       }
       meeting_bot_sessions: {
         Row: {
+          artifacts_collected: boolean | null
+          booking_id: string | null
           bot_id: string | null
           connection_status: string | null
+          error_message: string | null
+          google_meet_conference_id: string | null
+          google_meet_space_name: string | null
           id: string
           joined_at: string | null
           left_at: string | null
           meeting_id: string | null
           metadata: Json | null
           recording_url: string | null
+          scheduled_join_at: string | null
+          scheduled_leave_at: string | null
           session_token: string
+          transcript_entry_count: number | null
           transcript_url: string | null
         }
         Insert: {
+          artifacts_collected?: boolean | null
+          booking_id?: string | null
           bot_id?: string | null
           connection_status?: string | null
+          error_message?: string | null
+          google_meet_conference_id?: string | null
+          google_meet_space_name?: string | null
           id?: string
           joined_at?: string | null
           left_at?: string | null
           meeting_id?: string | null
           metadata?: Json | null
           recording_url?: string | null
+          scheduled_join_at?: string | null
+          scheduled_leave_at?: string | null
           session_token: string
+          transcript_entry_count?: number | null
           transcript_url?: string | null
         }
         Update: {
+          artifacts_collected?: boolean | null
+          booking_id?: string | null
           bot_id?: string | null
           connection_status?: string | null
+          error_message?: string | null
+          google_meet_conference_id?: string | null
+          google_meet_space_name?: string | null
           id?: string
           joined_at?: string | null
           left_at?: string | null
           meeting_id?: string | null
           metadata?: Json | null
           recording_url?: string | null
+          scheduled_join_at?: string | null
+          scheduled_leave_at?: string | null
           session_token?: string
+          transcript_entry_count?: number | null
           transcript_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "meeting_bot_sessions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meeting_bot_sessions_bot_id_fkey"
             columns: ["bot_id"]
@@ -32154,6 +32188,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notetaker_settings: {
+        Row: {
+          auto_join_all_bookings: boolean | null
+          auto_join_detected_interviews: boolean | null
+          created_at: string | null
+          default_language: string | null
+          id: string
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          send_summary_email: boolean | null
+          send_transcript_email: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_join_all_bookings?: boolean | null
+          auto_join_detected_interviews?: boolean | null
+          created_at?: string | null
+          default_language?: string | null
+          id?: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          send_summary_email?: boolean | null
+          send_transcript_email?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_join_all_bookings?: boolean | null
+          auto_join_detected_interviews?: boolean | null
+          created_at?: string | null
+          default_language?: string | null
+          id?: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          send_summary_email?: boolean | null
+          send_transcript_email?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {
