@@ -1,12 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { allAITools, executeToolCall } from "../_shared/ai-tools.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -1626,8 +1626,7 @@ ${salaryBenchmarks.map((b: any) => `- ${b.role_title} (${b.location || 'Global'}
       }
     ] : [];
 
-    // Import AI action tools
-    const { allAITools, executeToolCall } = await import("../_shared/ai-tools.ts");
+    // AI action tools are statically imported at the top of this file
     
     // === ROLE-BASED TOOL GATING ===
     const userRolesForGating = userId ? (await supabase.from('user_roles').select('role').eq('user_id', userId)).data?.map((r: any) => r.role) || [] : [];
