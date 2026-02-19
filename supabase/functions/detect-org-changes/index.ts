@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const proxycurlKey = Deno.env.get('PROXYCURL_API_KEY');
+  const apifyKey = Deno.env.get('APIFY_API_KEY');
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -20,10 +20,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const targetCompanyId = body.companyId; // Optional: scan specific company
 
-    if (!proxycurlKey) throw new Error('PROXYCURL_API_KEY not configured');
+    if (!apifyKey) throw new Error('APIFY_API_KEY not configured');
 
     // Find companies due for re-scan
-    // Companies with company_people records and a linkedin_url
     let companiesQuery = supabase
       .from('companies')
       .select('id, name, linkedin_url')
@@ -62,59 +61,49 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Step 1: Check employee count first (1 credit) to see if headcount changed
-      const countRes = await fetch(
-        `https://nubela.co/proxycurl/api/linkedin/company/employees/count/?url=${encodeURIComponent(company.linkedin_url)}`,
-        { headers: { 'Authorization': `Bearer ${proxycurlKey}` } }
-      );
-
-      // Log credit
-      await supabase.from('proxycurl_credit_ledger').insert({
-        company_id: company.id,
-        endpoint_used: 'employee_count',
-        credits_estimated: 1,
-        credits_actual: 1,
-      });
-
-      if (!countRes.ok) {
-        results.push({ companyId: company.id, name: company.name, newHires: 0, departures: 0, titleChanges: 0, skipped: true, reason: `Count API error: ${countRes.status}` });
-        continue;
-      }
-
-      // Step 2: Get current employee URLs (URL-only mode)
+      // Fetch current employee URLs via Apify
       let currentUrls: string[] = [];
-      let nextPage: string | null = `https://nubela.co/proxycurl/api/linkedin/company/employees/?url=${encodeURIComponent(company.linkedin_url)}&enrich_profiles=skip&page_size=100`;
-      let pageCount = 0;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-      while (nextPage && pageCount < 20) {
-        const listRes = await fetch(nextPage, {
-          headers: { 'Authorization': `Bearer ${proxycurlKey}` },
-        });
+      try {
+        const response = await fetch(
+          `https://api.apify.com/v2/acts/apimaestro~linkedin-company-employees-scraper/run-sync-get-dataset-items?token=${apifyKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              companyUrl: company.linkedin_url,
+              maxItems: 2000,
+            }),
+          }
+        );
+        clearTimeout(timeoutId);
 
-        if (!listRes.ok) break;
+        if (!response.ok) {
+          const errText = await response.text();
+          results.push({ companyId: company.id, name: company.name, newHires: 0, departures: 0, titleChanges: 0, skipped: true, reason: `Apify error: ${response.status}` });
+          continue;
+        }
 
-        const listData = await listRes.json();
-        const urls = (listData.employees || [])
-          .map((e: any) => e.profile_url)
-          .filter((url: string) => url && url.includes('linkedin.com'));
-
-        currentUrls.push(...urls);
-        nextPage = listData.next_page || null;
-        pageCount++;
+        const employees = await response.json();
+        for (const emp of (Array.isArray(employees) ? employees : [])) {
+          const url = emp.profileUrl || emp.linkedin_url || emp.url || emp.linkedinUrl || emp.profile_url;
+          if (url && typeof url === 'string' && url.includes('linkedin.com/in/')) {
+            currentUrls.push(url);
+          }
+        }
+      } catch (e: any) {
+        clearTimeout(timeoutId);
+        results.push({ companyId: company.id, name: company.name, newHires: 0, departures: 0, titleChanges: 0, skipped: true, reason: e.name === 'AbortError' ? 'Apify timeout' : e.message });
+        continue;
       }
 
       // Deduplicate
       currentUrls = [...new Set(currentUrls)];
 
-      // Log credits for listing
-      await supabase.from('proxycurl_credit_ledger').insert({
-        company_id: company.id,
-        endpoint_used: 'employee_listing_delta',
-        credits_estimated: currentUrls.length * 3,
-        credits_actual: currentUrls.length * 3,
-      });
-
-      // Step 3: Get stored active people
+      // Get stored active people
       const { data: storedPeople } = await supabase
         .from('company_people')
         .select('id, linkedin_url, current_title, full_name')
@@ -131,12 +120,11 @@ Deno.serve(async (req) => {
       const storedUrls = new Set(storedUrlMap.keys());
       const currentUrlSet = new Set(currentUrls);
 
-      // Step 4: Detect NEW hires (in current but not in stored)
+      // Detect NEW hires (in current but not in stored)
       const newHireUrls = currentUrls.filter(url => !storedUrls.has(url));
       let newHireCount = 0;
 
       for (const url of newHireUrls.slice(0, 20)) { // Cap at 20 per delta scan
-        // Create a placeholder record
         const { data: newPerson } = await supabase
           .from('company_people')
           .upsert({
@@ -165,7 +153,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Step 5: Detect DEPARTURES (in stored but not in current)
+      // Detect DEPARTURES (in stored but not in current)
       const departedUrls = Array.from(storedUrls).filter(url => !currentUrlSet.has(url));
       let departureCount = 0;
 
@@ -193,10 +181,9 @@ Deno.serve(async (req) => {
         departureCount++;
       }
 
-      // Step 6: Update last_seen_at for still-active people
+      // Update last_seen_at for still-active people
       const stillActiveUrls = currentUrls.filter(url => storedUrls.has(url));
       if (stillActiveUrls.length > 0) {
-        // Batch update in chunks
         for (let i = 0; i < stillActiveUrls.length; i += 50) {
           const chunk = stillActiveUrls.slice(i, i + 50);
           await supabase.from('company_people')
@@ -211,7 +198,7 @@ Deno.serve(async (req) => {
         name: company.name,
         newHires: newHireCount,
         departures: departureCount,
-        titleChanges: 0, // Title changes require enrichment; detected during next full scan
+        titleChanges: 0,
         skipped: false,
       });
 
