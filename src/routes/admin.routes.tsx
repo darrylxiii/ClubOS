@@ -16,7 +16,7 @@ const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 const TranslationsHub = lazy(() => import("@/pages/admin/TranslationsHub"));
 const SecurityHub = lazy(() => import("@/pages/admin/SecurityHub"));
 const CommunicationHub = lazy(() => import("@/pages/admin/CommunicationHub"));
-const EngagementHub = lazy(() => import("@/pages/admin/EngagementHub"));
+
 const PerformanceHub = lazy(() => import("@/pages/admin/PerformanceHub"));
 const AssessmentsHub = lazy(() => import("@/pages/admin/AssessmentsHub"));
 const TalentHub = lazy(() => import("@/pages/admin/TalentHub"));
@@ -102,7 +102,7 @@ export const adminRoutes = (
     {R("/admin/translations", TranslationsHub)}
     {R("/admin/security", SecurityHub)}
     {R("/admin/communication-hub", CommunicationHub)}
-    {R("/admin/engagement-hub", EngagementHub)}
+    <Route path="/admin/engagement-hub" element={<Navigate to="/admin/global-analytics?tab=funnel" replace />} />
     {R("/admin/performance-hub", PerformanceHub)}
     {R("/admin/assessments", AssessmentsHub)}
     {R("/admin/talent-hub", TalentHub)}
