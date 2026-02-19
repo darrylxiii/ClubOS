@@ -1,286 +1,215 @@
 
-# Shareable Job Pipeline Links — Full Feature Design
+# Full Audit: Shareable Job Pipeline Links & Enriched Candidate Profiles
 
-## What This Builds
-
-A system that allows admins and strategists to generate a secure, time-limited, optionally password-protected link that gives any anonymous visitor (no account required) a read-only view of a job's pipeline — showing the pipeline stages, candidate cards with enriched data, and key metrics. Designed for external partners reviewing shortlists without needing a TQC account.
+**Score: 31 / 100**
 
 ---
 
-## How It Fits Into the Existing System
+## Executive Summary
 
-The platform already has three working share-link patterns to follow:
-- `profile_share_links` table + `track_share_link_view` RPC → `/share/:token` → `SharedProfile.tsx`
-- `dossier_shares` table + `generate_dossier_share_token` RPC → `/dossier/:shareToken` → `DossierView.tsx`
-- `meeting_dossiers` table + `share_token` column
-
-This feature follows the same architecture: a new `job_pipeline_shares` table, a new public route `/pipeline/:token`, and a new `SharedPipelineView.tsx` page — no authentication required.
+The feature has a solid architectural concept and the UI scaffolding is clean. However, it has three showstopper bugs that mean the feature **does not function at all** in its current state. The core purpose — letting anonymous external partners view a pipeline with enriched candidate data — is broken end-to-end. No candidate will ever appear in a shared view. Password protection is silently non-functional. AI summaries are wired to a column that does not exist on the table being queried.
 
 ---
 
-## Data Model
+## Critical Bugs (All Fatal — Feature Does Not Work)
 
-### New Table: `job_pipeline_shares`
+### Bug 1 (Fatal): Anonymous users cannot read applications or candidate_profiles — the pipeline always renders empty
 
-```text
-id              uuid PK
-job_id          uuid → jobs.id (CASCADE DELETE)
-created_by      uuid → auth.users
-token           text UNIQUE NOT NULL (cryptographically random)
-expires_at      timestamptz NOT NULL
-password_hash   text NULL  (bcrypt via pgcrypto, optional)
-is_active       boolean DEFAULT true
-view_count      integer DEFAULT 0
-label           text NULL  (e.g. "Sent to Acme HR team")
+**Severity: Critical. Feature-breaking.**
 
--- Visibility controls (what to show in the shared view)
-show_candidate_names    boolean DEFAULT true
-show_candidate_emails   boolean DEFAULT false
-show_candidate_linkedin boolean DEFAULT false
-show_salary_data        boolean DEFAULT false
-show_match_scores       boolean DEFAULT true
-show_ai_summary         boolean DEFAULT true
-show_contact_info       boolean DEFAULT false
+The `fetchPipelineData()` function in `SharedPipelineView.tsx` makes two direct Supabase client queries as an anonymous (unauthenticated) user:
 
-created_at      timestamptz DEFAULT now()
-updated_at      timestamptz DEFAULT now()
+```typescript
+supabase.from('applications').select('id, current_stage_index, applied_at, match_score, ai_summary, candidate_id, user_id').eq('job_id', shareMeta.job_id)
+supabase.from('candidate_profiles').select('id, full_name, current_title, current_company, email, linkedin_url').in('id', candidateIds)
 ```
 
-### RLS Policies
-- `INSERT`: authenticated users with `admin` or `strategist` role only
-- `SELECT`: authenticated `admin`/`strategist` can list their own shares; anonymous access is handled via a `SECURITY DEFINER` RPC function that validates token + expiry without exposing the full table
-- `UPDATE`: `created_by` user or admin (to revoke/edit)
-- `DELETE`: same as UPDATE
+The `applications` table has RLS enabled with these SELECT policies:
+- `Admins can view all applications` → requires `has_role(auth.uid(), 'admin')` — fails for anon (uid is NULL)
+- `Company members can view job applications` → requires matching company_members row with auth.uid() — fails for anon
+- `Users can view their own applications` → requires `auth.uid() = user_id AND user_id IS NOT NULL` — fails for anon
 
-### Database Function: `validate_job_pipeline_share(token text, password text)`
-A `SECURITY DEFINER` function that:
-1. Looks up the token in `job_pipeline_shares`
-2. Checks `is_active = true` and `expires_at > now()`
-3. If `password_hash` is set, checks `crypt(password, password_hash) = password_hash`
-4. Returns the `job_id` + `visibility settings` JSON if valid, or null/error if not
-5. Increments `view_count`
+The `candidate_profiles` table has RLS enabled with SELECT policies that require `TO authenticated` or specific role checks. Both are completely blocked for anon.
 
-This pattern is identical to the existing `track_share_link_view` RPC.
+**Result**: Both queries silently return 0 rows. The Kanban board renders with all columns empty. There is no error shown to the user — just an empty board. The feature's entire value proposition — showing enriched candidate cards — is completely non-functional. No candidate will ever appear in a shared pipeline view.
+
+**What should have been done**: The `validate_job_pipeline_share` RPC should fetch all candidate data server-side within the `SECURITY DEFINER` function (which can bypass RLS) and return it as part of the JSON response. The client should never make raw table queries as anon for this data.
 
 ---
 
-## What the Shared View Shows
+### Bug 2 (Fatal): Password protection is silently broken — all "protected" links are actually unprotected
 
-The anonymous viewer gets a clean, branded read-only page at `/pipeline/:token`:
+**Severity: Critical. Security-breaking.**
 
-**Header:**
-- The Quantum Club logo + "Confidential — View Only" watermark
-- Job title, company name, company logo
-- Link expiry notice
-- Optional: "Interested in joining The Quantum Club?" CTA
+`SharePipelineDialog.tsx` lines 138–143 call a database RPC function `hash_pipeline_share_password` to hash the user's password before storing it:
 
-**Pipeline Board:**
-- All pipeline stages as columns (e.g. Applied → Screen → Interview → Final → Offer)
-- Candidate count per stage
-- Each candidate card shows (controlled by visibility flags):
-  - Name (if `show_candidate_names`)
-  - Current title + company
-  - Match score badge (if `show_match_scores`)
-  - AI summary snippet (if `show_ai_summary`)
-  - Email/LinkedIn only if explicitly enabled by the creator
-
-**No write actions** — no advance/reject/comment buttons. Pure viewing.
-
-**Password Gate (if enabled):**
-- Before showing the pipeline, show a simple password entry form
-- On submit, call the `validate_job_pipeline_share` RPC
-
----
-
-## Where Links Are Created (Share Dialog)
-
-A new `SharePipelineDialog` component is added to `JobDashboard.tsx`, accessible via a "Share Pipeline" button in the job header actions (visible to admin/strategist only, same as the existing Edit Job / Archive buttons).
-
-The dialog lets the creator:
-1. Set expiry: 24h / 48h / 72h / 7 days / 30 days
-2. Set an optional label (e.g. "Sent to Acme partner")
-3. Toggle optional password protection (enter a password if enabled)
-4. Toggle visibility controls: names, emails, LinkedIn, salary, match scores, AI summary
-5. One-click copy generated link
-6. List and revoke existing active links for this job
-
----
-
-## Files to Create / Modify
-
-### New Files
-1. **`src/pages/SharedPipelineView.tsx`** — public page for token-based pipeline access
-2. **`src/components/jobs/SharePipelineDialog.tsx`** — dialog to generate and manage share links
-3. **`src/components/jobs/shared-pipeline/PipelineShareBoard.tsx`** — read-only Kanban board for the shared view
-4. **`src/components/jobs/shared-pipeline/SharedCandidateCard.tsx`** — candidate card respecting visibility flags
-
-### Modified Files
-5. **`src/App.tsx`** — add public route `/pipeline/:token` using `PublicProviders`
-6. **`src/pages/JobDashboard.tsx`** — add "Share Pipeline" button + `SharePipelineDialog`
-7. **Database migration** — create `job_pipeline_shares` table, RLS policies, and `validate_job_pipeline_share` RPC function
-
----
-
-## Technical Implementation — Step by Step
-
-### Step 1: Database Migration
-```sql
--- Table
-CREATE TABLE public.job_pipeline_shares (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  job_id uuid NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
-  created_by uuid NOT NULL,
-  token text NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
-  expires_at timestamptz NOT NULL,
-  password_hash text,
-  is_active boolean NOT NULL DEFAULT true,
-  view_count integer NOT NULL DEFAULT 0,
-  label text,
-  show_candidate_names boolean NOT NULL DEFAULT true,
-  show_candidate_emails boolean NOT NULL DEFAULT false,
-  show_candidate_linkedin boolean NOT NULL DEFAULT false,
-  show_salary_data boolean NOT NULL DEFAULT false,
-  show_match_scores boolean NOT NULL DEFAULT true,
-  show_ai_summary boolean NOT NULL DEFAULT true,
-  show_contact_info boolean NOT NULL DEFAULT false,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+```typescript
+const { data: hashData, error: hashError } = await supabase.rpc(
+  'hash_pipeline_share_password' as any,
+  { _password: password.trim() }
 );
-
--- RLS
-ALTER TABLE public.job_pipeline_shares ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins and strategists can manage pipeline shares"
-  ON public.job_pipeline_shares
-  FOR ALL
-  USING (
-    has_role(auth.uid(), 'admin'::app_role)
-    OR has_role(auth.uid(), 'strategist'::app_role)
-  );
-
--- Validation RPC (SECURITY DEFINER — bypasses RLS for anonymous callers)
-CREATE OR REPLACE FUNCTION public.validate_job_pipeline_share(
-  _token text,
-  _password text DEFAULT NULL
-)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  _share job_pipeline_shares;
-BEGIN
-  SELECT * INTO _share
-  FROM public.job_pipeline_shares
-  WHERE token = _token
-    AND is_active = true
-    AND expires_at > now();
-
-  IF NOT FOUND THEN
-    RETURN NULL;
-  END IF;
-
-  -- Check password if set
-  IF _share.password_hash IS NOT NULL THEN
-    IF _password IS NULL OR crypt(_password, _share.password_hash) <> _share.password_hash THEN
-      RETURN jsonb_build_object('error', 'invalid_password');
-    END IF;
-  END IF;
-
-  -- Increment view count
-  UPDATE public.job_pipeline_shares
-  SET view_count = view_count + 1, updated_at = now()
-  WHERE id = _share.id;
-
-  RETURN jsonb_build_object(
-    'job_id', _share.job_id,
-    'show_candidate_names', _share.show_candidate_names,
-    'show_candidate_emails', _share.show_candidate_emails,
-    'show_candidate_linkedin', _share.show_candidate_linkedin,
-    'show_salary_data', _share.show_salary_data,
-    'show_match_scores', _share.show_match_scores,
-    'show_ai_summary', _share.show_ai_summary,
-    'show_contact_info', _share.show_contact_info,
-    'expires_at', _share.expires_at
-  );
-END;
-$$;
+payload.password_hash = hashData || null;  // ← null on failure
 ```
 
-The `validate_job_pipeline_share` function is `SECURITY DEFINER` — anonymous users call it and it validates without exposing any row directly via RLS. The full `job_pipeline_shares` table remains inaccessible to anon.
+The function `hash_pipeline_share_password` **does not exist** in the database. Verified via direct query — `SELECT proname FROM pg_proc WHERE proname = 'hash_pipeline_share_password'` returns empty. When the RPC fails, `hashData` is `undefined`, so `payload.password_hash = null`.
 
-### Step 2: `SharedPipelineView.tsx` (Public Page)
-- Reads `:token` from URL params
-- First renders a loading state
-- If the share has a password, shows a password entry card before fetching job data
-- Calls `validate_job_pipeline_share(token, password?)` via `supabase.rpc()`
-- On success, receives `job_id` + visibility settings
-- Fetches job data (title, company, stages) from `jobs` table — uses the existing RLS policy which allows public read of non-stealth jobs
-- Fetches applications with candidate names, titles (fields that are already partially public), filtered by visibility flags
-- Renders `PipelineShareBoard` — a read-only Kanban layout
-- Footer: expiry notice, TQC branding, "Join The Quantum Club" CTA
+The link is inserted with `password_hash = NULL`. The `check_pipeline_share_requires_password` RPC then returns `requires_password: false`. The password gate is **never displayed**. Anyone with the link URL bypasses the password entirely, even though the creator believed the link was protected.
 
-### Step 3: `PipelineShareBoard.tsx` + `SharedCandidateCard.tsx`
-- Horizontally scrollable Kanban columns (one per pipeline stage)
-- Each column shows count badge + candidate cards
-- `SharedCandidateCard` renders: avatar initials, name (if allowed), title/company, match score badge, AI summary excerpt — zero action buttons
-- Clean dark TQC aesthetic, consistent with `DossierView.tsx` branding
+There is no error shown to the user when `hash_pipeline_share_password` fails — the toast fires "Share link copied to clipboard" as if everything worked. The user has no idea the password was silently dropped.
 
-### Step 4: `SharePipelineDialog.tsx`
-A dialog (mirrors `ShareProfileDialog.tsx` pattern) containing:
-- Expiry duration select (24h, 48h, 72h, 7d, 30d)
-- Optional label text input
-- Password toggle + input
-- Visibility toggles (names, emails, LinkedIn, match scores, AI summary)
-- "Generate Link" button → calls RPC `generate_share_token` → inserts into `job_pipeline_shares`
-- Link display with copy button + open in new tab
-- List of existing active shares with view count, expiry, revoke button
+**What should have been done**: Either implement the `hash_pipeline_share_password` function using `pgcrypto`'s `crypt()` function (one line of SQL), or hash the password inside the `validate` function itself by storing a salted hash at insert time using a proper `insert_pipeline_share` SECURITY DEFINER RPC. The `as any` TypeScript cast masked this missing function entirely.
 
-### Step 5: Wire into `JobDashboard.tsx`
-Add a `Share` button to the top header actions area (beside the existing Edit/Archive/Delete dropdown), visible only to `admin` and `strategist` roles. Opens `SharePipelineDialog`.
+---
 
-### Step 6: Register Public Route in `App.tsx`
-```tsx
-<Route path="/pipeline/:token" element={
-  <PublicProviders>
-    <RouteErrorBoundary>
-      <Suspense fallback={<PageLoader />}><SharedPipelineView /></Suspense>
-    </RouteErrorBoundary>
-  </PublicProviders>
-} />
+### Bug 3 (Fatal): AI summaries are wired to a non-existent column — always null
+
+**Severity: High. Feature-breaking.**
+
+`SharedPipelineView.tsx` line 158 fetches `ai_summary` from the `applications` table:
+
+```typescript
+supabase.from('applications').select(`id, current_stage_index, applied_at, match_score, ai_summary, candidate_id, user_id`)
 ```
 
----
+The `applications` table **does not have an `ai_summary` column**. Verified via `SELECT column_name FROM information_schema.columns WHERE table_name = 'applications'` — the column is absent. `ai_summary` lives on `candidate_profiles`.
 
-## Security Model
+Furthermore, even if the code were fixed to fetch from `candidate_profiles`, the candidate profiles query only selects:
+```typescript
+.select('id, full_name, current_title, current_company, email, linkedin_url')
+```
+`ai_summary` is not in that select list either.
 
-| Concern | How It Is Handled |
-|---|---|
-| Anonymous access to pipeline data | Only possible via a valid, unexpired, active token. No direct table access via anon RLS. |
-| Password protection | `bcrypt` via `pgcrypto.crypt()` server-side. Password never stored in plaintext. |
-| Candidate PII exposure | Field-level visibility flags stored on the share row. Enforced server-side by only selecting the permitted columns. |
-| Token guessing | 32-byte random hex = 64-character token. Brute force infeasible. |
-| Revocation | `is_active = false` immediately invalidates the link without deleting audit history. |
-| Admin notes / internal data | Never included in the shared view. Only candidate-facing profile data. |
-| Salary data | Hidden by default behind `show_salary_data = false` flag. |
+**Result**: `application.ai_summary` is always `undefined`. The AI summary section in `SharedCandidateCard` never renders — even if `show_ai_summary = true`. The "AI-enriched" part of the enriched profile is completely non-functional.
 
 ---
 
-## Candidate Data Privacy (Employer Shield)
+## High Severity Issues
 
-The `blocked_companies` field on `candidate_profiles` and the employer shield logic are **not exposed** in the shared view. Only general profile data (name, title, company, AI summary) is shown, controlled by visibility flags. Sensitive internal fields (`internal_rating`, `ai_concerns`, `personality_insights`) are never included.
+### Issue 4 (High): password_hash is returned to the frontend in `select('*')`
+
+`fetchShares()` in `SharePipelineDialog.tsx` calls:
+```typescript
+supabase.from('job_pipeline_shares').select('*')
+```
+The `job_pipeline_shares` table has a `password_hash` column. The `select('*')` returns the bcrypt hash to every admin/strategist who opens the dialog. While bcrypt is one-way, exposing hashes to the frontend is unnecessary and violates data minimization principles. The `ShareLink` interface even includes `password_hash: string | null` in its type definition — the hash is actively being used (to show the "Protected" badge). The hash should never leave the server. Use a boolean `is_password_protected` column instead.
+
+### Issue 5 (High): Email and LinkedIn are fetched from the database regardless of visibility flags — client-side filtering only
+
+`fetchPipelineData` always fetches `email` and `linkedin_url` from `candidate_profiles` for every candidate, regardless of whether `show_candidate_emails` or `show_candidate_linkedin` are enabled. The filtering happens client-side:
+```typescript
+email: shareMeta.show_candidate_emails ? cp?.email : undefined,
+linkedin_url: shareMeta.show_candidate_linkedin ? cp?.linkedin_url : undefined,
+```
+This means candidate PII (email addresses, LinkedIn URLs) is transmitted over the network to the anonymous viewer's browser even when the creator disabled those fields. Any person with browser dev tools can inspect the network response and extract all emails and LinkedIn URLs regardless of what visibility flags are set. Server-side filtering is mandatory for PII.
+
+### Issue 6 (High): No rate limiting or brute-force protection on password validation
+
+`validate_job_pipeline_share` can be called infinitely with incorrect passwords. There is no attempt counter, no lockout, no CAPTCHA, no IP-based rate limiting. A 6-character alphanumeric password has approximately 2 billion combinations — while this is high, there is nothing preventing automated attacks. The existing `detect_brute_force_attacks` and `check_rate_limit` functions in the database are not wired to this endpoint at all.
+
+### Issue 7 (High): No audit logging for anonymous pipeline views
+
+Every view of a shared pipeline increments `view_count` but logs nothing else. There is no record of when the link was accessed, from what IP, or whether the view was successful or failed (wrong password). The `audit_logs` table exists in the system but is not used here. For a "Confidential — View Only" feature targeting executive talent, this is a significant gap.
+
+### Issue 8 (High): Stage index matching is fragile — candidates may appear in wrong columns
+
+`PipelineShareBoard` matches candidates to stages using:
+```typescript
+applications.filter((app) => app.current_stage_index === stageOrder)
+```
+where `stageOrder` is `stage.order` from the `pipeline_stages` JSONB. Looking at real data, pipeline stages use `order: 0, 1, 2, 3...` as sequential integers. This works for simple pipelines, but for jobs like "SocialElite" where stages have `order: 2, 3, 4, 5` (skipping 0 and 1 for the Applied/Screening stages that were added later), candidates whose `current_stage_index` doesn't match any `stage.order` will simply not appear in any column. The board silently drops them.
 
 ---
 
-## Summary of All Files
+## Medium Severity Issues
 
-| File | Action | Purpose |
-|---|---|---|
-| Database migration | Create | `job_pipeline_shares` table + RLS + `validate_job_pipeline_share` RPC |
-| `src/pages/SharedPipelineView.tsx` | Create | Public token-validated pipeline viewer |
-| `src/components/jobs/SharePipelineDialog.tsx` | Create | Link generation + management dialog |
-| `src/components/jobs/shared-pipeline/PipelineShareBoard.tsx` | Create | Read-only Kanban board for shared view |
-| `src/components/jobs/shared-pipeline/SharedCandidateCard.tsx` | Create | Candidate card respecting visibility flags |
-| `src/App.tsx` | Modify | Add `/pipeline/:token` public route |
-| `src/pages/JobDashboard.tsx` | Modify | Add "Share Pipeline" button + dialog |
+### Issue 9 (Medium): TypeScript type safety completely bypassed with `as any`
+
+Throughout the implementation, `job_pipeline_shares` is cast with `as any` because the table is not in the generated `types.ts`:
+```typescript
+supabase.from('job_pipeline_shares' as any)
+supabase.rpc('validate_job_pipeline_share' as any, ...)
+supabase.rpc('hash_pipeline_share_password' as any, ...)
+```
+This is the direct reason Bug 2 went undetected — TypeScript would have caught the missing function if it had been in the type definitions. The pattern of using `as any` to bypass type errors is what allowed the broken password hashing to ship silently.
+
+### Issue 10 (Medium): The view count is incremented on every page load, including reloads and tab-reopens
+
+There is no session-level deduplication on `view_count`. Every call to `validateAndLoad()` increments the counter. If a viewer refreshes the page, the count goes up by 1. For non-password links, `checkToken()` calls `validateAndLoad(null)` immediately on mount — so even bot crawlers or link previews (e.g. Slack unfurling) increment the view count. This makes the metric misleading.
+
+### Issue 11 (Medium): The "Share" button has no visual indicator of active share links
+
+When active shares exist for a job, the "Share" button in `JobDashboard.tsx` looks identical to when none exist. There is no badge count, no dot indicator, nothing that tells the admin "this job currently has 2 active shared links." A strategist could accidentally create a 4th link without realizing 3 are already active and being viewed.
+
+### Issue 12 (Medium): No confirmation dialog before revoke
+
+Clicking the revoke (trash) icon in `ShareLinkRow` immediately calls `handleRevoke()` with no confirmation. If an external partner is actively viewing the pipeline in a browser tab, they lose access instantly without warning. A two-step confirm is standard for destructive actions.
+
+### Issue 13 (Medium): `current_company` is always shown regardless of name visibility
+
+In `SharedCandidateCard`, `current_company` is rendered unconditionally — there is no visibility flag controlling it. Even when `show_candidate_names = false` and `show_candidate_emails = false`, the candidate's current employer is always visible. For candidates with `employer_shield` / stealth mode enabled, this could expose which company they currently work at to external viewers.
+
+### Issue 14 (Medium): Password field accepts any length including 1-character passwords
+
+The `SharePipelineDialog` only checks `!password.trim()` before creating a link. There is no minimum length, no strength validation, no complexity requirement. A strategist could set "a" as the pipeline password, providing essentially zero security while believing the link is protected.
+
+---
+
+## Low Severity Issues
+
+### Issue 15 (Low): No "no candidates" state for the full board when pipeline is empty
+
+When all stages have 0 candidates (either genuinely empty or due to Bug 1), the board renders a full horizontal Kanban with each column showing "No candidates." There is no higher-level empty state that explains why the pipeline appears empty to an external viewer who may think the link is broken.
+
+### Issue 16 (Low): Expired links show in the dialog but cannot be cleaned up
+
+`expiredShares` are displayed indefinitely. There is no bulk-delete or cleanup option. A job with a 12-month lifespan could accumulate dozens of expired links in the dialog with no way to clear them other than individually, with no revoke button shown for already-expired entries.
+
+### Issue 17 (Low): The `show_contact_info` flag is redundant and misleading
+
+The `job_pipeline_shares` table has both `show_candidate_emails`, `show_candidate_linkedin`, AND `show_contact_info`. The insert logic sets `show_contact_info: showEmails || showLinkedin`. This creates a third flag that is derivable from the other two and adds confusion. The `SharedCandidateCard` uses `show_candidate_emails` and `show_candidate_linkedin` directly for rendering — `show_contact_info` is never checked.
+
+### Issue 18 (Low): The route `/pipeline/:token` conflicts with potential future routes
+
+The token route is registered at top level without a namespace prefix. If a token happened to be a UUID like `new` or `create`, routing ambiguity could arise. More practically, there is no 404 handling in the router — the `SharedPipelineView` handles its own error state, but a completely malformed URL `/pipeline/` with no token renders the loading state forever (the `token` param would be `undefined`, the guard fires, but `setViewState('error')` is followed by a `navigate` call to `/auth` which is jarring for external users).
+
+---
+
+## What Works Correctly
+
+1. The database migration is structurally sound — table schema, RLS policy for authenticated users, and the `validate_job_pipeline_share` SECURITY DEFINER function are well-designed.
+2. The `SECURITY DEFINER` approach for token validation is the correct pattern and properly excludes `password_hash` from the return payload.
+3. The token generation (`encode(gen_random_bytes(32), 'hex')`) is cryptographically strong — 64-character hex token, 256 bits of entropy.
+4. The `bcrypt` comparison logic within `validate_job_pipeline_share` is correct (the comparison `crypt(input, hash) = hash` is the proper pgcrypto pattern) — it just never runs because hashes are never stored.
+5. Role-gating the "Share" button to admin/strategist only in `JobDashboard.tsx` is correctly implemented.
+6. The UI of the Kanban board and candidate cards is well-designed for the TQC aesthetic.
+7. The expiry display and `formatDistanceToNow` usage is clean and correct.
+8. Revocation via `is_active = false` (rather than deletion) correctly preserves audit history.
+
+---
+
+## Scoring Breakdown
+
+| Category | Max | Score | Reason |
+|---|---|---|---|
+| Core functionality | 35 | 0 | Feature is completely non-functional — anon cannot read any data |
+| Security | 25 | 8 | Token strength and SECURITY DEFINER pattern are good; password is broken, PII leaked client-side, no rate limiting |
+| Data correctness | 15 | 3 | ai_summary mapped to wrong table; stage matching fragile; email/LinkedIn always fetched |
+| UI/UX | 15 | 12 | Well-designed dialog and board; missing empty state, revoke confirmation, active share indicator |
+| Code quality | 10 | 8 | Clean component structure; `as any` casts throughout mask critical bugs |
+
+**Total: 31 / 100**
+
+---
+
+## The Fix Priority List (Ordered by Impact)
+
+1. **Blocker**: Add `get_pipeline_share_data(_token, _password)` SECURITY DEFINER RPC that returns all job + application + candidate data in one server-side call. Remove direct anon queries to `applications` and `candidate_profiles`.
+2. **Blocker**: Create `hash_pipeline_share_password(_password text) RETURNS text` as `SECURITY DEFINER` using `crypt(_password, gen_salt('bf'))`. Wire correctly in dialog.
+3. **Blocker**: Add `ai_summary` to the candidate_profiles select in the data fetch, and pass it through to the Application type.
+4. **High**: Server-side PII filtering — do not return email/LinkedIn to the browser unless flags are set.
+5. **High**: Add rate limiting to `validate_job_pipeline_share` (attempt counter per token, lock after 10 failures).
+6. **High**: Replace `select('*')` with explicit column list excluding `password_hash` in the dialog.
+7. **Medium**: Add a `is_password_protected` boolean column, remove `password_hash` from all client-facing queries.
+8. **Medium**: Add revoke confirmation dialog.
+9. **Medium**: Add active share count badge to the Share button.
+10. **Medium**: Add password minimum length validation (8+ characters).
