@@ -9,7 +9,7 @@ export const quickTips: QuickTip[] = [
     description: 'Learn the 3-step framework top earners use to increase offers by 15-25%',
     icon: 'Target',
     actionLabel: 'View Insights',
-    actionLink: '/salary-insights',
+    actionLink: '/analytics?tab=salary',
     readTime: '3 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -20,7 +20,7 @@ export const quickTips: QuickTip[] = [
     description: 'Strategic guide to transitioning industries without starting over',
     icon: 'TrendingUp',
     actionLabel: 'Plan Your Path',
-    actionLink: '/career-path',
+    actionLink: '/analytics?tab=career-path',
     readTime: '4 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -86,7 +86,7 @@ export const quickTips: QuickTip[] = [
     description: 'Navigate the transition from IC to people leader',
     icon: 'Crown',
     actionLabel: 'Plan Career',
-    actionLink: '/career-path',
+    actionLink: '/analytics?tab=career-path',
     readTime: '5 min',
     gradient: 'from-amber-500/20 to-amber-600/10'
   },
@@ -99,7 +99,7 @@ export const quickTips: QuickTip[] = [
     description: 'Stand out by asking questions that demonstrate strategic thinking',
     icon: 'MessageSquare',
     actionLabel: 'Prepare Now',
-    actionLink: '/interview-prep',
+    actionLink: '/jobs?tab=interview-prep',
     readTime: '2 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -110,7 +110,7 @@ export const quickTips: QuickTip[] = [
     description: 'Master behavioral interviews with this proven storytelling framework',
     icon: 'BookOpen',
     actionLabel: 'Learn Method',
-    actionLink: '/interview-prep',
+    actionLink: '/jobs?tab=interview-prep',
     readTime: '3 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -121,7 +121,7 @@ export const quickTips: QuickTip[] = [
     description: 'Non-verbal cues that signal confidence and competence',
     icon: 'Eye',
     actionLabel: 'View Tips',
-    actionLink: '/interview-prep',
+    actionLink: '/jobs?tab=interview-prep',
     readTime: '3 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -143,7 +143,7 @@ export const quickTips: QuickTip[] = [
     description: 'Navigate "weakness", "failure", and salary questions with ease',
     icon: 'AlertCircle',
     actionLabel: 'Prepare Now',
-    actionLink: '/interview-prep',
+    actionLink: '/jobs?tab=interview-prep',
     readTime: '4 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -165,7 +165,7 @@ export const quickTips: QuickTip[] = [
     description: 'Closing the deal when you\'re in the last interview stage',
     icon: 'Check',
     actionLabel: 'Prepare Now',
-    actionLink: '/interview-prep',
+    actionLink: '/jobs?tab=interview-prep',
     readTime: '4 min',
     gradient: 'from-blue-500/20 to-blue-600/10'
   },
@@ -257,7 +257,7 @@ export const quickTips: QuickTip[] = [
     description: 'Which skills are in highest demand and what companies are paying',
     icon: 'TrendingUp',
     actionLabel: 'View Insights',
-    actionLink: '/salary-insights',
+    actionLink: '/analytics?tab=salary',
     readTime: '4 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -268,7 +268,7 @@ export const quickTips: QuickTip[] = [
     description: 'Know your market value before negotiating your next offer',
     icon: 'DollarSign',
     actionLabel: 'Check Benchmarks',
-    actionLink: '/salary-insights',
+    actionLink: '/analytics?tab=salary',
     readTime: '3 min',
     gradient: 'from-muted/30 to-muted/10'
   },
@@ -314,7 +314,7 @@ export const quickTips: QuickTip[] = [
     description: 'Marcus shares how he leveraged transferable skills for a fresh start',
     icon: 'UserCheck',
     actionLabel: 'Plan Your Path',
-    actionLink: '/career-path',
+    actionLink: '/analytics?tab=career-path',
     readTime: '4 min',
     gradient: 'from-muted/30 to-muted/10'
   },

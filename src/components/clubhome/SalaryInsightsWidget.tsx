@@ -218,7 +218,7 @@ export function SalaryInsightsWidget() {
           variant="ghost"
           size="sm"
           className="w-full justify-between text-primary hover:text-primary"
-          onClick={() => navigate('/salary-insights')}
+          onClick={() => navigate('/analytics?tab=salary')}
         >
           <span>View Full Analysis</span>
           <ArrowRight className="w-4 h-4" />

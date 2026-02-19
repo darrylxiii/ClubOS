@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,6 +67,8 @@ interface Booking {
 
 export default function Scheduling() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'links';
   const [bookingLinks, setBookingLinks] = useState<BookingLink[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
   const [connectedCalendars, setConnectedCalendars] = useState<any[]>([]);
@@ -822,7 +825,7 @@ export default function Scheduling() {
           />
         )}
 
-        <Tabs defaultValue="links" className="w-full">
+        <Tabs value={currentTab} onValueChange={(val) => setSearchParams({ tab: val }, { replace: true })} className="w-full">
           <TabsList className="flex-wrap h-auto gap-1 py-1">
             <TabsTrigger value="links">
               <LinkIcon className="h-4 w-4 mr-2" />

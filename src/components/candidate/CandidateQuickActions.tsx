@@ -61,7 +61,7 @@ export function CandidateQuickActions({
       icon: DollarSign,
       label: "Salary Insights",
       description: "Market intelligence",
-      path: "/salary-insights",
+      path: "/analytics?tab=salary",
       variant: "outline",
       condition: true
     },
@@ -69,7 +69,7 @@ export function CandidateQuickActions({
       icon: MessageSquare,
       label: "Interview Prep",
       description: "Practice & tips",
-      path: "/interview-prep",
+      path: "/jobs?tab=interview-prep",
       variant: "outline",
       condition: true
     },
@@ -77,7 +77,7 @@ export function CandidateQuickActions({
       icon: Target,
       label: "Career Path",
       description: "Plan your growth",
-      path: "/career-path",
+      path: "/analytics?tab=career-path",
       variant: "outline",
       condition: true
     },
