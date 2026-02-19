@@ -29,6 +29,7 @@ import { VATRegisterTable } from "@/components/financial/VATRegisterTable";
 import { EmployeeCommissionsTable } from "@/components/financial/EmployeeCommissionsTable";
 import { FinancialExportMenu } from "@/components/financial/FinancialExportMenu";
 import { CurrencySelector } from "@/components/financial/CurrencySelector";
+import { EntitySelector, LegalEntityFilter } from "@/components/financial/EntitySelector";
 import { useRole } from "@/contexts/RoleContext";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -37,9 +38,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
-  const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials(selectedYear);
-  const { isSyncing } = useAutoSyncFinancials(selectedYear);
-  const { data: fees, isLoading: feesLoading } = usePlacementFeesWithContext(selectedYear);
+  const [legalEntity, setLegalEntity] = useState<LegalEntityFilter>('all');
+  const entityParam = legalEntity === 'all' ? undefined : legalEntity;
+  const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials(selectedYear, entityParam);
+  const { isSyncing } = useAutoSyncFinancials(selectedYear, entityParam);
+  const { data: fees, isLoading: feesLoading } = usePlacementFeesWithContext(selectedYear, entityParam);
   const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices();
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
   const { currentRole } = useRole();
@@ -143,6 +146,7 @@ export default function FinancialDashboard() {
           )}
         </p>
         <div className="flex items-center gap-2">
+          <EntitySelector value={legalEntity} onChange={setLegalEntity} />
           <CurrencySelector value={displayCurrency} onChange={setDisplayCurrency} />
           {isFinanceOrAdmin && (
             <FinancialExportMenu datasets={exportDatasets} plSummary={plData || undefined} year={selectedYear} />
@@ -169,7 +173,7 @@ export default function FinancialDashboard() {
           <CardDescription>Monthly invoiced vs collected revenue</CardDescription>
         </CardHeader>
         <CardContent>
-          <FinancialOverviewChart year={selectedYear} />
+          <FinancialOverviewChart year={selectedYear} legalEntity={entityParam} />
         </CardContent>
       </Card>
 
@@ -290,7 +294,7 @@ export default function FinancialDashboard() {
             </TabsContent>
 
             <TabsContent value="vat" className="space-y-6">
-              <VATLiabilityCard year={selectedYear} />
+              <VATLiabilityCard year={selectedYear} legalEntity={entityParam} />
               <Card>
                 <CardHeader>
                   <CardTitle>VAT Register</CardTitle>

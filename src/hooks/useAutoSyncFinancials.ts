@@ -4,8 +4,8 @@ import { useMoneybirdFinancials, useSyncMoneybirdFinancials } from "./useMoneybi
 const STALE_THRESHOLD_MS = 6 * 60 * 60 * 1000; // 6 hours
 const SYNC_DEBOUNCE_MS = 2 * 60 * 1000; // 2 minutes between syncs
 
-export function useAutoSyncFinancials(year: number) {
-  const { data: metrics, isLoading } = useMoneybirdFinancials(year);
+export function useAutoSyncFinancials(year: number, legalEntity?: string) {
+  const { data: metrics, isLoading } = useMoneybirdFinancials(year, legalEntity);
   const { mutate: syncFinancials, isPending: isSyncing } = useSyncMoneybirdFinancials();
   const lastSyncAttempt = useRef<number>(0);
   const hasTriggeredSync = useRef<number | null>(null);

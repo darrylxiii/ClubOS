@@ -24,16 +24,22 @@ export interface VATQuarterData {
 
 const VAT_RATE = 0.21;
 
-export function useVATSummary(year?: number) {
+export function useVATSummary(year?: number, legalEntity?: string) {
   const currentYear = year || new Date().getFullYear();
 
   return useQuery({
-    queryKey: ['vat-summary', currentYear],
+    queryKey: ['vat-summary', currentYear, legalEntity],
     queryFn: async (): Promise<VATSummary> => {
-      const { data: invoices, error } = await supabase
+      let query = supabase
         .from('moneybird_sales_invoices')
         .select('total_amount, net_amount, vat_amount, state_normalized, paid_amount')
         .eq('year', currentYear);
+
+      if (legalEntity && legalEntity !== 'all') {
+        query = query.eq('legal_entity', legalEntity);
+      }
+
+      const { data: invoices, error } = await query;
 
       if (error) throw error;
 
@@ -84,17 +90,23 @@ export function useVATSummary(year?: number) {
   });
 }
 
-export function useVATByQuarter(year?: number) {
+export function useVATByQuarter(year?: number, legalEntity?: string) {
   const currentYear = year || new Date().getFullYear();
 
   return useQuery({
-    queryKey: ['vat-by-quarter', currentYear],
+    queryKey: ['vat-by-quarter', currentYear, legalEntity],
     queryFn: async (): Promise<VATQuarterData[]> => {
-      const { data: invoices, error } = await supabase
+      let query = supabase
         .from('moneybird_sales_invoices')
         .select('invoice_date, total_amount, net_amount, vat_amount, state_normalized, paid_amount, unpaid_amount')
         .eq('year', currentYear)
         .not('state_normalized', 'in', '("draft","scheduled")');
+
+      if (legalEntity && legalEntity !== 'all') {
+        query = query.eq('legal_entity', legalEntity);
+      }
+
+      const { data: invoices, error } = await query;
 
       if (error) throw error;
 

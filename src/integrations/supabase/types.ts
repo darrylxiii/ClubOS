@@ -18252,6 +18252,7 @@ export type Database = {
           gross_amount: number
           id: string
           job_title: string | null
+          legal_entity: string | null
           net_amount: number | null
           notes: string | null
           paid_at: string | null
@@ -18278,6 +18279,7 @@ export type Database = {
           gross_amount: number
           id?: string
           job_title?: string | null
+          legal_entity?: string | null
           net_amount?: number | null
           notes?: string | null
           paid_at?: string | null
@@ -18304,6 +18306,7 @@ export type Database = {
           gross_amount?: number
           id?: string
           job_title?: string | null
+          legal_entity?: string | null
           net_amount?: number | null
           notes?: string | null
           paid_at?: string | null
@@ -18331,6 +18334,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employee_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_commissions_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "employee_commissions_placement_fee_id_fkey"
@@ -19533,6 +19543,7 @@ export type Database = {
           event_type: string
           id: string
           is_processed: boolean | null
+          legal_entity: string | null
           metadata: Json | null
           processed_at: string | null
         }
@@ -19546,6 +19557,7 @@ export type Database = {
           event_type: string
           id?: string
           is_processed?: boolean | null
+          legal_entity?: string | null
           metadata?: Json | null
           processed_at?: string | null
         }
@@ -19559,6 +19571,7 @@ export type Database = {
           event_type?: string
           id?: string
           is_processed?: boolean | null
+          legal_entity?: string | null
           metadata?: Json | null
           processed_at?: string | null
         }
@@ -19577,6 +19590,13 @@ export type Database = {
             referencedRelation: "public_companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "financial_events_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
+          },
         ]
       }
       financial_forecasts: {
@@ -19586,6 +19606,7 @@ export type Database = {
           created_at: string | null
           forecast_month: string
           id: string
+          legal_entity: string | null
           metadata: Json | null
           predicted_placement_revenue: number | null
           predicted_subscription_revenue: number | null
@@ -19598,6 +19619,7 @@ export type Database = {
           created_at?: string | null
           forecast_month: string
           id?: string
+          legal_entity?: string | null
           metadata?: Json | null
           predicted_placement_revenue?: number | null
           predicted_subscription_revenue?: number | null
@@ -19610,13 +19632,22 @@ export type Database = {
           created_at?: string | null
           forecast_month?: string
           id?: string
+          legal_entity?: string | null
           metadata?: Json | null
           predicted_placement_revenue?: number | null
           predicted_subscription_revenue?: number | null
           updated_at?: string | null
           variance_percentage?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "financial_forecasts_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       financial_settings: {
         Row: {
@@ -25929,6 +25960,69 @@ export type Database = {
           },
         ]
       }
+      legal_entities: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          bank_account_holder: string | null
+          bank_bic: string | null
+          bank_iban: string | null
+          bank_name: string | null
+          city: string | null
+          code: string
+          company_registration: string | null
+          country: string | null
+          country_code: string
+          created_at: string | null
+          currency_code: string
+          display_name: string
+          is_active: boolean | null
+          postal_code: string | null
+          vat_number: string | null
+          vat_rate: number
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          bank_account_holder?: string | null
+          bank_bic?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          city?: string | null
+          code: string
+          company_registration?: string | null
+          country?: string | null
+          country_code: string
+          created_at?: string | null
+          currency_code?: string
+          display_name: string
+          is_active?: boolean | null
+          postal_code?: string | null
+          vat_number?: string | null
+          vat_rate?: number
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          bank_account_holder?: string | null
+          bank_bic?: string | null
+          bank_iban?: string | null
+          bank_name?: string | null
+          city?: string | null
+          code?: string
+          company_registration?: string | null
+          country?: string | null
+          country_code?: string
+          created_at?: string | null
+          currency_code?: string
+          display_name?: string
+          is_active?: boolean | null
+          postal_code?: string | null
+          vat_number?: string | null
+          vat_rate?: number
+        }
+        Relationships: []
+      }
       linkedin_avatar_accounts: {
         Row: {
           about: string | null
@@ -31637,6 +31731,7 @@ export type Database = {
           invoice_count_open: number | null
           invoice_count_paid: number | null
           last_synced_at: string | null
+          legal_entity: string | null
           metadata: Json | null
           net_revenue: number | null
           payment_aging: Json | null
@@ -31662,6 +31757,7 @@ export type Database = {
           invoice_count_open?: number | null
           invoice_count_paid?: number | null
           last_synced_at?: string | null
+          legal_entity?: string | null
           metadata?: Json | null
           net_revenue?: number | null
           payment_aging?: Json | null
@@ -31687,6 +31783,7 @@ export type Database = {
           invoice_count_open?: number | null
           invoice_count_paid?: number | null
           last_synced_at?: string | null
+          legal_entity?: string | null
           metadata?: Json | null
           net_revenue?: number | null
           payment_aging?: Json | null
@@ -31704,7 +31801,15 @@ export type Database = {
           vat_collected?: number | null
           vat_outstanding?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "moneybird_financial_metrics_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       moneybird_invoice_sync: {
         Row: {
@@ -31769,6 +31874,7 @@ export type Database = {
           invoice_date: string | null
           invoice_number: string | null
           invoice_type: string | null
+          legal_entity: string | null
           moneybird_id: string
           net_amount: number
           paid_amount: number
@@ -31806,6 +31912,7 @@ export type Database = {
           invoice_date?: string | null
           invoice_number?: string | null
           invoice_type?: string | null
+          legal_entity?: string | null
           moneybird_id: string
           net_amount?: number
           paid_amount?: number
@@ -31843,6 +31950,7 @@ export type Database = {
           invoice_date?: string | null
           invoice_number?: string | null
           invoice_type?: string | null
+          legal_entity?: string | null
           moneybird_id?: string
           net_amount?: number
           paid_amount?: number
@@ -31912,6 +32020,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "moneybird_sales_invoices_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
+          },
+          {
             foreignKeyName: "moneybird_sales_invoices_placement_fee_id_fkey"
             columns: ["placement_fee_id"]
             isOneToOne: false
@@ -31931,6 +32046,7 @@ export type Database = {
           default_tax_rate_id: string | null
           id: string
           is_active: boolean | null
+          legal_entity: string | null
           refresh_token: string | null
           sync_preferences: Json | null
           token_expires_at: string | null
@@ -31947,6 +32063,7 @@ export type Database = {
           default_tax_rate_id?: string | null
           id?: string
           is_active?: boolean | null
+          legal_entity?: string | null
           refresh_token?: string | null
           sync_preferences?: Json | null
           token_expires_at?: string | null
@@ -31963,13 +32080,22 @@ export type Database = {
           default_tax_rate_id?: string | null
           id?: string
           is_active?: boolean | null
+          legal_entity?: string | null
           refresh_token?: string | null
           sync_preferences?: Json | null
           token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "moneybird_settings_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       moneybird_sync_logs: {
         Row: {
@@ -32852,6 +32978,7 @@ export type Database = {
           expense_date: string
           id: string
           is_recurring: boolean | null
+          legal_entity: string | null
           notes: string | null
           receipt_url: string | null
           recurring_frequency: string | null
@@ -32870,6 +32997,7 @@ export type Database = {
           expense_date: string
           id?: string
           is_recurring?: boolean | null
+          legal_entity?: string | null
           notes?: string | null
           receipt_url?: string | null
           recurring_frequency?: string | null
@@ -32888,6 +33016,7 @@ export type Database = {
           expense_date?: string
           id?: string
           is_recurring?: boolean | null
+          legal_entity?: string | null
           notes?: string | null
           receipt_url?: string | null
           recurring_frequency?: string | null
@@ -32902,6 +33031,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "expense_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operating_expenses_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -35797,6 +35933,7 @@ export type Database = {
           id: string
           invoice_id: string | null
           job_id: string | null
+          legal_entity: string | null
           notes: string | null
           partner_company_id: string | null
           payment_due_date: string | null
@@ -35835,6 +35972,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           job_id?: string | null
+          legal_entity?: string | null
           notes?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
@@ -35873,6 +36011,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           job_id?: string | null
+          legal_entity?: string | null
           notes?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
@@ -35950,6 +36089,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "jobs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "placement_fees_partner_company_id_fkey"
@@ -41263,6 +41409,7 @@ export type Database = {
           created_at: string | null
           currency_code: string | null
           id: string
+          legal_entity: string | null
           notes: string | null
           paid_at: string | null
           payment_details: Json | null
@@ -41287,6 +41434,7 @@ export type Database = {
           created_at?: string | null
           currency_code?: string | null
           id?: string
+          legal_entity?: string | null
           notes?: string | null
           paid_at?: string | null
           payment_details?: Json | null
@@ -41311,6 +41459,7 @@ export type Database = {
           created_at?: string | null
           currency_code?: string | null
           id?: string
+          legal_entity?: string | null
           notes?: string | null
           paid_at?: string | null
           payment_details?: Json | null
@@ -41381,6 +41530,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_payouts_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -51275,6 +51431,7 @@ export type Database = {
           department: string | null
           expected_bank_reference: string | null
           id: string
+          legal_entity: string | null
           linked_bank_account: string | null
           monthly_cost: number
           next_billing_date: string | null
@@ -51307,6 +51464,7 @@ export type Database = {
           department?: string | null
           expected_bank_reference?: string | null
           id?: string
+          legal_entity?: string | null
           linked_bank_account?: string | null
           monthly_cost: number
           next_billing_date?: string | null
@@ -51339,6 +51497,7 @@ export type Database = {
           department?: string | null
           expected_bank_reference?: string | null
           id?: string
+          legal_entity?: string | null
           linked_bank_account?: string | null
           monthly_cost?: number
           next_billing_date?: string | null
@@ -51358,6 +51517,13 @@ export type Database = {
           vendor_website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "vendor_subscriptions_legal_entity_fkey"
+            columns: ["legal_entity"]
+            isOneToOne: false
+            referencedRelation: "legal_entities"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "vendor_subscriptions_operating_expense_category_id_fkey"
             columns: ["operating_expense_category_id"]

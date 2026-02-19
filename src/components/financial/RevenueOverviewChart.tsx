@@ -6,12 +6,13 @@ import { DynamicChart } from '@/components/charts/DynamicChart';
 
 interface RevenueOverviewChartProps {
   year?: number;
+  legalEntity?: string;
 }
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function RevenueOverviewChart({ year }: RevenueOverviewChartProps) {
-  const { data: metrics, isLoading } = useMoneybirdFinancials(year);
+export function RevenueOverviewChart({ year, legalEntity }: RevenueOverviewChartProps) {
+  const { data: metrics, isLoading } = useMoneybirdFinancials(year, legalEntity);
   const { mutate: syncData, isPending: isSyncing } = useSyncMoneybirdFinancials();
 
   const chartData = (metrics?.revenue_by_month || []).map(item => {
