@@ -35,6 +35,7 @@ export default defineConfig(({ mode, command }) => ({
       'i18next', 'react-i18next',
       'recharts', 'lodash',
       'react-dropzone', 'attr-accept', 'file-selector',
+      'prop-types',
     ],
     exclude: ['mermaid', 'katex'],
     noDiscovery: true,
