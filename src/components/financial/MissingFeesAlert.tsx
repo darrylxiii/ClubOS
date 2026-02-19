@@ -102,7 +102,9 @@ export function MissingFeesAlert() {
         fee_percentage: 20,
         candidate_salary: fee.actual_salary,
         fee_amount: fee.placement_fee,
+        fee_amount_eur: fee.placement_fee, // Defaulting to EUR for auto-generated
         currency_code: 'EUR',
+        legal_entity: 'tqc_nl',
         status: 'pending' as const,
         hired_date: fee.actual_closing_date,
         payment_due_date: new Date(new Date(fee.actual_closing_date).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),

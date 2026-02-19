@@ -35926,6 +35926,7 @@ export type Database = {
           estimated_salary_min: number | null
           expected_collection_date: string | null
           fee_amount: number
+          fee_amount_eur: number | null
           fee_percentage: number
           fee_percentage_used: number | null
           hire_sequence: number | null
@@ -35965,6 +35966,7 @@ export type Database = {
           estimated_salary_min?: number | null
           expected_collection_date?: string | null
           fee_amount: number
+          fee_amount_eur?: number | null
           fee_percentage: number
           fee_percentage_used?: number | null
           hire_sequence?: number | null
@@ -36004,6 +36006,7 @@ export type Database = {
           estimated_salary_min?: number | null
           expected_collection_date?: string | null
           fee_amount?: number
+          fee_amount_eur?: number | null
           fee_percentage?: number
           fee_percentage_used?: number | null
           hire_sequence?: number | null

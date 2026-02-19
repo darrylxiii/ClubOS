@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AddPlacementFeeDialog } from "./AddPlacementFeeDialog";
 import { InvoiceGenerator } from "./InvoiceGenerator";
+import { EntityBadge } from "./EntityBadge";
+import { CURRENCY_SYMBOLS, type Currency } from "@/lib/currencyConversion";
 
 interface PlacementFeesTableProps {
   fees: PlacementFee[] | PlacementFeeWithContext[];
@@ -52,10 +54,10 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currencyCode: string = 'EUR') => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
-      currency: 'EUR',
+      currency: currencyCode,
     }).format(amount);
   };
 
@@ -119,12 +121,15 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                 return (
                 <TableRow key={fee.id}>
                   <TableCell>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-0.5">
                       <span className="font-medium">{feeWithContext.job_title || '-'}</span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Building2 className="h-3 w-3" />
                         {feeWithContext.company_name || '-'}
                       </span>
+                      {(fee as any).legal_entity && (
+                        <EntityBadge entity={(fee as any).legal_entity} className="text-[10px] px-1 py-0" />
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -159,10 +164,15 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{formatCurrency(fee.candidate_salary)}</span>
+                      <span className="font-medium">{formatCurrency(fee.candidate_salary, fee.currency_code)}</span>
+                      {fee.currency_code !== 'EUR' && (fee as any).fee_amount_eur && (
+                        <span className="text-xs text-muted-foreground">
+                          ~€{((fee as any).fee_amount_eur / (fee.fee_percentage / 100) / (fee.fee_percentage / 100 * 100 / fee.fee_percentage)).toLocaleString('nl-NL', { maximumFractionDigits: 0 })}
+                        </span>
+                      )}
                       {fee.estimated_salary_min && fee.estimated_salary_max && (
                         <span className="text-xs text-muted-foreground">
-                          Est: {formatCurrency(fee.estimated_salary_min)} - {formatCurrency(fee.estimated_salary_max)}
+                          Est: {formatCurrency(fee.estimated_salary_min, fee.currency_code)} - {formatCurrency(fee.estimated_salary_max, fee.currency_code)}
                         </span>
                       )}
                     </div>
@@ -183,8 +193,11 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{formatCurrency(fee.fee_amount)}</span>
+                      <span className="font-medium">{formatCurrency(fee.fee_amount, fee.currency_code)}</span>
                       <span className="text-xs text-muted-foreground">{fee.fee_percentage}%</span>
+                      {fee.currency_code !== 'EUR' && (fee as any).fee_amount_eur && (
+                        <span className="text-xs text-muted-foreground">~€{(fee as any).fee_amount_eur.toLocaleString('nl-NL', { maximumFractionDigits: 0 })}</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>

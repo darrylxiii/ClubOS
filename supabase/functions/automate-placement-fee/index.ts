@@ -10,7 +10,22 @@ interface PlacementFeeRequest {
   application_id: string;
   candidate_salary?: number;
   fee_percentage?: number;
+  currency_code?: string;
+  legal_entity?: string;
   auto_invoice?: boolean;
+}
+
+// Simple EUR conversion rates (fallback)
+const EUR_RATES: Record<string, number> = {
+  EUR: 1,
+  USD: 1.09,
+  GBP: 0.86,
+  AED: 4.00,
+};
+
+function convertToEur(amount: number, currency: string): number {
+  const rate = EUR_RATES[currency] || 1;
+  return Math.round(amount / rate);
 }
 
 serve(async (req) => {
@@ -23,7 +38,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { application_id, candidate_salary, fee_percentage, auto_invoice = true }: PlacementFeeRequest = await req.json();
+    const { application_id, candidate_salary, fee_percentage, currency_code: reqCurrency, legal_entity: reqEntity, auto_invoice = true }: PlacementFeeRequest = await req.json();
 
     console.log(`[automate-placement-fee] Processing application: ${application_id}`);
 
@@ -67,11 +82,21 @@ serve(async (req) => {
 
     // Calculate fee
     const company = (application as any).jobs?.companies;
-    const salary = candidate_salary || 80000; // Default salary if not provided
+    const salary = candidate_salary || 80000;
     const feePercentage = fee_percentage || company?.default_fee_percentage || 20;
     const feeAmount = salary * (feePercentage / 100);
 
-    console.log(`[automate-placement-fee] Calculated fee: €${feeAmount} (${feePercentage}% of €${salary})`);
+    // Determine currency and entity
+    const currencyCode = reqCurrency || "EUR";
+    // Auto-detect entity from company name/location
+    const companyName = (company?.name || "").toLowerCase();
+    let legalEntity = reqEntity || "tqc_nl";
+    if (!reqEntity && (companyName.includes("dubai") || companyName.includes("uae") || companyName.includes("abu dhabi"))) {
+      legalEntity = "tqc_dubai";
+    }
+    const feeAmountEur = currencyCode === "EUR" ? feeAmount : convertToEur(feeAmount, currencyCode);
+
+    console.log(`[automate-placement-fee] Calculated fee: ${currencyCode} ${feeAmount} (${feePercentage}% of ${salary}), EUR equiv: ${feeAmountEur}, entity: ${legalEntity}`);
 
     // Create placement fee
     const { data: fee, error: feeError } = await supabase
@@ -85,7 +110,10 @@ serve(async (req) => {
         candidate_salary: salary,
         fee_percentage: feePercentage,
         fee_amount: feeAmount,
+        fee_amount_eur: feeAmountEur,
         fee_percentage_used: feePercentage,
+        currency_code: currencyCode,
+        legal_entity: legalEntity,
         status: "pending",
         payment_due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         cash_flow_status: "expected",
