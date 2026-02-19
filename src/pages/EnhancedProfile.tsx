@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail, Shield } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail, Shield, MessageSquare } from "lucide-react";
+import { lazy, Suspense } from "react";
+import { PageLoader } from "@/components/PageLoader";
+
+const MyCommunicationsPage = lazy(() => import('@/pages/MyCommunications'));
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { EducationSection } from "@/components/profile/EducationSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";
@@ -266,7 +270,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
 
         {/* Main Tabs */}
         <Tabs defaultValue="experience" className="space-y-6">
-          <TabsList className={`grid w-full ${isAdminViewing ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <TabsList className={`flex flex-wrap w-full h-auto ${isAdminViewing ? 'grid grid-cols-7' : isOwnProfile ? 'grid grid-cols-6' : 'grid grid-cols-5'}`}>
             <TabsTrigger value="experience" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               <span className="hidden sm:inline">Experience</span>
@@ -287,6 +291,12 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
               <Music2 className="w-4 h-4" />
               <span className="hidden sm:inline">Music</span>
             </TabsTrigger>
+            {isOwnProfile && (
+              <TabsTrigger value="communications" className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Communications</span>
+              </TabsTrigger>
+            )}
             {isAdminViewing && (
               <TabsTrigger value="admin-settings" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
@@ -319,6 +329,14 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
               appleMusicPlaylists={(profile as any)?.apple_music_playlists || []}
             />
           </TabsContent>
+
+          {isOwnProfile && (
+            <TabsContent value="communications" className="space-y-6">
+              <Suspense fallback={<PageLoader />}>
+                <MyCommunicationsPage />
+              </Suspense>
+            </TabsContent>
+          )}
 
           {isAdminViewing && (
             <TabsContent value="admin-settings" className="space-y-6">
