@@ -60,44 +60,46 @@ serve(async (req) => {
             console.warn('Failed to fetch knowledge profiles', e);
         }
 
-        // 0. Query Expansion (New Step)
-        // Reword the query to be more specific/contextual for better vector matching
-        // AND extract "Key Entities" for Graph Walking
+        // 0. Query Expansion — ONLY for complex queries (>8 words) to save AI credits
         let optimizedQuery = query;
-        let graphEntities: string[] = []; // Entities to traverse graph with
+        let graphEntities: string[] = [];
 
-        try {
-            const expansionResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${lovableApiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4o-mini',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `You are a Search query optimizer and Entity Extractor. 
-1. Rewrite the user query for vector search. 
-2. Extract key entities (Skills, Companies, Locations, Roles) as a JSON array. Normalize to lowercase/underscores.
-Output JSON: { "rewritten": "string", "entities": ["react", "google"] }`
-                        },
-                        { role: 'user', content: query }
-                    ],
-                    response_format: { type: "json_object" }
-                })
-            });
+        const wordCount = query.trim().split(/\s+/).length;
+        const isComplexQuery = wordCount > 8;
 
-            if (expansionResp.ok) {
-                const expansionData = await expansionResp.json();
-                const content = JSON.parse(expansionData.choices[0].message.content);
-                optimizedQuery = content.rewritten || query;
-                graphEntities = content.entities || [];
-                console.log(`[Brain] Expanded: "${optimizedQuery}", Entities:`, graphEntities);
+        if (isComplexQuery) {
+            try {
+                const expansionResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${lovableApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'google/gemini-2.5-flash-lite', // Cheapest model for query expansion
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `Rewrite the user query for vector search and extract key entities. Output JSON: { "rewritten": "string", "entities": ["react", "google"] }`
+                            },
+                            { role: 'user', content: query }
+                        ],
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                if (expansionResp.ok) {
+                    const expansionData = await expansionResp.json();
+                    const content = JSON.parse(expansionData.choices[0].message.content);
+                    optimizedQuery = content.rewritten || query;
+                    graphEntities = content.entities || [];
+                    console.log(`[Brain] Expanded: "${optimizedQuery}", Entities:`, graphEntities);
+                }
+            } catch (e) {
+                console.warn('Query expansion failed, falling back to original query', e);
             }
-        } catch (e) {
-            console.warn('Query expansion failed, falling back to original query', e);
+        } else {
+            console.log(`[Brain] Simple query (${wordCount} words) — skipping expansion AI call`);
         }
 
         // 1. Generate Embedding for the Otimized Query
@@ -162,15 +164,10 @@ Output JSON: { "rewritten": "string", "entities": ["react", "google"] }`
         // This acts as a Cross-Encoder replacement
         let finalResults = candidates;
 
-        if (candidates.length > 0) {
+        // Only rerank if we have many candidates (>5) — otherwise just take top 5 by vector score
+        if (candidates.length > 5) {
             try {
-                const rerankPrompt = `You are a Relevance Ranker.
-Query: "${query}"
-Candidates:
-${candidates.map((c: any, i: number) => `[${i}] ${c.content.substring(0, 300)}...`).join('\n')}
-
-Task: Return the indices of the top 5 most relevant chunks as a JSON array of integers. Example: [0, 3, 1].
-Response:`;
+                const rerankPrompt = `Relevance Ranker. Query: "${query}"\nCandidates:\n${candidates.map((c: any, i: number) => `[${i}] ${c.content.substring(0, 200)}`).join('\n')}\nReturn JSON: {"indices": [0, 3, 1]} (top 5 most relevant)`;
 
                 const rerankResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
                     method: 'POST',
@@ -179,7 +176,7 @@ Response:`;
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'gpt-4o-mini',
+                        model: 'google/gemini-2.5-flash-lite', // Cheapest model for reranking
                         messages: [{ role: 'user', content: rerankPrompt }],
                         response_format: { type: "json_object" }
                     })
@@ -189,7 +186,6 @@ Response:`;
                     const rerankData = await rerankResp.json();
                     const indices = JSON.parse(rerankData.choices[0].message.content).indices || [];
                     if (Array.isArray(indices) && indices.length > 0) {
-                        // Filter and preserve order returned by LLM (most relevant first)
                         finalResults = indices
                             .map((idx: number) => candidates[idx])
                             .filter((c: any) => c !== undefined);
@@ -199,6 +195,8 @@ Response:`;
                 console.warn('Reranking failed, falling back to vector order', e);
                 finalResults = candidates.slice(0, 5);
             }
+        } else {
+            console.log(`[Brain] Only ${candidates.length} candidates — skipping reranking AI call`);
         }
 
         // Ensure we don't return too many if reranking failed or returned all

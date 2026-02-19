@@ -20,6 +20,22 @@ serve(async (req) => {
     const today = now.toISOString().split("T")[0];
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
+    // --- ONCE-PER-DAY GUARD: Check if briefing already exists for today ---
+    const { data: existingBriefing } = await supabase
+      .from("daily_briefings")
+      .select("id")
+      .eq("briefing_date", today)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingBriefing) {
+      console.log(`[Daily Briefing] Already generated for ${today} — skipping`);
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: "already_generated_today", date: today }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get all admin users
     const { data: adminRoles } = await supabase
       .from("user_roles")
