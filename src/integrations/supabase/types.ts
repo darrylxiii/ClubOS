@@ -5045,6 +5045,7 @@ export type Database = {
           job_id: string | null
           last_sync_attempt: string | null
           meeting_id: string | null
+          meeting_type: string | null
           metadata: Json | null
           no_show: boolean | null
           notes: string | null
@@ -5112,6 +5113,7 @@ export type Database = {
           job_id?: string | null
           last_sync_attempt?: string | null
           meeting_id?: string | null
+          meeting_type?: string | null
           metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
@@ -5179,6 +5181,7 @@ export type Database = {
           job_id?: string | null
           last_sync_attempt?: string | null
           meeting_id?: string | null
+          meeting_type?: string | null
           metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
