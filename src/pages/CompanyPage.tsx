@@ -39,6 +39,7 @@ import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledg
 
 import { CompanyFinancialsTab } from "@/components/companies/CompanyFinancialsTab";
 import { DomainManagementPanel } from "@/components/admin/DomainManagementPanel";
+import { PartnerOrgIntelligence } from "@/components/organization/PartnerOrgIntelligence";
 
 interface Company {
   id: string;
@@ -598,6 +599,12 @@ export default function CompanyPage() {
                  Financials
                </TabsTrigger>
              )}
+             {isAdmin && (
+               <TabsTrigger value="people-intel">
+                 <Users className="w-4 h-4 mr-1.5" />
+                 People
+               </TabsTrigger>
+             )}
           </TabsList>
 
           <TabsContent value="about" className="space-y-6 mt-6">
@@ -884,6 +891,13 @@ export default function CompanyPage() {
           {isAdmin && (
             <TabsContent value="financials" className="space-y-6 mt-6">
               <CompanyFinancialsTab companyId={company.id} />
+            </TabsContent>
+          )}
+
+          {/* People Intelligence Tab - Admin Only */}
+          {isAdmin && (
+            <TabsContent value="people-intel" className="space-y-6 mt-6">
+              <PartnerOrgIntelligence companyId={company.id} companyName={company.name} />
             </TabsContent>
           )}
         </Tabs>

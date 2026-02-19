@@ -10739,6 +10739,202 @@ export type Database = {
           },
         ]
       }
+      company_people: {
+        Row: {
+          auto_purge_at: string | null
+          avatar_url: string | null
+          company_id: string
+          created_at: string | null
+          current_title: string | null
+          data_legal_basis: string | null
+          departed_at: string | null
+          departed_to_company: string | null
+          departed_to_title: string | null
+          department_inferred: string | null
+          education: Json | null
+          employment_status: string | null
+          enrichment_error: string | null
+          enrichment_status: string | null
+          first_name: string | null
+          first_seen_at: string | null
+          full_name: string | null
+          headline: string | null
+          id: string
+          is_decision_maker: boolean | null
+          is_still_active: boolean | null
+          last_name: string | null
+          last_refreshed_at: string | null
+          last_seen_at: string | null
+          linkedin_public_id: string | null
+          linkedin_url: string
+          location: string | null
+          matched_candidate_id: string | null
+          profile_data_raw: Json | null
+          seniority_level: string | null
+          skills: string[] | null
+          title_classification_method: string | null
+          total_experience_years: number | null
+          updated_at: string | null
+          work_history: Json | null
+          years_at_company: number | null
+        }
+        Insert: {
+          auto_purge_at?: string | null
+          avatar_url?: string | null
+          company_id: string
+          created_at?: string | null
+          current_title?: string | null
+          data_legal_basis?: string | null
+          departed_at?: string | null
+          departed_to_company?: string | null
+          departed_to_title?: string | null
+          department_inferred?: string | null
+          education?: Json | null
+          employment_status?: string | null
+          enrichment_error?: string | null
+          enrichment_status?: string | null
+          first_name?: string | null
+          first_seen_at?: string | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string
+          is_decision_maker?: boolean | null
+          is_still_active?: boolean | null
+          last_name?: string | null
+          last_refreshed_at?: string | null
+          last_seen_at?: string | null
+          linkedin_public_id?: string | null
+          linkedin_url: string
+          location?: string | null
+          matched_candidate_id?: string | null
+          profile_data_raw?: Json | null
+          seniority_level?: string | null
+          skills?: string[] | null
+          title_classification_method?: string | null
+          total_experience_years?: number | null
+          updated_at?: string | null
+          work_history?: Json | null
+          years_at_company?: number | null
+        }
+        Update: {
+          auto_purge_at?: string | null
+          avatar_url?: string | null
+          company_id?: string
+          created_at?: string | null
+          current_title?: string | null
+          data_legal_basis?: string | null
+          departed_at?: string | null
+          departed_to_company?: string | null
+          departed_to_title?: string | null
+          department_inferred?: string | null
+          education?: Json | null
+          employment_status?: string | null
+          enrichment_error?: string | null
+          enrichment_status?: string | null
+          first_name?: string | null
+          first_seen_at?: string | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string
+          is_decision_maker?: boolean | null
+          is_still_active?: boolean | null
+          last_name?: string | null
+          last_refreshed_at?: string | null
+          last_seen_at?: string | null
+          linkedin_public_id?: string | null
+          linkedin_url?: string
+          location?: string | null
+          matched_candidate_id?: string | null
+          profile_data_raw?: Json | null
+          seniority_level?: string | null
+          skills?: string[] | null
+          title_classification_method?: string | null
+          total_experience_years?: number | null
+          updated_at?: string | null
+          work_history?: Json | null
+          years_at_company?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_people_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_people_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_people_changes: {
+        Row: {
+          change_type: string
+          company_id: string
+          created_at: string | null
+          detected_at: string | null
+          id: string
+          is_opportunity: boolean | null
+          is_reviewed: boolean | null
+          new_value: string | null
+          notes: string | null
+          old_value: string | null
+          person_id: string | null
+        }
+        Insert: {
+          change_type: string
+          company_id: string
+          created_at?: string | null
+          detected_at?: string | null
+          id?: string
+          is_opportunity?: boolean | null
+          is_reviewed?: boolean | null
+          new_value?: string | null
+          notes?: string | null
+          old_value?: string | null
+          person_id?: string | null
+        }
+        Update: {
+          change_type?: string
+          company_id?: string
+          created_at?: string | null
+          detected_at?: string | null
+          id?: string
+          is_opportunity?: boolean | null
+          is_reviewed?: boolean | null
+          new_value?: string | null
+          notes?: string | null
+          old_value?: string | null
+          person_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_people_changes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_people_changes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_people_changes_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "company_people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_post_comments: {
         Row: {
           content: string
@@ -11019,6 +11215,122 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partner_permissions"
             referencedColumns: ["name"]
+          },
+        ]
+      }
+      company_scan_jobs: {
+        Row: {
+          changes_detected: number | null
+          company_id: string
+          completed_at: string | null
+          created_at: string | null
+          credits_estimated: number | null
+          credits_used: number | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          profiles_enriched: number | null
+          profiles_failed: number | null
+          scan_type: string | null
+          started_at: string | null
+          status: string | null
+          total_employees_found: number | null
+          triggered_by: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          changes_detected?: number | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          credits_estimated?: number | null
+          credits_used?: number | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          profiles_enriched?: number | null
+          profiles_failed?: number | null
+          scan_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          total_employees_found?: number | null
+          triggered_by?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          changes_detected?: number | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          credits_estimated?: number | null
+          credits_used?: number | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          profiles_enriched?: number | null
+          profiles_failed?: number | null
+          scan_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          total_employees_found?: number | null
+          triggered_by?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_scan_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_scan_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_scan_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          linkedin_url: string
+          processed_at: string | null
+          scan_job_id: string
+          status: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          linkedin_url: string
+          processed_at?: string | null
+          scan_job_id: string
+          status?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          linkedin_url?: string
+          processed_at?: string | null
+          scan_job_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_scan_queue_scan_job_id_fkey"
+            columns: ["scan_job_id"]
+            isOneToOne: false
+            referencedRelation: "company_scan_jobs"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -39825,6 +40137,58 @@ export type Database = {
           },
         ]
       }
+      proxycurl_credit_ledger: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          credits_actual: number | null
+          credits_estimated: number | null
+          endpoint_used: string
+          id: string
+          scan_job_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          credits_actual?: number | null
+          credits_estimated?: number | null
+          endpoint_used: string
+          id?: string
+          scan_job_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          credits_actual?: number | null
+          credits_estimated?: number | null
+          endpoint_used?: string
+          id?: string
+          scan_job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proxycurl_credit_ledger_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proxycurl_credit_ledger_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proxycurl_credit_ledger_scan_job_id_fkey"
+            columns: ["scan_job_id"]
+            isOneToOne: false
+            referencedRelation: "company_scan_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -56167,6 +56531,7 @@ export type Database = {
         Args: { p_target_user_id: string }
         Returns: boolean
       }
+      purge_stale_company_people: { Args: never; Returns: number }
       queue_webhook_delivery: {
         Args: { p_company_id: string; p_event_type: string; p_payload: Json }
         Returns: undefined
