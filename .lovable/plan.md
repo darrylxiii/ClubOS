@@ -1,61 +1,56 @@
 
 
-# Fix Organization Scan Estimate (0 employees / blank credits)
+# Fix Partner Provisioning Edge Function — Column Mismatches
 
 ## Problem
 
-When opening the scan dialog for "Dore & Rose," the estimate shows 0 employees and blank credit values. Two root causes:
+The `provision-partner` edge function fails with a non-2xx response because several database inserts use column names that do not match the actual table schemas.
 
-1. **Apify estimate logic returns wrong count**: The current code requests `maxItems: 1` from the employee scraper and uses `results.length` as headcount -- yielding at most 1, not the real employee count. The fallback (`company_size`) is NULL for this company.
+## Root Causes
 
-2. **Response shape mismatch**: The edge function returns `{ headcount, totalEstimate, warning }` but the frontend `ScanEstimate` interface expects additional fields: `listingCredits`, `enrichmentCredits`, `monthlySpendSoFar`. These render as blank/undefined in the dialog.
+### 1. `invite_codes` table (Step 8, line 358-371)
 
----
+The table has a `created_by_type` column that is NOT NULL with no default. The function never sets it, so the insert fails.
+
+### 2. `comprehensive_audit_logs` table (Step 11, lines 482-501)
+
+The function uses wrong column names throughout:
+
+| Function uses | Actual column | Required? |
+|---|---|---|
+| `action_type` | `event_type` | NOT NULL |
+| `action_category` | `event_category` | nullable |
+| (missing) | `action` | NOT NULL |
+| `new_value` | `after_value` | nullable |
+| `ip_address` | `actor_ip_address` | nullable (inet type) |
+| `user_agent` | `actor_user_agent` | nullable |
+| `description` | `description` | OK |
+| `resource_type` | `resource_type` | OK |
+| `resource_id` | `resource_id` | OK |
+
+### 3. Legacy `serve()` import
+
+The function imports `serve` from `deno.land/std@0.168.0` which is deprecated. While it works now, it should use `Deno.serve()` for reliability.
 
 ## Changes
 
-### 1. Edge Function: `supabase/functions/scan-partner-organization/index.ts`
+### File: `supabase/functions/provision-partner/index.ts`
 
-Update the `estimate` action to:
-- Use the Apify company scraper properly. Instead of requesting `maxItems: 1` and counting results, request a reasonable sample (e.g., `maxItems: 50`) and check whether Apify metadata exposes a total. If not available, fall back to a higher `maxItems` or the `company_size` column.
-- Alternatively, use the Apify LinkedIn Company Profile scraper to get the company page metadata (which includes employee count) rather than running the employee-listing actor just for a count.
-- Return the full shape the frontend expects: `headcount`, `listingCredits`, `enrichmentCredits`, `totalEstimate`, `monthlySpendSoFar`, and `warning`.
-- Query existing monthly Apify usage from `company_scan_jobs` to populate `monthlySpendSoFar`.
+1. **Replace `serve()` import with `Deno.serve()`** (lines 1, 42) -- remove the deno std import and use the built-in.
 
-### 2. Database: Populate `company_size` (optional improvement)
+2. **Fix `invite_codes` insert** (line 358-371) -- add `created_by_type: 'admin'` to the insert payload.
 
-- When the estimate fetches the real headcount from Apify/LinkedIn, write it back to `companies.company_size` so future estimates have a fast fallback.
+3. **Fix `comprehensive_audit_logs` insert** (lines 482-501) -- correct all column names:
+   - `action_type` to `event_type`
+   - `action_category` to `event_category`
+   - Add `action: 'partner_provisioned'`
+   - `new_value` to `after_value`
+   - `ip_address` to `actor_ip_address`
+   - `user_agent` to `actor_user_agent`
 
-### 3. Frontend: No changes required
+4. **Add defensive error logging** on steps 8-11 so silent insert failures are logged to console for future debugging.
 
-The `ScanEstimate` interface and `ScanProgressDialog` are already correct -- they just need the edge function to return the expected fields.
+## No other files change
 
----
+The frontend hook (`usePartnerProvisioning.ts`) and UI components remain unchanged -- they already handle the success/error response correctly.
 
-## Technical Detail
-
-Updated estimate response shape from the edge function:
-
-```text
-{
-  success: true,
-  estimate: {
-    headcount: 45,
-    listingCredits: 1,        // Apify charges per actor run, not per profile
-    enrichmentCredits: 45,    // ~1 credit per profile enrichment run
-    totalEstimate: 46,
-    monthlySpendSoFar: 120,   // sum from company_scan_jobs this month
-    warning: null
-  }
-}
-```
-
-Apify actor for company info (to get employee count without listing all employees):
-- Actor: `apify/linkedin-company-scraper` or similar -- accepts company URL, returns company metadata including employee count.
-- If no dedicated company-info actor is available, run the employee listing actor with a higher `maxItems` and count the results, or parse the total from the response.
-
-### Sequence
-
-1. Fix the edge function estimate action (response shape + headcount logic)
-2. Deploy and verify with Dore & Rose
-3. Optionally backfill `company_size` on successful estimates
