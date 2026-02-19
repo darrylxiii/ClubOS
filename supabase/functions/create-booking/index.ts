@@ -599,58 +599,7 @@ serve(async (req) => {
     
     console.log("[Booking] Created in-app notification for host about confirmed booking");
 
-    // Send confirmation email (only for confirmed bookings)
-    try {
-      await supabaseClient.functions.invoke("send-booking-confirmation", {
-        body: {
-          booking: booking,
-          bookingLink: bookingLink,
-        },
-      });
-    } catch (emailError) {
-      console.error("Error sending confirmation email:", emailError);
-    }
-
-    // Sync to calendar (with detailed logging)
-    console.log(`[Booking] ========== CALENDAR SYNC START ==========`);
-    console.log(`[Booking] Booking ID: ${booking.id}`);
-    console.log(`[Booking] Booking link primary_calendar_id: ${bookingLink.primary_calendar_id}`);
-    console.log(`[Booking] Booking link google_calendar_id: ${bookingLink.google_calendar_id}`);
-    console.log(`[Booking] Booking link microsoft_calendar_id: ${bookingLink.microsoft_calendar_id}`);
-    
-    if (bookingLink.primary_calendar_id) {
-      try {
-        const syncResult = await supabaseClient.functions.invoke("sync-booking-to-calendar", {
-          body: { bookingId: booking.id }
-        });
-        
-        console.log(`[Booking] Sync function raw result:`, JSON.stringify(syncResult, null, 2));
-        
-        if (syncResult.error) {
-          console.error(`[Booking] ❌ Calendar sync error:`, {
-            error: syncResult.error,
-            message: syncResult.error?.message,
-            details: syncResult.error?.details,
-          });
-        } else if (syncResult.data?.success) {
-          console.log(`[Booking] ✅ Calendar sync SUCCESS:`, {
-            eventId: syncResult.data.calendarEventId,
-            provider: syncResult.data.provider,
-          });
-        } else {
-          console.warn(`[Booking] ⚠️ Calendar sync returned unsuccessful:`, syncResult.data);
-        }
-      } catch (syncError: any) {
-        console.error(`[Booking] ❌ Calendar sync exception:`, {
-          message: syncError.message,
-          stack: syncError.stack,
-        });
-      }
-    } else {
-      console.warn(`[Booking] ⚠️ No primary_calendar_id set - skipping calendar sync`);
-    }
-    console.log(`[Booking] ========== CALENDAR SYNC END ==========`);
-
+    // ====== VIDEO PLATFORM (moved BEFORE email/calendar to fix race condition) ======
     // Handle video platform based on booking link settings and guest choice
     // Priority: guest choice (if allowed) > host default
     let videoPlatform = bookingLink.video_platform || 'quantum_club';
@@ -668,7 +617,6 @@ serve(async (req) => {
     }
     
     console.log(`[Booking] Final video platform: ${videoPlatform}`);
-    // Use the actual app domain for meeting links (not Supabase backend domain)
     const siteUrl = Deno.env.get('SITE_URL') || 'https://thequantumclub.app';
 
     if (videoPlatform === 'quantum_club' && bookingLink.create_quantum_meeting) {
@@ -694,7 +642,6 @@ serve(async (req) => {
         }
       } catch (meetingError) {
         console.error("[Booking] Error creating meeting:", meetingError);
-        // Don't fail the booking if meeting creation fails
       }
     } else if (videoPlatform === 'google_meet') {
       console.log("[Booking] Creating Google Meet link for booking");
@@ -713,23 +660,14 @@ serve(async (req) => {
 
         if (googleResult.data?.videoLink) {
           console.log(`[Booking] Google Meet link created: ${googleResult.data.videoLink}`);
-          
-          await supabaseClient
-            .from('bookings')
-            .update({
-              google_meet_hangout_link: googleResult.data.videoLink,
-              google_meet_event_id: googleResult.data.meetingId,
-              video_meeting_link: googleResult.data.videoLink,
-              active_video_platform: 'google_meet',
-            })
-            .eq('id', booking.id);
+          // Note: generate-video-link now handles ALL DB writes (canonical fields included)
+          // No redundant second write needed here
         } else {
           console.error("[Booking] Google Meet creation returned no video link");
           throw new Error("Failed to create Google Meet link");
         }
       } catch (googleError: any) {
         console.error("[Booking] Google Meet creation failed:", googleError);
-        // Don't fallback - let the booking exist with error logged
         await supabaseClient
           .from('bookings')
           .update({
@@ -743,10 +681,73 @@ serve(async (req) => {
       }
     }
 
+    // ====== RE-FETCH booking to get updated video fields (Meet link, platform, etc.) ======
+    const { data: updatedBooking } = await supabaseClient
+      .from("bookings")
+      .select("*")
+      .eq("id", booking.id)
+      .single();
+
+    const bookingForNotifications = updatedBooking || booking;
+    console.log("[Booking] Re-fetched booking for notifications, has Meet link:", !!bookingForNotifications.google_meet_hangout_link);
+
+    // ====== SEND CONFIRMATION EMAIL (now has Meet link) ======
+    try {
+      await supabaseClient.functions.invoke("send-booking-confirmation", {
+        body: {
+          booking: bookingForNotifications,
+          bookingLink: bookingLink,
+        },
+      });
+    } catch (emailError) {
+      console.error("Error sending confirmation email:", emailError);
+    }
+
+    // ====== SYNC TO CALENDAR (now has Meet link; will skip if Google Meet event already exists) ======
+    console.log(`[Booking] ========== CALENDAR SYNC START ==========`);
+    console.log(`[Booking] Booking ID: ${booking.id}`);
+    console.log(`[Booking] Booking link primary_calendar_id: ${bookingLink.primary_calendar_id}`);
+    console.log(`[Booking] Booking link google_calendar_id: ${bookingLink.google_calendar_id}`);
+    console.log(`[Booking] Booking link microsoft_calendar_id: ${bookingLink.microsoft_calendar_id}`);
+    
+    if (bookingLink.primary_calendar_id) {
+      try {
+        const syncResult = await supabaseClient.functions.invoke("sync-booking-to-calendar", {
+          body: { bookingId: booking.id }
+        });
+        
+        console.log(`[Booking] Sync function raw result:`, JSON.stringify(syncResult, null, 2));
+        
+        if (syncResult.error) {
+          console.error(`[Booking] ❌ Calendar sync error:`, {
+            error: syncResult.error,
+            message: syncResult.error?.message,
+            details: syncResult.error?.details,
+          });
+        } else if (syncResult.data?.success) {
+          console.log(`[Booking] ✅ Calendar sync SUCCESS:`, {
+            eventId: syncResult.data.calendarEventId,
+            provider: syncResult.data.provider,
+            skipped: syncResult.data.skipped || false,
+          });
+        } else {
+          console.warn(`[Booking] ⚠️ Calendar sync returned unsuccessful:`, syncResult.data);
+        }
+      } catch (syncError: any) {
+        console.error(`[Booking] ❌ Calendar sync exception:`, {
+          message: syncError.message,
+          stack: syncError.stack,
+        });
+      }
+    } else {
+      console.warn(`[Booking] ⚠️ No primary_calendar_id set - skipping calendar sync`);
+    }
+    console.log(`[Booking] ========== CALENDAR SYNC END ==========`);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
-        booking,
+        booking: bookingForNotifications,
         redirectUrl: bookingLink.redirect_url,
         calendarCheckBypassed: calendarCheckTimeout || calendarCheckFailed,
         calendarCheckWarning: (calendarCheckTimeout || calendarCheckFailed) 

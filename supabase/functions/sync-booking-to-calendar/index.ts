@@ -102,6 +102,43 @@ serve(async (req) => {
     console.log(`[Sync] ✅ Calendar connection found: ${calendar.provider} (${calendar.calendar_label})`);
     console.log(`[Sync] Calendar active: ${calendar.is_active}`);
 
+    // ====== DUPLICATE PREVENTION: Skip if Google Meet already created a calendar event ======
+    if (booking.google_meet_event_id && calendar.provider === 'google') {
+      console.log(`[Sync] Skipping Google Calendar event creation -- already created by Google Meet integration (event ID: ${booking.google_meet_event_id})`);
+      
+      // Still mark as synced
+      await supabaseClient
+        .from("bookings")
+        .update({
+          synced_to_calendar: true,
+          calendar_event_id: booking.google_meet_event_id,
+          calendar_provider: 'google',
+        })
+        .eq("id", bookingId);
+      
+      // Log the skip
+      await supabaseClient
+        .from("calendar_sync_log")
+        .insert({
+          booking_id: bookingId,
+          action: 'skipped_duplicate',
+          provider: 'google',
+          success: true,
+          calendar_event_id: booking.google_meet_event_id,
+        });
+      
+      return new Response(
+        JSON.stringify({
+          success: true,
+          calendarEventId: booking.google_meet_event_id,
+          provider: 'google',
+          skipped: true,
+          reason: 'Google Meet event already exists',
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get booking owner's email
     const { data: ownerProfile } = await supabaseClient
       .from("profiles")
@@ -116,9 +153,9 @@ serve(async (req) => {
 
     // Prepare event details with ALL attendees
     const attendeesList = [
-      ownerProfile?.email,           // Booking owner (host)
-      booking.guest_email,           // Primary guest
-      ...(booking.guests || []).map((g: any) => g.email), // Additional guests
+      ownerProfile?.email,
+      booking.guest_email,
+      ...(booking.guests || []).map((g: any) => g.email),
     ].filter(Boolean);
 
     console.log(`[Sync] Total attendees: ${attendeesList.length}`, attendeesList);
@@ -148,7 +185,7 @@ ${meetingLink ? `\nMeeting Link: ${meetingLink}` : ''}
         email: ownerProfile?.email,
         name: ownerProfile?.full_name || `${ownerProfile?.first_name} ${ownerProfile?.last_name}`,
       },
-      sendInvites: true, // Flag to enable calendar invite sending
+      sendInvites: true,
     };
 
     // Create event in the appropriate calendar
