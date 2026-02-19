@@ -1603,7 +1603,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "search_jobs",
-      description: "Search for jobs matching criteria and return top matches with AI-calculated fit scores",
+      description: "Search jobs by title, location, salary, skills",
       parameters: {
         type: "object",
         properties: {
@@ -1621,7 +1621,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "analyze_job_fit",
-      description: "Analyze how well a specific job matches the user's profile with detailed reasoning",
+      description: "Analyze job fit against user profile",
       parameters: {
         type: "object",
         properties: {
@@ -1635,7 +1635,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "apply_to_job",
-      description: "Submit an application to a job. MUST get user confirmation before executing.",
+      description: "Submit job application. Requires user confirmation.",
       parameters: {
         type: "object",
         properties: {
@@ -1651,7 +1651,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "generate_cover_letter",
-      description: "Generate a tailored cover letter for a specific job",
+      description: "Generate tailored cover letter for a job",
       parameters: {
         type: "object",
         properties: {
@@ -1669,7 +1669,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "create_task",
-      description: "Create a new task with AI-determined priority and schedule",
+      description: "Create a new prioritized task",
       parameters: {
         type: "object",
         properties: {
@@ -1687,7 +1687,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "bulk_create_tasks",
-      description: "Break down a complex goal into multiple tasks automatically",
+      description: "Break a goal into multiple tasks automatically",
       parameters: {
         type: "object",
         properties: {
@@ -1703,7 +1703,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "reschedule_tasks",
-      description: "Intelligently reschedule tasks based on new priorities",
+      description: "Reschedule tasks by IDs",
       parameters: {
         type: "object",
         properties: {
@@ -1718,7 +1718,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "suggest_next_task",
-      description: "Analyze all pending tasks and suggest the most important one to work on now",
+      description: "Suggest highest priority pending task now",
       parameters: {
         type: "object",
         properties: {
@@ -1732,7 +1732,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "analyze_task_load",
-      description: "Calculate workload and provide recommendations",
+      description: "Analyze workload and give recommendations",
       parameters: {
         type: "object",
         properties: {}
@@ -1745,7 +1745,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "generate_interview_questions",
-      description: "Generate company-specific and role-specific interview questions",
+      description: "Generate role-specific interview questions",
       parameters: {
         type: "object",
         properties: {
@@ -1761,7 +1761,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "research_company",
-      description: "Deep-dive research on a company including culture and recent news",
+      description: "Research company culture and recent news",
       parameters: {
         type: "object",
         properties: {
@@ -1776,7 +1776,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "create_interview_briefing",
-      description: "Generate a comprehensive pre-interview briefing document",
+      description: "Create interview briefing document",
       parameters: {
         type: "object",
         properties: {
@@ -1793,7 +1793,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "draft_message",
-      description: "Generate a professional message for different scenarios",
+      description: "Draft a professional message for scenarios",
       parameters: {
         type: "object",
         properties: {
@@ -1810,7 +1810,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "send_message",
-      description: "Send a message to a conversation. MUST get user confirmation before executing.",
+      description: "Send message. Requires user confirmation.",
       parameters: {
         type: "object",
         properties: {
@@ -1826,7 +1826,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "schedule_follow_up",
-      description: "Schedule a follow-up message to be sent at optimal time",
+      description: "Schedule a follow-up message at optimal time",
       parameters: {
         type: "object",
         properties: {
@@ -1842,7 +1842,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "analyze_conversation_sentiment",
-      description: "Analyze the tone and sentiment of a conversation thread",
+      description: "Analyze tone and sentiment of a conversation",
       parameters: {
         type: "object",
         properties: {
@@ -1858,7 +1858,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "create_booking_link",
-      description: "Generate a new booking link for scheduling meetings",
+      description: "Create a new meeting booking link",
       parameters: {
         type: "object",
         properties: {
@@ -1875,7 +1875,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "suggest_meeting_times",
-      description: "Analyze calendars and suggest optimal meeting times",
+      description: "Find optimal meeting times from calendars",
       parameters: {
         type: "object",
         properties: {
@@ -1893,7 +1893,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "schedule_meeting",
-      description: "Create a Quantum Club meeting directly. MUST get user confirmation before executing. Automatically syncs to connected calendars.",
+      description: "Create a meeting. Requires user confirmation.",
       parameters: {
         type: "object",
         properties: {
@@ -1915,7 +1915,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "find_free_slots",
-      description: "Analyze unified calendar (Quantum Club + Google + Microsoft) to find optimal free time slots. Returns top 5 ranked slots with availability scores.",
+      description: "Find free calendar slots for scheduling",
       parameters: {
         type: "object",
         properties: {
@@ -1940,7 +1940,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "check_meeting_conflicts",
-      description: "Validate a proposed meeting time against all calendars. Identifies conflicts and suggests alternatives if needed.",
+      description: "Check proposed meeting time for conflicts",
       parameters: {
         type: "object",
         properties: {
@@ -1957,7 +1957,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "reschedule_meeting",
-      description: "Change an existing meeting time. MUST get user confirmation before executing.",
+      description: "Reschedule a meeting. Requires user confirmation.",
       parameters: {
         type: "object",
         properties: {
@@ -1975,7 +1975,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "cancel_meeting",
-      description: "Cancel a meeting. MUST get user confirmation before executing.",
+      description: "Cancel a meeting. Requires user confirmation.",
       parameters: {
         type: "object",
         properties: {
@@ -1992,7 +1992,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "search_talent_pool",
-      description: "Search the talent pool for candidates matching criteria",
+      description: "Search talent pool by name, tier, or move probability",
       parameters: {
         type: "object",
         properties: {
@@ -2008,7 +2008,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "get_candidate_move_probability",
-      description: "Get a candidate's move probability score and factors",
+      description: "Get candidate move probability score",
       parameters: {
         type: "object",
         properties: {
@@ -2022,7 +2022,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "get_candidates_needing_attention",
-      description: "Get hot/warm candidates that need strategist attention",
+      description: "Get hot/warm candidates needing attention",
       parameters: {
         type: "object",
         properties: {
@@ -2036,7 +2036,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "search_communications",
-      description: "Search ALL communications across email, WhatsApp, SMS, phone calls, and meetings for a specific person, company, or topic. Use this to find relevant conversations and interactions.",
+      description: "Search across email, WhatsApp, SMS, meetings",
       parameters: {
         type: "object",
         properties: {
@@ -2066,7 +2066,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "get_entity_communication_summary",
-      description: "Get a complete communication summary for a specific candidate, company, or prospect including total interactions, sentiment trend, last contact, relationship health, and recommended next action.",
+      description: "Get full communication summary for a candidate or company",
       parameters: {
         type: "object",
         properties: {
@@ -2085,7 +2085,7 @@ export const allAITools = [
     type: "function",
     function: {
       name: "get_relationship_health",
-      description: "Get relationship health scores and at-risk relationships. Use this to identify candidates or companies that need re-engagement.",
+      description: "Get relationship health and at-risk contacts",
       parameters: {
         type: "object",
         properties: {

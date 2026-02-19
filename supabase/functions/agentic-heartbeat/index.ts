@@ -104,15 +104,16 @@ serve(async (req) => {
       console.log(`[Heartbeat] Found ${jobEvents.length} new job-open events, triggering headhunter...`);
       for (const event of jobEvents) {
         const jobId = event.event_data?.job_id;
-        if (jobId) {
-          const hhResult = await invokeAgent("run-headhunter-agent", { jobId });
-          results[`headhunter_${jobId}`] = hhResult;
-        }
-        // Mark processed
+        // Mark processed FIRST to prevent duplicate runs if heartbeat fires again mid-execution
         await supabase
           .from("agent_events")
           .update({ processed: true, processed_by: ["agentic-heartbeat"] })
           .eq("id", event.id);
+        // THEN run headhunter
+        if (jobId) {
+          const hhResult = await invokeAgent("run-headhunter-agent", { jobId });
+          results[`headhunter_${jobId}`] = hhResult;
+        }
       }
     }
 

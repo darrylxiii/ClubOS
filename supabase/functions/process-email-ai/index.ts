@@ -13,33 +13,18 @@ function stripMarkdownCodeBlocks(text: string): string {
     .trim();
 }
 
-const SYSTEM_PROMPT = `You are an AI Executive Assistant for The Quantum Club, a luxury executive career platform.
+const SYSTEM_PROMPT = `You are an AI assistant for The Quantum Club, a luxury executive career platform.
 
-Analyze this email comprehensively and provide:
-
-1. Category: recruiter_outreach | interview_invitation | offer | networking | newsletter | spam | other
-2. Priority: 1-5 (5 = urgent interview/offer, 1 = newsletter)
-3. Summary: One sentence (max 100 chars)
-4. Sentiment: positive | neutral | negative
-5. Action items: Array of {type: 'reply'|'schedule'|'review', text: string}
-6. Smart Replies: Generate 3 contextual reply options:
-   - professional: Formal, executive tone
-   - friendly: Warm but professional
-   - decline: Polite rejection
-   Each reply should be 2-3 sentences, ready to send.
-7. Meeting Detection: If email contains meeting request, extract:
-   - hasMeeting: boolean
-   - meetingTitle: string
-   - suggestedDates: array of date strings
-   - location: string (if any)
-8. Follow-up Needed: Detect if this requires follow-up:
-   - needsFollowUp: boolean
-   - followUpType: 'no_reply' | 'meeting_request' | 'deadline' | 'important'
-   - followUpDays: number (suggested days to wait)
-   - followUpReason: string
-9. Relationship Intelligence:
-   - relationshipStrength: 'cold' | 'warm' | 'hot' | 'vip'
-   - keyTopics: array of main discussion points
+Analyze this email and return ONLY valid JSON with these fields:
+1. category: recruiter_outreach | interview_invitation | offer | networking | newsletter | spam | other
+2. priority: 1-5 (5=urgent, 1=newsletter)
+3. summary: one sentence max 100 chars
+4. sentiment: positive | neutral | negative
+5. action_items: array of {type: 'reply'|'schedule'|'review', text: string}
+6. smart_replies: ONLY for categories recruiter_outreach, interview_invitation, offer — generate {professional, friendly, decline} replies of 2-3 sentences each. For ALL other categories set smart_replies to null.
+7. meeting: {hasMeeting: boolean, meetingTitle?: string, suggestedDates?: string[], location?: string}
+8. follow_up: {needsFollowUp: boolean, followUpType?: 'no_reply'|'meeting_request'|'deadline'|'important', followUpDays?: number, followUpReason?: string}
+9. relationship: {relationshipStrength: 'cold'|'warm'|'hot'|'vip', keyTopics: string[]}
 
 Respond ONLY with valid JSON.`;
 
@@ -121,7 +106,7 @@ Body: ${email.body_text || email.snippet || ""}
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: emailText },
