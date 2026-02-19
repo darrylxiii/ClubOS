@@ -32,6 +32,7 @@ import { ClosedJobsTabContent } from "@/components/jobs/tabs/ClosedJobsTabConten
 import { AnalyticsTabContent } from "@/components/jobs/tabs/AnalyticsTabContent";
 import { IntelligenceTabContent } from "@/components/jobs/tabs/IntelligenceTabContent";
 import { InteractionsTabContent } from "@/components/jobs/tabs/InteractionsTabContent";
+import { InterviewPrepTabContent } from "@/components/jobs/tabs/InterviewPrepTabContent";
 
 type SortOption = "match" | "newest" | "salary";
 
@@ -583,6 +584,10 @@ const Jobs = () => {
                     <Map className="w-3.5 h-3.5" />
                     Map
                   </TabsTrigger>
+                  <TabsTrigger value="interview-prep" className="gap-1.5">
+                    <Brain className="w-3.5 h-3.5" />
+                    Interview Prep
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Sort Dropdown - only for job browsing tabs */}
@@ -776,6 +781,11 @@ const Jobs = () => {
               {/* ── Map Tab ── */}
               <TabsContent value="map">
                 <MapTabContent />
+              </TabsContent>
+
+              {/* ── Interview Prep Tab ── */}
+              <TabsContent value="interview-prep">
+                <InterviewPrepTabContent />
               </TabsContent>
             </Tabs>
           </div>

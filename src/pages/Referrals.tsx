@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2, BarChart3, Link2 } from "lucide-react";
+import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2, BarChart3, Link2, Mail } from "lucide-react";
+import { lazy, Suspense } from "react";
+import { PageLoader } from "@/components/PageLoader";
+
+const InviteDashboardLayout = lazy(() =>
+  import("@/components/invites/InviteDashboardLayout").then(m => ({ default: m.InviteDashboardLayout }))
+);
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
@@ -140,6 +146,10 @@ export default function Referrals() {
                 <Link2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Share Links</span>
               </TabsTrigger>
+              <TabsTrigger value="invites" className="gap-2">
+                <Mail className="h-4 w-4" />
+                <span className="hidden sm:inline">Invites</span>
+              </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -182,6 +192,12 @@ export default function Referrals() {
 
           <TabsContent value="share" className="space-y-4">
             <ReferralShareGenerator />
+          </TabsContent>
+
+          <TabsContent value="invites" className="space-y-4">
+            <Suspense fallback={<PageLoader />}>
+              <InviteDashboardLayout />
+            </Suspense>
           </TabsContent>
         </Tabs>
 
