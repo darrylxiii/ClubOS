@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,21 +23,45 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get user context
+    // --- CACHE GUARD: 4-hour cache per user + page ---
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    const { data: cachedTips } = await supabase
+      .from('ai_copilot_tips')
+      .select('tip_type, tip_content')
+      .eq('user_id', userId)
+      .eq('context_page', contextPage)
+      .gte('shown_at', fourHoursAgo)
+      .order('shown_at', { ascending: false })
+      .limit(3);
+
+    if (cachedTips && cachedTips.length > 0) {
+      console.log(`[ai-copilot-tips] Serving ${cachedTips.length} cached tips for ${contextPage}`);
+      const tips = cachedTips.map((t: any) => ({
+        tip_type: t.tip_type,
+        tip_content: t.tip_content,
+        priority: 'medium',
+      }));
+      return new Response(
+        JSON.stringify({ tips }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get minimal user context
     const { data: profile } = await supabase
       .from('profiles')
-      .select('*')
+      .select('title, full_name')
       .eq('id', userId)
       .single();
 
     const { data: applications } = await supabase
       .from('applications')
-      .select('*, jobs(*)')
+      .select('status')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5);
 
-    const contextPrompts = {
+    const contextPrompts: Record<string, string> = {
       'dashboard': 'Provide actionable tips for dashboard navigation and next best actions.',
       'applications': 'Suggest ways to improve application strategy and follow-up timing.',
       'jobs': 'Recommend job search optimization and matching strategies.',
@@ -53,7 +77,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         tools: [
           {
             type: 'function',
@@ -95,7 +119,7 @@ User context:
 - Profile: ${profile?.title || 'Not set'}
 - Recent activity: ${applications?.length || 0} applications
 
-${contextPrompts[contextPage as keyof typeof contextPrompts] || 'Provide helpful tips for this context.'}`
+${contextPrompts[contextPage] || 'Provide helpful tips for this context.'}`
           },
           {
             role: 'user',
@@ -122,13 +146,14 @@ ${contextPrompts[contextPage as keyof typeof contextPrompts] || 'Provide helpful
     if (toolCall) {
       const tips = JSON.parse(toolCall.function.arguments).tips;
       
-      // Save tips to database
+      // Save tips to database (shown_at acts as cache timestamp)
       for (const tip of tips) {
         await supabase.from('ai_copilot_tips').insert({
           user_id: userId,
           tip_type: tip.tip_type,
           tip_content: tip.tip_content,
-          context_page: contextPage
+          context_page: contextPage,
+          shown_at: new Date().toISOString(),
         });
       }
 

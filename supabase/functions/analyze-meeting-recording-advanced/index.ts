@@ -423,6 +423,19 @@ serve(async (req) => {
       return data;
     }, 'Fetch Recording');
 
+    // --- CACHE GUARD: Return existing analysis if not a re-analysis request ---
+    if (!isReanalysis && recording.ai_analysis && recording.analysis_status === 'completed') {
+      console.log(`[Analysis] ⚡ Returning cached analysis for ${recordingId}`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          analysis: recording.ai_analysis,
+          stats: { cached: true, transcript_chars: (recording.transcript || '').length }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Increment retry count and update status
     const currentRetryCount = isReanalysis ? 0 : ((recording.analysis_retry_count || 0) + 1);
     await updateRecordingStatus(supabase, recordingId, {

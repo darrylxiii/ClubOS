@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,6 +26,33 @@ serve(async (req) => {
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // --- DEDUPLICATION GUARD: Skip AI if this email was already analyzed ---
+    if (email.id) {
+      const { data: existing } = await supabase
+        .from('email_contact_matches')
+        .select('sentiment_score, sentiment_label, analyzed_at')
+        .eq('message_id', email.id)
+        .not('sentiment_score', 'is', null)
+        .maybeSingle();
+
+      if (existing) {
+        console.log(`[analyze-email-sentiment] Returning cached result for email ${email.id}`);
+        return new Response(
+          JSON.stringify({
+            sentiment_score: existing.sentiment_score,
+            sentiment_label: existing.sentiment_label,
+            confidence: 0.9,
+            cached: true,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     console.log('Analyzing sentiment for email:', email.subject?.substring(0, 50) + '...');
@@ -123,10 +150,6 @@ Return structured JSON with sentiment analysis.`
 
     // If save_match is true and we have email data, try to match and save
     if (save_match) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
       // Extract domain from email
       const fromDomain = email.from_email.split('@')[1]?.toLowerCase();
       
