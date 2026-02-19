@@ -24231,9 +24231,12 @@ export type Database = {
           expires_at: string
           id: string
           is_active: boolean
+          is_password_protected: boolean
           job_id: string
           label: string | null
+          password_attempt_count: number
           password_hash: string | null
+          password_locked_until: string | null
           show_ai_summary: boolean
           show_candidate_emails: boolean
           show_candidate_linkedin: boolean
@@ -24251,9 +24254,12 @@ export type Database = {
           expires_at: string
           id?: string
           is_active?: boolean
+          is_password_protected?: boolean
           job_id: string
           label?: string | null
+          password_attempt_count?: number
           password_hash?: string | null
+          password_locked_until?: string | null
           show_ai_summary?: boolean
           show_candidate_emails?: boolean
           show_candidate_linkedin?: boolean
@@ -24271,9 +24277,12 @@ export type Database = {
           expires_at?: string
           id?: string
           is_active?: boolean
+          is_password_protected?: boolean
           job_id?: string
           label?: string | null
+          password_attempt_count?: number
           password_hash?: string | null
+          password_locked_until?: string | null
           show_ai_summary?: boolean
           show_candidate_emails?: boolean
           show_candidate_linkedin?: boolean
@@ -56312,6 +56321,10 @@ export type Database = {
           candidate_count: number
         }[]
       }
+      get_pipeline_share_data: {
+        Args: { _password?: string; _token: string }
+        Returns: Json
+      }
       get_popular_courses:
         | {
             Args: never
@@ -56491,6 +56504,10 @@ export type Database = {
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
       has_strategist_role: { Args: { check_user_id: string }; Returns: boolean }
+      hash_pipeline_share_password: {
+        Args: { _password: string }
+        Returns: string
+      }
       increment_template_usage: {
         Args: { template_id: string }
         Returns: undefined

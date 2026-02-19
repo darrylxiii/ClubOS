@@ -14,13 +14,14 @@ import { format } from 'date-fns';
 interface ShareMeta extends VisibilitySettings {
   job_id: string;
   expires_at: string;
-  requires_password: boolean;
+  is_password_protected: boolean;
 }
 
-interface JobData {
+interface JobInfo {
   title: string;
   pipeline_stages: { name: string; order: number; color?: string }[];
-  companies?: { name: string; logo_url?: string };
+  company_name?: string;
+  company_logo_url?: string;
 }
 
 interface Application {
@@ -47,12 +48,12 @@ export default function SharedPipelineView() {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [submittingPassword, setSubmittingPassword] = useState(false);
+  const [rateLimitSeconds, setRateLimitSeconds] = useState<number | null>(null);
 
   const [meta, setMeta] = useState<ShareMeta | null>(null);
-  const [job, setJob] = useState<JobData | null>(null);
+  const [job, setJob] = useState<JobInfo | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
 
-  // Step 1: On mount, check if the link is valid and whether it needs a password
   useEffect(() => {
     if (!token) {
       setErrorMsg('Invalid share link.');
@@ -62,8 +63,10 @@ export default function SharedPipelineView() {
     checkToken();
   }, [token]);
 
+  // Step 1: Check if token is valid and whether password is needed
   const checkToken = async () => {
-    const { data, error } = await supabase.rpc('check_pipeline_share_requires_password' as any, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('check_pipeline_share_requires_password', {
       _token: token,
     });
 
@@ -73,7 +76,7 @@ export default function SharedPipelineView() {
       return;
     }
 
-    const result = data as any;
+    const result = data as { valid: boolean; requires_password?: boolean };
     if (!result.valid) {
       setErrorMsg('This share link has expired or is invalid.');
       setViewState('error');
@@ -83,13 +86,15 @@ export default function SharedPipelineView() {
     if (result.requires_password) {
       setViewState('password_gate');
     } else {
-      // No password required — validate directly
-      await validateAndLoad(null);
+      await loadAllData(null);
     }
   };
 
-  const validateAndLoad = async (password: string | null) => {
-    const { data, error } = await supabase.rpc('validate_job_pipeline_share' as any, {
+  // Step 2: Call the single SECURITY DEFINER RPC that returns everything
+  // This replaces the broken direct anon queries to applications + candidate_profiles
+  const loadAllData = async (password: string | null) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('get_pipeline_share_data', {
       _token: token,
       _password: password,
     });
@@ -100,7 +105,23 @@ export default function SharedPipelineView() {
       return;
     }
 
-    const result = data as any;
+    const result = data as Record<string, unknown>;
+
+    if (result.error === 'invalid_or_expired') {
+      setErrorMsg('This share link has expired or is invalid.');
+      setViewState('error');
+      return;
+    }
+
+    if (result.error === 'too_many_attempts') {
+      const retry = (result.retry_after as number) ?? 900;
+      setRateLimitSeconds(retry);
+      setPasswordError(
+        `Too many incorrect attempts. Please wait ${Math.ceil(retry / 60)} minute(s) before trying again.`,
+      );
+      setSubmittingPassword(false);
+      return;
+    }
 
     if (result.error === 'invalid_password') {
       setPasswordError('Incorrect password. Please try again.');
@@ -108,21 +129,38 @@ export default function SharedPipelineView() {
       return;
     }
 
+    // Success — parse everything returned from the RPC (server-side PII filtered)
     const shareMeta: ShareMeta = {
-      job_id: result.job_id,
-      expires_at: result.expires_at,
-      requires_password: result.requires_password ?? false,
-      show_candidate_names: result.show_candidate_names,
-      show_candidate_emails: result.show_candidate_emails,
-      show_candidate_linkedin: result.show_candidate_linkedin,
-      show_salary_data: result.show_salary_data,
-      show_match_scores: result.show_match_scores,
-      show_ai_summary: result.show_ai_summary,
-      show_contact_info: result.show_contact_info,
+      job_id: result.job_id as string,
+      expires_at: result.expires_at as string,
+      is_password_protected: result.is_password_protected as boolean,
+      show_candidate_names: result.show_candidate_names as boolean,
+      show_candidate_emails: result.show_candidate_emails as boolean,
+      show_candidate_linkedin: result.show_candidate_linkedin as boolean,
+      show_salary_data: result.show_salary_data as boolean,
+      show_match_scores: result.show_match_scores as boolean,
+      show_ai_summary: result.show_ai_summary as boolean,
+      show_contact_info: result.show_contact_info as boolean,
     };
 
+    const jobPayload = result.job as Record<string, unknown>;
+    const jobInfo: JobInfo = {
+      title: jobPayload.title as string,
+      pipeline_stages: (jobPayload.pipeline_stages as JobInfo['pipeline_stages']) ?? [
+        { name: 'Applied', order: 0 },
+        { name: 'Screening', order: 1 },
+        { name: 'Interview', order: 2 },
+        { name: 'Offer', order: 3 },
+      ],
+      company_name: jobPayload.company_name as string | undefined,
+      company_logo_url: jobPayload.company_logo_url as string | undefined,
+    };
+
+    const apps = (result.applications as Application[]) ?? [];
+
     setMeta(shareMeta);
-    await fetchPipelineData(shareMeta);
+    setJob(jobInfo);
+    setApplications(apps);
     setViewState('ready');
   };
 
@@ -131,73 +169,11 @@ export default function SharedPipelineView() {
       setPasswordError('Please enter the password.');
       return;
     }
+    if (rateLimitSeconds !== null) return;
     setSubmittingPassword(true);
     setPasswordError('');
-    await validateAndLoad(passwordInput.trim());
+    await loadAllData(passwordInput.trim());
     setSubmittingPassword(false);
-  };
-
-  const fetchPipelineData = async (shareMeta: ShareMeta) => {
-    // Fetch job
-    const { data: jobData, error: jobError } = await supabase
-      .from('jobs')
-      .select('title, pipeline_stages, companies(name, logo_url)')
-      .eq('id', shareMeta.job_id)
-      .single();
-
-    if (jobError || !jobData) return;
-    setJob(jobData as unknown as JobData);
-
-    // Fetch applications with candidate data
-    const { data: apps, error: appsError } = await supabase
-      .from('applications')
-      .select(`
-        id,
-        current_stage_index,
-        applied_at,
-        match_score,
-        ai_summary,
-        candidate_id,
-        user_id
-      `)
-      .eq('job_id', shareMeta.job_id)
-      .neq('status', 'rejected');
-
-    if (appsError || !apps) return;
-
-    // Batch-fetch candidate profiles
-    const candidateIds = apps
-      .map((a: any) => a.candidate_id)
-      .filter(Boolean) as string[];
-
-    const candidateProfilesMap = new Map<string, any>();
-
-    if (candidateIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('candidate_profiles')
-        .select('id, full_name, current_title, current_company, email, linkedin_url')
-        .in('id', candidateIds);
-
-      (profiles || []).forEach((p: any) => candidateProfilesMap.set(p.id, p));
-    }
-
-    const enriched: Application[] = apps.map((app: any) => {
-      const cp = candidateProfilesMap.get(app.candidate_id);
-      return {
-        id: app.id,
-        current_stage_index: app.current_stage_index ?? 0,
-        applied_at: app.applied_at,
-        match_score: app.match_score,
-        ai_summary: app.ai_summary,
-        full_name: cp?.full_name || 'Candidate',
-        current_title: cp?.current_title,
-        current_company: cp?.current_company,
-        email: shareMeta.show_candidate_emails ? cp?.email : undefined,
-        linkedin_url: shareMeta.show_candidate_linkedin ? cp?.linkedin_url : undefined,
-      };
-    });
-
-    setApplications(enriched);
   };
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -254,8 +230,9 @@ export default function SharedPipelineView() {
                 placeholder="Enter password"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                onKeyDown={(e) => e.key === 'Enter' && !submittingPassword && handlePasswordSubmit()}
                 className="h-10"
+                disabled={rateLimitSeconds !== null}
               />
               {passwordError && (
                 <p className="text-xs text-destructive">{passwordError}</p>
@@ -264,7 +241,7 @@ export default function SharedPipelineView() {
             <Button
               className="w-full"
               onClick={handlePasswordSubmit}
-              disabled={submittingPassword}
+              disabled={submittingPassword || rateLimitSeconds !== null}
             >
               {submittingPassword ? 'Verifying…' : 'View Pipeline'}
             </Button>
@@ -277,14 +254,14 @@ export default function SharedPipelineView() {
   // ── Main shared view ──────────────────────────────────────────────────────
   if (!job || !meta) return null;
 
-  const stages = Array.isArray(job.pipeline_stages)
-    ? job.pipeline_stages
-    : [
-        { name: 'Applied', order: 0 },
-        { name: 'Screening', order: 1 },
-        { name: 'Interview', order: 2 },
-        { name: 'Offer', order: 3 },
-      ];
+  const stages = Array.isArray(job.pipeline_stages) ? job.pipeline_stages : [
+    { name: 'Applied', order: 0 },
+    { name: 'Screening', order: 1 },
+    { name: 'Interview', order: 2 },
+    { name: 'Offer', order: 3 },
+  ];
+
+  const totalCandidates = applications.length;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -299,10 +276,10 @@ export default function SharedPipelineView() {
       <header className="border-b border-border/30 bg-card/60 backdrop-blur-sm px-6 py-5">
         <div className="max-w-7xl mx-auto flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            {(job.companies as any)?.logo_url && (
+            {job.company_logo_url && (
               <img
-                src={(job.companies as any).logo_url}
-                alt={(job.companies as any)?.name}
+                src={job.company_logo_url}
+                alt={job.company_name}
                 className="w-12 h-12 rounded-xl object-cover border border-border/30"
               />
             )}
@@ -310,10 +287,10 @@ export default function SharedPipelineView() {
               <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">
                 {job.title}
               </h1>
-              {(job.companies as any)?.name && (
+              {job.company_name && (
                 <div className="flex items-center gap-1.5 mt-0.5 text-sm text-muted-foreground">
                   <Building2 className="w-3.5 h-3.5" />
-                  {(job.companies as any).name}
+                  {job.company_name}
                 </div>
               )}
             </div>
@@ -346,15 +323,21 @@ export default function SharedPipelineView() {
       <main className="flex-1 px-6 py-6 max-w-7xl w-full mx-auto">
         <div className="mb-4 flex items-center gap-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Pipeline · {applications.length} candidate{applications.length !== 1 ? 's' : ''}
+            Pipeline · {totalCandidates} candidate{totalCandidates !== 1 ? 's' : ''}
           </h2>
         </div>
 
-        <PipelineShareBoard
-          stages={stages}
-          applications={applications}
-          visibility={meta}
-        />
+        {totalCandidates === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
+              <Eye className="w-6 h-6 text-muted-foreground/50" />
+            </div>
+            <p className="text-sm text-muted-foreground font-medium">No candidates in this pipeline yet.</p>
+            <p className="text-xs text-muted-foreground/70">Check back later — candidates will appear here as they progress through the stages.</p>
+          </div>
+        ) : (
+          <PipelineShareBoard stages={stages} applications={applications} visibility={meta} />
+        )}
       </main>
 
       {/* Footer */}
