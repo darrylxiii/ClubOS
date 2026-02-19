@@ -95,6 +95,7 @@ export default function JobDashboard() {
   const [showAddStage, setShowAddStage] = useState(false);
   const [showManualInterview, setShowManualInterview] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [activeShareCount, setActiveShareCount] = useState(0);
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
@@ -211,8 +212,20 @@ export default function JobDashboard() {
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
+      fetchActiveShareCount();
     }
   }, [jobId]);
+
+  const fetchActiveShareCount = async () => {
+    if (!jobId) return;
+    const { count } = await (supabase as any)
+      .from('job_pipeline_shares')
+      .select('id', { count: 'exact', head: true })
+      .eq('job_id', jobId)
+      .eq('is_active', true)
+      .gt('expires_at', new Date().toISOString());
+    setActiveShareCount(count ?? 0);
+  };
 
   const fetchJobDetails = async () => {
     try {
@@ -508,7 +521,10 @@ export default function JobDashboard() {
         {job && (
           <SharePipelineDialog
             open={showShareDialog}
-            onOpenChange={setShowShareDialog}
+            onOpenChange={(open) => {
+              setShowShareDialog(open);
+              if (!open) fetchActiveShareCount();
+            }}
             jobId={job.id}
             jobTitle={job.title}
           />
@@ -582,15 +598,22 @@ export default function JobDashboard() {
               </Button>
 
               {(role === 'admin' || role === 'strategist') && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowShareDialog(true)}
-                  className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Share
-                </Button>
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowShareDialog(true)}
+                    className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share
+                  </Button>
+                  {activeShareCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground leading-none">
+                      {activeShareCount > 9 ? '9+' : activeShareCount}
+                    </span>
+                  )}
+                </div>
               )}
 
               <Button
