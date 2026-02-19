@@ -10,6 +10,11 @@ export const useTranslationSync = () => {
   const [, setLanguage] = useState(i18n.language);
   
   useEffect(() => {
+    // Guard: i18n may not be fully initialized during HMR or early render
+    if (!i18n || typeof i18n.on !== 'function') {
+      return;
+    }
+
     const handleLanguageChange = (lng: string) => {
       console.log('[TranslationSync] Language changed to:', lng);
       setLanguage(lng);
