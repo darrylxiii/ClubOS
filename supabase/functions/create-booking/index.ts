@@ -681,6 +681,27 @@ serve(async (req) => {
       }
     }
 
+    // ====== AUTO-ENABLE NOTETAKER if booking link has Club AI enabled and platform is Google Meet ======
+    if (videoPlatform === 'google_meet') {
+      try {
+        const { data: linkSettings } = await supabaseClient
+          .from('booking_links')
+          .select('enable_club_ai')
+          .eq('id', bookingLink.id)
+          .single();
+
+        if (linkSettings?.enable_club_ai) {
+          await supabaseClient
+            .from('bookings')
+            .update({ notetaker_enabled: true })
+            .eq('id', booking.id);
+          console.log('[Booking] Club AI Notetaker auto-enabled for this Google Meet booking');
+        }
+      } catch (notetakerError) {
+        console.warn('[Booking] Failed to check/enable notetaker:', notetakerError);
+      }
+    }
+
     // ====== RE-FETCH booking to get updated video fields (Meet link, platform, etc.) ======
     const { data: updatedBooking } = await supabaseClient
       .from("bookings")

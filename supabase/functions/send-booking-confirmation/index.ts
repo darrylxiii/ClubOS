@@ -217,6 +217,12 @@ serve(async (req) => {
         location: meetingLocation,
       })}
       ${Spacer(24)}
+      ${booking.notetaker_enabled ? AlertBox({
+        type: 'info',
+        title: 'Club AI Notetaker',
+        message: 'Club AI Notetaker will join this meeting to capture notes, generate a summary, and extract action items. You\'ll receive an email with the meeting insights after the call.',
+      }) : ''}
+      ${Spacer(24)}
       ${AlertBox({
         type: 'info',
         title: 'Need to make changes?',
