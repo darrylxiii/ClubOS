@@ -43,22 +43,27 @@ export interface MoneybirdFinancialMetrics {
   last_synced_at: string;
 }
 
-export function useMoneybirdFinancials(year?: number) {
+export function useMoneybirdFinancials(year?: number, legalEntity?: string) {
   const currentYear = year || new Date().getFullYear();
   const periodStart = `${currentYear}-01-01`;
   const periodEnd = `${currentYear}-12-31`;
 
   return useQuery({
-    queryKey: ['moneybird-financials', currentYear],
+    queryKey: ['moneybird-financials', currentYear, legalEntity],
     queryFn: async (): Promise<MoneybirdFinancialMetrics | null> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('moneybird_financial_metrics')
         .select('*')
         .eq('period_start', periodStart)
         .eq('period_end', periodEnd)
         .order('sync_date', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+
+      if (legalEntity && legalEntity !== 'all') {
+        query = query.eq('legal_entity', legalEntity);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
       

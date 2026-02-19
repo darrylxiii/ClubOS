@@ -7,9 +7,9 @@ export interface PlacementFeeWithContext extends PlacementFee {
   company_name: string | null;
 }
 
-export const usePlacementFeesWithContext = (year?: number) => {
+export const usePlacementFeesWithContext = (year?: number, legalEntity?: string) => {
   return useQuery({
-    queryKey: ['placement-fees-with-context', year],
+    queryKey: ['placement-fees-with-context', year, legalEntity],
     queryFn: async () => {
       let query = supabase
         .from('placement_fees')
@@ -26,6 +26,10 @@ export const usePlacementFeesWithContext = (year?: number) => {
         const startDate = `${year}-01-01`;
         const endDate = `${year + 1}-01-01`;
         query = query.gte('hired_date', startDate).lt('hired_date', endDate);
+      }
+
+      if (legalEntity && legalEntity !== 'all') {
+        query = query.eq('legal_entity', legalEntity);
       }
 
       const { data, error } = await query;
