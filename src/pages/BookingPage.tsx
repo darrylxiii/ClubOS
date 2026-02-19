@@ -5,7 +5,8 @@ import { Calendar, Clock, ArrowLeft, Sparkles, RefreshCw, WifiOff, AlertCircle }
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import logoLight from "@/assets/quantum-club-logo.png";
+import logoDark from "@/assets/quantum-logo-dark.png";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
 import { PaymentStep } from "@/components/booking/PaymentStep";
@@ -241,22 +242,12 @@ export default function BookingPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            {retryCount > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap"
-              >
-                <span className="text-xs text-muted-foreground bg-background px-2 py-0.5 rounded-full">
-                  Attempt {retryCount + 1}
-                </span>
-              </motion.div>
-            )}
+          <div className="animate-pulse mx-auto mb-6">
+            <img src={logoLight} alt="The Quantum Club" className="h-16 w-auto mx-auto dark:hidden" />
+            <img src={logoDark} alt="The Quantum Club" className="h-16 w-auto mx-auto hidden dark:block" />
           </div>
-          <p className="mt-6 text-muted-foreground">
-            {retryCount > 0 ? 'Reconnecting...' : 'Loading booking page...'}
+          <p className="text-muted-foreground text-sm">
+            {retryCount > 0 ? `Reconnecting... (attempt ${retryCount + 1})` : 'Loading booking page...'}
           </p>
         </div>
       </div>
@@ -271,6 +262,10 @@ export default function BookingPage() {
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
+            <div className="mx-auto mb-6">
+              <img src={logoLight} alt="The Quantum Club" className="h-12 w-auto mx-auto dark:hidden" />
+              <img src={logoDark} alt="The Quantum Club" className="h-12 w-auto mx-auto hidden dark:block" />
+            </div>
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
               {isNetworkError ? (
                 <WifiOff className="h-6 w-6 text-muted-foreground" />
@@ -311,18 +306,20 @@ export default function BookingPage() {
                 className="h-10 w-auto mx-auto mb-3 object-contain"
               />
             )}
-            <Avatar className="h-20 w-20 mx-auto mb-4">
-              <AvatarImage src={profile?.avatar_url || ""} />
-              <AvatarFallback>{profile?.full_name?.[0] || "Q"}</AvatarFallback>
-            </Avatar>
-            <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "The Quantum Club"}</h1>
+            <div className="mx-auto mb-4">
+              <img src={logoLight} alt="The Quantum Club" className="h-16 w-auto mx-auto dark:hidden" />
+              <img src={logoDark} alt="The Quantum Club" className="h-16 w-auto mx-auto hidden dark:block" />
+            </div>
+            {profile?.full_name && (
+              <h1 className="text-2xl font-bold mb-1">{profile.full_name}</h1>
+            )}
             <p className="text-xs text-muted-foreground">Powered by The Quantum Club</p>
           </div>
 
           {/* Progress Stepper */}
           <BookingProgressStepper currentStep={step} showPayment={!!bookingLink.payment_required} />
 
-          <Card className="mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
+          <Card className="max-w-2xl mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
@@ -474,7 +471,9 @@ export default function BookingPage() {
           </Card>
 
           {/* Footer */}
-          <div className="mt-8 text-center text-sm text-muted-foreground">
+          <div className="mt-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+            <img src={logoLight} alt="" className="h-4 w-auto dark:hidden opacity-50" />
+            <img src={logoDark} alt="" className="h-4 w-auto hidden dark:block opacity-50" />
             <p>Powered by The Quantum Club</p>
           </div>
       </div>
