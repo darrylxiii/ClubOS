@@ -26,7 +26,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch conversation history if conversationId is provided
+    // Fetch conversation history if conversationId is provided — TRUNCATED to save tokens
     let conversationHistory = "";
     if (conversationId) {
       const { data: conversation } = await supabase
@@ -36,15 +36,13 @@ serve(async (req) => {
         .single();
       
       if (conversation && Array.isArray(conversation.messages) && conversation.messages.length > 0) {
+        // Only keep last 15 messages to cap token usage
+        const truncated = conversation.messages.slice(-15);
         conversationHistory = `
-=== CONVERSATION HISTORY ===
-This user has had previous interactions with you. Here's the conversation history:
-
-${conversation.messages.map((msg: any, idx: number) => 
-  `[Message ${idx + 1}] ${msg.role.toUpperCase()}: ${msg.content}`
-).join("\n\n")}
-
-Based on this history, provide contextually aware responses that reference previous discussions when relevant.
+=== CONVERSATION HISTORY (last ${truncated.length} messages) ===
+${truncated.map((msg: any) => 
+  `${msg.role.toUpperCase()}: ${typeof msg.content === 'string' ? msg.content.substring(0, 300) : ''}`
+).join("\n")}
 ===
 `;
       }
@@ -1574,7 +1572,13 @@ ${salaryBenchmarks.map((b: any) => `- ${b.role_title} (${b.location || 'Global'}
       }
     }
 
-    console.log("Detected mode:", mode);
+    // --- TRUNCATE MESSAGES to last 15 to cap token usage ---
+    if (cleanedMessages.length > 15) {
+      console.log(`[Cost] Truncating ${cleanedMessages.length} messages to last 15`);
+      cleanedMessages = cleanedMessages.slice(-15);
+    }
+
+    console.log("Detected mode:", mode, "| Messages:", cleanedMessages.length);
 
     // Define base tools available to all modes
     const baseTools = [
@@ -1654,10 +1658,10 @@ ${salaryBenchmarks.map((b: any) => `- ${b.role_title} (${b.location || 'Global'}
     // Combine all tools
     const tools = [...baseTools, ...searchTools, ...filteredAITools];
 
-    // Map client-selected model to actual AI model
-    let selectedModel = 'google/gemini-2.5-flash'; // Default
+    // Map client-selected model to actual AI model — default to cheapest adequate model
+    let selectedModel = 'google/gemini-2.5-flash-lite'; // Default: cheapest model for simple queries
     if (clientSelectedModel === 'club-ai-0.1' || clientSelectedModel === 'quantum-0.1') {
-      selectedModel = 'google/gemini-2.5-flash';
+      selectedModel = 'google/gemini-2.5-flash-lite'; // Downgraded from flash to save ~40% per request
     } else if (clientSelectedModel === 'google/gemini-2.5-pro') {
       selectedModel = 'google/gemini-2.5-pro';
     } else if (clientSelectedModel === 'google/gemini-2.5-flash') {

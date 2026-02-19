@@ -86,28 +86,18 @@ const ClubAI = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Generate dynamic placeholders based on conversation
+  // Static placeholder rotation — no AI calls needed
+  const STATIC_PLACEHOLDERS = [
+    ["What's the best strategy for my job search?", "How should I prepare for technical interviews?", "Can you review my career trajectory?", "What salary should I negotiate for?", "Help me optimize my LinkedIn profile"],
+    ["What are the latest trends in my industry?", "Review my active applications", "Help me draft a follow-up email", "What skills should I develop next?", "Summarize my week"],
+    ["Prepare me for my next interview", "What's urgent on my plate today?", "How can I improve my profile?", "Show me matching opportunities", "Help me write a cover letter"],
+  ];
   useEffect(() => {
-    const generatePlaceholders = async () => {
-      if (messages.length === 0) return;
-
-      try {
-        const { data, error } = await supabase.functions.invoke("generate-placeholders", {
-          body: { messages }
-        });
-
-        if (!error && data?.placeholders) {
-          setDynamicPlaceholders(data.placeholders);
-        }
-      } catch (error) {
-        console.error("Error generating placeholders:", error);
-      }
-    };
-
-    // Debounce placeholder generation
-    const timer = setTimeout(generatePlaceholders, 2000);
-    return () => clearTimeout(timer);
-  }, [messages]);
+    if (messages.length === 0) return;
+    // Rotate placeholders based on message count — free, instant, zero AI cost
+    const idx = messages.length % STATIC_PLACEHOLDERS.length;
+    setDynamicPlaceholders(STATIC_PLACEHOLDERS[idx]);
+  }, [messages.length]);
   
   useEffect(() => {
     if (currentConversationId) {

@@ -50,6 +50,17 @@ serve(async (req) => {
           continue;
         }
 
+        // --- CACHE GUARD: Skip if enriched within last 24 hours ---
+        if (candidate.ai_enrichment_data?.enriched_at) {
+          const enrichedAt = new Date(candidate.ai_enrichment_data.enriched_at).getTime();
+          const hoursSinceEnrichment = (Date.now() - enrichedAt) / (1000 * 60 * 60);
+          if (hoursSinceEnrichment < 24) {
+            console.log(`⏭️ Skipping ${candidate.full_name} — enriched ${hoursSinceEnrichment.toFixed(1)}h ago`);
+            results.push({ id: cid, success: true, skipped: true, reason: 'recently_enriched' });
+            continue;
+          }
+        }
+
         // Fetch related data in parallel
         const [skillsRes, experienceRes, educationRes, tagsRes, applicationsRes] = await Promise.all([
           supabase.from('profile_skills').select('skill_name, proficiency_level, years_of_experience').eq('profile_id', cid),

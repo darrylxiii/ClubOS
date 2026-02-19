@@ -25,6 +25,32 @@ serve(async (req) => {
             throw new Error('LOVABLE_API_KEY not configured');
         }
 
+        // --- CACHE GUARD: Only generate once per hour ---
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { data: recentInsight } = await supabase
+            .from('ai_generated_content')
+            .select('generated_content, created_at')
+            .eq('content_type', 'kpi_insights')
+            .gte('created_at', oneHourAgo)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (recentInsight) {
+            console.log('[KPI Insights] Serving cached result from', recentInsight.created_at);
+            try {
+                return new Response(recentInsight.generated_content, {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                });
+            } catch {
+                // Cached content is invalid, regenerate
+            }
+        }
+
         // summary construction
         const prompt = `
     You are the Chief of Staff for a high-growth company. Review these KPI metrics and provide a concise Executive Briefing.
@@ -78,8 +104,18 @@ serve(async (req) => {
         if (jsonMatch) content = jsonMatch[0];
 
         const result = JSON.parse(content);
+        const resultJson = JSON.stringify(result);
 
-        return new Response(JSON.stringify(result), {
+        // Cache the result for 1 hour
+        await supabase.from('ai_generated_content').insert({
+            content_type: 'kpi_insights',
+            generated_content: resultJson,
+            prompt: 'kpi_insights_auto',
+        }).then(({ error }) => {
+            if (error) console.warn('Failed to cache KPI insights:', error.message);
+        });
+
+        return new Response(resultJson, {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
