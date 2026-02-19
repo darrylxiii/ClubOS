@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// No serve import needed — using Deno.serve()
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const corsHeaders = {
@@ -39,7 +39,7 @@ interface ProvisionRequest {
   assignedStrategistId?: string;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -355,11 +355,12 @@ serve(async (req) => {
 
     // Step 8: Create invite code
     const inviteCode = `PARTNER-${Date.now().toString(36).toUpperCase()}`;
-    await supabase
+    const { error: inviteError } = await supabase
       .from('invite_codes')
       .insert({
         code: inviteCode,
         created_by: adminUser.id,
+        created_by_type: 'admin',
         max_uses: 1,
         uses_count: 0,
         expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(), // 72 hours
@@ -369,9 +370,12 @@ serve(async (req) => {
         provisioned_by: adminUser.id,
         welcome_message: body.welcomeMessage
       });
+    if (inviteError) {
+      console.error('Step 8 – invite_codes insert failed:', inviteError);
+    }
 
     // Step 9: Log provisioning
-    await supabase
+    const { error: provLogError } = await supabase
       .from('partner_provisioning_logs')
       .insert({
         provisioned_user_id: newUserId,
@@ -388,6 +392,9 @@ serve(async (req) => {
           welcome_message: body.welcomeMessage
         }
       });
+    if (provLogError) {
+      console.error('Step 9 – partner_provisioning_logs insert failed:', provLogError);
+    }
 
     // Step 10: Send welcome email via Resend if available
     let welcomeEmailSent = false;
@@ -478,17 +485,18 @@ serve(async (req) => {
     }
 
     // Step 11: Create comprehensive audit log
-    await supabase
+    const { error: auditError } = await supabase
       .from('comprehensive_audit_logs')
       .insert({
         actor_id: adminUser.id,
         actor_role: 'admin',
-        action_type: 'partner_provisioned',
-        action_category: 'user_management',
+        event_type: 'partner_provisioned',
+        action: 'partner_provisioned',
+        event_category: 'user_management',
         resource_type: 'user',
         resource_id: newUserId,
         description: `Provisioned partner account for ${body.email}`,
-        new_value: {
+        after_value: {
           email: body.email,
           full_name: body.fullName,
           company_id: companyId,
@@ -496,9 +504,12 @@ serve(async (req) => {
           email_verified: body.markEmailVerified,
           phone_verified: body.markPhoneVerified
         },
-        ip_address: req.headers.get('x-forwarded-for') || 'unknown',
-        user_agent: req.headers.get('user-agent') || 'unknown'
+        actor_ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+        actor_user_agent: req.headers.get('user-agent') || 'unknown'
       });
+    if (auditError) {
+      console.error('Step 11 – comprehensive_audit_logs insert failed:', auditError);
+    }
 
     return new Response(JSON.stringify({
       success: true,
