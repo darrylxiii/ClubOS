@@ -1,7 +1,5 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { hash, compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +11,39 @@ const requestSchema = z.object({
   new_password: z.string().min(12),
   confirm_password: z.string(),
 });
+
+// Web Crypto PBKDF2 hash — no WASM, fully supported in Edge Runtime
+async function hashValue(value: string, saltHex?: string): Promise<string> {
+  let saltBytes: Uint8Array;
+  if (saltHex) {
+    saltBytes = new Uint8Array(saltHex.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+  } else {
+    saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  }
+  const computedSaltHex = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(value), 'PBKDF2', false, ['deriveBits']
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  const hashHex = Array.from(new Uint8Array(derived)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${computedSaltHex}:${hashHex}`;
+}
+
+// Web Crypto PBKDF2 verify — handles legacy bcrypt gracefully
+async function verifyValue(value: string, stored: string): Promise<boolean> {
+  // Legacy bcrypt hashes won't contain ':' — skip gracefully (one-time migration window)
+  if (!stored.includes(':')) {
+    console.warn('[PasswordReset][set_password] Legacy bcrypt hash in history — skipping comparison');
+    return false;
+  }
+  const [saltHex] = stored.split(':');
+  const reHashed = await hashValue(value, saltHex);
+  return reHashed === stored;
+}
 
 // Check if security alert should be raised
 async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: string, correlationId: string | null) {
@@ -37,7 +68,7 @@ async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: s
   }
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -100,8 +131,8 @@ serve(async (req) => {
 
     const userId = resetToken.user_id;
 
-    // Hash new password
-    const newPasswordHash = await hash(new_password);
+    // Hash new password using Web Crypto PBKDF2 (no WASM)
+    const newPasswordHash = await hashValue(new_password);
 
     // Check password history (last 5 passwords)
     const { data: history } = await supabaseAdmin
@@ -113,7 +144,7 @@ serve(async (req) => {
 
     if (history && history.length > 0) {
       for (const record of history) {
-        const matches = await compare(new_password, record.password_hash);
+        const matches = await verifyValue(new_password, record.password_hash);
         if (matches) {
           console.log(`[PasswordReset][${correlationId}][set_password] Password reuse detected`);
 
@@ -146,13 +177,13 @@ serve(async (req) => {
       throw updateError;
     }
 
-    // Store password in history
+    // Store new password hash in history
     await supabaseAdmin.from('password_history').insert({
       user_id: userId,
       password_hash: newPasswordHash,
     });
 
-    // Invalidate ALL existing sessions globally
+    // Invalidate all sessions globally
     try {
       await supabaseAdmin.auth.admin.signOut(userId, 'global');
       console.log(`[PasswordReset][${correlationId}][set_password] All sessions invalidated`);
@@ -169,8 +200,8 @@ serve(async (req) => {
           email: user.email,
           userName: user.user_metadata?.full_name || user.email.split('@')[0],
           timestamp: new Date().toLocaleString(),
-          deviceInfo: resetToken.user_agent || 'Unknown device'
-        }
+          deviceInfo: resetToken.user_agent || 'Unknown device',
+        },
       });
     }
 
@@ -191,7 +222,7 @@ serve(async (req) => {
     );
   } catch (error: any) {
     console.error("[PasswordReset][set_password] Error:", error);
-    
+
     if (error.name === 'ZodError') {
       return new Response(
         JSON.stringify({ error: "Invalid request format" }),
