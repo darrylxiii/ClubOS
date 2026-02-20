@@ -59,7 +59,7 @@ export function ExitIntentPopup({
             </div>
 
             <Badge variant="secondary" className="w-full justify-center py-2">
-              🔒 No-Cure-No-Pay • Zero Risk
+              No obligation — just a conversation.
             </Badge>
           </AlertDialogDescription>
         </AlertDialogHeader>
