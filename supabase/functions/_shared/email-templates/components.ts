@@ -393,7 +393,7 @@ export const CalendarButtons = ({ title, startDate, endDate, description = '', l
     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
   
-  const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatDateForCal(startDate)}/${formatDateForCal(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}&sprop=website:thequantumclub.app`;
+  const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatDateForCal(startDate)}/${formatDateForCal(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}&sprop=website:os.thequantumclub.com`;
   
   const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
   

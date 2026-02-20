@@ -130,7 +130,7 @@ export async function handler(req: Request) {
       type: 'magiclink',
       email: request.contact_email,
       options: {
-        redirectTo: `${Deno.env.get('APP_URL') || 'https://thequantumclub.lovable.app'}/partner-welcome`,
+        redirectTo: `${Deno.env.get('APP_URL') || 'https://os.thequantumclub.com'}/partner-welcome`,
       },
     });
 

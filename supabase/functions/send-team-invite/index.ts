@@ -104,7 +104,7 @@ serve(async (req) => {
     }
 
     // Get the site URL - support custom domains
-    const siteUrl = Deno.env.get('SITE_URL') || 'https://thequantumclub.lovable.app';
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://os.thequantumclub.com';
     const signupUrl = `${siteUrl}/auth?invite=${body.inviteCode}`;
 
     const emailHtml = `

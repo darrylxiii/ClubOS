@@ -49,7 +49,7 @@ serve(async (req) => {
 
     const amountInCents = Math.round(bookingLink.payment_amount * 100);
     const currency = bookingLink.payment_currency || "eur";
-    const origin = req.headers.get("origin") || "https://thequantumclub.lovable.app";
+    const origin = req.headers.get("origin") || "https://os.thequantumclub.com";
 
     // Check existing Stripe customer
     const customers = await stripe.customers.list({ email: guestEmail, limit: 1 });
