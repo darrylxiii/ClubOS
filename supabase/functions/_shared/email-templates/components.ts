@@ -63,14 +63,21 @@ export interface CardProps {
 
 export const Card = ({ content, variant = 'default' }: CardProps): string => {
   const borders = {
-    default: `1px solid ${EMAIL_COLORS.border}`,
+    default: `1px solid #e5e7eb`,
     highlight: `2px solid ${EMAIL_COLORS.gold}`,
     warning: `2px solid ${EMAIL_COLORS.warning}`,
     success: `2px solid ${EMAIL_COLORS.success}`,
   };
-  
+
+  const backgrounds = {
+    default: '#f5f5f5',
+    highlight: 'rgba(201, 162, 78, 0.06)',
+    warning: 'rgba(245, 158, 11, 0.06)',
+    success: 'rgba(34, 197, 94, 0.06)',
+  };
+
   return `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="bg-card" style="border-radius: 16px; overflow: hidden; border: ${borders[variant]}; background-color: rgba(255, 255, 255, 0.03);">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="bg-card" style="border-radius: 16px; overflow: hidden; border: ${borders[variant]}; background-color: ${backgrounds[variant]};">
       <tr>
         <td style="padding: 24px;">
           ${content}
@@ -171,11 +178,11 @@ export interface DividerProps {
 export const Divider = ({ spacing = 'medium' }: DividerProps): string => {
   const spacingMap = { small: 16, medium: 24, large: 32 };
   const space = spacingMap[spacing];
-  
+
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: ${space}px 0;">
       <tr>
-        <td style="border-top: 1px solid ${EMAIL_COLORS.border};"></td>
+        <td style="border-top: 1px solid #e5e7eb;"></td>
       </tr>
     </table>
   `.trim();

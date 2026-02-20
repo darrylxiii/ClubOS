@@ -1,16 +1,16 @@
 /**
  * Base Email Template - Quantum Club Design System
- * Professional, client-compatible, with proper branding
+ * Light theme with Canva GIF header
  */
 
-import { EMAIL_LOGOS, EMAIL_LOGO_SIZES, EMAIL_COLORS, COMPANY_NAME, TAGLINE, SUPPORT_EMAIL, getEmailAppUrl } from '../email-config.ts';
+import { EMAIL_HEADER_GIF, EMAIL_COLORS, COMPANY_NAME, SUPPORT_EMAIL, getEmailAppUrl } from '../email-config.ts';
 
 export interface BaseTemplateProps {
   preheader?: string;
   content: string;
   showHeader?: boolean;
   showFooter?: boolean;
-  schemaMarkup?: string; // For Schema.org JSON-LD
+  schemaMarkup?: string;
 }
 
 export const baseEmailTemplate = ({
@@ -22,7 +22,7 @@ export const baseEmailTemplate = ({
 }: BaseTemplateProps): string => {
   const appUrl = getEmailAppUrl();
   const currentYear = new Date().getFullYear();
-  
+
   return `
 <!DOCTYPE html>
 <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -31,8 +31,8 @@ export const baseEmailTemplate = ({
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="x-apple-disable-message-reformatting">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="color-scheme" content="dark light">
-  <meta name="supported-color-schemes" content="dark light">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <!--[if mso]>
   <noscript>
     <xml>
@@ -50,129 +50,115 @@ export const baseEmailTemplate = ({
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; display: block; outline: none; text-decoration: none; }
-    
-    /* Dark Mode First (Brand Default) */
-    :root {
-      color-scheme: dark light;
-      supported-color-schemes: dark light;
-    }
-    
+
+    /* Light Mode (Brand Default — matches Canva GIF that fades to white) */
     body {
       margin: 0 !important;
       padding: 0 !important;
       width: 100% !important;
       min-width: 100% !important;
-      background-color: ${EMAIL_COLORS.eclipse} !important;
+      background-color: #f5f5f5 !important;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     }
-    
-    /* Dark Mode Styles (Default) */
+
     .email-wrapper {
-      background-color: ${EMAIL_COLORS.eclipse};
+      background-color: #f5f5f5;
     }
-    
+
     .email-container {
-      background-color: ${EMAIL_COLORS.cardBg};
+      background-color: #ffffff;
     }
-    
+
     .text-primary {
-      color: ${EMAIL_COLORS.textPrimary} !important;
+      color: #0E0E10 !important;
     }
-    
+
     .text-secondary {
-      color: ${EMAIL_COLORS.textSecondary} !important;
+      color: #555555 !important;
     }
-    
+
     .text-muted {
-      color: ${EMAIL_COLORS.textMuted} !important;
+      color: #888888 !important;
     }
-    
+
     .bg-card {
-      background-color: rgba(255, 255, 255, 0.05) !important;
-      border: 1px solid ${EMAIL_COLORS.border} !important;
+      background-color: #f5f5f5 !important;
+      border: 1px solid #e5e7eb !important;
     }
-    
-    .gradient-header {
-      background: linear-gradient(180deg, ${EMAIL_COLORS.eclipse} 0%, ${EMAIL_COLORS.cardBg} 100%) !important;
-    }
-    
-    /* Light Mode Override */
-    @media (prefers-color-scheme: light) {
-      body {
-        background-color: #f5f5f5 !important;
-      }
-      
-      .email-wrapper {
-        background-color: #f5f5f5 !important;
-      }
-      
-      .email-container {
-        background-color: #ffffff !important;
-      }
-      
-      .text-primary {
-        color: #0E0E10 !important;
-      }
-      
-      .text-secondary {
-        color: #666666 !important;
-      }
-      
-      .text-muted {
-        color: #999999 !important;
-      }
-      
-      .bg-card {
-        background-color: #fafafa !important;
-        border: 1px solid #e5e5e5 !important;
-      }
-      
-      .gradient-header {
-        background: linear-gradient(180deg, #0E0E10 0%, #1a1a1c 100%) !important;
-      }
-    }
-    
-    /* Brand Colors (same in both modes) */
+
+    /* Brand Colors (consistent across themes) */
     .accent-gold {
       color: ${EMAIL_COLORS.gold} !important;
     }
-    
+
     .bg-accent-gold {
       background-color: ${EMAIL_COLORS.gold} !important;
     }
-    
-    /* Responsive Styles */
+
+    /* Dark Mode Override */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: ${EMAIL_COLORS.eclipse} !important;
+      }
+
+      .email-wrapper {
+        background-color: ${EMAIL_COLORS.eclipse} !important;
+      }
+
+      .email-container {
+        background-color: ${EMAIL_COLORS.cardBg} !important;
+      }
+
+      .text-primary {
+        color: ${EMAIL_COLORS.textPrimary} !important;
+      }
+
+      .text-secondary {
+        color: ${EMAIL_COLORS.textSecondary} !important;
+      }
+
+      .text-muted {
+        color: ${EMAIL_COLORS.textMuted} !important;
+      }
+
+      .bg-card {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid ${EMAIL_COLORS.border} !important;
+      }
+    }
+
+    /* Responsive */
     @media only screen and (max-width: 600px) {
       .email-container {
         width: 100% !important;
         max-width: 100% !important;
         border-radius: 0 !important;
       }
-      
+
       .mobile-padding {
         padding-left: 20px !important;
         padding-right: 20px !important;
       }
-      
+
       .mobile-stack {
         display: block !important;
         width: 100% !important;
         max-width: 100% !important;
       }
-      
+
       .mobile-hide {
         display: none !important;
       }
-      
+
       .mobile-center {
         text-align: center !important;
       }
-      
+
       .mobile-font-size-24 {
         font-size: 24px !important;
         line-height: 32px !important;
       }
-      
+
       .mobile-font-size-16 {
         font-size: 16px !important;
         line-height: 24px !important;
@@ -180,85 +166,76 @@ export const baseEmailTemplate = ({
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; width: 100%; background-color: ${EMAIL_COLORS.eclipse};">
+<body style="margin: 0; padding: 0; width: 100%; background-color: #f5f5f5;">
   ${preheader ? `
   <!-- Preheader Text -->
   <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
     ${preheader}
   </div>
-  <!-- Preheader Padding (prevents body text from appearing in preview) -->
   <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
     &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
   </div>
   ` : ''}
-  
+
   <!-- Wrapper Table -->
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper" style="background-color: ${EMAIL_COLORS.eclipse};">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper" style="background-color: #f5f5f5;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
-        
-        <!-- Container Table -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: ${EMAIL_COLORS.cardBg}; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
-          
+
+        <!-- Container Table — no border-radius so GIF fills flush to top edge -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0 0 16px 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);">
+
           ${showHeader ? `
-          <!-- Header -->
+          <!-- GIF Header — edge-to-edge, no gaps -->
           <tr>
-            <td class="gradient-header" style="padding: 48px 40px 40px 40px; text-align: center; background: linear-gradient(180deg, ${EMAIL_COLORS.eclipse} 0%, ${EMAIL_COLORS.cardBg} 100%);">
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                <tr>
-                  <td align="center">
-                    <!-- Logo Image - OVERSIZED for clear branding -->
-                    <a href="${appUrl}" style="text-decoration: none;">
-                      <img 
-                        src="${EMAIL_LOGOS.fullBrand}" 
-                        alt="${COMPANY_NAME}" 
-                        title="${COMPANY_NAME}"
-                        width="${EMAIL_LOGO_SIZES.headerBrand}" 
-                        height="${EMAIL_LOGO_SIZES.headerBrand}" 
-                        style="display: block; margin: 0 auto 24px auto; border: 0; outline: none; max-width: ${EMAIL_LOGO_SIZES.headerBrand}px;"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-                      />
-                      <div style="display: none; width: ${EMAIL_LOGO_SIZES.headerBrand}px; height: ${EMAIL_LOGO_SIZES.headerBrand}px; margin: 0 auto 24px auto; background-color: ${EMAIL_COLORS.gold}; border-radius: 50%; line-height: ${EMAIL_LOGO_SIZES.headerBrand}px; text-align: center; font-size: 56px; font-weight: bold; color: #0E0E10;">Q</div>
-                    </a>
-                    <!-- Brand Name (Solid Gold - Compatible with all clients) -->
-                    <div style="font-size: 24px; font-weight: 700; color: ${EMAIL_COLORS.gold}; letter-spacing: 1px; margin-bottom: 8px;">
-                      THE QUANTUM CLUB
-                    </div>
-                    <div style="font-size: 12px; color: ${EMAIL_COLORS.textMuted}; letter-spacing: 2px; text-transform: uppercase;">
-                      ${TAGLINE}
-                    </div>
-                  </td>
-                </tr>
-              </table>
+            <td style="padding: 0; margin: 0; line-height: 0; font-size: 0;">
+              <a href="${appUrl}" style="text-decoration: none; display: block; line-height: 0; font-size: 0;">
+                <img
+                  src="${EMAIL_HEADER_GIF}"
+                  alt="${COMPANY_NAME}"
+                  width="600"
+                  style="display: block; width: 100%; max-width: 600px; border: 0; outline: none; line-height: 0; font-size: 0;"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='table-cell';"
+                />
+                <!-- Fallback for image-blocked clients -->
+                <div style="display: none; padding: 40px; text-align: center; background: linear-gradient(180deg, #0E0E10 0%, #1a1a1c 100%);">
+                  <div style="font-size: 22px; font-weight: 700; color: ${EMAIL_COLORS.gold}; letter-spacing: 1px;">
+                    THE QUANTUM CLUB
+                  </div>
+                  <div style="font-size: 11px; color: ${EMAIL_COLORS.textMuted}; letter-spacing: 2px; text-transform: uppercase; margin-top: 6px;">
+                    Exclusive Talent Network
+                  </div>
+                </div>
+              </a>
             </td>
           </tr>
           ` : ''}
-          
+
           <!-- Content -->
           <tr>
-            <td class="mobile-padding" style="padding: 40px;">
+            <td class="mobile-padding" style="padding: 40px; color: #0E0E10;">
               ${content}
             </td>
           </tr>
-          
+
           ${showFooter ? `
           <!-- Footer -->
           <tr>
-            <td style="padding: 32px 40px; border-top: 1px solid ${EMAIL_COLORS.border}; background-color: rgba(0,0,0,0.2);">
+            <td style="padding: 28px 40px; border-top: 1px solid #f0f0f0; background-color: #fafafa; border-radius: 0 0 16px 16px;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
-                  <td align="center" class="text-muted" style="font-size: 13px; line-height: 20px; color: ${EMAIL_COLORS.textMuted};">
-                    <p style="margin: 0 0 12px 0; font-weight: 500; color: ${EMAIL_COLORS.textSecondary};">
+                  <td align="center" style="font-size: 13px; line-height: 20px; color: #888888;">
+                    <p style="margin: 0 0 12px 0; font-weight: 500; color: #555555;">
                       ${COMPANY_NAME}
                     </p>
                     <p style="margin: 0 0 16px 0;">
                       <a href="${appUrl}/settings/notifications" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Email Preferences</a>
-                      <span style="color: ${EMAIL_COLORS.textMuted};">&nbsp;•&nbsp;</span>
+                      <span style="color: #cccccc;">&nbsp;•&nbsp;</span>
                       <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Support</a>
-                      <span style="color: ${EMAIL_COLORS.textMuted};">&nbsp;•&nbsp;</span>
+                      <span style="color: #cccccc;">&nbsp;•&nbsp;</span>
                       <a href="${appUrl}/privacy" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Privacy</a>
                     </p>
-                    <p style="margin: 0; font-size: 11px; color: ${EMAIL_COLORS.textMuted};">
+                    <p style="margin: 0; font-size: 11px; color: #aaaaaa;">
                       © ${currentYear} ${COMPANY_NAME}. All rights reserved.
                     </p>
                   </td>
@@ -267,15 +244,15 @@ export const baseEmailTemplate = ({
             </td>
           </tr>
           ` : ''}
-          
+
         </table>
         <!-- End Container -->
-        
+
       </td>
     </tr>
   </table>
   <!-- End Wrapper -->
-  
+
 </body>
 </html>
   `.trim();

@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Monitor, Smartphone, Sun, Moon } from "lucide-react";
+import { Monitor, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const EMAIL_HEADER_GIF = "https://thequantumclub.app/email-header.gif";
+const GOLD = "#C9A24E";
 
 interface EmailTemplatePreviewProps {
   template: any;
@@ -10,7 +13,6 @@ interface EmailTemplatePreviewProps {
 
 export function EmailTemplatePreview({ template, contentOverride }: EmailTemplatePreviewProps) {
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
-  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
 
   // Parse content template
   let contentData;
@@ -20,10 +22,14 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
     contentData = template.content_template;
   }
 
-  // Generate sample HTML preview
+  // Generate preview HTML matching the real base-template output
   const generatePreviewHTML = () => {
     const steps = contentData.candidateNextSteps || contentData.partnerNextSteps || [];
-    const stepsHtml = steps.map((step: string) => `<li>${step}</li>`).join('');
+    const stepsHtml = steps.map((step: string) => `
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 8px;">
+        <tr><td style="font-size: 14px; color: #555555; line-height: 1.6;">• ${step}</td></tr>
+      </table>
+    `).join('');
 
     return `
       <!DOCTYPE html>
@@ -31,80 +37,120 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
         <head>
           <meta charset="utf-8">
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              line-height: 1.6; 
-              color: ${colorScheme === 'dark' ? '#F5F4EF' : '#333'};
-              background: ${colorScheme === 'dark' ? '#0E0E10' : '#f5f5f5'};
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #0E0E10;
+              background: #f5f5f5;
               padding: 20px;
+              margin: 0;
             }
-            .container { 
-              max-width: 600px; 
-              margin: 0 auto; 
-              background: ${colorScheme === 'dark' ? '#1a1a1c' : '#fff'};
-              border-radius: 8px;
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background: #ffffff;
+              border-radius: 0 0 16px 16px;
               overflow: hidden;
+              box-shadow: 0 4px 24px rgba(0,0,0,0.10);
             }
-            .header { 
-              background: linear-gradient(135deg, #0E0E10 0%, #1a1a1d 100%); 
-              color: #F5F4EF; 
-              padding: 40px 20px; 
-              text-align: center; 
+            .header-img {
+              display: block;
+              width: 100%;
+              max-width: 600px;
+              border: 0;
+              line-height: 0;
+              font-size: 0;
             }
-            .content { 
-              padding: 40px 30px; 
+            .content {
+              padding: 40px 30px;
             }
-            .button { 
-              display: inline-block; 
-              background: #C9A24E; 
-              color: #fff; 
-              padding: 14px 32px; 
-              text-decoration: none; 
-              border-radius: 6px; 
-              font-weight: 600; 
-              margin-top: 20px; 
+            .button {
+              display: inline-block;
+              background: ${GOLD};
+              color: #0E0E10;
+              padding: 14px 32px;
+              text-decoration: none;
+              border-radius: 10px;
+              font-weight: 600;
+              margin-top: 20px;
             }
-            .highlight { 
-              background: ${colorScheme === 'dark' ? 'rgba(255,255,255,0.05)' : '#f3f4f6'}; 
-              padding: 15px; 
-              border-radius: 6px; 
-              margin: 20px 0; 
-              border: 1px solid ${colorScheme === 'dark' ? 'rgba(201,162,78,0.2)' : '#e5e7eb'};
+            .card {
+              background: #f5f5f5;
+              padding: 20px;
+              border-radius: 12px;
+              margin: 20px 0;
+              border: 2px solid ${GOLD};
             }
-            ul { margin: 10px 0 0 0; padding-left: 20px; }
-            li { margin: 8px 0; }
+            .card-default {
+              background: #f5f5f5;
+              padding: 20px;
+              border-radius: 12px;
+              margin: 20px 0;
+              border: 1px solid #e5e7eb;
+            }
+            .footer {
+              padding: 24px 30px;
+              background: #fafafa;
+              border-top: 1px solid #f0f0f0;
+              text-align: center;
+              font-size: 12px;
+              color: #aaaaaa;
+            }
+            a { color: ${GOLD}; }
           </style>
         </head>
         <body>
           <div class="container">
-            <div class="header">
-              <h1 style="margin: 0; font-size: 32px;">${contentData.heading || template.name}</h1>
+            <div style="padding: 0; margin: 0; line-height: 0; font-size: 0;">
+              <img
+                src="${EMAIL_HEADER_GIF}"
+                alt="The Quantum Club"
+                width="600"
+                class="header-img"
+                onerror="this.style.display='none';"
+              />
             </div>
             <div class="content">
-              <p>${contentData.intro || 'Email content goes here'}</p>
-              
+              <h1 style="margin: 0 0 16px 0; font-size: 26px; font-weight: 600; color: #0E0E10;">
+                ${contentData.heading || template.name}
+              </h1>
+              <p style="color: #555555; margin: 0 0 24px 0;">
+                ${contentData.intro || 'Email content goes here'}
+              </p>
+
               ${stepsHtml ? `
-                <div class="highlight">
-                  <p style="margin: 0;"><strong>What's Next:</strong></p>
-                  <ul>${stepsHtml}</ul>
+                <div class="card">
+                  <p style="margin: 0 0 12px 0; font-weight: 600; color: ${GOLD};">✨ What's Next</p>
+                  ${stepsHtml}
                 </div>
               ` : ''}
-              
+
               ${contentData.ctaText ? `
-                <div style="text-align: center;">
+                <div style="text-align: center; margin-top: 28px;">
                   <a href="${contentData.ctaUrl || '#'}" class="button">
                     ${contentData.ctaText}
                   </a>
                 </div>
               ` : ''}
-              
+
               ${contentData.showReason ? `
-                <p style="color: #999; margin-top: 20px;">
-                  <strong>Reason:</strong> Sample decline reason would appear here
-                </p>
+                <div class="card-default" style="margin-top: 24px;">
+                  <p style="margin: 0; color: #555555;"><strong>Reason:</strong> Sample feedback would appear here</p>
+                </div>
               ` : ''}
-              
-              <p style="margin-top: 30px;">Best regards,<br>The Quantum Club Team</p>
+
+              <p style="margin-top: 32px; color: #555555;">
+                Best regards,<br><strong>The Quantum Club Team</strong>
+              </p>
+            </div>
+            <div class="footer">
+              <p style="margin: 0 0 8px 0; font-weight: 500; color: #555555;">The Quantum Club</p>
+              <p style="margin: 0 0 8px 0;">
+                <a href="#">Email Preferences</a> &nbsp;•&nbsp;
+                <a href="#">Support</a> &nbsp;•&nbsp;
+                <a href="#">Privacy</a>
+              </p>
+              <p style="margin: 0; font-size: 11px;">© ${new Date().getFullYear()} The Quantum Club. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -131,22 +177,7 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
             <Smartphone className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={colorScheme === 'light' ? 'default' : 'outline'}
-            onClick={() => setColorScheme('light')}
-          >
-            <Sun className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant={colorScheme === 'dark' ? 'default' : 'outline'}
-            onClick={() => setColorScheme('dark')}
-          >
-            <Moon className="h-4 w-4" />
-          </Button>
-        </div>
+        <span className="text-xs text-muted-foreground">Light theme preview</span>
       </div>
 
       <div

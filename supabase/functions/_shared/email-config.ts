@@ -64,6 +64,9 @@ export const PLATFORM_ICONS = {
   teams: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg',
 } as const;
 
+// GIF header for all outbound emails
+export const EMAIL_HEADER_GIF = `${EMAIL_ASSETS_BASE_URL}/email-header.gif`;
+
 // App URLs - Production domain is bytqc.com
 export const getEmailAppUrl = (): string => {
   return Deno.env.get('APP_URL') || 'https://bytqc.com';
