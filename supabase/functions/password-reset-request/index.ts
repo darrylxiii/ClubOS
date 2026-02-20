@@ -187,7 +187,7 @@ serve(async (req) => {
       }
 
       // Send hybrid email with retry logic
-      const appUrl = Deno.env.get("APP_URL") || "https://thequantumclub.lovable.app";
+      const appUrl = Deno.env.get("APP_URL") || "https://os.thequantumclub.com";
       const magicLink = `${appUrl}/reset-password/verify-token?token=${magicToken}`;
       
       const MAX_RETRIES = 3;

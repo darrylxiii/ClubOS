@@ -30,6 +30,7 @@ serve(async (req) => {
      // Known TQC production domains - trusted sources that can bypass reCAPTCHA if frontend is disabled
     const isKnownProductionDomain = origin.includes('bytqc.com') || 
                                      origin.includes('thequantumclub.app') ||
+                                     origin.includes('os.thequantumclub.com') ||
                                      origin.includes('thequantumclub.nl') ||
                                      origin.includes('thequantumclub.lovable.app');
 
@@ -617,7 +618,7 @@ serve(async (req) => {
     }
     
     console.log(`[Booking] Final video platform: ${videoPlatform}`);
-    const siteUrl = Deno.env.get('SITE_URL') || 'https://thequantumclub.app';
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://os.thequantumclub.com';
 
     if (videoPlatform === 'quantum_club' && bookingLink.create_quantum_meeting) {
       console.log("[Booking] Creating Quantum Club meeting for booking");

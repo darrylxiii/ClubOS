@@ -4,7 +4,7 @@
  */
 
 // Production domain for all email assets
-export const EMAIL_ASSETS_BASE_URL = 'https://thequantumclub.app';
+export const EMAIL_ASSETS_BASE_URL = 'https://os.thequantumclub.com';
 
 // Hosted email logos (publicly accessible)
 export const EMAIL_LOGOS = {
@@ -69,12 +69,12 @@ export const PLATFORM_ICONS = {
 // GIF header for all outbound emails
 // NOTE: Must be an absolute public URL reachable by all email clients worldwide.
 // The published Lovable app URL serves the public/ folder reliably.
-export const EMAIL_HEADER_GIF = 'https://thequantumclub.lovable.app/email-header.gif';
+export const EMAIL_HEADER_GIF = 'https://os.thequantumclub.com/email-header.gif';
 
 
 // App URLs - Production domain is bytqc.com
 export const getEmailAppUrl = (): string => {
-  return Deno.env.get('APP_URL') || 'https://bytqc.com';
+  return Deno.env.get('APP_URL') || 'https://os.thequantumclub.com';
 };
 
 // Support contact

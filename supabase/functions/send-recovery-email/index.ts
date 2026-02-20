@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     }
 
     // Generate recovery link
-    const recoveryLink = `${Deno.env.get('APP_URL') || 'https://thequantumclub.lovable.app'}/partner?recover=${sessionId}`;
+    const recoveryLink = `${Deno.env.get('APP_URL') || 'https://os.thequantumclub.com'}/partner?recover=${sessionId}`;
 
     // For now, log the recovery attempt (email sending would require SMTP setup)
     console.log(`[Recovery] Sending link to ${email} for session ${sessionId} at step ${step}`);

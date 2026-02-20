@@ -105,7 +105,7 @@ export default function EditProfileSlugDialog({
           <div className="space-y-2">
             <Label htmlFor="slug">Profile URL</Label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">thequantumclub.app/profile/</span>
+              <span className="text-sm text-muted-foreground">os.thequantumclub.com/profile/</span>
               <Input
                 id="slug"
                 value={slug}

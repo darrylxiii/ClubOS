@@ -602,7 +602,7 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
         .eq("id", booking.booking_links.user_id)
         .single();
 
-      const appUrl = Deno.env.get("PUBLIC_APP_URL") || "https://thequantumclub.app";
+      const appUrl = Deno.env.get("PUBLIC_APP_URL") || "https://os.thequantumclub.com";
       const portalUrl = `${appUrl}/booking/${context.bookingId}/guest/${newGuest.access_token}`;
 
       const emailContent = `
