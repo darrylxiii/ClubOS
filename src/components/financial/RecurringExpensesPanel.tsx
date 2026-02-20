@@ -10,6 +10,8 @@ interface RecurringExpense {
   description: string;
   vendor: string | null;
   amount: number;
+  amount_eur: number | null;
+  currency: string;
   recurring_frequency: string | null;
   category_name: string;
 }
@@ -41,11 +43,11 @@ export default function RecurringExpensesPanel({ recurringExpenses }: RecurringE
   const { data: subscriptions } = useVendorSubscriptions("active");
 
   const totalRecurringMonthly = recurringExpenses.reduce(
-    (sum, e) => sum + normalizeToMonthly(e.amount, e.recurring_frequency),
+    (sum, e) => sum + normalizeToMonthly(e.amount_eur ?? e.amount, e.recurring_frequency),
     0
   );
 
-  const totalSubsMonthly = subscriptions?.reduce((sum, s) => sum + s.monthly_cost, 0) || 0;
+  const totalSubsMonthly = subscriptions?.reduce((sum, s) => sum + ((s as any).monthly_cost_eur ?? s.monthly_cost), 0) || 0;
   const totalMonthlyBurn = totalRecurringMonthly + totalSubsMonthly;
 
   const grouped = recurringExpenses.reduce((acc, e) => {
@@ -77,20 +79,25 @@ export default function RecurringExpensesPanel({ recurringExpenses }: RecurringE
             </p>
             <div className="space-y-2">
               {items.map((e) => (
-                <div key={e.id} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="truncate">{e.vendor || e.description}</span>
-                    <Badge variant="outline" className="text-[10px] shrink-0">{e.category_name}</Badge>
+                  <div key={e.id} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="truncate">{e.vendor || e.description}</span>
+                      <Badge variant="outline" className="text-[10px] shrink-0">{e.category_name}</Badge>
+                    </div>
+                    <div className="text-right shrink-0 ml-2">
+                      <div className="font-medium">
+                        {e.currency !== 'EUR' ? `${e.currency} ${e.amount}` : formatCurrency(e.amount)}
+                      </div>
+                      {e.currency !== 'EUR' && e.amount_eur != null && (
+                        <div className="text-xs text-muted-foreground">≈ {formatCurrency(e.amount_eur)}</div>
+                      )}
+                      {e.recurring_frequency !== "monthly" && (
+                        <div className="text-xs text-muted-foreground">
+                          ({formatCurrency(normalizeToMonthly(e.amount_eur ?? e.amount, e.recurring_frequency))}/mo)
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right shrink-0 ml-2">
-                    <span className="font-medium">{formatCurrency(e.amount)}</span>
-                    {e.recurring_frequency !== "monthly" && (
-                      <span className="text-xs text-muted-foreground ml-1">
-                        ({formatCurrency(normalizeToMonthly(e.amount, e.recurring_frequency))}/mo)
-                      </span>
-                    )}
-                  </div>
-                </div>
               ))}
             </div>
           </div>

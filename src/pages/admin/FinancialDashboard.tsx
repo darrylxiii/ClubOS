@@ -72,10 +72,10 @@ export default function FinancialDashboard() {
       const { data: pays } = await supabase.from('referral_payouts').select('payout_amount').gte('created_at', startOfYear);
       const totalPayouts = pays?.reduce((s, p) => s + (p.payout_amount || 0), 0) || 0;
 
-      const { data: exps } = await supabase.from('operating_expenses').select('amount').gte('expense_date', startOfYear);
-      const totalOtherExpenses = exps?.reduce((s, e) => s + (e.amount || 0), 0) || 0;
+      const { data: exps } = await supabase.from('operating_expenses').select('amount, amount_eur').gte('expense_date', startOfYear);
+      const totalOtherExpenses = exps?.reduce((s, e) => s + (Number(e.amount_eur ?? e.amount) || 0), 0) || 0;
 
-      const { data: subs } = await supabase.from('vendor_subscriptions').select('monthly_cost, contract_start_date, status').eq('status', 'active');
+      const { data: subs } = await supabase.from('vendor_subscriptions').select('monthly_cost, monthly_cost_eur, contract_start_date, status').eq('status', 'active');
       const now = new Date();
       const yearStart = new Date(selectedYear, 0, 1);
       const monthsElapsed = (now.getFullYear() - yearStart.getFullYear()) * 12 + (now.getMonth() - yearStart.getMonth()) + 1;
@@ -83,7 +83,8 @@ export default function FinancialDashboard() {
         const start = new Date(sub.contract_start_date);
         const effective = start > yearStart ? start : yearStart;
         const active = Math.max(0, (now.getFullYear() - effective.getFullYear()) * 12 + (now.getMonth() - effective.getMonth()) + 1);
-        return sum + (sub.monthly_cost * Math.min(active, monthsElapsed));
+        const costEur = (sub as any).monthly_cost_eur ?? sub.monthly_cost;
+        return sum + (costEur * Math.min(active, monthsElapsed));
       }, 0) || 0;
 
       const grossMargin = netRevenue - totalCommissions - totalPayouts;

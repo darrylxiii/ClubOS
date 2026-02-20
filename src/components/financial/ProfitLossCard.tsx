@@ -42,13 +42,13 @@ function usePLData(year: number) {
 
       const { data: expenses } = await supabase
         .from('operating_expenses')
-        .select('amount')
+        .select('amount, amount_eur')
         .gte('expense_date', startOfYear);
-      const totalOtherExpenses = expenses?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0;
+      const totalOtherExpenses = expenses?.reduce((sum, e) => sum + (Number(e.amount_eur ?? e.amount) || 0), 0) || 0;
 
       const { data: subscriptions } = await supabase
         .from('vendor_subscriptions')
-        .select('monthly_cost, contract_start_date, status')
+        .select('monthly_cost, monthly_cost_eur, contract_start_date, status')
         .eq('status', 'active');
 
       const now = new Date();
@@ -63,7 +63,8 @@ function usePLData(year: number) {
           (now.getFullYear() - effectiveStart.getFullYear()) * 12 + 
           (now.getMonth() - effectiveStart.getMonth()) + 1
         );
-        return sum + (sub.monthly_cost * Math.min(monthsActive, monthsElapsed));
+        const costEur = (sub as any).monthly_cost_eur ?? sub.monthly_cost;
+        return sum + (costEur * Math.min(monthsActive, monthsElapsed));
       }, 0) || 0;
 
       const totalExpenses = totalOtherExpenses + totalSubscriptionCosts;

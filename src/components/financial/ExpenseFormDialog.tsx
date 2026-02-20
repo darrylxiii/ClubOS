@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Upload, Loader2, FileText } from "lucide-react";
+import { Upload, Loader2, FileText, Info } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { format } from "date-fns";
+import { useLiveFxRate } from "@/hooks/useLiveFxRate";
+import { Currency, CURRENCY_SYMBOLS } from "@/lib/currencyConversion";
 
 interface ExpenseCategory {
   id: string;
@@ -24,12 +26,14 @@ interface OperatingExpense {
   category_name: string;
   description: string;
   amount: number;
+  currency: string;
   vendor: string | null;
   is_recurring: boolean;
   recurring_frequency: string | null;
   notes: string | null;
   receipt_url: string | null;
   vat_amount: number | null;
+  amount_eur?: number | null;
 }
 
 interface ExpenseFormDialogProps {
@@ -45,9 +49,15 @@ const FREQUENCIES = [
   { value: "annual", label: "Annual" },
 ];
 
+const SUPPORTED_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
+
 export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: ExpenseFormDialogProps) {
   const queryClient = useQueryClient();
   const isEdit = !!editExpense;
+
+  const [currency, setCurrency] = useState<Currency>(
+    (editExpense?.currency as Currency) || 'EUR'
+  );
 
   const [form, setForm] = useState({
     expense_date: editExpense?.expense_date || format(new Date(), "yyyy-MM-dd"),
@@ -60,14 +70,58 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
     notes: editExpense?.notes || "",
     vat_amount: editExpense?.vat_amount?.toString() || "0",
     receipt_url: editExpense?.receipt_url || "",
+    amount_eur: editExpense?.amount_eur?.toString() || editExpense?.amount?.toString() || "",
   });
+
+  const { rate, toEur } = useLiveFxRate(currency);
+  const isNonEur = currency !== 'EUR';
+
+  // Auto-suggest EUR equivalent when amount or currency changes
+  useEffect(() => {
+    if (!isNonEur) {
+      setForm((prev) => ({ ...prev, amount_eur: prev.amount }));
+      return;
+    }
+    const amt = parseFloat(form.amount);
+    if (!isNaN(amt) && amt > 0) {
+      setForm((prev) => ({ ...prev, amount_eur: toEur(amt).toString() }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency]);
+
+  // Recalculate suggestion when amount changes (non-EUR)
+  const handleAmountChange = (value: string) => {
+    setForm((prev) => ({ ...prev, amount: value }));
+    if (isNonEur) {
+      const amt = parseFloat(value);
+      if (!isNaN(amt) && amt > 0) {
+        setForm((prev) => ({ ...prev, amount: value, amount_eur: toEur(amt).toString() }));
+      }
+    } else {
+      setForm((prev) => ({ ...prev, amount: value, amount_eur: value }));
+    }
+  };
+
+  const handleCurrencyChange = (c: Currency) => {
+    setCurrency(c);
+    if (c === 'EUR') {
+      setForm((prev) => ({ ...prev, amount_eur: prev.amount }));
+    } else {
+      const amt = parseFloat(form.amount);
+      if (!isNaN(amt) && amt > 0) {
+        // will be re-computed in useEffect once rate updates
+      }
+    }
+  };
 
   const [isUploading, setIsUploading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
 
   // Reset form when editExpense changes
-  useState(() => {
+  useEffect(() => {
     if (editExpense) {
+      const c = (editExpense.currency as Currency) || 'EUR';
+      setCurrency(c);
       setForm({
         expense_date: editExpense.expense_date,
         category_name: editExpense.category_name,
@@ -79,9 +133,10 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
         notes: editExpense.notes || "",
         vat_amount: editExpense.vat_amount?.toString() || "0",
         receipt_url: editExpense.receipt_url || "",
+        amount_eur: editExpense.amount_eur?.toString() || editExpense.amount?.toString() || "",
       });
     }
-  });
+  }, [editExpense]);
 
   const { data: categories } = useQuery({
     queryKey: ["expense-categories"],
@@ -113,7 +168,6 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
         .from("expense-receipts")
         .getPublicUrl(uploadData.path);
 
-      // Use signed URL for private bucket
       const { data: signedData } = await supabase.storage
         .from("expense-receipts")
         .createSignedUrl(uploadData.path, 3600);
@@ -121,17 +175,18 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
       const fileUrl = signedData?.signedUrl || urlData.publicUrl;
       setForm((prev) => ({ ...prev, receipt_url: uploadData.path }));
 
-      // Parse receipt with AI
       setIsParsing(true);
       const { data: parsed, error: parseError } = await supabase.functions.invoke("parse-receipt", {
         body: { fileUrl },
       });
 
       if (!parseError && parsed) {
+        const parsedAmount = parsed.purchase_value_excl_vat?.toString() || form.amount;
         setForm((prev) => ({
           ...prev,
           vendor: parsed.supplier || prev.vendor,
-          amount: parsed.purchase_value_excl_vat?.toString() || prev.amount,
+          amount: parsedAmount,
+          amount_eur: currency === 'EUR' ? parsedAmount : toEur(parseFloat(parsedAmount)).toString(),
           vat_amount: parsed.vat_amount?.toString() || prev.vat_amount,
           description: parsed.description || parsed.asset_name || prev.description,
           expense_date: parsed.purchase_date || prev.expense_date,
@@ -144,7 +199,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
       setIsUploading(false);
       setIsParsing(false);
     }
-  }, []);
+  }, [currency, form.amount, toEur]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -155,18 +210,23 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const amtEur = currency === 'EUR'
+        ? parseFloat(form.amount)
+        : parseFloat(form.amount_eur) || toEur(parseFloat(form.amount));
+
       const payload = {
         expense_date: form.expense_date,
         category_name: form.category_name,
         description: form.description,
         amount: parseFloat(form.amount),
+        currency,
+        amount_eur: amtEur,
         vendor: form.vendor || null,
         is_recurring: form.is_recurring,
         recurring_frequency: form.is_recurring ? form.recurring_frequency || null : null,
         notes: form.notes || null,
         vat_amount: parseFloat(form.vat_amount) || 0,
         receipt_url: form.receipt_url || null,
-        currency: "EUR",
       };
 
       if (isEdit && editExpense) {
@@ -200,6 +260,9 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
     }
     saveMutation.mutate();
   };
+
+  const currencySymbol = CURRENCY_SYMBOLS[currency];
+  const eurRate = isNonEur ? `1 ${currency} ≈ €${(1 / rate).toFixed(4)}` : '';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -239,27 +302,75 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
             )}
           </div>
 
-          {/* Date & Amount */}
+          {/* Date */}
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Input
+              type="date"
+              value={form.expense_date}
+              onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
+            />
+          </div>
+
+          {/* Amount + Currency */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date</Label>
-              <Input
-                type="date"
-                value={form.expense_date}
-                onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
-              />
+              <Label>Amount ({currency})</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  {currencySymbol}
+                </span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="pl-7"
+                  value={form.amount}
+                  onChange={(e) => handleAmountChange(e.target.value)}
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Amount (EUR)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              />
+              <Label>Currency</Label>
+              <Select value={currency} onValueChange={(v) => handleCurrencyChange(v as Currency)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {CURRENCY_SYMBOLS[c]} {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
+
+          {/* EUR Equivalent — only shown for non-EUR */}
+          {isNonEur && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                EUR Equivalent
+                <Info className="h-3 w-3 text-muted-foreground" />
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">€</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="pl-7"
+                  value={form.amount_eur}
+                  onChange={(e) => setForm({ ...form, amount_eur: e.target.value })}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Info className="h-3 w-3 shrink-0" />
+                Suggested rate: {eurRate} · pre-filled from live feed. You can override.
+              </p>
+            </div>
+          )}
 
           {/* VAT */}
           <div className="space-y-2">

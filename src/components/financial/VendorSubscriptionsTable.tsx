@@ -183,7 +183,12 @@ export function VendorSubscriptionsTable() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {formatCurrency(sub.monthly_cost, sub.currency)}
+                    <div>{formatCurrency(sub.monthly_cost, sub.currency)}</div>
+                    {sub.currency !== 'EUR' && (sub as any).monthly_cost_eur != null && (
+                      <div className="text-xs text-muted-foreground">
+                        ≈ {new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format((sub as any).monthly_cost_eur)}/mo
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="capitalize">{sub.billing_cycle}</TableCell>
                   <TableCell>

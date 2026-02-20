@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { useCreateVendorSubscription, useUpdateVendorSubscription, VendorSubscription } from '@/hooks/useVendorSubscriptions';
 import { format } from 'date-fns';
+import { useLiveFxRate } from '@/hooks/useLiveFxRate';
+import { Currency, CURRENCY_SYMBOLS } from '@/lib/currencyConversion';
 
 const formSchema = z.object({
   vendor_name: z.string().min(1, 'Vendor name is required'),
@@ -24,6 +26,7 @@ const formSchema = z.object({
   auto_renewal: z.boolean(),
   cancellation_notice_days: z.coerce.number().min(0),
   monthly_cost: z.coerce.number().min(0, 'Cost must be positive'),
+  monthly_cost_eur: z.coerce.number().min(0).optional(),
   currency: z.string().min(1),
   payment_method: z.string().optional(),
   seats_licensed: z.coerce.number().optional(),
@@ -66,6 +69,7 @@ export function AddVendorSubscriptionDialog({
       auto_renewal: true,
       cancellation_notice_days: 30,
       monthly_cost: 0,
+      monthly_cost_eur: undefined,
       currency: 'EUR',
       payment_method: '',
       seats_licensed: undefined,
@@ -79,8 +83,24 @@ export function AddVendorSubscriptionDialog({
     },
   });
 
+  // Watch currency and monthly_cost to compute EUR suggestion
+  const watchedCurrency = useWatch({ control: form.control, name: 'currency' }) as Currency;
+  const watchedCost = useWatch({ control: form.control, name: 'monthly_cost' });
+  const { rate, toEur } = useLiveFxRate(watchedCurrency || 'EUR');
+  const isNonEur = watchedCurrency !== 'EUR';
+
+  // Auto-suggest monthly_cost_eur when cost or currency changes
+  useEffect(() => {
+    if (!isNonEur) {
+      form.setValue('monthly_cost_eur', watchedCost || 0);
+    } else if (watchedCost && watchedCost > 0) {
+      form.setValue('monthly_cost_eur', toEur(watchedCost));
+    }
+  }, [watchedCurrency, watchedCost, isNonEur, toEur, form]);
+
   useEffect(() => {
     if (editingSubscription) {
+      const c = (editingSubscription.currency as Currency) || 'EUR';
       form.reset({
         vendor_name: editingSubscription.vendor_name,
         vendor_website: editingSubscription.vendor_website || '',
@@ -92,7 +112,8 @@ export function AddVendorSubscriptionDialog({
         auto_renewal: editingSubscription.auto_renewal,
         cancellation_notice_days: editingSubscription.cancellation_notice_days,
         monthly_cost: editingSubscription.monthly_cost,
-        currency: editingSubscription.currency,
+        monthly_cost_eur: (editingSubscription as any).monthly_cost_eur ?? (c === 'EUR' ? editingSubscription.monthly_cost : undefined),
+        currency: c,
         payment_method: editingSubscription.payment_method || '',
         seats_licensed: editingSubscription.seats_licensed || undefined,
         seats_used: editingSubscription.seats_used || undefined,
@@ -109,8 +130,13 @@ export function AddVendorSubscriptionDialog({
   }, [editingSubscription, form]);
 
   const onSubmit = async (data: FormData) => {
+    const eurCost = data.currency === 'EUR'
+      ? data.monthly_cost
+      : (data.monthly_cost_eur ?? toEur(data.monthly_cost));
+
     const cleanedData = {
       ...data,
+      monthly_cost_eur: eurCost,
       vendor_website: data.vendor_website || null,
       contract_end_date: data.contract_end_date || null,
       next_renewal_date: data.next_renewal_date || null,
@@ -237,7 +263,12 @@ export function AddVendorSubscriptionDialog({
                   <FormItem>
                     <FormLabel>Monthly Cost *</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" {...field} />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                          {CURRENCY_SYMBOLS[watchedCurrency as Currency] || '€'}
+                        </span>
+                        <Input type="number" step="0.01" className="pl-6" {...field} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -256,9 +287,10 @@ export function AddVendorSubscriptionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectItem value="EUR">€ EUR</SelectItem>
+                        <SelectItem value="USD">$ USD</SelectItem>
+                        <SelectItem value="GBP">£ GBP</SelectItem>
+                        <SelectItem value="AED">د.إ AED</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -289,6 +321,32 @@ export function AddVendorSubscriptionDialog({
                 )}
               />
             </div>
+
+            {/* EUR equivalent — only shown for non-EUR subscriptions */}
+            {isNonEur && (
+              <FormField
+                control={form.control}
+                name="monthly_cost_eur"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      Monthly Cost (EUR equivalent)
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">€</span>
+                        <Input type="number" step="0.01" className="pl-7" {...field} />
+                      </div>
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Suggested rate: 1 {watchedCurrency} ≈ €{(1 / rate).toFixed(4)} · pre-filled from live feed. You can override.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Contract Dates */}
             <div className="grid grid-cols-3 gap-4">

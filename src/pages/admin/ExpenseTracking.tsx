@@ -30,6 +30,7 @@ interface OperatingExpense {
   category_name: string;
   description: string;
   amount: number;
+  amount_eur: number | null;
   currency: string;
   vendor: string | null;
   is_recurring: boolean;
@@ -96,7 +97,8 @@ export default function ExpenseTracking() {
 
   // Vendor subscriptions for summary
   const { data: subscriptions } = useVendorSubscriptions("active");
-  const totalSubsMonthly = subscriptions?.reduce((sum, s) => sum + s.monthly_cost, 0) || 0;
+  // Use monthly_cost_eur if available, fall back to monthly_cost (for EUR-only legacy rows)
+  const totalSubsMonthly = subscriptions?.reduce((sum, s) => sum + ((s as any).monthly_cost_eur ?? s.monthly_cost), 0) || 0;
   const subsCount = subscriptions?.length || 0;
 
   // Filter expenses
@@ -122,8 +124,13 @@ export default function ExpenseTracking() {
     [expenses]
   );
 
+  // Use amount_eur for EUR-accurate aggregations (fall back to amount for old EUR-only rows)
+  function eurAmount(e: OperatingExpense): number {
+    return e.amount_eur ?? e.amount;
+  }
+
   // Summary stats
-  const totalExpenses = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0;
+  const totalExpenses = expenses?.reduce((sum, e) => sum + eurAmount(e), 0) || 0;
   const monthsElapsed = new Date().getMonth() + 1;
 
   function normalizeToMonthly(amount: number, freq: string | null): number {
@@ -136,7 +143,7 @@ export default function ExpenseTracking() {
   }
 
   const monthlyRecurringBurn = recurringExpenses.reduce(
-    (sum, e) => sum + normalizeToMonthly(e.amount, e.recurring_frequency),
+    (sum, e) => sum + normalizeToMonthly(eurAmount(e), e.recurring_frequency),
     0
   ) + totalSubsMonthly;
 
@@ -331,7 +338,12 @@ export default function ExpenseTracking() {
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">{expense.description}</TableCell>
                     <TableCell className="text-muted-foreground">{expense.vendor || "—"}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(expense.amount)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      <div>{expense.currency !== 'EUR' ? `${expense.currency} ${expense.amount.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}` : formatCurrency(expense.amount)}</div>
+                      {expense.currency !== 'EUR' && expense.amount_eur != null && (
+                        <div className="text-xs text-muted-foreground">≈ {formatCurrency(expense.amount_eur)}</div>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {expense.vat_amount ? formatCurrency(expense.vat_amount) : "—"}
                     </TableCell>
