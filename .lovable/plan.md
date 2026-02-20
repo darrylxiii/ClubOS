@@ -1,163 +1,166 @@
 
-# Multi-Currency Support for Expenses, Subscriptions & Revenue
+# Fix: 100% PDF Invoice Auto-Fill with Multi-Currency & VAT Intelligence
 
-## What You're Solving
+## What's Broken Today (Root Cause Analysis)
 
-You have monthly costs billed in USD (e.g., AWS, Figma, Vercel). The EUR amount you actually pay fluctuates each month with the exchange rate. The system currently ignores this — it stores and displays everything as if currency doesn't matter. This plan makes currency a first-class concept across all three financial areas: operating expenses, vendor subscriptions, and placement fees (revenue).
+After reading all relevant code, there are five distinct bugs causing incomplete auto-fill:
 
-The key design decision: you told us you want to **choose when to lock in conversion rates** ("when we convert them ourselves"). So the system will let you record the original currency amount AND either let you set the EUR equivalent manually at the time of recording, or fetch the live rate as a starting point that you can override.
+**Bug 1 — Category is never filled in.** The AI returns `suggested_category` as values like `it_hardware`, `software_purchased`, etc. But the form's category dropdown uses real database values: `Software & SaaS`, `Office & Facilities`, `Professional Services`, etc. There is no mapping between the two schemas, and `ExpenseFormDialog.tsx` never reads `suggested_category` or sets `category_name` from it.
 
----
+**Bug 2 — AI doesn't know about currency or jurisdiction.** The `parse-receipt` function prompt tells the AI to return all amounts "in euros" — which is wrong for USD/AED invoices. It also has no concept of VAT jurisdiction, so a Dubai invoice with 5% VAT or 0% VAT (depending on service type) is treated identically to a Dutch 21% BTW invoice.
 
-## Architecture: The EUR Snapshot Pattern
+**Bug 3 — AI schema is missing critical expense fields.** The current tool schema extracts: `asset_name`, `purchase_value_excl_vat`, `vat_amount`, `purchase_date`, `supplier`, `invoice_reference`, `description`, `suggested_category`. Missing: `currency`, `vat_rate_percent`, `is_vat_exempt`, `jurisdiction`, `is_recurring_hint`. None of these are extracted, so currency and VAT logic is always wrong.
 
-All financial aggregations (P&L, Profit card, Burn Rate) work in EUR. The cleanest approach — consistent with how `placement_fees` already handles this via `fee_amount_eur` — is the **EUR snapshot** pattern:
+**Bug 4 — PDF base64 encoding can break on large files.** The current code uses `btoa(String.fromCharCode(...new Uint8Array(fileBuffer)))` — the spread operator on a large Uint8Array causes a stack overflow for files over ~1MB. Multi-page PDFs silently fail, returning garbage or nothing, causing the AI to return incomplete data.
 
-- Every expense/subscription stores: `amount` (original currency) + `currency` (e.g., USD) + `amount_eur` (EUR equivalent at time of recording).
-- `amount_eur` is set when you record or manually convert the entry.
-- All dashboards aggregate `amount_eur` for totals — so a $120 AWS bill recorded at 1.08 rate shows as €111, locked in forever.
-- The live rate is shown as a suggestion in the form, but you always have the last word.
-
-This is how `placement_fees.fee_amount_eur` already works — we're extending the same pattern to expenses and subscriptions.
+**Bug 5 — No category mapping exists.** Even if the AI returned the right category key, there is no code to translate `software_purchased` → `Software & SaaS` in the form.
 
 ---
 
-## Database Changes (2 migrations)
+## Solution Architecture
 
-### Migration 1: `operating_expenses` — add `amount_eur` column
+### Part 1 — Fix `parse-receipt` Edge Function
 
-The table already has a `currency` column (defaulting to `'EUR'`). What's missing is the EUR snapshot:
+Rewrite the edge function with three improvements:
 
-```sql
-ALTER TABLE public.operating_expenses
-  ADD COLUMN IF NOT EXISTS amount_eur numeric;
+**A. Fix the base64 encoding for large PDFs:**
 
--- Backfill: existing rows are all EUR, so amount_eur = amount
-UPDATE public.operating_expenses
-  SET amount_eur = amount
-  WHERE currency = 'EUR' OR currency IS NULL;
+Replace the stack-overflow-prone spread with a chunked encoder:
+```text
+BEFORE: btoa(String.fromCharCode(...new Uint8Array(fileBuffer)))
+AFTER:  chunk loop — btoa(String.fromCharCode(...chunk)) for chunks of 8192 bytes
 ```
 
-### Migration 2: `vendor_subscriptions` — add `monthly_cost_eur` column
+**B. Expand the AI tool schema to extract all needed fields:**
 
-The table already has `currency` (defaulting to `'EUR'`). Add the EUR equivalent for the monthly cost:
+New fields added to the `extract_invoice_data` function schema:
+- `currency` — ISO code detected from the document (EUR, USD, GBP, AED, etc.)
+- `amount_net` — net amount excluding any tax, in the document's original currency
+- `amount_gross` — total amount including tax, in the document's original currency
+- `vat_amount` — VAT/tax amount extracted directly from document, in original currency (0 if exempt)
+- `vat_rate_percent` — numeric rate (e.g. 21 for NL BTW, 5 for UAE VAT, 0 if exempt/not applicable)
+- `is_vat_exempt` — boolean; true for Dubai/UAE zero-rated or NL exempt services
+- `jurisdiction` — detected country/region ("Netherlands", "UAE", "UK", "USA", etc.) from vendor address or VAT number
+- `suggested_expense_category` — now mapped directly to actual DB category names: `Software & SaaS`, `Office & Facilities`, `Professional Services`, `Marketing & Advertising`, `Travel & Entertainment`, `Salaries & Benefits`, `Insurance & Compliance`, `Partnerships & Retainers`, `Other`
+- `is_recurring_hint` — boolean; true if invoice says "subscription", "monthly", "annual fee", etc.
+- `recurring_frequency_hint` — "monthly" | "annual" | "quarterly" if detected
 
-```sql
-ALTER TABLE public.vendor_subscriptions
-  ADD COLUMN IF NOT EXISTS monthly_cost_eur numeric;
-
--- Backfill: existing rows are all EUR
-UPDATE public.vendor_subscriptions
-  SET monthly_cost_eur = monthly_cost
-  WHERE currency = 'EUR' OR currency IS NULL;
-```
-
-No data migration risk — existing rows are confirmed all EUR, so the backfill is safe.
-
----
-
-## Frontend Changes
-
-### 1. `ExpenseFormDialog.tsx` — Currency picker + EUR equivalent field
-
-Currently the form has a hardcoded `currency: "EUR"` in the payload. Changes:
-
-- Add a currency selector dropdown (EUR, USD, GBP, AED) next to the Amount field.
-- When a non-EUR currency is selected, show a second field: "EUR Equivalent" — pre-filled with the live rate conversion as a suggestion, but fully editable.
-- Show a small helper: "Rate used: 1 USD = €0.92 today. You can override this."
-- When EUR is selected, `amount_eur` = `amount` automatically (no second field needed).
-- Save both `amount`, `currency`, and `amount_eur` to the database.
+**C. Upgrade the system prompt for VAT jurisdiction awareness:**
 
 ```text
-BEFORE:
-  [Date]        [Amount (EUR)]
+CURRENT PROMPT:
+"You are an expert at reading receipts and invoices. Extract all financial data."
 
-AFTER:
-  [Date]    [Amount]  [Currency ▼ EUR/USD/GBP/AED]
-  (if non-EUR) EUR Equivalent: [€ ___]  (pre-filled, editable)
-               "Suggested rate: 1 USD = €0.917 · from live feed"
+NEW PROMPT:
+"You are QUIN, financial intelligence for The Quantum Club. This company operates 
+from the Netherlands and Dubai. Analyse the invoice carefully:
+
+CURRENCY: Always return amounts in the invoice's ORIGINAL currency — never convert.
+Extract the currency code (EUR, USD, GBP, AED, etc.) from the document.
+
+VAT RULES:
+- Netherlands (NL): Standard BTW rate is 21%. Some services are 0% or exempt.
+  Look for 'BTW', 'VAT NL', or NL VAT number (NLxxxxxxxxx).
+- UAE / Dubai: Standard VAT is 5%. Some B2B exports are 0% (zero-rated).
+  Look for 'TRN', 'UAE VAT', or 'Federal Tax Authority'.
+- UK: Standard rate 20%. Look for GB VAT number.
+- USA: Typically no VAT. If no tax line exists, vat_amount = 0, is_vat_exempt = true.
+- If the invoice has no VAT line at all, set vat_amount = 0 and is_vat_exempt = true.
+
+CATEGORY: Map the service/product to the exact expense category name from this list:
+Software & SaaS, Office & Facilities, Professional Services, Marketing & Advertising,
+Travel & Entertainment, Salaries & Benefits, Insurance & Compliance,
+Partnerships & Retainers, Other
+
+RECURRING: If the invoice mentions 'subscription', 'monthly fee', 'annual fee',
+'recurring', or similar, set is_recurring_hint = true."
 ```
 
-### 2. `AddVendorSubscriptionDialog.tsx` — Currency selector already exists; add EUR monthly cost field
+### Part 2 — Fix `ExpenseFormDialog.tsx` (the consumer side)
 
-The form already has a `currency` field with a text input. Replace it with a proper dropdown and add:
-- "Monthly Cost (EUR)" field that appears when a non-EUR currency is selected.
-- Same live-rate suggestion pattern as expenses.
-- Save `monthly_cost_eur` alongside `monthly_cost` and `currency`.
+After the `parse-receipt` function returns improved data, update the form's `onDrop` handler to consume all new fields:
 
-### 3. `ExpenseTracking.tsx` (table display) — Show original + EUR
+```text
+CURRENT (fills 3 fields):
+  vendor, amount (only excl VAT as EUR), vat_amount, description, expense_date
 
-In the Expense Ledger table, the Amount column currently shows `formatCurrency(expense.amount)` — always EUR. Update to:
-- Show original amount + currency badge: `$120 USD`
-- Show EUR equivalent in muted text below: `≈ €111`
-- In summary cards (YTD, Monthly Burn), always aggregate `amount_eur` instead of `amount`.
+NEW (fills 8+ fields):
+  vendor              → supplier
+  expense_date        → purchase_date
+  description         → description / asset_name
+  amount              → amount_net (in original currency)
+  currency            → currency (auto-selects EUR/USD/GBP/AED dropdown)
+  amount_eur          → amount_gross_eur (calculated via FX rate if non-EUR)
+  vat_amount          → vat_amount (0 if is_vat_exempt or no VAT line found)
+  category_name       → suggested_expense_category (now matches DB values exactly)
+  is_recurring        → is_recurring_hint
+  recurring_frequency → recurring_frequency_hint
+```
 
-### 4. `RecurringExpensesPanel.tsx` — Use `amount_eur` for burn rate
+Additionally:
 
-The monthly burn calculation currently uses `e.amount` directly. Change to use `e.amount_eur` (or fall back to `e.amount` if null, for backwards compatibility with old entries).
+- After parse, show a "Parsed from PDF" confirmation banner listing which fields were auto-filled vs which still need manual input.
+- If `is_vat_exempt` is true, show a small badge "VAT exempt — set to 0" next to the VAT field so the user understands why it's zero.
+- If `currency` detected from PDF differs from the currently selected currency in the form, auto-switch the currency selector to match.
 
-### 5. `ProfitLossCard.tsx` and `FinancialDashboard.tsx` — Use `amount_eur` for P&L
+### Part 3 — VAT Field Label Update
 
-Both files query `operating_expenses.amount` for total expenses and `vendor_subscriptions.monthly_cost` for subscription costs. Update both queries to select and aggregate `amount_eur` / `monthly_cost_eur` instead. This ensures the P&L is always EUR-accurate regardless of original currency.
-
-### 6. `VendorSubscriptionsTable.tsx` — Show original + EUR cost
-
-Similar to the expense table: show `$120/mo USD` with `≈ €111/mo` below it.
-
----
-
-## Live Rate Suggestion (Frontend Only)
-
-The existing `currencyConversion.ts` already has `updateExchangeRates()` which fetches from `api.exchangerate-api.com`. We'll use this to pre-fill the EUR equivalent in both forms. The flow:
-
-1. User selects USD from currency dropdown.
-2. System fetches the current live rate (already cached in localStorage).
-3. Pre-fills EUR equivalent = `amount × (1 / USD_rate)`.
-4. User can see and override the pre-filled EUR value before saving.
-5. The locked-in `amount_eur` is what gets saved — not a floating conversion.
-
-No new API keys needed. The free tier of `exchangerate-api.com` handles this.
+The current VAT field label is: `"VAT Amount (EUR, optional)"`. This is misleading for non-EUR invoices. Update to: `"VAT Amount ({currency})"` — always showing the detected/selected original currency, not hardcoding EUR. The saved `vat_amount` column stores the original-currency VAT amount; the EUR conversion is implicit via the `amount_eur` snapshot ratio.
 
 ---
 
-## No Changes Needed To
+## Files to Change
 
-- `placement_fees` table — already has `fee_amount_eur` and `currency_code`. Already working correctly.
-- Revenue-side of P&L — Moneybird invoices are already in EUR.
-- Auth or RLS — same policies apply; no new tables.
-- Any edge functions — all currency math happens client-side in the form.
+### 1. `supabase/functions/parse-receipt/index.ts` — Core fix
 
----
+Complete rewrite of:
+- Base64 encoding (chunked, no stack overflow)
+- System prompt (full VAT jurisdiction + currency + category awareness)
+- Tool schema (add 7 new fields)
+- Response: return all new fields so the frontend can use them
 
-## Files to Create/Modify
+### 2. `src/components/financial/ExpenseFormDialog.tsx` — Consumer fix
 
-### New file
-- `src/hooks/useLiveFxRate.ts` — A small React hook that reads from the existing `currencyConversion.ts` cache and returns `{ rate, suggestedEur }` for the form fields.
-
-### Modified files
-1. `src/components/financial/ExpenseFormDialog.tsx` — Add currency selector + EUR equivalent field.
-2. `src/components/financial/AddVendorSubscriptionDialog.tsx` — Replace currency text input with dropdown + EUR monthly cost field.
-3. `src/pages/admin/ExpenseTracking.tsx` — Update summary aggregations to use `amount_eur`; update table display.
-4. `src/components/financial/RecurringExpensesPanel.tsx` — Use `amount_eur` for burn rate totals.
-5. `src/components/financial/ProfitLossCard.tsx` — Query and aggregate `amount_eur` and `monthly_cost_eur`.
-6. `src/pages/admin/FinancialDashboard.tsx` — Same aggregate fix for the P&L export query.
-7. `src/components/financial/VendorSubscriptionsTable.tsx` — Show original + EUR display.
-
-### Database migrations (2)
-1. Add `amount_eur` to `operating_expenses` + backfill EUR rows.
-2. Add `monthly_cost_eur` to `vendor_subscriptions` + backfill EUR rows.
+- Expand `onDrop` handler to read and apply all new parsed fields
+- Auto-switch `currency` state when PDF's currency differs from current selection
+- Show parsed field summary banner after successful parse
+- Update VAT field label to use dynamic currency symbol
+- Map `is_recurring_hint` and `recurring_frequency_hint` to form toggles
 
 ---
 
-## Summary of User-Facing Changes
+## Edge Cases Handled
 
-| Where | What changes |
+| Scenario | Behaviour |
 |---|---|
-| Add/Edit Expense form | Currency dropdown (EUR/USD/GBP/AED) + EUR equivalent field with live rate hint |
-| Add/Edit Subscription form | Currency dropdown + EUR monthly cost field with live rate hint |
-| Expense Ledger table | Shows original currency amount + EUR equivalent below |
-| Subscription table | Shows original currency amount + EUR equivalent below |
-| Recurring Burn Rate card | Aggregates EUR equivalents — correctly reflects what you actually pay in EUR |
-| Profit & Loss card | All expense aggregations use EUR snapshots — accurate cross-currency P&L |
+| Dubai invoice, AED, 5% VAT | currency=AED, vat_rate=5, vat_amount extracted, category mapped |
+| Dubai invoice, zero-rated export | currency=AED, vat_amount=0, is_vat_exempt=true, badge shown |
+| US SaaS invoice (no VAT) | currency=USD, vat_amount=0, is_vat_exempt=true |
+| Dutch BTW invoice 21% | currency=EUR, vat_rate=21, full BTW amount extracted |
+| Annual subscription PDF | is_recurring=true, recurring_frequency=annual |
+| Large multi-page PDF | Chunked base64 — no stack overflow |
+| Amount in "1.234,56" EU format | Prompt instructs: return as numeric float, no formatting |
+| Category "AWS" invoice | suggested_expense_category = "Software & SaaS" |
 
-No new secrets, no new external dependencies, no schema renames (forward-compatible additions only).
+---
+
+## What Does NOT Change
+
+- No database migrations needed — `vat_amount`, `currency`, `is_recurring`, `category_name`, `amount_eur` all already exist in `operating_expenses`.
+- No new secrets or API keys needed — uses existing Lovable AI gateway.
+- No RLS or auth changes.
+- `parse-receipt` edge function is deployed automatically after code change.
+
+---
+
+## Summary
+
+| Before | After |
+|---|---|
+| 3 fields auto-filled (vendor, amount, date) | 9+ fields auto-filled |
+| Category always blank | Category matched to real DB values |
+| VAT always needs manual entry | VAT extracted + zero for exempt jurisdictions |
+| Currency ignored — always assumed EUR | Currency detected from PDF, dropdown auto-set |
+| Large PDFs may silently fail | Chunked base64 — reliable up to 20MB |
+| No recurring detection | Subscription invoices auto-toggle recurring |
+| No VAT jurisdiction logic | Netherlands 21%, UAE 5%/0%, USA 0% handled correctly |
