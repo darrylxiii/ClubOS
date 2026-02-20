@@ -1,101 +1,89 @@
 
-# Fix: GIF Broken Image + Content Cut Off
+# Fix: Replace All Old Domains with `os.thequantumclub.com`
 
-## Two Precise Root Causes Found
+## Root Cause Summary
 
-### Bug 1: Blue Dot / Question Mark (Broken GIF)
+The GIF is still broken because `thequantumclub.lovable.app` is no longer the active domain — the app is now served from `os.thequantumclub.com`. Every email client worldwide tries to fetch the GIF from `thequantumclub.lovable.app/email-header.gif`, gets a failure or redirect that email clients cannot follow, and shows the broken image placeholder.
 
-The GIF file lives in `public/email-header.gif` which is served from the Lovable/published app URL. The code references it via `EMAIL_ASSETS_BASE_URL = 'https://thequantumclub.app'`, producing the URL `https://thequantumclub.app/email-header.gif`.
-
-That domain (`thequantumclub.app`) does NOT serve the `public/` folder — the Lovable app does. So every email client that tries to load the image hits a 404, and displays the broken image placeholder (blue dot + white question mark).
-
-The fix is a two-part approach:
-- Change `EMAIL_ASSETS_BASE_URL` for the GIF to point to the correct URL where the GIF is actually reachable by external email clients. The GIF needs to be referenced from either the published Lovable app URL (`https://thequantumclub.lovable.app/email-header.gif`) OR — better — use an absolute raw CDN URL from a reliable host.
-- The safest permanent fix: use the Lovable published URL `https://thequantumclub.lovable.app/email-header.gif` as the `EMAIL_HEADER_GIF` constant. This is publicly reachable by any email client anywhere in the world, no extra hosting setup needed.
-
-### Bug 2: Content Cut Off / Invisible Mid-Sentence
-
-The `Heading` and `Paragraph` components in `components.ts` hardcode `color: ${EMAIL_COLORS.textPrimary}` (`#F5F4EF` — near-white ivory) as inline styles on every text element. Inline styles always win over CSS class overrides in email clients.
-
-Since the email body is now white (`#ffffff`), near-white text (`#F5F4EF`) is effectively invisible — it renders as white-on-white. Some email clients skip invisible runs entirely, causing the "cut off mid-sentence" appearance.
-
-The fix: update `EMAIL_COLORS.textPrimary` to a dark color (`#0E0E10`) in `email-config.ts` so it is legible on white backgrounds, and update `textSecondary` and `textMuted` from their current dark-theme values to light-theme-appropriate values. These changes cascade to every component automatically.
+Additionally, the old `thequantumclub.app` domain is scattered throughout the codebase in 13 files across backend functions, shared config, and frontend UI. All of these need updating to `os.thequantumclub.com` in one sweep.
 
 ---
 
-## Exact Changes (3 Files Only)
+## Complete Domain Replacement Map
 
-### File 1: `supabase/functions/_shared/email-config.ts`
+Every occurrence found across the entire codebase:
 
-Two changes:
+### Group 1 — Shared Email Config (highest priority — fixes the GIF for all emails)
 
-**A. Fix GIF URL** — change `EMAIL_HEADER_GIF` to use the published Lovable URL instead of `thequantumclub.app`:
+**`supabase/functions/_shared/email-config.ts`** — 2 changes:
+- `EMAIL_ASSETS_BASE_URL` → `'https://os.thequantumclub.com'` (fixes all logos, icons, platform icons that derive from this constant)
+- `EMAIL_HEADER_GIF` → `'https://os.thequantumclub.com/email-header.gif'` (the explicit GIF URL that overrides the base — this is the direct fix)
 
-```
-// Before
-export const EMAIL_HEADER_GIF = `${EMAIL_ASSETS_BASE_URL}/email-header.gif`;
+### Group 2 — Admin Frontend Preview
 
-// After
-export const EMAIL_HEADER_GIF = 'https://thequantumclub.lovable.app/email-header.gif';
-```
+**`src/components/admin/EmailTemplatePreview.tsx`** — 1 change:
+- Hardcoded `const EMAIL_HEADER_GIF = "https://thequantumclub.lovable.app/email-header.gif"` → `"https://os.thequantumclub.com/email-header.gif"`
+- This fixes the broken preview in the admin Email Template Manager
 
-**B. Fix text color tokens** — update `EMAIL_COLORS` from dark-theme defaults to light-theme defaults:
+### Group 3 — Backend Edge Functions (fallback URLs)
 
-```
-// Before
-textPrimary: '#F5F4EF',    // near-white — invisible on white body
-textSecondary: '#B8B7B3',  // light gray — invisible on white body
-textMuted: '#8A8985',      // medium gray — barely visible on white body
+These functions have hardcoded fallback URLs used when `APP_URL` or `SITE_URL` env vars are not set:
 
-// After
-textPrimary: '#0E0E10',    // near-black — fully legible on white
-textSecondary: '#555555',  // dark gray — clearly legible on white
-textMuted: '#888888',      // medium-dark gray — legible on white
-```
+| File | Line | Old | New |
+|---|---|---|---|
+| `supabase/functions/approve-partner-request/index.ts` | 133 | `thequantumclub.lovable.app` | `os.thequantumclub.com` |
+| `supabase/functions/password-reset-request/index.ts` | 190 | `thequantumclub.lovable.app` | `os.thequantumclub.com` |
+| `supabase/functions/send-recovery-email/index.ts` | 25 | `thequantumclub.lovable.app` | `os.thequantumclub.com` |
+| `supabase/functions/send-team-invite/index.ts` | 107 | `thequantumclub.lovable.app` | `os.thequantumclub.com` |
+| `supabase/functions/process-booking-payment/index.ts` | 52 | `thequantumclub.lovable.app` | `os.thequantumclub.com` |
+| `supabase/functions/guest-booking-actions/index.ts` | 605 | `thequantumclub.app` | `os.thequantumclub.com` |
+| `supabase/functions/create-booking/index.ts` | 32, 34, 620 | `thequantumclub.app` / `thequantumclub.lovable.app` | `os.thequantumclub.com` |
 
-Note: The dark-mode `@media (prefers-color-scheme: dark)` block in `base-template.ts` already overrides these back to the original light-on-dark values for dark-mode recipients — so dark mode is not broken.
+### Group 4 — Frontend UI Components
 
-### File 2: `supabase/functions/_shared/email-templates/base-template.ts`
+These are user-visible strings (profile share links, profile URL display):
 
-Update the dark-mode media query to correctly restore the original ivory colors for dark-mode recipients (since we just changed the defaults):
-
-```
-// Dark mode override (already exists in the file — just update the values)
-@media (prefers-color-scheme: dark) {
-  .text-primary  { color: #F5F4EF !important; }   // restore ivory for dark
-  .text-secondary { color: #B8B7B3 !important; }
-  .text-muted    { color: #8A8985 !important; }
-}
-```
-
-Also ensure the `onerror` fallback on the GIF `<img>` tag is cleaned up — `onerror` JavaScript does not execute in most email clients, so the fallback div approach should use VML/conditional comments instead of JavaScript. Simplify to just a clean `alt` text fallback with no `onerror` attribute (email clients ignore it and it adds noise to the HTML).
-
-### File 3: `src/components/admin/EmailTemplatePreview.tsx`
-
-The admin preview hardcodes `EMAIL_HEADER_GIF = "https://thequantumclub.app/email-header.gif"` at the top of the file (the same broken URL). Update it to the correct URL so the admin preview also shows the GIF correctly:
-
-```
-// Before
-const EMAIL_HEADER_GIF = "https://thequantumclub.app/email-header.gif";
-
-// After
-const EMAIL_HEADER_GIF = "https://thequantumclub.lovable.app/email-header.gif";
-```
-
----
-
-## What Gets Fixed
-
-| Issue | Root Cause | Fix |
+| File | Context | Change |
 |---|---|---|
-| Blue dot + ? (broken GIF) | `thequantumclub.app` does not serve `public/` assets | Point to `thequantumclub.lovable.app/email-header.gif` (correct public URL) |
-| Content cut off / invisible | `textPrimary: #F5F4EF` (white text) on white body | Update color tokens to dark values (`#0E0E10`, `#555555`, `#888888`) |
-| Admin preview also shows broken GIF | Same wrong URL hardcoded in `EmailTemplatePreview.tsx` | Update the constant in that file |
+| `src/components/profile/ShareProfileDialog.tsx` | Share link URL shown to user (lines 93, 168) | `thequantumclub.app/share/` → `os.thequantumclub.com/share/` |
+| `src/components/profile/EditProfileSlugDialog.tsx` | Profile URL prefix shown next to slug input (line 108) | `thequantumclub.app/profile/` → `os.thequantumclub.com/profile/` |
+
+### Group 5 — SEO Meta Tags
+
+**`src/pages/CandidateOnboarding.tsx`** — 3 changes (lines 158, 159, 166):
+- `og:image`, `og:url`, and `canonical` href updated from `thequantumclub.lovable.app` → `os.thequantumclub.com`
+
+### Group 6 — Calendar Link (components.ts)
+
+**`supabase/functions/_shared/email-templates/components.ts`** — 1 change:
+- Google Calendar `sprop=website:thequantumclub.app` → `os.thequantumclub.com`
 
 ---
 
-## After the Fix: Deployment
+## What This Fixes
 
-All three files are in the shared layer used by every email function. After the fix, the `send-test-email` function will be redeployed automatically and a fresh test email to `darryl@thequantumclub.nl` will be sent to confirm both issues are resolved.
+| Issue | Before | After |
+|---|---|---|
+| GIF shows blue dot/? | `thequantumclub.lovable.app` — no longer active | `os.thequantumclub.com` — the live domain |
+| Admin preview broken | Same dead URL | Fixed |
+| Auth redirect links in emails | Wrong domain fallback | Correct domain |
+| Password reset magic links | Wrong domain fallback | Correct domain |
+| Share profile links | Old domain shown to users | Correct domain |
+| Profile slug URL prefix | Stale label text | Correct label |
+| SEO canonical / OG tags | Old subdomain | Custom domain |
+| Google Calendar links | Old domain | Correct domain |
 
-No database changes needed. No new dependencies. No new secrets needed.
+---
+
+## Deployment
+
+After code changes, the following Edge Functions are redeployed automatically (they import the shared config):
+- `send-test-email`
+- `send-approval-notification`
+- `send-partner-welcome`
+- `send-booking-reminder`
+- All other email functions
+
+A fresh test email to `darryl@thequantumclub.nl` is sent immediately after deployment to confirm the GIF renders correctly.
+
+**Total: 13 files. Zero database changes. Zero new secrets needed.**
