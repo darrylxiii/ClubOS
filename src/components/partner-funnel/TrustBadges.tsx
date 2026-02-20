@@ -14,7 +14,7 @@ export function TrustBadges() {
       </Badge>
       <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
         <Award className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs">No-Cure-No-Pay</span>
+        <span className="text-xs">Zero Upfront Fees</span>
       </Badge>
       <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
         <Star className="w-3.5 h-3.5 text-primary" />

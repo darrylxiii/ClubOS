@@ -91,21 +91,48 @@ export default function PartnerFunnel() {
       </div>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="text-center max-w-4xl mx-auto mb-8">
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-            Partner Request
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center max-w-2xl mx-auto mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight mb-3">
+            Access pre-vetted senior talent.
           </h1>
+          <p className="text-lg text-muted-foreground">
+            Tell us who you're looking for — we'll have a shortlist ready within two weeks. No upfront fees, no contracts.
+          </p>
+        </div>
+
+        {/* How it works — 3 icon strip */}
+        <div className="flex items-center justify-center gap-2 sm:gap-6 mb-8 text-sm text-muted-foreground max-w-lg mx-auto">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-primary font-bold text-xs">1</span>
+            </div>
+            <span>Submit request</span>
+          </div>
+          <div className="h-px flex-1 bg-border" />
+          <div className="flex flex-col items-center gap-1 text-center">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-primary font-bold text-xs">2</span>
+            </div>
+            <span>Strategy call</span>
+          </div>
+          <div className="h-px flex-1 bg-border" />
+          <div className="flex flex-col items-center gap-1 text-center">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-primary font-bold text-xs">3</span>
+            </div>
+            <span>Receive shortlist</span>
+          </div>
+        </div>
+
+        {/* Social Proof — above the form */}
+        <div className="max-w-2xl mx-auto mb-6">
+          <SocialProofCarousel />
         </div>
 
         {/* Main Funnel */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-2xl mx-auto">
           <FunnelSteps />
-        </div>
-
-        {/* Social Proof */}
-        <div className="max-w-4xl mx-auto mt-8">
-          <SocialProofCarousel />
         </div>
       </div>
 

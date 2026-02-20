@@ -6,21 +6,27 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// FAQ responses as fallback
+// Benefit-focused FAQ fallbacks — no fee percentages, no contract language
 const getFAQResponse = (message: string): string => {
-  const lowerMessage = message.toLowerCase();
-  
-  if (lowerMessage.includes("no-cure-no-pay") || lowerMessage.includes("fee")) {
-    return "Our no-cure-no-pay model means you only pay when we successfully place a candidate. Our standard fee is 20% of the first-year salary, paid only after the hire completes their probation period. No upfront costs or retainers.";
-  } else if (lowerMessage.includes("time") || lowerMessage.includes("long")) {
-    return "Our typical timeline is 2-4 weeks from brief to shortlist, with first interviews happening within the first week. For executive searches, it may take 4-8 weeks to find the perfect candidate.";
-  } else if (lowerMessage.includes("industry") || lowerMessage.includes("industries")) {
-    return "We specialize in Technology, Finance, Healthcare, Consulting, and high-growth startups. Our network spans globally with a focus on senior and executive-level positions across Europe, North America, and Asia-Pacific markets.";
-  } else if (lowerMessage.includes("country") || lowerMessage.includes("international") || lowerMessage.includes("location")) {
-    return "We work with companies worldwide. Whether you're based in Europe, North America, Asia, or anywhere else, our global network can connect you with top talent in your region or help you recruit internationally.";
+  const m = message.toLowerCase();
+
+  if (m.includes("quick") || m.includes("fast") || m.includes("long") || m.includes("time") || m.includes("week")) {
+    return "We typically deliver a curated shortlist within 2–4 weeks of our kickoff call, with first-round interviews often happening in the first week. For senior or executive searches it may take 4–8 weeks to get it right.";
   }
-  
-  return "I can help you with that. Our team will provide detailed information during the consultation.";
+  if (m.includes("senior") || m.includes("level") || m.includes("seniority") || m.includes("executive") || m.includes("junior")) {
+    return "We specialise in mid to senior-level placements — think Head of, VP, Director, C-suite, and highly specialised individual contributors. We don't do volume junior hiring.";
+  }
+  if (m.includes("process") || m.includes("how") || m.includes("work") || m.includes("step")) {
+    return "It's simple: submit your request → we schedule a 30-minute strategy call → we send you a curated shortlist → you interview and decide. We handle all sourcing, screening, and coordination.";
+  }
+  if (m.includes("country") || m.includes("international") || m.includes("global") || m.includes("remote") || m.includes("location")) {
+    return "Yes — we recruit internationally. Our network spans Europe, the Middle East, North America, and Asia-Pacific. Whether you need someone local or open to relocation, we can help.";
+  }
+  if (m.includes("industry") || m.includes("sector") || m.includes("tech") || m.includes("finance")) {
+    return "We work across Technology, Finance, Healthcare, Consulting, and high-growth scale-ups. Our sweet spot is companies where the right hire materially changes the outcome.";
+  }
+
+  return "I can help with that. Our team will give you a detailed answer during the strategy call — usually within 24 hours of submitting your request.";
 };
 
 export function FunnelAIAssistant() {
@@ -30,61 +36,57 @@ export function FunnelAIAssistant() {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
     {
       role: "assistant",
-      content: "Hi! I'm here to help you with any questions about partnering with The Quantum Club. What would you like to know?",
+      content:
+        "Hi — I'm QUIN, The Quantum Club's AI assistant. Ask me anything about working with us.",
     },
   ]);
 
+  // Benefit-oriented quick replies — no fee or contract language
   const quickReplies = [
-    "What is the no-cure-no-pay model?",
-    "How long does the process take?",
-    "What industries do you work with?",
-    "What are your fees?",
+    "How quickly can you find candidates?",
+    "What seniority levels do you recruit?",
+    "How does the process work?",
+    "Can you recruit internationally?",
   ];
 
   const handleSend = async () => {
     if (!message.trim() || isLoading) return;
 
     const userMessage = message.trim();
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setMessage("");
     setIsLoading(true);
-    
+
     try {
-      // Try to use AI backend
-      const { data, error } = await supabase.functions.invoke('ai-chat', {
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
         body: {
           message: userMessage,
-          context: 'partner_funnel',
-          systemPrompt: `You are QUIN, the AI assistant for The Quantum Club, a luxury executive recruitment platform. 
-          
-Answer questions about:
-- No-cure-no-pay model: Only pay when a candidate is successfully placed. 20% fee of first-year salary, paid after probation.
-- Timeline: 2-4 weeks from brief to shortlist. First interviews within first week. Executive searches: 4-8 weeks.
-- Industries: Technology, Finance, Healthcare, Consulting, high-growth startups.
-- Global reach: Europe, North America, Asia-Pacific focus.
-- Process: Submit request → Strategy call → Shortlist → Interviews → Offer → Placement
+          context: "partner_funnel",
+          systemPrompt: `You are QUIN, the AI assistant for The Quantum Club — a luxury executive recruitment platform operating from the Netherlands and Dubai.
 
-Keep responses concise, professional, and helpful. Always offer to connect them with a strategist for detailed discussions.`
-        }
+Answer questions about:
+- Speed: Shortlists in 2–4 weeks. First interviews within week 1. Senior/exec: 4–8 weeks.
+- Seniority: Mid-senior to C-suite and specialist IC roles. Not volume junior hiring.
+- Process: Request → 30-min strategy call → curated shortlist → interviews → placement.
+- Global: Europe, Middle East, North America, Asia-Pacific. Local and relocation candidates.
+- Industries: Technology, Finance, Healthcare, Consulting, high-growth scale-ups.
+
+Tone: calm, professional, concise. Never mention specific fee percentages or contract terms — direct those questions to the strategist. Always end with an invitation to submit the request.`,
+        },
       });
 
       if (error) throw error;
-      
+
       if (data?.response) {
-        setMessages(prev => [...prev, { 
-          role: "assistant", 
-          content: data.response 
-        }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
       } else {
-        throw new Error("No response from AI");
+        throw new Error("No response");
       }
-    } catch (error) {
-      // Fallback to FAQ responses
-      const fallbackResponse = getFAQResponse(userMessage);
-      setMessages(prev => [...prev, { 
-        role: "assistant", 
-        content: fallbackResponse 
-      }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: getFAQResponse(userMessage) },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -92,35 +94,54 @@ Keep responses concise, professional, and helpful. Always offer to connect them 
 
   const handleQuickReply = (reply: string) => {
     setMessage(reply);
-    // Use setTimeout to ensure state is updated before sending
-    setTimeout(() => {
-      const input = document.querySelector('input[placeholder="Ask a question..."]') as HTMLInputElement;
-      if (input) {
-        input.value = reply;
-        const event = new Event('input', { bubbles: true });
-        input.dispatchEvent(event);
-      }
-    }, 0);
+    setTimeout(() => handleSend(), 0);
+  };
+
+  // Fix: send with the captured reply text, not stale state
+  const sendReply = (reply: string) => {
+    if (isLoading) return;
+    setMessages((prev) => [...prev, { role: "user", content: reply }]);
+    setIsLoading(true);
+
+    supabase.functions
+      .invoke("ai-chat", {
+        body: {
+          message: reply,
+          context: "partner_funnel",
+          systemPrompt: `You are QUIN, the AI assistant for The Quantum Club. Be concise and helpful. Don't mention fees or contracts.`,
+        },
+      })
+      .then(({ data, error }) => {
+        if (error || !data?.response) throw new Error();
+        setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
+      })
+      .catch(() => {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: getFAQResponse(reply) },
+        ]);
+      })
+      .finally(() => setIsLoading(false));
   };
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating trigger */}
       <Button
         size="lg"
-        className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-lg z-50"
+        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-50"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? <X /> : <MessageCircle />}
+        {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
       </Button>
 
-      {/* Chat Window */}
+      {/* Chat window */}
       {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 flex flex-col glass-effect">
+        <Card className="fixed bottom-24 right-6 w-80 sm:w-96 h-[480px] shadow-2xl z-50 flex flex-col glass-effect">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
-              <h3 className="font-semibold">QUIN - AI Assistant</h3>
-              <p className="text-xs text-muted-foreground">Powered by The Quantum Club</p>
+              <h3 className="font-semibold text-sm">QUIN</h3>
+              <p className="text-xs text-muted-foreground">The Quantum Club AI</p>
             </div>
             <Button size="icon" variant="ghost" onClick={() => setIsOpen(false)}>
               <X className="w-4 h-4" />
@@ -129,19 +150,19 @@ Keep responses concise, professional, and helpful. Always offer to connect them 
 
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
-              {messages.map((msg, index) => (
+              {messages.map((msg, i) => (
                 <div
-                  key={index}
+                  key={i}
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                    className={`max-w-[82%] rounded-2xl px-4 py-2 text-sm ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                        : "bg-muted text-foreground"
                     }`}
                   >
-                    <p className="text-sm">{msg.content}</p>
+                    {msg.content}
                   </div>
                 </div>
               ))}
@@ -155,20 +176,19 @@ Keep responses concise, professional, and helpful. Always offer to connect them 
             </div>
           </ScrollArea>
 
+          {/* Quick replies — shown only on first message */}
           {messages.length === 1 && (
-            <div className="p-4 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-2">Quick questions:</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="px-4 pb-2 border-t border-border pt-3">
+              <p className="text-xs text-muted-foreground mb-2">Common questions:</p>
+              <div className="flex flex-wrap gap-1.5">
                 {quickReplies.map((reply) => (
-                  <Button
+                  <button
                     key={reply}
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => handleQuickReply(reply)}
+                    onClick={() => sendReply(reply)}
+                    className="text-xs px-2.5 py-1 rounded-full border border-border bg-background hover:bg-muted transition-colors"
                   >
                     {reply}
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
@@ -182,9 +202,18 @@ Keep responses concise, professional, and helpful. Always offer to connect them 
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSend()}
                 disabled={isLoading}
+                className="text-sm"
               />
-              <Button size="icon" onClick={handleSend} disabled={isLoading || !message.trim()}>
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              <Button
+                size="icon"
+                onClick={handleSend}
+                disabled={isLoading || !message.trim()}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>
