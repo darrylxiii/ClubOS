@@ -33361,6 +33361,7 @@ export type Database = {
       operating_expenses: {
         Row: {
           amount: number
+          amount_eur: number | null
           category_id: string | null
           category_name: string
           created_at: string | null
@@ -33380,6 +33381,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          amount_eur?: number | null
           category_id?: string | null
           category_name: string
           created_at?: string | null
@@ -33399,6 +33401,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          amount_eur?: number | null
           category_id?: string | null
           category_name?: string
           created_at?: string | null
@@ -51881,6 +51884,7 @@ export type Database = {
           legal_entity: string | null
           linked_bank_account: string | null
           monthly_cost: number
+          monthly_cost_eur: number | null
           next_billing_date: string | null
           next_renewal_date: string | null
           notes: string | null
@@ -51914,6 +51918,7 @@ export type Database = {
           legal_entity?: string | null
           linked_bank_account?: string | null
           monthly_cost: number
+          monthly_cost_eur?: number | null
           next_billing_date?: string | null
           next_renewal_date?: string | null
           notes?: string | null
@@ -51947,6 +51952,7 @@ export type Database = {
           legal_entity?: string | null
           linked_bank_account?: string | null
           monthly_cost?: number
+          monthly_cost_eur?: number | null
           next_billing_date?: string | null
           next_renewal_date?: string | null
           notes?: string | null
