@@ -1,5 +1,8 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+[functions.send-test-email]
+verify_jwt = false
+
 # =============================================================================
 # Partner Invite & Provisioning
 # =============================================================================
