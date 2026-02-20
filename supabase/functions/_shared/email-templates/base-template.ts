@@ -95,35 +95,35 @@ export const baseEmailTemplate = ({
       background-color: ${EMAIL_COLORS.gold} !important;
     }
 
-    /* Dark Mode Override */
+    /* Dark Mode Override — restore ivory/light colors for dark-mode recipients */
     @media (prefers-color-scheme: dark) {
       body {
-        background-color: ${EMAIL_COLORS.eclipse} !important;
+        background-color: #0E0E10 !important;
       }
 
       .email-wrapper {
-        background-color: ${EMAIL_COLORS.eclipse} !important;
+        background-color: #0E0E10 !important;
       }
 
       .email-container {
-        background-color: ${EMAIL_COLORS.cardBg} !important;
+        background-color: #1a1a1c !important;
       }
 
       .text-primary {
-        color: ${EMAIL_COLORS.textPrimary} !important;
+        color: #F5F4EF !important;
       }
 
       .text-secondary {
-        color: ${EMAIL_COLORS.textSecondary} !important;
+        color: #B8B7B3 !important;
       }
 
       .text-muted {
-        color: ${EMAIL_COLORS.textMuted} !important;
+        color: #8A8985 !important;
       }
 
       .bg-card {
         background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid ${EMAIL_COLORS.border} !important;
+        border: 1px solid #3D3426 !important;
       }
     }
 
@@ -195,7 +195,6 @@ export const baseEmailTemplate = ({
                   alt="${COMPANY_NAME}"
                   width="600"
                   style="display: block; width: 100%; max-width: 600px; border: 0; outline: none; line-height: 0; font-size: 0;"
-                  onerror="this.style.display='none'; this.nextElementSibling.style.display='table-cell';"
                 />
                 <!-- Fallback for image-blocked clients -->
                 <div style="display: none; padding: 40px; text-align: center; background: linear-gradient(180deg, #0E0E10 0%, #1a1a1c 100%);">

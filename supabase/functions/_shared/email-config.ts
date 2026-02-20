@@ -42,15 +42,17 @@ export const EMAIL_SENDERS = {
 } as const;
 
 // Brand colors for emails (use solid colors for maximum compatibility)
+// Light-mode defaults — dark-mode overrides are in base-template.ts media query
 export const EMAIL_COLORS = {
   gold: '#C9A24E',
   ivory: '#F5F4EF',
   eclipse: '#0E0E10',
   cardBg: '#1a1a1c',
-  textPrimary: '#F5F4EF',
-  textSecondary: '#B8B7B3',
-  textMuted: '#8A8985',
-  border: '#3D3426',
+  // Light-mode text (legible on white #ffffff body)
+  textPrimary: '#0E0E10',
+  textSecondary: '#555555',
+  textMuted: '#888888',
+  border: '#e5e7eb',
   success: '#22c55e',
   warning: '#f59e0b',
   error: '#ef4444',
@@ -65,7 +67,10 @@ export const PLATFORM_ICONS = {
 } as const;
 
 // GIF header for all outbound emails
-export const EMAIL_HEADER_GIF = `${EMAIL_ASSETS_BASE_URL}/email-header.gif`;
+// NOTE: Must be an absolute public URL reachable by all email clients worldwide.
+// The published Lovable app URL serves the public/ folder reliably.
+export const EMAIL_HEADER_GIF = 'https://thequantumclub.lovable.app/email-header.gif';
+
 
 // App URLs - Production domain is bytqc.com
 export const getEmailAppUrl = (): string => {

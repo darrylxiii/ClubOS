@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Monitor, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const EMAIL_HEADER_GIF = "https://thequantumclub.app/email-header.gif";
+const EMAIL_HEADER_GIF = "https://thequantumclub.lovable.app/email-header.gif";
 const GOLD = "#C9A24E";
 
 interface EmailTemplatePreviewProps {
