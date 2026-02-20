@@ -1,7 +1,5 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { hash as bcryptHash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,11 +29,31 @@ function generateOTP(): string {
   return num.toString();
 }
 
+// Web Crypto PBKDF2 hash — no WASM, fully supported in Edge Runtime
+async function hashValue(value: string, saltHex?: string): Promise<string> {
+  let saltBytes: Uint8Array;
+  if (saltHex) {
+    saltBytes = new Uint8Array(saltHex.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+  } else {
+    saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  }
+  const computedSaltHex = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(value), 'PBKDF2', false, ['deriveBits']
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  const hashHex = Array.from(new Uint8Array(derived)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${computedSaltHex}:${hashHex}`;
+}
+
 // Verify reCAPTCHA v3 token
 async function verifyRecaptcha(token: string): Promise<{ success: boolean; score: number }> {
   const secretKey = Deno.env.get("RECAPTCHA_SECRET_KEY");
   if (!secretKey) {
-    // reCAPTCHA not configured — skip gracefully
     return { success: true, score: 1.0 };
   }
 
@@ -53,7 +71,7 @@ async function verifyRecaptcha(token: string): Promise<{ success: boolean; score
   }
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -74,7 +92,7 @@ serve(async (req) => {
 
     console.log(`[PasswordReset][${correlationId}][request] Received for email`);
 
-    // Step 4: reCAPTCHA verification
+    // reCAPTCHA verification
     if (recaptchaToken) {
       const captchaResult = await verifyRecaptcha(recaptchaToken);
       console.log(`[PasswordReset][${correlationId}][request] reCAPTCHA score: ${captchaResult.score}`);
@@ -88,7 +106,7 @@ serve(async (req) => {
       }
     }
 
-    // Check rate limit (with device fingerprint)
+    // Check rate limit
     const { data: rateLimitData } = await supabaseAdmin.rpc(
       'check_password_reset_rate_limit',
       {
@@ -100,7 +118,7 @@ serve(async (req) => {
 
     if (rateLimitData && !rateLimitData.allowed) {
       console.log(`[PasswordReset][${correlationId}][request] Rate limit exceeded: ${rateLimitData.reason}`);
-      
+
       await supabaseAdmin.from('password_reset_attempts').insert({
         email: email.toLowerCase(),
         ip_address: clientIp,
@@ -111,18 +129,18 @@ serve(async (req) => {
       });
 
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           rate_limited: true,
-          message: rateLimitData.message 
+          message: rateLimitData.message,
         }),
-        { 
-          status: 429, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    // Profile table is the source of truth. No auth fallback.
+    // Profile lookup
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, email, full_name')
@@ -146,13 +164,13 @@ serve(async (req) => {
     console.log(`[PasswordReset][${correlationId}][request] User lookup: ${userId ? 'found' : 'not found'}`);
 
     if (userId && userEmail) {
-      // Mark old tokens as 'invalidated'
+      // Invalidate old tokens
       await supabaseAdmin
         .from('password_reset_tokens')
-        .update({ 
-          is_used: true, 
+        .update({
+          is_used: true,
           used_at: new Date().toISOString(),
-          validated_by: 'invalidated'
+          validated_by: 'invalidated',
         })
         .eq('email', email.toLowerCase())
         .eq('is_used', false);
@@ -162,12 +180,11 @@ serve(async (req) => {
       const otpCode = generateOTP();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-      // Hash the OTP before storing
-      const otpHash = await bcryptHash(otpCode);
+      // Hash OTP using Web Crypto PBKDF2 (no WASM)
+      const otpHash = await hashValue(otpCode);
 
       console.log(`[PasswordReset][${correlationId}][request] Token generated, expires at ${expiresAt.toISOString()}`);
 
-      // Store reset token with hashed OTP and correlation ID
       const { error: insertError } = await supabaseAdmin
         .from('password_reset_tokens')
         .insert({
@@ -186,30 +203,25 @@ serve(async (req) => {
         throw insertError;
       }
 
-      // Send hybrid email with retry logic
       const appUrl = Deno.env.get("APP_URL") || "https://os.thequantumclub.com";
       const magicLink = `${appUrl}/reset-password/verify-token?token=${magicToken}`;
-      
+
       const MAX_RETRIES = 3;
-      let emailError = null;
       let emailSent = false;
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        const { error } = await supabaseAdmin.functions.invoke(
-          'send-password-reset-email',
-          {
-            body: {
-              email: userEmail,
-              userName: userName || userEmail.split('@')[0],
-              otpCode,
-              magicLink,
-              expiresInMinutes: 10,
-              ipAddress: clientIp,
-              deviceInfo: userAgent,
-              correlationId,
-            }
-          }
-        );
+        const { error } = await supabaseAdmin.functions.invoke('send-password-reset-email', {
+          body: {
+            email: userEmail,
+            userName: userName || userEmail.split('@')[0],
+            otpCode,
+            magicLink,
+            expiresInMinutes: 10,
+            ipAddress: clientIp,
+            deviceInfo: userAgent,
+            correlationId,
+          },
+        });
 
         if (!error) {
           console.log(`[PasswordReset][${correlationId}][request] Email sent on attempt ${attempt}`);
@@ -217,12 +229,10 @@ serve(async (req) => {
           break;
         }
 
-        emailError = error;
-        console.error(`[PasswordReset][${correlationId}][request] Email attempt ${attempt} failed`);
+        console.error(`[PasswordReset][${correlationId}][request] Email attempt ${attempt} failed`, error);
 
         if (attempt < MAX_RETRIES) {
-          const waitTime = Math.pow(2, attempt) * 1000;
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
         }
       }
 
@@ -248,7 +258,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "If an account exists, you will receive reset instructions"
+        message: "If an account exists, you will receive reset instructions",
       }),
       {
         status: 200,
@@ -258,9 +268,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error(`[PasswordReset][${correlationId}][request] Error:`, error);
     return new Response(
-      JSON.stringify({ 
-        error: "An error occurred while processing your request" 
-      }),
+      JSON.stringify({ error: "An error occurred while processing your request" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

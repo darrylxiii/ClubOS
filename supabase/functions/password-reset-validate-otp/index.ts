@@ -1,7 +1,5 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +12,28 @@ const requestSchema = z.object({
   email: z.string().email(),
   otp_code: z.string().length(6),
 });
+
+// Web Crypto PBKDF2 verify — no WASM, fully supported in Edge Runtime
+async function verifyValue(value: string, stored: string): Promise<boolean> {
+  // Legacy bcrypt hashes won't contain ':' — skip gracefully
+  if (!stored.includes(':')) {
+    console.warn('[PasswordReset][validate_otp] Legacy bcrypt hash detected — skipping comparison');
+    return false;
+  }
+  const [saltHex] = stored.split(':');
+  const saltBytes = new Uint8Array(saltHex.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(value), 'PBKDF2', false, ['deriveBits']
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  const hashHex = Array.from(new Uint8Array(derived)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const reHashed = `${saltHex}:${hashHex}`;
+  return reHashed === stored;
+}
 
 // Check if security alert should be raised
 async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: string, correlationId: string | null) {
@@ -38,7 +58,7 @@ async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: s
   }
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -110,7 +130,7 @@ serve(async (req) => {
       );
     }
 
-    // Always increment attempts counter FIRST
+    // Increment attempts counter
     await supabaseAdmin
       .from('password_reset_tokens')
       .update({ attempts: token.attempts + 1 })
@@ -119,8 +139,8 @@ serve(async (req) => {
     const currentAttempts = token.attempts + 1;
     const attemptsRemaining = MAX_ATTEMPTS - currentAttempts;
 
-    // Compare using bcrypt
-    const otpMatches = await compare(otp_code, token.otp_code);
+    // Compare using Web Crypto PBKDF2 (no WASM)
+    const otpMatches = await verifyValue(otp_code, token.otp_code);
 
     if (!otpMatches) {
       console.log(`[PasswordReset][${correlationId}][validate_otp] Invalid OTP, ${attemptsRemaining} remaining`);
@@ -145,7 +165,7 @@ serve(async (req) => {
       );
     }
 
-    // Valid OTP — mark as used with validated_by = 'otp'
+    // Valid OTP — mark as used
     await supabaseAdmin
       .from('password_reset_tokens')
       .update({ is_used: true, used_at: new Date().toISOString(), validated_by: 'otp' })
@@ -168,7 +188,7 @@ serve(async (req) => {
     );
   } catch (error: any) {
     console.error("[PasswordReset][validate_otp] Error:", error);
-    
+
     if (error.name === 'ZodError') {
       return new Response(
         JSON.stringify({ error: "Invalid request format" }),
