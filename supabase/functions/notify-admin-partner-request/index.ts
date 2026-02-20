@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { getAppUrl } from "../_shared/app-config.ts";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Spacer, Card, Button, AlertBox, InfoRow } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,43 +82,36 @@ serve(async (req) => {
       const appUrl = getAppUrl();
       const reviewUrl = `${appUrl}/admin/members`;
 
-      const emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0E0E10; color: #F5F4EF;">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="color: #C9A24E; font-size: 28px; margin: 0; font-weight: 300;">The Quantum Club</h1>
-          </div>
-          
-          <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 32px; border: 1px solid rgba(201,162,78,0.2);">
-            <h2 style="color: #F5F4EF; font-size: 20px; margin: 0 0 16px 0;">New ${type || 'Partner'} Request</h2>
-            
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-              <tr>
-                <td style="color: #888; padding: 8px 0; font-size: 14px;">Name</td>
-                <td style="color: #F5F4EF; padding: 8px 0; font-size: 14px; text-align: right;">${name}</td>
-              </tr>
-              <tr>
-                <td style="color: #888; padding: 8px 0; font-size: 14px;">Email</td>
-                <td style="color: #F5F4EF; padding: 8px 0; font-size: 14px; text-align: right;">${email}</td>
-              </tr>
-              <tr>
-                <td style="color: #888; padding: 8px 0; font-size: 14px;">Type</td>
-                <td style="color: #C9A24E; padding: 8px 0; font-size: 14px; text-align: right; text-transform: capitalize;">${type || 'partner'}</td>
-              </tr>
-            </table>
-            
-            <div style="text-align: center;">
-              <a href="${reviewUrl}" style="display: inline-block; background: linear-gradient(135deg, #C9A24E 0%, #E5C87D 100%); color: #0E0E10; font-weight: 600; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-size: 15px;">
-                Review Request
-              </a>
-            </div>
-          </div>
-          
-          <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 40px 0;" />
-          <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-            The Quantum Club · Admin Notification
-          </p>
-        </div>
+      const emailContent = `
+        ${AlertBox({ type: 'warning', title: 'New Request Requires Review', message: `A new ${type || 'partner'} membership request has been submitted and is awaiting your review.` })}
+        ${Heading({ text: `New ${type || 'Partner'} Request`, level: 1 })}
+        ${Spacer(24)}
+        ${Card({
+          variant: 'default',
+          content: `
+            ${InfoRow({ icon: '👤', label: 'Name', value: name })}
+            ${InfoRow({ icon: '📧', label: 'Email', value: email })}
+            ${InfoRow({ icon: '🏷️', label: 'Type', value: (type || 'partner').charAt(0).toUpperCase() + (type || 'partner').slice(1) })}
+          `,
+        })}
+        ${Spacer(32)}
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <tr>
+            <td align="center">
+              ${Button({ url: reviewUrl, text: 'Review Request', variant: 'primary' })}
+            </td>
+          </tr>
+        </table>
+        ${Spacer(16)}
+        ${Paragraph('This is an automated admin notification from The Quantum Club.', 'muted')}
       `;
+
+      const emailHtml = baseEmailTemplate({
+        preheader: `New ${type || 'partner'} request from ${name} — review required`,
+        content: emailContent,
+        showHeader: true,
+        showFooter: false,
+      });
 
       const emailResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -124,7 +120,7 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: 'The Quantum Club <noreply@thequantumclub.nl>',
+          from: EMAIL_SENDERS.notifications,
           to: adminEmails,
           subject: `New ${type || 'partner'} request: ${name}`,
           html: emailHtml

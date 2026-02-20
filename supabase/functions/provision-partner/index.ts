@@ -1,5 +1,8 @@
 // No serve import needed — using Deno.serve()
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Spacer, Card, Button, StatusBadge } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -400,55 +403,37 @@ Deno.serve(async (req) => {
     let welcomeEmailSent = false;
     if (resendApiKey && body.provisionMethod !== 'oauth_only') {
       try {
-        const emailBody = body.provisionMethod === 'magic_link' && magicLink
+        const emailContent = body.provisionMethod === 'magic_link' && magicLink
           ? `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0E0E10; color: #F5F4EF;">
-              <div style="text-align: center; margin-bottom: 40px;">
-                <h1 style="color: #C9A24E; font-size: 28px; margin: 0; font-weight: 300;">The Quantum Club</h1>
-              </div>
-              
-              <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 32px; border: 1px solid rgba(201,162,78,0.2);">
-                <p style="color: #F5F4EF; font-size: 16px; line-height: 1.6;">Dear ${body.fullName},</p>
-                
-                <p style="color: #A8A8A8; font-size: 16px; line-height: 1.6;">
-                  You've been personally invited to join The Quantum Club as a valued partner.
-                  ${body.welcomeMessage ? `<br><br><em style="color: #C9A24E;">"${body.welcomeMessage}"</em>` : ''}
-                </p>
-                
-                <div style="text-align: center; margin: 32px 0;">
-                  <a href="${magicLink}" style="display: inline-block; background: linear-gradient(135deg, #C9A24E 0%, #E5C87D 100%); color: #0E0E10; font-weight: 600; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-size: 16px;">
-                    Access Your Account
-                  </a>
-                </div>
-                
-                <p style="color: #666; font-size: 14px; line-height: 1.6;">
-                  This link expires in 72 hours. If you have any questions, your dedicated strategist is ready to assist.
-                </p>
-              </div>
-              
-              <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 40px 0;" />
-              
-              <p style="color: #666; font-size: 12px; text-align: center;">
-                The Quantum Club · Elite Talent Network
-              </p>
-            </div>
+            ${StatusBadge({ status: 'confirmed', text: 'PARTNER ACCESS GRANTED' })}
+            ${Heading({ text: 'Welcome to The Quantum Club', level: 1 })}
+            ${Spacer(24)}
+            ${Paragraph(`Dear ${body.fullName},`, 'primary')}
+            ${Spacer(8)}
+            ${Paragraph(`You've been personally invited to join The Quantum Club as a valued partner.${body.welcomeMessage ? `<br><br><em style="color: ${EMAIL_COLORS.gold};">"${body.welcomeMessage}"</em>` : ''}`, 'secondary')}
+            ${Spacer(32)}
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr><td align="center">${Button({ url: magicLink, text: 'Access Your Account', variant: 'primary' })}</td></tr>
+            </table>
+            ${Spacer(16)}
+            ${Paragraph('This link expires in 72 hours. If you have any questions, your dedicated strategist is ready to assist.', 'muted')}
           `
           : `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0E0E10; color: #F5F4EF;">
-              <div style="text-align: center; margin-bottom: 40px;">
-                <h1 style="color: #C9A24E; font-size: 28px; margin: 0; font-weight: 300;">The Quantum Club</h1>
-              </div>
-              <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 32px; border: 1px solid rgba(201,162,78,0.2);">
-                <p style="color: #F5F4EF; font-size: 16px; line-height: 1.6;">Dear ${body.fullName},</p>
-                <p style="color: #A8A8A8; font-size: 16px; line-height: 1.6;">
-                  You've been invited to join The Quantum Club as a partner. Please sign in using Google or request a magic link from your strategist.
-                </p>
-                <p style="color: #666; font-size: 14px;">For security, temporary passwords are not sent via email.</p>
-              </div>
-              <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 40px 0;" />
-              <p style="color: #666; font-size: 12px; text-align: center;">The Quantum Club · Elite Talent Network</p>
-            </div>
+            ${Heading({ text: 'Welcome to The Quantum Club', level: 1 })}
+            ${Spacer(24)}
+            ${Paragraph(`Dear ${body.fullName},`, 'primary')}
+            ${Spacer(8)}
+            ${Paragraph("You've been invited to join The Quantum Club as a partner. Please sign in using Google or request a magic link from your strategist.", 'secondary')}
+            ${Spacer(8)}
+            ${Paragraph('For security, temporary passwords are not sent via email.', 'muted')}
           `;
+
+        const emailBody = baseEmailTemplate({
+          preheader: 'Welcome to The Quantum Club — your partner access is ready.',
+          content: emailContent,
+          showHeader: true,
+          showFooter: true,
+        });
 
         const emailResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -457,7 +442,7 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: 'The Quantum Club <noreply@thequantumclub.com>',
+            from: EMAIL_SENDERS.notifications,
             to: body.email,
             subject: 'Welcome to The Quantum Club - Your Partner Access',
             html: emailBody
