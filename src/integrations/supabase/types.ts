@@ -34900,7 +34900,7 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           decline_reason: string | null
-          description: string
+          description: string | null
           estimated_roles_per_year: number | null
           followed_up_at: string | null
           headquarters_location: string | null
@@ -34937,7 +34937,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           decline_reason?: string | null
-          description: string
+          description?: string | null
           estimated_roles_per_year?: number | null
           followed_up_at?: string | null
           headquarters_location?: string | null
@@ -34974,7 +34974,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           decline_reason?: string | null
-          description?: string
+          description?: string | null
           estimated_roles_per_year?: number | null
           followed_up_at?: string | null
           headquarters_location?: string | null
