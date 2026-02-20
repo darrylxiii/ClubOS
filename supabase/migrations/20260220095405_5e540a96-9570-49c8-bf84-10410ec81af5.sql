@@ -1,0 +1,1 @@
+ALTER TABLE public.partner_requests ALTER COLUMN description DROP NOT NULL;
