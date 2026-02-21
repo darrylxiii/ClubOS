@@ -56433,6 +56433,13 @@ export type Database = {
           job_count: number
         }[]
       }
+      get_user_id_by_auth_email: {
+        Args: { lookup_email: string }
+        Returns: {
+          auth_email: string
+          user_id: string
+        }[]
+      }
       get_user_metrics: { Args: never; Returns: Json }
       get_user_referral_tier: {
         Args: { p_user_id: string }

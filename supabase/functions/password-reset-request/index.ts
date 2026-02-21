@@ -140,25 +140,50 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Profile lookup
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('id, email, full_name')
-      .eq('email', email.toLowerCase())
+    // Primary lookup: auth.users email via secure RPC (canonical login identity)
+    const { data: authMatch, error: authLookupError } = await supabaseAdmin
+      .rpc('get_user_id_by_auth_email', { lookup_email: email.toLowerCase() })
       .maybeSingle();
 
-    if (profileError) {
-      console.error(`[PasswordReset][${correlationId}][request] Profile lookup error:`, profileError);
+    if (authLookupError) {
+      console.error(`[PasswordReset][${correlationId}][request] Auth lookup error:`, authLookupError);
     }
 
     let userId: string | null = null;
     let userName: string | null = null;
     let userEmail: string | null = null;
 
-    if (profile) {
-      userId = profile.id;
-      userName = profile.full_name;
-      userEmail = profile.email || email;
+    if (authMatch) {
+      // Found by auth email — load profile for display name
+      userId = authMatch.user_id;
+      userEmail = email; // Always send to the email they typed (their login email)
+
+      const { data: profileById } = await supabaseAdmin
+        .from('profiles')
+        .select('full_name')
+        .eq('id', authMatch.user_id)
+        .maybeSingle();
+
+      userName = profileById?.full_name || email.split('@')[0];
+      console.log(`[PasswordReset][${correlationId}][request] Found via auth email, profile name: ${userName}`);
+    } else {
+      // Fallback: check profiles table directly (covers legacy cases)
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('id, email, full_name')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+
+      if (profileError) {
+        console.error(`[PasswordReset][${correlationId}][request] Profile fallback error:`, profileError);
+      }
+
+      if (profile) {
+        userId = profile.id;
+        userName = profile.full_name;
+        userEmail = profile.email || email;
+        console.log(`[PasswordReset][${correlationId}][request] Found via profile email fallback`);
+      }
     }
 
     console.log(`[PasswordReset][${correlationId}][request] User lookup: ${userId ? 'found' : 'not found'}`);
