@@ -26,6 +26,21 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Internal-only: require service_role key or matching internal secret
+  const authHeader = req.headers.get('authorization') || '';
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+  const token = authHeader.replace('Bearer ', '');
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+  
+  // Only allow service_role calls (from other edge functions), not anon/user calls
+  if (!token || token === anonKey) {
+    console.warn('[send-password-reset-email] Blocked: called without service role authorization');
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const {
       email,
@@ -38,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
       correlationId
     }: PasswordResetEmailRequest = await req.json();
 
-    console.log(`[PasswordReset][${correlationId}][email] Sending to: ${email}`);
+    console.log(`[PasswordReset][${correlationId}][email] Sending password reset email`);
 
     const emailContent = `
       ${Heading({ text: 'Reset Your Password', level: 1, align: 'center' })}

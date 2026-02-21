@@ -70,9 +70,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         const isPureCandidate = !isAdmin && !isPartner && !isStrategist;
 
         // Only pure candidates need to complete onboarding
-        // BYPASS: Explicitly skip onboarding for test accounts
-        const isTestAccount = user.email?.includes('test') || user.email === 'darryl@thequantumclub.io';
-        const needsOnboarding = !isTestAccount && isPureCandidate && !profile.onboarding_completed_at;
+        // Check for skip_onboarding flag in user metadata (set by admin, not email string matching)
+        const skipOnboarding = user.user_metadata?.skip_onboarding === true;
+        const needsOnboarding = !skipOnboarding && isPureCandidate && !profile.onboarding_completed_at;
 
         setOnboardingCompleted(!needsOnboarding);
         setAccountStatus((profile.account_status as 'approved' | 'pending' | 'declined') || 'pending');
