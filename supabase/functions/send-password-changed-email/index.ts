@@ -23,6 +23,19 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Internal-only: require service_role key, not anon/user calls
+  const authHeader = req.headers.get('authorization') || '';
+  const token = authHeader.replace('Bearer ', '');
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+  
+  if (!token || token === anonKey) {
+    console.warn('[send-password-changed-email] Blocked: called without service role authorization');
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const {
       email,
@@ -31,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
       deviceInfo
     }: PasswordChangedEmailRequest = await req.json();
 
-    console.log('Sending password changed confirmation to:', email);
+    console.log('[send-password-changed-email] Sending password changed confirmation');
     
     const appUrl = getEmailAppUrl();
 

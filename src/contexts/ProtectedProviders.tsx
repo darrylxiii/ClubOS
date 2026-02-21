@@ -12,6 +12,7 @@ import { TrackingProvider } from "@/components/tracking/TrackingProvider";
 import { NavigationTracer } from "@/components/tracing/NavigationTracer";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { IdleSessionGuard } from "@/components/IdleSessionGuard";
 
 interface ProtectedProvidersProps {
   children: ReactNode;
@@ -39,6 +40,7 @@ export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
                       <TrackingProvider>
                         <NavigationTracer />
                         <FloatingVideoPlayer />
+                        <IdleSessionGuard />
                         {children}
                     </TrackingProvider>
                   </ActivityTracker>
