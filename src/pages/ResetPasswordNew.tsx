@@ -44,6 +44,14 @@ export default function ResetPasswordNew() {
 
       if (error) {
         const body = await parseEdgeFunctionError(error);
+        if (body?.weak_password) {
+          const reasons: string[] = Array.isArray(body.reasons) ? body.reasons : [];
+          const msg = reasons.includes('pwned')
+            ? "This password has been found in a known data breach. Please choose a unique password."
+            : "This password is too weak. Please choose a stronger one.";
+          toast.error(msg, { duration: 6000 });
+          return;
+        }
         if (body?.reused) {
           toast.error("Cannot reuse recent passwords. Please choose a different one.", {
             duration: 5000
@@ -52,6 +60,15 @@ export default function ResetPasswordNew() {
           const msg = body?.message || body?.error || "Failed to reset password. The link may have expired.";
           toast.error(msg, { duration: 5000 });
         }
+        return;
+      }
+
+      if (data?.weak_password) {
+        const reasons: string[] = Array.isArray(data.reasons) ? data.reasons : [];
+        const msg = reasons.includes('pwned')
+          ? "This password has been found in a known data breach. Please choose a unique password."
+          : "This password is too weak. Please choose a stronger one.";
+        toast.error(msg, { duration: 6000 });
         return;
       }
 
