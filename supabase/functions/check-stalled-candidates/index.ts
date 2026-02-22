@@ -46,7 +46,7 @@ serve(async (req) => {
             const { count: taskCount } = await supabase
                 .from("pilot_tasks")
                 .select("*", { count: "exact", head: true })
-                .eq("source_id", app.id)
+                .eq("related_entity_id", app.id)
                 .eq("task_type", "candidate_review")
                 .eq("status", "pending");
 
@@ -63,10 +63,10 @@ serve(async (req) => {
                     title: `Stalled Candidate Alert: ${app.candidate_full_name}`,
                     description: `${app.candidate_full_name} applied for ${app.position} at ${app.company_name} and has been stuck in "${stageName}" since ${new Date(app.updated_at).toLocaleDateString()}. Please review or update status.`,
                     task_type: "candidate_review",
-                    priority: "high", // Revenue protection is high priority
+                    priority_score: 90,
                     status: "pending",
-                    source_type: "application",
-                    source_id: app.id,
+                    related_entity_type: "application",
+                    related_entity_id: app.id,
                     metadata: {
                         job_id: app.job_id,
                         days_stalled: Math.floor((Date.now() - new Date(app.updated_at).getTime()) / (1000 * 60 * 60 * 24)),
