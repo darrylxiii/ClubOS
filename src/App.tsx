@@ -124,6 +124,7 @@ const ResetPasswordVerify = lazy(() => import("./pages/ResetPasswordVerify"));
 const ResetPasswordMagicLink = lazy(() => import("./pages/ResetPasswordMagicLink"));
 const ResetPasswordNew = lazy(() => import("./pages/ResetPasswordNew"));
 const ResetPasswordSuccess = lazy(() => import("./pages/ResetPasswordSuccess"));
+const MfaSetup = lazy(() => import("./pages/MfaSetup"));
 
 // Live Hub
 const LiveHub = lazy(() => import("./pages/LiveHub"));

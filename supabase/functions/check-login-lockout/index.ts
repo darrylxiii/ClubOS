@@ -1,36 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-application-name',
-};
+import { getAuthCorsHeaders, authCorsPreFlight } from "../_shared/auth-cors.ts";
 
 // Progressive lockout delays (in seconds)
 const LOCKOUT_THRESHOLDS = [
-  { attempts: 3, delay: 30 },      // 3 failures: 30 seconds
-  { attempts: 5, delay: 300 },     // 5 failures: 5 minutes
-  { attempts: 10, delay: 1800 },   // 10 failures: 30 minutes
-  { attempts: 20, delay: 3600 },   // 20 failures: 1 hour
+  { attempts: 3, delay: 30 },
+  { attempts: 5, delay: 300 },
+  { attempts: 10, delay: 1800 },
+  { attempts: 20, delay: 3600 },
 ];
 
 // IP-based lockout thresholds (stricter)
 const IP_LOCKOUT_THRESHOLDS = [
-  { attempts: 10, delay: 300 },    // 10 failures from same IP: 5 minutes
-  { attempts: 25, delay: 1800 },   // 25 failures: 30 minutes
-  { attempts: 50, delay: 3600 },   // 50 failures: 1 hour
+  { attempts: 10, delay: 300 },
+  { attempts: 25, delay: 1800 },
+  { attempts: 50, delay: 3600 },
 ];
 
-const LOCKOUT_WINDOW_MINUTES = 60; // Count attempts within last hour
+const LOCKOUT_WINDOW_MINUTES = 60;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return authCorsPreFlight(req);
   }
+
+  const corsHeaders = getAuthCorsHeaders(req);
 
   try {
     const { email, action, success: loginSuccess } = await req.json();
-    
+
     if (!email) {
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
@@ -49,7 +47,6 @@ serve(async (req) => {
     if (action === 'check') {
       const windowStart = new Date(Date.now() - LOCKOUT_WINDOW_MINUTES * 60 * 1000).toISOString();
 
-      // Check both email-based and IP-based attempts in parallel
       const [emailResult, ipResult] = await Promise.all([
         supabaseAdmin
           .from('login_attempts')
@@ -78,19 +75,16 @@ serve(async (req) => {
       const emailAttempts = emailResult.data?.length || 0;
       const ipAttempts = ipResult.data?.length || 0;
 
-      // Check email-based lockout
       const emailLockout = checkLockout(emailAttempts, emailResult.data, LOCKOUT_THRESHOLDS);
-      // Check IP-based lockout
       const ipLockout = checkLockout(ipAttempts, ipResult.data, IP_LOCKOUT_THRESHOLDS);
 
-      // Use the stricter lockout
       if (emailLockout.locked || ipLockout.locked) {
-        const strictest = (emailLockout.remainingSeconds || 0) > (ipLockout.remainingSeconds || 0) 
+        const strictest = (emailLockout.remainingSeconds || 0) > (ipLockout.remainingSeconds || 0)
           ? emailLockout : ipLockout;
-        
+
         return new Response(
-          JSON.stringify({ 
-            locked: true, 
+          JSON.stringify({
+            locked: true,
             attempts: emailAttempts,
             remaining_seconds: strictest.remainingSeconds,
             unlock_at: strictest.unlockAt,
@@ -106,7 +100,6 @@ serve(async (req) => {
       );
 
     } else if (action === 'record') {
-      // Record a login attempt (use loginSuccess from the single req.json() call)
       const { error: insertError } = await supabaseAdmin
         .from('login_attempts')
         .insert({
@@ -120,7 +113,6 @@ serve(async (req) => {
         console.error('[check-login-lockout] Error recording attempt:', insertError);
       }
 
-      // If successful login, clear failed attempts for this email
       if (loginSuccess) {
         await supabaseAdmin
           .from('login_attempts')
@@ -143,6 +135,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[check-login-lockout] Error:', error);
+    const corsHeaders = getAuthCorsHeaders(req);
     return new Response(
       JSON.stringify({ locked: false, error: 'Check failed' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -162,7 +155,6 @@ function checkLockout(
   thresholds: { attempts: number; delay: number }[]
 ): LockoutResult {
   let lockoutDelay = 0;
-  // Use spread to avoid mutating the original array
   for (const threshold of [...thresholds].reverse()) {
     if (failedCount >= threshold.attempts) {
       lockoutDelay = threshold.delay;
