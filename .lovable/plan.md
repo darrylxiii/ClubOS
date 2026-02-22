@@ -1,106 +1,80 @@
 
+# Fix Closing System: `c.fee_percentage does not exist`
 
-# Loading Screen Audit and Consolidation
+## Root Cause
 
-## Complete Inventory of Loading Screens
+When you set an application to "hired", a **database trigger** (`trg_auto_create_placement_commission`) fires and runs this SQL:
 
-Here are ALL distinct loading screen implementations currently in the project:
+```text
+SELECT j.*, c.fee_percentage
+FROM jobs j
+LEFT JOIN companies c ON j.company_id = c.id
+WHERE j.id = NEW.job_id;
+```
 
-### 1. index.html Boot Loader (pre-React)
-- **Where:** `index.html` lines 179-221
-- **Look:** Dark background (`hsl(0 0% 5%)`), quantum logo (200x200), gold SVG spinner, "Loading Quantum OS..." text, plus a full error recovery UI if boot fails
-- **When shown:** Before React even loads -- the very first thing users see
-
-### 2. main.tsx Emergency Fallback
-- **Where:** `src/main.tsx` lines 55-85
-- **Look:** Dark background (`#0E0E10`), gold heading "Application Failed to Start", red error message, error stack trace, "Reset Cache" and "Try Safe Mode" buttons
-- **When shown:** If React fails to initialize (critical crash). Replaces entire `<body>`
-
-### 3. `PageLoader` component
-- **Where:** `src/components/PageLoader.tsx`
-- **Look:** Two states: (a) normal = delegates to `UnifiedLoader variant="page"` with spinning rings and logo; (b) after 15s timeout = card with red alert icon, "Unable to Load Application", reset cache buttons
-- **When shown:** Suspense fallback for ALL lazy-loaded routes in `App.tsx` (~15 uses), `ProtectedLayout.tsx`, `ProtectedRoute.tsx`
-
-### 4. `UnifiedLoader` (the main React loader)
-- **Where:** `src/components/ui/unified-loader.tsx`
-- **Look:** 4 variants:
-  - `page`: Full-screen black background, centered quantum logo (80x80) with white spinning ring + reverse inner ring + drop shadow glow, optional "Loading Quantum OS..." text
-  - `overlay`: Same as page but with backdrop blur over existing content
-  - `section`: Gray `Loader2` spinner icon with tiny grayscale logo overlay, for in-page sections
-  - `inline`: Tiny `Loader2` icon + text, for buttons/small elements
-- **When shown:** Used in 18+ files across the app (ClubHome, Auth, JobDetail, PartnerWelcome, OAuthOnboarding, InviteAcceptance, etc.)
-
-### 5. `LoadingSkeletons` collection
-- **Where:** `src/components/LoadingSkeletons.tsx`
-- **Look:** Gray shimmer rectangles (Skeleton components) shaped like the content they replace -- cards, tables, profiles, messages, calendars, settings, comments, activity feeds
-- **When shown:** In-place content placeholders while data loads (270+ files use `Skeleton`)
-
-### 6. Swipe Game `LoadingScreen`
-- **Where:** `src/components/swipe-game/LoadingScreen.tsx`
-- **Look:** Full-screen gradient, card with brain emoji, "Analyzing Your Personality..." heading, rotating fun facts, progress bar with percentage
-- **When shown:** After completing the swipe game assessment, before showing results
-
-### 7. `ProtectedProvidersLoader`
-- **Where:** `src/contexts/ProtectedProviders.tsx` line 71
-- **Look:** `UnifiedLoader variant="page" text="Initializing..."`
-- **When shown:** While protected providers lazy-load
+The problem: the `companies` table has no column called `fee_percentage`. The correct column is `placement_fee_percentage`. This trigger crashes, which aborts the entire UPDATE transaction -- so the application never gets set to "hired" and the error bubbles up to the UI.
 
 ---
 
-## What to Keep vs. Replace
+## Current Score: 15/100
 
-### KEEP (no changes needed):
-- **LoadingSkeletons** -- These are content-shaped placeholders (gray rectangles), not loading screens. They are a UX best practice and completely different from full-screen loaders
-- **Swipe Game LoadingScreen** -- This is a feature-specific progress screen for the assessment game, not a generic loader. It shows actual progress with fun facts. Replacing it would break the game flow
-- **`inline` variant of UnifiedLoader** -- Tiny spinner inside buttons/form elements. Not a "screen"
+Here is a full audit of the closing system with issues found:
 
-### REPLACE with sleek black + glowing logo:
-1. **index.html Boot Loader** -- Replace the gold spinner and "Loading Quantum OS..." text with a subtle logo glow pulse
-2. **main.tsx Emergency Fallback** -- Keep the error info but match the black + logo aesthetic
-3. **PageLoader normal state** -- Already delegates to UnifiedLoader, will be fixed by fixing UnifiedLoader
-4. **UnifiedLoader `page` variant** -- The core change: remove the spinning rings, just show the logo with a subtle glow pulse animation on pure black
-5. **UnifiedLoader `overlay` variant** -- Same treatment but with backdrop blur
-6. **UnifiedLoader `section` variant** -- Replace Loader2 spinner with a smaller, subtle logo pulse
-7. **ProtectedProvidersLoader** -- Already uses UnifiedLoader, fixed automatically
+| # | Issue | Severity | Where |
+|---|---|---|---|
+| 1 | **Trigger uses `c.fee_percentage` (does not exist)** -- BLOCKS ALL HIRES | Critical | `auto_create_placement_commission()` trigger |
+| 2 | Trigger also references `v_job.fee_percentage` (wrong name after SELECT INTO) | Critical | Same trigger, line 237 |
+| 3 | `useContinuousPipelineHire` inserts `base_salary` into `placement_fees` (column does not exist, should be `candidate_salary`) | High | `src/hooks/useContinuousPipelineHire.ts` line 68 |
+| 4 | 21 triggers on `applications` table -- no error isolation. One trigger crash aborts the whole transaction | Medium | Database |
+| 5 | `auto_generate_placement_fee` trigger AND `JobClosureDialog` frontend BOTH insert into `placement_fees` for the same hire -- duplicate records | Medium | Trigger + `JobClosureDialog.tsx` line 493 |
+| 6 | `JobClosureDialog` uses `as any` type bypass for upsert data (no compile-time safety) | Low | `JobClosureDialog.tsx` lines 460, 521 |
+| 7 | No rollback if placement fee insert fails after application is already set to hired | Medium | `JobClosureDialog.tsx` line 523 |
 
-## The Design: Sleek Black + Glowing Logo
+---
 
-The target aesthetic is:
-- Pure black background (`#0E0E10`)
-- Quantum Club logo centered
-- Subtle white/gold glow that pulses in and out (opacity 0.4 to 1.0, smooth ease)
-- No spinners, no text, no progress bars -- just the logo breathing
-- For smaller section loaders: same logo, smaller, same glow
+## Plan to Reach 100/100
 
-## Implementation
+### Fix 1: Repair the broken trigger (Critical -- unblocks Chantal's hire)
 
-### File 1: `src/components/ui/unified-loader.tsx`
-- Remove the spinning ring divs from `renderPageOrOverlay()`
-- Replace with logo + CSS glow pulse animation (using framer-motion `animate={{ opacity }}`)
-- Remove "Loading Quantum OS..." default text -- no text at all by default
-- Keep the `text` prop functional so callers CAN pass text if needed (e.g., "Verifying reset link...")
-- Update `section` variant: replace `Loader2` with smaller glowing logo
-- Keep `inline` variant as-is (tiny spinner for buttons is correct UX)
+**Database migration** to fix `auto_create_placement_commission()`:
+- Change `c.fee_percentage` to `c.placement_fee_percentage`
+- Change `v_job.fee_percentage` to `v_job.placement_fee_percentage`
+- Also use job-level fee override: `COALESCE(j.job_fee_percentage, c.placement_fee_percentage, 20)`
 
-### File 2: `index.html` (lines 179-184)
-- Remove the SVG spinner element
-- Remove the "Loading Quantum OS..." text paragraph
-- Add a CSS `@keyframes glow-pulse` animation to the existing logo image
-- Keep the boot-error recovery UI unchanged (it serves a real purpose)
+### Fix 2: Fix `useContinuousPipelineHire` column name
 
-### File 3: `src/main.tsx` (emergency fallback, lines 55-85)
-- Update the inline HTML styling to use `#0E0E10` background consistently
-- Add the quantum logo SVG to the error screen header (replace the gold text heading)
-- Keep all error details and recovery buttons (they are essential)
+In `src/hooks/useContinuousPipelineHire.ts`:
+- Change `base_salary: input.actualSalary` to `candidate_salary: input.actualSalary`
 
-### File 4: `src/components/PageLoader.tsx`
-- The normal state already delegates to `UnifiedLoader`, so it gets fixed automatically
-- The 15s error state: update background to match black aesthetic, keep the functional recovery buttons
-- Remove the "Loading Quantum OS..." branding text since UnifiedLoader no longer shows it
+### Fix 3: Eliminate duplicate placement fee creation
 
-### What does NOT change:
-- No changes to `LoadingSkeletons.tsx` (content placeholders are not loading screens)
-- No changes to `swipe-game/LoadingScreen.tsx` (game-specific progress UI)
-- No changes to any of the 18+ files that call `UnifiedLoader` -- they just get the new look automatically
-- All functional behavior (timeouts, error recovery, cache reset) stays intact
+The `auto_generate_placement_fee` trigger already creates a `placement_fees` row when status changes to "hired". Then `JobClosureDialog` also tries to upsert one. This causes either:
+- Duplicate rows (if no unique constraint fires)
+- Silent upsert conflicts
 
+Solution: Remove the frontend placement fee upsert from `JobClosureDialog.tsx` (lines 491-525). Let the trigger handle it. The closure record in `job_closures` already stores fee/salary data independently.
+
+### Fix 4: Make triggers fault-tolerant
+
+Wrap the `auto_create_placement_commission` function body in an `EXCEPTION` block so that if commission creation fails, it logs a warning but does NOT abort the hire transaction. The hire is the critical path; commission calculation is secondary.
+
+### Fix 5: Remove dead code
+
+The `useContinuousPipelineHires` export at the bottom of `useContinuousPipelineHire.ts` is a placeholder that returns hardcoded empty array. Clean it up or implement it properly.
+
+---
+
+## Implementation Order
+
+1. **Database migration**: Fix `auto_create_placement_commission()` with correct column names + exception handling
+2. **`src/hooks/useContinuousPipelineHire.ts`**: Fix `base_salary` to `candidate_salary`
+3. **`src/components/jobs/JobClosureDialog.tsx`**: Remove duplicate placement fee upsert (keep sourcing credits logic)
+4. Test by closing Chantal Folman's placement
+
+## After These Fixes: 100/100
+
+- All hires complete without errors
+- No duplicate placement fees
+- Commission auto-calculates correctly using the right fee column
+- Trigger failures are isolated and don't block hires
+- Continuous pipeline hires write to the correct column
