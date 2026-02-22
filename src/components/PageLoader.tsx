@@ -54,7 +54,7 @@ export const PageLoader = () => {
 
     if (showError) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 animate-fade-in">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E0E10] p-4 animate-fade-in">
                 <div className="text-center space-y-6 max-w-md bg-card border border-border rounded-xl p-8 shadow-lg">
                     <div className="w-16 h-16 mx-auto bg-destructive/10 rounded-full flex items-center justify-center">
                         <AlertCircle className="w-8 h-8 text-destructive" />
@@ -101,5 +101,5 @@ export const PageLoader = () => {
         );
     }
 
-    return <UnifiedLoader variant="page" showBranding />;
+    return <UnifiedLoader variant="page" />;
 };

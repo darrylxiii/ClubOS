@@ -69,5 +69,5 @@ export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
 
 // Loading fallback for protected provider lazy load
 export const ProtectedProvidersLoader = () => (
-  <UnifiedLoader variant="page" text="Initializing..." />
+  <UnifiedLoader variant="page" />
 );
