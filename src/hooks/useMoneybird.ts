@@ -28,7 +28,13 @@ export function useMoneybirdConnection() {
   return useQuery({
     queryKey: ['moneybird-connection'],
     queryFn: async () => {
-      const response = await supabase.functions.invoke('moneybird-test-connection');
+      let response = await supabase.functions.invoke('moneybird-test-connection');
+
+      // Retry once on cold-start failure
+      if (response.error?.message?.includes('Failed to send')) {
+        await new Promise(r => setTimeout(r, 2500));
+        response = await supabase.functions.invoke('moneybird-test-connection');
+      }
 
       if (response.error) {
         return { connected: false, error: response.error.message } as MoneybirdConnectionStatus;
@@ -36,7 +42,9 @@ export function useMoneybirdConnection() {
 
       return response.data as MoneybirdConnectionStatus;
     },
-    staleTime: 60000, // Cache for 1 minute
+    retry: 1,
+    retryDelay: 3000,
+    staleTime: 60000,
   });
 }
 
