@@ -486,43 +486,8 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           throw new Error(`Failed to update application to hired: ${appError?.message || 'No rows affected'}`);
         }
 
-        // Explicitly create placement fee record with sourcing & variance data
-        const feePercentage = job?.job_fee_percentage || job?.companies?.placement_fee_percentage || 20;
-        const { error: feeError } = await supabase
-          .from('placement_fees')
-          .upsert({
-            application_id: selectedApplicationId,
-            job_id: job?.id,
-            candidate_id: updatedApp.candidate_id,
-            partner_company_id: job?.company_id,
-            fee_percentage: feePercentage,
-            candidate_salary: parseFloat(actualSalary),
-            fee_amount: parseFloat(placementFee),
-            currency_code: job?.currency || 'EUR',
-            status: 'pending',
-            hired_date: actualClosingDate,
-            notes: isSplittingCredit 
-              ? `Created on job closure - Split: ${sourcingCredits.map(c => `${c.name} ${c.percentage}%`).join(', ')}`
-              : 'Created on job closure',
-            // Sourcing attribution - use primary sourcer
-            sourced_by: primarySourcerId || null,
-            sourcer_name: primarySourcerName || null,
-            added_by: addedBy || null,
-            added_by_name: addedByName || null,
-            sourcer_override_reason: isOverride ? sourcerOverrideReason : null,
-            // Salary variance tracking
-            estimated_salary_min: salaryMin || null,
-            estimated_salary_max: salaryMax || null,
-            salary_variance_percent: salaryVariancePercent || null,
-            salary_variance_direction: salaryVarianceDirection || null,
-            // Closer tracking
-            closed_by: user?.id || null,
-            closer_name: user?.email || null,
-          }, { onConflict: 'application_id' });
-
-        if (feeError) {
-          console.warn("Placement fee insert failed (trigger may handle):", feeError);
-        }
+        // Placement fee is now created by the database trigger (auto_create_placement_commission)
+        // when the application status changes to 'hired'. No frontend upsert needed.
 
         // If splitting credit, save to sourcing_credits table
         if (isSplittingCredit && sourcingCredits.length > 0) {

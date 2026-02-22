@@ -67,7 +67,7 @@ export function useContinuousPipelineHire() {
           candidate_id: input.candidateId,
           company_id: job.company_id,
           fee_percentage: 0, // Will be calculated from actual values
-          base_salary: input.actualSalary,
+          candidate_salary: input.actualSalary,
           fee_amount: input.placementFee,
           status: 'pending',
           continuous_hire_id: hire.id,
@@ -122,11 +122,3 @@ export function useContinuousPipelineHire() {
   });
 }
 
-export function useContinuousPipelineHires(jobId: string | undefined) {
-  const queryClient = useQueryClient();
-  
-  return {
-    data: [] as any[], // Placeholder - would use useQuery
-    isLoading: false,
-  };
-}
