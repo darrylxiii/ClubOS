@@ -93,30 +93,43 @@ export function useSyncMoneybirdFinancials() {
 
   return useMutation({
     mutationFn: async (year?: number) => {
-      const { data, error } = await supabase.functions.invoke('moneybird-fetch-financials', {
-        body: { year: year || new Date().getFullYear() },
-      });
+      const invokeSync = async () => {
+        const { data, error } = await supabase.functions.invoke('moneybird-fetch-financials', {
+          body: { year: year || new Date().getFullYear() },
+        });
+        return { data, error };
+      };
 
-      if (error) {
-        // Check for specific error types
-        if (error.message?.includes('Failed to send') || error.message?.includes('FunctionsFetchError')) {
+      let result = await invokeSync();
+
+      // Retry once on cold-start / transient network failures
+      if (result.error && (
+        result.error.message?.includes('Failed to send') ||
+        result.error.message?.includes('FunctionsFetchError')
+      )) {
+        await new Promise(r => setTimeout(r, 2500));
+        result = await invokeSync();
+      }
+
+      if (result.error) {
+        if (result.error.message?.includes('Failed to send') || result.error.message?.includes('FunctionsFetchError')) {
           throw new Error('Edge Function not available. Please try again in a moment.');
         }
-        if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        if (result.error.message?.includes('401') || result.error.message?.includes('Unauthorized')) {
           throw new Error('Moneybird credentials are invalid or missing.');
         }
-        throw new Error(error.message || 'Failed to connect to sync service');
+        throw new Error(result.error.message || 'Failed to connect to sync service');
       }
       
-      if (!data) {
+      if (!result.data) {
         throw new Error('No response from sync service');
       }
       
-      if (!data.success) {
-        throw new Error(data.error || 'Sync failed');
+      if (!result.data.success) {
+        throw new Error(result.data.error || 'Sync failed');
       }
       
-      return data.data;
+      return result.data.data;
     },
     onSuccess: () => {
       toast.success('Financial data synced from Moneybird');

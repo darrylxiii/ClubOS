@@ -32264,6 +32264,7 @@ export type Database = {
           due_date: string | null
           id: string
           invoice_date: string | null
+          invoice_description: string | null
           invoice_number: string | null
           invoice_type: string | null
           legal_entity: string | null
@@ -32302,6 +32303,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_date?: string | null
+          invoice_description?: string | null
           invoice_number?: string | null
           invoice_type?: string | null
           legal_entity?: string | null
@@ -32340,6 +32342,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_date?: string | null
+          invoice_description?: string | null
           invoice_number?: string | null
           invoice_type?: string | null
           legal_entity?: string | null

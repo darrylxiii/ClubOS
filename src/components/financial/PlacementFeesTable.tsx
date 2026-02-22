@@ -113,6 +113,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
               <TableHead>Hired Date</TableHead>
               <TableHead>Sourced By</TableHead>
               <TableHead>Salary</TableHead>
+              <TableHead>Variance</TableHead>
               <TableHead>Fee</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Closed By</TableHead>
@@ -122,7 +123,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
           <TableBody>
             {filteredFees.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                   No placement fees found
                 </TableCell>
               </TableRow>
