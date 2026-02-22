@@ -31,11 +31,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       return data;
     },
-    enabled: !!user, // Only run query when user exists
-    staleTime: 1000 * 60 * 10, // 10 minutes - subscription status doesn't change often
-    gcTime: 1000 * 60 * 30, // 30 minutes cache
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchInterval: 1000 * 60 * 10, // Poll every 10 minutes instead of 60 seconds
+    enabled: !!user,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
+    refetchInterval: 1000 * 60 * 10,
+    // Render immediately with empty subscriptions — don't block first paint
+    placeholderData: { subscriptions: [] },
   });
 
   const subscriptions = data?.subscriptions || [];

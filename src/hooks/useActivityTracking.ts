@@ -1,21 +1,23 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSessionId, trackEvent } from '@/services/sessionTracking';
 
 /**
- * Hook to automatically track user activity
- * Tracks page views, interactions, and maintains online status
+ * Hook to automatically track user activity.
+ * Deferred: All RPCs and event listeners start after a 2-second delay
+ * to avoid blocking first paint.
  */
 export const useActivityTracking = () => {
   const { user } = useAuth();
+  const deferredRef = useRef(false);
 
   const trackActivity = useCallback(async (actionType?: string) => {
     if (!user?.id) return;
 
     try {
       const sessionId = getSessionId();
-      
+
       await (supabase as any).rpc('update_user_activity_tracking', {
         p_user_id: user.id,
         p_action_type: actionType || null,
@@ -46,23 +48,28 @@ export const useActivityTracking = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    // Set user as online when component mounts
-    updateOnlineStatus('online');
+    // Defer all tracking RPCs and listeners by 2 seconds
+    const deferTimer = setTimeout(() => {
+      deferredRef.current = true;
 
-    // Track page view with detailed event
-    trackEvent(user.id, 'page_view', {
-      eventCategory: 'navigation',
-      pagePath: window.location.pathname,
-    });
-    trackActivity('page_view');
+      updateOnlineStatus('online');
+      trackEvent(user.id, 'page_view', {
+        eventCategory: 'navigation',
+        pagePath: window.location.pathname,
+      });
+      trackActivity('page_view');
+    }, 2000);
 
-    // Update activity periodically (every 60 seconds for enterprise-level accuracy)
-    const activityInterval = setInterval(() => {
-      trackActivity('heartbeat');
-    }, 60 * 1000);
+    // Heartbeat starts after defer
+    let activityInterval: ReturnType<typeof setInterval> | null = null;
+    const heartbeatTimer = setTimeout(() => {
+      activityInterval = setInterval(() => {
+        trackActivity('heartbeat');
+      }, 60 * 1000);
+    }, 2000);
 
-    // Track page visibility changes
     const handleVisibilityChange = () => {
+      if (!deferredRef.current) return;
       if (document.hidden) {
         updateOnlineStatus('away');
       } else {
@@ -71,20 +78,22 @@ export const useActivityTracking = () => {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Set user as offline on page unload
     const handleBeforeUnload = () => {
       updateOnlineStatus('offline');
     };
 
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      clearInterval(activityInterval);
+      clearTimeout(deferTimer);
+      clearTimeout(heartbeatTimer);
+      if (activityInterval) clearInterval(activityInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      updateOnlineStatus('offline');
+      if (deferredRef.current) {
+        updateOnlineStatus('offline');
+      }
     };
   }, [user?.id, trackActivity, updateOnlineStatus]);
 

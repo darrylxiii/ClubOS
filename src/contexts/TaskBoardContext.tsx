@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { TaskBoard } from '@/types/taskBoard';
@@ -20,6 +20,8 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
   const [boards, setBoards] = useState<TaskBoard[]>([]);
   const [currentBoard, setCurrentBoard] = useState<TaskBoard | null>(null);
   const [loading, setLoading] = useState(true);
+  const initializedRef = useRef(false);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const loadBoards = async () => {
     if (!user) {
@@ -40,12 +42,10 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
 
       setBoards(data || []);
 
-      // Auto-select board
       const savedBoardId = localStorage.getItem('currentBoardId');
       if (savedBoardId && data?.find(b => b.id === savedBoardId)) {
         setCurrentBoard(data.find(b => b.id === savedBoardId) || null);
       } else if (data && data.length > 0) {
-        // Default to personal board or first available
         const personalBoard = data.find(b => b.visibility === 'personal');
         setCurrentBoard(personalBoard || data[0]);
       }
@@ -87,8 +87,7 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
 
       toast.success('Board created successfully');
       await loadBoards();
-      
-      // Switch to new board
+
       if (data) {
         switchBoard(data.id);
       }
@@ -101,37 +100,49 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Defer initial load and realtime subscription
   useEffect(() => {
-    loadBoards();
+    if (!user) {
+      setBoards([]);
+      setCurrentBoard(null);
+      setLoading(false);
+      initializedRef.current = false;
+      return;
+    }
 
-    // Subscribe to board changes
-    const channel = supabase
-      .channel('task-boards-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'task_boards' },
-        () => loadBoards()
-      )
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'task_board_members' },
-        () => loadBoards()
-      )
-      .subscribe();
+    // Defer board loading to avoid blocking first paint
+    const timer = setTimeout(() => {
+      if (initializedRef.current) return;
+      initializedRef.current = true;
+
+      loadBoards();
+
+      // Subscribe to board changes (deferred)
+      channelRef.current = supabase
+        .channel('task-boards-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'task_boards' },
+          () => loadBoards()
+        )
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'task_board_members' },
+          () => loadBoards()
+        )
+        .subscribe();
+    }, 1500);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearTimeout(timer);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [user]);
 
   return (
     <TaskBoardContext.Provider
-      value={{
-        boards,
-        currentBoard,
-        loading,
-        switchBoard,
-        refreshBoards: loadBoards,
-        createBoard,
-      }}
+      value={{ boards, currentBoard, loading, switchBoard, refreshBoards: loadBoards, createBoard }}
     >
       {children}
     </TaskBoardContext.Provider>

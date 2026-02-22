@@ -63,14 +63,27 @@ class TrackingService {
   private currentPageAnalyticsId: string | null = null;
   private pageStartTime: number = Date.now();
   private readonly BATCH_SIZE = 50;
-  private readonly FLUSH_INTERVAL = 5000; // 5 seconds
+  private readonly FLUSH_INTERVAL = 5000;
+  private cachedUserId: string | null = null;
 
   constructor() {
     this.sessionId = this.getOrCreateSessionId();
+    // Defer batch flushing and beforeunload to after first paint
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(() => this.initSideEffects(), { timeout: 3000 });
+    } else {
+      setTimeout(() => this.initSideEffects(), 2000);
+    }
+  }
+
+  private initSideEffects() {
     this.startBatchFlushing();
-    
-    // Flush on page unload
     window.addEventListener('beforeunload', () => this.flush());
+  }
+
+  /** Cache the user ID from AuthContext to avoid redundant getUser() calls */
+  setUserId(userId: string | null) {
+    this.cachedUserId = userId;
   }
 
   private getOrCreateSessionId(): string {
@@ -83,9 +96,12 @@ class TrackingService {
   }
 
   private async getUserId(): Promise<string | null> {
+    // Use cached value first to avoid redundant auth calls
+    if (this.cachedUserId) return this.cachedUserId;
     try {
       const { data } = await supabase.auth.getUser();
-      return data?.user?.id || null;
+      this.cachedUserId = data?.user?.id || null;
+      return this.cachedUserId;
     } catch {
       return null;
     }
@@ -103,23 +119,20 @@ class TrackingService {
     if (this.eventQueue.length === 0) return;
 
     const batch = this.eventQueue.splice(0, this.BATCH_SIZE);
-    
+
     try {
       const { error } = await supabase
         .from('user_session_events')
         .insert(batch);
-      
+
       if (error) {
         console.error('[TrackingService] Failed to insert events:', error);
-        console.error('[TrackingService] Failed batch sample:', JSON.stringify(batch[0], null, 2));
-        // Re-add failed events to queue (with limit)
         if (this.eventQueue.length < 500) {
           this.eventQueue.unshift(...batch);
         }
       }
     } catch (error) {
       console.error('[TrackingService] Exception flushing events:', error);
-      console.error('[TrackingService] Failed batch size:', batch.length);
     }
   }
 
@@ -242,7 +255,6 @@ class TrackingService {
 
     this.eventQueue.push(fullEvent);
 
-    // Flush immediately if queue is full
     if (this.eventQueue.length >= this.BATCH_SIZE) {
       this.flush();
     }
@@ -259,7 +271,6 @@ class TrackingService {
     this.pageStartTime = Date.now();
 
     try {
-      // Build insert data with only required fields first
       const insertData: Record<string, unknown> = {
         user_id: userId,
         session_id: this.sessionId,
@@ -267,7 +278,6 @@ class TrackingService {
         entry_timestamp: new Date().toISOString(),
       };
 
-      // Only add optional columns if they have values (handles missing columns gracefully)
       if (entry.referrer) insertData.referrer = entry.referrer;
       if (entry.viewportWidth) insertData.viewport_width = entry.viewportWidth;
       if (entry.viewportHeight) insertData.viewport_height = entry.viewportHeight;
@@ -279,13 +289,11 @@ class TrackingService {
         .single();
 
       if (error) {
-        // Log but don't throw - tracking failures shouldn't break the app
         logger.warn('Failed to track page entry (non-blocking)', { componentName: 'TrackingService', error: error.message });
       } else if (data) {
         this.currentPageAnalyticsId = data.id;
       }
     } catch (error) {
-      // Silently fail - tracking errors should never break the app
       logger.warn('Exception tracking page entry (non-blocking)', { componentName: 'TrackingService', error });
     }
   }
