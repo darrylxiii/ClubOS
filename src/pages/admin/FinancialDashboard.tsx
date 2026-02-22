@@ -18,7 +18,7 @@ import { CashFlowProjection } from "@/components/financial/CashFlowProjection";
 import { ProfitLossCard } from "@/components/financial/ProfitLossCard";
 import { FinancialEventsTimeline } from "@/components/financial/FinancialEventsTimeline";
 import { MissingFeesAlert } from "@/components/financial/MissingFeesAlert";
-import { useMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
+import { useMoneybirdFinancials, useSyncMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
 import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
 import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
 import { CashFlowPipeline } from "@/components/admin/revenue/CashFlowPipeline";
@@ -43,7 +43,8 @@ export default function FinancialDashboard() {
   const { data: metrics, isLoading: metricsLoading } = useMoneybirdFinancials(selectedYear, entityParam);
   const { isSyncing } = useAutoSyncFinancials(selectedYear, entityParam);
   const { data: fees, isLoading: feesLoading } = usePlacementFeesWithContext(selectedYear, entityParam);
-  const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices();
+  const { data: invoices, isLoading: invoicesLoading } = usePartnerInvoices(undefined, selectedYear);
+  const { mutate: syncFinancials, isPending: manualSyncing } = useSyncMoneybirdFinancials();
   const { data: payouts, isLoading: payoutsLoading } = useReferralPayouts();
   const { currentRole } = useRole();
   const [displayCurrency, setDisplayCurrency] = useState<Currency>('EUR');
@@ -166,7 +167,12 @@ export default function FinancialDashboard() {
 
       <InvoiceStatusSummary year={selectedYear} />
 
-      <RevenueSummaryCards metrics={metrics} isLoading={metricsLoading} />
+      <RevenueSummaryCards 
+        metrics={metrics} 
+        isLoading={metricsLoading}
+        onSync={() => syncFinancials(selectedYear)}
+        isSyncing={isSyncing || manualSyncing}
+      />
 
       <Card>
         <CardHeader>
