@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthPrefetch } from '@/hooks/useAuthPrefetch';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
 
@@ -37,53 +38,41 @@ const AppearanceContext = createContext<AppearanceContextType | undefined>(undef
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { data: prefetch } = useAuthPrefetch();
   const [settings, setSettings] = useState<AppearanceSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
+  // Read from prefetch cache instead of separate DB fetch
   useEffect(() => {
-    if (user) {
-      loadSettings();
-    } else {
+    if (!user) {
       setSettings(defaultSettings);
       setLoading(false);
+      setInitialized(false);
+      return;
     }
-  }, [user]);
 
-  const loadSettings = async () => {
-    if (!user) return;
+    if (!prefetch || initialized) return;
 
-    try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading appearance settings:', error);
-        return;
-      }
-
-      if (data) {
-        const bgType = data.background_type as 'preset' | 'custom' | 'ai_generated' | 'video';
-        setSettings({
-          backgroundEnabled: data.background_enabled ?? defaultSettings.backgroundEnabled,
-          backgroundType: bgType ?? defaultSettings.backgroundType,
-          backgroundValue: data.background_value ?? defaultSettings.backgroundValue,
-          blurEnabled: data.background_blur_enabled ?? defaultSettings.blurEnabled,
-          blurIntensity: data.background_blur_intensity ?? defaultSettings.blurIntensity,
-          overlayColor: data.overlay_color ?? defaultSettings.overlayColor,
-          overlayOpacity: data.overlay_opacity ?? defaultSettings.overlayOpacity,
-          applyToAllPages: data.apply_to_all_pages ?? defaultSettings.applyToAllPages,
-          accentColor: data.accent_color ?? defaultSettings.accentColor,
-        });
-      }
-    } catch (error) {
-      console.error('Error loading appearance settings:', error);
-    } finally {
-      setLoading(false);
+    const data = prefetch.preferences;
+    if (data) {
+      const bgType = data.background_type as 'preset' | 'custom' | 'ai_generated' | 'video';
+      setSettings({
+        backgroundEnabled: data.background_enabled ?? defaultSettings.backgroundEnabled,
+        backgroundType: bgType ?? defaultSettings.backgroundType,
+        backgroundValue: data.background_value ?? defaultSettings.backgroundValue,
+        blurEnabled: data.background_blur_enabled ?? defaultSettings.blurEnabled,
+        blurIntensity: data.background_blur_intensity ?? defaultSettings.blurIntensity,
+        overlayColor: data.overlay_color ?? defaultSettings.overlayColor,
+        overlayOpacity: data.overlay_opacity ?? defaultSettings.overlayOpacity,
+        applyToAllPages: data.apply_to_all_pages ?? defaultSettings.applyToAllPages,
+        accentColor: data.accent_color ?? defaultSettings.accentColor,
+      });
     }
-  };
+
+    setLoading(false);
+    setInitialized(true);
+  }, [user, prefetch, initialized]);
 
   const updateSettings = async (partial: Partial<AppearanceSettings>) => {
     if (!user) return;
@@ -92,20 +81,18 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     setSettings(newSettings);
 
     try {
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          background_enabled: newSettings.backgroundEnabled,
-          background_type: newSettings.backgroundType,
-          background_value: newSettings.backgroundValue,
-          background_blur_enabled: newSettings.blurEnabled,
-          background_blur_intensity: newSettings.blurIntensity,
-          overlay_color: newSettings.overlayColor,
-          overlay_opacity: newSettings.overlayOpacity,
-          apply_to_all_pages: newSettings.applyToAllPages,
-          accent_color: newSettings.accentColor,
-        });
+      const { error } = await supabase.from('user_preferences').upsert({
+        user_id: user.id,
+        background_enabled: newSettings.backgroundEnabled,
+        background_type: newSettings.backgroundType,
+        background_value: newSettings.backgroundValue,
+        background_blur_enabled: newSettings.blurEnabled,
+        background_blur_intensity: newSettings.blurIntensity,
+        overlay_color: newSettings.overlayColor,
+        overlay_opacity: newSettings.overlayOpacity,
+        apply_to_all_pages: newSettings.applyToAllPages,
+        accent_color: newSettings.accentColor,
+      });
 
       if (error) throw error;
     } catch (error) {

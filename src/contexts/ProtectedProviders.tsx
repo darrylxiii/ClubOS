@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TaskBoardProvider } from "@/contexts/TaskBoardContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
@@ -19,14 +19,23 @@ interface ProtectedProvidersProps {
 }
 
 /**
- * Heavy providers for protected routes loaded AFTER authentication
- * Includes role management, subscriptions, video player, and activity tracking
- * Lazy loaded to reduce initial bundle size and improve FCP
- * 
- * Optimization: TooltipProvider moved here from App.tsx to reduce
- * provider nesting for public routes
+ * Heavy providers for protected routes loaded AFTER authentication.
+ * ActivityTracker and TrackingProvider are deferred to avoid blocking first paint.
  */
 export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
+  const [deferredReady, setDeferredReady] = useState(false);
+
+  // Defer non-critical tracking providers until after first paint
+  useEffect(() => {
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(() => setDeferredReady(true), { timeout: 3000 });
+      return () => cancelIdleCallback(id);
+    } else {
+      const timeout = setTimeout(() => setDeferredReady(true), 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, []);
+
   return (
     <TooltipProvider>
       <AppearanceProvider>
@@ -36,18 +45,21 @@ export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
               <VideoPlayerProvider>
                 <NavigationHistoryProvider>
                   <MotionProvider>
-                    <ActivityTracker>
-                      <TrackingProvider>
-                        <NavigationTracer />
-                        <FloatingVideoPlayer />
-                        <IdleSessionGuard />
-                        {children}
-                    </TrackingProvider>
-                  </ActivityTracker>
-                </MotionProvider>
-              </NavigationHistoryProvider>
-            </VideoPlayerProvider>
-          </SubscriptionProvider>
+                    <NavigationTracer />
+                    <FloatingVideoPlayer />
+                    <IdleSessionGuard />
+                    {deferredReady && (
+                      <ActivityTracker>
+                        <TrackingProvider>
+                          <></>
+                        </TrackingProvider>
+                      </ActivityTracker>
+                    )}
+                    {children}
+                  </MotionProvider>
+                </NavigationHistoryProvider>
+              </VideoPlayerProvider>
+            </SubscriptionProvider>
           </TaskBoardProvider>
         </RoleProvider>
       </AppearanceProvider>
