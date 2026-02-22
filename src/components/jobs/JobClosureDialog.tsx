@@ -486,8 +486,45 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           throw new Error(`Failed to update application to hired: ${appError?.message || 'No rows affected'}`);
         }
 
-        // Placement fee is now created by the database trigger (auto_create_placement_commission)
-        // when the application status changes to 'hired'. No frontend upsert needed.
+        // Placement fee is created by the database trigger when status changes to 'hired'.
+        // Now auto-create the invoice in Moneybird (non-blocking).
+        try {
+          // Wait briefly for the trigger to create the placement fee
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Find the newly created placement fee for this application
+          const { data: newFee } = await supabase
+            .from('placement_fees')
+            .select('id')
+            .eq('application_id', selectedApplicationId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (newFee?.id) {
+            // Fire-and-forget: create partner invoice + Moneybird draft
+            supabase.functions.invoke('create-placement-invoice', {
+              body: { placementFeeId: newFee.id },
+            }).then(res => {
+              if (res.error) {
+                console.warn('[JobClosureDialog] Invoice creation failed (non-blocking):', res.error);
+              } else {
+                const invoiceData = res.data;
+                toast.success('Invoice draft created', {
+                  description: invoiceData?.moneybirdDraft 
+                    ? `${invoiceData.invoiceNumber} synced to Moneybird`
+                    : `${invoiceData?.invoiceNumber || 'Invoice'} created. Moneybird sync pending.`,
+                });
+              }
+            }).catch(err => {
+              console.warn('[JobClosureDialog] Invoice creation error (non-blocking):', err);
+            });
+          } else {
+            console.warn('[JobClosureDialog] No placement fee found after hire, invoice will need manual creation');
+          }
+        } catch (invoiceErr) {
+          console.warn('[JobClosureDialog] Invoice auto-creation failed (non-blocking):', invoiceErr);
+        }
 
         // If splitting credit, save to sourcing_credits table
         if (isSplittingCredit && sourcingCredits.length > 0) {

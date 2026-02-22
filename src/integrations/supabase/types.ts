@@ -34712,6 +34712,7 @@ export type Database = {
           partner_company_id: string
           payment_terms_days: number | null
           pdf_url: string | null
+          placement_fee_id: string | null
           sent_at: string | null
           status: string | null
           stripe_payment_intent_id: string | null
@@ -34737,6 +34738,7 @@ export type Database = {
           partner_company_id: string
           payment_terms_days?: number | null
           pdf_url?: string | null
+          placement_fee_id?: string | null
           sent_at?: string | null
           status?: string | null
           stripe_payment_intent_id?: string | null
@@ -34762,6 +34764,7 @@ export type Database = {
           partner_company_id?: string
           payment_terms_days?: number | null
           pdf_url?: string | null
+          placement_fee_id?: string | null
           sent_at?: string | null
           status?: string | null
           stripe_payment_intent_id?: string | null
@@ -34792,6 +34795,13 @@ export type Database = {
             columns: ["partner_company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_invoices_placement_fee_id_fkey"
+            columns: ["placement_fee_id"]
+            isOneToOne: false
+            referencedRelation: "placement_fees"
             referencedColumns: ["id"]
           },
         ]
