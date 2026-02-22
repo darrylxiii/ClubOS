@@ -813,6 +813,9 @@ verify_jwt = true
 [functions.check-login-lockout]
 verify_jwt = false
 
+[functions.admin-force-password-reset]
+verify_jwt = false
+
 # =============================================================================
 # System Integration Functions
 # =============================================================================
