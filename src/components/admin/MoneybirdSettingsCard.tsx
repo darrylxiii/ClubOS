@@ -41,7 +41,9 @@ export function MoneybirdSettingsCard() {
             <CardDescription>
               {connection?.connected 
                 ? `Connected to ${connection.administrationName}`
-                : connection?.error || 'Configure your Moneybird tokens to connect'}
+                : connection?.error?.includes('404')
+                  ? 'Moneybird returned 404. The administration ID may be incorrect or the access token may have expired. Please verify your credentials.'
+                  : connection?.error || 'Configure your Moneybird tokens to connect'}
             </CardDescription>
           </div>
           <Button
