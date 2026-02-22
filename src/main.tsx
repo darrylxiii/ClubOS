@@ -62,7 +62,8 @@ async function bootstrap() {
     document.body.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0E0E10; color: #F5F4EF; font-family: Inter, sans-serif; padding: 2rem;">
         <div style="text-align: center; max-width: 700px;">
-          <h1 style="font-size: 1.75rem; margin-bottom: 1rem; color: #C9A24E;">Application Failed to Start</h1>
+          <img src="/quantum-logo.svg" alt="The Quantum Club" width="80" height="80" style="margin: 0 auto 1.5rem; display: block; opacity: 0.6;" />
+          <h1 style="font-size: 1.25rem; margin-bottom: 1rem; color: #F5F4EF; font-weight: 500;">Application Failed to Start</h1>
           <p style="margin-bottom: 1rem; color: #9CA3AF;">A critical error occurred during initialization.</p>
           <div style="background: #1a1a1a; padding: 1rem; border-radius: 0.5rem; text-align: left; margin-bottom: 1rem; border: 1px solid #374151;">
             <p style="font-weight: 600; color: #EF4444; margin-bottom: 0.5rem;">${errorMessage}</p>
