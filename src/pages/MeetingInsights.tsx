@@ -126,7 +126,8 @@ export default function MeetingInsights() {
         priority_score: actionItem.priority === 'high' ? 90 : actionItem.priority === 'medium' ? 60 : 30,
         status: 'pending',
         task_type: 'action_item',
-        source: 'meeting_insights',
+        related_entity_type: 'meeting',
+        related_entity_id: meetingId,
         metadata: { 
           meeting_id: meetingId, 
           owner: actionItem.owner,

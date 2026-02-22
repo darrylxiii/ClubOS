@@ -66,7 +66,7 @@ serve(async (req) => {
                 const { count: taskCount } = await supabase
                     .from("pilot_tasks")
                     .select("*", { count: "exact", head: true })
-                    .eq("source_id", booking.id)
+                    .eq("related_entity_id", booking.id)
                     .eq("task_type", "data_entry_required");
 
                 if (taskCount === 0) {
@@ -74,10 +74,10 @@ serve(async (req) => {
                         title: `Missing Data: ${booking.interview_type || 'Meeting'} with ${booking.guest_name}`,
                         description: `The meeting ended at ${new Date(booking.scheduled_end).toLocaleTimeString()} but no recording, transcript, or notes have been uploaded. Please ensure data integrity.`,
                         task_type: "data_entry_required",
-                        priority: "medium", // Or high depending on policy
+                        priority_score: 60,
                         status: "pending",
-                        source_type: "booking",
-                        source_id: booking.id, // Link to booking
+                        related_entity_type: "booking",
+                        related_entity_id: booking.id,
                         metadata: {
                             candidate_id: booking.candidate_id,
                             job_id: booking.job_id,

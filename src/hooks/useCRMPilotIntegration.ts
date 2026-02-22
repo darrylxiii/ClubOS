@@ -43,7 +43,7 @@ ${prospect.reply_sentiment === 'hot' ? '🔥 Hot lead - respond quickly!' : pros
         description: taskDescription,
         task_type: taskType === 'follow_up' ? 'follow_up' : taskType === 'call' ? 'call' : 'email',
         priority_score: priority * 20,
-        due_date: dueDate?.toISOString() || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        scheduled_end: dueDate?.toISOString() || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         status: 'pending',
         metadata: {
           source: 'crm',
