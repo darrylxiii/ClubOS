@@ -325,6 +325,13 @@ const App = () => {
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
+                <Route path="/mfa-setup" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><MfaSetup /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
 
                 {/* Protected Routes */}
                 <Route element={
