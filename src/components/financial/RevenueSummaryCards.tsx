@@ -1,14 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DollarSign, FileText, AlertCircle, CheckCircle, RefreshCw } from "lucide-react";
 import { MoneybirdFinancialMetrics } from "@/hooks/useMoneybirdFinancials";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RevenueSummaryCardsProps {
   metrics: MoneybirdFinancialMetrics | null;
   isLoading: boolean;
+  onSync?: () => void;
+  isSyncing?: boolean;
 }
 
-export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsProps) {
+export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing }: RevenueSummaryCardsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
@@ -18,17 +21,17 @@ export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsP
     }).format(amount);
   };
 
-  // Calculate net revenue (excluding 21% VAT)
-  const grossRevenue = metrics?.total_revenue || 0;
-  const netRevenue = Math.round(grossRevenue / 1.21 * 100) / 100;
-  const vatAmount = grossRevenue - netRevenue;
+  // total_revenue is already NET (excl. VAT) from the edge function
+  const netRevenue = metrics?.total_revenue || 0;
+  const grossRevenue = (metrics as any)?.total_revenue_gross || Math.round(netRevenue * 1.21);
+  const vatAmount = (metrics as any)?.vat_amount || (grossRevenue - netRevenue);
   
-  // Calculate net collected
-  const grossCollected = metrics?.total_paid || 0;
-  const netCollected = Math.round(grossCollected / 1.21 * 100) / 100;
+  // total_paid is already NET from the edge function
+  const netCollected = metrics?.total_paid || 0;
+  const grossCollected = Math.round(netCollected * 1.21);
 
-  const collectionRate = grossRevenue > 0
-    ? ((grossCollected / grossRevenue) * 100).toFixed(1)
+  const collectionRate = netRevenue > 0
+    ? ((netCollected / netRevenue) * 100).toFixed(1)
     : '0';
 
   const cards = [
@@ -54,7 +57,7 @@ export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsP
       description: `${metrics?.invoice_count_open || 0} open invoices`,
       icon: FileText,
       iconColor: 'text-amber-500',
-      tooltip: 'Total outstanding amount (incl. VAT)',
+      tooltip: 'Total outstanding net amount',
     },
     {
       title: 'Overdue',
@@ -83,6 +86,37 @@ export function RevenueSummaryCards({ metrics, isLoading }: RevenueSummaryCardsP
             <CardContent>
               <div className="h-7 w-28 bg-muted rounded mb-1" />
               <div className="h-3 w-20 bg-muted rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // Empty/error state when no metrics data exists
+  if (!metrics) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {cards.map((card) => (
+          <Card key={card.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+              <card.icon className={`h-4 w-4 text-muted-foreground`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg text-muted-foreground">No data synced</div>
+              {onSync && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="px-0 h-auto text-xs"
+                  onClick={onSync}
+                  disabled={isSyncing}
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {isSyncing ? 'Syncing...' : 'Sync Now'}
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}

@@ -1039,25 +1039,25 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.moneybird-fetch-financials]
-verify_jwt = true
+verify_jwt = false
 
 [functions.sync-company-revenue]
-verify_jwt = true
+verify_jwt = false
 
 [functions.reconcile-invoices]
-verify_jwt = true
+verify_jwt = false
 
 [functions.calculate-recruiter-commissions]
-verify_jwt = true
+verify_jwt = false
 
 [functions.backfill-placement-fees]
-verify_jwt = true
+verify_jwt = false
 
 [functions.calculate-all-kpis]
 verify_jwt = false
 
 [functions.automate-placement-fee]
-verify_jwt = true
+verify_jwt = false
 
 [functions.create-placement-invoice]
 verify_jwt = false

@@ -5,6 +5,8 @@ import { PlacementFee } from './useFinancialData';
 export interface PlacementFeeWithContext extends PlacementFee {
   job_title: string | null;
   company_name: string | null;
+  invoice_number: string | null;
+  invoice_status: string | null;
 }
 
 export const usePlacementFeesWithContext = (year?: number, legalEntity?: string) => {
@@ -18,6 +20,10 @@ export const usePlacementFeesWithContext = (year?: number, legalEntity?: string)
           jobs!inner (
             title,
             companies!inner (name)
+          ),
+          partner_invoices:invoice_id (
+            invoice_number,
+            status
           )
         `)
         .order('created_at', { ascending: false });
@@ -40,6 +46,8 @@ export const usePlacementFeesWithContext = (year?: number, legalEntity?: string)
         ...fee,
         job_title: fee.jobs?.title || null,
         company_name: fee.jobs?.companies?.name || null,
+        invoice_number: fee.partner_invoices?.invoice_number || null,
+        invoice_status: fee.partner_invoices?.status || null,
       })) as PlacementFeeWithContext[];
     },
   });
