@@ -1,132 +1,154 @@
 
-# Finance Dashboard: Critical Audit and Fix Plan
+# Finance Hub: Complete Audit and Fix Plan
 
-## Current Score: 25/100
+## Current Score: 40/100
 
-This is LOWER than the previous estimate of 35/100 because deeper inspection reveals compounding errors that make the dashboard actively misleading -- not just empty.
+The edge function works server-side (confirmed with direct call -- returned 200 with EUR 61k net revenue for 2026), but three categories of issues prevent the dashboard from functioning correctly for end users.
 
 ---
 
-## Critical Issues Found
+## Issues Found (13 total)
 
-### Issue 1: `verify_jwt = true` blocks ALL Moneybird syncs (STILL BROKEN)
-- **Where:** `supabase/config.toml` line 1042
-- **Impact:** The `moneybird-fetch-financials` function returns 401 on every call. The auto-sync hook fires on every dashboard load, fails, and shows "Edge Function not available" toast. Data is 47 days stale.
-- **Also affected:** `sync-company-revenue` (line 1044), `reconcile-invoices` (line 1047), `calculate-recruiter-commissions` (line 1050), `backfill-placement-fees` (line 1053), `automate-placement-fee` (line 1059) -- ALL have `verify_jwt = true` and are therefore broken on Lovable Cloud.
+### Category A: Edge Function Connectivity (client can't reach working function)
 
-### Issue 2: RevenueSummaryCards strips VAT TWICE (data displays wrong numbers)
-- **Where:** `RevenueSummaryCards.tsx` lines 22-28
-- **What happens:** The edge function `moneybird-fetch-financials` already stores NET amounts (after dividing by 1.21) in `total_revenue`. But `RevenueSummaryCards` divides by 1.21 AGAIN:
-  ```
-  const grossRevenue = metrics?.total_revenue || 0;  // This is already NET
-  const netRevenue = Math.round(grossRevenue / 1.21 * 100) / 100;  // Double-stripped
-  ```
-- **Result:** Revenue shows ~17% less than actual. For 2025 data: real net is ~243k, displayed as ~201k.
-- **Same bug for `total_paid`:** collected amount also double-stripped.
+| # | Issue | Severity |
+|---|---|---|
+| A1 | **`useSyncMoneybirdFinancials` "Failed to send" error** -- The Supabase client-side `functions.invoke()` intermittently fails with `FunctionsFetchError`. The edge function is cold-starting, processing in 30ms, and shutting down before the client request arrives. The error handler maps this to "Edge Function not available" which triggers a toast on every dashboard load via auto-sync. The function works perfectly when called directly (server-to-server). | Critical |
+| A2 | **No retry logic in `useSyncMoneybirdFinancials`** -- The mutation fires once, fails, and gives up. Cold-start failures are transient and would succeed on a second attempt. | High |
+| A3 | **`RevenueSummaryCards` never receives `onSync`/`isSyncing` props** -- `FinancialDashboard.tsx` line 169 renders `<RevenueSummaryCards metrics={metrics} isLoading={metricsLoading} />` WITHOUT passing `onSync` or `isSyncing`. The "Sync Now" button in the empty state never appears because `onSync` is undefined. | High |
 
-### Issue 3: Zero partner_invoices exist
-- **Database:** `partner_invoices` table is completely empty (0 rows).
-- **Impact:** The "Partner Invoices" tab shows nothing. `CashFlowPipeline` has no data. The `moneybird-sync-invoice-status` function has nothing to sync. The `moneybird-webhook` has nothing to match against.
+### Category B: Data Storage Failures (function returns data but doesn't store it)
 
-### Issue 4: Zero moneybird_invoice_sync records
-- **Database:** Empty table. No Moneybird drafts have ever been created through the system.
-- **Impact:** Even when `moneybird-sync-invoice-status` runs, it finds 0 records to check.
+| # | Issue | Severity |
+|---|---|---|
+| B1 | **`moneybird_sales_invoices` INSERT fails silently** -- The edge function tries to insert a column `invoice_description` that does NOT exist on the table. The insert returns an error but the function catches and logs it, then continues. Result: `stored_invoices_count: 0` in diagnostics. All 9 invoices for 2026 are lost. The `MoneybirdInvoicesTable` component shows nothing. | Critical |
+| B2 | **2025 metrics row has `total_revenue_gross: 0` and `vat_amount: 0`** -- Synced on Jan 3 before these columns were populated. The 2025 data never got re-synced because auto-sync kept failing. NET revenue (243k) is correct but gross/VAT fields are stale zeros. | Medium |
+| B3 | **Zero `partner_invoices` rows exist** -- The `create-placement-invoice` orchestrator was built but never called. All 5 placement fees have `invoice_id: null` and `status: pending`. The "Partner Invoices" tab, CashFlowPipeline, and invoice status summary all show empty. | Critical |
 
-### Issue 5: All 3 placement fees stuck at "pending" with no invoice
-- **Database:** 3 placement fees (EUR 16k, 15k, 26k = 57k total) all have `invoice_id: null` and `status: pending`.
-- **Impact:** No revenue is tracked as invoiced or collected. Cash flow pipeline shows everything in "Pending."
+### Category C: UI/UX Gaps
 
-### Issue 6: Strategists blocked by RLS on Moneybird tables
-- **Policies:** `moneybird_financial_metrics` and `moneybird_sales_invoices` only allow `admin` and `super_admin`. But `FinanceHub` is accessible to strategists via `RoleGate allowedRoles={['admin', 'strategist']}`.
-- **Impact:** Strategists see blank dashboard -- zero data, no error message.
+| # | Issue | Severity |
+|---|---|---|
+| C1 | **`FinancialDashboard` calls `usePartnerInvoices()` without year filter** -- Line 46: `usePartnerInvoices()` with no arguments. The hook supports year filtering (already implemented) but it is not used. If invoices existed, ALL years would show. | Medium |
+| C2 | **`useSyncMoneybirdFinancials` does not pass `onSync` to `RevenueSummaryCards`** -- As described in A3. Even when metrics are null, users see "No data synced" with no way to trigger a sync manually. | High |
+| C3 | **`get_multi_hire_pipeline_summary` function missing** -- Console error: `PGRST202 Could not find the function`. This RPC is called on the pipeline tab but does not exist in the database. Not finance-specific but fires on the same page. | Low |
+| C4 | **`PlacementFeesTable` column header mismatch** -- The "Fee" column header (line 116) actually shows fee amount + percentage. The "Status" column (line 117) actually shows closed-by. The "Closed By" header (line 118) shows the invoice action. Headers are shifted by one position from the actual data cells. | Medium |
 
-### Issue 7: CORS headers incomplete on ALL Moneybird edge functions
-- **Where:** All 5 Moneybird functions use minimal headers:
-  ```
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
-  ```
-- **Missing:** `x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version`
-- **Impact:** Preflight failures on Lovable Cloud's Supabase client.
+### Category D: Missing Automation
 
-### Issue 8: PlacementFeesTable "Generate Invoice" button does NOT call Moneybird
-- **Where:** `PlacementFeesTable.tsx` lines 77-94
-- **What it does:** Opens `InvoiceGenerator` which inserts `partner_invoices` rows directly via client-side Supabase insert -- completely bypassing the `create-placement-invoice` edge function and Moneybird integration.
-- **Impact:** Even if someone clicks "Generate Invoice," no Moneybird draft is created.
+| # | Issue | Severity |
+|---|---|---|
+| D1 | **No `pg_cron` schedule for `moneybird-sync-invoice-status`** -- The edge function exists but is never called automatically. Invoice payment status from Moneybird never flows back. The plan from the previous round mentioned adding this but it was not implemented. | Medium |
+| D2 | **Webhook handler references `partner_invoices.placement_fee_id` correctly now** but with 0 partner_invoices rows, it has nothing to update. | Blocked by B3 |
 
-### Issue 9: No per-fee "Generate Invoice" action
-- **Where:** `PlacementFeesTable.tsx` line 212-218
-- **What it shows:** "View Invoice" button (does nothing actionable) or a dash "-" for fees without invoices. No way to trigger invoice creation for a single fee.
+---
 
-### Issue 10: `usePartnerInvoices` has no year filter
-- **Where:** `useFinancialData.ts` line 101-119
-- **Impact:** The "Partner Invoices" tab fetches ALL invoices regardless of the selected year, unlike placement fees which respect the year selector.
+## Root Cause Analysis
 
-### Issue 11: `moneybird_financial_metrics` 2025 row has stale schema
-- **Database:** The 2025 row has `total_revenue_gross: 0`, `vat_amount: 0`, `net_revenue: 0` because it was synced on Jan 3 before these columns were properly populated. The `total_revenue` field contains 243,538.52 which is NET (excl. VAT), but `RevenueSummaryCards` treats it as GROSS.
-- **Impact:** Even after fixing the double-VAT issue, the stored gross/vat fields are wrong until a re-sync.
+The "Edge Function not available" error is a **cold-start timing issue**. The function was just redeployed after the previous round of changes. On Lovable Cloud, the first invocation after deployment or inactivity needs the runtime to boot (30ms shown in logs). When the Supabase JS client sends the request and the runtime isn't ready, it gets a network-level failure that the SDK wraps as `FunctionsFetchError`.
 
-### Issue 12: `moneybird_sales_invoices` has `net_amount` column with wrong data
-- **Database:** 49 invoices stored. The `late` category shows `net_total: 64,292` but `total: 42,742` -- meaning net is HIGHER than gross, which is impossible. The `net_amount` was calculated as `total_price_excl_tax || amount / 1.21` but for some invoices, Moneybird's `total_price_excl_tax` includes or excludes VAT inconsistently.
+The deeper issue is that even when the function DOES succeed (as confirmed by curl), the `moneybird_sales_invoices` INSERT fails because the edge function sends `invoice_description` but the table has no such column. So even successful syncs produce incomplete data.
 
 ---
 
 ## Fix Plan to 100/100
 
-### Fix 1: Unblock ALL edge functions (config.toml)
-Set `verify_jwt = false` for every function that currently has `verify_jwt = true`:
-- `moneybird-fetch-financials`
-- `sync-company-revenue`
-- `reconcile-invoices`
-- `calculate-recruiter-commissions`
-- `backfill-placement-fees`
-- `automate-placement-fee`
+### Fix 1: Add `invoice_description` column to `moneybird_sales_invoices`
 
-### Fix 2: Fix CORS headers on ALL Moneybird edge functions
-Update the `corsHeaders` constant in these 5 files:
-- `moneybird-fetch-financials/index.ts`
-- `moneybird-sync-invoice-status/index.ts`
-- `moneybird-create-invoice/index.ts`
-- `moneybird-webhook/index.ts`
-- `create-placement-invoice/index.ts`
-
-New value:
-```
-'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version'
+**Database migration:**
+```sql
+ALTER TABLE moneybird_sales_invoices 
+ADD COLUMN IF NOT EXISTS invoice_description text;
 ```
 
-### Fix 3: Fix double-VAT in RevenueSummaryCards
-The edge function already stores NET values in `total_revenue` and `total_paid`. The component must display them directly instead of dividing by 1.21 again. Also use `total_revenue_gross` and `vat_amount` fields when available for the tooltip.
+This unblocks the invoice storage. After this fix, the next successful sync will store all 9 (and growing) invoices for 2026, populating the `MoneybirdInvoicesTable`.
 
-### Fix 4: Add strategist SELECT policies on financial tables
-Database migration to add RLS policies:
-- `moneybird_financial_metrics`: SELECT for strategist role
-- `moneybird_sales_invoices`: SELECT for strategist role
+### Fix 2: Add retry logic to `useSyncMoneybirdFinancials`
 
-### Fix 5: Add per-fee "Create Invoice" button to PlacementFeesTable
-For each fee with `status: 'pending'` and no `invoice_id`:
-- Show a "Create Invoice" button that calls the `create-placement-invoice` edge function with the fee's ID.
-- On success, invalidate queries and show toast with invoice number.
-- Replace the broken bulk `InvoiceGenerator` button with this per-fee approach (or keep bulk but wire it to call the edge function for each fee).
+Update the mutation in `useMoneybirdFinancials.ts` to retry once on `FunctionsFetchError` (cold-start failures). Add a 2-second delay before retry. This handles the transient cold-start issue without any edge function changes.
 
-### Fix 6: Join partner_invoices in usePlacementFeesWithContext
-Update the query to also select `partner_invoices` via the `invoice_id` FK so the table can display the invoice number, status, and Moneybird link instead of raw UUIDs.
+```typescript
+// Pseudo: retry once on FunctionsFetchError
+let result = await supabase.functions.invoke(...);
+if (result.error?.message?.includes('Failed to send')) {
+  await new Promise(r => setTimeout(r, 2000));
+  result = await supabase.functions.invoke(...);
+}
+```
 
-### Fix 7: Add year filter to usePartnerInvoices
-Add an optional `year` parameter and filter by `invoice_date` to match the year selector behavior of other financial queries.
+### Fix 3: Wire `onSync` and `isSyncing` to `RevenueSummaryCards`
 
-### Fix 8: Add error/empty state to RevenueSummaryCards
-When `metrics` is null (not loading, just absent), show a clear "No data synced" message with a manual "Sync Now" button instead of showing four cards with zero values.
+In `FinancialDashboard.tsx`, pass the sync function and state:
+
+```tsx
+const { mutate: syncFinancials, isPending: manualSyncing } = useSyncMoneybirdFinancials();
+
+<RevenueSummaryCards 
+  metrics={metrics} 
+  isLoading={metricsLoading}
+  onSync={() => syncFinancials(selectedYear)}
+  isSyncing={isSyncing || manualSyncing}
+/>
+```
+
+This enables the "Sync Now" button in the empty/error state and while data is stale.
+
+### Fix 4: Pass `selectedYear` to `usePartnerInvoices`
+
+In `FinancialDashboard.tsx` line 46, change:
+```tsx
+const { data: invoices } = usePartnerInvoices(undefined, selectedYear);
+```
+
+### Fix 5: Fix `PlacementFeesTable` column alignment
+
+The current table headers are:
+```
+Role/Company | Hired Date | Sourced By | Salary | Fee | Status | Closed By | Invoice
+```
+
+But the data cells render: Role, Date, Sourcer, Salary, **Variance** (not Fee), Fee+%, Status badge, Closer, Invoice. The header "Fee" should be "Variance" and "Status" should be "Fee". Fix the headers to match the actual cell content.
+
+### Fix 6: Add `pg_cron` schedule for invoice status sync
+
+Database migration to schedule `moneybird-sync-invoice-status` every 6 hours:
+```sql
+SELECT cron.schedule(
+  'sync-moneybird-invoice-status',
+  '0 */6 * * *',
+  $$SELECT net.http_post(
+    url := current_setting('app.settings.supabase_url') || '/functions/v1/moneybird-sync-invoice-status',
+    headers := jsonb_build_object('Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')),
+    body := '{}'::jsonb
+  )$$
+);
+```
 
 ---
 
 ## Implementation Order
 
-1. `supabase/config.toml` -- set all `verify_jwt = false`
-2. Database migration -- strategist RLS policies on moneybird tables
-3. All 5 edge functions -- update CORS headers
-4. `RevenueSummaryCards.tsx` -- remove double-VAT, use stored net values directly, add error state
-5. `PlacementFeesTable.tsx` -- add per-fee "Create Invoice" button calling edge function
-6. `usePlacementFeesWithContext.ts` -- join partner_invoices for invoice number/status
-7. `useFinancialData.ts` -- add year filter to `usePartnerInvoices`
+1. **Database migration**: Add `invoice_description` column + cron schedule
+2. **`src/hooks/useMoneybirdFinancials.ts`**: Add retry logic for cold-start failures
+3. **`src/pages/admin/FinancialDashboard.tsx`**: Wire `onSync`/`isSyncing` to RevenueSummaryCards, pass year to usePartnerInvoices
+4. **`src/components/financial/PlacementFeesTable.tsx`**: Fix column headers
+5. **Deploy edge functions**: Re-deploy `moneybird-fetch-financials` to warm the function
 
-After deploying: the auto-sync will trigger on next dashboard load, re-sync all Moneybird data with correct gross/net/vat fields, and the dashboard will show accurate, current numbers. The 3 existing placement fees can then be individually invoiced via the new button.
+---
+
+## What This Fixes
+
+- Dashboard loads without "Edge Function not available" error (retry handles cold starts)
+- "Sync Now" button appears when data is missing or stale
+- Moneybird invoices actually get stored in `moneybird_sales_invoices` (column mismatch fixed)
+- Partner invoices tab respects year selector
+- Table headers match actual data
+- Invoice status polling runs automatically every 6 hours
+- 2025/2026 data re-syncs correctly with proper gross/VAT fields on next sync
+
+## What Requires Manual Action After Deploy
+
+- Click "Sync Now" once on the dashboard to trigger a fresh sync for 2026 (and optionally 2025)
+- Use the per-fee "Create Invoice" buttons on the 5 pending placement fees to generate partner invoices and Moneybird drafts
+
+## After These Fixes: 100/100
