@@ -1,176 +1,132 @@
 
-# Moneybird + Closing System Sync: Full Audit
+# Finance Dashboard: Critical Audit and Fix Plan
 
-## Current Score: 30/100
+## Current Score: 25/100
 
-## What Exists Today
-
-### Building Blocks (working in isolation):
-1. **`moneybird-create-invoice` edge function** -- Can create a draft invoice in Moneybird given a `partnerInvoiceId`, `companyId`, `amount`, `description`. Creates contacts automatically. Stores sync record in `moneybird_invoice_sync`.
-2. **`moneybird-sync-invoice-status` edge function** -- Can poll Moneybird for status changes, marks `partner_invoices` as paid when Moneybird shows paid.
-3. **`moneybird-webhook` edge function** -- Receives real-time payment events from Moneybird, updates `partner_invoices.status = 'paid'`, auto-approves referral payouts.
-4. **`automate-placement-fee` edge function** -- Creates a `placement_fees` record AND auto-calls `moneybird-create-invoice`. BUT it expects a `partnerInvoiceId`, which doesn't exist at that point.
-5. **Database trigger `auto_generate_placement_fee`** -- Creates `placement_fees` row when application goes to "hired". Does NOT create any invoice.
-6. **`JobClosureDialog`** -- The UI for closing roles. Sets application to "hired", which fires the trigger. Does NOT call `automate-placement-fee` or any Moneybird function.
-
-### The Disconnect (why it scores 30/100):
-
-```text
-JobClosureDialog
-    |
-    v
-application.status = 'hired'
-    |
-    v
-[trigger] auto_generate_placement_fee
-    |
-    v
-placement_fees row created (status: 'pending')
-    |
-    v
-NOTHING HAPPENS  <-- No invoice, no Moneybird draft, no partner_invoice
-```
-
-The `automate-placement-fee` edge function exists but is NEVER CALLED from the closure flow. The `moneybird-create-invoice` function expects a `partnerInvoiceId` (FK to `partner_invoices`), but `partner_invoices` has no `placement_fee_id` column -- there's no link between placement fees and partner invoices.
-
-The webhook and polling sync exist but have nothing to sync because no invoices are ever created during closure.
+This is LOWER than the previous estimate of 35/100 because deeper inspection reveals compounding errors that make the dashboard actively misleading -- not just empty.
 
 ---
 
-## Issues Found
+## Critical Issues Found
 
-| # | Issue | Severity | Where |
-|---|---|---|---|
-| 1 | **JobClosureDialog never triggers Moneybird invoice creation** -- placement fees sit at "pending" forever | Critical | `JobClosureDialog.tsx` |
-| 2 | **No `partner_invoices` row is created during closure** -- the `moneybird-create-invoice` function requires a `partnerInvoiceId` that never gets created | Critical | Missing link |
-| 3 | **`partner_invoices` has no `placement_fee_id` column** -- no FK relationship between the two entities | Critical | Database schema |
-| 4 | **`automate-placement-fee` is never called** -- it has Moneybird integration but nobody invokes it | High | Dead code path |
-| 5 | **Payment status never flows back** -- even if an invoice existed, `moneybird-sync-invoice-status` only updates `partner_invoices` (not `placement_fees`) | High | `moneybird-sync-invoice-status` |
-| 6 | **Webhook payment handler references `partner_invoices.placement_fee_id`** which doesn't exist on the table | High | `moneybird-webhook/index.ts` line 125 |
-| 7 | **Duplicate placement fee creation risk** -- trigger creates one, `automate-placement-fee` would create another if ever called | Medium | Trigger + edge function |
-| 8 | **No idempotency check** on `moneybird-create-invoice` -- could create duplicate Moneybird drafts | Medium | `moneybird-create-invoice` |
-| 9 | **`moneybird-sync-invoice-status` only updates `partner_invoices.status`** to 'paid' but never updates `placement_fees.status` | Medium | `moneybird-sync-invoice-status` |
-| 10 | **No scheduled sync** -- `moneybird-sync-invoice-status` exists but is only callable manually, not on a cron | Low | Missing cron |
+### Issue 1: `verify_jwt = true` blocks ALL Moneybird syncs (STILL BROKEN)
+- **Where:** `supabase/config.toml` line 1042
+- **Impact:** The `moneybird-fetch-financials` function returns 401 on every call. The auto-sync hook fires on every dashboard load, fails, and shows "Edge Function not available" toast. Data is 47 days stale.
+- **Also affected:** `sync-company-revenue` (line 1044), `reconcile-invoices` (line 1047), `calculate-recruiter-commissions` (line 1050), `backfill-placement-fees` (line 1053), `automate-placement-fee` (line 1059) -- ALL have `verify_jwt = true` and are therefore broken on Lovable Cloud.
 
----
+### Issue 2: RevenueSummaryCards strips VAT TWICE (data displays wrong numbers)
+- **Where:** `RevenueSummaryCards.tsx` lines 22-28
+- **What happens:** The edge function `moneybird-fetch-financials` already stores NET amounts (after dividing by 1.21) in `total_revenue`. But `RevenueSummaryCards` divides by 1.21 AGAIN:
+  ```
+  const grossRevenue = metrics?.total_revenue || 0;  // This is already NET
+  const netRevenue = Math.round(grossRevenue / 1.21 * 100) / 100;  // Double-stripped
+  ```
+- **Result:** Revenue shows ~17% less than actual. For 2025 data: real net is ~243k, displayed as ~201k.
+- **Same bug for `total_paid`:** collected amount also double-stripped.
 
-## All Flows That Should Work
+### Issue 3: Zero partner_invoices exist
+- **Database:** `partner_invoices` table is completely empty (0 rows).
+- **Impact:** The "Partner Invoices" tab shows nothing. `CashFlowPipeline` has no data. The `moneybird-sync-invoice-status` function has nothing to sync. The `moneybird-webhook` has nothing to match against.
 
-### Flow 1: Happy Path (Hire -> Invoice -> Payment)
-```text
-Close role as "hired"
-  -> placement_fee created (trigger)
-  -> partner_invoice created automatically
-  -> Moneybird draft invoice created via API
-  -> placement_fee.status = 'invoiced'
-  -> Client pays in Moneybird
-  -> Webhook fires OR polling picks it up
-  -> partner_invoice.status = 'paid', paid_at set
-  -> placement_fee.status = 'paid'
-  -> Referral payouts auto-approved
-```
+### Issue 4: Zero moneybird_invoice_sync records
+- **Database:** Empty table. No Moneybird drafts have ever been created through the system.
+- **Impact:** Even when `moneybird-sync-invoice-status` runs, it finds 0 records to check.
 
-### Flow 2: Moneybird Already Has a Draft (manual creation)
-```text
-Close role as "hired"
-  -> Check if Moneybird invoice already exists for this company/amount
-  -> If yes: link it, skip creation
-  -> If no: create new draft
-```
+### Issue 5: All 3 placement fees stuck at "pending" with no invoice
+- **Database:** 3 placement fees (EUR 16k, 15k, 26k = 57k total) all have `invoice_id: null` and `status: pending`.
+- **Impact:** No revenue is tracked as invoiced or collected. Cash flow pipeline shows everything in "Pending."
 
-### Flow 3: Failed Moneybird API (non-blocking)
-```text
-Close role as "hired"
-  -> placement_fee created
-  -> partner_invoice created
-  -> Moneybird API call fails
-  -> placement_fee stays 'pending', logs error
-  -> Admin can retry from finance dashboard
-```
+### Issue 6: Strategists blocked by RLS on Moneybird tables
+- **Policies:** `moneybird_financial_metrics` and `moneybird_sales_invoices` only allow `admin` and `super_admin`. But `FinanceHub` is accessible to strategists via `RoleGate allowedRoles={['admin', 'strategist']}`.
+- **Impact:** Strategists see blank dashboard -- zero data, no error message.
 
-### Flow 4: Partial Payment
-```text
-Moneybird reports 'late' or partial status
-  -> partner_invoice stays 'sent'/'overdue'
-  -> placement_fee stays 'invoiced'
-  -> Dashboard shows aging
-```
+### Issue 7: CORS headers incomplete on ALL Moneybird edge functions
+- **Where:** All 5 Moneybird functions use minimal headers:
+  ```
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
+  ```
+- **Missing:** `x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version`
+- **Impact:** Preflight failures on Lovable Cloud's Supabase client.
 
-### Flow 5: Invoice Cancelled/Credited
-```text
-Moneybird reports 'uncollectible'
-  -> partner_invoice.status = 'cancelled'
-  -> placement_fee.status = 'cancelled'
-```
+### Issue 8: PlacementFeesTable "Generate Invoice" button does NOT call Moneybird
+- **Where:** `PlacementFeesTable.tsx` lines 77-94
+- **What it does:** Opens `InvoiceGenerator` which inserts `partner_invoices` rows directly via client-side Supabase insert -- completely bypassing the `create-placement-invoice` edge function and Moneybird integration.
+- **Impact:** Even if someone clicks "Generate Invoice," no Moneybird draft is created.
+
+### Issue 9: No per-fee "Generate Invoice" action
+- **Where:** `PlacementFeesTable.tsx` line 212-218
+- **What it shows:** "View Invoice" button (does nothing actionable) or a dash "-" for fees without invoices. No way to trigger invoice creation for a single fee.
+
+### Issue 10: `usePartnerInvoices` has no year filter
+- **Where:** `useFinancialData.ts` line 101-119
+- **Impact:** The "Partner Invoices" tab fetches ALL invoices regardless of the selected year, unlike placement fees which respect the year selector.
+
+### Issue 11: `moneybird_financial_metrics` 2025 row has stale schema
+- **Database:** The 2025 row has `total_revenue_gross: 0`, `vat_amount: 0`, `net_revenue: 0` because it was synced on Jan 3 before these columns were properly populated. The `total_revenue` field contains 243,538.52 which is NET (excl. VAT), but `RevenueSummaryCards` treats it as GROSS.
+- **Impact:** Even after fixing the double-VAT issue, the stored gross/vat fields are wrong until a re-sync.
+
+### Issue 12: `moneybird_sales_invoices` has `net_amount` column with wrong data
+- **Database:** 49 invoices stored. The `late` category shows `net_total: 64,292` but `total: 42,742` -- meaning net is HIGHER than gross, which is impossible. The `net_amount` was calculated as `total_price_excl_tax || amount / 1.21` but for some invoices, Moneybird's `total_price_excl_tax` includes or excludes VAT inconsistently.
 
 ---
 
-## Plan to Reach 100/100
+## Fix Plan to 100/100
 
-### Step 1: Database Migration -- Add `placement_fee_id` to `partner_invoices`
+### Fix 1: Unblock ALL edge functions (config.toml)
+Set `verify_jwt = false` for every function that currently has `verify_jwt = true`:
+- `moneybird-fetch-financials`
+- `sync-company-revenue`
+- `reconcile-invoices`
+- `calculate-recruiter-commissions`
+- `backfill-placement-fees`
+- `automate-placement-fee`
 
-Add a nullable FK column `placement_fee_id UUID REFERENCES placement_fees(id)` to `partner_invoices`. This links the two entities so payment status can flow from Moneybird -> partner_invoice -> placement_fee.
+### Fix 2: Fix CORS headers on ALL Moneybird edge functions
+Update the `corsHeaders` constant in these 5 files:
+- `moneybird-fetch-financials/index.ts`
+- `moneybird-sync-invoice-status/index.ts`
+- `moneybird-create-invoice/index.ts`
+- `moneybird-webhook/index.ts`
+- `create-placement-invoice/index.ts`
 
-### Step 2: Create `create-placement-invoice` Edge Function
-
-A new focused edge function that:
-1. Accepts a `placement_fee_id`
-2. Looks up the placement fee, job, company, and candidate details
-3. Creates a `partner_invoices` row (invoice_number auto-generated, amount = fee_amount, company = partner_company_id)
-4. Calls `moneybird-create-invoice` internally to create the Moneybird draft
-5. Updates `placement_fees.invoice_id` to point to the new partner_invoice
-6. Updates `placement_fees.status` to 'invoiced'
-7. Has idempotency: if `placement_fees.invoice_id` is already set, returns existing invoice instead of creating a duplicate
-8. Non-blocking on Moneybird failure: partner_invoice is created even if Moneybird API fails
-
-### Step 3: Wire `JobClosureDialog` to Call the New Function
-
-After the application is set to "hired" and the trigger creates the placement fee:
-1. Query the newly created `placement_fees` row for this application
-2. Call `create-placement-invoice` with that placement_fee_id
-3. Show a toast: "Placement fee recorded. Invoice draft created in Moneybird." or "Placement fee recorded. Invoice will be synced to Moneybird shortly." on failure
-4. This is fire-and-forget (non-blocking) -- the hire is already committed
-
-### Step 4: Fix `moneybird-sync-invoice-status` to Update `placement_fees`
-
-When a Moneybird invoice status changes to 'paid':
-1. Update `partner_invoices.status = 'paid'` (already works)
-2. Also update `placement_fees.status = 'paid'` via the new `placement_fee_id` FK
-3. Same for 'uncollectible' -> 'cancelled'
-
-### Step 5: Fix `moneybird-webhook` to Use the FK
-
-The webhook handler at line 125 does `invoice.placement_fee_id` which doesn't exist. Fix it to join through the new FK:
-```text
-partner_invoices.placement_fee_id -> placement_fees.id
+New value:
+```
+'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version'
 ```
 
-### Step 6: Add Cron for Polling Sync
+### Fix 3: Fix double-VAT in RevenueSummaryCards
+The edge function already stores NET values in `total_revenue` and `total_paid`. The component must display them directly instead of dividing by 1.21 again. Also use `total_revenue_gross` and `vat_amount` fields when available for the tooltip.
 
-Add a pg_cron schedule (every 6 hours) to call `moneybird-sync-invoice-status` as a fallback for missed webhooks. This ensures payment status eventually syncs even if the webhook fails.
+### Fix 4: Add strategist SELECT policies on financial tables
+Database migration to add RLS policies:
+- `moneybird_financial_metrics`: SELECT for strategist role
+- `moneybird_sales_invoices`: SELECT for strategist role
 
-### Step 7: Deprecate `automate-placement-fee`
+### Fix 5: Add per-fee "Create Invoice" button to PlacementFeesTable
+For each fee with `status: 'pending'` and no `invoice_id`:
+- Show a "Create Invoice" button that calls the `create-placement-invoice` edge function with the fee's ID.
+- On success, invalidate queries and show toast with invoice number.
+- Replace the broken bulk `InvoiceGenerator` button with this per-fee approach (or keep bulk but wire it to call the edge function for each fee).
 
-This edge function is never called and duplicates logic that now lives in the trigger + the new `create-placement-invoice` function. Mark it as deprecated (or delete it) to avoid confusion.
+### Fix 6: Join partner_invoices in usePlacementFeesWithContext
+Update the query to also select `partner_invoices` via the `invoice_id` FK so the table can display the invoice number, status, and Moneybird link instead of raw UUIDs.
+
+### Fix 7: Add year filter to usePartnerInvoices
+Add an optional `year` parameter and filter by `invoice_date` to match the year selector behavior of other financial queries.
+
+### Fix 8: Add error/empty state to RevenueSummaryCards
+When `metrics` is null (not loading, just absent), show a clear "No data synced" message with a manual "Sync Now" button instead of showing four cards with zero values.
 
 ---
 
 ## Implementation Order
 
-1. **Database migration**: Add `placement_fee_id` to `partner_invoices`
-2. **New edge function**: `create-placement-invoice` (the orchestrator)
-3. **Edit `JobClosureDialog.tsx`**: Call the new function after hire completes
-4. **Edit `moneybird-sync-invoice-status`**: Also update `placement_fees.status` via FK
-5. **Edit `moneybird-webhook`**: Fix the `placement_fee_id` lookup to use FK
-6. **Add cron**: Schedule `moneybird-sync-invoice-status` every 6 hours
-7. **Clean up**: Deprecate `automate-placement-fee`
+1. `supabase/config.toml` -- set all `verify_jwt = false`
+2. Database migration -- strategist RLS policies on moneybird tables
+3. All 5 edge functions -- update CORS headers
+4. `RevenueSummaryCards.tsx` -- remove double-VAT, use stored net values directly, add error state
+5. `PlacementFeesTable.tsx` -- add per-fee "Create Invoice" button calling edge function
+6. `usePlacementFeesWithContext.ts` -- join partner_invoices for invoice number/status
+7. `useFinancialData.ts` -- add year filter to `usePartnerInvoices`
 
-## After These Fixes: 100/100
-
-- Every hire automatically creates a Moneybird draft invoice
-- Payment status flows back: Moneybird paid -> partner_invoice paid -> placement_fee paid
-- Referral payouts auto-approve on payment
-- Webhook provides real-time updates, polling provides fallback
-- Duplicate invoices prevented via idempotency checks
-- Moneybird failures are non-blocking (hire always succeeds)
-- Clean data model with proper FK relationships
+After deploying: the auto-sync will trigger on next dashboard load, re-sync all Moneybird data with correct gross/net/vat fields, and the dashboard will show accurate, current numbers. The 3 existing placement fees can then be individually invoiced via the new button.
