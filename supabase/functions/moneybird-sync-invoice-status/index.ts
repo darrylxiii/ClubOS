@@ -106,7 +106,7 @@ serve(async (req) => {
           results.updated++;
           console.log(`[Moneybird Sync Status] Updated ${sync.partner_invoice_id}: ${previousStatus} -> ${newStatus}`);
 
-          // If invoice is now paid, update TQC invoice and trigger referral processing
+          // If invoice is now paid, update TQC invoice and placement fee
           if (newStatus === 'paid' && previousStatus !== 'paid') {
             results.paid++;
 
@@ -119,6 +119,21 @@ serve(async (req) => {
               })
               .eq('id', sync.partner_invoice_id);
 
+            // Also update linked placement_fee status via FK
+            const { data: pInvoice } = await supabase
+              .from('partner_invoices')
+              .select('placement_fee_id')
+              .eq('id', sync.partner_invoice_id)
+              .single();
+
+            if (pInvoice?.placement_fee_id) {
+              await supabase
+                .from('placement_fees')
+                .update({ status: 'paid' })
+                .eq('id', pInvoice.placement_fee_id);
+              console.log(`[Moneybird Sync Status] Updated placement_fee ${pInvoice.placement_fee_id} to paid`);
+            }
+
             // Log payment received
             await supabase.from('moneybird_sync_logs').insert({
               operation_type: 'payment_received',
@@ -128,11 +143,29 @@ serve(async (req) => {
                 moneybird_invoice_id: sync.moneybird_invoice_id,
                 total_paid: moneybirdInvoice.total_paid,
                 paid_at: moneybirdInvoice.paid_at,
+                placement_fee_id: pInvoice?.placement_fee_id,
               },
               success: true,
             });
 
             console.log(`[Moneybird Sync Status] Payment received for invoice: ${sync.partner_invoice_id}`);
+          }
+
+          // If invoice is cancelled/uncollectible, update placement fee too
+          if ((newStatus === 'uncollectible' || newStatus === 'late') && newStatus !== previousStatus) {
+            const { data: pInvoice } = await supabase
+              .from('partner_invoices')
+              .select('placement_fee_id')
+              .eq('id', sync.partner_invoice_id)
+              .single();
+
+            if (pInvoice?.placement_fee_id && newStatus === 'uncollectible') {
+              await supabase
+                .from('placement_fees')
+                .update({ status: 'cancelled' })
+                .eq('id', pInvoice.placement_fee_id);
+              console.log(`[Moneybird Sync Status] Updated placement_fee ${pInvoice.placement_fee_id} to cancelled`);
+            }
           }
         }
       } catch (error) {

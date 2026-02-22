@@ -1059,6 +1059,9 @@ verify_jwt = false
 [functions.automate-placement-fee]
 verify_jwt = true
 
+[functions.create-placement-invoice]
+verify_jwt = false
+
 # seed-demo-data - REMOVED (demo artifact)
 
 # =============================================================================
