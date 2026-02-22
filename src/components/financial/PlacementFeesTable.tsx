@@ -7,13 +7,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { PlacementFee } from "@/hooks/useFinancialData";
 import { PlacementFeeWithContext } from "@/hooks/usePlacementFeesWithContext";
 import { format } from "date-fns";
-import { Search, FileText, TrendingUp, TrendingDown, Minus, User, AlertCircle, Building2 } from "lucide-react";
+import { Search, FileText, TrendingUp, TrendingDown, Minus, User, AlertCircle, Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AddPlacementFeeDialog } from "./AddPlacementFeeDialog";
-import { InvoiceGenerator } from "./InvoiceGenerator";
 import { EntityBadge } from "./EntityBadge";
 import { CURRENCY_SYMBOLS, type Currency } from "@/lib/currencyConversion";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PlacementFeesTableProps {
   fees: PlacementFee[] | PlacementFeeWithContext[];
@@ -21,7 +22,8 @@ interface PlacementFeesTableProps {
 
 export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
   const [search, setSearch] = useState("");
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [creatingInvoiceFor, setCreatingInvoiceFor] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const filteredFees = fees.filter((fee) => {
     const searchLower = search.toLowerCase();
@@ -34,6 +36,33 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
       feeWithContext.company_name?.toLowerCase().includes(searchLower)
     );
   });
+
+  const handleCreateInvoice = async (feeId: string) => {
+    setCreatingInvoiceFor(feeId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-placement-invoice', {
+        body: { placementFeeId: feeId },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to create invoice');
+
+      toast.success(
+        data.alreadyExisted
+          ? `Invoice ${data.invoiceNumber} already exists.`
+          : `Invoice ${data.invoiceNumber} created.${data.moneybirdDraft ? ' Moneybird draft synced.' : ''}`
+      );
+
+      queryClient.invalidateQueries({ queryKey: ['placement-fees'] });
+      queryClient.invalidateQueries({ queryKey: ['placement-fees-with-context'] });
+      queryClient.invalidateQueries({ queryKey: ['partner-invoices'] });
+    } catch (err) {
+      console.error('Failed to create invoice:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to create invoice');
+    } finally {
+      setCreatingInvoiceFor(null);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -74,24 +103,6 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
           />
         </div>
         <AddPlacementFeeDialog />
-        <Button
-          onClick={() => {
-            const pending = fees.filter(f => f.status === 'pending');
-            if (pending.length === 0) {
-              toast.info('No pending placement fees to invoice.');
-              return;
-            }
-            setInvoiceOpen(true);
-          }}
-        >
-          <FileText className="mr-2 h-4 w-4" />
-          Generate Invoice
-        </Button>
-        <InvoiceGenerator
-          fees={fees.filter(f => f.status === 'pending')}
-          open={invoiceOpen}
-          onOpenChange={setInvoiceOpen}
-        />
       </div>
 
       <div className="border rounded-lg overflow-x-auto">
@@ -118,6 +129,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
             ) : (
               filteredFees.map((fee) => {
                 const feeWithContext = fee as PlacementFeeWithContext;
+                const isCreating = creatingInvoiceFor === fee.id;
                 return (
                 <TableRow key={fee.id}>
                   <TableCell>
@@ -210,8 +222,27 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                   </TableCell>
                   <TableCell>
                     {fee.invoice_id ? (
-                      <Button variant="ghost" size="sm">
-                        View Invoice
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-medium">
+                          {(feeWithContext as any).invoice_number || 'Invoiced'}
+                        </span>
+                        <Badge variant="outline" className="text-[10px] w-fit">
+                          {(feeWithContext as any).invoice_status || fee.status}
+                        </Badge>
+                      </div>
+                    ) : fee.status === 'pending' ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCreateInvoice(fee.id)}
+                        disabled={isCreating}
+                      >
+                        {isCreating ? (
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        ) : (
+                          <FileText className="h-3 w-3 mr-1" />
+                        )}
+                        {isCreating ? 'Creating...' : 'Create Invoice'}
                       </Button>
                     ) : (
                       <span className="text-muted-foreground text-sm">-</span>

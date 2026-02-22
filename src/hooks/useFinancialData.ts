@@ -98,9 +98,9 @@ export const usePlacementFees = () => {
   });
 };
 
-export const usePartnerInvoices = (companyId?: string) => {
+export const usePartnerInvoices = (companyId?: string, year?: number) => {
   return useQuery({
-    queryKey: ['partner-invoices', companyId],
+    queryKey: ['partner-invoices', companyId, year],
     queryFn: async () => {
       let query = supabase
         .from('partner_invoices')
@@ -109,6 +109,12 @@ export const usePartnerInvoices = (companyId?: string) => {
       
       if (companyId) {
         query = query.eq('partner_company_id', companyId);
+      }
+
+      if (year) {
+        const startDate = `${year}-01-01`;
+        const endDate = `${year + 1}-01-01`;
+        query = query.gte('invoice_date', startDate).lt('invoice_date', endDate);
       }
       
       const { data, error } = await query;
