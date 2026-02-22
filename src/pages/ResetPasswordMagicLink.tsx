@@ -1,14 +1,29 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { XCircle } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { parseEdgeFunctionError } from "@/utils/edgeFunctionErrors";
 
+/**
+ * Extract token from URL hash fragment (#token=...) for security.
+ * Falls back to query param for backward compatibility.
+ */
+function getTokenFromUrl(): string | null {
+  // Prefer hash fragment (never sent to server)
+  const hash = window.location.hash;
+  if (hash) {
+    const match = hash.match(/token=([^&]+)/);
+    if (match) return match[1];
+  }
+  // Fallback: query param (legacy links)
+  const params = new URLSearchParams(window.location.search);
+  return params.get('token');
+}
+
 export default function ResetPasswordMagicLink() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const token = getTokenFromUrl();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 

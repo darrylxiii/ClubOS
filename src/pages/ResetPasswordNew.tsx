@@ -6,8 +6,9 @@ import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, Lock, AlertCircle } from "lucide-react";
-import { validatePasswordStrength } from "@/utils/passwordReset";
+import { validatePasswordStrength, hasCommonPattern } from "@/utils/passwordReset";
 import { parseEdgeFunctionError, getEdgeFunctionErrorMessage } from "@/utils/edgeFunctionErrors";
+import { generateSecureToken } from "@/utils/passwordReset";
 
 export default function ResetPasswordNew() {
   const [searchParams] = useSearchParams();
@@ -17,6 +18,15 @@ export default function ResetPasswordNew() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Generate CSRF nonce on mount, stored in sessionStorage
+  const [csrfNonce] = useState(() => {
+    const existing = sessionStorage.getItem('pw_reset_csrf');
+    if (existing) return existing;
+    const nonce = generateSecureToken();
+    sessionStorage.setItem('pw_reset_csrf', nonce);
+    return nonce;
+  });
 
   useEffect(() => {
     if (!token) {
@@ -38,7 +48,8 @@ export default function ResetPasswordNew() {
         body: {
           token,
           new_password: password,
-          confirm_password: confirmPassword
+          confirm_password: confirmPassword,
+          csrf_nonce: csrfNonce,
         }
       });
 
@@ -98,6 +109,7 @@ export default function ResetPasswordNew() {
     { label: "One lowercase letter", met: /[a-z]/.test(password) },
     { label: "One number", met: /[0-9]/.test(password) },
     { label: "One special character", met: /[^A-Za-z0-9]/.test(password) },
+    { label: "No common patterns", met: password.length === 0 || !hasCommonPattern(password) },
   ];
 
   return (

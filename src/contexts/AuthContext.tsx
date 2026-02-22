@@ -3,7 +3,8 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { trackLogin, trackLogout } from "@/services/sessionTracking";
-import { useSecurityTracking, generateDeviceFingerprint } from "@/hooks/useSecurityTracking";
+import { useSecurityTracking } from "@/hooks/useSecurityTracking";
+import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { identifyUser as postHogIdentify, resetUser as postHogReset } from "@/lib/posthog";
 
 interface AuthContextType {
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { recordLoginAttempt, createSession, endSession } = useSecurityTracking();
+  const { createSession, endSession } = useSecurityTracking();
   const sessionCreatedRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -106,22 +107,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (sessionCreatedRef.current !== userId) {
             sessionCreatedRef.current = userId;
             
-            setTimeout(() => {
+            setTimeout(async () => {
               // Identify user in PostHog
               postHogIdentify(userId, {
                 email: userEmail,
               });
               
-              // Record successful login attempt
-              recordLoginAttempt(userEmail, true).catch(err => {
-                console.log('[AuthContext] Login attempt tracking failed (non-critical):', err);
-              });
+              // Login attempt recording is handled by check-login-lockout edge function
+              // to avoid duplicate entries. Only session tracking here.
               
-              // Create security session
-              const fingerprint = generateDeviceFingerprint();
-              createSession(userId, sessionId, undefined, undefined, fingerprint).catch(err => {
+              // Create security session with strong SHA-256 fingerprint
+              try {
+                const fingerprint = await getDeviceFingerprint();
+                await createSession(userId, sessionId, undefined, undefined, fingerprint);
+              } catch (err) {
                 console.log('[AuthContext] Security session creation failed (non-critical):', err);
-              });
+              }
               
               // Legacy session tracking
               trackLogin(userId, 'email').catch(err => {
@@ -143,7 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       clearAuthTimeout();
       subscription.unsubscribe();
     };
-  }, [recordLoginAttempt, createSession]);
+  }, [createSession]);
 
   const signOut = async () => {
     try {

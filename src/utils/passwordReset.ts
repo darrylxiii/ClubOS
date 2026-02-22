@@ -20,6 +20,26 @@ export const generateOTP = (): string => {
 };
 
 /**
+ * Common password patterns that should be rejected even if they meet
+ * character-class requirements. Checked client-side for instant feedback
+ * and server-side for enforcement.
+ */
+const COMMON_PATTERNS = [
+  /^[A-Z][a-z]+\d{2,4}[!@#$%^&*]$/,    // "Password123!"
+  /^(password|welcome|admin|quantum|letmein|changeme|abc123|qwerty)/i,
+  /(.)\1{3,}/,                            // 4+ repeated chars
+  /^(abc|123|qwerty|asdf)/i,
+  /^[A-Z][a-z]+(19|20)\d{2}[!@#$%^&*]$/, // "Company2024!"
+];
+
+/**
+ * Check if password matches common weak patterns
+ */
+export const hasCommonPattern = (password: string): boolean => {
+  return COMMON_PATTERNS.some(p => p.test(password));
+};
+
+/**
  * Validate password strength and requirements
  */
 export const validatePasswordStrength = (password: string) => {
@@ -29,16 +49,17 @@ export const validatePasswordStrength = (password: string) => {
     lowercase: /[a-z]/.test(password),
     number: /[0-9]/.test(password),
     special: /[^A-Za-z0-9]/.test(password),
+    noCommonPattern: !hasCommonPattern(password),
   };
 
   const metCount = Object.values(requirements).filter(Boolean).length;
   
   let strength: 'weak' | 'medium' | 'strong' = 'weak';
-  if (metCount === 5) strength = 'strong';
-  else if (metCount >= 3) strength = 'medium';
+  if (metCount === 6) strength = 'strong';
+  else if (metCount >= 4) strength = 'medium';
 
   return {
-    valid: metCount === 5,
+    valid: metCount === 6,
     strength,
     requirements,
     missing: Object.keys(requirements).filter(
