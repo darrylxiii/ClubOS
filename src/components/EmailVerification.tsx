@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Mail, Shield, RefreshCw } from 'lucide-react';
+import { CheckCircle2, XCircle, Mail, Shield, RefreshCw, AlertTriangle } from 'lucide-react';
 import { InlineLoader } from '@/components/ui/unified-loader';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
@@ -125,6 +125,15 @@ export const EmailVerification = ({
             </Label>
             <p className="text-xs text-muted-foreground break-all">
               We sent a code to {email}
+            </p>
+          </div>
+
+          {/* Spam folder guidance */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+            <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Can't find the email? Check your <strong>spam or junk folder</strong>. 
+              Emails from The Quantum Club may be filtered by some providers (especially Outlook and corporate email).
             </p>
           </div>
 

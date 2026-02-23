@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Shield } from 'lucide-react';
+import { CheckCircle2, XCircle, Shield, AlertTriangle, Mail } from 'lucide-react';
 import { InlineLoader } from '@/components/ui/unified-loader';
 import PhoneInput from 'react-phone-number-input';
 import { isValidPhoneNumber } from 'react-phone-number-input';
@@ -19,6 +19,7 @@ export const PhoneVerification = ({
   onVerificationComplete,
 }: PhoneVerificationProps) => {
   const [otpCode, setOtpCode] = useState('');
+  const [smsError, setSmsError] = useState<{ message: string; suggestion?: string } | null>(null);
   const {
     otpSent,
     isVerifying,
@@ -34,10 +35,16 @@ export const PhoneVerification = ({
   const isPhoneValid = phoneNumber && isValidPhoneNumber(phoneNumber);
 
   const handleSendOTP = async () => {
-    if (!isPhoneValid) {
-      return;
+    if (!isPhoneValid) return;
+    setSmsError(null);
+    const success = await sendOTP(phoneNumber);
+    if (!success) {
+      // The hook's toast will show, but we also check for specific SMS errors
+      setSmsError({
+        message: 'SMS could not be delivered.',
+        suggestion: 'Try using email verification instead, or check your number is a mobile (not landline).',
+      });
     }
-    await sendOTP(phoneNumber);
   };
 
   const handleVerifyOTP = async () => {
@@ -47,7 +54,6 @@ export const PhoneVerification = ({
     });
 
     if (success) {
-      // Trigger parent save by updating phone as verified
       onPhoneChange(phoneNumber);
     }
   };
@@ -55,6 +61,7 @@ export const PhoneVerification = ({
   const handleResendOTP = async () => {
     if (resendCooldown > 0) return;
     setOtpCode('');
+    setSmsError(null);
     await sendOTP(phoneNumber);
   };
 
@@ -70,6 +77,7 @@ export const PhoneVerification = ({
     if (otpSent) {
       resetVerification();
       setOtpCode('');
+      setSmsError(null);
     }
   }, [phoneNumber]);
 
@@ -129,6 +137,27 @@ export const PhoneVerification = ({
               We sent a code to {phoneNumber}
             </p>
           </div>
+
+          {/* Delivery guidance */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+            <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Didn't receive the SMS? Delivery can take up to 2 minutes. 
+              Some carriers may block verification messages — if it doesn't arrive, try <strong>email verification</strong> instead.
+            </p>
+          </div>
+
+          {smsError && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <XCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="text-xs">
+                <p className="text-destructive font-medium">{smsError.message}</p>
+                {smsError.suggestion && (
+                  <p className="text-muted-foreground mt-1">{smsError.suggestion}</p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-center">
             <InputOTP

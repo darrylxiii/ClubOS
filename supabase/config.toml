@@ -1258,3 +1258,9 @@ verify_jwt = false
 
 [functions.detect-org-changes]
 verify_jwt = false
+
+# =============================================================================
+# Twilio Status Callback (Public - Twilio webhook)
+# =============================================================================
+[functions.twilio-status-callback]
+verify_jwt = false

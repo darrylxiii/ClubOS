@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: EMAIL_SENDERS.verification,
         to: [email],
-        subject: "🔐 Your Verification Code - The Quantum Club",
+        subject: "Your Verification Code - The Quantum Club",
         html,
       }),
     });
