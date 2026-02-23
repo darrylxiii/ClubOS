@@ -1,117 +1,168 @@
 
-# Email and SMS Verification System Audit
 
-## Current State Summary
+# Email/SMS Verification System Audit - Current Score and Path to 100/100
 
-The system uses four backend functions:
-- `send-email-verification` -- sends OTP via Resend API from `verify@thequantumclub.nl`
-- `verify-email-code` -- validates the 6-digit code
-- `send-sms-verification` -- sends OTP via Twilio SMS
-- `verify-sms-code` -- validates the 6-digit code
+## Current Score: 62/100
 
-## Key Findings
+Here is the breakdown of every dimension, what is working, what is broken, and what needs to happen to reach 100.
 
-### 1. SMS Delivery Failures (Critical -- 42% never verified)
+---
 
-**Data from the last 2 months:**
-- 50 SMS codes sent, only 29 verified (58% success)
-- UK numbers (+44): 6 attempts, 0 verified -- users retried 3x each, never received
-- Iran (+98): 2 attempts, 0 verified
-- UAE (+971): 1 attempt, 0 verified
-- India (+91): 1 attempt, 0 verified
-- Brazil (+55): 2 attempts, 1 verified after 20+ minutes delay
+## Scorecard
 
-**Root causes:**
-- The Twilio phone number (stored as `TWILIO_PHONE_NUMBER`) is likely a Dutch (+31) number. Twilio requires either an Alphanumeric Sender ID or a local/toll-free number to reliably deliver to UK, Middle East, and Asian countries. A Dutch number sending SMS to UK carriers often gets silently dropped.
-- No delivery status tracking -- the function fires and forgets. Twilio returns an SID and status but the code never stores it or checks delivery callbacks.
-- No fallback mechanism when SMS fails silently.
+| Category | Weight | Current | Target | Status |
+|---|---|---|---|---|
+| SMS Delivery Rate | 15 | 4/15 | 15/15 | Critical |
+| Email Delivery Rate | 10 | 7/10 | 10/10 | Moderate |
+| OTP Hashing (Security) | 15 | 3/15 | 15/15 | Broken |
+| Rate Limiting (IP) | 10 | 6/10 | 10/10 | Partial |
+| Delivery Tracking | 10 | 0/10 | 10/10 | Not Working |
+| Error Feedback to User | 10 | 5/10 | 10/10 | Partial |
+| Expired Code Cleanup | 5 | 0/5 | 5/5 | Missing |
+| Plaintext Code Removal | 10 | 0/10 | 10/10 | Dangerous |
+| Resend Bounce Tracking | 5 | 0/5 | 5/5 | Missing |
+| Edge Function Deployment | 5 | 3/5 | 5/5 | Partially Deployed |
+| Legacy Function Cleanup | 5 | 2/5 | 5/5 | Orphaned Code |
 
-**Fixes:**
-- Add Twilio delivery status logging (store `twilioData.sid` and `twilioData.status` in `phone_verifications`)
-- Register an Alphanumeric Sender ID ("TheQuantumClub" or "TQC") in Twilio for supported countries
-- Add a Twilio status callback webhook to track `delivered` vs `undelivered` vs `failed`
-- Consider adding WhatsApp OTP as a fallback channel (you already have WhatsApp Business integrated)
-- Show users a "Didn't receive the code?" option with email fallback
+---
 
-### 2. Email Deliverability Issues (Moderate -- 30% never verified)
+## Critical Findings
 
-**Data:**
-- 73 email codes sent, 51 verified (70% success)
-- `jurre@closedin.io` -- 4 attempts, 0 verified (likely spam-filtered)
-- `psk@binnenbouwers.nl` -- 4 attempts, 3 unverified (intermittent delivery)
-- `joep.mook@outlook.com` -- 1 attempt, 0 verified (Microsoft filtering)
-- `nino.silic@outlook.com` -- 1 attempt, 0 verified (Microsoft filtering)
+### 1. OTP Hashing is NOT Working in Production (0/15 SMS, 1/15 Email)
 
-**Root causes:**
-- Sender domain `thequantumclub.nl` must have SPF, DKIM, and DMARC records correctly configured in Resend. Microsoft (Outlook/Hotmail) and corporate mail servers aggressively filter emails without proper authentication.
-- The email subject uses an emoji ("Verify Your Email - The Quantum Club") which can trigger spam filters on some corporate mail servers.
-- No bounce/complaint tracking from Resend -- failed deliveries are invisible.
+The code was written to hash OTPs, but the data proves the deployed SMS function is still running old code:
+- **Phone verifications**: 0 out of 14 recent records have `code_hash` populated
+- **Email verifications**: Only 1 out of 15 has `code_hash` (the very latest deploy)
+- **All 49 records still have plaintext `code` column populated**
 
-**Fixes:**
-- Verify Resend domain configuration (SPF, DKIM, DMARC) for `thequantumclub.nl` -- check Resend dashboard
-- Remove emoji from subject line, use plain text: "Verify Your Email - The Quantum Club"
-- Add Resend webhook for bounce/complaint tracking
-- Add "Check your spam folder" guidance in the UI after sending
+The `code` column is still `NOT NULL` in both tables, meaning even after the hash code runs, the plaintext is always stored alongside the hash. This completely defeats the purpose of hashing.
 
-### 3. OTP Codes Stored in Plaintext (Security Issue)
+**Fix**: 
+- Redeploy all four edge functions to ensure the latest code is running
+- Stop writing plaintext to the `code` column -- write a dummy value or null
+- Make `code` column nullable via migration
+- Schedule a cleanup to null-out all existing plaintext codes after confirming hash-based verification works
 
-Both `email_verifications` and `phone_verifications` tables store the 6-digit OTP code in plaintext. Anyone with database read access can see all active codes.
+### 2. SMS Delivery: 28.6% Success Rate (Last 7 Days) -- Getting Worse
 
-**Fix:**
-- Hash OTP codes before storage (using SHA-256, same pattern as `generate-recovery-codes`)
-- Compare hashed input against stored hash during verification
-- This is a known security best practice per the project's own memory docs
+Country-level data (30 days):
+- NL: 69% success (22/32) -- acceptable
+- UK: 0% success (0/6) -- completely broken
+- Iran: 0% (0/2)
+- UAE: 0% (0/1)
+- Brazil: 50% (1/2) -- slow delivery
 
-### 4. No Rate Limiting for Unauthenticated Users (Security Issue)
+No `twilio_sid` or `twilio_status` is being recorded on ANY recent record, confirming the new tracking code has not deployed.
 
-Rate limiting (`check_verification_rate_limit`) only runs for authenticated users (`if (user)`). During onboarding, users are typically unauthenticated, meaning:
-- Anyone can spam the SMS endpoint with unlimited requests (expensive Twilio charges)
-- Anyone can spam the email endpoint (Resend rate limits / reputation damage)
+**Fix**:
+- Redeploy `send-sms-verification` so Twilio SID/status tracking actually works
+- Add Twilio Verify API as an alternative to raw SMS (better deliverability internationally)
+- Add a "Switch to email verification" button directly in the SMS flow when delivery is likely to fail (detect by country prefix)
+- Register a Twilio Alphanumeric Sender ID for supported countries
 
-**Fix:**
-- Add IP-based rate limiting for unauthenticated requests
-- Track attempts by IP + phone/email combination in the database
-- Limit to 3 send attempts per phone/email per 30-minute window regardless of auth status
+### 3. Twilio Status Callback Not Receiving Data
 
-### 5. Silent Error Handling
+The `twilio-status-callback` function exists and is configured with `verify_jwt = false`, but since the SMS function never stores the SID, the callback has nothing to match against. Additionally, the callback URL may need to be whitelisted in the Twilio console.
 
-The SMS function returns a generic error to users ("SMS service temporarily unavailable") but does not surface Twilio-specific errors like "unreachable number" or "invalid number format." Users have no idea why their code did not arrive.
+**Fix**: Covered by redeployment of `send-sms-verification`. After that, verify the callback URL is accessible from Twilio.
 
-**Fix:**
-- Map common Twilio error codes to user-friendly messages (e.g., 21614 = "This number cannot receive SMS", 21211 = "Invalid phone number")
-- Log the Twilio error code alongside the SID in the database for diagnostics
-- Show actionable guidance in the UI ("Try a different number" or "Use email verification instead")
+### 4. Legacy `send-verification-code` Function Still Exists
 
-### 6. Missing Supabase Auth Confirmation Email Config
+There is a separate `send-verification-code/index.ts` that:
+- Receives the plaintext code from the client and sends it via email
+- Has no rate limiting, no IP tracking, no hashing
+- Uses different subject line and template
+- It is unclear if anything still calls this function
 
-The project sends custom verification codes via edge functions, but Supabase Auth itself may also be configured to send confirmation emails on signup. This could cause confusion (two emails) or conflict.
+**Fix**: Audit all callsites. If nothing uses it, remove it. If something does, redirect to `send-email-verification`.
 
-**Fix:**
-- Verify that Supabase Auth's built-in email confirmation is disabled since you use custom verification
-- Or align the two systems so they don't conflict
+### 5. Email Failures by Domain
+
+- `closedin.io`: 0/4 verified -- likely SPF/DKIM rejection
+- `binnenbouwers.nl`: 1/4 verified -- corporate server filtering
+- `thequantumclub.nl` (own domain): 5/10 -- 50% failure on your own domain is a red flag for DNS config
+- `example.com`: 4/5 unverified -- test data, ignore
+
+**Fix**: The own-domain 50% failure rate strongly suggests a Resend DNS verification issue. Check SPF/DKIM/DMARC records.
+
+### 6. No Resend Delivery Tracking
+
+The email function sends via Resend and gets a response, but never stores the Resend message ID. There is no webhook to track bounces, complaints, or delivery failures. Emails that silently fail are invisible.
+
+**Fix**: Store Resend message ID in `email_verifications` table. Add a Resend webhook endpoint for bounce/complaint tracking.
+
+### 7. No Automatic Cleanup of Expired Codes
+
+Expired verification records (both email and phone) accumulate indefinitely. The plaintext codes sit in the database forever.
+
+**Fix**: Add a scheduled database function (pg_cron or a periodic edge function) to:
+- Null-out plaintext `code` column on all records older than 1 hour
+- Delete records older than 30 days
+
+### 8. Rate Limiter Table Has No Auto-Cleanup
+
+The `verification_ip_rate_limits` table will grow indefinitely. Old window records are never pruned.
+
+**Fix**: Add a periodic cleanup to delete records where `window_start` is older than 24 hours.
 
 ---
 
 ## Implementation Plan (Priority Order)
 
-1. **IP-based rate limiting** for unauthenticated verification requests (security-critical)
-2. **Hash OTP codes** before database storage (security)
-3. **Add Twilio delivery status tracking** -- store SID/status, add status callback webhook
-4. **Improve UI feedback** -- "Check spam folder" for email, "Didn't receive?" fallback, Twilio error mapping
-5. **Email subject cleanup** -- remove emoji from verification email subject
-6. **Resend domain health check** -- verify SPF/DKIM/DMARC (manual check needed in Resend dashboard)
-7. **WhatsApp OTP fallback** -- leverage existing WhatsApp Business integration as SMS fallback
+### Phase 1: Deploy and Fix What Exists (Critical)
+
+1. **Redeploy all verification edge functions** so the hashing, Twilio SID tracking, and IP rate limiting code actually runs in production
+2. **Make `code` column nullable** on both `email_verifications` and `phone_verifications` via migration
+3. **Stop storing plaintext codes** -- write `'REDACTED'` instead of the actual code after hashing
+4. **Null-out all existing plaintext codes** in a one-time migration for records that already have `code_hash`
+
+### Phase 2: Improve SMS Deliverability
+
+5. **Add country-prefix detection in the UI** -- for +44, +98, +971, +91 prefixes, show a warning: "SMS delivery to your region may be delayed. We recommend using email verification." with a one-tap switch
+6. **Surface Twilio error details in the UI** -- the backend returns `error_code: 'SMS_DELIVERY_FAILED'` with `suggestion`, but the frontend hook does not parse or display these fields. Update `usePhoneVerification` to extract and show `suggestion` from the response
+
+### Phase 3: Email Deliverability
+
+7. **Store Resend message ID** in `email_verifications` for tracking
+8. **Add `resend_id` column** to `email_verifications`
+9. **Create a `resend-webhook` edge function** to receive bounce/complaint notifications and update the verification record
+
+### Phase 4: Cleanup and Hygiene
+
+10. **Create a scheduled cleanup function** (or pg_cron job) to:
+    - Null-out `code` on records older than 1 hour
+    - Delete `verification_ip_rate_limits` records older than 24 hours
+    - Delete verification records older than 90 days
+11. **Remove or redirect `send-verification-code`** if unused
+12. **Add monitoring query** -- a simple daily log of success rates by channel and country
+
+---
 
 ## Technical Details
 
 ### Files to modify:
-- `supabase/functions/send-sms-verification/index.ts` -- add IP rate limiting, store Twilio SID, improve error mapping
-- `supabase/functions/send-email-verification/index.ts` -- add IP rate limiting, fix subject line
-- `supabase/functions/verify-email-code/index.ts` -- hash comparison instead of plaintext
-- `supabase/functions/verify-sms-code/index.ts` -- hash comparison instead of plaintext
-- `src/components/EmailVerification.tsx` -- add "check spam" guidance
-- `src/components/PhoneVerification.tsx` -- add "didn't receive" fallback UI
-- New DB migration: add `twilio_sid`, `twilio_status` columns to `phone_verifications`; create IP rate limit tracking table
+- `supabase/functions/send-sms-verification/index.ts` -- replace `code` with `'REDACTED'` in DB insert
+- `supabase/functions/send-email-verification/index.ts` -- replace `code` with `'REDACTED'` in DB insert, store Resend message ID
+- `supabase/functions/verify-email-code/index.ts` -- remove plaintext fallback after migration period
+- `supabase/functions/verify-sms-code/index.ts` -- remove plaintext fallback after migration period
+- `src/hooks/usePhoneVerification.ts` -- parse `suggestion` field from error response, add country-prefix warning logic
+- `src/components/PhoneVerification.tsx` -- add country-based warning banner, "Switch to email" button
+- `src/components/EmailVerification.tsx` -- minor: parse Resend bounce status if available
 
-### New edge function:
-- `twilio-status-callback` -- webhook endpoint for Twilio delivery receipts
+### New files:
+- `supabase/functions/resend-webhook/index.ts` -- Resend bounce/complaint webhook handler
+
+### Database migration:
+- ALTER `code` column to nullable on both tables
+- UPDATE existing records: SET `code = 'REDACTED'` WHERE `code_hash IS NOT NULL`
+- ADD `resend_id` column to `email_verifications`
+- CREATE scheduled cleanup function for expired records and rate limit entries
+
+### Edge function deployments needed:
+- `send-sms-verification`
+- `send-email-verification`
+- `verify-email-code`
+- `verify-sms-code`
+- `twilio-status-callback`
+- `resend-webhook` (new)
+
