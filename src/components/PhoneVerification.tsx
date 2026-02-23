@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { CheckCircle2, XCircle, Shield, AlertTriangle, Mail } from 'lucide-react';
@@ -12,6 +12,9 @@ import { usePhoneVerification } from '@/hooks/usePhoneVerification';
 import { useCountryDetection } from '@/hooks/useCountryDetection';
 import type { PhoneVerificationProps } from '@/types/verification';
 
+// Country prefixes with known SMS delivery issues
+const LOW_DELIVERY_PREFIXES = ['+44', '+98', '+971', '+91', '+92', '+234', '+966'];
+
 export const PhoneVerification = ({
   phoneNumber,
   phoneVerified,
@@ -20,6 +23,12 @@ export const PhoneVerification = ({
 }: PhoneVerificationProps) => {
   const [otpCode, setOtpCode] = useState('');
   const [smsError, setSmsError] = useState<{ message: string; suggestion?: string } | null>(null);
+
+  // Detect if phone prefix has known delivery issues
+  const hasDeliveryRisk = useMemo(() => {
+    if (!phoneNumber) return false;
+    return LOW_DELIVERY_PREFIXES.some(prefix => phoneNumber.startsWith(prefix));
+  }, [phoneNumber]);
   const {
     otpSent,
     isVerifying,
@@ -123,6 +132,16 @@ export const PhoneVerification = ({
           <div className="flex items-center gap-2 text-xs text-destructive mt-2">
             <XCircle className="w-4 h-4" />
             <span>Invalid phone number</span>
+          </div>
+        )}
+        {/* Country-prefix delivery warning */}
+        {hasDeliveryRisk && !phoneVerified && !otpSent && isPhoneValid && (
+          <div className="flex items-start gap-2 p-3 mt-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+            <div className="text-xs">
+              <p className="text-amber-600 dark:text-amber-400 font-medium">SMS delivery to your region may be delayed or blocked.</p>
+              <p className="text-muted-foreground mt-1">We recommend using <strong>email verification</strong> for faster, more reliable delivery.</p>
+            </div>
           </div>
         )}
       </div>

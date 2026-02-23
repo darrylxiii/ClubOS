@@ -18331,37 +18331,40 @@ export type Database = {
       }
       email_verifications: {
         Row: {
-          code: string
+          code: string | null
           code_hash: string | null
           created_at: string | null
           email: string
           expires_at: string
           id: string
           ip_address: unknown
+          resend_id: string | null
           user_agent: string | null
           user_id: string | null
           verified_at: string | null
         }
         Insert: {
-          code: string
+          code?: string | null
           code_hash?: string | null
           created_at?: string | null
           email: string
           expires_at?: string
           id?: string
           ip_address?: unknown
+          resend_id?: string | null
           user_agent?: string | null
           user_id?: string | null
           verified_at?: string | null
         }
         Update: {
-          code?: string
+          code?: string | null
           code_hash?: string | null
           created_at?: string | null
           email?: string
           expires_at?: string
           id?: string
           ip_address?: unknown
+          resend_id?: string | null
           user_agent?: string | null
           user_id?: string | null
           verified_at?: string | null
@@ -35733,7 +35736,7 @@ export type Database = {
       }
       phone_verifications: {
         Row: {
-          code: string
+          code: string | null
           code_hash: string | null
           created_at: string | null
           expires_at: string
@@ -35748,7 +35751,7 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
-          code: string
+          code?: string | null
           code_hash?: string | null
           created_at?: string | null
           expires_at?: string
@@ -35763,7 +35766,7 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
-          code?: string
+          code?: string | null
           code_hash?: string | null
           created_at?: string | null
           expires_at?: string
