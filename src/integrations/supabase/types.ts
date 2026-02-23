@@ -18332,6 +18332,7 @@ export type Database = {
       email_verifications: {
         Row: {
           code: string
+          code_hash: string | null
           created_at: string | null
           email: string
           expires_at: string
@@ -18343,6 +18344,7 @@ export type Database = {
         }
         Insert: {
           code: string
+          code_hash?: string | null
           created_at?: string | null
           email: string
           expires_at?: string
@@ -18354,6 +18356,7 @@ export type Database = {
         }
         Update: {
           code?: string
+          code_hash?: string | null
           created_at?: string | null
           email?: string
           expires_at?: string
@@ -35731,33 +35734,45 @@ export type Database = {
       phone_verifications: {
         Row: {
           code: string
+          code_hash: string | null
           created_at: string | null
           expires_at: string
           id: string
           ip_address: unknown
           phone: string
+          twilio_error_code: string | null
+          twilio_sid: string | null
+          twilio_status: string | null
           user_agent: string | null
           user_id: string | null
           verified_at: string | null
         }
         Insert: {
           code: string
+          code_hash?: string | null
           created_at?: string | null
           expires_at?: string
           id?: string
           ip_address?: unknown
           phone: string
+          twilio_error_code?: string | null
+          twilio_sid?: string | null
+          twilio_status?: string | null
           user_agent?: string | null
           user_id?: string | null
           verified_at?: string | null
         }
         Update: {
           code?: string
+          code_hash?: string | null
           created_at?: string | null
           expires_at?: string
           id?: string
           ip_address?: unknown
           phone?: string
+          twilio_error_code?: string | null
+          twilio_sid?: string | null
+          twilio_status?: string | null
           user_agent?: string | null
           user_id?: string | null
           verified_at?: string | null
@@ -52059,6 +52074,39 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
           verification_type?: string
+        }
+        Relationships: []
+      }
+      verification_ip_rate_limits: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          id: string
+          identifier: string
+          ip_address: string
+          updated_at: string
+          verification_type: string
+          window_start: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          identifier: string
+          ip_address: string
+          updated_at?: string
+          verification_type: string
+          window_start?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          identifier?: string
+          ip_address?: string
+          updated_at?: string
+          verification_type?: string
+          window_start?: string
         }
         Relationships: []
       }

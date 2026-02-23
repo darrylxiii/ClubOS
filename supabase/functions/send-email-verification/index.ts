@@ -6,6 +6,8 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { CodeBox, Heading, Paragraph, Spacer, Card } from "../_shared/email-templates/components.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
 import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { hashOTP } from "../_shared/otp-hash.ts";
+import { checkIPRateLimit } from "../_shared/ip-rate-limiter.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -52,12 +54,32 @@ const handler = async (req: Request): Promise<Response> => {
     // Validate input
     const body = await req.json();
     const { email } = requestSchema.parse(body);
-    // Extract first IP from x-forwarded-for header (may contain multiple IPs)
     const forwardedFor = req.headers.get('x-forwarded-for') || 'unknown';
     const ipAddress = forwardedFor.split(',')[0].trim();
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    // Check rate limiting only for authenticated users
+    // IP-based rate limiting for ALL requests (authenticated or not)
+    const ipRateLimit = await checkIPRateLimit(ipAddress, email, 'email', 5, 30 * 60 * 1000);
+    if (!ipRateLimit.allowed) {
+      console.log(`[Email Verification] IP rate limit exceeded: ${ipAddress} / ${email}`);
+      return new Response(
+        JSON.stringify({
+          error: 'Too many verification attempts. Please try again later.',
+          error_code: 'RATE_LIMITED',
+          retry_after_seconds: ipRateLimit.retryAfterSeconds,
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            'Retry-After': String(ipRateLimit.retryAfterSeconds || 1800),
+          },
+        }
+      );
+    }
+
+    // Check rate limiting for authenticated users (existing RPC-based)
     if (user) {
       const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
         _user_id: user.id,
@@ -66,11 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (rateLimitCheck && !rateLimitCheck.allowed) {
-        console.log(`[Email Verification] Rate limit exceeded for user ${user.id}:`, {
-          attempts: rateLimitCheck.attempts,
-          max_attempts: rateLimitCheck.max_attempts,
-          retry_after_minutes: rateLimitCheck.retry_after_minutes
-        });
+        console.log(`[Email Verification] Rate limit exceeded for user ${user.id}`);
 
         await supabase.from('verification_attempts').insert({
           user_id: user.id,
@@ -89,7 +107,6 @@ const handler = async (req: Request): Promise<Response> => {
           }
         });
 
-        // Return detailed error with retry information
         return new Response(
           JSON.stringify({
             error: rateLimitCheck.message || 'Too many attempts. Please try again later.',
@@ -109,23 +126,20 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // IDEMPOTENCY CHECK: Check if a code was sent to this email recently (within 60 seconds)
-    // Return success without generating a new code to prevent duplicate emails
+    // IDEMPOTENCY CHECK: Check if a code was sent recently (within 60 seconds)
     const { data: recentCode } = await supabase
       .from('email_verifications')
-      .select('id, code, created_at')
+      .select('id, created_at')
       .eq('email', email)
       .is('verified_at', null)
       .gt('expires_at', new Date().toISOString())
-      .gt('created_at', new Date(Date.now() - 60000).toISOString()) // Within last 60 seconds
+      .gt('created_at', new Date(Date.now() - 60000).toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
 
     if (recentCode) {
-      console.log(`[Email Verification] Idempotency: Recent code exists for ${email}, returning success without new email`);
-      
-      // Return success without sending a new email - this handles rapid clicks
+      console.log(`[Email Verification] Idempotency: Recent code exists for ${email}`);
       return new Response(
         JSON.stringify({
           success: true,
@@ -139,17 +153,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Generate new code
+    // Generate new code and hash it
     const code = generateCode();
+    const codeHash = await hashOTP(code);
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
-    // Store verification in database
+    // Store hashed code in database (plaintext code field kept for backward compatibility during migration)
     const { error: dbError } = await supabase
       .from('email_verifications')
       .insert({
         user_id: user?.id || null,
         email,
         code,
+        code_hash: codeHash,
         expires_at: expiresAt.toISOString(),
         ip_address: ipAddress,
         user_agent: userAgent
@@ -157,7 +173,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (dbError) throw dbError;
 
-    // Send email with new template
+    // Send email - clean subject line (no emojis for deliverability)
     const emailContent = `
       ${Heading({ text: 'Verify Your Email Address', level: 1 })}
       ${Spacer(24)}
@@ -168,7 +184,7 @@ const handler = async (req: Request): Promise<Response> => {
       ${Card({
         variant: 'default',
         content: `
-          ${Paragraph('<strong>⏱️ Security Notice:</strong>', 'secondary')}
+          ${Paragraph('<strong>Security Notice:</strong>', 'secondary')}
           ${Paragraph('This code expires in 30 minutes', 'muted')}
           ${Spacer(16)}
           ${Paragraph('Never share this code with anyone. Our team will never ask for it.', 'muted')}
@@ -204,7 +220,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Resend API error: ${errorText}`);
     }
 
-    // Log successful attempt (only for authenticated users)
+    // Log successful attempt
     if (user) {
       await supabase.from('verification_attempts').insert({
         user_id: user.id,
@@ -217,7 +233,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Security logging
     await logSecurityEvent({
       eventType: 'email_verification_sent',
       details: { email, authenticated: !!user },

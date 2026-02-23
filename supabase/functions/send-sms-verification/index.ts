@@ -3,6 +3,8 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
+import { hashOTP } from "../_shared/otp-hash.ts";
+import { checkIPRateLimit } from "../_shared/ip-rate-limiter.ts";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -10,9 +12,8 @@ const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Development mode - ONLY for local testing, NEVER in production
 const IS_DEVELOPMENT = Deno.env.get("DENO_ENV") === "development";
-const DEV_FIXED_CODE = "123456"; // Fixed code for development testing only
+const DEV_FIXED_CODE = "123456";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,7 +22,6 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400",
 };
 
-// Cryptographically secure OTP generation
 const generateCode = () => {
   const array = new Uint32Array(1);
   crypto.getRandomValues(array);
@@ -29,10 +29,26 @@ const generateCode = () => {
   return randomNum.toString();
 };
 
-// Input validation schema
 const requestSchema = z.object({
   phone: z.string().min(10, 'Phone number too short').max(20, 'Phone number too long'),
 });
+
+// Map Twilio error codes to user-friendly messages
+const TWILIO_ERROR_MAP: Record<number, { message: string; suggestion: string }> = {
+  21211: { message: 'Invalid phone number format.', suggestion: 'Please check the number and try again.' },
+  21214: { message: 'This phone number is not valid.', suggestion: 'Please use a different number.' },
+  21217: { message: 'This phone number is not verified.', suggestion: 'Please use a verified phone number.' },
+  21408: { message: 'Permission denied for this region.', suggestion: 'SMS cannot be sent to this country. Please use email verification instead.' },
+  21610: { message: 'This number has opted out of SMS.', suggestion: 'Please use email verification instead.' },
+  21612: { message: 'Unable to send to this carrier.', suggestion: 'Your carrier may be blocking messages. Try email verification instead.' },
+  21614: { message: 'This number cannot receive SMS.', suggestion: 'This may be a landline. Please use a mobile number or email verification.' },
+  21618: { message: 'Message body required.', suggestion: 'Please try again.' },
+  30003: { message: 'Carrier unreachable.', suggestion: 'The carrier network is unavailable. Please try again later or use email verification.' },
+  30004: { message: 'Message blocked by carrier.', suggestion: 'Your carrier is blocking verification SMS. Please use email verification instead.' },
+  30005: { message: 'Unknown destination number.', suggestion: 'This number does not exist. Please check and try again.' },
+  30006: { message: 'Landline or unreachable number.', suggestion: 'Please use a mobile number or try email verification.' },
+  30007: { message: 'Carrier violation.', suggestion: 'SMS blocked by carrier filters. Please use email verification.' },
+};
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -40,24 +56,16 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Security Check: In production, Twilio credentials are REQUIRED
     const hasTwilioCredentials = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_PHONE_NUMBER;
 
     if (!hasTwilioCredentials && !IS_DEVELOPMENT) {
-      // Production MUST have Twilio configured - no bypass allowed
       console.error('[SECURITY] Twilio credentials missing in production environment');
       throw new Error('SMS service not configured');
-    }
-
-    if (!hasTwilioCredentials && IS_DEVELOPMENT) {
-      console.warn('[DEV MODE] ⚠️  Using development bypass - Twilio credentials not configured');
-      console.warn('[DEV MODE] This mode is ONLY for local testing and will NOT work in production');
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const authHeader = req.headers.get('Authorization');
 
-    // Support both authenticated and unauthenticated (public) requests
     let user = null;
     if (authHeader) {
       const { data: { user: authUser } } = await supabase.auth.getUser(
@@ -66,15 +74,47 @@ const handler = async (req: Request): Promise<Response> => {
       user = authUser;
     }
 
-    // Validate input
     const body = await req.json();
     const { phone } = requestSchema.parse(body);
-    // Extract first IP from x-forwarded-for header (may contain multiple IPs)
     const forwardedFor = req.headers.get('x-forwarded-for');
     const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    // Check rate limiting only for authenticated users
+    // IP-based rate limiting for ALL requests (authenticated or not)
+    const ipRateLimit = await checkIPRateLimit(ipAddress, phone, 'phone', 3, 30 * 60 * 1000);
+    if (!ipRateLimit.allowed) {
+      console.log(`[SMS Verification] IP rate limit exceeded: ${ipAddress} / ${phone.substring(0, 8)}****`);
+
+      await logSecurityEvent({
+        eventType: 'verification_rate_limit_hit',
+        userId: user?.id,
+        ipAddress,
+        userAgent,
+        details: {
+          verification_type: 'phone',
+          phone_number: phone.substring(0, 8) + '****',
+          source: 'ip_rate_limit',
+        }
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: 'Too many verification attempts. Please try again later.',
+          error_code: 'RATE_LIMITED',
+          retry_after_seconds: ipRateLimit.retryAfterSeconds,
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': String(ipRateLimit.retryAfterSeconds || 1800),
+          },
+        }
+      );
+    }
+
+    // Authenticated user rate limiting (existing RPC-based)
     if (user) {
       const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
         _user_id: user.id,
@@ -83,13 +123,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (rateLimitCheck && !rateLimitCheck.allowed) {
-        console.log(`[SMS Verification] Rate limit exceeded for user ${user.id}:`, {
-          attempts: rateLimitCheck.attempts,
-          max_attempts: rateLimitCheck.max_attempts,
-          retry_after_minutes: rateLimitCheck.retry_after_minutes
-        });
+        console.log(`[SMS Verification] Rate limit exceeded for user ${user.id}`);
 
-        // Phase 2: Enhanced logging with detailed metadata
         await supabase.from('verification_attempts').insert({
           user_id: user.id,
           verification_type: 'phone',
@@ -101,12 +136,9 @@ const handler = async (req: Request): Promise<Response> => {
             rate_limited: true,
             attempts: rateLimitCheck.attempts,
             max_attempts: rateLimitCheck.max_attempts,
-            retry_after_minutes: rateLimitCheck.retry_after_minutes,
-            blocked_at: new Date().toISOString()
           }
         });
 
-        // Phase 5: Security logging for repeat offenders
         await logSecurityEvent({
           eventType: 'verification_rate_limit_hit',
           userId: user.id,
@@ -115,55 +147,50 @@ const handler = async (req: Request): Promise<Response> => {
           details: {
             verification_type: 'phone',
             attempts: rateLimitCheck.attempts,
-            retry_after_minutes: rateLimitCheck.retry_after_minutes,
-            phone_number: phone.substring(0, 8) + '****' // Partial masking
+            phone_number: phone.substring(0, 8) + '****',
           }
         });
 
-        // Phase 2: Return detailed error message with retry info
         return new Response(
           JSON.stringify({
             error: rateLimitCheck.message || 'Too many attempts. Please try again later.',
             error_code: 'RATE_LIMITED',
             retry_after_minutes: rateLimitCheck.retry_after_minutes,
-            retry_after_seconds: rateLimitCheck.retry_after_seconds
+            retry_after_seconds: rateLimitCheck.retry_after_seconds,
           }),
           {
             status: 429,
             headers: {
               ...corsHeaders,
               'Content-Type': 'application/json',
-              'Retry-After': String(rateLimitCheck.retry_after_seconds || 1800)
-            }
+              'Retry-After': String(rateLimitCheck.retry_after_seconds || 1800),
+            },
           }
         );
       }
     }
 
-    // IDEMPOTENCY CHECK: Check if a code was sent to this phone recently (within 60 seconds)
-    // Return success without generating a new code to prevent duplicate SMSes
+    // IDEMPOTENCY CHECK
     const { data: recentCode } = await supabase
       .from('phone_verifications')
-      .select('id, code, created_at')
+      .select('id, created_at')
       .eq('phone', phone)
       .is('verified_at', null)
       .gt('expires_at', new Date().toISOString())
-      .gt('created_at', new Date(Date.now() - 60000).toISOString()) // Within last 60 seconds
+      .gt('created_at', new Date(Date.now() - 60000).toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
 
     if (recentCode) {
-      console.log(`[SMS Verification] Idempotency: Recent code exists for ${phone.substring(0, 8)}****, returning success without new SMS`);
-      
-      // Return success without sending a new SMS - this handles rapid clicks
+      console.log(`[SMS Verification] Idempotency: Recent code exists for ${phone.substring(0, 8)}****`);
       return new Response(
         JSON.stringify({
           success: true,
           message: 'Verification code already sent',
           code_length: 6,
           expires_in_minutes: 30,
-          idempotent: true
+          idempotent: true,
         }),
         {
           status: 200,
@@ -172,40 +199,30 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Generate verification code
-    // In development without Twilio: use fixed code for easy testing
-    // In production: always generate cryptographically secure random code
+    // Generate code and hash it
     const code = (IS_DEVELOPMENT && !TWILIO_ACCOUNT_SID) ? DEV_FIXED_CODE : generateCode();
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    const codeHash = await hashOTP(code);
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-    // Store verification in database
+    // Store hashed code (plaintext kept for backward compat during migration)
     const { error: dbError } = await supabase
       .from('phone_verifications')
       .insert({
         user_id: user?.id || null,
         phone,
         code,
+        code_hash: codeHash,
         expires_at: expiresAt.toISOString(),
         ip_address: ipAddress,
-        user_agent: userAgent
+        user_agent: userAgent,
       });
 
     if (dbError) throw dbError;
 
-    // Development Mode Bypass - Skip SMS sending if in dev mode without Twilio
+    // DEV MODE BYPASS
     if (IS_DEVELOPMENT && !TWILIO_ACCOUNT_SID) {
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('🔧 [DEV MODE] SMS Verification Code Generated');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log(`📱 Phone: ${phone}`);
-      console.log(`🔑 Code: ${code}`);
-      console.log(`⏰ Expires: ${expiresAt.toISOString()}`);
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('⚠️  This is DEVELOPMENT mode - no actual SMS sent');
-      console.log('⚠️  Enter code "${code}" in the verification form');
-      console.log('═══════════════════════════════════════════════════════');
+      console.log(`[DEV MODE] SMS Code for ${phone}: ${code}`);
 
-      // Log successful attempt (only for authenticated users)
       if (user) {
         await supabase.from('verification_attempts').insert({
           user_id: user.id,
@@ -215,18 +232,17 @@ const handler = async (req: Request): Promise<Response> => {
           phone,
           ip_address: ipAddress,
           user_agent: userAgent,
-          metadata: { dev_mode: true }
+          metadata: { dev_mode: true },
         });
       }
 
-      // Return success WITHOUT exposing the code (security best practice)
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Verification code sent (check server logs for dev code)',
+          message: 'Verification code sent (dev mode)',
           code_length: 6,
           expires_in_minutes: 30,
-          dev_mode: true // Indicator this is development
+          dev_mode: true,
         }),
         {
           status: 200,
@@ -235,16 +251,20 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // PRODUCTION PATH - Send actual SMS via Twilio
+    // PRODUCTION: Send via Twilio
     console.log(`[SMS Verification] Sending SMS to ${phone.substring(0, 8)}****`);
 
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
     const twilioAuth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
 
+    // Build callback URL for delivery tracking
+    const callbackUrl = `${SUPABASE_URL}/functions/v1/twilio-status-callback`;
+
     const formData = new URLSearchParams();
     formData.append('To', phone);
     formData.append('From', TWILIO_PHONE_NUMBER!);
     formData.append('Body', `Your Quantum Club verification code is: ${code}\n\nThis code expires in 30 minutes.\n\nIf you didn't request this, please ignore.`);
+    formData.append('StatusCallback', callbackUrl);
 
     const twilioResponse = await fetch(twilioUrl, {
       method: 'POST',
@@ -260,22 +280,57 @@ const handler = async (req: Request): Promise<Response> => {
     if (!twilioResponse.ok) {
       console.error('[SMS Verification] Twilio API error:', {
         status: twilioResponse.status,
-        error: twilioData,
-        phone: phone.substring(0, 8) + '****'
+        error_code: twilioData.code,
+        error: twilioData.message,
+        phone: phone.substring(0, 8) + '****',
       });
 
-      // Phase 2: Specific Twilio error handling
-      const errorMessage = twilioData.message || 'Failed to send SMS';
-      throw new Error(`Twilio Error: ${errorMessage}`);
+      // Store Twilio error in the verification record
+      await supabase
+        .from('phone_verifications')
+        .update({
+          twilio_status: 'failed',
+          twilio_error_code: String(twilioData.code || 'unknown'),
+        })
+        .eq('phone', phone)
+        .eq('code_hash', codeHash);
+
+      // Map Twilio error to user-friendly message
+      const errorInfo = TWILIO_ERROR_MAP[twilioData.code];
+      const userMessage = errorInfo
+        ? `${errorInfo.message} ${errorInfo.suggestion}`
+        : 'SMS service temporarily unavailable. Please try email verification instead.';
+
+      return new Response(
+        JSON.stringify({
+          error: userMessage,
+          error_code: 'SMS_DELIVERY_FAILED',
+          twilio_error_code: twilioData.code,
+          suggestion: errorInfo?.suggestion || 'Try email verification instead.',
+        }),
+        {
+          status: 422,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
+
+    // Store Twilio SID and status for delivery tracking
+    await supabase
+      .from('phone_verifications')
+      .update({
+        twilio_sid: twilioData.sid,
+        twilio_status: twilioData.status,
+      })
+      .eq('phone', phone)
+      .eq('code_hash', codeHash);
 
     console.log('[SMS Verification] SMS sent successfully:', {
       sid: twilioData.sid,
       status: twilioData.status,
-      to: phone.substring(0, 8) + '****'
+      to: phone.substring(0, 8) + '****',
     });
 
-    // Log successful attempt (only for authenticated users)
     if (user) {
       await supabase.from('verification_attempts').insert({
         user_id: user.id,
@@ -284,26 +339,24 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         phone,
         ip_address: ipAddress,
-        user_agent: userAgent
+        user_agent: userAgent,
       });
     }
 
-    // Security logging
     await logSecurityEvent({
       eventType: 'sms_verification_sent',
-      details: { phone, authenticated: !!user },
+      details: { phone, authenticated: !!user, twilio_sid: twilioData.sid },
       ipAddress,
       userAgent,
       userId: user?.id,
     });
 
-    // Phase 2: Enhanced success response
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Verification code sent',
         code_length: 6,
-        expires_in_minutes: 30
+        expires_in_minutes: 30,
       }),
       {
         status: 200,
@@ -313,13 +366,14 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error('[SMS Verification] Error:', error);
 
-    // Phase 2: Categorize error types
     let errorMessage = 'Failed to send verification code';
     let errorCode = 'UNKNOWN_ERROR';
+    let suggestion = 'Please try again or use email verification.';
 
     if (error.message?.includes('Twilio')) {
-      errorMessage = 'SMS service temporarily unavailable. Please try again.';
+      errorMessage = 'SMS service temporarily unavailable.';
       errorCode = 'TWILIO_ERROR';
+      suggestion = 'Please try email verification instead.';
     } else if (error.message?.includes('rate limit')) {
       errorMessage = error.message;
       errorCode = 'RATE_LIMITED';
@@ -329,7 +383,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({
         error: errorMessage,
         error_code: errorCode,
-        details: error.message
+        suggestion,
+        details: error.message,
       }),
       {
         status: 500,
