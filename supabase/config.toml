@@ -274,8 +274,10 @@ verify_jwt = true
 # =============================================================================
 # Verification (Public - Pre-auth)
 # =============================================================================
-[functions.send-verification-code]
-verify_jwt = true
+# Legacy send-verification-code removed — use send-email-verification instead
+
+[functions.resend-webhook]
+verify_jwt = false
 
 [functions.send-email-verification]
 verify_jwt = false

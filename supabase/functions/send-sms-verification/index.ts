@@ -204,13 +204,13 @@ const handler = async (req: Request): Promise<Response> => {
     const codeHash = await hashOTP(code);
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-    // Store hashed code (plaintext kept for backward compat during migration)
+    // Store hashed code only — plaintext is REDACTED for security
     const { error: dbError } = await supabase
       .from('phone_verifications')
       .insert({
         user_id: user?.id || null,
         phone,
-        code,
+        code: 'REDACTED',
         code_hash: codeHash,
         expires_at: expiresAt.toISOString(),
         ip_address: ipAddress,

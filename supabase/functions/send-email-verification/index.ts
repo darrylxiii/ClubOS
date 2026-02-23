@@ -158,17 +158,17 @@ const handler = async (req: Request): Promise<Response> => {
     const codeHash = await hashOTP(code);
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
-    // Store hashed code in database (plaintext code field kept for backward compatibility during migration)
+    // Store hashed code only — plaintext is REDACTED for security
     const { error: dbError } = await supabase
       .from('email_verifications')
       .insert({
         user_id: user?.id || null,
         email,
-        code,
+        code: 'REDACTED',
         code_hash: codeHash,
         expires_at: expiresAt.toISOString(),
         ip_address: ipAddress,
-        user_agent: userAgent
+        user_agent: userAgent,
       });
 
     if (dbError) throw dbError;
@@ -220,6 +220,16 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Resend API error: ${errorText}`);
     }
 
+    // Store Resend message ID for delivery tracking
+    const resendResult = await emailResponse.json();
+    if (resendResult?.id) {
+      await supabase
+        .from('email_verifications')
+        .update({ resend_id: resendResult.id })
+        .eq('email', email)
+        .eq('code_hash', codeHash);
+    }
+
     // Log successful attempt
     if (user) {
       await supabase.from('verification_attempts').insert({
@@ -241,8 +251,7 @@ const handler = async (req: Request): Promise<Response> => {
       userId: user?.id,
     });
 
-    const result = await emailResponse.json();
-    console.log("Verification email sent successfully:", result);
+    console.log("Verification email sent successfully:", resendResult);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Verification code sent' }),

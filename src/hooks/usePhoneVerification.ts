@@ -109,13 +109,18 @@ export const usePhoneVerification = (): VerificationHookReturn => {
         throw error;
       }
 
-      // Handle rate limit error with retry info
+      // Handle error responses from backend
       if (data?.error) {
         if (data.retry_after_seconds || data.retry_after_minutes) {
           const retrySeconds = data.retry_after_seconds || Math.ceil(data.retry_after_minutes * 60);
           startCooldownTimer(retrySeconds);
           toast.error(`Too many attempts. Please wait ${Math.ceil(retrySeconds / 60)} minute(s).`);
           return false;
+        }
+        // Surface SMS-specific suggestion from backend
+        if (data.suggestion) {
+          toast.error(data.error);
+          return { success: false, suggestion: data.suggestion, error_code: data.error_code } as any;
         }
         throw new Error(data.error);
       }
