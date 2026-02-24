@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Step 2: Create company if needed ─────────────────────
-    let companyId = request.company_id;
+    let companyId: string | null = null;
     if (!companyId && request.company_name) {
       const domain =
         request.contact_email.split("@")[1]?.toLowerCase() || "";
@@ -197,7 +197,6 @@ Deno.serve(async (req) => {
       .insert({
         user_id: user.id,
         role: "partner",
-        company_id: companyId,
       });
 
     if (roleError) {
