@@ -400,7 +400,7 @@ Deno.serve(async (req) => {
           invite_code: inviteCode,
           welcome_email_sent: welcomeEmailSent,
         },
-        actor_ip_address: req.headers.get("x-forwarded-for") || "unknown",
+        actor_ip_address: (() => { const raw = req.headers.get("x-forwarded-for"); return raw ? raw.split(",")[0].trim() : null; })(),
         actor_user_agent: req.headers.get("user-agent") || "unknown",
       });
     if (auditError) {

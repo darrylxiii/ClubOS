@@ -110,16 +110,10 @@ export const usePartnerProvisioning = () => {
     toast.success('Magic link copied to clipboard');
   };
 
-  const resendWelcomeEmail = async (userId: string) => {
-    // TODO: Implement resend functionality
-    toast.info('Resend functionality coming soon');
-  };
-
   return {
     provisionPartner,
     isProvisioning,
     lastResult,
     copyMagicLink,
-    resendWelcomeEmail
   };
 };

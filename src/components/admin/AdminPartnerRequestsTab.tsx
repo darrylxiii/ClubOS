@@ -67,10 +67,13 @@ export function AdminPartnerRequestsTab() {
 
   const handleDecline = async (requestId: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       const { error } = await supabase
         .from('partner_requests')
         .update({
           status: 'declined',
+          reviewed_by: user?.id || null,
+          reviewed_at: new Date().toISOString(),
         })
         .eq('id', requestId);
 
