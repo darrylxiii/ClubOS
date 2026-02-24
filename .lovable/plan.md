@@ -1,126 +1,86 @@
 
 
-# Partner Provisioning System Audit -- Current Score: 68/100
+# Partner Provisioning Audit -- Current Score: 72/100
 
 ## Scorecard
 
-| Category | Weight | Current | Target | Status |
+| Category | Weight | Current | Target | Issue |
 |---|---|---|---|---|
-| Core Provisioning (provision-partner) | 20 | 16/20 | 20/20 | Minor gaps |
-| Core Provisioning (approve-partner-request) | 15 | 4/15 | 15/15 | CRITICAL |
-| Auth and Authorization | 15 | 8/15 | 15/15 | Dangerous |
-| Error Handling and Rollback | 10 | 7/10 | 10/10 | Good, gaps remain |
-| Client-Side Error Handling | 5 | 4/5 | 5/5 | Minor gap |
-| Welcome Email Integration | 5 | 3/5 | 5/5 | Redundant function |
-| Input Validation and Dedup | 5 | 3/5 | 5/5 | No request-level dedup |
-| Audit Logging | 5 | 4/5 | 5/5 | approve-partner missing |
-| Idempotency and Race Conditions | 5 | 4/5 | 5/5 | Adequate |
-| Data Integrity (DB schema, RLS) | 5 | 5/5 | 5/5 | Solid |
-| Dead Code Cleanup | 5 | 3/5 | 5/5 | Orphaned function |
-| Production Evidence | 5 | 0/5 | 5/5 | Zero provisions ever |
+| Core Provisioning (provision-partner) | 20 | 18/20 | 20/20 | Works structurally, never tested in production |
+| Core Provisioning (approve-partner-request) | 15 | 3/15 | 15/15 | CRASHES -- inserts non-existent column |
+| Auth and Authorization | 15 | 14/15 | 15/15 | Both functions verify JWT + admin role -- solid |
+| Error Handling and Rollback | 10 | 8/10 | 10/10 | Good pattern, minor gap |
+| Client-Side Error Handling | 5 | 5/5 | 5/5 | Uses getEdgeFunctionErrorMessage -- done |
+| Welcome Email Integration | 5 | 3/5 | 5/5 | send-partner-welcome orphaned, uses deprecated serve() |
+| Input Validation | 5 | 5/5 | 5/5 | Length limits, format checks -- solid |
+| Audit Logging | 5 | 5/5 | 5/5 | Both functions write to comprehensive_audit_logs |
+| Idempotency | 5 | 5/5 | 5/5 | Profile check + pending guard |
+| Data Integrity (DB) | 5 | 4/5 | 5/5 | Trigger fixed, dedup index in place |
+| Dead Code | 5 | 3/5 | 5/5 | send-partner-welcome is unused |
+| Production Evidence | 5 | 0/5 | 5/5 | Zero provisions ever completed |
 
-Total: **61/100** (revised after full data review -- initially estimated 68 but production evidence brings it down)
+**Total: 72/100** (up from 61, but the approve flow is still broken)
 
 ---
 
-## Critical Findings
+## Critical Finding: `approve-partner-request` Will Crash on Every Call
 
-### 1. `approve-partner-request` Has ZERO Authentication (CRITICAL SECURITY)
+**Root cause**: Line 196-201 of `approve-partner-request/index.ts` inserts into `user_roles` with a `company_id` field:
 
-This function has `verify_jwt = false` in config.toml AND performs no JWT validation internally. Unlike `provision-partner` (which checks the Authorization header and verifies admin role), `approve-partner-request` accepts an `approvedBy` field from the request body and trusts it blindly.
+```typescript
+.insert({
+  user_id: user.id,
+  role: "partner",
+  company_id: companyId,  // <-- THIS COLUMN DOES NOT EXIST
+})
+```
 
-**Impact**: Any unauthenticated person on the internet can call this endpoint with a valid `requestId` and provision themselves a partner account with full company access. This is a privilege escalation vulnerability.
+The `user_roles` table schema has only 4 columns: `id`, `user_id`, `role`, `created_at`. There is **no `company_id` column**. This insert will fail with a Postgres error on every single approval attempt, triggering the rollback and deleting the just-created auth user.
 
-**Evidence**: Lines 32-33 of `approve-partner-request/index.ts` -- destructures `approvedBy` from the untrusted request body. No `req.headers.get('authorization')` check anywhere in the function.
+This is why there are still **zero provisioning logs**, **zero approved requests**, and **zero invite codes** in production.
 
-**Fix**: Add the same JWT verification and admin role check that `provision-partner` has (lines 73-104 of `provision-partner/index.ts`).
+## Other Findings
 
-### 2. Zero Successful Provisions in Production
+### 1. `send-partner-welcome` is Still Orphaned (Minor)
 
-- `partner_provisioning_logs` table: 0 rows
-- `partner_requests` table: 10 rows, ALL status = 'pending'
-- `comprehensive_audit_logs` with partner events: 0 rows
-- Edge function logs for `approve-partner-request`: No logs found
+- Uses deprecated `serve()` import from `deno.land/std@0.168.0`
+- Not called by either provisioning flow (both send emails inline via Resend)
+- Not referenced anywhere in `src/`
+- Should be deleted to eliminate confusion and maintenance drift
 
-Neither provisioning path has ever completed successfully in production. The trigger fix was deployed but never tested against a real request.
+### 2. `approve-partner-request` Missing `company_id` on `partner_requests` Table
 
-**Fix**: After applying the fixes below, run an end-to-end test by provisioning one of the existing pending requests.
+Line 144: `let companyId = request.company_id` -- the `partner_requests` table has no `company_id` column. This evaluates to `undefined`, which means the function always creates a new company from `company_name`. This is acceptable behavior, but the code should not reference a non-existent field. It should explicitly default to `null`.
 
-### 3. `approve-partner-request` Does Not Send Welcome Email
+### 3. `AdminPartnerRequestsTab` Still Sends Unused `approvedBy` in Body
 
-After creating the user, assigning the role, and generating a magic link, the function returns success but never sends the magic link to the partner. The user is created but has no way to know. The `send-partner-welcome` edge function exists but is never called by either provisioning flow.
-
-**Fix**: After generating the magic link in `approve-partner-request`, invoke `send-partner-welcome` or send the email directly via Resend (matching the pattern in `provision-partner` lines 466-532).
-
-### 4. `send-partner-welcome` is an Orphaned Function
-
-This edge function exists with a full email template, but:
-- `provision-partner` sends emails directly via the Resend API (does not call this function)
-- `approve-partner-request` does not send any email at all
-- No other code in `src/` references `send-partner-welcome`
-
-**Fix**: Either use `send-partner-welcome` from both provisioning flows (DRY) or delete it. Having two independent email-sending paths creates maintenance drift.
-
-### 5. `AdminPartnerRequestsTab` Swallows Server Errors
-
-Line 54-56: `throw new Error(error.message)` -- for `FunctionsHttpError`, `error.message` is literally the string "FunctionsHttpError", not the server's actual error message. The catch block on line 62 shows "Failed to provision partner" with no detail.
-
-**Fix**: Use `getEdgeFunctionErrorMessage(error)` from `edgeFunctionErrors.ts` (same pattern already applied in `usePartnerProvisioning.ts`).
-
-### 6. No Deduplication on Partner Requests
-
-The same email (`darryl@thequantumclub.nl`) submitted 6 separate requests. No unique constraint or dedup logic exists. If an admin approves all 6, it would attempt to create 6 auth users with the same email (5 would fail, but wastefully).
-
-**Fix**: Add a unique index on `(contact_email, status)` WHERE `status = 'pending'`, or add dedup logic in the submission form / edge function.
-
-### 7. `approve-partner-request` Does Not Create Invite Code or Provisioning Log
-
-Unlike `provision-partner` (which creates an invite code in Step 8 and a provisioning log in Step 9), `approve-partner-request` skips both. This means:
-- No invite code for the partner to share with their team
-- No record in `partner_provisioning_logs` (making the admin panel's provisioning history incomplete)
-- No tracking of `first_login_at` or `welcome_email_sent`
-
-**Fix**: Add invite code creation and provisioning log entry to `approve-partner-request`, mirroring Steps 8-9 of `provision-partner`.
-
-### 8. Company Rollback is Incomplete
-
-If role assignment fails in `provision-partner` (Step 4, line 318), the function rolls back the auth user via `deleteUser` but leaves the company record (Step 2) orphaned in the database. Same issue in `approve-partner-request`.
-
-**Fix**: Track `companyId` as a rollback target. If a later step fails and the company was just created (not pre-existing), delete it.
+Line 49-52 sends `approvedBy: user?.user?.id` in the request body. The edge function correctly ignores this and uses the JWT-derived admin ID instead. The client-side field is dead code and should be removed to avoid confusion.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Security Fix (BLOCKER)
+### Phase 1: Fix the Blocker
 
-1. **Add authentication to `approve-partner-request`**: Copy the JWT verification + admin role check pattern from `provision-partner` (lines 72-104). Reject with 401/403 if not an authenticated admin. Ignore the client-supplied `approvedBy` -- use the authenticated user's ID instead.
+1. **Fix `approve-partner-request` Step 3**: Remove `company_id` from the `user_roles` insert. Change from `{ user_id, role, company_id }` to `{ user_id, role }` to match the actual table schema.
 
-### Phase 2: Feature Parity for `approve-partner-request`
+2. **Fix `company_id` reference**: Change line 144 from `request.company_id` to `null` (the field does not exist on `partner_requests`).
 
-2. **Add welcome email delivery**: After generating the magic link, send it via Resend (inline, matching `provision-partner`'s pattern) or invoke `send-partner-welcome`.
-3. **Add invite code creation**: Generate a `PARTNER-xxx` invite code and insert into `invite_codes` (matching `provision-partner` Step 8).
-4. **Add provisioning log entry**: Insert into `partner_provisioning_logs` (matching Step 9).
-5. **Update `partner_requests` with `reviewed_by` and `reviewed_at`**: The table has these columns but `approve-partner-request` only updates `status`, wasting the audit trail.
+### Phase 2: Cleanup
 
-### Phase 3: Robustness
+3. **Delete `send-partner-welcome`**: This function is unused by any code path. Both `provision-partner` and `approve-partner-request` send emails directly via Resend. Remove the function and its config.toml entry.
 
-6. **Improve company rollback**: In both functions, if a step after company creation fails and the company was newly created, delete it before returning the error.
-7. **Add request deduplication**: Add a partial unique index on `partner_requests (contact_email)` WHERE `status = 'pending'` to prevent duplicate pending requests for the same email.
+4. **Remove dead `approvedBy` from client**: In `AdminPartnerRequestsTab.tsx`, simplify the request body to only `{ requestId }` since the server ignores `approvedBy`.
 
-### Phase 4: Cleanup and Client Polish
+### Phase 3: Deploy and Verify
 
-8. **Fix `AdminPartnerRequestsTab` error handling**: Use `getEdgeFunctionErrorMessage` to surface the real server error in the toast.
-9. **Consolidate or remove `send-partner-welcome`**: Since `provision-partner` sends emails directly, either refactor both flows to use `send-partner-welcome` (preferred for DRY), or delete the orphaned function.
-10. **Add `company_members` insert to `approve-partner-request`**: Currently missing -- the user gets a `partner` role but is never added to `company_members`, so company-scoped RLS policies will exclude them.
+5. **Redeploy** `approve-partner-request` and `provision-partner`.
+6. **End-to-end test**: Call `approve-partner-request` against one of the 3 remaining pending requests to confirm the full cycle completes (user created, role assigned, company created, invite code generated, welcome email sent, provisioning log written, audit log written).
 
-### Files to modify:
-- `supabase/functions/approve-partner-request/index.ts` -- Add auth, welcome email, invite code, provisioning log, company_members insert, reviewed_by/reviewed_at update
-- `supabase/functions/provision-partner/index.ts` -- Improve company rollback
-- `src/components/admin/AdminPartnerRequestsTab.tsx` -- Fix error handling with `getEdgeFunctionErrorMessage`
-- New DB migration: Add partial unique index on `partner_requests (contact_email) WHERE status = 'pending'`
+### Files to modify
 
-### Edge function deployments needed:
-- `approve-partner-request`
-- `provision-partner`
+- `supabase/functions/approve-partner-request/index.ts` -- Remove `company_id` from `user_roles` insert (line 200), fix `request.company_id` reference (line 144)
+- `src/components/admin/AdminPartnerRequestsTab.tsx` -- Remove `approvedBy` from request body (line 51)
+- Delete `supabase/functions/send-partner-welcome/` directory
+- Update `supabase/config.toml` to remove the `send-partner-welcome` entry (if present)
 
