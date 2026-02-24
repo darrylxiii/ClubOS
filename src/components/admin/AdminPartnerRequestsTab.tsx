@@ -43,13 +43,10 @@ export function AdminPartnerRequestsTab() {
   const handleApprove = async (requestId: string, contactEmail: string) => {
     setProvisioning(requestId);
     try {
-      const { data: user } = await supabase.auth.getUser();
+      
 
       const { data, error } = await supabase.functions.invoke('approve-partner-request', {
-        body: {
-          requestId,
-          approvedBy: user?.user?.id,
-        },
+        body: { requestId },
       });
 
       if (error) {
