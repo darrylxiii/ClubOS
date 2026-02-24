@@ -216,7 +216,8 @@ Deno.serve(async (req) => {
 
     const newUserId = authData.user.id;
 
-    // Helper: rollback auth user on subsequent failures
+    // Helper: rollback auth user AND newly-created company on subsequent failures
+    let newCompanyId: string | null = null;
     async function rollbackUser(reason: string) {
       console.error(`Rolling back user ${newUserId}: ${reason}`);
       try {
@@ -224,6 +225,14 @@ Deno.serve(async (req) => {
         console.log(`Rolled back auth user ${newUserId}`);
       } catch (e) {
         console.error(`CRITICAL: Failed to rollback user ${newUserId}:`, e);
+      }
+      if (newCompanyId) {
+        try {
+          await supabase.from('companies').delete().eq('id', newCompanyId);
+          console.log(`Rolled back company ${newCompanyId}`);
+        } catch (e) {
+          console.error(`CRITICAL: Failed to rollback company ${newCompanyId}:`, e);
+        }
       }
     }
 
@@ -262,6 +271,7 @@ Deno.serve(async (req) => {
       }
       
       companyId = newCompany.id;
+      newCompanyId = newCompany.id;
       companySlug = newCompany.slug;
 
       // Explicitly create the company task board (trigger skips when auth.uid() is NULL)

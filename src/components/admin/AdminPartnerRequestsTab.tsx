@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getEdgeFunctionErrorMessage } from '@/utils/edgeFunctionErrors';
 
 export function AdminPartnerRequestsTab() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -52,14 +53,16 @@ export function AdminPartnerRequestsTab() {
       });
 
       if (error) {
-        throw new Error(error.message);
+        const serverMessage = await getEdgeFunctionErrorMessage(error, 'Failed to provision partner');
+        throw new Error(serverMessage);
       }
 
       toast.success(`Partner ${contactEmail} provisioned successfully`);
       loadRequests();
     } catch (error) {
       console.error('Approval error:', error);
-      toast.error('Failed to provision partner');
+      const msg = error instanceof Error ? error.message : 'Failed to provision partner';
+      toast.error(msg);
     } finally {
       setProvisioning(null);
     }
