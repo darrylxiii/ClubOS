@@ -180,7 +180,7 @@ export const baseEmailTemplate = ({
   <!-- Wrapper Table -->
   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper" style="background-color: #f5f5f5;">
     <tr>
-      <td align="center" style="padding: 40px 20px;">
+      <td align="center" style="padding: 20px 16px;">
 
         <!-- Container Table — no border-radius so GIF fills flush to top edge -->
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0 0 16px 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);">
@@ -212,7 +212,7 @@ export const baseEmailTemplate = ({
 
           <!-- Content -->
           <tr>
-            <td class="mobile-padding" style="padding: 40px; color: #0E0E10;">
+            <td class="mobile-padding" style="padding: 24px 32px; color: #0E0E10;">
               ${content}
             </td>
           </tr>
