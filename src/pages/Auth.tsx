@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Lock, CheckCircle2, AlertTriangle, RefreshCw, Users, Building2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
@@ -72,6 +73,7 @@ const Auth = () => {
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
   const [oauthProcessing, setOauthProcessing] = useState(false);
   const [setPasswordOpen, setSetPasswordOpen] = useState(false);
+  const [showAccessDialog, setShowAccessDialog] = useState(false);
   const {
     checkLockout,
     recordAttempt
@@ -694,10 +696,40 @@ const Auth = () => {
               </div>
 
               <div className="text-center pt-2">
-                <Link to="/onboarding" className="text-foreground/80 hover:text-foreground text-sm">
+                <button
+                  type="button"
+                  onClick={() => setShowAccessDialog(true)}
+                  className="text-foreground/80 hover:text-foreground text-sm transition-colors"
+                >
                   Request Access
-                </Link>
+                </button>
               </div>
+
+              <Dialog open={showAccessDialog} onOpenChange={setShowAccessDialog}>
+                <DialogContent className="backdrop-blur-xl bg-card/80 border-border/50 shadow-2xl max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle className="text-center text-lg">Request Access</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 text-base gap-2"
+                      onClick={() => { setShowAccessDialog(false); navigate('/onboarding'); }}
+                    >
+                      <Users className="h-5 w-5" />
+                      For Members
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 text-base gap-2"
+                      onClick={() => { setShowAccessDialog(false); navigate('/partner'); }}
+                    >
+                      <Building2 className="h-5 w-5" />
+                      For Partners
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {isLogin && <div className="text-center space-y-1">
                   <Link to="/forgot-password" className="text-sm text-foreground/70 hover:text-foreground block">
