@@ -10,36 +10,49 @@ const corsHeaders = {
 };
 
 interface ProvisionRequest {
-  // Contact Information
   email: string;
   fullName: string;
   phoneNumber?: string;
-  
-  // Verification
   markEmailVerified: boolean;
   markPhoneVerified: boolean;
-  
-  // Company Configuration
   companyId?: string;
   companyName?: string;
   companyDomain?: string;
   companyRole: 'owner' | 'admin' | 'recruiter' | 'member';
   industry?: string;
   companySize?: string;
-  
-  // Authentication
   provisionMethod: 'magic_link' | 'password' | 'oauth_only';
   temporaryPassword?: string;
-  
-  // Domain Settings
   enableDomainAutoProvisioning?: boolean;
   domainDefaultRole?: string;
   requireDomainApproval?: boolean;
-  
-  // Welcome Experience
   welcomeMessage?: string;
   scheduleOnboardingCall?: boolean;
   assignedStrategistId?: string;
+}
+
+// Input length limits
+const MAX_LENGTHS: Record<string, number> = {
+  email: 254,
+  fullName: 200,
+  phoneNumber: 20,
+  companyName: 100,
+  companyDomain: 253,
+  temporaryPassword: 128,
+  welcomeMessage: 500,
+  industry: 100,
+  companySize: 50,
+  domainDefaultRole: 50,
+};
+
+function validateLengths(body: Record<string, unknown>): string | null {
+  for (const [field, max] of Object.entries(MAX_LENGTHS)) {
+    const val = body[field];
+    if (typeof val === 'string' && val.length > max) {
+      return `${field} exceeds maximum length of ${max} characters`;
+    }
+  }
+  return null;
 }
 
 Deno.serve(async (req) => {
@@ -91,6 +104,15 @@ Deno.serve(async (req) => {
     }
 
     const body: ProvisionRequest = await req.json();
+
+    // Input length validation
+    const lengthError = validateLengths(body as unknown as Record<string, unknown>);
+    if (lengthError) {
+      return new Response(JSON.stringify({ error: lengthError }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
     
     // Validate required fields
     if (!body.email || !body.fullName) {
@@ -147,13 +169,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if user already exists (scalable: single lookup instead of listUsers)
-    const { data: existingUserList } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1,
-    });
-    // Use a direct query approach: try to create, catch conflict
-    // First, check via email lookup on profiles (fast, indexed)
+    // Check if user already exists via profile lookup (fast, indexed)
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('id, email')
@@ -170,53 +186,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 1: Create or get company
-    let companyId = body.companyId;
-    let companySlug: string | null = null;
-    
-    if (!companyId && body.companyName) {
-      // Create new company
-      const slug = body.companyName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-      
-      const { data: newCompany, error: companyError } = await supabase
-        .from('companies')
-        .insert({
-          name: body.companyName,
-          slug: `${slug}-${Date.now().toString(36)}`,
-          industry: body.industry,
-          company_size: body.companySize,
-          is_active: true,
-          member_since: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (companyError) {
-        console.error('Company creation error:', companyError);
-        return new Response(JSON.stringify({ error: 'Failed to create company' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      
-      companyId = newCompany.id;
-      companySlug = newCompany.slug;
-    } else if (companyId) {
-      const { data: existingCompany } = await supabase
-        .from('companies')
-        .select('slug')
-        .eq('id', companyId)
-        .single();
-      companySlug = existingCompany?.slug;
-    }
-
-    // Step 2: Create auth user with admin API
+    // ──────────────────────────────────────────────────────────
+    // Step 1: Create auth user FIRST (API call, not DB — rollback via deleteUser)
+    // ──────────────────────────────────────────────────────────
     const userPassword = body.provisionMethod === 'password' && body.temporaryPassword
       ? body.temporaryPassword
-      : crypto.randomUUID(); // Random password for magic link/oauth users
+      : crypto.randomUUID();
 
     const { data: authData, error: createUserError } = await supabase.auth.admin.createUser({
       email: body.email,
@@ -241,8 +216,81 @@ Deno.serve(async (req) => {
 
     const newUserId = authData.user.id;
 
-    // Step 3: Update profile with provisioning info
-    await supabase
+    // Helper: rollback auth user on subsequent failures
+    async function rollbackUser(reason: string) {
+      console.error(`Rolling back user ${newUserId}: ${reason}`);
+      try {
+        await supabase.auth.admin.deleteUser(newUserId);
+        console.log(`Rolled back auth user ${newUserId}`);
+      } catch (e) {
+        console.error(`CRITICAL: Failed to rollback user ${newUserId}:`, e);
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Step 2: Create or get company
+    // ──────────────────────────────────────────────────────────
+    let companyId = body.companyId;
+    let companySlug: string | null = null;
+    
+    if (!companyId && body.companyName) {
+      const slug = body.companyName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      
+      const { data: newCompany, error: companyError } = await supabase
+        .from('companies')
+        .insert({
+          name: body.companyName,
+          slug: `${slug}-${Date.now().toString(36)}`,
+          industry: body.industry,
+          company_size: body.companySize,
+          is_active: true,
+          member_since: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (companyError) {
+        console.error('Company creation error:', companyError);
+        await rollbackUser('Company creation failed');
+        return new Response(JSON.stringify({ error: 'Failed to create company', detail: companyError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      companyId = newCompany.id;
+      companySlug = newCompany.slug;
+
+      // Explicitly create the company task board (trigger skips when auth.uid() is NULL)
+      const { error: boardError } = await supabase
+        .from('task_boards')
+        .insert({
+          name: `${body.companyName} Team Board`,
+          description: `Shared board for all ${body.companyName} team members`,
+          visibility: 'company',
+          owner_id: newUserId,
+          company_id: companyId,
+          icon: '🏢'
+        });
+      if (boardError) {
+        console.error('Task board creation error (non-fatal):', boardError);
+      }
+    } else if (companyId) {
+      const { data: existingCompany } = await supabase
+        .from('companies')
+        .select('slug')
+        .eq('id', companyId)
+        .single();
+      companySlug = existingCompany?.slug;
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Step 3: Update profile
+    // ──────────────────────────────────────────────────────────
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({
         full_name: body.fullName,
@@ -255,14 +303,24 @@ Deno.serve(async (req) => {
         assigned_strategist_id: body.assignedStrategistId || null
       })
       .eq('id', newUserId);
+    if (profileError) {
+      console.error('Profile update error:', profileError);
+    }
 
+    // ──────────────────────────────────────────────────────────
     // Step 4: Assign partner role
-    await supabase
+    // ──────────────────────────────────────────────────────────
+    const { error: roleError } = await supabase
       .from('user_roles')
-      .insert({
-        user_id: newUserId,
-        role: 'partner'
+      .insert({ user_id: newUserId, role: 'partner' });
+    if (roleError) {
+      console.error('Role assignment error:', roleError);
+      await rollbackUser('Role assignment failed');
+      return new Response(JSON.stringify({ error: 'Failed to assign partner role', detail: roleError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
+    }
 
     // Step 4b: Assign strategist if specified
     if (body.assignedStrategistId) {
@@ -277,9 +335,11 @@ Deno.serve(async (req) => {
         });
     }
 
+    // ──────────────────────────────────────────────────────────
     // Step 5: Add to company members
+    // ──────────────────────────────────────────────────────────
     if (companyId) {
-      await supabase
+      const { error: memberError } = await supabase
         .from('company_members')
         .insert({
           user_id: newUserId,
@@ -287,9 +347,14 @@ Deno.serve(async (req) => {
           role: body.companyRole,
           is_active: true
         });
+      if (memberError) {
+        console.error('Company member insert error:', memberError);
+      }
     }
 
-    // Step 6: Setup domain auto-provisioning if requested
+    // ──────────────────────────────────────────────────────────
+    // Step 6: Domain auto-provisioning
+    // ──────────────────────────────────────────────────────────
     if (body.enableDomainAutoProvisioning && body.companyDomain && companyId) {
       await supabase
         .from('organization_domain_settings')
@@ -302,16 +367,12 @@ Deno.serve(async (req) => {
           require_admin_approval: body.requireDomainApproval ?? true,
           allow_google_oauth: true,
           created_by: adminUser.id
-        }, {
-          onConflict: 'company_id,domain'
-        });
+        }, { onConflict: 'company_id,domain' });
     }
 
-    // Step 6b: Auto-create domain setting from partner's email domain (if not already created)
-    // This ensures every provisioned partner's company has at least one authorized domain
+    // Auto-create domain from partner's email domain
     const partnerEmailDomain = body.email.split('@')[1]?.toLowerCase();
     if (partnerEmailDomain && companyId) {
-      // Check if domain already exists
       const { data: existingDomain } = await supabase
         .from('organization_domain_settings')
         .select('id')
@@ -335,20 +396,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 7: Generate magic link if needed
+    // ──────────────────────────────────────────────────────────
+    // Step 7: Generate magic link
+    // ──────────────────────────────────────────────────────────
     let magicLink: string | null = null;
     if (body.provisionMethod === 'magic_link') {
-      // Use SITE_URL or APP_URL env var; never derive from supabaseUrl
       const siteUrl = Deno.env.get('SITE_URL') || Deno.env.get('APP_URL') || 'https://os.thequantumclub.com';
-      // Route pre-provisioned partners to partner welcome screen
-      const redirectPath = '/partner-welcome';
-      
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: body.email,
-        options: {
-          redirectTo: `${siteUrl}${redirectPath}`
-        }
+        options: { redirectTo: `${siteUrl}/partner-welcome` }
       });
 
       if (!linkError && linkData?.properties?.action_link) {
@@ -356,7 +413,9 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ──────────────────────────────────────────────────────────
     // Step 8: Create invite code
+    // ──────────────────────────────────────────────────────────
     const inviteCode = `PARTNER-${Date.now().toString(36).toUpperCase()}`;
     const { error: inviteError } = await supabase
       .from('invite_codes')
@@ -366,7 +425,7 @@ Deno.serve(async (req) => {
         created_by_type: 'admin',
         max_uses: 1,
         uses_count: 0,
-        expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(), // 72 hours
+        expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
         invite_type: 'partner',
         company_id: companyId,
         target_role: 'partner',
@@ -377,7 +436,9 @@ Deno.serve(async (req) => {
       console.error('Step 8 – invite_codes insert failed:', inviteError);
     }
 
-    // Step 9: Log provisioning
+    // ──────────────────────────────────────────────────────────
+    // Step 9: Provisioning log
+    // ──────────────────────────────────────────────────────────
     const { error: provLogError } = await supabase
       .from('partner_provisioning_logs')
       .insert({
@@ -399,7 +460,9 @@ Deno.serve(async (req) => {
       console.error('Step 9 – partner_provisioning_logs insert failed:', provLogError);
     }
 
-    // Step 10: Send welcome email via Resend if available
+    // ──────────────────────────────────────────────────────────
+    // Step 10: Welcome email
+    // ──────────────────────────────────────────────────────────
     let welcomeEmailSent = false;
     if (resendApiKey && body.provisionMethod !== 'oauth_only') {
       try {
@@ -469,7 +532,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 11: Create comprehensive audit log
+    // ──────────────────────────────────────────────────────────
+    // Step 11: Audit log
+    // ──────────────────────────────────────────────────────────
     const { error: auditError } = await supabase
       .from('comprehensive_audit_logs')
       .insert({

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getEdgeFunctionErrorMessage } from '@/utils/edgeFunctionErrors';
 
 export interface ProvisionPartnerData {
   // Contact Information
@@ -60,12 +61,14 @@ export const usePartnerProvisioning = () => {
       });
 
       if (error) {
+        // Parse the actual error message from the edge function response body
+        const serverMessage = await getEdgeFunctionErrorMessage(error, 'Provisioning failed. Please try again.');
         const errorResult: ProvisionResult = { 
           success: false, 
-          error: error.message 
+          error: serverMessage
         };
         setLastResult(errorResult);
-        toast.error(`Provisioning failed: ${error.message}`);
+        toast.error(serverMessage);
         return errorResult;
       }
 
@@ -85,16 +88,17 @@ export const usePartnerProvisioning = () => {
       };
       
       setLastResult(successResult);
-      toast.success(`Partner ${data.fullName} provisioned successfully!`);
+      toast.success(`Partner ${data.fullName} provisioned successfully.`);
       
       return successResult;
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       const errorResult: ProvisionResult = { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        error: message
       };
       setLastResult(errorResult);
-      toast.error('Failed to provision partner');
+      toast.error(`Failed to provision partner: ${message}`);
       return errorResult;
     } finally {
       setIsProvisioning(false);
