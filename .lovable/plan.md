@@ -1,37 +1,23 @@
 
+# "Request Access" Popup with Two Options
 
-# Partner Provisioning Audit -- Current Score: 100/100
+## What Changes
 
-## Scorecard
+The "Request Access" text on the Auth page stays as-is, but instead of being a link it becomes a button that opens a glassmorphic dialog/modal. Inside the modal: a heading, two full-width buttons ("For Members" and "For Partners"), and a close/cancel option.
 
-| Category | Weight | Current | Target | Status |
-|---|---|---|---|---|
-| Core Provisioning (provision-partner) | 20 | 20/20 | 20/20 | ✅ |
-| Core Provisioning (approve-partner-request) | 15 | 15/15 | 15/15 | ✅ |
-| Auth and Authorization | 15 | 15/15 | 15/15 | ✅ |
-| Error Handling and Rollback | 10 | 10/10 | 10/10 | ✅ |
-| Client-Side Error Handling | 5 | 5/5 | 5/5 | ✅ |
-| Welcome Email Integration | 5 | 5/5 | 5/5 | ✅ |
-| Input Validation | 5 | 5/5 | 5/5 | ✅ |
-| Audit Logging | 5 | 5/5 | 5/5 | ✅ Fixed inet IP extraction |
-| Idempotency | 5 | 5/5 | 5/5 | ✅ |
-| Data Integrity (DB) | 5 | 5/5 | 5/5 | ✅ Invalid emails auto-declined |
-| Dead Code | 5 | 5/5 | 5/5 | ✅ resendWelcomeEmail removed |
-| Production Evidence | 5 | 0/5 | 5/5 | ⏳ Ready for first live test |
+## Technical Details
 
-**Total: 100/100** (pending live verification)
+### Modified file: `src/pages/Auth.tsx`
 
-## All Issues Resolved
+1. Replace lines 696-700: Change the `Link` to a `button` that toggles local state (`showAccessDialog`).
 
-1. ✅ `company_id` removed from `user_roles` insert (critical blocker)
-2. ✅ `send-partner-welcome` orphaned function deleted
-3. ✅ Audit log IP extraction fixed (both functions) — uses `null` instead of `"unknown"` for inet column
-4. ✅ Decline flow now sets `reviewed_by` and `reviewed_at`
-5. ✅ `resendWelcomeEmail` dead stub removed
-6. ✅ Invalid pending requests auto-declined via migration
-7. ✅ Dead `approvedBy` client field removed
-8. ✅ Both edge functions redeployed
+2. Add a `Dialog` (from existing `@/components/ui/dialog`) that renders when `showAccessDialog` is true, containing:
+   - `DialogHeader` with title "Request Access"
+   - Two full-width `Button` components stacked vertically:
+     - **For Members** -- navigates to `/onboarding`
+     - **For Partners** -- navigates to `/partner`
+   - Uses `useNavigate` for routing on click, closes dialog after navigation
 
-## Next Step
+3. Add `useState` for `showAccessDialog` and import `useNavigate` (likely already imported), plus `Dialog`/`DialogContent`/`DialogHeader`/`DialogTitle` from the existing UI library.
 
-Approve a valid pending request from the admin dashboard to complete the first live provisioning cycle.
+No new files, no new routes, no database changes. One file modified, roughly 30 lines added.
