@@ -80,8 +80,12 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: EMAIL_SENDERS.referrals,
         to: [friendEmail],
-        subject: `🎯 ${referrerName} thinks you'd be perfect for ${jobTitle} at ${companyName}!`,
+        subject: `${referrerName} thinks you'd be perfect for ${jobTitle} at ${companyName}`,
         html,
+        headers: {
+          'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
       }),
     });
 

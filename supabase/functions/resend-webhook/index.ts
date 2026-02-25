@@ -11,8 +11,8 @@ const corsHeaders = {
 
 /**
  * Resend Webhook Handler
- * Receives bounce, complaint, and delivery events from Resend.
- * Updates email_verifications with delivery status.
+ * Receives bounce, complaint, delivery, open, and click events from Resend.
+ * Logs all events to email_tracking_events and updates email_verifications.
  *
  * Webhook events: https://resend.com/docs/dashboard/webhooks/introduction
  */
@@ -35,7 +35,7 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response('OK', { status: 200 });
     }
 
-    console.log(`[Resend Webhook] Event: ${type}, Email ID: ${emailId}`);
+    console.log(`[Resend Webhook] Event: ${type}, Email ID: ${emailId}, To: ${data.to?.join(',')}`);
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -54,6 +54,12 @@ const handler = async (req: Request): Promise<Response> => {
       case 'email.delivery_delayed':
         resendStatus = 'delayed';
         break;
+      case 'email.opened':
+        resendStatus = 'opened';
+        break;
+      case 'email.clicked':
+        resendStatus = 'clicked';
+        break;
       default:
         resendStatus = type;
     }
@@ -68,6 +74,28 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (error) {
       console.error('[Resend Webhook] DB update error:', error);
+    }
+
+    // Log tracking event to email_tracking_events for analytics
+    const { error: trackingError } = await supabase
+      .from('email_tracking_events')
+      .insert({
+        resend_email_id: emailId,
+        event_type: resendStatus,
+        recipient_email: data.to?.[0] || null,
+        subject: data.subject || null,
+        clicked_url: data.click?.url || null,
+        user_agent: data.click?.userAgent || data.open?.userAgent || null,
+        metadata: {
+          raw_type: type,
+          tags: data.tags || null,
+          timestamp: data.created_at || new Date().toISOString(),
+        },
+      });
+
+    if (trackingError) {
+      // Table may not exist yet — log but don't fail
+      console.warn('[Resend Webhook] Tracking insert skipped:', trackingError.message);
     }
 
     // Log bounce/complaint for monitoring

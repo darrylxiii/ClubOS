@@ -152,6 +152,10 @@ serve(async (req) => {
         to: body.email,
         subject: `You're invited to join ${body.companyName} on The Quantum Club`,
         html: htmlContent,
+        headers: {
+          'List-Unsubscribe': `<${siteUrl}/settings/notifications>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
       })
     });
 
