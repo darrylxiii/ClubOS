@@ -84,3 +84,42 @@ export const getEmailAppUrl = (): string => {
 export const SUPPORT_EMAIL = 'support@thequantumclub.nl';
 export const COMPANY_NAME = 'The Quantum Club';
 export const TAGLINE = 'Exclusive Talent Network';
+export const COMPANY_ADDRESS = 'Amsterdam, The Netherlands';
+
+/**
+ * Returns standard List-Unsubscribe headers for Resend emails.
+ * Include in every non-transactional email to satisfy RFC 8058 and improve deliverability.
+ */
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
+
+/**
+ * Strip HTML to produce a plain-text fallback for emails.
+ * Required by spam filters that penalise HTML-only messages.
+ */
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/gi, '$2 ($1)')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};

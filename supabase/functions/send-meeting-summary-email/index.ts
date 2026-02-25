@@ -4,7 +4,7 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { 
   Heading, Paragraph, Spacer, Card, Button, StatusBadge 
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -105,7 +105,7 @@ serve(async (req) => {
 
     // Build email content
     const emailContent = `
-      ${Heading({ text: '📊 Meeting Summary', level: 1 })}
+      ${Heading({ text: 'Meeting Summary', level: 1 })}
       ${Spacer(8)}
       ${Paragraph('Powered by Club AI', 'muted')}
       ${Spacer(24)}
@@ -205,8 +205,10 @@ serve(async (req) => {
         body: JSON.stringify({
           from: EMAIL_SENDERS.clubAI,
           to: hostProfile.email,
-          subject: `📊 Meeting Summary: ${recording.title || 'Your Recording'}`,
+          subject: `Meeting Summary: ${recording.title || 'Your Recording'}`,
           html: htmlContent,
+          text: htmlToPlainText(htmlContent),
+          headers: getEmailHeaders(),
         }),
       });
 

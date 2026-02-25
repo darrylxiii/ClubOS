@@ -5,7 +5,7 @@ import {
   Heading, Paragraph, Spacer, Card, InfoRow, 
   VideoCallCard, StatusBadge, MeetingPrepCard, CalendarButtons 
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -169,6 +169,13 @@ serve(async (req) => {
           </table>
         `;
 
+        const reminderHtml = baseEmailTemplate({ 
+              content,
+              preheader: `Your meeting with ${hostName} is tomorrow at ${formattedTime}`,
+              showHeader: true,
+              showFooter: true,
+            });
+
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -178,13 +185,10 @@ serve(async (req) => {
           body: JSON.stringify({
             from: EMAIL_SENDERS.bookings,
             to: [booking.guest_email],
-            subject: `🔔 Reminder: ${booking.booking_links.title} Tomorrow at ${formattedTime}`,
-            html: baseEmailTemplate({ 
-              content,
-              preheader: `Your meeting with ${hostName} is tomorrow at ${formattedTime}`,
-              showHeader: true,
-              showFooter: true,
-            }),
+            subject: `Reminder: ${booking.booking_links.title} Tomorrow at ${formattedTime}`,
+            html: reminderHtml,
+            text: htmlToPlainText(reminderHtml),
+            headers: getEmailHeaders(),
           }),
         });
 

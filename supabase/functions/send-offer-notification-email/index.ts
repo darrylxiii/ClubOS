@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, InfoRow, StatusBadge,
@@ -68,7 +68,7 @@ serve(async (req) => {
           ${Spacer(8)}
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 4px 0;"><strong>1.</strong> Review the full offer details in your dashboard</td></tr>
-            <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 4px 0;"><strong>2.</strong> Use the QUIN offer comparison tool for market context</td></tr>
+            <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 4px 0;"><strong>2.</strong> Use the QUIN offer comparison tool for market context <span style="font-size: 11px; color: ${EMAIL_COLORS.textMuted};">Powered by QUIN</span></td></tr>
             <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 4px 0;"><strong>3.</strong> Contact your strategist with any questions</td></tr>
           </table>
         `,
@@ -104,6 +104,8 @@ serve(async (req) => {
         to: [candidateEmail],
         subject: `Offer Received — ${companyName}`,
         html: htmlContent,
+        text: htmlToPlainText(htmlContent),
+        headers: getEmailHeaders(),
       }),
     });
 

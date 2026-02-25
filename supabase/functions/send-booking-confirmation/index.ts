@@ -5,7 +5,7 @@ import {
   Button, Card, Heading, Paragraph, Spacer, InfoRow, 
   VideoCallCard, StatusBadge, CalendarButtons, AlertBox, SchemaEvent 
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
@@ -249,8 +249,10 @@ serve(async (req) => {
       body: JSON.stringify({
         from: EMAIL_SENDERS.bookings,
         to: [booking.guest_email],
-        subject: `✓ Confirmed: ${bookingLink.title} - ${formattedDate}`,
+        subject: `Confirmed: ${bookingLink.title} — ${formattedDate}`,
         html: emailHtml,
+        text: htmlToPlainText(emailHtml),
+        headers: getEmailHeaders(),
         attachments: [
           {
             filename: "meeting.ics",
@@ -433,11 +435,13 @@ serve(async (req) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${resendApiKey}`,
           },
-          body: JSON.stringify({
+        body: JSON.stringify({
             from: EMAIL_SENDERS.bookings,
             to: [guest.email],
-            subject: `📅 ${booking.guest_name} invited you: ${bookingLink.title} - ${formattedDate}`,
+            subject: `${booking.guest_name} invited you: ${bookingLink.title} — ${formattedDate}`,
             html: guestInviteHtml,
+            text: htmlToPlainText(guestInviteHtml),
+            headers: getEmailHeaders(),
             attachments: [
               {
                 filename: "meeting.ics",
@@ -543,11 +547,13 @@ serve(async (req) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${resendApiKey}`,
         },
-        body: JSON.stringify({
+      body: JSON.stringify({
           from: EMAIL_SENDERS.bookings,
           to: [ownerProfile.email],
-          subject: `📅 New Booking: ${booking.guest_name} - ${bookingLink.title}`,
+          subject: `New Booking: ${booking.guest_name} — ${bookingLink.title}`,
           html: ownerEmailHtml,
+          text: htmlToPlainText(ownerEmailHtml),
+          headers: getEmailHeaders(),
           attachments: [
             {
               filename: "meeting.ics",

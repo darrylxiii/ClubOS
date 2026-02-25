@@ -5,7 +5,7 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { 
   Heading, Paragraph, Spacer, Card, Button, InfoRow, VideoCallCard 
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -114,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Build email content using components
     const emailContent = `
-      ${Heading({ text: '⏰ Meeting Reminder', level: 1 })}
+      ${Heading({ text: 'Meeting Reminder', level: 1 })}
       ${Spacer(16)}
       ${Paragraph(`Hi ${name},`, 'primary')}
       ${Spacer(8)}
@@ -170,8 +170,10 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: EMAIL_SENDERS.reminders,
       to: [email],
-      subject: `Reminder: ${meetingTitle} with ${hostName} - ${formattedDate}`,
+      subject: `Reminder: ${meetingTitle} with ${hostName} — ${formattedDate}`,
       html: htmlContent,
+      text: htmlToPlainText(htmlContent),
+      headers: getEmailHeaders(),
     });
 
     console.log("Email reminder sent successfully:", emailResponse);

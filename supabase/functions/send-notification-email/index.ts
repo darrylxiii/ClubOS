@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -181,6 +181,8 @@ serve(async (req: Request) => {
         to: [userEmail],
         subject: title,
         html,
+        text: htmlToPlainText(html),
+        headers: getEmailHeaders(),
       }),
     });
 

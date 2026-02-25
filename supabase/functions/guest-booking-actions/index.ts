@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
@@ -333,6 +333,7 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
       })}
     `;
 
+    const cancelHtml = baseEmailTemplate({ content: emailContent });
     // Notify host
     await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -343,13 +344,15 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
       body: JSON.stringify({
         from: EMAIL_SENDERS.bookings,
         to: [hostProfile.email],
-        subject: `Booking Cancelled - ${booking.guest_name}`,
-        html: baseEmailTemplate({ content: emailContent }),
+        subject: `Booking Cancelled — ${booking.guest_name}`,
+        html: cancelHtml,
+        text: htmlToPlainText(cancelHtml),
+        headers: getEmailHeaders(),
       }),
     });
 
-    // Notify booker if cancelled by guest
     if (context.type === 'guest') {
+      const cancelGuestHtml = baseEmailTemplate({ content: emailContent });
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -359,8 +362,10 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
         body: JSON.stringify({
           from: EMAIL_SENDERS.bookings,
           to: [booking.guest_email],
-          subject: `Booking Cancelled by Guest - ${booking.booking_links.title}`,
-          html: baseEmailTemplate({ content: emailContent }),
+          subject: `Booking Cancelled by Guest — ${booking.booking_links.title}`,
+          html: cancelGuestHtml,
+          text: htmlToPlainText(cancelGuestHtml),
+          headers: getEmailHeaders(),
         }),
       });
     }
@@ -473,6 +478,13 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
         ${Paragraph('Log in to your scheduling dashboard to accept, decline, or counter-propose.', 'secondary')}
       `;
 
+      const proposalHtml = baseEmailTemplate({
+            preheader: `${context.name || context.email} proposed a new time for ${booking.booking_links.title}`,
+            content: emailContent,
+            showHeader: true,
+            showFooter: true,
+          });
+
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -483,12 +495,9 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
           from: EMAIL_SENDERS.bookings,
           to: [hostProfile.email],
           subject: `New Time Proposal for ${booking.booking_links.title}`,
-          html: baseEmailTemplate({
-            preheader: `${context.name || context.email} proposed a new time for ${booking.booking_links.title}`,
-            content: emailContent,
-            showHeader: true,
-            showFooter: true,
-          }),
+          html: proposalHtml,
+          text: htmlToPlainText(proposalHtml),
+          headers: getEmailHeaders(),
         }),
       });
     }
@@ -633,6 +642,7 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
         ${Paragraph('You can manage your participation using the link above.', 'muted')}
       `;
 
+      const addGuestHtml = baseEmailTemplate({ content: emailContent });
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -642,8 +652,10 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
         body: JSON.stringify({
           from: EMAIL_SENDERS.bookings,
           to: [newGuestEmail],
-          subject: `You're invited: ${booking.booking_links.title} - ${formattedDate}`,
-          html: baseEmailTemplate({ content: emailContent }),
+          subject: `You're invited: ${booking.booking_links.title} — ${formattedDate}`,
+          html: addGuestHtml,
+          text: htmlToPlainText(addGuestHtml),
+          headers: getEmailHeaders(),
         }),
       });
 

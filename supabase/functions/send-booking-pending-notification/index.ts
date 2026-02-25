@@ -4,7 +4,7 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { 
   Heading, Paragraph, Spacer, Card, Button, InfoRow, StatusBadge 
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -128,8 +128,10 @@ const handler = async (req: Request): Promise<Response> => {
       const guestEmailResult = await resend.emails.send({
         from: EMAIL_SENDERS.bookings,
         to: [guestEmail],
-        subject: `Booking Request Received - ${bookingTitle}`,
+        subject: `Booking Request Received — ${bookingTitle}`,
         html: guestHtml,
+        text: htmlToPlainText(guestHtml),
+        headers: getEmailHeaders(),
       });
 
       console.log("[send-booking-pending-notification] Guest email sent:", guestEmailResult);
@@ -177,8 +179,10 @@ const handler = async (req: Request): Promise<Response> => {
       const hostEmailResult = await resend.emails.send({
         from: EMAIL_SENDERS.bookings,
         to: [hostEmail],
-        subject: `⚡ Approval Needed: ${guestName} wants to book ${bookingTitle}`,
+        subject: `Approval Needed: ${guestName} wants to book ${bookingTitle}`,
         html: hostHtml,
+        text: htmlToPlainText(hostHtml),
+        headers: getEmailHeaders(),
       });
 
       console.log("[send-booking-pending-notification] Host email sent:", hostEmailResult);

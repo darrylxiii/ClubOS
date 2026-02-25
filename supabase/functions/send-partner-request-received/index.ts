@@ -7,7 +7,7 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow,
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -92,6 +92,8 @@ Deno.serve(async (req) => {
         to: [email],
         subject: 'Partner Request Received — The Quantum Club',
         html: htmlContent,
+        text: htmlToPlainText(htmlContent),
+        headers: getEmailHeaders(),
       }),
     });
 
