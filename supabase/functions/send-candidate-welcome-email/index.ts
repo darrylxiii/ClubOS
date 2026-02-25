@@ -97,6 +97,10 @@ serve(async (req) => {
         to: [candidateEmail],
         subject: 'Welcome to The Quantum Club',
         html: htmlContent,
+        headers: {
+          'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
       }),
     });
 
