@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { getAppUrl } from "../_shared/app-config.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, Button, AlertBox, InfoRow } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -123,7 +123,9 @@ serve(async (req) => {
           from: EMAIL_SENDERS.notifications,
           to: adminEmails,
           subject: `New ${type || 'partner'} request: ${name}`,
-          html: emailHtml
+          html: emailHtml,
+          text: htmlToPlainText(emailHtml),
+          headers: getEmailHeaders(),
         })
       });
 

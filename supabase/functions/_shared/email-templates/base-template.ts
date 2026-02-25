@@ -3,7 +3,7 @@
  * Light theme with Canva GIF header
  */
 
-import { EMAIL_HEADER_GIF, EMAIL_COLORS, COMPANY_NAME, SUPPORT_EMAIL, getEmailAppUrl } from '../email-config.ts';
+import { EMAIL_HEADER_GIF, EMAIL_COLORS, COMPANY_NAME, SUPPORT_EMAIL, COMPANY_ADDRESS, getEmailAppUrl } from '../email-config.ts';
 
 export interface BaseTemplateProps {
   preheader?: string;
@@ -122,7 +122,7 @@ export const baseEmailTemplate = ({
       }
 
       .bg-card {
-        background-color: rgba(255, 255, 255, 0.05) !important;
+        background-color: #1d1d1f !important;
         border: 1px solid #3D3426 !important;
       }
     }
@@ -197,7 +197,7 @@ export const baseEmailTemplate = ({
                   style="display: block; width: 100%; max-width: 600px; border: 0; outline: none; line-height: 0; font-size: 0;"
                 />
                 <!-- Fallback for image-blocked clients -->
-                <div style="display: none; padding: 40px; text-align: center; background: linear-gradient(180deg, #0E0E10 0%, #1a1a1c 100%);">
+                <div style="display: none; padding: 40px; text-align: center; background-color: #0E0E10;">
                   <div style="font-size: 22px; font-weight: 700; color: ${EMAIL_COLORS.gold}; letter-spacing: 1px;">
                     THE QUANTUM CLUB
                   </div>
@@ -233,6 +233,9 @@ export const baseEmailTemplate = ({
                       <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Support</a>
                       <span style="color: #cccccc;">&nbsp;•&nbsp;</span>
                       <a href="${appUrl}/privacy" style="color: ${EMAIL_COLORS.gold}; text-decoration: none;">Privacy</a>
+                    </p>
+                    <p style="margin: 0 0 8px 0; font-size: 11px; color: #aaaaaa;">
+                      ${COMPANY_ADDRESS}
                     </p>
                     <p style="margin: 0; font-size: 11px; color: #aaaaaa;">
                       © ${currentYear} ${COMPANY_NAME}. All rights reserved.

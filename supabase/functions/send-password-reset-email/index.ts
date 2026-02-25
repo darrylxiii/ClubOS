@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Heading, Paragraph, Spacer, CodeBox, Card, InfoRow, Divider, AlertBox } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -126,8 +126,10 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: EMAIL_SENDERS.security,
         to: [email],
-        subject: "🔐 Reset Your Password - The Quantum Club",
+        subject: "Reset Your Password — The Quantum Club",
         html,
+        text: htmlToPlainText(html),
+        headers: getEmailHeaders(),
       }),
     });
 

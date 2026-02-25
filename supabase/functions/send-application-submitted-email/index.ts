@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, StatusBadge,
@@ -98,7 +98,7 @@ serve(async (req) => {
         </tr>
       </table>
       ${Spacer(24)}
-      ${Paragraph(`Questions? Contact us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a>`, 'muted')}
+      ${Paragraph(`Questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_COLORS.gold};">${SUPPORT_EMAIL}</a>`, 'muted')}
     `;
 
     const htmlContent = baseEmailTemplate({
@@ -120,6 +120,8 @@ serve(async (req) => {
           to: [email],
           subject,
           html: htmlContent,
+          text: htmlToPlainText(htmlContent),
+          headers: getEmailHeaders(),
         }),
       });
 

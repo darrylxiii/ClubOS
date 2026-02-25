@@ -5,7 +5,7 @@
 
 import { baseEmailTemplate } from './email-templates/base-template.ts';
 import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from './email-templates/components.ts';
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from './email-config.ts';
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from './email-config.ts';
 
 interface MentionEmailData {
   recipientName: string;
@@ -251,6 +251,7 @@ export async function sendMentionEmail(data: MentionEmailData): Promise<boolean>
         subject: `${data.mentionedBy} mentioned you in a note`,
         html: generateMentionEmailHTML(data),
         text: generateMentionEmailText(data),
+        headers: getEmailHeaders(),
       }),
     });
     
@@ -295,6 +296,7 @@ export async function sendInterviewReminderEmail(data: InterviewReminderData): P
         subject: `Reminder: ${data.interviewTitle} with ${data.companyName}`,
         html: generateInterviewReminderEmailHTML(data),
         text: generateInterviewReminderEmailText(data),
+        headers: getEmailHeaders(),
       }),
     });
     
@@ -338,6 +340,8 @@ export async function sendGenericEmail(data: GenericEmailData): Promise<boolean>
         to: data.recipientEmail,
         subject: data.subject,
         html: generateGenericEmailHTML(data),
+        text: htmlToPlainText(generateGenericEmailHTML(data)),
+        headers: getEmailHeaders(),
       }),
     });
     

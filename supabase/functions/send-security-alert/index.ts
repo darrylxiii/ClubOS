@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, AlertBox, InfoRow } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -146,8 +146,10 @@ serve(async (req) => {
     const emailResult = await resend.emails.send({
       from: EMAIL_SENDERS.security,
       to: [config.email],
-      subject: `${severityEmoji[body.severity]} [${body.severity.toUpperCase()}] Security Alert: ${body.threat_type}`,
-      html: htmlContent
+      subject: `[${body.severity.toUpperCase()}] Security Alert: ${body.threat_type}`,
+      html: htmlContent,
+      text: htmlToPlainText(htmlContent),
+      headers: getEmailHeaders(),
     });
 
     console.log('[send-security-alert] Email sent:', emailResult);

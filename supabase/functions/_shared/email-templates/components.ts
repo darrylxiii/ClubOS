@@ -1,6 +1,7 @@
 /**
  * Reusable Email Components - Quantum Club Design System
  * Professional, accessible, and client-compatible
+ * All rgba() replaced with solid hex for Outlook compatibility
  */
 
 import { EMAIL_COLORS, PLATFORM_ICONS, getEmailAppUrl } from '../email-config.ts';
@@ -21,7 +22,7 @@ export const Button = ({ url, text, variant = 'primary' }: ButtonProps): string 
       bg: EMAIL_COLORS.gold,
       text: EMAIL_COLORS.eclipse,
       border: 'none',
-      shadow: '0 4px 12px rgba(201, 162, 78, 0.3)',
+      shadow: 'none',
     },
     secondary: {
       bg: 'transparent',
@@ -33,7 +34,7 @@ export const Button = ({ url, text, variant = 'primary' }: ButtonProps): string 
       bg: EMAIL_COLORS.success,
       text: '#ffffff',
       border: 'none',
-      shadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+      shadow: 'none',
     },
   };
 
@@ -49,7 +50,7 @@ export const Button = ({ url, text, variant = 'primary' }: ButtonProps): string 
     </v:roundrect>
     <![endif]-->
     <!--[if !mso]><!-->
-    <a href="${url}" style="display: inline-block; padding: 14px 28px; background-color: ${s.bg}; color: ${s.text}; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; border: ${s.border}; box-shadow: ${s.shadow}; mso-hide: all;">
+    <a href="${url}" style="display: inline-block; padding: 14px 28px; background-color: ${s.bg}; color: ${s.text}; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; border: ${s.border}; mso-hide: all;">
       ${text}
     </a>
     <!--<![endif]-->
@@ -69,11 +70,12 @@ export const Card = ({ content, variant = 'default' }: CardProps): string => {
     success: `2px solid ${EMAIL_COLORS.success}`,
   };
 
+  // Solid hex replacements for rgba() — Outlook compatible
   const backgrounds = {
     default: '#f5f5f5',
-    highlight: 'rgba(201, 162, 78, 0.06)',
-    warning: 'rgba(245, 158, 11, 0.06)',
-    success: 'rgba(34, 197, 94, 0.06)',
+    highlight: '#faf6ed',
+    warning: '#fef9ec',
+    success: '#edfdf3',
   };
 
   return `
@@ -134,7 +136,7 @@ export interface CodeBoxProps {
 
 export const CodeBox = ({ code, label }: CodeBoxProps): string => {
   return `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: rgba(201, 162, 78, 0.08); border: 2px dashed ${EMAIL_COLORS.gold}; border-radius: 16px; overflow: hidden;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f9f4e9; border: 2px dashed ${EMAIL_COLORS.gold}; border-radius: 16px; overflow: hidden;">
       <tr>
         <td style="padding: 32px; text-align: center;">
           ${label ? `
@@ -189,7 +191,7 @@ export const Divider = ({ spacing = 'medium' }: DividerProps): string => {
 };
 
 // ============================================
-// SMART COMPONENTS (New)
+// SMART COMPONENTS
 // ============================================
 
 export interface VideoCallCardProps {
@@ -211,18 +213,16 @@ export const VideoCallCard = ({
   dialIn,
   instructions,
 }: VideoCallCardProps): string => {
-  // For club_meetings, use text-based "QC" badge instead of large logo
   const isClubMeetings = platform === 'club_meetings';
   const platformIcon = PLATFORM_ICONS[platform as keyof typeof PLATFORM_ICONS] || PLATFORM_ICONS.club_meetings;
   const defaultInstructions = instructions || 'Click the button below to join the video call.';
   
-  // QC badge for Club Meetings, regular icon for other platforms
   const iconHtml = isClubMeetings 
     ? `<div style="width: 40px; height: 40px; border-radius: 10px; background-color: ${EMAIL_COLORS.gold}; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 16px; color: ${EMAIL_COLORS.eclipse};">QC</div>`
     : `<img src="${platformIcon}" alt="${platformName}" width="40" height="40" style="display: block; border-radius: 8px;" />`;
   
   return `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%); border-radius: 16px; overflow: hidden; border: 1px solid rgba(99, 102, 241, 0.2); margin: 24px 0;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #eef3fe; border-radius: 16px; overflow: hidden; border: 1px solid #c7d2f5; margin: 24px 0;">
       <tr>
         <td style="padding: 28px;">
           <!-- Platform Header -->
@@ -244,12 +244,12 @@ export const VideoCallCard = ({
           
           <!-- Join Button -->
           <div style="margin-top: 24px; text-align: center;">
-            ${Button({ url: joinUrl, text: '📹 Join Meeting', variant: 'primary' })}
+            ${Button({ url: joinUrl, text: 'Join Meeting', variant: 'primary' })}
           </div>
           
           ${meetingId || password || dialIn ? `
           <!-- Meeting Details -->
-          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 13px;">
               ${meetingId ? `
                 <tr>
@@ -311,7 +311,7 @@ export const AttendeeList = ({ attendees, maxShow = 4 }: AttendeeListProps): str
       ${displayed.map(a => `
         <tr>
           <td width="40" style="padding: 10px 0; vertical-align: middle;">
-            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: ${a.isOrganizer ? EMAIL_COLORS.gold : 'rgba(255,255,255,0.1)'}; text-align: center; line-height: 36px; color: ${a.isOrganizer ? EMAIL_COLORS.eclipse : EMAIL_COLORS.textPrimary}; font-weight: 600; font-size: 14px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background-color: ${a.isOrganizer ? EMAIL_COLORS.gold : '#e5e7eb'}; text-align: center; line-height: 36px; color: ${a.isOrganizer ? EMAIL_COLORS.eclipse : EMAIL_COLORS.textPrimary}; font-weight: 600; font-size: 14px;">
               ${a.name.charAt(0).toUpperCase()}
             </div>
           </td>
@@ -355,22 +355,27 @@ export const MeetingPrepCard = ({
   const appUrl = getEmailAppUrl();
   const guideUrl = prepGuideUrl || `${appUrl}/resources/interview-prep`;
   
+  // Table-based layout instead of ul/li for email client compatibility
   return `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: rgba(201, 162, 78, 0.06); border-radius: 12px; border-left: 4px solid ${EMAIL_COLORS.gold}; margin: 24px 0;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #faf6ed; border-radius: 12px; border-left: 4px solid ${EMAIL_COLORS.gold}; margin: 24px 0;">
       <tr>
         <td style="padding: 24px;">
           <div style="font-size: 15px; font-weight: 600; color: ${EMAIL_COLORS.gold}; margin-bottom: 16px;">
-            🎯 Prepare for Your Interview
+            Prepare for Your Interview
           </div>
-          <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8;">
-            ${companyName ? `<li>Research ${companyName}'s recent news and updates</li>` : '<li>Research the company culture and recent news</li>'}
-            ${interviewerName ? `<li>Prepare 3-5 thoughtful questions for ${interviewerName}</li>` : '<li>Prepare 3-5 thoughtful questions to ask</li>'}
-            <li>Test your video and audio 10 minutes before</li>
-            <li>Have your portfolio or work examples ready to share</li>
-          </ul>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 2px 0;">
+              ${companyName ? `• Research ${companyName}'s recent news and updates` : '• Research the company culture and recent news'}
+            </td></tr>
+            <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 2px 0;">
+              ${interviewerName ? `• Prepare 3-5 thoughtful questions for ${interviewerName}` : '• Prepare 3-5 thoughtful questions to ask'}
+            </td></tr>
+            <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 2px 0;">• Test your video and audio 10 minutes before</td></tr>
+            <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.8; padding: 2px 0;">• Have your portfolio or work examples ready to share</td></tr>
+          </table>
           <div style="margin-top: 20px;">
             <a href="${guideUrl}" style="color: ${EMAIL_COLORS.gold}; font-size: 13px; text-decoration: none; font-weight: 500;">
-              📚 Open Interview Prep Guide →
+              Open Interview Prep Guide →
             </a>
           </div>
         </td>
@@ -388,7 +393,6 @@ export interface CalendarButtonsProps {
 }
 
 export const CalendarButtons = ({ title, startDate, endDate, description = '', location = '' }: CalendarButtonsProps): string => {
-  // Format dates for calendar URLs
   const formatDateForCal = (date: Date): string => {
     return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
@@ -398,11 +402,11 @@ export const CalendarButtons = ({ title, startDate, endDate, description = '', l
   const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
   
   return `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: rgba(201, 162, 78, 0.05); border-radius: 16px; padding: 28px; border: 1px solid ${EMAIL_COLORS.border};">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #faf6ed; border-radius: 16px; padding: 28px; border: 1px solid ${EMAIL_COLORS.border};">
       <tr>
         <td align="center">
           <p style="margin: 0 0 20px 0; font-size: 16px; font-weight: 600; color: ${EMAIL_COLORS.textPrimary};">
-            📅 Add to Your Calendar
+            Add to Your Calendar
           </p>
           <table role="presentation" cellspacing="0" cellpadding="0" border="0">
             <tr>
@@ -426,8 +430,8 @@ export const CalendarButtons = ({ title, startDate, endDate, description = '', l
 
 export interface SchemaEventProps {
   name: string;
-  startDate: string; // ISO format
-  endDate: string;   // ISO format
+  startDate: string;
+  endDate: string;
   location?: string;
   description?: string;
   organizerName?: string;
@@ -478,7 +482,7 @@ export const SchemaEvent = ({
   `.trim();
 };
 
-// Status Badge Component
+// Status Badge Component — solid hex for Outlook
 export interface StatusBadgeProps {
   status: 'confirmed' | 'pending' | 'cancelled' | 'reminder' | 'new';
   text?: string;
@@ -486,11 +490,11 @@ export interface StatusBadgeProps {
 
 export const StatusBadge = ({ status, text }: StatusBadgeProps): string => {
   const configs = {
-    confirmed: { bg: 'rgba(34, 197, 94, 0.1)', border: 'rgba(34, 197, 94, 0.3)', color: '#22c55e', icon: '✓', label: 'CONFIRMED' },
-    pending: { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.3)', color: '#f59e0b', icon: '⏳', label: 'PENDING' },
-    cancelled: { bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.3)', color: '#ef4444', icon: '✕', label: 'CANCELLED' },
-    reminder: { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.3)', color: '#f59e0b', icon: '🔔', label: 'REMINDER' },
-    new: { bg: 'rgba(201, 162, 78, 0.1)', border: 'rgba(201, 162, 78, 0.3)', color: '#C9A24E', icon: '✓', label: 'NEW BOOKING' },
+    confirmed: { bg: '#e9faf0', border: '#a3e4b8', color: '#22c55e', icon: '✓', label: 'CONFIRMED' },
+    pending: { bg: '#fef7e6', border: '#f5d07a', color: '#f59e0b', icon: '⏳', label: 'PENDING' },
+    cancelled: { bg: '#fdeaea', border: '#f5a3a3', color: '#ef4444', icon: '✕', label: 'CANCELLED' },
+    reminder: { bg: '#fef7e6', border: '#f5d07a', color: '#f59e0b', icon: '🔔', label: 'REMINDER' },
+    new: { bg: '#f7f1e5', border: '#dbc68f', color: '#C9A24E', icon: '✓', label: 'NEW BOOKING' },
   };
   
   const config = configs[status];
@@ -509,7 +513,7 @@ export const StatusBadge = ({ status, text }: StatusBadgeProps): string => {
   `.trim();
 };
 
-// Alert Box Component
+// Alert Box Component — solid hex for Outlook
 export interface AlertBoxProps {
   type: 'info' | 'warning' | 'success' | 'error';
   title?: string;
@@ -518,10 +522,10 @@ export interface AlertBoxProps {
 
 export const AlertBox = ({ type, title, message }: AlertBoxProps): string => {
   const configs = {
-    info: { bg: 'rgba(59, 130, 246, 0.08)', border: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', icon: 'ℹ️' },
-    warning: { bg: 'rgba(245, 158, 11, 0.08)', border: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', icon: '⚠️' },
-    success: { bg: 'rgba(34, 197, 94, 0.08)', border: 'rgba(34, 197, 94, 0.2)', color: '#22c55e', icon: '✅' },
-    error: { bg: 'rgba(239, 68, 68, 0.08)', border: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', icon: '🚨' },
+    info: { bg: '#eef3fe', border: '#c7d2f5', color: '#3b82f6', icon: 'ℹ️' },
+    warning: { bg: '#fef7e6', border: '#f5d07a', color: '#f59e0b', icon: '⚠️' },
+    success: { bg: '#e9faf0', border: '#a3e4b8', color: '#22c55e', icon: '✅' },
+    error: { bg: '#fdeaea', border: '#f5a3a3', color: '#ef4444', icon: '🚨' },
   };
   
   const config = configs[type];

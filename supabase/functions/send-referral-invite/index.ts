@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer, InfoRow, StatusBadge } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -33,7 +33,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailContent = `
       ${StatusBadge({ status: 'new', text: 'YOU\'VE BEEN REFERRED' })}
-      ${Heading({ text: `${referrerName} thinks you'd be perfect for this role!`, level: 1, align: 'center' })}
+      ${Heading({ text: `${referrerName} thinks you would be a great fit for this role`, level: 1, align: 'center' })}
       ${Spacer(24)}
       ${Paragraph(`Hi ${friendName},`, 'primary')}
       ${Spacer(8)}
@@ -80,12 +80,10 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: EMAIL_SENDERS.referrals,
         to: [friendEmail],
-        subject: `${referrerName} thinks you'd be perfect for ${jobTitle} at ${companyName}`,
+        subject: `${referrerName} thinks you would be a great fit for ${jobTitle} at ${companyName}`,
         html,
-        headers: {
-          'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-        },
+        text: htmlToPlainText(html),
+        headers: getEmailHeaders(),
       }),
     });
 

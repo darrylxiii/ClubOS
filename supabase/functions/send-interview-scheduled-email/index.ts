@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, InfoRow, StatusBadge,
@@ -126,6 +126,8 @@ serve(async (req) => {
         to: [candidateEmail],
         subject: `Interview Confirmed — ${companyName || jobTitle || 'The Quantum Club'}`,
         html: htmlContent,
+        text: htmlToPlainText(htmlContent),
+        headers: getEmailHeaders(),
       }),
     });
 

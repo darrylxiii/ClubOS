@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -69,6 +69,13 @@ Deno.serve(async (req) => {
         ${Paragraph('This link will restore your progress. If you did not start this application, you can safely ignore this email.', 'muted')}
       `;
 
+      const emailHtml = baseEmailTemplate({
+            preheader: 'Pick up where you left off on your partner application',
+            content: emailContent,
+            showHeader: true,
+            showFooter: true,
+          });
+
       const emailResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -79,12 +86,9 @@ Deno.serve(async (req) => {
           from: EMAIL_SENDERS.partners,
           to: [email],
           subject: 'Resume Your Application — The Quantum Club',
-          html: baseEmailTemplate({
-            preheader: 'Pick up where you left off on your partner application',
-            content: emailContent,
-            showHeader: true,
-            showFooter: true,
-          }),
+          html: emailHtml,
+          text: htmlToPlainText(emailHtml),
+          headers: getEmailHeaders(),
         }),
       });
 
