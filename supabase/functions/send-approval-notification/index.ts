@@ -67,26 +67,73 @@ serve(async (req) => {
       }
     }
 
+    // ── Partner-specific emails: delegate to dedicated functions ──
+    if (requestType === 'partner') {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+      if (status === 'approved') {
+        // Partner approval is handled by provision-partner / approve-partner-request
+        // which call send-partner-welcome-email directly.
+        // If this function is called for a partner approval, delegate:
+        const welcomeResponse = await fetch(
+          `${supabaseUrl}/functions/v1/send-partner-welcome-email`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email,
+              fullName,
+              magicLink: loginUrl !== `${appUrl}/auth` ? loginUrl : undefined,
+              provisionMethod: 'magic_link',
+            }),
+          }
+        );
+        const welcomeResult = await welcomeResponse.json();
+        return new Response(JSON.stringify({ success: welcomeResult.success }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } else {
+        // Partner decline
+        const declineResponse = await fetch(
+          `${supabaseUrl}/functions/v1/send-partner-declined-email`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email,
+              contactName: fullName,
+              declineReason,
+            }),
+          }
+        );
+        const declineResult = await declineResponse.json();
+        return new Response(JSON.stringify({ success: declineResult.success }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // ── Candidate emails (original flow) ──
     const subject = status === 'approved'
       ? '🎉 Welcome to The Quantum Club!'
       : 'Update on Your Application';
 
-    // Build content using shared component system
     let emailContent: string;
 
     if (status === 'approved') {
-      const nextSteps = requestType === 'candidate'
-        ? [
-            'Your assigned strategist will contact you shortly (avg. response time: 19 minutes)',
-            'Schedule your initial consultation call',
-            'Get matched with exclusive opportunities',
-            'Access our full suite of career tools',
-          ]
-        : [
-            'Your assigned strategist will reach out shortly to discuss your hiring needs',
-            'Complete your company profile and post your first role',
-            'Access our vetted talent pool',
-          ];
+      const nextSteps = [
+        'Your assigned strategist will contact you shortly',
+        'Schedule your initial consultation call',
+        'Get matched with exclusive opportunities',
+        'Access our full suite of career tools',
+      ];
 
       emailContent = `
         ${StatusBadge({ status: 'confirmed', text: 'APPROVED' })}
@@ -94,17 +141,17 @@ serve(async (req) => {
         ${Spacer(24)}
         ${Paragraph(`Dear ${fullName},`, 'primary')}
         ${Spacer(8)}
-        ${Paragraph('Congratulations! We\'re thrilled to inform you that your application has been <strong style="color: #22c55e;">APPROVED</strong>. You are now a member of The Quantum Club\'s exclusive talent network.', 'secondary')}
+        ${Paragraph('Congratulations. Your application has been <strong style="color: #22c55e;">approved</strong>. You are now a member of The Quantum Club\'s exclusive talent network.', 'secondary')}
         ${Spacer(32)}
         ${Card({
           variant: 'highlight',
           content: `
-            ${Heading({ text: '✨ What\'s Next', level: 3 })}
+            ${Heading({ text: 'What\'s Next', level: 3 })}
             ${Spacer(12)}
             ${nextSteps.map(step => `
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 8px;">
                 <tr>
-                  <td style="font-size: 14px; color: #555555; line-height: 1.6;">• ${step}</td>
+                  <td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.6;">• ${step}</td>
                 </tr>
               </table>
             `).join('')}
@@ -121,13 +168,7 @@ serve(async (req) => {
         ${Spacer(16)}
         ${Paragraph('This link expires in 24 hours. After that, please use the regular login page.', 'muted')}
         ${Spacer(24)}
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 8px;">
-          <tr>
-            <td style="font-size: 14px; color: #888888; line-height: 1.6;">
-              Questions? Contact us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a>
-            </td>
-          </tr>
-        </table>
+        ${Paragraph(`Questions? Contact us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a>`, 'muted')}
         ${Spacer(24)}
         ${Paragraph('Welcome aboard,<br><strong>The Quantum Club Team</strong>', 'secondary')}
       `;
@@ -139,7 +180,7 @@ serve(async (req) => {
         ${Spacer(8)}
         ${Paragraph('Thank you for your interest in joining The Quantum Club.', 'secondary')}
         ${Spacer(8)}
-        ${Paragraph('After careful review, we\'ve decided not to move forward with your application at this time.', 'secondary')}
+        ${Paragraph('After careful review, we have decided not to move forward with your application at this time.', 'secondary')}
         ${declineReason ? `
           ${Spacer(24)}
           ${Card({
@@ -152,9 +193,9 @@ serve(async (req) => {
           })}
         ` : ''}
         ${Spacer(16)}
-        ${Paragraph(`We appreciate you taking the time to apply and wish you all the best in your ${requestType === 'candidate' ? 'career' : 'business'} journey.`, 'secondary')}
+        ${Paragraph('We appreciate you taking the time to apply and wish you all the best in your career journey.', 'secondary')}
         ${Spacer(8)}
-        ${Paragraph('If you have any questions, feel free to reach out to us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ' + EMAIL_COLORS.gold + ';">onboarding@verify.thequantumclub.nl</a>', 'muted')}
+        ${Paragraph(`If you have any questions, feel free to reach out to us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a>`, 'muted')}
         ${Spacer(24)}
         ${Paragraph('Best regards,<br><strong>The Quantum Club Team</strong>', 'secondary')}
       `;

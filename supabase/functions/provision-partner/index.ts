@@ -471,71 +471,58 @@ Deno.serve(async (req) => {
     }
 
     // ──────────────────────────────────────────────────────────
-    // Step 10: Welcome email
+    // Step 10: Welcome email via dedicated partner function
     // ──────────────────────────────────────────────────────────
     let welcomeEmailSent = false;
     if (resendApiKey && body.provisionMethod !== 'oauth_only') {
       try {
-        const emailContent = body.provisionMethod === 'magic_link' && magicLink
-          ? `
-            ${StatusBadge({ status: 'confirmed', text: 'PARTNER ACCESS GRANTED' })}
-            ${Heading({ text: 'Welcome to The Quantum Club', level: 1 })}
-            ${Spacer(24)}
-            ${Paragraph(`Dear ${body.fullName},`, 'primary')}
-            ${Spacer(8)}
-            ${Paragraph(`You've been personally invited to join The Quantum Club as a valued partner.${body.welcomeMessage ? `<br><br><em style="color: ${EMAIL_COLORS.gold};">"${body.welcomeMessage}"</em>` : ''}`, 'secondary')}
-            ${Spacer(32)}
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-              <tr><td align="center">${Button({ url: magicLink, text: 'Access Your Account', variant: 'primary' })}</td></tr>
-            </table>
-            ${Spacer(16)}
-            ${Paragraph('This link expires in 72 hours. If you have any questions, your dedicated strategist is ready to assist.', 'muted')}
-          `
-          : `
-            ${Heading({ text: 'Welcome to The Quantum Club', level: 1 })}
-            ${Spacer(24)}
-            ${Paragraph(`Dear ${body.fullName},`, 'primary')}
-            ${Spacer(8)}
-            ${Paragraph("You've been invited to join The Quantum Club as a partner. Please sign in using Google or request a magic link from your strategist.", 'secondary')}
-            ${Spacer(8)}
-            ${Paragraph('For security, temporary passwords are not sent via email.', 'muted')}
-          `;
-
-        const emailBody = baseEmailTemplate({
-          preheader: 'Welcome to The Quantum Club — your partner access is ready.',
-          content: emailContent,
-          showHeader: true,
-          showFooter: true,
-        });
-
-        const emailResponse = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: EMAIL_SENDERS.notifications,
-            to: body.email,
-            subject: 'Welcome to The Quantum Club - Your Partner Access',
-            html: emailBody
-          })
-        });
-
-        if (!emailResponse.ok) {
-          const errorBody = await emailResponse.text();
-          console.error('Resend email error:', emailResponse.status, errorBody);
+        // Resolve strategist name if assigned
+        let strategistName: string | undefined;
+        if (body.assignedStrategistId) {
+          const { data: strategist } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', body.assignedStrategistId)
+            .single();
+          strategistName = strategist?.full_name || undefined;
         }
-        welcomeEmailSent = emailResponse.ok;
-        
+
+        const welcomePayload = {
+          email: body.email,
+          fullName: body.fullName,
+          companyName: body.companyName || undefined,
+          magicLink: magicLink || undefined,
+          inviteCode,
+          welcomeMessage: body.welcomeMessage || undefined,
+          assignedStrategistName: strategistName,
+          provisionMethod: body.provisionMethod,
+        };
+
+        const welcomeResponse = await fetch(
+          `${supabaseUrl}/functions/v1/send-partner-welcome-email`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(welcomePayload),
+          }
+        );
+
+        const welcomeResult = await welcomeResponse.json();
+        welcomeEmailSent = welcomeResult.success === true;
+
         if (welcomeEmailSent) {
           await supabase
             .from('partner_provisioning_logs')
-            .update({ 
+            .update({
               welcome_email_sent: true,
               welcome_email_sent_at: new Date().toISOString()
             })
             .eq('provisioned_user_id', newUserId);
+        } else {
+          console.error('Partner welcome email failed:', welcomeResult);
         }
       } catch (emailError) {
         console.error('Email sending error:', emailError);
