@@ -4,7 +4,9 @@
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { EMAIL_SENDERS, EMAIL_COLORS, EMAIL_LOGOS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -72,7 +74,6 @@ serve(async (req) => {
 
     if (existingInterviewer) {
       interviewerId = existingInterviewer.id;
-      // Update last invited timestamp
       await supabase
         .from('external_interviewers')
         .update({ 
@@ -82,7 +83,6 @@ serve(async (req) => {
         })
         .eq('id', interviewerId);
     } else {
-      // Create new external interviewer record
       const { data: newInterviewer, error: createError } = await supabase
         .from('external_interviewers')
         .insert({
@@ -136,7 +136,6 @@ serve(async (req) => {
     const magicToken = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
 
-    // Store magic link token
     const { error: tokenError } = await supabase
       .from('external_interviewer_tokens')
       .insert({
@@ -149,7 +148,6 @@ serve(async (req) => {
 
     if (tokenError) {
       console.error('Token creation error:', tokenError);
-      // Continue anyway - might be table doesn't exist yet
     }
 
     // Get job and company details for email
@@ -171,72 +169,41 @@ serve(async (req) => {
       .eq('id', user.id)
       .single();
 
-    // Build magic link URL
     const appUrl = getEmailAppUrl();
     const magicLinkUrl = `${appUrl}/external-interview?token=${magicToken}&job=${jobId}`;
 
-    // Send invitation email
+    // Send invitation email using base template
     if (resendApiKey) {
-      const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: ${EMAIL_COLORS.eclipse};">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <tr>
-      <td style="text-align: center; padding-bottom: 32px;">
-        <img src="${EMAIL_LOGOS.cloverIcon}" alt="The Quantum Club" width="60" height="60" />
-      </td>
-    </tr>
-    <tr>
-      <td style="background: ${EMAIL_COLORS.cardBg}; border-radius: 12px; padding: 32px;">
-        <h1 style="color: ${EMAIL_COLORS.ivory}; font-size: 24px; margin: 0 0 16px;">
-          You're Invited to Interview
-        </h1>
-        <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-          ${inviterProfile?.full_name || 'A team member'} from <strong style="color: ${EMAIL_COLORS.ivory};">${company?.name || 'the hiring team'}</strong> 
-          has invited you to participate in the interview process for:
-        </p>
-        
-        <div style="background: ${EMAIL_COLORS.eclipse}; border-radius: 8px; padding: 20px; margin: 0 0 24px; border-left: 4px solid ${EMAIL_COLORS.gold};">
-          <h2 style="color: ${EMAIL_COLORS.ivory}; font-size: 18px; margin: 0;">
-            ${job?.title || 'Open Position'}
-          </h2>
-          <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 14px; margin: 8px 0 0;">
-            at ${company?.name}
-          </p>
-        </div>
-        
-        <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
-          Click the button below to access candidate profiles, review materials, and submit your interview feedback.
-          This link expires in <strong style="color: ${EMAIL_COLORS.ivory};">${expiresInDays} days</strong>.
-        </p>
-        
-        <a href="${magicLinkUrl}" 
-           style="display: inline-block; background: ${EMAIL_COLORS.gold}; color: ${EMAIL_COLORS.eclipse}; 
-                  padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-          Access Interview Portal
-        </a>
-        
-        <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 12px; margin: 24px 0 0;">
-          If the button doesn't work, copy this link:<br>
-          <a href="${magicLinkUrl}" style="color: ${EMAIL_COLORS.gold}; word-break: break-all;">${magicLinkUrl}</a>
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align: center; padding-top: 24px;">
-        <p style="color: ${EMAIL_COLORS.textSecondary}; font-size: 12px; margin: 0;">
-          This is a secure, time-limited invitation from The Quantum Club.
-        </p>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+      const positionTitle = job?.title || 'Open Position';
+      const companyName = company?.name || 'the hiring team';
+      const inviterName = inviterProfile?.full_name || 'A team member';
+
+      const emailContent = `
+        ${Heading({ text: "You're Invited to Interview", level: 1 })}
+        ${Spacer(16)}
+        ${Paragraph(`${inviterName} from <strong>${companyName}</strong> has invited you to participate in the interview process.`, 'secondary')}
+        ${Spacer(16)}
+        ${Card({
+          variant: 'highlight',
+          content: `
+            ${Heading({ text: positionTitle, level: 3 })}
+            ${Spacer(8)}
+            ${InfoRow({ icon: '🏢', label: 'Company', value: companyName })}
+            ${InfoRow({ icon: '⏳', label: 'Expires', value: `${expiresInDays} days` })}
+          `,
+        })}
+        ${Spacer(16)}
+        ${Paragraph('Click the button below to access candidate profiles, review materials, and submit your interview feedback.', 'secondary')}
+        ${Spacer(24)}
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <tr>
+            <td align="center">
+              ${Button({ url: magicLinkUrl, text: 'Access Interview Portal', variant: 'primary' })}
+            </td>
+          </tr>
+        </table>
+        ${Spacer(16)}
+        ${Paragraph(`If the button doesn\'t work, copy this link: <a href="${magicLinkUrl}" style="color: ${EMAIL_COLORS.gold}; word-break: break-all;">${magicLinkUrl}</a>`, 'muted')}
       `;
 
       const emailResponse = await fetch('https://api.resend.com/emails', {
@@ -248,8 +215,13 @@ serve(async (req) => {
         body: JSON.stringify({
           from: EMAIL_SENDERS.notifications,
           to: email,
-          subject: `You're invited to interview candidates for ${job?.title || 'a position'} at ${company?.name || 'a company'}`,
-          html: emailHtml,
+          subject: `You're invited to interview candidates for ${positionTitle} at ${companyName}`,
+          html: baseEmailTemplate({
+            preheader: `${inviterName} invited you to interview for ${positionTitle} at ${companyName}`,
+            content: emailContent,
+            showHeader: true,
+            showFooter: true,
+          }),
         }),
       });
 

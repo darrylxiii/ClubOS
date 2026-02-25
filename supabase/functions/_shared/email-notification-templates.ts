@@ -1,7 +1,11 @@
 /**
  * Email notification templates for The Quantum Club
- * Uses Resend for actual email delivery
+ * Uses baseEmailTemplate + component system for consistent branding
  */
+
+import { baseEmailTemplate } from './email-templates/base-template.ts';
+import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from './email-templates/components.ts';
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from './email-config.ts';
 
 interface MentionEmailData {
   recipientName: string;
@@ -38,166 +42,44 @@ interface InterviewReminderData {
 }
 
 /**
- * Generate base HTML email template with TQC branding
- */
-function generateBaseEmailHTML(content: string, footerText?: string): string {
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Quantum Club</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .container {
-      background: #0E0E10;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    }
-    .header {
-      background: linear-gradient(135deg, #C9A24E 0%, #B8924A 100%);
-      padding: 24px 32px;
-      text-align: center;
-    }
-    .header img {
-      height: 40px;
-      width: auto;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 20px;
-      color: #0E0E10;
-      font-weight: 600;
-    }
-    .content {
-      padding: 32px;
-      color: #F5F4EF;
-    }
-    .content p {
-      margin: 0 0 16px 0;
-      color: #F5F4EF;
-    }
-    .highlight-box {
-      background: rgba(201, 162, 78, 0.1);
-      border-left: 4px solid #C9A24E;
-      padding: 16px;
-      margin: 16px 0;
-      border-radius: 0 8px 8px 0;
-    }
-    .button {
-      display: inline-block;
-      padding: 14px 28px;
-      background: linear-gradient(135deg, #C9A24E 0%, #B8924A 100%);
-      color: #0E0E10;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      margin-top: 16px;
-      text-align: center;
-    }
-    .button:hover {
-      opacity: 0.9;
-    }
-    .footer {
-      padding: 24px 32px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      font-size: 12px;
-      color: #888;
-      text-align: center;
-    }
-    .footer a {
-      color: #C9A24E;
-      text-decoration: none;
-    }
-    .badge {
-      display: inline-block;
-      background: #C9A24E;
-      color: #0E0E10;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .tip-list {
-      list-style: none;
-      padding: 0;
-      margin: 16px 0;
-    }
-    .tip-list li {
-      padding: 8px 0;
-      padding-left: 24px;
-      position: relative;
-      color: #F5F4EF;
-    }
-    .tip-list li:before {
-      content: "✓";
-      position: absolute;
-      left: 0;
-      color: #C9A24E;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>The Quantum Club</h1>
-    </div>
-    ${content}
-    <div class="footer">
-      <p>${footerText || 'This is an automated notification from The Quantum Club.'}</p>
-      <p>
-        <a href="https://app.thequantumclub.com/settings?tab=notifications">Notification preferences</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>
-  `.trim();
-}
-
-/**
  * Generate HTML email for note mention notification
  */
 export function generateMentionEmailHTML(data: MentionEmailData): string {
+  const appUrl = getEmailAppUrl();
   const content = `
-    <div class="content">
-      <p>Hi <strong>${data.recipientName}</strong>,</p>
-      
-      <p>
-        <strong>${data.mentionedBy}</strong> mentioned you in a note about 
-        <strong>${data.candidateName}</strong>.
-      </p>
-      
-      <div class="highlight-box">
-        <em>"${data.noteExcerpt}"</em>
-      </div>
-      
-      <p>Click below to view the full note and respond:</p>
-      
-      <a href="${data.noteUrl}" class="button">
-        View Note →
-      </a>
-    </div>
+    ${Heading({ text: 'You Were Mentioned', level: 1 })}
+    ${Spacer(16)}
+    ${Paragraph(`Hi <strong>${data.recipientName}</strong>,`, 'primary')}
+    ${Spacer(8)}
+    ${Paragraph(`<strong>${data.mentionedBy}</strong> mentioned you in a note about <strong>${data.candidateName}</strong>.`, 'secondary')}
+    ${Spacer(16)}
+    ${Card({
+      variant: 'highlight',
+      content: `<em style="color: ${EMAIL_COLORS.textSecondary};">"${data.noteExcerpt}"</em>`,
+    })}
+    ${Spacer(24)}
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <tr>
+        <td align="center">
+          ${Button({ url: data.noteUrl, text: 'View Note', variant: 'primary' })}
+        </td>
+      </tr>
+    </table>
   `;
 
-  return generateBaseEmailHTML(content);
+  return baseEmailTemplate({
+    preheader: `${data.mentionedBy} mentioned you in a note about ${data.candidateName}`,
+    content,
+    showHeader: true,
+    showFooter: true,
+  });
 }
 
 /**
  * Generate plain text email for note mention notification
  */
 export function generateMentionEmailText(data: MentionEmailData): string {
+  const appUrl = getEmailAppUrl();
   return `
 You were mentioned in a note
 
@@ -213,7 +95,7 @@ ${data.noteUrl}
 
 ---
 This is an automated notification from The Quantum Club.
-Update your notification preferences: ${data.appUrl || 'https://app.thequantumclub.com'}/settings?tab=notifications
+Update your notification preferences: ${appUrl}/settings/notifications
   `.trim();
 }
 
@@ -221,43 +103,67 @@ Update your notification preferences: ${data.appUrl || 'https://app.thequantumcl
  * Generate HTML email for interview reminder
  */
 export function generateInterviewReminderEmailHTML(data: InterviewReminderData): string {
-  const interviewerSection = data.interviewerNames && data.interviewerNames.length > 0
-    ? `<p><strong>Interviewer${data.interviewerNames.length > 1 ? 's' : ''}:</strong> ${data.interviewerNames.join(', ')}</p>`
+  const interviewerInfo = data.interviewerNames && data.interviewerNames.length > 0
+    ? InfoRow({ icon: '👤', label: `Interviewer${data.interviewerNames.length > 1 ? 's' : ''}`, value: data.interviewerNames.join(', ') })
     : '';
 
-  const tipsSection = data.preparationTips && data.preparationTips.length > 0
-    ? `
-      <p><strong>Preparation Tips:</strong></p>
-      <ul class="tip-list">
-        ${data.preparationTips.map(tip => `<li>${tip}</li>`).join('')}
-      </ul>
-    `
+  const tipsHtml = data.preparationTips && data.preparationTips.length > 0
+    ? data.preparationTips.map(tip => `
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 8px;">
+          <tr><td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.6;">✓ ${tip}</td></tr>
+        </table>
+      `).join('')
     : '';
 
   const content = `
-    <div class="content">
-      <p>Hi <strong>${data.recipientName}</strong>,</p>
-      
-      <p>This is a reminder about your upcoming interview:</p>
-      
-      <div class="highlight-box">
-        <p><strong>${data.interviewTitle}</strong></p>
-        <p>📅 ${data.scheduledDate} at ${data.scheduledTime}</p>
-        <p>🏢 ${data.companyName}</p>
-        ${interviewerSection}
-      </div>
-      
-      ${tipsSection}
-      
-      ${data.meetingUrl ? `
-        <a href="${data.meetingUrl}" class="button">
-          Join Interview →
-        </a>
-      ` : ''}
-    </div>
+    ${Heading({ text: 'Interview Reminder', level: 1 })}
+    ${Spacer(16)}
+    ${Paragraph(`Hi <strong>${data.recipientName}</strong>,`, 'primary')}
+    ${Spacer(8)}
+    ${Paragraph('This is a reminder about your upcoming interview:', 'secondary')}
+    ${Spacer(16)}
+    ${Card({
+      variant: 'highlight',
+      content: `
+        ${Heading({ text: data.interviewTitle, level: 3 })}
+        ${Spacer(8)}
+        ${InfoRow({ icon: '📅', label: 'Date', value: data.scheduledDate })}
+        ${InfoRow({ icon: '🕐', label: 'Time', value: data.scheduledTime })}
+        ${InfoRow({ icon: '🏢', label: 'Company', value: data.companyName })}
+        ${interviewerInfo}
+      `,
+    })}
+    ${tipsHtml ? `
+      ${Spacer(24)}
+      ${Card({
+        variant: 'default',
+        content: `
+          ${Heading({ text: '🎯 Preparation Tips', level: 3 })}
+          ${Spacer(8)}
+          ${tipsHtml}
+        `,
+      })}
+    ` : ''}
+    ${data.meetingUrl ? `
+      ${Spacer(24)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: data.meetingUrl, text: 'Join Interview', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+    ` : ''}
+    ${Spacer(24)}
+    ${Paragraph('Good luck with your interview.', 'muted')}
   `;
 
-  return generateBaseEmailHTML(content, 'Good luck with your interview!');
+  return baseEmailTemplate({
+    preheader: `Reminder: ${data.interviewTitle} with ${data.companyName}`,
+    content,
+    showHeader: true,
+    showFooter: true,
+  });
 }
 
 /**
@@ -294,22 +200,29 @@ This is an automated notification from The Quantum Club.
  */
 export function generateGenericEmailHTML(data: GenericEmailData): string {
   const content = `
-    <div class="content">
-      <p>Hi <strong>${data.recipientName}</strong>,</p>
-      
-      <h2 style="color: #C9A24E; margin: 24px 0 16px 0;">${data.heading}</h2>
-      
-      <div style="white-space: pre-wrap;">${data.body}</div>
-      
-      ${data.ctaUrl && data.ctaLabel ? `
-        <a href="${data.ctaUrl}" class="button">
-          ${data.ctaLabel} →
-        </a>
-      ` : ''}
-    </div>
+    ${Heading({ text: data.heading, level: 1 })}
+    ${Spacer(16)}
+    ${Paragraph(`Hi <strong>${data.recipientName}</strong>,`, 'primary')}
+    ${Spacer(8)}
+    ${Paragraph(data.body, 'secondary')}
+    ${data.ctaUrl && data.ctaLabel ? `
+      ${Spacer(24)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: data.ctaUrl, text: data.ctaLabel, variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+    ` : ''}
   `;
 
-  return generateBaseEmailHTML(content, data.footerText);
+  return baseEmailTemplate({
+    preheader: data.preheader || data.heading,
+    content,
+    showHeader: true,
+    showFooter: true,
+  });
 }
 
 /**
@@ -333,7 +246,7 @@ export async function sendMentionEmail(data: MentionEmailData): Promise<boolean>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'The Quantum Club <notifications@thequantumclub.com>',
+        from: EMAIL_SENDERS.notifications,
         to: data.recipientEmail,
         subject: `${data.mentionedBy} mentioned you in a note`,
         html: generateMentionEmailHTML(data),
@@ -377,7 +290,7 @@ export async function sendInterviewReminderEmail(data: InterviewReminderData): P
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'The Quantum Club <notifications@thequantumclub.com>',
+        from: EMAIL_SENDERS.reminders,
         to: data.recipientEmail,
         subject: `Reminder: ${data.interviewTitle} with ${data.companyName}`,
         html: generateInterviewReminderEmailHTML(data),
@@ -421,7 +334,7 @@ export async function sendGenericEmail(data: GenericEmailData): Promise<boolean>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'The Quantum Club <notifications@thequantumclub.com>',
+        from: EMAIL_SENDERS.notifications,
         to: data.recipientEmail,
         subject: data.subject,
         html: generateGenericEmailHTML(data),

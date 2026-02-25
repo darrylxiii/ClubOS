@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -318,21 +319,18 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
     });
 
     const emailContent = `
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 8px 16px; background-color: #FEE2E2; color: #DC2626; border-radius: 8px; font-weight: 600; font-size: 14px;">
-          BOOKING CANCELLED BY ${context.type.toUpperCase()}
-        </div>
-      </div>
-      <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">
-        ${booking.booking_links.title} - Cancelled
-      </h1>
-      <p style="margin-bottom: 24px;">
-        <strong>${context.name || context.email}</strong> (${context.type}) has cancelled the booking.
-      </p>
-      <div style="padding: 16px; background-color: #f3f4f6; border-radius: 8px; margin-bottom: 24px;">
-        <p><strong>Date:</strong> ${formattedDate}</p>
-        <p><strong>Reason:</strong> ${cancelReason}</p>
-      </div>
+      ${StatusBadge({ status: 'cancelled', text: `CANCELLED BY ${context.type.toUpperCase()}` })}
+      ${Heading({ text: `${booking.booking_links.title} — Cancelled`, level: 1 })}
+      ${Spacer(16)}
+      ${Paragraph(`<strong>${context.name || context.email}</strong> (${context.type}) has cancelled the booking.`, 'secondary')}
+      ${Spacer(16)}
+      ${Card({
+        variant: 'default',
+        content: `
+          ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
+          ${InfoRow({ icon: '📝', label: 'Reason', value: cancelReason })}
+        `,
+      })}
     `;
 
     // Notify host
@@ -458,23 +456,21 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
       });
 
       const emailContent = `
-        <div style="text-align: center; margin-bottom: 32px;">
-          <div style="display: inline-block; padding: 8px 16px; background-color: #FEF3C7; color: #B45309; border-radius: 8px; font-weight: 600; font-size: 14px;">
-            NEW TIME PROPOSAL
-          </div>
-        </div>
-        <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">
-          Alternative Time Requested
-        </h1>
-        <p style="margin-bottom: 24px;">
-          <strong>${context.name || context.email}</strong> has proposed a new time for "${booking.booking_links.title}".
-        </p>
-        <div style="padding: 16px; background-color: #f3f4f6; border-radius: 8px; margin-bottom: 24px;">
-          <p><strong>Proposed Date:</strong> ${formattedDate}</p>
-          <p><strong>Proposed Time:</strong> ${formattedTime}</p>
-          ${proposalMessage ? `<p><strong>Message:</strong> ${proposalMessage}</p>` : ''}
-        </div>
-        <p>Log in to your scheduling dashboard to accept, decline, or counter-propose.</p>
+        ${StatusBadge({ status: 'pending', text: 'NEW TIME PROPOSAL' })}
+        ${Heading({ text: 'Alternative Time Requested', level: 1 })}
+        ${Spacer(16)}
+        ${Paragraph(`<strong>${context.name || context.email}</strong> has proposed a new time for "<strong>${booking.booking_links.title}</strong>".`, 'secondary')}
+        ${Spacer(16)}
+        ${Card({
+          variant: 'highlight',
+          content: `
+            ${InfoRow({ icon: '📅', label: 'Proposed Date', value: formattedDate })}
+            ${InfoRow({ icon: '🕐', label: 'Proposed Time', value: formattedTime })}
+            ${proposalMessage ? InfoRow({ icon: '💬', label: 'Message', value: proposalMessage }) : ''}
+          `,
+        })}
+        ${Spacer(16)}
+        ${Paragraph('Log in to your scheduling dashboard to accept, decline, or counter-propose.', 'secondary')}
       `;
 
       await fetch("https://api.resend.com/emails", {
@@ -486,8 +482,13 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
         body: JSON.stringify({
           from: EMAIL_SENDERS.bookings,
           to: [hostProfile.email],
-          subject: `⏰ New Time Proposal for ${booking.booking_links.title}`,
-          html: baseEmailTemplate({ content: emailContent }),
+          subject: `New Time Proposal for ${booking.booking_links.title}`,
+          html: baseEmailTemplate({
+            preheader: `${context.name || context.email} proposed a new time for ${booking.booking_links.title}`,
+            content: emailContent,
+            showHeader: true,
+            showFooter: true,
+          }),
         }),
       });
     }
@@ -606,31 +607,30 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
       const portalUrl = `${appUrl}/booking/${context.bookingId}/guest/${newGuest.access_token}`;
 
       const emailContent = `
-        <div style="text-align: center; margin-bottom: 32px;">
-          <div style="display: inline-block; padding: 8px 16px; background-color: #DBEAFE; color: #1D4ED8; border-radius: 8px; font-weight: 600; font-size: 14px;">
-            YOU'RE INVITED
-          </div>
-        </div>
-        <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">
-          ${booking.booking_links.title}
-        </h1>
-        <p style="margin-bottom: 24px;">
-          <strong>${bookingDetails.guest_name}</strong> has invited you to join a meeting.
-        </p>
-        <div style="padding: 16px; background-color: #f3f4f6; border-radius: 8px; margin-bottom: 24px;">
-          <p><strong>📅 Date:</strong> ${formattedDate}</p>
-          <p><strong>🕐 Time:</strong> ${formattedTime}</p>
-          <p><strong>👤 Host:</strong> ${hostProfile?.full_name || 'Your Host'}</p>
-          <p><strong>📧 Booked by:</strong> ${bookingDetails.guest_name}</p>
-        </div>
-        <div style="text-align: center; margin: 32px 0;">
-          <a href="${portalUrl}" style="display: inline-block; padding: 12px 24px; background-color: #C9A24E; color: #0E0E10; text-decoration: none; border-radius: 8px; font-weight: 600;">
-            View Booking Details
-          </a>
-        </div>
-        <p style="font-size: 14px; color: #6b7280; text-align: center;">
-          You can manage your participation using the link above.
-        </p>
+        ${StatusBadge({ status: 'new', text: "YOU'RE INVITED" })}
+        ${Heading({ text: booking.booking_links.title, level: 1 })}
+        ${Spacer(16)}
+        ${Paragraph(`<strong>${bookingDetails.guest_name}</strong> has invited you to join a meeting.`, 'secondary')}
+        ${Spacer(16)}
+        ${Card({
+          variant: 'highlight',
+          content: `
+            ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
+            ${InfoRow({ icon: '🕐', label: 'Time', value: formattedTime })}
+            ${InfoRow({ icon: '👤', label: 'Host', value: hostProfile?.full_name || 'Your Host' })}
+            ${InfoRow({ icon: '📧', label: 'Booked by', value: bookingDetails.guest_name })}
+          `,
+        })}
+        ${Spacer(24)}
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <tr>
+            <td align="center">
+              ${Button({ url: portalUrl, text: 'View Booking Details', variant: 'primary' })}
+            </td>
+          </tr>
+        </table>
+        ${Spacer(16)}
+        ${Paragraph('You can manage your participation using the link above.', 'muted')}
       `;
 
       await fetch("https://api.resend.com/emails", {
