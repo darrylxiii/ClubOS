@@ -18329,6 +18329,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_tracking_events: {
+        Row: {
+          clicked_url: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          recipient_email: string | null
+          resend_email_id: string
+          subject: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_url?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string | null
+          resend_email_id: string
+          subject?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_url?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string | null
+          resend_email_id?: string
+          subject?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       email_verifications: {
         Row: {
           code: string | null
