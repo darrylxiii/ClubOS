@@ -7,11 +7,13 @@
  * Get the app URL from environment or fallback to production
  */
 export function getAppUrl(): string {
-  return (
+  const raw =
     Deno.env.get('APP_URL') ||
     Deno.env.get('VITE_APP_URL') ||
-    'https://os.thequantumclub.com'
-  );
+    'https://os.thequantumclub.com';
+  // Ensure protocol is always present (guards against misconfigured secrets)
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  return `https://${raw}`;
 }
 
 /**

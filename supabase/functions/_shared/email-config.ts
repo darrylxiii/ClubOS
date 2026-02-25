@@ -75,7 +75,9 @@ export const EMAIL_HEADER_GIF = 'https://os.thequantumclub.com/email-header.gif'
 
 // App URLs - Production domain is bytqc.com
 export const getEmailAppUrl = (): string => {
-  return Deno.env.get('APP_URL') || 'https://os.thequantumclub.com';
+  const raw = Deno.env.get('APP_URL') || 'https://os.thequantumclub.com';
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  return `https://${raw}`;
 };
 
 // Support contact
