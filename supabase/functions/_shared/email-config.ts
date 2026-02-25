@@ -84,7 +84,7 @@ export const getEmailAppUrl = (): string => {
 export const SUPPORT_EMAIL = 'support@thequantumclub.nl';
 export const COMPANY_NAME = 'The Quantum Club';
 export const TAGLINE = 'Exclusive Talent Network';
-export const COMPANY_ADDRESS = 'Amsterdam, The Netherlands';
+export const COMPANY_ADDRESS = 'Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands';
 
 /**
  * Returns standard List-Unsubscribe headers for Resend emails.
