@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -129,23 +130,21 @@ serve(async (req) => {
           });
 
           const emailContent = `
-            <div style="text-align: center; margin-bottom: 32px;">
-              <div style="display: inline-block; padding: 8px 16px; background-color: #D1FAE5; color: #065F46; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                TIME PROPOSAL ACCEPTED
-              </div>
-            </div>
-            <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">
-              Your Proposed Time Was Accepted!
-            </h1>
-            <p style="margin-bottom: 24px;">
-              Great news! Your time proposal for "${proposal.bookings.booking_links.title}" has been accepted.
-            </p>
-            <div style="padding: 16px; background-color: #f3f4f6; border-radius: 8px; margin-bottom: 24px;">
-              <p><strong>📅 New Date:</strong> ${formattedDate}</p>
-              <p><strong>🕐 New Time:</strong> ${formattedTime}</p>
-              ${responseMessage ? `<p><strong>Message:</strong> ${responseMessage}</p>` : ''}
-            </div>
-            <p>Your calendar invite will be updated automatically.</p>
+            ${StatusBadge({ status: 'confirmed', text: 'TIME PROPOSAL ACCEPTED' })}
+            ${Heading({ text: 'Your Proposed Time Was Accepted', level: 1 })}
+            ${Spacer(16)}
+            ${Paragraph(`Great news. Your time proposal for "<strong>${proposal.bookings.booking_links.title}</strong>" has been accepted.`, 'secondary')}
+            ${Spacer(16)}
+            ${Card({
+              variant: 'success',
+              content: `
+                ${InfoRow({ icon: '📅', label: 'New Date', value: formattedDate })}
+                ${InfoRow({ icon: '🕐', label: 'New Time', value: formattedTime })}
+                ${responseMessage ? InfoRow({ icon: '💬', label: 'Message', value: responseMessage }) : ''}
+              `,
+            })}
+            ${Spacer(16)}
+            ${Paragraph('Your calendar invite will be updated automatically.', 'muted')}
           `;
 
           await fetch("https://api.resend.com/emails", {
@@ -157,8 +156,13 @@ serve(async (req) => {
             body: JSON.stringify({
               from: EMAIL_SENDERS.bookings,
               to: [proposal.proposed_by_email],
-              subject: `✅ Time Proposal Accepted - ${proposal.bookings.booking_links.title}`,
-              html: baseEmailTemplate({ content: emailContent }),
+              subject: `Time Proposal Accepted — ${proposal.bookings.booking_links.title}`,
+              html: baseEmailTemplate({
+                preheader: `Your proposed time for ${proposal.bookings.booking_links.title} was accepted`,
+                content: emailContent,
+                showHeader: true,
+                showFooter: true,
+              }),
             }),
           });
         }
@@ -184,23 +188,19 @@ serve(async (req) => {
         // Notify proposer
         if (resendApiKey) {
           const emailContent = `
-            <div style="text-align: center; margin-bottom: 32px;">
-              <div style="display: inline-block; padding: 8px 16px; background-color: #FEE2E2; color: #DC2626; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                TIME PROPOSAL DECLINED
-              </div>
-            </div>
-            <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">
-              Time Proposal Not Available
-            </h1>
-            <p style="margin-bottom: 24px;">
-              Unfortunately, your proposed time for "${proposal.bookings.booking_links.title}" could not be accommodated.
-            </p>
+            ${StatusBadge({ status: 'cancelled', text: 'TIME PROPOSAL DECLINED' })}
+            ${Heading({ text: 'Time Proposal Not Available', level: 1 })}
+            ${Spacer(16)}
+            ${Paragraph(`Unfortunately, your proposed time for "<strong>${proposal.bookings.booking_links.title}</strong>" could not be accommodated.`, 'secondary')}
             ${responseMessage ? `
-              <div style="padding: 16px; background-color: #f3f4f6; border-radius: 8px; margin-bottom: 24px;">
-                <p><strong>Message from host:</strong> ${responseMessage}</p>
-              </div>
+              ${Spacer(16)}
+              ${Card({
+                variant: 'default',
+                content: InfoRow({ icon: '💬', label: 'Message from host', value: responseMessage }),
+              })}
             ` : ''}
-            <p>The original meeting time remains unchanged. You may propose another time if needed.</p>
+            ${Spacer(16)}
+            ${Paragraph('The original meeting time remains unchanged. You may propose another time if needed.', 'muted')}
           `;
 
           await fetch("https://api.resend.com/emails", {
@@ -212,8 +212,13 @@ serve(async (req) => {
             body: JSON.stringify({
               from: EMAIL_SENDERS.bookings,
               to: [proposal.proposed_by_email],
-              subject: `Time Proposal Declined - ${proposal.bookings.booking_links.title}`,
-              html: baseEmailTemplate({ content: emailContent }),
+              subject: `Time Proposal Declined — ${proposal.bookings.booking_links.title}`,
+              html: baseEmailTemplate({
+                preheader: `Your proposed time for ${proposal.bookings.booking_links.title} could not be accommodated`,
+                content: emailContent,
+                showHeader: true,
+                showFooter: true,
+              }),
             }),
           });
         }
@@ -280,23 +285,21 @@ serve(async (req) => {
           });
 
           const emailContent = `
-            <div style="text-align: center; margin-bottom: 32px;">
-              <div style="display: inline-block; padding: 8px 16px; background-color: #FEF3C7; color: #B45309; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                COUNTER-PROPOSAL
-              </div>
-            </div>
-            <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">
-              Host Has Suggested a Different Time
-            </h1>
-            <p style="margin-bottom: 24px;">
-              The host could not accommodate your proposed time but has suggested an alternative.
-            </p>
-            <div style="padding: 16px; background-color: #f3f4f6; border-radius: 8px; margin-bottom: 24px;">
-              <p><strong>📅 Suggested Date:</strong> ${formattedDate}</p>
-              <p><strong>🕐 Suggested Time:</strong> ${formattedTime}</p>
-              ${responseMessage ? `<p><strong>Message:</strong> ${responseMessage}</p>` : ''}
-            </div>
-            <p>Please respond to let the host know if this time works for you.</p>
+            ${StatusBadge({ status: 'pending', text: 'COUNTER-PROPOSAL' })}
+            ${Heading({ text: 'Host Has Suggested a Different Time', level: 1 })}
+            ${Spacer(16)}
+            ${Paragraph('The host could not accommodate your proposed time but has suggested an alternative.', 'secondary')}
+            ${Spacer(16)}
+            ${Card({
+              variant: 'highlight',
+              content: `
+                ${InfoRow({ icon: '📅', label: 'Suggested Date', value: formattedDate })}
+                ${InfoRow({ icon: '🕐', label: 'Suggested Time', value: formattedTime })}
+                ${responseMessage ? InfoRow({ icon: '💬', label: 'Message', value: responseMessage }) : ''}
+              `,
+            })}
+            ${Spacer(16)}
+            ${Paragraph('Please respond to let the host know if this time works for you.', 'secondary')}
           `;
 
           await fetch("https://api.resend.com/emails", {
@@ -308,8 +311,13 @@ serve(async (req) => {
             body: JSON.stringify({
               from: EMAIL_SENDERS.bookings,
               to: [proposal.proposed_by_email],
-              subject: `⏰ Counter-Proposal - ${proposal.bookings.booking_links.title}`,
-              html: baseEmailTemplate({ content: emailContent }),
+              subject: `Counter-Proposal — ${proposal.bookings.booking_links.title}`,
+              html: baseEmailTemplate({
+                preheader: `The host suggested a different time for ${proposal.bookings.booking_links.title}`,
+                content: emailContent,
+                showHeader: true,
+                showFooter: true,
+              }),
             }),
           });
         }

@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
               mentionedBy: creator?.full_name || 'A team member',
               candidateName,
               noteExcerpt: noteExcerpt || 'View the full note for details.',
-              noteUrl: `https://app.thequantumclub.com/candidate/${candidateId}?tab=team-assessment&section=notes&noteId=${noteId}`,
+              noteUrl: `https://os.thequantumclub.com/candidate/${candidateId}?tab=team-assessment&section=notes&noteId=${noteId}`,
             });
             
             console.log('[mention-notification] Email sent to', user.email, ':', emailSent);

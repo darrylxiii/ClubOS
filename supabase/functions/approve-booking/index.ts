@@ -246,6 +246,47 @@ serve(async (req) => {
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
       if (resendApiKey) {
         try {
+          // Import email system dynamically
+          const { baseEmailTemplate } = await import("../_shared/email-templates/base-template.ts");
+          const { Heading, Paragraph, Spacer, Card, Button } = await import("../_shared/email-templates/components.ts");
+          const { EMAIL_SENDERS } = await import("../_shared/email-config.ts");
+
+          const meetingTitle = booking.booking_links?.title || "Meeting";
+          const bookingSlug = booking.booking_links?.slug;
+          const appUrl = Deno.env.get("APP_URL") || "https://os.thequantumclub.com";
+
+          const emailContent = `
+            ${Heading({ text: 'Booking Request Update', level: 1 })}
+            ${Spacer(16)}
+            ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+            ${Spacer(8)}
+            ${Paragraph(`Unfortunately, your booking request for <strong>${meetingTitle}</strong> could not be confirmed.`, 'secondary')}
+            ${rejectionReason ? `
+              ${Spacer(16)}
+              ${Card({
+                variant: 'default',
+                content: `
+                  <p style="margin: 0; font-size: 14px; font-weight: 600; color: ${(await import("../_shared/email-config.ts")).EMAIL_COLORS.textSecondary};">Reason</p>
+                  <p style="margin: 8px 0 0; font-size: 14px; color: ${(await import("../_shared/email-config.ts")).EMAIL_COLORS.textPrimary};">${rejectionReason}</p>
+                `,
+              })}
+            ` : ''}
+            ${Spacer(24)}
+            ${Paragraph('Please feel free to request a different time slot.', 'secondary')}
+            ${bookingSlug ? `
+              ${Spacer(16)}
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td align="center">
+                    ${Button({ url: `${appUrl}/book/${bookingSlug}`, text: 'Book Another Time', variant: 'primary' })}
+                  </td>
+                </tr>
+              </table>
+            ` : ''}
+            ${Spacer(24)}
+            ${Paragraph('Best regards,<br><strong>The Quantum Club</strong>', 'secondary')}
+          `;
+
           await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
@@ -253,16 +294,15 @@ serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              from: "The Quantum Club <bookings@thequantumclub.com>",
+              from: EMAIL_SENDERS.bookings,
               to: [booking.guest_email],
-              subject: `Booking Request Update - ${booking.booking_links?.title || "Meeting"}`,
-              html: `
-                <p>Hi ${booking.guest_name},</p>
-                <p>Unfortunately, your booking request for <strong>${booking.booking_links?.title || "the meeting"}</strong> could not be confirmed.</p>
-                ${rejectionReason ? `<p>Reason: ${rejectionReason}</p>` : ""}
-                <p>Please feel free to request a different time slot.</p>
-                <p>Best regards,<br>The Quantum Club</p>
-              `,
+              subject: `Booking Request Update - ${meetingTitle}`,
+              html: baseEmailTemplate({
+                preheader: `Your booking request for ${meetingTitle} could not be confirmed`,
+                content: emailContent,
+                showHeader: true,
+                showFooter: true,
+              }),
             }),
           });
         } catch (emailError) {

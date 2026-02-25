@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { EMAIL_SENDERS, EMAIL_LOGOS, EMAIL_COLORS, EMAIL_LOGO_SIZES } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import {
+  Heading, Paragraph, Spacer, Card, Button, StatusBadge,
+} from "../_shared/email-templates/components.ts";
 import { getAppUrl } from "../_shared/app-config.ts";
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
@@ -33,7 +37,6 @@ serve(async (req) => {
     const appUrl = getAppUrl();
     let accessToken = 'test-token-12345';
 
-    // For test mode, use a sample token. Otherwise, fetch from database
     if (!testMode && userId) {
       const supabaseAdmin = createClient(
         Deno.env.get('SUPABASE_URL')!,
@@ -48,135 +51,63 @@ serve(async (req) => {
 
       if (profileError) {
         console.error('[send-application-submitted-email] Error fetching profile:', profileError);
-        // Continue with test token for graceful degradation
       } else if (profile?.application_access_token) {
         accessToken = profile.application_access_token;
       }
     }
 
     const statusUrl = `${appUrl}/application/status/${accessToken}`;
+    const subject = 'Application Received — The Quantum Club';
 
-    const subject = '✅ Application Received - The Quantum Club';
+    const steps = [
+      'Your application will be reviewed (typically within 24–48 hours)',
+      'You\'ll receive an email with the decision',
+      'If approved, you\'ll get a direct login link to access your dashboard',
+    ];
 
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Received</title>
-  </head>
-  <body style="margin: 0; padding: 0; background-color: ${EMAIL_COLORS.eclipse}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: ${EMAIL_COLORS.eclipse};">
-      <tr>
-        <td align="center" style="padding: 40px 20px;">
-          <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
-            
-            <!-- Header with Logo -->
-            <tr>
-              <td align="center" style="padding-bottom: 32px;">
-                <img src="${EMAIL_LOGOS.fullBrand}" alt="The Quantum Club" width="${EMAIL_LOGO_SIZES.headerBrand}" style="display: block; max-width: ${EMAIL_LOGO_SIZES.headerBrand}px; height: auto;" />
-              </td>
-            </tr>
-            
-            <!-- Main Card -->
-            <tr>
-              <td style="background-color: ${EMAIL_COLORS.cardBg}; border-radius: 12px; border: 1px solid ${EMAIL_COLORS.border};">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                  
-                  <!-- Gold Accent Bar -->
-                  <tr>
-                    <td style="height: 4px; background-color: ${EMAIL_COLORS.gold}; border-radius: 12px 12px 0 0;"></td>
-                  </tr>
-                  
-                  <!-- Content -->
-                  <tr>
-                    <td style="padding: 40px 32px;">
-                      
-                      <!-- Title -->
-                      <h1 style="margin: 0 0 24px 0; font-size: 28px; font-weight: 600; color: ${EMAIL_COLORS.textPrimary}; text-align: center;">
-                        Application Received
-                      </h1>
-                      
-                      <!-- Greeting -->
-                      <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: ${EMAIL_COLORS.textPrimary};">
-                        Dear ${fullName},
-                      </p>
-                      
-                      <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: ${EMAIL_COLORS.textSecondary};">
-                        Thank you for applying to The Quantum Club. Your application has been successfully submitted and is now under review.
-                      </p>
-                      
-                      <!-- What's Next Box -->
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 24px 0;">
-                        <tr>
-                          <td style="background-color: rgba(201, 162, 78, 0.1); border-radius: 8px; padding: 20px; border-left: 3px solid ${EMAIL_COLORS.gold};">
-                            <p style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: ${EMAIL_COLORS.gold};">
-                              📋 What happens next:
-                            </p>
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                              <tr>
-                                <td style="padding: 6px 0; font-size: 14px; color: ${EMAIL_COLORS.textSecondary};">
-                                  <strong style="color: ${EMAIL_COLORS.textPrimary};">1.</strong> Darryl will review your application (typically within 24-48 hours)
-                                </td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 6px 0; font-size: 14px; color: ${EMAIL_COLORS.textSecondary};">
-                                  <strong style="color: ${EMAIL_COLORS.textPrimary};">2.</strong> You'll receive an email with the decision
-                                </td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 6px 0; font-size: 14px; color: ${EMAIL_COLORS.textSecondary};">
-                                  <strong style="color: ${EMAIL_COLORS.textPrimary};">3.</strong> If approved, you'll get a direct login link to access your dashboard
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                      </table>
-                      
-                      <!-- CTA Button -->
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 32px 0;">
-                        <tr>
-                          <td align="center">
-                            <a href="${statusUrl}" target="_blank" style="display: inline-block; background-color: ${EMAIL_COLORS.gold}; color: #000000; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px;">
-                              View Your Application Status
-                            </a>
-                          </td>
-                        </tr>
-                      </table>
-                      
-                      <p style="margin: 24px 0 0 0; font-size: 14px; line-height: 1.6; color: ${EMAIL_COLORS.textMuted}; text-align: center;">
-                        Questions? Contact us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a>
-                      </p>
-                      
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            
-            <!-- Footer -->
-            <tr>
-              <td style="padding: 32px 20px; text-align: center;">
-                <p style="margin: 0; font-size: 12px; color: ${EMAIL_COLORS.textMuted};">
-                  © 2025 The Quantum Club. All rights reserved.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px; color: ${EMAIL_COLORS.textMuted};">
-                  Exclusive Talent Network
-                </p>
-              </td>
-            </tr>
-            
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
+    const emailContent = `
+      ${StatusBadge({ status: 'confirmed', text: 'RECEIVED' })}
+      ${Heading({ text: 'Application Received', level: 1, align: 'center' })}
+      ${Spacer(24)}
+      ${Paragraph(`Dear ${fullName},`, 'primary')}
+      ${Spacer(8)}
+      ${Paragraph('Thank you for applying to The Quantum Club. Your application has been successfully submitted and is now under review.', 'secondary')}
+      ${Spacer(24)}
+      ${Card({
+        variant: 'highlight',
+        content: `
+          ${Heading({ text: 'What happens next', level: 3 })}
+          ${Spacer(12)}
+          ${steps.map((step, i) => `
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 8px;">
+              <tr>
+                <td style="font-size: 14px; color: ${EMAIL_COLORS.textSecondary}; line-height: 1.6;">
+                  <strong style="color: ${EMAIL_COLORS.textPrimary};">${i + 1}.</strong> ${step}
+                </td>
+              </tr>
+            </table>
+          `).join('')}
+        `,
+      })}
+      ${Spacer(32)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: statusUrl, text: 'View Your Application Status', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+      ${Spacer(24)}
+      ${Paragraph(`Questions? Contact us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a>`, 'muted')}
     `;
 
-    // Send email via Resend
+    const htmlContent = baseEmailTemplate({
+      preheader: 'Your application to The Quantum Club has been received and is under review.',
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
+
     if (RESEND_API_KEY) {
       const resendResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -187,7 +118,7 @@ serve(async (req) => {
         body: JSON.stringify({
           from: EMAIL_SENDERS.notifications,
           to: [email],
-          subject: subject,
+          subject,
           html: htmlContent,
         }),
       });

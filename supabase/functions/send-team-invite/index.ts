@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { EMAIL_SENDERS, EMAIL_COLORS, TAGLINE } from "../_shared/email-config.ts";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,7 +81,6 @@ serve(async (req) => {
       });
     }
 
-    // Fetch allowed domains for this company
     const { data: domainSettings, error: domainError } = await supabase
       .from('organization_domain_settings')
       .select('domain')
@@ -87,12 +89,10 @@ serve(async (req) => {
 
     if (domainError) {
       console.error('Error fetching domain settings:', domainError);
-      // Continue without domain validation if fetch fails
     }
 
     const allowedDomains = domainSettings?.map(d => d.domain.toLowerCase()) || [];
 
-    // Only enforce domain validation if domains are configured
     if (allowedDomains.length > 0 && !allowedDomains.includes(inviteeDomain)) {
       const allowedList = allowedDomains.map(d => `@${d}`).join(', ');
       return new Response(JSON.stringify({ 
@@ -103,42 +103,43 @@ serve(async (req) => {
       });
     }
 
-    // Get the site URL - support custom domains
     const siteUrl = Deno.env.get('SITE_URL') || 'https://os.thequantumclub.com';
     const signupUrl = `${siteUrl}/auth?invite=${body.inviteCode}`;
 
-    const emailHtml = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0E0E10; color: #F5F4EF;">
-        <div style="text-align: center; margin-bottom: 40px;">
-          <h1 style="color: #C9A24E; font-size: 28px; margin: 0; font-weight: 300;">The Quantum Club</h1>
-        </div>
-        
-        <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 32px; border: 1px solid rgba(201,162,78,0.2);">
-          <h2 style="color: #F5F4EF; font-size: 24px; margin: 0 0 16px 0;">You're Invited</h2>
-          
-          <p style="color: #A8A8A8; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-            ${body.inviterName ? `<strong style="color: #F5F4EF;">${body.inviterName}</strong> has invited you` : "You have been invited"} 
-            to join <strong style="color: #F5F4EF;">${body.companyName}</strong> on The Quantum Club as a <strong style="color: #C9A24E;">${body.role}</strong>.
-          </p>
-          
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${signupUrl}" style="display: inline-block; background: linear-gradient(135deg, #C9A24E 0%, #E5C87D 100%); color: #0E0E10; font-weight: 600; padding: 16px 40px; border-radius: 8px; text-decoration: none; font-size: 16px;">
-              Accept Invitation
-            </a>
-          </div>
-          
-          <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">
-            This invitation expires in 7 days. If you didn't expect this invitation, you can safely ignore this email.
-          </p>
-        </div>
-        
-        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 40px 0;" />
-        
-        <p style="color: #666; font-size: 12px; text-align: center; margin: 0;">
-          The Quantum Club · Elite Talent Network
-        </p>
-      </div>
+    const inviterLine = body.inviterName
+      ? `<strong>${body.inviterName}</strong> has invited you`
+      : 'You have been invited';
+
+    const emailContent = `
+      ${Heading({ text: "You're Invited", level: 1 })}
+      ${Spacer(16)}
+      ${Paragraph(`${inviterLine} to join <strong>${body.companyName}</strong> on The Quantum Club as a <strong style="color: ${EMAIL_COLORS.gold};">${body.role}</strong>.`, 'secondary')}
+      ${Spacer(24)}
+      ${Card({
+        variant: 'highlight',
+        content: `
+          ${InfoRow({ icon: '🏢', label: 'Company', value: body.companyName })}
+          ${InfoRow({ icon: '👤', label: 'Role', value: body.role })}
+        `,
+      })}
+      ${Spacer(32)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: signupUrl, text: 'Accept Invitation', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+      ${Spacer(16)}
+      ${Paragraph('This invitation expires in 7 days. If you didn\'t expect this invitation, you can safely ignore this email.', 'muted')}
     `;
+
+    const htmlContent = baseEmailTemplate({
+      preheader: `${body.inviterName || 'Someone'} invited you to join ${body.companyName} on The Quantum Club`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -147,10 +148,10 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'The Quantum Club <noreply@thequantumclub.nl>',
+        from: EMAIL_SENDERS.system,
         to: body.email,
         subject: `You're invited to join ${body.companyName} on The Quantum Club`,
-        html: emailHtml
+        html: htmlContent,
       })
     });
 

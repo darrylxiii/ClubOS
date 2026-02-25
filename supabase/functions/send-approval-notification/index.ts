@@ -77,13 +77,13 @@ serve(async (req) => {
     if (status === 'approved') {
       const nextSteps = requestType === 'candidate'
         ? [
-            'Darryl will contact you within 19 minutes (avg. response time)',
+            'Your assigned strategist will contact you shortly (avg. response time: 19 minutes)',
             'Schedule your initial consultation call',
             'Get matched with exclusive opportunities',
             'Access our full suite of career tools',
           ]
         : [
-            'Darryl will reach out within 19 minutes to discuss your hiring needs',
+            'Your assigned strategist will reach out shortly to discuss your hiring needs',
             'Complete your company profile and post your first role',
             'Access our vetted talent pool',
           ];
@@ -124,7 +124,7 @@ serve(async (req) => {
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 8px;">
           <tr>
             <td style="font-size: 14px; color: #888888; line-height: 1.6;">
-              Questions? Contact us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a> or reach out to Darryl directly at <a href="mailto:darryl@thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">darryl@thequantumclub.nl</a>
+              Questions? Contact us at <a href="mailto:onboarding@verify.thequantumclub.nl" style="color: ${EMAIL_COLORS.gold};">onboarding@verify.thequantumclub.nl</a>
             </td>
           </tr>
         </table>

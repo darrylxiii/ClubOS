@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
     const meetingTitle = booking.booking_links?.title || "meeting";
     
     const smsBody = `Reminder: Your ${meetingTitle} with ${hostName} is scheduled for ${formattedDate} at ${formattedTime}. ` +
-      `Manage your booking: ${Deno.env.get("APP_URL") || "https://thequantumclub.com"}/bookings/${booking.id}`;
+      `Manage your booking: ${Deno.env.get("APP_URL") || "https://os.thequantumclub.com"}/bookings/${booking.id}`;
 
     console.log(`Sending SMS to ${booking.guest_phone}`);
 
