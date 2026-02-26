@@ -16,11 +16,11 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
   const [loading, setLoading] = useState(false);
   const [briefing, setBriefing] = useState<any>(null);
 
-  const loadBriefing = async () => {
+  const loadBriefing = async (force = false) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('generate-executive-briefing', {
-        body: { candidateId, jobId }
+        body: { candidateId, jobId, force }
       });
 
       if (error) {
