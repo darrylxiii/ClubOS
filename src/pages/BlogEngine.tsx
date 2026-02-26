@@ -30,9 +30,17 @@ const BlogEngine: React.FC = () => {
     isSaving,
   } = useBlogEngineSettings();
 
-  const { queueItems, isLoading: queueLoading, generateArticle, isGenerating } = useBlogGeneration();
-
+  const { addToQueue, fetchQueue, isGenerating } = useBlogGeneration();
+  const [queueItems, setQueueItems] = useState<any[]>([]);
+  const [queueLoading, setQueueLoading] = useState(true);
   const [topicInput, setTopicInput] = useState('');
+
+  React.useEffect(() => {
+    fetchQueue().then((items) => {
+      setQueueItems(items);
+      setQueueLoading(false);
+    });
+  }, []);
 
   const handleToggleEngine = async () => {
     try {
