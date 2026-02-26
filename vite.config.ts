@@ -229,6 +229,7 @@ export default defineConfig(({ mode, command }) => ({
       'react-dom',
       'react/jsx-runtime',
       'react/jsx-dev-runtime',
+      'scheduler',
     ],
   },
   build: {
