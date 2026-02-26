@@ -31,6 +31,24 @@ Deno.serve(async (req) => {
       });
     }
 
+    // --- 2h TTL CACHE GUARD ---
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const cacheKey = `outreach_strategy_${industry || 'default'}_${target_persona || 'default'}`;
+    const { data: cached } = await supabase
+      .from('ai_generated_content')
+      .select('generated_content, created_at')
+      .eq('content_type', cacheKey)
+      .gte('created_at', twoHoursAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (cached) {
+      console.log('[outreach-strategy] Cache HIT from', cached.created_at);
+      return new Response(cached.generated_content, {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get performance benchmarks
     const { data: benchmarks } = await supabase
       .from('crm_campaign_benchmarks')

@@ -18,6 +18,24 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // --- 2h TTL CACHE GUARD ---
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const cacheKey = `predict_hiring_${jobId}`;
+    const { data: cached } = await supabase
+      .from('ai_generated_content')
+      .select('generated_content, created_at')
+      .eq('content_type', cacheKey)
+      .gte('created_at', twoHoursAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (cached) {
+      console.log('[predict-hiring] Cache HIT from', cached.created_at);
+      return new Response(cached.generated_content, {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Fetch job and applications data
     const { data: job } = await supabase
       .from('jobs')
