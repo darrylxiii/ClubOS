@@ -16,11 +16,11 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
   const [loading, setLoading] = useState(false);
   const [dossier, setDossier] = useState<any>(null);
 
-  const loadDossier = async () => {
+  const loadDossier = async (force = false) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('generate-candidate-dossier', {
-        body: { candidateId, jobId }
+        body: { candidateId, jobId, force }
       });
 
       if (error) throw error;
