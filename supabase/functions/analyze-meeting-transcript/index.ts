@@ -88,7 +88,7 @@ Be concise, professional, and focus on actionable insights.`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a meeting analysis expert. Always respond with valid JSON.' },
           { role: 'user', content: analysisPrompt }

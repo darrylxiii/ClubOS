@@ -190,7 +190,7 @@ Respond ONLY with valid JSON, no additional text.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an expert email analyst. Respond only with valid JSON.' },
           { role: 'user', content: prompt }

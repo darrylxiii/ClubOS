@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       // Use Lovable AI to translate
       const { data: aiData, error: aiError } = await supabase.functions.invoke('lovable-ai', {
         body: {
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-2.5-flash-lite',
           messages: [{
             role: 'user',
             content: `Translate this UI text to ${language}: "${key}". Return ONLY the translation, no explanation.`
