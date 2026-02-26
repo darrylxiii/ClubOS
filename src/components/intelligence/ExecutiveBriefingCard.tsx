@@ -64,7 +64,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
     return (
       <Card className="border-border/50">
         <CardContent className="pt-6">
-          <Button onClick={loadBriefing} variant="outline" className="w-full" size="sm">
+          <Button onClick={() => loadBriefing()} variant="outline" className="w-full" size="sm">
             <FileText className="h-4 w-4 mr-2" />
             Generate Executive Briefing
           </Button>
