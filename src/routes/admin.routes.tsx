@@ -146,6 +146,7 @@ export const adminRoutes = (
     {R("/admin/feature-control", FeatureControlCenter)}
     {R("/admin/greenhouse-sync", GreenhouseSync)}
     {R("/admin/avatar-control", AvatarControlHub)}
+    {R("/admin/blog-engine", BlogEngine)}
     
     {R("/talent-pool", TalentPool)}
     {R("/admin/talent-pool/lists", TalentPoolLists)}
