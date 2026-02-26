@@ -266,7 +266,12 @@ serve(async (req) => {
       jobHealthScores
     };
 
-    return new Response(JSON.stringify({ insights: aggregatedInsights }), {
+    const resultJson = JSON.stringify({ insights: aggregatedInsights });
+
+    // Cache result for 2 hours
+    await supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'predict_aggregated_auto' }).then(({ error }) => { if (error) console.warn('Cache write failed:', error.message); });
+
+    return new Response(resultJson, {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

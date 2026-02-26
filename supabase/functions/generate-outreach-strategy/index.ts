@@ -153,10 +153,12 @@ Respond with a JSON object:
       strategy = generateFallbackStrategy(industry, target_persona);
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      strategy,
-    }), {
+    const resultJson = JSON.stringify({ success: true, strategy });
+
+    // Cache result for 2 hours
+    await supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'outreach_strategy_auto' }).then(({ error: e }) => { if (e) console.warn('Cache write failed:', e.message); });
+
+    return new Response(resultJson, {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {

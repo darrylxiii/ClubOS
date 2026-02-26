@@ -228,24 +228,12 @@ Generate a JSON response with predictions:
       };
     }
 
-    return new Response(
-      JSON.stringify({ 
-        predictions,
-        error: null,
-        meta: {
-          jobId,
-          generatedAt: new Date().toISOString(),
-          dataPoints: {
-            applications: applications?.length || 0,
-            interviews: interviews?.length || 0,
-            historicalJobs: historicalJobs?.length || 0
-          }
-        }
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    const resultJson = JSON.stringify({ predictions, error: null, meta: { jobId, generatedAt: new Date().toISOString(), dataPoints: { applications: applications?.length || 0, interviews: interviews?.length || 0, historicalJobs: historicalJobs?.length || 0 } } });
+
+    // Cache result for 2 hours
+    await supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'predict_hiring_auto' }).then(({ error }) => { if (error) console.warn('Cache write failed:', error.message); });
+
+    return new Response(resultJson, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
     console.error('Error generating predictions:', error);

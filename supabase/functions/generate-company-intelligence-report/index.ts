@@ -339,11 +339,12 @@ Return ONLY valid JSON.`;
 
     logger.logSuccess(200, { company_id, company_name: company.name });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        report,
-      }),
+    const resultJson = JSON.stringify({ success: true, report });
+
+    // Cache result for 4 hours in ai_generated_content
+    await supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'intel_report_auto' }).then(({ error: e }) => { if (e) logger.warn('ai_generated_content cache write failed', { error: e.message }); });
+
+    return new Response(resultJson,
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
