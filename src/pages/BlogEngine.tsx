@@ -175,8 +175,8 @@ const BlogEngine: React.FC = () => {
                       <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
                         <div>
                           <p className="font-medium text-foreground">{item.topic}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {item.format} · {item.category}
+                        <p className="text-sm text-muted-foreground">
+                            {item.content_format || 'auto'} · {item.category}
                           </p>
                         </div>
                         <Badge variant={item.status === 'completed' ? 'default' : 'secondary'}>
