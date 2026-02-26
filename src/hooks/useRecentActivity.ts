@@ -118,8 +118,8 @@ export function useRecentActivity() {
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
         .slice(0, 15);
     },
-    refetchInterval: 60000,
+    refetchInterval: 300000,
     refetchIntervalInBackground: false,
-    staleTime: 30000
+    staleTime: 150000
   });
 }

@@ -79,9 +79,9 @@ export function UnreadMessagesWidget({ companyId, userId }: { companyId: string;
       return count || 0;
     },
     enabled: !!userId,
-    refetchInterval: 60000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 30000,
+    staleTime: 60000,
   });
 
   if (isLoading) {

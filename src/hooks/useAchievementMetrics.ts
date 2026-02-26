@@ -24,7 +24,8 @@ export const useAchievementMetrics = () => {
       if (error) throw error;
       return data as any as AchievementMetrics;
     },
-    refetchInterval: 60000,
+    refetchInterval: 300000,
+    refetchIntervalInBackground: false,
   });
 
   const { data: topAchievements, isLoading: topLoading } = useQuery({

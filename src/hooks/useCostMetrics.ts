@@ -143,7 +143,8 @@ export const useCostMetrics = () => {
       
       return { byFunction, totalLogs: data?.length || 0 };
     },
-    refetchInterval: 60000,
+    refetchInterval: 300000,
+    refetchIntervalInBackground: false,
   });
 
   // Fetch cron jobs from config

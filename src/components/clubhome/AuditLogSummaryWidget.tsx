@@ -75,9 +75,9 @@ export const AuditLogSummaryWidget = () => {
         hasUnusualActivity: sensitiveCount > 10 || failedCount > 5,
       };
     },
-    refetchInterval: 60000,
+    refetchInterval: 300000,
     refetchIntervalInBackground: false,
-    staleTime: 30000,
+    staleTime: 150000,
   });
 
   if (isLoading) {
