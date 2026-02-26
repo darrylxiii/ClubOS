@@ -41,9 +41,9 @@ export function OutreachActivityFeed() {
         .limit(10);
       return data || [];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 
   // Fetch hot leads
