@@ -252,7 +252,7 @@ Respond with JSON:
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a meeting assistant that detects topic transitions.' },
           { role: 'user', content: prompt }
