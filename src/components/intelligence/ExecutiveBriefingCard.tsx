@@ -231,7 +231,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
           </div>
         )}
 
-        <Button onClick={loadBriefing} variant="outline" size="sm" className="w-full">
+        <Button onClick={() => loadBriefing(true)} variant="outline" size="sm" className="w-full">
           <Sparkles className="h-4 w-4 mr-2" />
           Regenerate Briefing
         </Button>

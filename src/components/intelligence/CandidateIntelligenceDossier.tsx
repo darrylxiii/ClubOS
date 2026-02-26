@@ -285,7 +285,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
         </CardContent>
       </Card>
 
-      <Button onClick={loadDossier} variant="outline" className="w-full" size="sm">
+      <Button onClick={() => loadDossier(true)} variant="outline" className="w-full" size="sm">
         <Sparkles className="h-4 w-4 mr-2" />
         Regenerate Analysis
       </Button>
