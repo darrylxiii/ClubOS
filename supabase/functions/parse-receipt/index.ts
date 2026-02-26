@@ -97,7 +97,7 @@ Detect frequency: "monthly" | "annual" | "quarterly"`;
 
     const response = await fetchAI(
       {
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           {

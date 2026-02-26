@@ -18,6 +18,24 @@ serve(async (req) => {
 
     const { companyId } = await req.json();
 
+    // --- 2h TTL CACHE GUARD ---
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const cacheKey = `predict_aggregated_${companyId || 'all'}`;
+    const { data: cached } = await supabase
+      .from('ai_generated_content')
+      .select('generated_content, created_at')
+      .eq('content_type', cacheKey)
+      .gte('created_at', twoHoursAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (cached) {
+      console.log('[predict-aggregated] Cache HIT from', cached.created_at);
+      return new Response(cached.generated_content, {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Fetch all active jobs
     let jobsQuery = supabase
       .from('jobs')
@@ -248,7 +266,12 @@ serve(async (req) => {
       jobHealthScores
     };
 
-    return new Response(JSON.stringify({ insights: aggregatedInsights }), {
+    const resultJson = JSON.stringify({ insights: aggregatedInsights });
+
+    // Cache result for 2 hours
+    await supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'predict_aggregated_auto' }).then(({ error }) => { if (error) console.warn('Cache write failed:', error.message); });
+
+    return new Response(resultJson, {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

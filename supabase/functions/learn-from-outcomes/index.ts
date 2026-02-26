@@ -111,7 +111,7 @@ For each pattern, provide:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: "You are an expert at analyzing business communication patterns. Extract actionable insights from communication timelines." },
           { role: "user", content: analysisPrompt }

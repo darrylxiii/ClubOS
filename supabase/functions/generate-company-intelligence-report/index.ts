@@ -28,6 +28,24 @@ serve(async (req) => {
       throw new Error('company_id is required');
     }
 
+    // --- 4h TTL CACHE GUARD ---
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    const cacheKey = `intel_report_${company_id}`;
+    const { data: cached } = await supabase
+      .from('ai_generated_content')
+      .select('generated_content, created_at')
+      .eq('content_type', cacheKey)
+      .gte('created_at', fourHoursAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (cached) {
+      logger.info('Cache HIT for intelligence report', { company_id });
+      return new Response(cached.generated_content, {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     logger.info('Generating intelligence report', { company_id, period_days });
     logger.checkpoint('validated_input');
 
@@ -321,11 +339,12 @@ Return ONLY valid JSON.`;
 
     logger.logSuccess(200, { company_id, company_name: company.name });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        report,
-      }),
+    const resultJson = JSON.stringify({ success: true, report });
+
+    // Cache result for 4 hours in ai_generated_content
+    await supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'intel_report_auto' }).then(({ error: e }) => { if (e) logger.warn('ai_generated_content cache write failed', { error: e.message }); });
+
+    return new Response(resultJson,
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

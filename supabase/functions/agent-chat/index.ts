@@ -159,7 +159,7 @@ serve(async (req) => {
         "x-supabase-project-ref": supabaseUrl.split("//")[1]?.split(".")[0] || "",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemParts.join("\n") },
           ...conversationMessages,

@@ -125,7 +125,7 @@ Return ONLY valid JSON with this structure:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an expert sales email writer. Respond only with valid JSON.' },
           { role: 'user', content: prompt }

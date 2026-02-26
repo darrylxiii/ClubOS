@@ -73,7 +73,7 @@ Be specific, actionable, and encouraging. Tailor recommendations to the luxury e
         'Authorization': req.headers.get('Authorization') || '',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
