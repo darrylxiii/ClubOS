@@ -39,7 +39,6 @@ export default defineConfig(({ mode, command }) => ({
       'classnames',
     ],
     exclude: ['mermaid', 'katex'],
-    noDiscovery: true,
   },
   plugins: [
     react(),
