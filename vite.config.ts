@@ -232,7 +232,7 @@ export default defineConfig(({ mode, command }) => ({
     sourcemap: false,
     chunkSizeWarningLimit: 10000,
     target: 'esnext',
-    cssCodeSplit: false, // Single CSS file = less memory
+    cssCodeSplit: true,
     assetsInlineLimit: 0,
 
     rollupOptions: {
