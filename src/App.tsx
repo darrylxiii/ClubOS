@@ -339,6 +339,17 @@ const App = () => {
                   </PublicProviders>
                 } />
 
+                {/* Blog Routes (Public-ish, inside protected layout for nav) */}
+                <Route path="/blog" element={
+                  <Suspense fallback={<PageLoader />}><Blog /></Suspense>
+                } />
+                <Route path="/blog/:category" element={
+                  <Suspense fallback={<PageLoader />}><BlogCategory /></Suspense>
+                } />
+                <Route path="/blog/:category/:slug" element={
+                  <Suspense fallback={<PageLoader />}><BlogPost /></Suspense>
+                } />
+
                 {/* Protected Routes */}
                 <Route element={
                   <PublicProviders>
