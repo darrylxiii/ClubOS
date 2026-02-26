@@ -132,6 +132,12 @@ const LiveHub = lazy(() => import("./pages/LiveHub"));
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
 
+// Blog Pages
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const BlogCategory = lazy(() => import("./pages/BlogCategory"));
+const BlogEngine = lazy(() => import("./pages/BlogEngine"));
+
 // PageLoader is now imported from @/components/PageLoader
 
 // Initialize QueryClient
@@ -331,6 +337,17 @@ const App = () => {
                       <Suspense fallback={<PageLoader />}><MfaSetup /></Suspense>
                     </RouteErrorBoundary>
                   </PublicProviders>
+                } />
+
+                {/* Blog Routes (Public-ish, inside protected layout for nav) */}
+                <Route path="/blog" element={
+                  <Suspense fallback={<PageLoader />}><Blog /></Suspense>
+                } />
+                <Route path="/blog/:category" element={
+                  <Suspense fallback={<PageLoader />}><BlogCategory /></Suspense>
+                } />
+                <Route path="/blog/:category/:slug" element={
+                  <Suspense fallback={<PageLoader />}><BlogPost /></Suspense>
                 } />
 
                 {/* Protected Routes */}
