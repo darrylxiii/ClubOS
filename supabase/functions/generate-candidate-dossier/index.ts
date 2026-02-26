@@ -5,9 +5,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// In-memory dossier cache: keyed by candidateId+jobId, TTL 48h
-const dossierCache = new Map<string, { dossier: any; ts: number }>();
-const DOSSIER_CACHE_TTL_MS = 48 * 60 * 60 * 1000;
+// Simple hash for change detection
+function simpleHash(obj: unknown): string {
+  const str = JSON.stringify(obj);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return hash.toString(36);
+}
+
+const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -15,17 +25,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { candidateId, jobId } = await req.json();
-    
-    // === 48h IN-MEMORY CACHE GUARD ===
-    const cacheKey = `${candidateId}:${jobId}`;
-    const cached = dossierCache.get(cacheKey);
-    if (cached && Date.now() - cached.ts < DOSSIER_CACHE_TTL_MS) {
-      console.log(`[generate-dossier] Cache HIT for ${cacheKey}`);
-      return new Response(JSON.stringify({ dossier: cached.dossier, cached: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const { candidateId, jobId, force } = await req.json();
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -46,6 +46,42 @@ Deno.serve(async (req) => {
       supabase.from('experience').select('*').eq('candidate_id', candidateId),
       supabase.from('skills').select('*').eq('candidate_id', candidateId),
     ]);
+
+    // Compute data hash for change detection
+    const dataHash = simpleHash({
+      appStatus: application?.status,
+      stageIndex: application?.current_stage_index,
+      matchScore: application?.match_score,
+      feedbackCount: feedback?.length || 0,
+      feedbackRecs: feedback?.map(f => f.recommendation),
+      skillCount: skills?.length || 0,
+    });
+
+    // === DB CACHE CHECK ===
+    if (!force) {
+      const { data: cachedRow } = await supabase
+        .from('ai_generated_content')
+        .select('content, metadata')
+        .eq('content_type', 'candidate_dossier')
+        .eq('entity_id', `${candidateId}:${jobId}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cachedRow) {
+        const cachedMeta = cachedRow.metadata as any;
+        const cachedAt = cachedMeta?.cached_at ? new Date(cachedMeta.cached_at).getTime() : 0;
+        const isFresh = Date.now() - cachedAt < CACHE_TTL_MS;
+        const hashMatches = cachedMeta?.data_hash === dataHash;
+
+        if (isFresh || hashMatches) {
+          console.log(`[generate-dossier] Cache HIT (fresh=${isFresh}, hashMatch=${hashMatches})`);
+          return new Response(JSON.stringify({ dossier: cachedRow.content, cached: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+    }
 
     // Generate AI dossier
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -125,7 +161,6 @@ Generate a JSON response with this exact structure:
   "timeToProductivity": "fast|average|slow"
 }`;
 
-    // Downgraded from gemini-2.5-flash → gemini-2.5-flash-lite (structured JSON extraction task)
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -170,10 +205,15 @@ Generate a JSON response with this exact structure:
       };
     }
 
-    // Store in cache
-    dossierCache.set(cacheKey, { dossier, ts: Date.now() });
+    // Store in DB cache
+    await supabase.from('ai_generated_content').upsert({
+      content_type: 'candidate_dossier',
+      entity_id: `${candidateId}:${jobId}`,
+      content: dossier,
+      metadata: { data_hash: dataHash, cached_at: new Date().toISOString() },
+    }, { onConflict: 'content_type,entity_id' }).then(() => {});
 
-    return new Response(JSON.stringify({ dossier, rawData: { candidate, application, feedback, meetings, experience, skills } }), {
+    return new Response(JSON.stringify({ dossier }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
