@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,11 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
   const [loading, setLoading] = useState(false);
   const [dossier, setDossier] = useState<any>(null);
 
-  const loadDossier = async () => {
+  const loadDossier = async (force = false) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('generate-candidate-dossier', {
-        body: { candidateId, jobId }
+        body: { candidateId, jobId, force }
       });
 
       if (error) throw error;
@@ -34,9 +34,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
     }
   };
 
-  useEffect(() => {
-    loadDossier();
-  }, [candidateId, jobId]);
+  // Removed: useEffect auto-fire. Now on-demand only via button click.
 
   if (loading) {
     return (
@@ -53,7 +51,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
     return (
       <Card className="border-border/50">
         <CardContent className="pt-6">
-          <Button onClick={loadDossier} className="w-full">
+          <Button onClick={() => loadDossier()} className="w-full">
             <Brain className="h-4 w-4 mr-2" />
             Generate Intelligence Dossier
           </Button>
@@ -287,7 +285,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
         </CardContent>
       </Card>
 
-      <Button onClick={loadDossier} variant="outline" className="w-full" size="sm">
+      <Button onClick={() => loadDossier(true)} variant="outline" className="w-full" size="sm">
         <Sparkles className="h-4 w-4 mr-2" />
         Regenerate Analysis
       </Button>

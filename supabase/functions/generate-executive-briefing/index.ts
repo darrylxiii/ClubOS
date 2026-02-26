@@ -3,9 +3,19 @@ import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.t
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
-// In-memory 24h cache keyed by candidateId+jobId
-const briefingCache = new Map<string, { briefing: any; ts: number }>();
-const BRIEFING_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+// Simple hash for change detection
+function simpleHash(obj: unknown): string {
+  const str = JSON.stringify(obj);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return hash.toString(36);
+}
+
+const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -51,18 +61,7 @@ Deno.serve(async (req) => {
       return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
     }
 
-    const { candidateId, jobId } = await req.json();
-
-    // === 24h IN-MEMORY CACHE GUARD ===
-    const cacheKey = `${candidateId}:${jobId}`;
-    const cached = briefingCache.get(cacheKey);
-    if (cached && Date.now() - cached.ts < BRIEFING_CACHE_TTL_MS) {
-      console.log(`[generate-executive-briefing] Cache HIT for ${cacheKey}`);
-      await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, responseTimeMs: Date.now() - startTime, success: true });
-      return new Response(JSON.stringify({ briefing: cached.briefing, cached: true }), {
-        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const { candidateId, jobId, force } = await req.json();
 
     // Fetch candidate and application data in parallel
     const [{ data: candidate }, { data: application }, { data: feedback }] = await Promise.all([
@@ -70,6 +69,41 @@ Deno.serve(async (req) => {
       supabase.from('applications').select('*').eq('candidate_id', candidateId).eq('job_id', jobId).single(),
       supabase.from('interview_feedback').select('*').eq('candidate_id', candidateId).order('created_at', { ascending: false }),
     ]);
+
+    // Compute data hash for change detection
+    const dataHash = simpleHash({
+      matchScore: application?.match_score,
+      appStatus: application?.status,
+      feedbackCount: feedback?.length || 0,
+      feedbackRecs: feedback?.map(f => f.recommendation),
+    });
+
+    // === DB CACHE CHECK ===
+    if (!force) {
+      const { data: cachedRow } = await supabase
+        .from('ai_generated_content')
+        .select('content, metadata')
+        .eq('content_type', 'executive_briefing')
+        .eq('entity_id', `${candidateId}:${jobId}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cachedRow) {
+        const cachedMeta = cachedRow.metadata as any;
+        const cachedAt = cachedMeta?.cached_at ? new Date(cachedMeta.cached_at).getTime() : 0;
+        const isFresh = Date.now() - cachedAt < CACHE_TTL_MS;
+        const hashMatches = cachedMeta?.data_hash === dataHash;
+
+        if (isFresh || hashMatches) {
+          console.log(`[generate-executive-briefing] Cache HIT (fresh=${isFresh}, hashMatch=${hashMatches})`);
+          await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, responseTimeMs: Date.now() - startTime, success: true });
+          return new Response(JSON.stringify({ briefing: cachedRow.content, cached: true }), {
+            headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+    }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
@@ -103,7 +137,6 @@ Generate a JSON response:
 
     console.log('[generate-executive-briefing] Calling Lovable AI for candidate:', candidateId);
 
-    // Downgraded from gemini-2.5-flash → gemini-2.5-flash-lite (short structured JSON output)
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -159,8 +192,13 @@ Generate a JSON response:
       };
     }
 
-    // Store in cache
-    briefingCache.set(cacheKey, { briefing, ts: Date.now() });
+    // Store in DB cache
+    await supabase.from('ai_generated_content').upsert({
+      content_type: 'executive_briefing',
+      entity_id: `${candidateId}:${jobId}`,
+      content: briefing,
+      metadata: { data_hash: dataHash, cached_at: new Date().toISOString() },
+    }, { onConflict: 'content_type,entity_id' }).then(() => {});
 
     await logAIUsage({ userId, functionName: 'generate-executive-briefing', ...clientInfo, responseTimeMs: Date.now() - startTime, success: true });
 

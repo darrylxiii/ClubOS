@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,11 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
   const [loading, setLoading] = useState(false);
   const [briefing, setBriefing] = useState<any>(null);
 
-  const loadBriefing = async () => {
+  const loadBriefing = async (force = false) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('generate-executive-briefing', {
-        body: { candidateId, jobId }
+        body: { candidateId, jobId, force }
       });
 
       if (error) {
@@ -45,11 +45,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
     }
   };
 
-  useEffect(() => {
-    if (!compact) {
-      loadBriefing();
-    }
-  }, [candidateId, jobId, compact]);
+  // Removed: useEffect auto-fire. Now on-demand only via button click.
 
   if (loading) {
     return (
@@ -68,7 +64,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
     return (
       <Card className="border-border/50">
         <CardContent className="pt-6">
-          <Button onClick={loadBriefing} variant="outline" className="w-full" size="sm">
+          <Button onClick={() => loadBriefing()} variant="outline" className="w-full" size="sm">
             <FileText className="h-4 w-4 mr-2" />
             Generate Executive Briefing
           </Button>
@@ -105,7 +101,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
             <Clock className="h-3 w-3 text-muted-foreground" />
           </div>
           {!briefing ? (
-            <Button onClick={loadBriefing} variant="ghost" size="sm" className="w-full h-8">
+            <Button onClick={() => loadBriefing()} variant="ghost" size="sm" className="w-full h-8">
               Generate
             </Button>
           ) : (
@@ -235,7 +231,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
           </div>
         )}
 
-        <Button onClick={loadBriefing} variant="outline" size="sm" className="w-full">
+        <Button onClick={() => loadBriefing(true)} variant="outline" size="sm" className="w-full">
           <Sparkles className="h-4 w-4 mr-2" />
           Regenerate Briefing
         </Button>
