@@ -101,7 +101,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
             <Clock className="h-3 w-3 text-muted-foreground" />
           </div>
           {!briefing ? (
-            <Button onClick={loadBriefing} variant="ghost" size="sm" className="w-full h-8">
+            <Button onClick={() => loadBriefing()} variant="ghost" size="sm" className="w-full h-8">
               Generate
             </Button>
           ) : (

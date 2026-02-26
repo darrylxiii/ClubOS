@@ -51,7 +51,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
     return (
       <Card className="border-border/50">
         <CardContent className="pt-6">
-          <Button onClick={loadDossier} className="w-full">
+          <Button onClick={() => loadDossier()} className="w-full">
             <Brain className="h-4 w-4 mr-2" />
             Generate Intelligence Dossier
           </Button>
