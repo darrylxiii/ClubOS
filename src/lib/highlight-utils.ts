@@ -5,18 +5,14 @@ export function highlightText(text: string, query: string, className?: string): 
   if (!query || !text) return text;
 
   const parts = text.split(new RegExp(`(${query})`, 'gi'));
-  return (
-    <>
-      {parts.map((part, i) => 
-        part.toLowerCase() === query.toLowerCase() ? (
-          <span key={i} className={cn("bg-accent/20 text-accent rounded-sm px-0.5", className)}>
-            {part}
-          </span>
-        ) : (
-          part
-        )
-      )}
-    </>
+  return React.createElement(React.Fragment, null,
+    parts.map((part, i) => 
+      part.toLowerCase() === query.toLowerCase() ? (
+        React.createElement('span', { key: i, className: cn("bg-accent/20 text-accent rounded-sm px-0.5", className) }, part)
+      ) : (
+        part
+      )
+    )
   );
 }
 
