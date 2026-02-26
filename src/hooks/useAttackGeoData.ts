@@ -95,7 +95,8 @@ export function useAttackGeoData() {
 
       return results;
     },
-    refetchInterval: 30000,
+    refetchInterval: 300000,
+    refetchIntervalInBackground: false,
   });
 }
 

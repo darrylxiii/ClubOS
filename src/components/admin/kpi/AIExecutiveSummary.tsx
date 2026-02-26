@@ -30,18 +30,13 @@ export function AIExecutiveSummary({
   onRefresh,
   isRefreshing,
 }: AIExecutiveSummaryProps) {
-  // Safe domainHealth with fallback
   const safeDomainHealth = domainHealth || {};
   const safeAllKPIs = Array.isArray(allKPIs) ? allKPIs : [];
   
-  // Fetch Real AI Insights
-  const { data: aiInsights, isLoading: isAiLoading, refetch: refreshAi } = useKPIInsights(safeAllKPIs, Object.values(safeDomainHealth));
+  // On-demand AI insights via mutation
+  const { data: aiInsights, isPending: isAiLoading, mutate: generateInsights } = useKPIInsights();
 
   const insights = useMemo(() => {
-    // Fallback to rules-based if AI is loading or failed/null, 
-    // OR if we want to mix both (e.g. use AI for text, rules for counts)
-
-    // Use safe arrays for calculations
     const criticalKPIs = safeAllKPIs.filter(k => k?.status === 'critical');
     const warningKPIs = safeAllKPIs.filter(k => k?.status === 'warning');
     const improvingKPIs = safeAllKPIs.filter(k =>
@@ -53,8 +48,7 @@ export function AIExecutiveSummary({
       (k?.trendDirection === 'up' && k?.lowerIsBetter)
     );
 
-    // Use AI summary if available, otherwise fallback
-    const summaryText = aiInsights?.summary || "Analyzing KPI data...";
+    const summaryText = aiInsights?.summary || "Click 'Generate Insights' to get an AI-powered executive summary.";
 
     return {
       summary: summaryText,
@@ -62,19 +56,14 @@ export function AIExecutiveSummary({
       warningKPIs,
       improvingKPIs,
       decliningKPIs,
-      // Pass through recommendations if present
       aiRecommendations: aiInsights?.recommendations
     };
   }, [safeAllKPIs, safeDomainHealth, aiInsights]);
 
-
-  // Generate recommendations (Mix of AI and Rules)
   const recommendations = useMemo(() => {
     if (aiInsights?.recommendations) {
       return aiInsights.recommendations;
     }
-
-    // Fallback rules...
     const recs: { text: string; priority: 'high' | 'medium' | 'low'; action?: string }[] = [];
     insights.criticalKPIs.slice(0, 2).forEach(kpi => {
       recs.push({
@@ -85,6 +74,13 @@ export function AIExecutiveSummary({
     });
     return recs.slice(0, 4);
   }, [insights, aiInsights]);
+
+  const handleGenerateInsights = () => {
+    generateInsights({
+      kpis: safeAllKPIs,
+      domainHealth: Object.values(safeDomainHealth),
+    });
+  };
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 via-primary/0 to-transparent border-primary/20">
@@ -102,13 +98,13 @@ export function AIExecutiveSummary({
             </div>
           </div>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={onRefresh}
-            disabled={isRefreshing}
+            onClick={handleGenerateInsights}
+            disabled={isAiLoading || safeAllKPIs.length === 0}
           >
-            <RefreshCw className={cn("h-4 w-4 mr-1", isRefreshing && "animate-spin")} />
-            Refresh
+            <Sparkles className={cn("h-4 w-4 mr-1", isAiLoading && "animate-spin")} />
+            {isAiLoading ? 'Generating...' : aiInsights ? 'Refresh Insights' : 'Generate Insights'}
           </Button>
         </div>
       </CardHeader>

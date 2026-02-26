@@ -1,5 +1,5 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedKPI, DomainHealth } from './useUnifiedKPIs';
 
@@ -12,11 +12,9 @@ export interface KPIInsights {
     }[];
 }
 
-export function useKPIInsights(kpis: UnifiedKPI[], domainHealth: DomainHealth[]) {
-    return useQuery({
-        queryKey: ['kpi-insights', kpis.length], // Simple dependency tracking
-        queryFn: async () => {
-            // Only fetch if we have data
+export function useKPIInsights() {
+    return useMutation({
+        mutationFn: async ({ kpis, domainHealth }: { kpis: UnifiedKPI[]; domainHealth: DomainHealth[] }) => {
             if (kpis.length === 0) return null;
 
             const { data, error } = await supabase.functions.invoke('generate-kpi-insights', {
@@ -26,7 +24,7 @@ export function useKPIInsights(kpis: UnifiedKPI[], domainHealth: DomainHealth[])
                         value: k.value,
                         status: k.status,
                         criticalThreshold: k.criticalThreshold
-                    })), // Minimize payload
+                    })),
                     domainHealth
                 }
             });
@@ -34,8 +32,5 @@ export function useKPIInsights(kpis: UnifiedKPI[], domainHealth: DomainHealth[])
             if (error) throw error;
             return data as KPIInsights;
         },
-        enabled: kpis.length > 0,
-        staleTime: 1000 * 60 * 60, // Cache for 1 hour to save costs
-        retry: false
     });
 }

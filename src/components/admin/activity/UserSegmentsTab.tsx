@@ -35,7 +35,8 @@ export function UserSegmentsTab() {
       
       return deviceInfo || [];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
   });
 
   const { data: roleActivity } = useQuery({
@@ -58,7 +59,8 @@ export function UserSegmentsTab() {
         { name: 'Admins', value: admins, color: 'hsl(var(--chart-3))' },
       ];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
   });
 
   const deviceBreakdown = deviceData?.reduce((acc, item) => {

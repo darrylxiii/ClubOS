@@ -24,6 +24,57 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Parse request body for force flag
+    let forceRun = false;
+    try {
+      const body = await req.json();
+      forceRun = body?.force === true;
+    } catch { /* no body is fine */ }
+
+    // === GUARD CLAUSE: Skip if last heartbeat ran < 23h ago and processed 0 events ===
+    if (!forceRun) {
+      const twentyThreeHoursAgo = new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString();
+      const { data: lastRun } = await supabase
+        .from("agentic_heartbeat_log")
+        .select("events_processed, signals_detected, tasks_created, run_at")
+        .gte("run_at", twentyThreeHoursAgo)
+        .order("run_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastRun && lastRun.events_processed === 0 && lastRun.signals_detected === 0 && lastRun.tasks_created === 0) {
+        // Check if there's actually new work pending
+        const { count: pendingEvents } = await supabase
+          .from("agent_events")
+          .select("id", { count: "exact", head: true })
+          .eq("processed", false);
+
+        const { count: pendingMissions } = await supabase
+          .from("sourcing_missions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending");
+
+        if ((pendingEvents || 0) === 0 && (pendingMissions || 0) === 0) {
+          console.log("[Heartbeat] No-op: last run was idle and no new work pending. Skipping.");
+          // Log lightweight no-op
+          await supabase.from("agentic_heartbeat_log").insert({
+            run_type: "scheduled_noop",
+            agents_invoked: [],
+            results: { skipped: true, reason: "no_pending_work" },
+            duration_ms: Date.now() - startTime,
+            errors: [],
+            events_processed: 0,
+            signals_detected: 0,
+            tasks_created: 0,
+          });
+          return new Response(
+            JSON.stringify({ success: true, skipped: true, reason: "no_pending_work" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
     // Helper to invoke sibling edge functions safely
     async function invokeAgent(name: string, body: Record<string, unknown> = {}): Promise<unknown> {
       try {

@@ -166,6 +166,7 @@ export function useSLATracking(companyId: string | undefined) {
       return data || [];
     },
     enabled: !!companyId,
-    refetchInterval: 60000 // Check every minute
+    refetchInterval: 300000, // Check every 5 minutes
+    refetchIntervalInBackground: false
   });
 }

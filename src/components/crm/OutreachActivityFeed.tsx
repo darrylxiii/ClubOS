@@ -75,9 +75,9 @@ export function OutreachActivityFeed() {
         .limit(5);
       return data || [];
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     refetchIntervalInBackground: false,
-    staleTime: 15000,
+    staleTime: 60000,
   });
 
   // Combine and sort activities

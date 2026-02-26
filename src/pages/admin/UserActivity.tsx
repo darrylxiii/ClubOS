@@ -43,7 +43,8 @@ export default function UserActivity() {
         activeUsers: sessions.data?.filter((s: any) => !s.exit_timestamp).length || 0
       };
     },
-    refetchInterval: 30000
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false
   });
 
   return (
