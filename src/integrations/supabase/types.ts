@@ -4275,6 +4275,60 @@ export type Database = {
           },
         ]
       }
+      blog_post_variants: {
+        Row: {
+          confidence: number | null
+          conversions_a: number
+          conversions_b: number
+          created_at: string
+          ended_at: string | null
+          id: string
+          is_active: boolean
+          post_id: string
+          updated_at: string
+          variant_a: string
+          variant_b: string
+          variant_type: string
+          views_a: number
+          views_b: number
+          winner: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          conversions_a?: number
+          conversions_b?: number
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          post_id: string
+          updated_at?: string
+          variant_a: string
+          variant_b: string
+          variant_type?: string
+          views_a?: number
+          views_b?: number
+          winner?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          conversions_a?: number
+          conversions_b?: number
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          post_id?: string
+          updated_at?: string
+          variant_a?: string
+          variant_b?: string
+          variant_type?: string
+          views_a?: number
+          views_b?: number
+          winner?: string | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           ai_generated: boolean | null
