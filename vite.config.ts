@@ -258,7 +258,7 @@ export default defineConfig(({ mode, command }) => ({
           if (id.includes('lucide-react')) return 'icons';
           if (id.includes('react-router')) return 'router';
           if (id.includes('@tanstack')) return 'tanstack';
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) return 'react-vendor';
+          // React stays in the vendor catch-all to guarantee correct initialization order
           // Catch-all: split remaining node_modules into a vendor chunk
           return 'vendor';
         },
