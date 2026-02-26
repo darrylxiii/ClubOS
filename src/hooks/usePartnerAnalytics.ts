@@ -24,7 +24,8 @@ export function usePartnerAnalytics(companyId: string | undefined) {
       return data;
     },
     enabled: !!companyId,
-    refetchInterval: 300000 // Refresh every 5 minutes
+    refetchInterval: false, // Manual refresh only to minimize costs
+    refetchIntervalInBackground: false
   });
 }
 
@@ -165,6 +166,7 @@ export function useSLATracking(companyId: string | undefined) {
       return data || [];
     },
     enabled: !!companyId,
-    refetchInterval: 60000 // Check every minute
+    refetchInterval: 300000, // Check every 5 minutes
+    refetchIntervalInBackground: false
   });
 }

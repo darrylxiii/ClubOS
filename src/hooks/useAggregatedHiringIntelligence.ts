@@ -14,8 +14,9 @@ export function useAggregatedHiringIntelligence(companyId?: string) {
       if (error) throw error;
       return data?.insights || null;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 1,
+    enabled: false, // Disabled auto-fetch — use refreshMutation to trigger manually
   });
 }
 

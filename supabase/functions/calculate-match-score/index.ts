@@ -215,7 +215,7 @@ Be specific and realistic. Timeframes should match the actual effort needed (e.g
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a career matching expert. Analyze job-candidate matches and provide detailed, actionable breakdowns in JSON format.' },
           { role: 'user', content: prompt }

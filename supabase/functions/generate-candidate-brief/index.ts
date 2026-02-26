@@ -110,7 +110,7 @@ You MUST respond with a valid JSON object using this exact structure:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -157,7 +157,7 @@ You MUST respond with a valid JSON object using this exact structure:
     }
 
     brief.generated_at = new Date().toISOString();
-    brief.model = 'google/gemini-2.5-flash';
+    brief.model = 'google/gemini-2.5-flash-lite';
 
     const skillVerification = (brief.skill_verification || []).reduce((acc: any, sv: any) => {
       acc[sv.skill] = {

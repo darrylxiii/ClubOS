@@ -249,7 +249,7 @@ Rules:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages,
         tools,
         tool_choice: { type: 'function', function: { name: 'extract_skills_from_resume' } },

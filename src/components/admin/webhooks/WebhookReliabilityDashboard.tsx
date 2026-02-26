@@ -80,9 +80,9 @@ export const WebhookReliabilityDashboard = () => {
       if (error) throw error;
       return data as WebhookStats[];
     },
-    refetchInterval: 60000,
+    refetchInterval: 300000,
     refetchIntervalInBackground: false,
-    staleTime: 30000,
+    staleTime: 150000,
   });
 
   const retryMutation = useMutation({

@@ -59,9 +59,9 @@ export default function SearchAnalyticsTab() {
         zeroResultQueries
       };
     },
-    refetchInterval: 60000,
+    refetchInterval: 300000,
     refetchIntervalInBackground: false,
-    staleTime: 30000,
+    staleTime: 150000,
   });
 
   return (

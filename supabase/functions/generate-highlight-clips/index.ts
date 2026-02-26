@@ -75,7 +75,7 @@ Return a JSON array of highlights, ordered by importance.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Transcript:\n${fullTranscript}\n\nTranscript segments with timestamps:\n${JSON.stringify(transcriptJson.slice(0, 100))}` }
