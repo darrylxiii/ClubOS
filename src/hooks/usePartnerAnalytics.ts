@@ -24,7 +24,8 @@ export function usePartnerAnalytics(companyId: string | undefined) {
       return data;
     },
     enabled: !!companyId,
-    refetchInterval: 300000 // Refresh every 5 minutes
+    refetchInterval: false, // Manual refresh only to minimize costs
+    refetchIntervalInBackground: false
   });
 }
 
