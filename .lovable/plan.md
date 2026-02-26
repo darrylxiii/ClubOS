@@ -1,253 +1,178 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
+# Enhanced Cost Reduction Plan -- From EUR18/day to under EUR2.50/day (~86% savings)
 
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+This plan builds on the previous proposal and adds deeper optimizations across three new areas: aggressive client-side polling reduction, more AI functions downgraded, and smart caching/deduplication.
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Part 1: Fix Build Error
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
-
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
-
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
-
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
-
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
-
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
-
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
-
-### 1.3 Emoji in Subject Lines (6 functions)
-
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
-
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
-
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
+Add `@mantine/core` as a dependency (required by `@blocknote/mantine`). Without this, no other changes can ship.
 
 ---
 
-## CATEGORY 2: Content & Copy Quality
+## Part 2: Slash Cron Frequencies (saves ~EUR7.50/day)
 
-### 2.1 Inconsistent Tone
+Same schedule changes as the previous plan, with one addition: all monitoring/cleanup jobs move to 60-minute intervals minimum.
 
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
-
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
-
-### 2.2 Hardcoded Contact Email Inconsistency
-
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
-
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
-
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+| Job | Current | New |
+|---|---|---|
+| agentic-heartbeat | 15 min (96/day) | Once daily 6:00 AM |
+| notetaker-join-meeting | 1 min (1440/day) | 15 min |
+| notetaker-collect-artifacts | 3 min (480/day) | 30 min |
+| schedule-notetaker-sessions | 2 min (720/day) | 30 min |
+| process-meeting-intelligence | 15 min | Once daily 7:00 AM |
+| detect-threats | 5 min (288/day) | 60 min |
+| monitor-region-health | 5 min (288/day) | 60 min |
+| cleanup-stale-activity | 5 min (288/day) | 60 min |
+| avatar-session-timeout | 5 min (288/day) | 60 min |
+| sync-instantly-unibox | 15 min | 60 min |
+| check-booking-reminders | 5 min | 15 min |
+| send-booking-reminder | 5 min | 15 min |
+| process-booking-reminders | 5 min | 15 min |
 
 ---
 
-## CATEGORY 3: Technical & Security Issues
+## Part 3: Heartbeat Guard Clauses
 
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
-
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+Add early-exit logic to `agentic-heartbeat/index.ts`:
+- Query `agent_events` for unprocessed rows
+- Query `sourcing_missions` for pending rows
+- If both are zero AND no `job_status_open` events, skip all 7 agent invocations
+- Log a lightweight "no-op" heartbeat entry instead
+- Result: on quiet days, the daily heartbeat costs virtually nothing
 
 ---
 
-## CATEGORY 4: Accessibility & Compliance
+## Part 4: Downgrade ALL AI to gemini-2.5-flash-lite (saves ~EUR5/day)
 
-### 4.1 Missing `lang` Attribute on Content
+**63 edge functions** currently use `google/gemini-2.5-flash`. Every single one switches to `google/gemini-2.5-flash-lite` (~3x cheaper). This is the single biggest cost lever.
 
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+Exceptions (keep current model):
+- `club-ai-chat` -- user-facing interactive chat with model picker (already defaults to flash-lite)
+- `_shared/context-optimizer.ts` and `_shared/types.ts` -- config/type definitions only, update model options list
 
 ---
 
-## CATEGORY 5: Structural Improvements
+## Part 5: Kill Aggressive Client-Side Polling (NEW -- saves ~EUR2/day)
 
-### 5.1 Centralize Unsubscribe Headers
+**82 hooks** currently use `refetchInterval`. Many poll the database every 30-60 seconds even when the tab is idle. This generates thousands of unnecessary Supabase requests per day.
 
-Create a shared function to avoid repeating header construction in 30+ files:
+### 5a. Remove 30-second polling (most aggressive offenders)
 
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
-```
+These poll every 30 seconds and are pure waste for non-real-time data:
 
-### 5.2 Centralize Plain-Text Generation
+| Hook/Component | Current | New |
+|---|---|---|
+| `useAttackGeoData` | 30s | 300s (5 min) |
+| `useSecurityMetrics` | 30s | 120s |
+| `IntelligenceDashboard` | 30s | 120s |
+| `UserActivity` page | 30s | 120s |
+| `FrustrationSignalsTab` | 30s | 120s |
+| `UserSegmentsTab` | 30s | 120s |
+| `OutreachActivityFeed` (3 queries) | 30s | 120s |
+| `useTimeTracking` | 30s | 60s |
+| `MusicPlayerPanel` | 15s | 60s |
 
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
+### 5b. Reduce 60-second polling
 
----
+| Hook/Component | Current | New |
+|---|---|---|
+| `useSLATracking` | 60s | 300s (5 min) |
+| `usePredictiveAnalytics` | 60s | 300s |
+| `useAgentActivity` | 60s | 300s |
+| `UnreadMessagesWidget` | 60s | 120s |
+| `SmartAlertsPanel` | 60s | 300s |
+| `DossierActivityWidget` | 60s | 300s |
+| `WhatsAppMetricsBar` | 60s | 300s |
+| `SearchAnalyticsTab` | 60s | 300s |
+| `useCommunicationAudit` | 60s | 300s |
 
-## Implementation Priority
+### 5c. Add `refetchIntervalInBackground: false` everywhere
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
-
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
-
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
+Any hook that still polls MUST include `refetchIntervalInBackground: false` so hidden tabs stop polling entirely. Several hooks are missing this flag.
 
 ---
 
-## Files to Modify
+## Part 6: Convert Auto-Triggering AI Hooks to On-Demand (saves ~EUR1.50/day)
 
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
+### 6a. `useKPIInsights`
+- Currently: `useQuery` auto-fires when KPIs load
+- Change to: `useMutation` triggered by a "Generate Insights" button
+- The KPI dashboard gets a button instead of auto-loading insights
 
-**Total: ~25 files modified**
+### 6b. `useAggregatedHiringIntelligence`
+- Currently: `useQuery` with 5-min staleTime auto-fires
+- Change to: disabled by default, only triggered by "Generate Intelligence" button
+- The existing `useRefreshAggregatedIntelligence` mutation already exists for this
 
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+### 6c. `usePartnerAnalytics` -- `refetchInterval` reduction
+- Currently: `refetchInterval: 300000` (5 min)
+- Change to: `refetchInterval: false` (manual refresh only, data is not time-critical)
+- The `useGenerateInsights` mutation is already button-triggered (good)
+
+---
+
+## Part 7: Add Server-Side TTL Cache Guards to Expensive Functions (NEW)
+
+Several edge functions re-generate AI content on every call even when recent results exist. Add 1-hour cache checks to these functions (same pattern already used in `generate-kpi-insights`):
+
+| Function | Cache TTL |
+|---|---|
+| `predict-hiring-outcomes` | 2 hours |
+| `predict-aggregated-hiring-outcomes` | 2 hours |
+| `generate-company-intelligence-report` | 4 hours |
+| `generate-outreach-strategy` | 2 hours |
+| `generate-candidate-brief` | 1 hour |
+| `calculate-match-score` | 1 hour |
+
+Pattern: query `ai_generated_content` for recent cached result before calling the AI gateway. Store results after generation.
+
+---
+
+## Part 8: Batch Deduplication for Heartbeat Sub-Agents (NEW)
+
+The heartbeat currently calls 7 child edge functions sequentially, each making their own Supabase client. Add a check at the top: if the last heartbeat ran less than 23 hours ago and processed zero events, skip entirely (emergency override available via request body `{ force: true }`).
+
+---
+
+## Estimated Savings Summary
+
+| Category | Before (EUR/day) | After (EUR/day) | Saving |
+|---|---|---|---|
+| Cron executions | ~8.00 | ~0.80 | 90% |
+| AI model costs (flash to flash-lite) | ~7.50 | ~2.50 | 67% |  
+| Client-side polling overhead | ~1.50 | ~0.30 | 80% |
+| Auto-trigger AI calls | ~1.00 | ~0.10 | 90% |
+| **Total** | **~18.00** | **~2.40** | **~87%** |
+
+From ~EUR540/month down to ~EUR72/month. That is a reduction from EUR20/day top-ups to around EUR2.40/day.
+
+---
+
+## Files Modified
+
+### SQL Migration (1 file)
+- Unschedule + reschedule 13 cron jobs
+
+### Edge Functions (~65 files)
+- 63 functions: `gemini-2.5-flash` to `gemini-2.5-flash-lite`
+- `agentic-heartbeat/index.ts`: guard clauses + 23h dedup check
+- 6 functions: add TTL cache guards
+
+### Frontend Hooks (12+ files)
+- `useKPIInsights.ts`: convert to `useMutation`
+- `useAggregatedHiringIntelligence.ts`: disable auto-fetch
+- `usePartnerAnalytics.ts`: remove `refetchInterval`
+- ~9 hooks/components: reduce polling intervals from 30s/60s to 120s/300s
+- Add `refetchIntervalInBackground: false` where missing
+
+### Frontend Components (3 files)
+- KPI dashboard: add "Generate Insights" button
+- Hiring intelligence panel: add "Generate Intelligence" button
+- Partner analytics: remove auto-refresh indicator
+
+### Build Fix (1 file)
+- Add `@mantine/core` dependency
 
