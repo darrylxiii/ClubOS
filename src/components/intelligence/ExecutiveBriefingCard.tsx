@@ -45,11 +45,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
     }
   };
 
-  useEffect(() => {
-    if (!compact) {
-      loadBriefing();
-    }
-  }, [candidateId, jobId, compact]);
+  // Removed: useEffect auto-fire. Now on-demand only via button click.
 
   if (loading) {
     return (

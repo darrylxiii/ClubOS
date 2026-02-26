@@ -34,9 +34,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
     }
   };
 
-  useEffect(() => {
-    loadDossier();
-  }, [candidateId, jobId]);
+  // Removed: useEffect auto-fire. Now on-demand only via button click.
 
   if (loading) {
     return (
