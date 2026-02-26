@@ -202,7 +202,7 @@ If no clear action items, return empty tasks array with has_actionable_items: fa
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-flash-lite",
       messages: [
         { role: "system", content: "You are a task extraction assistant. Extract actionable items from communications. Return valid JSON only." },
         { role: "user", content: prompt }

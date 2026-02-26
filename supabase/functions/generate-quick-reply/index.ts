@@ -67,7 +67,7 @@ serve(async (req) => {
 
     // Use timeout-protected AI fetch (20s timeout for quick replies)
     const response = await fetchAI({
-      model: 'google/gemini-2.5-flash',
+      model: 'google/gemini-2.5-flash-lite',
       messages: [
         {
           role: 'system',
