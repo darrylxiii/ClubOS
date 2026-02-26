@@ -77,7 +77,7 @@ serve(async (req) => {
 
     // Generate AI report with 45s timeout (longer for complex analysis)
     const response = await fetchAI({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-flash-lite",
       messages: [
         {
           role: "system",

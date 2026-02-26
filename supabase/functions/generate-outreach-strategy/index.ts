@@ -107,7 +107,7 @@ Respond with a JSON object:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Create an outreach strategy for ${industry || 'technology companies'} targeting ${target_persona || 'decision makers'}. Goal: ${goal || 'book meetings'}.` },

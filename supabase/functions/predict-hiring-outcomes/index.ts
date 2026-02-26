@@ -138,7 +138,7 @@ Generate a JSON response with predictions:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a predictive hiring analytics AI. Generate data-driven predictions. Always respond with valid JSON.' },
           { role: 'user', content: prompt }
