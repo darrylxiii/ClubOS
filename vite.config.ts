@@ -16,13 +16,15 @@ export default defineConfig(({ mode, command }) => ({
     },
   },
   optimizeDeps: {
-    entries: ['src/main.tsx'],
+    noDiscovery: true,
     include: [
       'react', 'react-dom', 'react-dom/client',
       'react/jsx-runtime', 'react/jsx-dev-runtime',
       'react-router-dom',
       '@supabase/supabase-js',
       '@tanstack/react-query',
+      'use-sync-external-store/shim',
+      'use-sync-external-store/shim/with-selector',
       'sonner', 'clsx', 'tailwind-merge',
       'class-variance-authority',
       'lucide-react', 'date-fns',
