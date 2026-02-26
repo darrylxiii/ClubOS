@@ -53,13 +53,10 @@ const BlogEngine: React.FC = () => {
   const handleQueueTopic = async () => {
     if (!topicInput.trim()) return;
     try {
-      await generateArticle({
-        topic: topicInput.trim(),
-        category: 'career-insights',
-        format: 'deep-dive',
-      });
+      await addToQueue(topicInput.trim(), 'career-insights');
       setTopicInput('');
-      toast.success('Topic queued for generation');
+      const items = await fetchQueue();
+      setQueueItems(items);
     } catch {
       toast.error('Failed to queue topic');
     }
