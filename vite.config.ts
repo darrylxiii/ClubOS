@@ -43,7 +43,7 @@ export default defineConfig(({ mode, command }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' && componentTagger(),
+    command === 'serve' && mode === 'development' && componentTagger(),
     // PWA is only needed for production builds; it is memory-heavy during build
     command === 'build' && mode === 'production' &&
       VitePWA({
