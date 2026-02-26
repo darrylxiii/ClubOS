@@ -132,6 +132,12 @@ const LiveHub = lazy(() => import("./pages/LiveHub"));
 const MyCommunications = lazy(() => import("./pages/MyCommunications"));
 const PartnerRelationships = lazy(() => import("./pages/PartnerRelationships"));
 
+// Blog Pages
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const BlogCategory = lazy(() => import("./pages/BlogCategory"));
+const BlogEngine = lazy(() => import("./pages/BlogEngine"));
+
 // PageLoader is now imported from @/components/PageLoader
 
 // Initialize QueryClient
