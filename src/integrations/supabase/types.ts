@@ -3961,6 +3961,425 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_analytics: {
+        Row: {
+          avg_time_on_page: number | null
+          bounce_rate: number | null
+          created_at: string
+          cta_clicks: number | null
+          date: string
+          id: string
+          page_views: number | null
+          post_slug: string
+          scroll_depth: number | null
+          unique_visitors: number | null
+        }
+        Insert: {
+          avg_time_on_page?: number | null
+          bounce_rate?: number | null
+          created_at?: string
+          cta_clicks?: number | null
+          date?: string
+          id?: string
+          page_views?: number | null
+          post_slug: string
+          scroll_depth?: number | null
+          unique_visitors?: number | null
+        }
+        Update: {
+          avg_time_on_page?: number | null
+          bounce_rate?: number | null
+          created_at?: string
+          cta_clicks?: number | null
+          date?: string
+          id?: string
+          page_views?: number | null
+          post_slug?: string
+          scroll_depth?: number | null
+          unique_visitors?: number | null
+        }
+        Relationships: []
+      }
+      blog_bookmarks: {
+        Row: {
+          anonymous_id: string | null
+          created_at: string
+          id: string
+          post_slug: string
+          user_id: string | null
+        }
+        Insert: {
+          anonymous_id?: string | null
+          created_at?: string
+          id?: string
+          post_slug: string
+          user_id?: string | null
+        }
+        Update: {
+          anonymous_id?: string | null
+          created_at?: string
+          id?: string
+          post_slug?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      blog_content_signals: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          signal_type: string
+          signal_value: string
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          signal_type: string
+          signal_value: string
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          signal_type?: string
+          signal_value?: string
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_engine_settings: {
+        Row: {
+          auto_publish: boolean | null
+          categories: string[] | null
+          id: string
+          is_active: boolean | null
+          min_quality_score: number | null
+          posts_per_day: number | null
+          preferred_formats: string[] | null
+          publishing_window_end: string | null
+          publishing_window_start: string | null
+          require_medical_review: boolean | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          auto_publish?: boolean | null
+          categories?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          min_quality_score?: number | null
+          posts_per_day?: number | null
+          preferred_formats?: string[] | null
+          publishing_window_end?: string | null
+          publishing_window_start?: string | null
+          require_medical_review?: boolean | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          auto_publish?: boolean | null
+          categories?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          min_quality_score?: number | null
+          posts_per_day?: number | null
+          preferred_formats?: string[] | null
+          publishing_window_end?: string | null
+          publishing_window_start?: string | null
+          require_medical_review?: boolean | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      blog_generation_queue: {
+        Row: {
+          category: string
+          content_format: string | null
+          created_at: string
+          error_message: string | null
+          generated_post_id: string | null
+          id: string
+          priority: number | null
+          source: string | null
+          status: string
+          target_keywords: string[] | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content_format?: string | null
+          created_at?: string
+          error_message?: string | null
+          generated_post_id?: string | null
+          id?: string
+          priority?: number | null
+          source?: string | null
+          status?: string
+          target_keywords?: string[] | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content_format?: string | null
+          created_at?: string
+          error_message?: string | null
+          generated_post_id?: string | null
+          id?: string
+          priority?: number | null
+          source?: string | null
+          status?: string
+          target_keywords?: string[] | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_generation_queue_generated_post_id_fkey"
+            columns: ["generated_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_learnings: {
+        Row: {
+          applied_count: number | null
+          confidence: number | null
+          created_at: string
+          id: string
+          insight: string
+          is_active: boolean | null
+          learning_type: string
+          source_posts: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          applied_count?: number | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          insight: string
+          is_active?: boolean | null
+          learning_type: string
+          source_posts?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          applied_count?: number | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          insight?: string
+          is_active?: boolean | null
+          learning_type?: string
+          source_posts?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_page_views: {
+        Row: {
+          anonymous_id: string
+          created_at: string
+          cta_clicks: Json | null
+          device_type: string | null
+          exited_at: string | null
+          id: string
+          max_scroll_depth: number | null
+          post_slug: string
+          referrer: string | null
+          session_id: string | null
+          time_on_page: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          anonymous_id: string
+          created_at?: string
+          cta_clicks?: Json | null
+          device_type?: string | null
+          exited_at?: string | null
+          id?: string
+          max_scroll_depth?: number | null
+          post_slug: string
+          referrer?: string | null
+          session_id?: string | null
+          time_on_page?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          anonymous_id?: string
+          created_at?: string
+          cta_clicks?: Json | null
+          device_type?: string | null
+          exited_at?: string | null
+          id?: string
+          max_scroll_depth?: number | null
+          post_slug?: string
+          referrer?: string | null
+          session_id?: string | null
+          time_on_page?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      blog_post_relations: {
+        Row: {
+          created_at: string
+          id: string
+          related_post_id: string | null
+          relation_type: string | null
+          similarity_score: number | null
+          source_post_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          related_post_id?: string | null
+          relation_type?: string | null
+          similarity_score?: number | null
+          source_post_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          related_post_id?: string | null
+          relation_type?: string | null
+          similarity_score?: number | null
+          source_post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_relations_related_post_id_fkey"
+            columns: ["related_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_relations_source_post_id_fkey"
+            columns: ["source_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          ai_generated: boolean | null
+          author_id: string | null
+          category: string
+          content: Json | null
+          content_format: string | null
+          created_at: string
+          excerpt: string | null
+          freshness_score: number | null
+          generation_prompt: string | null
+          hero_image: Json | null
+          id: string
+          key_takeaways: string[] | null
+          keywords: string[] | null
+          last_refreshed_at: string | null
+          meta_description: string | null
+          meta_title: string | null
+          performance_score: number | null
+          published_at: string | null
+          related_products: string[] | null
+          scheduled_for: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          category: string
+          content?: Json | null
+          content_format?: string | null
+          created_at?: string
+          excerpt?: string | null
+          freshness_score?: number | null
+          generation_prompt?: string | null
+          hero_image?: Json | null
+          id?: string
+          key_takeaways?: string[] | null
+          keywords?: string[] | null
+          last_refreshed_at?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          performance_score?: number | null
+          published_at?: string | null
+          related_products?: string[] | null
+          scheduled_for?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_generated?: boolean | null
+          author_id?: string | null
+          category?: string
+          content?: Json | null
+          content_format?: string | null
+          created_at?: string
+          excerpt?: string | null
+          freshness_score?: number | null
+          generation_prompt?: string | null
+          hero_image?: Json | null
+          id?: string
+          key_takeaways?: string[] | null
+          keywords?: string[] | null
+          last_refreshed_at?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          performance_score?: number | null
+          published_at?: string | null
+          related_products?: string[] | null
+          scheduled_for?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_reactions: {
+        Row: {
+          anonymous_id: string
+          created_at: string
+          id: string
+          post_slug: string
+          reaction_type: string
+        }
+        Insert: {
+          anonymous_id: string
+          created_at?: string
+          id?: string
+          post_slug: string
+          reaction_type: string
+        }
+        Update: {
+          anonymous_id?: string
+          created_at?: string
+          id?: string
+          post_slug?: string
+          reaction_type?: string
+        }
+        Relationships: []
+      }
       booking_analytics: {
         Row: {
           avg_booking_time_minutes: number | null
