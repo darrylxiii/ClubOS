@@ -25,6 +25,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
   const [search, setSearch] = useState("");
   const [creatingInvoiceFor, setCreatingInvoiceFor] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { logAction } = useFinancialAuditLog();
 
   const filteredFees = fees.filter((fee) => {
     const searchLower = search.toLowerCase();
