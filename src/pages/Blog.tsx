@@ -118,20 +118,20 @@ const Blog: React.FC = () => {
             resultsCount={isSearching ? resultsCount : undefined}
           />
 
-          <section className="max-w-7xl mx-auto px-4 md:px-8 pb-16">
+          <section className="max-w-7xl mx-auto px-4 md:px-8 pb-24">
             <BlogErrorBoundary>
               {showFeatured && <BlogFeatured post={featuredPost} />}
 
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl md:text-2xl font-semibold text-foreground">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-lg font-medium tracking-tight text-foreground">
                   {activeCategory
                     ? `${activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1).replace('-', ' ')} Articles`
                     : isSearching
-                      ? `Search Results for "${debouncedSearch}"`
+                      ? `Results for "${debouncedSearch}"`
                       : 'Latest Articles'}
                 </h2>
                 {(isSearching || activeCategory) && (
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-body-sm text-muted-foreground">
                     {resultsCount} {resultsCount === 1 ? 'result' : 'results'}
                   </span>
                 )}
