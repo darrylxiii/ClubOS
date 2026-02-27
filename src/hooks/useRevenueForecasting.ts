@@ -117,7 +117,7 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
           
           return {
             netCollections: acc.netCollections + netAmount * probability,
-            vatCollections: acc.vatCollections + vatAmount * probability,
+            vatCollections: acc.vatCollections + vatAmountCalc * probability,
             totalCollections: acc.totalCollections + (Number(inv.total_amount) || 0) * probability,
           };
         }, { netCollections: 0, vatCollections: 0, totalCollections: 0 }) || { netCollections: 0, vatCollections: 0, totalCollections: 0 };
