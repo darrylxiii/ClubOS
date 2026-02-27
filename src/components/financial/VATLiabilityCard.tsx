@@ -20,14 +20,7 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
   const config = ENTITY_CONFIG[legalEntity || 'tqc_nl'] || ENTITY_CONFIG.tqc_nl;
   const isConsolidated = !legalEntity || legalEntity === 'all';
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Use centralized formatCurrency imported at top
 
   if (isLoading) {
     return (
