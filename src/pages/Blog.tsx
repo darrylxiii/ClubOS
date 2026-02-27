@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import BlogHero from '@/components/blog/BlogHero';
