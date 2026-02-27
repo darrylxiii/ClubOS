@@ -60,6 +60,7 @@ export default function FinanceHub() {
               <TabsTrigger value="revenue-shares">Revenue Shares</TabsTrigger>
               <TabsTrigger value="expenses">Expenses</TabsTrigger>
               <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
+              <TabsTrigger value="controls">Controls</TabsTrigger>
               <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
               <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
             </TabsList>
