@@ -64,8 +64,8 @@ export default function DueDiligenceDashboard() {
           <TabsContent value="narrative" className="space-y-6">
             <MultiYearPLTable />
             <div className="grid gap-6 md:grid-cols-2">
-              <EBITDACard />
-              <RevenueConcentrationCard />
+              <EBITDACard year={new Date().getFullYear()} />
+              <RevenueConcentrationCard year={new Date().getFullYear()} />
             </div>
           </TabsContent>
 
