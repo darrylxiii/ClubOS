@@ -35,14 +35,7 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
     return companies?.find(c => c.name?.toLowerCase() === name.toLowerCase());
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Import centralized formatCurrency - already imported at top
 
   const getPaymentScoreBadge = (score: number | null) => {
     if (score === null || score === undefined) return null;
