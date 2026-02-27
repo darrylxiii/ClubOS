@@ -92,7 +92,7 @@ export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProp
               VAT Reserve
             </div>
             <p className="text-xl font-bold text-warning">{formatCurrency(totalOutstandingVAT)}</p>
-            <p className="text-xs text-muted-foreground">Owed to Belastingdienst</p>
+            <p className="text-xs text-muted-foreground">{vatAuthorityLabel}</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">

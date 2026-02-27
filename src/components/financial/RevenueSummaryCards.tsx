@@ -60,7 +60,7 @@ export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing, leg
     },
     {
       title: 'Overdue',
-      value: formatCurrency(
+      value: fmtCurrency(
         (metrics?.payment_aging?.overdue_30 || 0) +
         (metrics?.payment_aging?.overdue_60 || 0) +
         (metrics?.payment_aging?.overdue_90 || 0) +

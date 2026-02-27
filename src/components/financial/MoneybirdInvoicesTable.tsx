@@ -83,16 +83,16 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatCurrency(netAmount)}
+                  {fmtCurrency(netAmount)}
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground">
-                  {formatCurrency(vatAmount)}
+                  {fmtCurrency(vatAmount)}
                 </TableCell>
                 <TableCell className="text-right font-medium">
-                  {formatCurrency(invoice.total_amount)}
+                  {fmtCurrency(invoice.total_amount)}
                 </TableCell>
                 <TableCell className="text-right text-green-600">
-                  {formatCurrency(invoice.paid_amount)}
+                  {fmtCurrency(invoice.paid_amount)}
                 </TableCell>
               </TableRow>
             );

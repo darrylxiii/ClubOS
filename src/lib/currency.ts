@@ -3,12 +3,13 @@
  * Use these instead of inline formatCurrency implementations
  */
 
-export type SupportedCurrency = 'EUR' | 'USD' | 'GBP';
+export type SupportedCurrency = 'EUR' | 'USD' | 'GBP' | 'AED';
 
 const LOCALE_MAP: Record<SupportedCurrency, string> = {
   EUR: 'nl-NL',
   USD: 'en-US',
   GBP: 'en-GB',
+  AED: 'ar-AE',
 };
 
 /**

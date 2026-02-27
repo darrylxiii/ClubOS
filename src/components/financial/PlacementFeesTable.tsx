@@ -221,7 +221,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{formatCurrency(fee.fee_amount, fee.currency_code)}</span>
+                      <span className="font-medium">{fmtCurrency(fee.fee_amount, fee.currency_code)}</span>
                       <span className="text-xs text-muted-foreground">{fee.fee_percentage}%</span>
                       {fee.currency_code !== 'EUR' && (fee as any).fee_amount_eur && (
                         <span className="text-xs text-muted-foreground">~€{(fee as any).fee_amount_eur.toLocaleString('nl-NL', { maximumFractionDigits: 0 })}</span>

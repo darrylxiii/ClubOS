@@ -214,7 +214,7 @@ export default function FinancialDashboard() {
       {/* Full P&L and cash flow -- admin only */}
       {isFinanceOrAdmin && (
         <>
-          <CashFlowProjection year={selectedYear} />
+          <CashFlowProjection year={selectedYear} legalEntity={entityParam} />
 
           <div className="grid gap-6 md:grid-cols-2">
             <ProfitLossCard year={selectedYear} legalEntity={entityParam} />
