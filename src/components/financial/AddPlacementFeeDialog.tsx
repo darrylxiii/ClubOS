@@ -29,6 +29,7 @@ const SALARY_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
 
 export function AddPlacementFeeDialog() {
   const queryClient = useQueryClient();
+  const { logAction } = useFinancialAuditLog();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
