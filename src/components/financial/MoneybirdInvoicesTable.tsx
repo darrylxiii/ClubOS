@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useMoneybirdInvoices } from "@/hooks/useMoneybirdInvoices";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
+import { grossToNet } from "@/lib/vatRates";
 
 interface MoneybirdInvoicesTableProps {
   year: number;
