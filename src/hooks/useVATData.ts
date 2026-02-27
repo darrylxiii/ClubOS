@@ -55,7 +55,7 @@ export function useVATSummary(year?: number, legalEntity?: string) {
         const paid = Number(inv.paid_amount) || 0;
         
         // Calculate net and VAT (use stored values or calculate from gross)
-        const net = Number(inv.net_amount) || Math.round(total / 1.21 * 100) / 100;
+        const net = Number(inv.net_amount) || Math.round(grossToNet(total) * 100) / 100;
         const vat = Number(inv.vat_amount) || Math.round((total - net) * 100) / 100;
         
         // Exclude drafts from totals
