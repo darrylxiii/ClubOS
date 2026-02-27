@@ -4,6 +4,7 @@ import { DollarSign, FileText, AlertCircle, CheckCircle, RefreshCw } from "lucid
 import { MoneybirdFinancialMetrics } from "@/hooks/useMoneybirdFinancials";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getVATRate } from "@/lib/vatRates";
+import { formatCurrency } from "@/lib/currency";
 
 interface RevenueSummaryCardsProps {
   metrics: MoneybirdFinancialMetrics | null;
