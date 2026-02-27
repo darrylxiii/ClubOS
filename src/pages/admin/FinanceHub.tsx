@@ -14,6 +14,7 @@ const ExpenseTrackingPage = lazy(() => import('@/pages/admin/ExpenseTracking'));
 const InvoiceReconciliationPage = lazy(() => import('@/pages/admin/InvoiceReconciliation'));
 const MoneybirdSettings = lazy(() => import('@/pages/admin/MoneybirdSettings'));
 const DealPipelineSettings = lazy(() => import('@/pages/admin/DealPipelineSettings'));
+const FinancialControlsPage = lazy(() => import('@/pages/admin/FinancialControls'));
 
 
 const TAB_MAP: Record<string, string> = {
@@ -24,6 +25,7 @@ const TAB_MAP: Record<string, string> = {
   'revenue-shares': 'revenue-shares',
   expenses: 'expenses',
   reconciliation: 'reconciliation',
+  controls: 'controls',
   moneybird: 'moneybird',
   'pipeline-settings': 'pipeline-settings',
 };
@@ -58,6 +60,7 @@ export default function FinanceHub() {
               <TabsTrigger value="revenue-shares">Revenue Shares</TabsTrigger>
               <TabsTrigger value="expenses">Expenses</TabsTrigger>
               <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
+              <TabsTrigger value="controls">Controls</TabsTrigger>
               <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
               <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
             </TabsList>
@@ -70,6 +73,7 @@ export default function FinanceHub() {
               <TabsContent value="revenue-shares"><RevenueSharesPage /></TabsContent>
               <TabsContent value="expenses"><ExpenseTrackingPage /></TabsContent>
               <TabsContent value="reconciliation"><InvoiceReconciliationPage /></TabsContent>
+              <TabsContent value="controls"><FinancialControlsPage /></TabsContent>
               <TabsContent value="moneybird"><MoneybirdSettings /></TabsContent>
               <TabsContent value="pipeline-settings"><DealPipelineSettings /></TabsContent>
             </Suspense>

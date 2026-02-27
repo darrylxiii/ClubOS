@@ -6,10 +6,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/revenueCalculations';
 import { cn } from '@/lib/utils';
 import { AddBudgetDialog } from './AddBudgetDialog';
+import { LegalEntityFilter } from './EntitySelector';
 
-export function BudgetVsActual() {
+interface BudgetVsActualProps {
+  legalEntity?: LegalEntityFilter;
+}
+
+export function BudgetVsActual({ legalEntity }: BudgetVsActualProps) {
   const { data: budgets, isLoading } = useSubscriptionBudgets();
   const metrics = useSubscriptionMetrics();
+
+  // Entity label for description
+  const entityLabel = !legalEntity || legalEntity === 'all'
+    ? 'all entities'
+    : legalEntity === 'tqc_nl' ? 'Amsterdam (NL)' : 'Dubai (UAE)';
 
   if (isLoading) {
     return <Card><CardContent className="pt-6"><Skeleton className="h-[200px]" /></CardContent></Card>;
@@ -41,7 +51,7 @@ export function BudgetVsActual() {
           <span>Budget vs Actual</span>
           <AddBudgetDialog />
         </CardTitle>
-        <CardDescription>Monthly category spend against budgets</CardDescription>
+        <CardDescription>Monthly category spend against budgets — {entityLabel}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {budgets.map(budget => {
