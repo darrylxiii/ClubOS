@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useMoneybirdInvoices } from "@/hooks/useMoneybirdInvoices";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
+import { grossToNet } from "@/lib/vatRates";
 
 interface MoneybirdInvoicesTableProps {
   year: number;
@@ -40,8 +42,7 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
     );
   }
 
-  const formatCurrency = (amount: number | string) => 
-    new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(Number(amount) || 0);
+  const fmtCurrency = (amount: number | string) => formatCurrency(Number(amount) || 0);
 
   return (
     <div className="overflow-x-auto">
@@ -59,7 +60,7 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
         </TableHeader>
         <TableBody>
           {displayInvoices.map((invoice) => {
-            const netAmount = Number(invoice.net_amount) || Number(invoice.total_amount) / 1.21; // fallback for legacy data
+            const netAmount = Number(invoice.net_amount) || grossToNet(Number(invoice.total_amount));
             const vatAmount = Number(invoice.vat_amount) || Number(invoice.total_amount) - netAmount;
             
             return (
@@ -82,16 +83,16 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatCurrency(netAmount)}
+                  {fmtCurrency(netAmount)}
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground">
-                  {formatCurrency(vatAmount)}
+                  {fmtCurrency(vatAmount)}
                 </TableCell>
                 <TableCell className="text-right font-medium">
-                  {formatCurrency(invoice.total_amount)}
+                  {fmtCurrency(invoice.total_amount)}
                 </TableCell>
                 <TableCell className="text-right text-green-600">
-                  {formatCurrency(invoice.paid_amount)}
+                  {fmtCurrency(invoice.paid_amount)}
                 </TableCell>
               </TableRow>
             );

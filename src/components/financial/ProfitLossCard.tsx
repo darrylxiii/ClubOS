@@ -36,40 +36,40 @@ function usePLData(year: number, legalEntity?: string) {
       const grossRevenue = invoices?.reduce((sum, inv) => 
         sum + (Number(inv.total_amount) || 0), 0) || 0;
 
-      const { data: commissions } = await supabase
-        .from('employee_commissions')
-        .select('gross_amount')
-        .gte('created_at', startOfYear);
+      // Filter expenses by entity when applicable
+      let commsQuery = supabase.from('employee_commissions').select('gross_amount').gte('created_at', startOfYear);
+      if (legalEntity && legalEntity !== 'all') commsQuery = commsQuery.eq('legal_entity', legalEntity);
+      const { data: commissions } = await commsQuery;
       const totalCommissions = commissions?.reduce((sum, c) => sum + (c.gross_amount || 0), 0) || 0;
 
-      const { data: payouts } = await supabase
-        .from('referral_payouts')
-        .select('payout_amount')
-        .gte('created_at', startOfYear);
+      let payoutsQuery = supabase.from('referral_payouts').select('payout_amount').gte('created_at', startOfYear);
+      if (legalEntity && legalEntity !== 'all') payoutsQuery = payoutsQuery.eq('legal_entity', legalEntity);
+      const { data: payouts } = await payoutsQuery;
       const totalPayouts = payouts?.reduce((sum, p) => sum + (p.payout_amount || 0), 0) || 0;
 
-      const { data: expenses } = await supabase
-        .from('operating_expenses')
-        .select('amount, amount_eur')
-        .gte('expense_date', startOfYear);
+      let expQuery = supabase.from('operating_expenses').select('amount, amount_eur').gte('expense_date', startOfYear);
+      if (legalEntity && legalEntity !== 'all') expQuery = expQuery.eq('legal_entity', legalEntity);
+      const { data: expenses } = await expQuery;
       const totalOtherExpenses = expenses?.reduce((sum, e) => sum + (Number(e.amount_eur ?? e.amount) || 0), 0) || 0;
 
-      const { data: subscriptions } = await supabase
-        .from('vendor_subscriptions')
-        .select('monthly_cost, monthly_cost_eur, contract_start_date, status')
-        .eq('status', 'active');
+      let subsQuery = supabase.from('vendor_subscriptions').select('monthly_cost, monthly_cost_eur, contract_start_date, status').eq('status', 'active');
+      if (legalEntity && legalEntity !== 'all') subsQuery = subsQuery.eq('legal_entity', legalEntity);
+      const { data: subscriptions } = await subsQuery;
 
       const now = new Date();
       const yearStart = new Date(year, 0, 1);
-      const monthsElapsed = (now.getFullYear() - yearStart.getFullYear()) * 12 + 
-                           (now.getMonth() - yearStart.getMonth()) + 1;
+      // Cap to year-end for historical years to prevent overcounting
+      const yearEnd = new Date(year, 11, 31);
+      const effectiveNow = now < yearEnd ? now : yearEnd;
+      const monthsElapsed = (effectiveNow.getFullYear() - yearStart.getFullYear()) * 12 + 
+                           (effectiveNow.getMonth() - yearStart.getMonth()) + 1;
       
       const totalSubscriptionCosts = subscriptions?.reduce((sum, sub) => {
         const startDate = new Date(sub.contract_start_date);
         const effectiveStart = startDate > yearStart ? startDate : yearStart;
         const monthsActive = Math.max(0, 
-          (now.getFullYear() - effectiveStart.getFullYear()) * 12 + 
-          (now.getMonth() - effectiveStart.getMonth()) + 1
+          (effectiveNow.getFullYear() - effectiveStart.getFullYear()) * 12 + 
+          (effectiveNow.getMonth() - effectiveStart.getMonth()) + 1
         );
         const costEur = (sub as any).monthly_cost_eur ?? sub.monthly_cost;
         return sum + (costEur * Math.min(monthsActive, monthsElapsed));

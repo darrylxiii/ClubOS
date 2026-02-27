@@ -521,7 +521,14 @@ serve(async (req) => {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
 
-    const grossProfit = totalPaid;
+    // Gross profit = revenue minus direct costs (commissions)
+    // Fetch commissions for the year to calculate actual gross profit
+    const { data: yearCommissions } = await supabase
+      .from('employee_commissions')
+      .select('gross_amount')
+      .gte('created_at', periodStart);
+    const totalCommissions = yearCommissions?.reduce((s: number, c: any) => s + (c.gross_amount || 0), 0) || 0;
+    const grossProfit = totalRevenue - totalCommissions;
 
     // Store the metrics - all amounts are NET (excluding VAT)
     const { error: upsertError } = await supabase

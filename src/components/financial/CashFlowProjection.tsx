@@ -9,11 +9,14 @@ import { useRevenueForecasting } from "@/hooks/useRevenueForecasting";
 
 interface CashFlowProjectionProps {
   year?: number;
+  legalEntity?: string;
 }
 
-export function CashFlowProjection({ year }: CashFlowProjectionProps) {
+export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProps) {
   const [includePipeline, setIncludePipeline] = useState(true);
   const currentYear = year || new Date().getFullYear();
+
+  const vatAuthorityLabel = legalEntity === 'tqc_dubai' ? 'Owed to FTA' : 'Owed to Belastingdienst';
 
   const {
     periods,
@@ -27,7 +30,7 @@ export function CashFlowProjection({ year }: CashFlowProjectionProps) {
     pipelineDealsCount,
     monthlySubscriptionCosts,
     isLoading,
-  } = useRevenueForecasting(currentYear, includePipeline);
+  } = useRevenueForecasting(currentYear, includePipeline, legalEntity);
 
   if (isLoading) {
     return (
@@ -89,7 +92,7 @@ export function CashFlowProjection({ year }: CashFlowProjectionProps) {
               VAT Reserve
             </div>
             <p className="text-xl font-bold text-warning">{formatCurrency(totalOutstandingVAT)}</p>
-            <p className="text-xs text-muted-foreground">Owed to Belastingdienst</p>
+            <p className="text-xs text-muted-foreground">{vatAuthorityLabel}</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">

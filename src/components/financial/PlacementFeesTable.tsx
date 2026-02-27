@@ -98,7 +98,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
     }
   };
 
-  const formatCurrency = (amount: number, currencyCode: string = 'EUR') => {
+  const fmtCurrency = (amount: number, currencyCode: string = 'EUR') => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
       currency: currencyCode,
@@ -192,7 +192,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{formatCurrency(fee.candidate_salary, fee.currency_code)}</span>
+                      <span className="font-medium">{fmtCurrency(fee.candidate_salary, fee.currency_code)}</span>
                       {fee.currency_code !== 'EUR' && (fee as any).fee_amount_eur && (
                         <span className="text-xs text-muted-foreground">
                           ~€{((fee as any).fee_amount_eur / (fee.fee_percentage / 100) / (fee.fee_percentage / 100 * 100 / fee.fee_percentage)).toLocaleString('nl-NL', { maximumFractionDigits: 0 })}
@@ -200,7 +200,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                       )}
                       {fee.estimated_salary_min && fee.estimated_salary_max && (
                         <span className="text-xs text-muted-foreground">
-                          Est: {formatCurrency(fee.estimated_salary_min, fee.currency_code)} - {formatCurrency(fee.estimated_salary_max, fee.currency_code)}
+                          Est: {fmtCurrency(fee.estimated_salary_min, fee.currency_code)} - {fmtCurrency(fee.estimated_salary_max, fee.currency_code)}
                         </span>
                       )}
                     </div>
@@ -221,7 +221,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{formatCurrency(fee.fee_amount, fee.currency_code)}</span>
+                      <span className="font-medium">{fmtCurrency(fee.fee_amount, fee.currency_code)}</span>
                       <span className="text-xs text-muted-foreground">{fee.fee_percentage}%</span>
                       {fee.currency_code !== 'EUR' && (fee as any).fee_amount_eur && (
                         <span className="text-xs text-muted-foreground">~€{(fee as any).fee_amount_eur.toLocaleString('nl-NL', { maximumFractionDigits: 0 })}</span>

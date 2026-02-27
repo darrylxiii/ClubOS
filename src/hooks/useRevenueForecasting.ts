@@ -40,45 +40,41 @@ const STAGE_PROBABILITIES: Record<string, number> = {
   'closed_lost': 0,
 };
 
-export function useRevenueForecasting(year?: number, includePipeline: boolean = true): RevenueForecasting {
+export function useRevenueForecasting(year?: number, includePipeline: boolean = true, legalEntity?: string): RevenueForecasting {
   const currentYear = year || new Date().getFullYear();
   const today = new Date();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['revenue-forecasting', currentYear, includePipeline],
+    queryKey: ['revenue-forecasting', currentYear, includePipeline, legalEntity],
     queryFn: async () => {
       // Fetch unpaid invoices for AR forecast - include net_amount and vat_amount
-      const { data: unpaidInvoices } = await supabase
+      let invQuery = supabase
         .from('moneybird_sales_invoices')
         .select('total_amount, net_amount, vat_amount, invoice_date, due_date, state_normalized')
         .in('state_normalized', ['open', 'late', 'pending'])
         .gte('invoice_date', `${currentYear}-01-01`);
+      if (legalEntity && legalEntity !== 'all') invQuery = invQuery.eq('legal_entity', legalEntity);
+      const { data: unpaidInvoices } = await invQuery;
 
       // Fetch pending commissions
-      const { data: pendingCommissions } = await supabase
-        .from('employee_commissions')
-        .select('gross_amount, created_at')
-        .eq('status', 'pending')
-        .gte('created_at', `${currentYear}-01-01`);
+      let commsQuery = supabase.from('employee_commissions').select('gross_amount, created_at').eq('status', 'pending').gte('created_at', `${currentYear}-01-01`);
+      if (legalEntity && legalEntity !== 'all') commsQuery = commsQuery.eq('legal_entity', legalEntity);
+      const { data: pendingCommissions } = await commsQuery;
 
       // Fetch pending payouts
-      const { data: pendingPayouts } = await supabase
-        .from('referral_payouts')
-        .select('payout_amount, created_at')
-        .eq('status', 'pending')
-        .gte('created_at', `${currentYear}-01-01`);
+      let payoutsQuery = supabase.from('referral_payouts').select('payout_amount, created_at').eq('status', 'pending').gte('created_at', `${currentYear}-01-01`);
+      if (legalEntity && legalEntity !== 'all') payoutsQuery = payoutsQuery.eq('legal_entity', legalEntity);
+      const { data: pendingPayouts } = await payoutsQuery;
 
       // Fetch recurring expenses (monthly average)
-      const { data: recentExpenses } = await supabase
-        .from('operating_expenses')
-        .select('amount, is_recurring')
-        .eq('is_recurring', true);
+      let expQuery = supabase.from('operating_expenses').select('amount, is_recurring').eq('is_recurring', true);
+      if (legalEntity && legalEntity !== 'all') expQuery = expQuery.eq('legal_entity', legalEntity);
+      const { data: recentExpenses } = await expQuery;
 
       // Fetch active vendor subscriptions for SaaS costs
-      const { data: activeSubscriptions } = await supabase
-        .from('vendor_subscriptions')
-        .select('monthly_cost, billing_cycle')
-        .eq('status', 'active');
+      let subsQuery = supabase.from('vendor_subscriptions').select('monthly_cost, billing_cycle').eq('status', 'active');
+      if (legalEntity && legalEntity !== 'all') subsQuery = subsQuery.eq('legal_entity', legalEntity);
+      const { data: activeSubscriptions } = await subsQuery;
 
       const monthlySubscriptionCosts = activeSubscriptions?.reduce((sum, sub) => 
         sum + (sub.monthly_cost || 0), 0) || 0;
@@ -86,10 +82,9 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
       // Fetch pipeline data from placement_fees if included
       let pipelineDeals: any[] = [];
       if (includePipeline) {
-        const { data: fees } = await supabase
-          .from('placement_fees')
-          .select('fee_amount, status, created_at')
-          .in('status', ['pending', 'invoiced']);
+        let feesQuery = supabase.from('placement_fees').select('fee_amount, status, created_at').in('status', ['pending', 'invoiced']);
+        if (legalEntity && legalEntity !== 'all') feesQuery = feesQuery.eq('legal_entity', legalEntity);
+        const { data: fees } = await feesQuery;
         pipelineDeals = fees || [];
       }
 

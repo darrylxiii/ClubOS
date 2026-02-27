@@ -4,32 +4,30 @@ import { DollarSign, FileText, AlertCircle, CheckCircle, RefreshCw } from "lucid
 import { MoneybirdFinancialMetrics } from "@/hooks/useMoneybirdFinancials";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getVATRate } from "@/lib/vatRates";
+import { formatCurrency } from "@/lib/currency";
 
 interface RevenueSummaryCardsProps {
   metrics: MoneybirdFinancialMetrics | null;
   isLoading: boolean;
   onSync?: () => void;
   isSyncing?: boolean;
+  legalEntity?: string;
 }
 
-export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing }: RevenueSummaryCardsProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing, legalEntity }: RevenueSummaryCardsProps) {
+  const fmtCurrency = (amount: number) => formatCurrency(amount);
+
+  const vatRate = getVATRate(legalEntity);
+  const vatLabel = legalEntity === 'tqc_dubai' ? '5% VAT' : '21% BTW';
 
   // total_revenue is already NET (excl. VAT) from the edge function
   const netRevenue = metrics?.total_revenue || 0;
-  const grossRevenue = (metrics as any)?.total_revenue_gross || Math.round(netRevenue * (1 + getVATRate()));
+  const grossRevenue = (metrics as any)?.total_revenue_gross || Math.round(netRevenue * (1 + vatRate));
   const vatAmount = (metrics as any)?.vat_amount || (grossRevenue - netRevenue);
   
   // total_paid is already NET from the edge function
   const netCollected = metrics?.total_paid || 0;
-  const grossCollected = Math.round(netCollected * (1 + getVATRate()));
+  const grossCollected = Math.round(netCollected * (1 + vatRate));
 
   const collectionRate = netRevenue > 0
     ? ((netCollected / netRevenue) * 100).toFixed(1)
@@ -38,23 +36,23 @@ export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing }: R
   const cards = [
     {
       title: 'Net Revenue',
-      value: formatCurrency(netRevenue),
-      description: `Excl. ${formatCurrency(vatAmount)} VAT`,
+      value: fmtCurrency(netRevenue),
+      description: `Excl. ${fmtCurrency(vatAmount)} VAT`,
       icon: DollarSign,
       iconColor: 'text-green-500',
-      tooltip: `Gross: ${formatCurrency(grossRevenue)} (incl. 21% BTW)`,
+      tooltip: `Gross: ${fmtCurrency(grossRevenue)} (incl. ${vatLabel})`,
     },
     {
       title: 'Net Collected',
-      value: formatCurrency(netCollected),
+      value: fmtCurrency(netCollected),
       description: `${collectionRate}% collection rate`,
       icon: CheckCircle,
       iconColor: 'text-blue-500',
-      tooltip: `Gross: ${formatCurrency(grossCollected)} (incl. 21% BTW)`,
+      tooltip: `Gross: ${fmtCurrency(grossCollected)} (incl. ${vatLabel})`,
     },
     {
       title: 'Outstanding',
-      value: formatCurrency(metrics?.total_outstanding || 0),
+      value: fmtCurrency(metrics?.total_outstanding || 0),
       description: `${metrics?.invoice_count_open || 0} open invoices`,
       icon: FileText,
       iconColor: 'text-amber-500',
@@ -62,7 +60,7 @@ export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing }: R
     },
     {
       title: 'Overdue',
-      value: formatCurrency(
+      value: fmtCurrency(
         (metrics?.payment_aging?.overdue_30 || 0) +
         (metrics?.payment_aging?.overdue_60 || 0) +
         (metrics?.payment_aging?.overdue_90 || 0) +
