@@ -12,3 +12,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/blog-sitemap

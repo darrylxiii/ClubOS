@@ -4338,6 +4338,7 @@ export type Database = {
           content_format: string | null
           created_at: string
           excerpt: string | null
+          faq_schema: Json | null
           freshness_score: number | null
           generation_prompt: string | null
           hero_image: Json | null
@@ -4364,6 +4365,7 @@ export type Database = {
           content_format?: string | null
           created_at?: string
           excerpt?: string | null
+          faq_schema?: Json | null
           freshness_score?: number | null
           generation_prompt?: string | null
           hero_image?: Json | null
@@ -4390,6 +4392,7 @@ export type Database = {
           content_format?: string | null
           created_at?: string
           excerpt?: string | null
+          faq_schema?: Json | null
           freshness_score?: number | null
           generation_prompt?: string | null
           hero_image?: Json | null
