@@ -18,13 +18,14 @@ interface InvestorReportExportProps {
 export function InvestorReportExport({ metrics, historicalData }: InvestorReportExportProps) {
   const [isExporting, setIsExporting] = useState(false);
 
-  const formatCurrency = (cents: number) => {
-    return new Intl.NumberFormat('en-EU', {
+  // Values are stored in EUR (not cents)
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(cents / 100);
+    }).format(value);
   };
 
   const exportToCSV = () => {
@@ -52,17 +53,17 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
 
       const rows = historicalData.map(row => [
         row.metric_date,
-        (row.mrr / 100).toFixed(2),
-        (row.arr / 100).toFixed(2),
-        (row.new_mrr / 100).toFixed(2),
-        (row.expansion_mrr / 100).toFixed(2),
-        (row.contraction_mrr / 100).toFixed(2),
-        (row.churn_mrr / 100).toFixed(2),
-        row.active_subscriptions,
+        (row.mrr || 0).toFixed(2),
+        (row.arr || 0).toFixed(2),
+        (row.new_mrr || 0).toFixed(2),
+        (row.expansion_mrr || 0).toFixed(2),
+        (row.contraction_mrr || 0).toFixed(2),
+        (row.churn_mrr || 0).toFixed(2),
+        row.active_subscriptions || 0,
         row.churn_rate?.toFixed(2) || '0',
         row.net_revenue_retention?.toFixed(2) || '100',
-        (row.average_revenue_per_user / 100).toFixed(2),
-        (row.customer_lifetime_value / 100).toFixed(2),
+        (row.average_revenue_per_user || 0).toFixed(2),
+        (row.customer_lifetime_value || 0).toFixed(2),
       ]);
 
       const csvContent = [
@@ -119,8 +120,8 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
         },
         historicalData: historicalData?.map(row => ({
           date: row.metric_date,
-          mrr: row.mrr / 100,
-          arr: row.arr / 100,
+          mrr: row.mrr || 0,
+          arr: row.arr || 0,
           activeSubscriptions: row.active_subscriptions,
           churnRate: row.churn_rate,
         })) || [],
@@ -155,6 +156,7 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
       const summary = `
 THE QUANTUM CLUB - INVESTOR EXECUTIVE SUMMARY
 Generated: ${format(new Date(), 'MMMM d, yyyy')}
+CONFIDENTIAL
 
 ═══════════════════════════════════════════════════════
 
@@ -201,6 +203,7 @@ us from traditional recruiting platforms.
 
 ═══════════════════════════════════════════════════════
 
+CONFIDENTIAL - For authorized investors only.
 For questions, contact: investors@thequantumclub.com
       `.trim();
 

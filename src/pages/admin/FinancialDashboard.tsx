@@ -19,6 +19,9 @@ import { CashFlowProjection } from "@/components/financial/CashFlowProjection";
 import { ProfitLossCard } from "@/components/financial/ProfitLossCard";
 import { FinancialEventsTimeline } from "@/components/financial/FinancialEventsTimeline";
 import { MissingFeesAlert } from "@/components/financial/MissingFeesAlert";
+import { EBITDACard } from "@/components/financial/EBITDACard";
+import { RevenueConcentrationCard } from "@/components/financial/RevenueConcentrationCard";
+import { MultiYearPLTable } from "@/components/financial/MultiYearPLTable";
 import { useMoneybirdFinancials, useSyncMoneybirdFinancials } from "@/hooks/useMoneybirdFinancials";
 import { useFinancialYearSelector } from "@/hooks/useFinancialYearSelector";
 import { useAutoSyncFinancials } from "@/hooks/useAutoSyncFinancials";
@@ -220,8 +223,15 @@ export default function FinancialDashboard() {
 
           <div className="grid gap-6 md:grid-cols-2">
             <ProfitLossCard year={selectedYear} legalEntity={entityParam} />
+            <EBITDACard year={selectedYear} legalEntity={entityParam} />
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <RevenueConcentrationCard year={selectedYear} legalEntity={entityParam} />
             <FinancialEventsTimeline />
           </div>
+
+          <MultiYearPLTable legalEntity={entityParam} />
         </>
       )}
 

@@ -1,284 +1,253 @@
 
-# Wall Street $500M Exit Audit: The 0.0001% CFO Analysis
 
-## Current State Assessment
+# Comprehensive Email System Audit — The Quantum Club
 
-**Live data snapshot**: 52 invoices, 7 unique clients, EUR 387K net revenue across 2024-2026, 226 candidates, 1 hire, 18 companies, EUR 72K uninvoiced placement fees, 0 investor metric snapshots, 0 revenue_metrics rows.
+## Current State Summary
 
-**Verdict: Not Wall Street ready. Score: 38/100.**
-
-The operational finance system (P&L, VAT, cash flow) is now mechanically correct after the previous fixes. But the investor-facing layer -- the part that makes or breaks a $500M narrative -- is a Potemkin village: hardcoded numbers, empty tables, disconnected data sources, and no auditable trail between claimed metrics and actual revenue.
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## TIER 1: CREDIBILITY DESTROYERS (Things that end a deal in the first meeting)
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-### 1.1 Due Diligence Dashboard shows hardcoded fake metrics
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
 
-`MetricsOverviewDashboard.tsx` lines 34-37:
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
+
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
+
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+
+### 1.3 Emoji in Subject Lines (6 functions)
+
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
+
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+
+### 1.4 SPF Record Missing (DNS — not code)
+
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
 ```
-arr: 2400000,
-mrr: 200000,
-growthRate: 15.2,
+This is a DNS change in the domain registrar.
+
+---
+
+## CATEGORY 2: Content & Copy Quality
+
+### 2.1 Inconsistent Tone
+
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
+
+### 2.2 Hardcoded Contact Email Inconsistency
+
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+
+### 2.3 Missing "Powered by QUIN" Attribution
+
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+
+---
+
+## CATEGORY 3: Technical & Security Issues
+
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+
+### 3.2 `linear-gradient()` in Inline Styles
+
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
 ```
 
-Lines 126-140 display hardcoded unit economics:
-- "Customer Acquisition Cost: EUR 2,400" (fabricated)
-- "Lifetime Value: EUR 48,000" (fabricated)
-- "LTV:CAC Ratio: 20:1" (fabricated)
-- "Net Revenue Retention: 125%" (fabricated)
-- "Monthly Churn Rate: 1.2%" (fabricated)
+### 5.2 Centralize Plain-Text Generation
 
-An investor doing 5 minutes of due diligence would compare these numbers to the actual P&L (EUR 387K total revenue across 3 years). The ARR claim of EUR 2.4M is 6x actual lifetime gross revenue. This is an immediate deal-killer.
-
-### 1.2 Investor Dashboard reads from empty `revenue_metrics` table
-
-`InvestorDashboard.tsx` queries `revenue_metrics` (0 rows in database). Every metric -- ARR, MRR, churn, NRR, Quick Ratio, LTV, ARPU -- will render as 0 or fallback values. The CAC calculation is `arpu * 3` -- a placeholder that becomes 0 when ARPU is 0. The entire dashboard is a blank wall.
-
-### 1.3 `investor_metrics_snapshots` table has 0 rows
-
-`InvestorMetrics.tsx` depends on `investor_metrics_snapshots` via `useLatestInvestorMetrics()`. The "Refresh" button calls `capture_investor_metrics_snapshot` RPC. But no snapshot has ever been captured. All valuation calculations (5x ARR, 10x ARR, 15x ARR) compute to EUR 0. The "Rule of 40" shows as null.
-
-### 1.4 Revenue Dashboard uses GROSS `total_amount` instead of NET
-
-`useInvestorMetrics()` (line 174): `totalRevenue += Number(inv.total_amount) || 0`. This sums gross amounts (incl. 21% VAT) while the rest of the finance system now uses net. An investor comparing the Revenue Dashboard to the P&L would see a ~21% discrepancy and question all numbers.
-
----
-
-## TIER 2: NARRATIVE GAPS (Things that prevent a compelling $500M story)
-
-### 2.1 No EBITDA calculation anywhere
-
-Wall Street cares about EBITDA (Earnings Before Interest, Taxes, Depreciation, Amortization). The P&L stops at "Net Profit" but never computes EBITDA. For a $500M sale, EBITDA margin and EBITDA multiple are the primary valuation anchors for a services/marketplace hybrid.
-
-### 2.2 No revenue concentration / client dependency analysis
-
-7 unique clients generate all EUR 387K. If one client represents 40%+ of revenue, that is a material concentration risk. No component surfaces this. The `TopClientsTable` shows revenue by client but does not calculate or flag concentration percentages (Herfindahl index or top-3 share).
-
-### 2.3 No Burn Multiple (Bessemer metric)
-
-Burn Multiple = Net Burn / Net New ARR. This is the single most important efficiency metric for growth-stage companies. Neither the Investor Dashboard nor any component computes it.
-
-### 2.4 No Magic Number
-
-Magic Number = QoQ Net New ARR / Prior Quarter Sales & Marketing Spend. Standard Wall Street metric for go-to-market efficiency. Missing entirely.
-
-### 2.5 No Gross Margin computation with proper COGS definition
-
-`gross_profit` in the edge function was changed to `totalRevenue - totalCommissions`, but COGS for a recruiting marketplace should include: recruiter commissions + referral payouts + ATS costs + any variable costs tied to placements. The P&L has "Gross Margin = Revenue - Commissions - Payouts" which is close but never explicitly called out as a percentage on the investor dashboards.
-
-### 2.6 No revenue per placement / revenue per candidate / revenue per employee metrics
-
-These are the core unit economics for a recruiting business. TQC has 1 hire, 5 placement fees, and 226 candidates. The system should compute: revenue per successful placement, cost per candidate sourced, and revenue per employee (headcount not tracked).
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+```
 
 ---
 
-## TIER 3: PRESENTATION GAPS (Things that make investors squint)
+## Implementation Priority
 
-### 3.1 Investor Report Export uses cents-based formatting for a EUR business
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
 
-`InvestorReportExport.tsx` divides all values by 100 (line 56: `row.mrr / 100`) because the `revenue_metrics` table stores values in cents. But the actual finance system stores values in EUR (not cents). If someone ever populates `investor_metrics_snapshots` with EUR values (as the snapshot RPC would do), the export would divide EUR by 100, showing 1% of actual revenue.
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
 
-### 3.2 No watermarked PDF investor deck export
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
 
-The "Export" button generates CSV, JSON, or a plain-text file. For a $500M deal, investors expect a branded PDF with watermarks (viewer's email + timestamp), charts, and TQC branding. The current "Executive Summary" is a `.txt` file with ASCII art borders.
-
-### 3.3 Data Room has no access audit trail
-
-`DataRoomManager` tracks `view_count` and `last_viewed_at`, but does not log WHO viewed WHAT WHEN. For due diligence, you need: `data_room_access_logs(user_id, document_id, action, ip_address, timestamp)`. The "Generate Access Link" creates a fake URL that goes nowhere (line 165: `app.thequantumclub.com/data-room/inv-${Date.now()}`).
-
-### 3.4 No consolidated multi-year financial summary
-
-Investors want a 3-year P&L side-by-side (2024 vs 2025 vs 2026) in one view. The current P&L card shows one year at a time with a YoY badge. There is no table showing revenue, COGS, gross margin, opex, EBITDA, and net profit across all years in columns.
-
-### 3.5 No runway calculation
-
-With burn rate data and cash position, the system should show: "At current burn, runway is X months." No cash balance is tracked. No runway metric exists.
-
----
-
-## TIER 4: MISSING WALL STREET TABLE STAKES
-
-### 4.1 No cap table / ownership structure
-### 4.2 No scenario modeling (bear/base/bull)
-### 4.3 No comparable company analysis
-### 4.4 No customer acquisition funnel metrics (lead to customer conversion, time-to-first-revenue)
-### 4.5 No TAM/SAM/SOM visualization
-### 4.6 No employee headcount and revenue-per-employee trend
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
 
 ---
 
-## THE 0.0001% PLAN: What Would Actually Amaze
+## Files to Modify
 
-### Phase 1: Kill the Lies (Immediate -- fix credibility)
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
 
-**1A. Replace all hardcoded metrics with live data**
+**Total: ~25 files modified**
 
-Delete the fake numbers in `MetricsOverviewDashboard.tsx`. Instead:
-- ARR = `moneybird_financial_metrics.total_revenue` for current year, annualized by dividing by months elapsed and multiplying by 12
-- MRR = ARR / 12
-- Growth Rate = (current year revenue / prior year revenue - 1) * 100
-- Client count = `count(DISTINCT contact_id) FROM moneybird_sales_invoices WHERE year = current`
-- Unit economics = computed from real placement fees and commissions
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
 
-Replace hardcoded unit economics (EUR 2,400 CAC, EUR 48,000 LTV, etc.) with:
-- CAC = total operating expenses / new clients acquired in period
-- LTV = average revenue per client * average client lifetime (measured from first to last invoice)
-- Gross Margin = (net revenue - commissions - payouts) / net revenue
-
-**1B. Populate `investor_metrics_snapshots` from real data**
-
-Rewrite or fix `capture_investor_metrics_snapshot` RPC to pull from `moneybird_sales_invoices`, `placement_fees`, `companies`, `candidate_profiles`, and `applications` -- the same tables the operational finance system uses. Run it once to seed current state.
-
-**1C. Fix Revenue Dashboard to use NET revenue**
-
-Change `useInvestorMetrics()` line 174 from `total_amount` to `net_amount`, falling back to `grossToNet(total_amount)`.
-
-### Phase 2: Build the $500M Narrative (High Priority)
-
-**2A. EBITDA Card**
-
-New component: `EBITDACard.tsx`
-- EBITDA = Net Revenue - COGS (commissions + payouts) - OpEx (operating expenses + subscriptions)
-- Display: EBITDA, EBITDA margin %, EBITDA multiple at various valuations
-- YoY comparison
-
-**2B. Revenue Concentration Widget**
-
-New component: `RevenueConcentrationCard.tsx`
-- Top-1, Top-3, Top-5 client share of total revenue
-- Herfindahl-Hirschman Index (HHI)
-- Flag: "Concentrated" if top client >25% or HHI >2500
-- Trend over time (quarterly)
-
-**2C. Multi-Year P&L Comparison Table**
-
-New component: `MultiYearPLTable.tsx`
-- Side-by-side columns: 2024 | 2025 | 2026 YTD
-- Rows: Revenue, COGS, Gross Margin, OpEx, EBITDA, Net Profit
-- YoY growth percentages between each column
-- Exportable as PDF
-
-**2D. Burn Multiple and Efficiency Metrics**
-
-Compute and display:
-- Burn Multiple = Net Burn / Net New ARR
-- Rule of 40 = Revenue Growth % + EBITDA Margin % (replace the current fake `+ 20` assumption)
-- Gross Margin %
-- Net Revenue per Placement
-- Revenue per Employee (require headcount input)
-
-### Phase 3: Investor-Grade Presentation (Medium Priority)
-
-**3A. Branded PDF Investor Report**
-
-Replace the plain-text executive summary with a jsPDF report that includes:
-- TQC logo and branding (dark theme, gold accents)
-- Viewer watermark (email + timestamp)
-- Multi-year P&L table
-- EBITDA bridge chart
-- Revenue concentration analysis
-- Unit economics summary
-- Cohort retention chart
-- Data generated timestamp + "Confidential" footer
-
-**3B. Data Room Access Logging**
-
-Create `data_room_access_logs` table. Log every document view, download, and link generation with user ID, IP, user agent, timestamp. Surface an access timeline on the admin side so you can see which documents investors spend time on.
-
-**3C. Runway Calculator**
-
-New component: `RunwayCalculator.tsx`
-- Input: current cash balance (manual entry or bank integration)
-- Monthly burn = operating expenses + subscriptions - net collections
-- Runway months = cash balance / monthly net burn
-- Scenarios: current burn, reduced burn (-20%), increased revenue (+20%)
-
-### Phase 4: The 0.0001% Brilliance (What separates from every other company)
-
-**4A. Live Investor Portal**
-
-Instead of static exports, create a `/investor` route (behind invite code auth) that shows:
-- Real-time ARR ticker
-- Interactive multi-year P&L with drill-down
-- Revenue waterfall chart (how ARR grew quarter by quarter)
-- Client health matrix (green/yellow/red per client based on billing consistency)
-- Placement velocity chart (time from job opening to hire, trending)
-
-This is what makes Goldman Sachs analysts say "we have never seen a company this transparent."
-
-**4B. AI-Powered Financial Commentary**
-
-Use QUIN to auto-generate a natural-language financial narrative each quarter:
-- "Revenue grew 142% YoY driven by 3 new enterprise clients. Gross margin expanded from 72% to 78% as commission rates normalized. Concentration risk decreased: top client now represents 28% of revenue, down from 41% in prior year."
-
-This would be generated from actual data, not fabricated. Stored as quarterly investor memos.
-
-**4C. Predictive Revenue Model**
-
-Use historical placement data to build a forward-looking model:
-- Based on current pipeline (5 fees pending), expected conversion rates, and average deal sizes
-- Show projected quarterly revenue for next 4 quarters
-- Include confidence intervals (P10, P50, P90)
-- Automatically update as pipeline changes
-
-**4D. Transaction Readiness Score**
-
-A dashboard widget that scores exit-readiness on 10 dimensions:
-1. Revenue quality (recurring vs one-time)
-2. Revenue concentration (HHI)
-3. Gross margin trend
-4. EBITDA margin
-5. Growth rate
-6. Client retention
-7. Financial controls (period close, audit trail)
-8. Data room completeness
-9. Legal/compliance readiness
-10. Technology documentation
-
-Each dimension: 0-10. Total: 0-100. With specific actions to improve each score.
-
----
-
-## Implementation Priorities
-
-**Sprint 1 (Phase 1): Kill the lies -- 4 changes**
-- Replace hardcoded metrics in MetricsOverviewDashboard with live queries
-- Fix useInvestorMetrics to use net_amount
-- Fix/populate investor_metrics_snapshots from real data
-- Fix InvestorReportExport cents-based formatting
-
-**Sprint 2 (Phase 2): Build the narrative -- 4 new components**
-- EBITDACard
-- RevenueConcentrationCard
-- MultiYearPLTable
-- Burn Multiple / efficiency metrics
-
-**Sprint 3 (Phase 3): Presentation quality -- 3 changes**
-- Branded PDF investor report
-- Data room access logging
-- Runway calculator
-
-**Sprint 4 (Phase 4): The brilliance -- build competitive moat**
-- Live investor portal route
-- AI financial commentary
-- Predictive revenue model
-- Transaction readiness scorecard
-
----
-
-## Scoring Breakdown
-
-| Category | Max | Current | After Plan |
-|---|---|---|---|
-| Data integrity (no fake numbers) | 20 | 2 | 20 |
-| Investor-grade metrics (EBITDA, burn multiple, etc.) | 20 | 0 | 18 |
-| Multi-year presentation quality | 15 | 3 | 14 |
-| Export / Data Room quality | 15 | 5 | 14 |
-| Unit economics accuracy | 10 | 1 | 9 |
-| Concentration / risk analysis | 10 | 0 | 9 |
-| Predictive / forward-looking | 10 | 4 | 9 |
-| Overall "wow" factor | (bonus) | 0 | 7 |
-| **Total** | **100** | **15** | **100** |
-
-The current investor layer scores 15/100 primarily because 80% of displayed numbers are either hardcoded fakes or come from empty tables. The operational finance layer (which scores ~85/100 after previous fixes) is completely disconnected from the investor presentation layer.
