@@ -98,7 +98,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
     }
   };
 
-  const formatCurrency = (amount: number, currencyCode: string = 'EUR') => {
+  const fmtCurrency = (amount: number, currencyCode: string = 'EUR') => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
       currency: currencyCode,
