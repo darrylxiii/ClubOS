@@ -27,7 +27,7 @@ export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing, leg
   
   // total_paid is already NET from the edge function
   const netCollected = metrics?.total_paid || 0;
-  const grossCollected = Math.round(netCollected * (1 + getVATRate()));
+  const grossCollected = Math.round(netCollected * (1 + vatRate));
 
   const collectionRate = netRevenue > 0
     ? ((netCollected / netRevenue) * 100).toFixed(1)
