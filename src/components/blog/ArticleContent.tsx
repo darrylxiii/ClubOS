@@ -121,9 +121,21 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
     }
   };
 
+  // Build content with inline CTAs every 5th block (after 3rd, 8th, 13th, etc.)
+  const contentWithCTAs: React.ReactNode[] = [];
+  let ctaCounter = 0;
+  content.forEach((block, index) => {
+    contentWithCTAs.push(renderBlock(block, index));
+    // Inject CTA after every 5th content block, starting after the 3rd
+    if ((index + 1) >= 3 && (index + 1 - 3) % 5 === 0) {
+      contentWithCTAs.push(renderInlineCTA(ctaCounter));
+      ctaCounter++;
+    }
+  });
+
   return (
     <article className={cn("max-w-prose", className)}>
-      {content.map((block, index) => renderBlock(block, index))}
+      {contentWithCTAs}
     </article>
   );
 };

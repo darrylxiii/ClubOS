@@ -15,23 +15,27 @@ import SocialShareButtons from '@/components/blog/SocialShareButtons';
 import FloatingShareBar from '@/components/blog/FloatingShareBar';
 import ArticleReactions from '@/components/blog/ArticleReactions';
 import SaveForLater from '@/components/blog/SaveForLater';
+import ScrollCTA from '@/components/blog/ScrollCTA';
 import { Button } from '@/components/ui/button';
 import {
-  getPostBySlug,
   getCategoryBySlug,
   getRelatedPosts,
   blogPosts,
 } from '@/data/blog';
+import { useDynamicBlogPost, useDynamicBlogPosts } from '@/hooks/useDynamicBlogPosts';
 import { useBlogAnalytics } from '@/hooks/useBlogAnalytics';
 
 const BlogPost: React.FC = () => {
   const { category, slug } = useParams<{ category: string; slug: string }>();
   const location = useLocation();
 
-  const post = slug ? getPostBySlug(slug) : undefined;
+  // Use dynamic hook that checks DB first, then falls back to static
+  const { data: post, isLoading } = useDynamicBlogPost(category || '', slug || '');
+  const { data: allPosts = [] } = useDynamicBlogPosts();
+
   const categoryData = category ? getCategoryBySlug(category) : undefined;
   const relatedPosts = post ? getRelatedPosts(post.id, 3) : [];
-  const popularPosts = blogPosts.filter((p) => p.id !== post?.id).slice(0, 3);
+  const popularPosts = allPosts.filter((p) => p.id !== post?.id).slice(0, 3);
 
   const { trackCTAClick } = useBlogAnalytics({
     postSlug: slug || '',
@@ -51,6 +55,17 @@ const BlogPost: React.FC = () => {
       window.scrollTo(0, 0);
     }
   }, [slug, location.hash]);
+
+  if (isLoading) {
+    return (
+      <main className="flex-1 flex items-center justify-center pt-32">
+        <div className="text-center">
+          <div className="h-8 w-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground text-sm">Loading article...</p>
+        </div>
+      </main>
+    );
+  }
 
   if (!post) {
     return (
@@ -176,6 +191,8 @@ const BlogPost: React.FC = () => {
           description={post.excerpt}
           onShare={(platform) => trackCTAClick('share', platform)}
         />
+
+        <ScrollCTA />
       </div>
     </>
   );
