@@ -19,6 +19,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+
     // Get existing posts for gap analysis
     const { data: existingPosts } = await supabase
       .from('blog_posts')
@@ -32,27 +35,78 @@ serve(async (req) => {
 
 Suggest 5 new article topics for The Quantum Club blog (a luxury talent platform). Categories: career-insights, talent-strategy, industry-trends, leadership.
 
-For each, return JSON array with objects: { topic, category, format (career-playbook|market-analysis|trend-report|success-story|myth-buster|talent-origin|executive-stack), targetKeywords (array), priority (1-10), reasoning }.`;
+For each, return using the provided tool.`;
 
-    const response = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-lite',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.8,
-        response_format: { type: 'json_object' },
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'suggest_topics',
+              description: 'Return 5 blog topic suggestions',
+              parameters: {
+                type: 'object',
+                properties: {
+                  suggestions: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        topic: { type: 'string' },
+                        category: { type: 'string' },
+                        format: { type: 'string', enum: ['career-playbook', 'market-analysis', 'trend-report', 'success-story', 'myth-buster', 'talent-origin', 'executive-stack'] },
+                        targetKeywords: { type: 'array', items: { type: 'string' } },
+                        priority: { type: 'number' },
+                        reasoning: { type: 'string' },
+                      },
+                      required: ['topic', 'category', 'format', 'targetKeywords', 'priority', 'reasoning'],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ['suggestions'],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+        tool_choice: { type: 'function', function: { name: 'suggest_topics' } },
       }),
     });
 
-    if (!response.ok) throw new Error(`AI suggestion failed: ${response.statusText}`);
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded', code: 'AI_RATE_LIMITED' }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted', code: 'AI_CREDITS_EXHAUSTED' }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      throw new Error(`AI suggestion failed: ${response.statusText}`);
+    }
 
     const aiResult = await response.json();
-    const parsed = JSON.parse(aiResult.choices[0].message.content);
-    const suggestions = parsed.suggestions || parsed;
+    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
+    let suggestions;
+    if (toolCall) {
+      const parsed = JSON.parse(toolCall.function.arguments);
+      suggestions = parsed.suggestions;
+    } else {
+      const parsed = JSON.parse(aiResult.choices[0].message.content);
+      suggestions = parsed.suggestions || parsed;
+    }
 
     if (autoQueue && Array.isArray(suggestions)) {
       for (const s of suggestions) {
