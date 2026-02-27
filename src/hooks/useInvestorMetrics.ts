@@ -166,13 +166,16 @@ export function useInvestorMetrics() {
       // Fetch invoices for revenue
       const invoicesRes = await supabase
         .from('moneybird_sales_invoices')
-        .select('total_amount, state_normalized')
+        .select('total_amount, net_amount, state_normalized')
         .gte('invoice_date', startOfYear);
 
       let totalRevenue = 0;
       if (invoicesRes.data) {
         for (const inv of invoicesRes.data) {
-          totalRevenue += Number(inv.total_amount) || 0;
+          // Prefer net_amount; fallback to grossToNet(total_amount)
+          const net = Number((inv as any).net_amount) || 0;
+          const gross = Number(inv.total_amount) || 0;
+          totalRevenue += net > 0 ? net : gross / 1.21;
         }
       }
 
