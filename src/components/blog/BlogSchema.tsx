@@ -29,6 +29,21 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
     ],
   };
 
+  // FAQ Schema from post data (for AI-generated posts with faq_schema)
+  const faqItems = (post as any).faqSchema || [];
+  const faqSchema = faqItems.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map((faq: { question: string; answer: string }) => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer,
+      },
+    })),
+  } : null;
+
   return (
     <Helmet>
       <link rel="canonical" href={postUrl} />
@@ -42,6 +57,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
       <meta name="twitter:description" content={post.metaDescription} />
       <script type="application/ld+json">{JSON.stringify(blogPostingSchema)}</script>
       <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+      {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
     </Helmet>
   );
 };

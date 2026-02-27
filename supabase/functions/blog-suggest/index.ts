@@ -27,15 +27,30 @@ serve(async (req) => {
       .from('blog_posts')
       .select('title, category, keywords')
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(100);
 
     const existingTopics = (existingPosts || []).map((p: any) => p.title).join(', ');
+    const existingCategories = (existingPosts || []).map((p: any) => p.category);
+    const categoryCounts: Record<string, number> = {};
+    existingCategories.forEach((c: string) => { categoryCounts[c] = (categoryCounts[c] || 0) + 1; });
+
+    const underservedCategory = Object.entries({
+      'career-insights': categoryCounts['career-insights'] || 0,
+      'talent-strategy': categoryCounts['talent-strategy'] || 0,
+      'industry-trends': categoryCounts['industry-trends'] || 0,
+      'leadership': categoryCounts['leadership'] || 0,
+    }).sort((a, b) => a[1] - b[1]).map(e => e[0]);
 
     const prompt = `Given these existing articles: [${existingTopics}]
 
-Suggest 5 new article topics for The Quantum Club blog (a luxury talent platform). Categories: career-insights, talent-strategy, industry-trends, leadership.
+Categories ranked by content gap (least content first): ${underservedCategory.join(', ')}
 
-For each, return using the provided tool.`;
+Suggest 10 new article topics for The Quantum Club blog (a luxury invite-only talent platform for top-tier professionals). Prioritize underserved categories. Think in topic clusters: create pillar content and supporting articles.
+
+Categories: career-insights, talent-strategy, industry-trends, leadership.
+Formats: career-playbook, market-analysis, trend-report, success-story, myth-buster, talent-origin, executive-stack.
+
+For each, return using the provided tool. Include a cluster_id to group related topics together.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -52,7 +67,7 @@ For each, return using the provided tool.`;
             type: 'function',
             function: {
               name: 'suggest_topics',
-              description: 'Return 5 blog topic suggestions',
+              description: 'Return 10 blog topic suggestions with cluster grouping',
               parameters: {
                 type: 'object',
                 properties: {
@@ -67,6 +82,8 @@ For each, return using the provided tool.`;
                         targetKeywords: { type: 'array', items: { type: 'string' } },
                         priority: { type: 'number' },
                         reasoning: { type: 'string' },
+                        clusterId: { type: 'string', description: 'Group related topics under a cluster name' },
+                        isPillar: { type: 'boolean', description: 'True if this is a pillar/cornerstone article' },
                       },
                       required: ['topic', 'category', 'format', 'targetKeywords', 'priority', 'reasoning'],
                       additionalProperties: false,

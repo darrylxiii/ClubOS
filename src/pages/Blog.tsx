@@ -154,11 +154,22 @@ const Blog: React.FC = () => {
               </div>
 
               <BlogGrid
-                posts={filteredPosts}
+                posts={visiblePosts}
                 searchQuery={debouncedSearch}
                 focusedIndex={isSearching ? focusedResultIndex : -1}
                 isLoading={isLoading}
               />
+
+              {hasMore && (
+                <div className="flex justify-center mt-12">
+                  <button
+                    onClick={loadMore}
+                    className="px-8 py-3 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+                  >
+                    Load more articles
+                  </button>
+                </div>
+              )}
             </BlogErrorBoundary>
           </section>
 
