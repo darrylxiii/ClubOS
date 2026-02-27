@@ -66,6 +66,22 @@ const Blog: React.FC = () => {
     return posts;
   }, [allPosts, debouncedSearch, activeCategory, featuredPost]);
 
+  // Pagination
+  const POSTS_PER_PAGE = 12;
+  const [visibleCount, setVisibleCount] = useState(POSTS_PER_PAGE);
+
+  const visiblePosts = useMemo(() => filteredPosts.slice(0, visibleCount), [filteredPosts, visibleCount]);
+  const hasMore = visibleCount < filteredPosts.length;
+
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => prev + POSTS_PER_PAGE);
+  }, []);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(POSTS_PER_PAGE);
+  }, [debouncedSearch, activeCategory]);
+
   const showFeatured = !debouncedSearch && !activeCategory && featuredPost;
   const resultsCount = filteredPosts.length;
   const isSearching = debouncedSearch.trim().length > 0;
