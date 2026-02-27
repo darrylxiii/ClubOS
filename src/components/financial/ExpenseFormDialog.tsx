@@ -60,6 +60,7 @@ const SUPPORTED_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
 export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: ExpenseFormDialogProps) {
   const queryClient = useQueryClient();
   const isEdit = !!editExpense;
+  const { logAction } = useFinancialAuditLog();
 
   const [currency, setCurrency] = useState<Currency>(
     (editExpense?.currency as Currency) || 'EUR'
