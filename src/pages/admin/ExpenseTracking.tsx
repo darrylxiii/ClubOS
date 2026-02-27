@@ -14,6 +14,7 @@ import { useVendorSubscriptions } from "@/hooks/useVendorSubscriptions";
 import ExpenseFormDialog from "@/components/financial/ExpenseFormDialog";
 import RecurringExpensesPanel from "@/components/financial/RecurringExpensesPanel";
 import ExpenseFilters from "@/components/financial/ExpenseFilters";
+import { useFinancialAuditLog } from "@/hooks/useFinancialAuditLog";
 
 interface ExpenseCategory {
   id: string;

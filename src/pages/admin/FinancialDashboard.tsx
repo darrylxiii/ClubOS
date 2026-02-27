@@ -177,6 +177,7 @@ export default function FinancialDashboard() {
       </div>
 
       <ReconciliationAlert year={selectedYear} />
+      <UninvoicedFeesAlert />
       <MissingFeesAlert />
 
       <InvoiceStatusSummary year={selectedYear} />
