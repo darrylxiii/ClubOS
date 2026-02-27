@@ -60,7 +60,7 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
         </TableHeader>
         <TableBody>
           {displayInvoices.map((invoice) => {
-            const netAmount = Number(invoice.net_amount) || Number(invoice.total_amount) / 1.21; // fallback for legacy data
+            const netAmount = Number(invoice.net_amount) || grossToNet(Number(invoice.total_amount));
             const vatAmount = Number(invoice.vat_amount) || Number(invoice.total_amount) - netAmount;
             
             return (
