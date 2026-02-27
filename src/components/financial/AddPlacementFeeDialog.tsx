@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useFinancialAuditLog } from '@/hooks/useFinancialAuditLog';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
