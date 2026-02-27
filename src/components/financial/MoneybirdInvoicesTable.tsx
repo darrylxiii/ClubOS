@@ -42,8 +42,7 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
     );
   }
 
-  const formatCurrency = (amount: number | string) => 
-    new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(Number(amount) || 0);
+  const fmtCurrency = (amount: number | string) => formatCurrency(Number(amount) || 0);
 
   return (
     <div className="overflow-x-auto">
