@@ -112,8 +112,8 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
           else if (daysOverdue > 30) probability = 0.7;
           else if (daysOverdue > 0) probability = 0.85;
 
-          const netAmount = Number(inv.net_amount) || Number(inv.total_amount) / 1.21;
-          const vatAmount = Number(inv.vat_amount) || Number(inv.total_amount) - netAmount;
+          const netAmount = Number(inv.net_amount) || grossToNet(Number(inv.total_amount));
+          const vatAmountCalc = Number(inv.vat_amount) || Number(inv.total_amount) - netAmount;
           
           return {
             netCollections: acc.netCollections + netAmount * probability,
