@@ -223,8 +223,15 @@ export default function FinancialDashboard() {
 
           <div className="grid gap-6 md:grid-cols-2">
             <ProfitLossCard year={selectedYear} legalEntity={entityParam} />
+            <EBITDACard year={selectedYear} legalEntity={entityParam} />
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <RevenueConcentrationCard year={selectedYear} legalEntity={entityParam} />
             <FinancialEventsTimeline />
           </div>
+
+          <MultiYearPLTable legalEntity={entityParam} />
         </>
       )}
 
