@@ -64,8 +64,8 @@ export default function FinancialDashboard() {
         .select('total_amount, net_amount, vat_amount')
         .gte('invoice_date', startOfYear);
 
-      const netRevenue = inv?.reduce((s, i) => s + (Number(i.net_amount) || Number(i.total_amount) / 1.21 || 0), 0) || 0;
-      const vatCollected = inv?.reduce((s, i) => s + (Number(i.vat_amount) || Number(i.total_amount) - Number(i.total_amount) / 1.21 || 0), 0) || 0;
+      const netRevenue = inv?.reduce((s, i) => s + (Number(i.net_amount) || grossToNet(Number(i.total_amount)) || 0), 0) || 0;
+      const vatCollected = inv?.reduce((s, i) => s + (Number(i.vat_amount) || vatFromGross(Number(i.total_amount)) || 0), 0) || 0;
       const grossRevenue = inv?.reduce((s, i) => s + (Number(i.total_amount) || 0), 0) || 0;
 
       const { data: comms } = await supabase.from('employee_commissions').select('gross_amount').gte('created_at', startOfYear);
