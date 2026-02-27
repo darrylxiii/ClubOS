@@ -10,21 +10,18 @@ interface RevenueSummaryCardsProps {
   isLoading: boolean;
   onSync?: () => void;
   isSyncing?: boolean;
+  legalEntity?: string;
 }
 
-export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing }: RevenueSummaryCardsProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing, legalEntity }: RevenueSummaryCardsProps) {
+  const fmtCurrency = (amount: number) => formatCurrency(amount);
+
+  const vatRate = getVATRate(legalEntity);
+  const vatLabel = legalEntity === 'tqc_dubai' ? '5% VAT' : '21% BTW';
 
   // total_revenue is already NET (excl. VAT) from the edge function
   const netRevenue = metrics?.total_revenue || 0;
-  const grossRevenue = (metrics as any)?.total_revenue_gross || Math.round(netRevenue * (1 + getVATRate()));
+  const grossRevenue = (metrics as any)?.total_revenue_gross || Math.round(netRevenue * (1 + vatRate));
   const vatAmount = (metrics as any)?.vat_amount || (grossRevenue - netRevenue);
   
   // total_paid is already NET from the edge function
