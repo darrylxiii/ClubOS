@@ -43,15 +43,15 @@ const JobApprovals = () => {
 
   const { data: pendingJobs, isLoading } = useQuery({
     queryKey: ['pending-jobs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<PendingJob[]> => {
+      const { data, error } = await (supabase as any)
         .from('jobs')
         .select('id, title, description, location, employment_type, salary_min, salary_max, currency, created_at, created_by, company_id, companies(name, logo_url), profiles!jobs_created_by_fkey(full_name, email)')
         .eq('status', 'pending_approval')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as unknown as PendingJob[];
+      return (data || []) as PendingJob[];
     },
   });
 
