@@ -13,20 +13,26 @@ interface ProfitLossCardProps {
   legalEntity?: string;
 }
 
-function usePLData(year: number) {
+function usePLData(year: number, legalEntity?: string) {
   const startOfYear = `${year}-01-01`;
   return useQuery({
-    queryKey: ['profit-loss-summary', year],
+    queryKey: ['profit-loss-summary', year, legalEntity],
     queryFn: async () => {
-      const { data: invoices } = await supabase
+      let query = supabase
         .from('moneybird_sales_invoices')
         .select('total_amount, net_amount, vat_amount, state_normalized')
         .gte('invoice_date', startOfYear);
 
+      if (legalEntity && legalEntity !== 'all') {
+        query = query.eq('legal_entity', legalEntity);
+      }
+
+      const { data: invoices } = await query;
+
       const netRevenue = invoices?.reduce((sum, inv) => 
-        sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+        sum + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0), 0) || 0;
       const vatCollected = invoices?.reduce((sum, inv) => 
-        sum + (Number(inv.vat_amount) || Number(inv.total_amount) - Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+        sum + (Number(inv.vat_amount) || vatFromGross(Number(inv.total_amount)) || 0), 0) || 0;
       const grossRevenue = invoices?.reduce((sum, inv) => 
         sum + (Number(inv.total_amount) || 0), 0) || 0;
 
