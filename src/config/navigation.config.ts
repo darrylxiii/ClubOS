@@ -263,6 +263,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Talent Lists", icon: FolderOpen, path: "/admin/talent-pool/lists" },
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "Job Approvals", icon: FileCheck, path: "/admin/job-approvals" },
         { name: "All Companies", icon: Building, path: "/companies" },
         { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
         { name: "Member Management", icon: Users, path: "/admin/talent-hub" },

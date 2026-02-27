@@ -51,6 +51,7 @@ const formatFileSize = (bytes: number): string => {
 
 const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }: CreateJobDialogProps) => {
   const { user } = useAuth();
+  const { currentRole } = useRole();
   const [submitStep, setSubmitStep] = useState<SubmitStep>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
