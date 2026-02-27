@@ -215,6 +215,156 @@ export function InvestorPDFExport() {
         });
       }
 
+      // ─── Page 4: EBITDA Bridge ───
+      doc.addPage();
+      addWatermark();
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('EBITDA Bridge', margin, 25);
+
+      const curD = reportData.yearData[currentYr];
+      const cogs = curD.commissions + curD.payouts;
+      const grossProfit = curD.revenue - cogs;
+      const ebitda = grossProfit - curD.opex;
+      const grossMarginPct = curD.revenue > 0 ? ((grossProfit / curD.revenue) * 100).toFixed(1) : '0';
+      const ebitdaPct = curD.revenue > 0 ? ((ebitda / curD.revenue) * 100).toFixed(1) : '0';
+
+      autoTable(doc, {
+        startY: 35,
+        head: [['Line Item', 'Amount (EUR)', '% of Revenue']],
+        body: [
+          ['Net Revenue', fmtK(curD.revenue), '100%'],
+          ['− Commissions', `(${fmtK(curD.commissions)})`, curD.revenue > 0 ? `${((curD.commissions / curD.revenue) * 100).toFixed(1)}%` : '—'],
+          ['− Referral Payouts', `(${fmtK(curD.payouts)})`, curD.revenue > 0 ? `${((curD.payouts / curD.revenue) * 100).toFixed(1)}%` : '—'],
+          ['Gross Profit', fmtK(grossProfit), `${grossMarginPct}%`],
+          ['− Operating Expenses', `(${fmtK(curD.opex)})`, curD.revenue > 0 ? `${((curD.opex / curD.revenue) * 100).toFixed(1)}%` : '—'],
+          ['EBITDA', fmtK(ebitda), `${ebitdaPct}%`],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [14, 14, 16], textColor: [201, 162, 78], fontSize: 8 },
+        bodyStyles: { fontSize: 8 },
+        styles: { cellPadding: 3 },
+      });
+
+      // ─── Page 5: Revenue Concentration ───
+      doc.addPage();
+      addWatermark();
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Revenue Concentration Analysis', margin, 25);
+
+      // Build client concentration from invoice data
+      const { data: concInvs } = await supabase
+        .from('moneybird_sales_invoices')
+        .select('contact_id, contact_name, total_amount, net_amount')
+        .gte('invoice_date', `${currentYr}-01-01`)
+        .lt('invoice_date', `${currentYr + 1}-01-01`);
+
+      const clientRevMap = new Map<string, { name: string; rev: number }>();
+      let totalRev = 0;
+      for (const inv of concInvs || []) {
+        const net = Number((inv as any).net_amount) || grossToNet(Number(inv.total_amount) || 0);
+        const cid = (inv as any).contact_id || 'unknown';
+        const existing = clientRevMap.get(cid);
+        if (existing) existing.rev += net;
+        else clientRevMap.set(cid, { name: (inv as any).contact_name || 'Unknown', rev: net });
+        totalRev += net;
+      }
+      const sortedClients = [...clientRevMap.values()].sort((a, b) => b.rev - a.rev);
+      const topClients = sortedClients.slice(0, 10);
+      const hhi = totalRev > 0 ? sortedClients.reduce((sum, c) => sum + Math.pow((c.rev / totalRev) * 100, 2), 0) : 0;
+
+      const concRows = topClients.map((c, i) => [
+        `${i + 1}`,
+        c.name,
+        fmtK(c.rev),
+        totalRev > 0 ? `${((c.rev / totalRev) * 100).toFixed(1)}%` : '—',
+      ]);
+
+      autoTable(doc, {
+        startY: 35,
+        head: [['#', 'Client', 'Revenue', 'Share']],
+        body: concRows,
+        theme: 'grid',
+        headStyles: { fillColor: [14, 14, 16], textColor: [201, 162, 78], fontSize: 8 },
+        bodyStyles: { fontSize: 8 },
+        styles: { cellPadding: 3 },
+      });
+
+      const concY = (doc as any).lastAutoTable?.finalY + 10 || 120;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`HHI Score: ${hhi.toFixed(0)}`, margin, concY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        hhi < 1500 ? 'Well-diversified client base (HHI < 1500)' :
+        hhi < 2500 ? 'Moderate concentration — monitor top accounts' :
+        'High concentration risk — diversification recommended',
+        margin, concY + 7
+      );
+
+      // ─── Page 6: Unit Economics ───
+      doc.addPage();
+      addWatermark();
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Unit Economics', margin, 25);
+
+      const avgDealSize = reportData.totalPlacements && reportData.totalPlacements > 0
+        ? curD.revenue / reportData.totalPlacements : 0;
+      const ltv = curD.clients > 0 ? curD.revenue / curD.clients : 0;
+      const cac = curD.clients > 0 ? curD.opex / curD.clients : 0;
+      const ltvCacRatio = cac > 0 ? ltv / cac : 0;
+      const grossMarginVal = curD.revenue > 0 ? (grossProfit / curD.revenue) * 100 : 0;
+
+      autoTable(doc, {
+        startY: 35,
+        head: [['Metric', 'Value', 'Benchmark', 'Status']],
+        body: [
+          ['Average Deal Size', fmtK(avgDealSize), '€15K+', avgDealSize >= 15000 ? '✓' : '⚠'],
+          ['Client LTV (Annual)', fmtK(ltv), '€50K+', ltv >= 50000 ? '✓' : '⚠'],
+          ['CAC (OpEx-Based)', fmtK(cac), '<€10K', cac <= 10000 ? '✓' : '⚠'],
+          ['LTV:CAC Ratio', `${ltvCacRatio.toFixed(1)}x`, '>3.0x', ltvCacRatio >= 3 ? '✓' : '⚠'],
+          ['Gross Margin', `${grossMarginVal.toFixed(1)}%`, '>50%', grossMarginVal >= 50 ? '✓' : '⚠'],
+          ['Active Clients', `${curD.clients}`, '—', '—'],
+          ['Total Placements', `${reportData.totalPlacements || 0}`, '—', '—'],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [14, 14, 16], textColor: [201, 162, 78], fontSize: 8 },
+        bodyStyles: { fontSize: 8 },
+        styles: { cellPadding: 3 },
+      });
+
+      // ─── Page 7: Transaction Readiness Score ───
+      doc.addPage();
+      addWatermark();
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Transaction Readiness Scorecard', margin, 25);
+
+      const readinessItems = [
+        ['Revenue Quality', 'Placement fees — high-quality, project-based'],
+        ['Revenue Growth', prevData.revenue > 0 ? `${growthRate}% YoY` : 'First operating year'],
+        ['Gross Margins', `${grossMarginVal.toFixed(1)}%`],
+        ['Client Diversification', `HHI ${hhi.toFixed(0)} — ${hhi < 1500 ? 'Diversified' : hhi < 2500 ? 'Moderate' : 'Concentrated'}`],
+        ['Unit Economics', `LTV:CAC ${ltvCacRatio.toFixed(1)}x`],
+        ['Data Room', 'Complete — financials, contracts, tech docs'],
+        ['Tech Platform', 'Proprietary AI-powered recruitment platform'],
+        ['Team', 'Lean operator-led structure'],
+        ['Compliance', 'GDPR-compliant, EU-based operations'],
+        ['Scalability', 'Platform-enabled, multi-entity ready'],
+      ];
+
+      autoTable(doc, {
+        startY: 35,
+        head: [['Dimension', 'Assessment']],
+        body: readinessItems,
+        theme: 'grid',
+        headStyles: { fillColor: [14, 14, 16], textColor: [201, 162, 78], fontSize: 8 },
+        bodyStyles: { fontSize: 8 },
+        styles: { cellPadding: 3 },
+      });
+
       // ─── Footer on all pages ───
       const totalPages = doc.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
@@ -225,7 +375,7 @@ export function InvestorPDFExport() {
       }
 
       doc.save(`TQC_Investor_Report_${format(now, 'yyyy-MM-dd')}.pdf`);
-      toast.success('Branded investor PDF exported');
+      toast.success('Branded investor PDF exported (7 pages)');
     } catch (error) {
       console.error('PDF export error:', error);
       toast.error('Failed to generate PDF');
