@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, memo } from 'react';
+import { motion } from '@/lib/motion';
 import { BlogPost } from '@/data/blog';
 import BlogCard from './BlogCard';
 import BlogCardSkeleton from './BlogCardSkeleton';
@@ -12,14 +13,22 @@ interface BlogGridProps {
 }
 
 const MemoizedBlogCardWrapper = memo(({ 
-  post, searchQuery, isFocused, focusedRef 
+  post, searchQuery, isFocused, focusedRef, index 
 }: { 
   post: BlogPost; searchQuery?: string; isFocused: boolean;
   focusedRef: React.RefObject<HTMLDivElement | null>;
+  index: number;
 }) => (
-  <div ref={isFocused ? focusedRef : undefined} role="option" aria-selected={isFocused}>
+  <motion.div
+    ref={isFocused ? focusedRef : undefined}
+    role="option"
+    aria-selected={isFocused}
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: index * 0.06, ease: [0.25, 0.1, 0.25, 1] }}
+  >
     <BlogCard post={post} searchQuery={searchQuery} isFocused={isFocused} />
-  </div>
+  </motion.div>
 ));
 MemoizedBlogCardWrapper.displayName = 'MemoizedBlogCardWrapper';
 
@@ -42,8 +51,8 @@ const BlogGrid: React.FC<BlogGridProps> = ({ posts, columns = 3, searchQuery, fo
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground">
+      <div className="text-center py-20">
+        <p className="text-muted-foreground text-body-sm">
           {searchQuery ? `No articles found for "${searchQuery}"` : 'No articles found.'}
         </p>
       </div>
@@ -55,7 +64,7 @@ const BlogGrid: React.FC<BlogGridProps> = ({ posts, columns = 3, searchQuery, fo
       className={`grid grid-cols-1 md:grid-cols-2 ${columns === 3 ? 'lg:grid-cols-3' : ''} gap-6 md:gap-8`}>
       {posts.map((post, index) => (
         <MemoizedBlogCardWrapper key={post.id} post={post} searchQuery={searchQuery}
-          isFocused={index === focusedIndex} focusedRef={focusedRef} />
+          isFocused={index === focusedIndex} focusedRef={focusedRef} index={index} />
       ))}
     </div>
   );

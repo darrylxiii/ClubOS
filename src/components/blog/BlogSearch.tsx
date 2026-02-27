@@ -1,6 +1,5 @@
 import React from 'react';
 import { Search, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -25,14 +24,14 @@ const BlogSearch: React.FC<BlogSearchProps> = ({
 
   return (
     <div className={cn("relative", className)}>
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-      <Input
+      <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+      <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className="w-full pl-12 pr-10 h-12 rounded-full border-border bg-card text-foreground placeholder:text-muted-foreground focus-visible:ring-accent"
+        className="w-full pl-7 pr-8 py-2.5 bg-transparent border-0 border-b border-border text-foreground placeholder:text-muted-foreground/50 text-body-sm focus:outline-none focus:border-foreground transition-colors duration-200"
         role="combobox"
         aria-expanded={isSearching}
         aria-haspopup="listbox"
@@ -45,10 +44,10 @@ const BlogSearch: React.FC<BlogSearchProps> = ({
           variant="ghost"
           size="icon"
           onClick={() => onChange('')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-muted"
+          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 rounded-md hover:bg-muted"
           aria-label="Clear search"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </Button>
       )}
     </div>

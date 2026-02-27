@@ -20,18 +20,19 @@ const BlogHero: React.FC<BlogHeroProps> = ({
   resultsCount,
 }) => {
   return (
-    <section className="pt-32 pb-8 md:pt-40 md:pb-12">
+    <section className="pt-32 pb-12 md:pt-40 md:pb-16">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="text-center mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-4">
-            The Quantum Club Insights
+        <div className="text-center mb-10 md:mb-14">
+          <h1 className="text-display-sm md:text-display-md lg:text-display-lg font-semibold text-foreground tracking-tight mb-4">
+            Insights
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-body-lg text-muted-foreground max-w-lg mx-auto font-light">
             Career intelligence for top-tier talent.
           </p>
+          <div className="mt-6 mx-auto w-12 border-t border-border" />
         </div>
 
-        <div className="max-w-xl mx-auto mb-8">
+        <div className="max-w-md mx-auto mb-10">
           <BlogSearch
             value={searchQuery}
             onChange={onSearchChange}
