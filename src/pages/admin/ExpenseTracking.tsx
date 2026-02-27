@@ -47,6 +47,7 @@ export default function ExpenseTracking() {
   const [editExpense, setEditExpense] = useState<OperatingExpense | null>(null);
   const [isCategorizing, setIsCategorizing] = useState(false);
   const queryClient = useQueryClient();
+  const { logAction } = useFinancialAuditLog();
   const currentYear = new Date().getFullYear();
 
   // Filters
