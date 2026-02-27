@@ -73,6 +73,7 @@ export default function FinanceHub() {
               <TabsContent value="revenue-shares"><RevenueSharesPage /></TabsContent>
               <TabsContent value="expenses"><ExpenseTrackingPage /></TabsContent>
               <TabsContent value="reconciliation"><InvoiceReconciliationPage /></TabsContent>
+              <TabsContent value="controls"><FinancialControlsPage /></TabsContent>
               <TabsContent value="moneybird"><MoneybirdSettings /></TabsContent>
               <TabsContent value="pipeline-settings"><DealPipelineSettings /></TabsContent>
             </Suspense>
