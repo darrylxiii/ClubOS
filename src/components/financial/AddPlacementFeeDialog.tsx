@@ -103,6 +103,19 @@ export function AddPlacementFeeDialog() {
 
       if (error) throw error;
 
+      // Audit log the fee creation
+      logAction({
+        action: 'expense.created',
+        entityType: 'placement_fee',
+        newValue: {
+          job_id: formData.job_id,
+          fee_amount: feeAmount,
+          fee_percentage: feePercentage,
+          currency_code: formData.currency_code,
+          legal_entity: formData.legal_entity,
+        },
+      });
+
       toast.success('Placement fee created successfully');
       queryClient.invalidateQueries({ queryKey: ['placement-fees'] });
       queryClient.invalidateQueries({ queryKey: ['placement-fee-health'] });

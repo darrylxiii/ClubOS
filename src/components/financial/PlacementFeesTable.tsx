@@ -54,6 +54,19 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
           : `Invoice ${data.invoiceNumber} created.${data.moneybirdDraft ? ' Moneybird draft synced.' : ''}`
       );
 
+      if (!data.alreadyExisted) {
+        logAction({
+          action: 'invoice.generated',
+          entityType: 'partner_invoice',
+          entityId: data.partnerInvoiceId,
+          newValue: {
+            invoice_number: data.invoiceNumber,
+            fee_amount: data.feeAmount,
+            placement_fee_id: feeId,
+          },
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ['placement-fees'] });
       queryClient.invalidateQueries({ queryKey: ['placement-fees-with-context'] });
       queryClient.invalidateQueries({ queryKey: ['partner-invoices'] });
