@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Euro, TrendingUp, Users, Briefcase, Gift, Percent } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
+import { grossToNet, vatFromGross } from "@/lib/vatRates";
 
 export function RevenueDistributionSummary() {
   const currentYear = new Date().getFullYear();
