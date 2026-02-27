@@ -128,7 +128,7 @@ export function DataRoomManager() {
     onError: (error) => toast.error('Delete failed: ' + error.message),
   });
 
-  // Download handler
+  // Download handler with access logging
   const handleDownload = async (doc: DataRoomDocument) => {
     try {
       // Update view count
@@ -139,6 +139,14 @@ export function DataRoomManager() {
           last_viewed_at: new Date().toISOString()
         })
         .eq('id', doc.id);
+
+      // Log access
+      await supabase.from('data_room_access_logs').insert({
+        document_id: doc.id,
+        user_id: user?.id,
+        action: 'download',
+        user_agent: navigator.userAgent,
+      });
 
       // Get signed URL
       const { data, error } = await supabase.storage
