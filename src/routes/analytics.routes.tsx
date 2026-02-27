@@ -16,6 +16,7 @@ const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
 const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
 const InvestorDashboard = lazy(() => import("@/pages/admin/InvestorDashboard"));
+const InvestorPortal = lazy(() => import("@/pages/InvestorPortal"));
 // MessagingAnalytics consolidated into Communication Hub
 // CompanyIntelligence moved to /companies/:companyId/intelligence (partner.routes.tsx)
 

@@ -77,7 +77,7 @@ export function InvestorPDFExport() {
     staleTime: 10 * 60 * 1000,
   });
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     if (!reportData) {
       toast.error('Report data not loaded yet');
       return;
