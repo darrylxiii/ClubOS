@@ -1,9 +1,16 @@
 import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, FolderOpen, Cpu, FileText } from 'lucide-react';
+import { BarChart3, FolderOpen, Cpu, FileText, TrendingUp, Shield, Fuel } from 'lucide-react';
 import { MetricsOverviewDashboard } from '@/components/admin/due-diligence/MetricsOverviewDashboard';
 import { DataRoomManager } from '@/components/admin/due-diligence/DataRoomManager';
 import { TechStackDocumentation } from '@/components/admin/due-diligence/TechStackDocumentation';
+import { RunwayCalculator } from '@/components/financial/RunwayCalculator';
+import { TransactionReadinessScore } from '@/components/financial/TransactionReadinessScore';
+import { PredictiveRevenueModel } from '@/components/financial/PredictiveRevenueModel';
+import { InvestorPDFExport } from '@/components/investor/InvestorPDFExport';
+import { EBITDACard } from '@/components/financial/EBITDACard';
+import { RevenueConcentrationCard } from '@/components/financial/RevenueConcentrationCard';
+import { MultiYearPLTable } from '@/components/financial/MultiYearPLTable';
 
 export default function DueDiligenceDashboard() {
   return (
@@ -16,14 +23,29 @@ export default function DueDiligenceDashboard() {
               Investor-ready metrics, documentation, and data room
             </p>
           </div>
-          <FileText className="h-12 w-12 text-primary" />
+          <div className="flex items-center gap-2">
+            <InvestorPDFExport />
+            <FileText className="h-12 w-12 text-primary" />
+          </div>
         </div>
 
         <Tabs defaultValue="metrics" className="space-y-4">
-          <TabsList className="grid grid-cols-3 w-full max-w-lg">
+          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
             <TabsTrigger value="metrics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Metrics
+            </TabsTrigger>
+            <TabsTrigger value="narrative" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Narrative
+            </TabsTrigger>
+            <TabsTrigger value="projections" className="flex items-center gap-2">
+              <Fuel className="h-4 w-4" />
+              Projections
+            </TabsTrigger>
+            <TabsTrigger value="readiness" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Readiness
             </TabsTrigger>
             <TabsTrigger value="dataroom" className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
@@ -37,6 +59,23 @@ export default function DueDiligenceDashboard() {
 
           <TabsContent value="metrics">
             <MetricsOverviewDashboard />
+          </TabsContent>
+
+          <TabsContent value="narrative" className="space-y-6">
+            <MultiYearPLTable />
+            <div className="grid gap-6 md:grid-cols-2">
+              <EBITDACard />
+              <RevenueConcentrationCard />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="projections" className="space-y-6">
+            <PredictiveRevenueModel />
+            <RunwayCalculator />
+          </TabsContent>
+
+          <TabsContent value="readiness">
+            <TransactionReadinessScore />
           </TabsContent>
 
           <TabsContent value="dataroom">

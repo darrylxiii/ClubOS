@@ -55,11 +55,11 @@ export function PredictiveRevenueModel({ legalEntity }: PredictiveRevenueModelPr
       // Get pipeline for projections
       const { data: pipeline } = await supabase
         .from('placement_fees')
-        .select('fee_amount_eur, status, probability')
+        .select('fee_amount_eur, status')
         .in('status', ['pending', 'approved']);
 
       const pipelineValue = (pipeline || []).reduce((s, f) => {
-        const prob = (f.probability || 50) / 100;
+        const prob = f.status === 'approved' ? 0.8 : 0.5;
         return s + (f.fee_amount_eur || 0) * prob;
       }, 0);
 
