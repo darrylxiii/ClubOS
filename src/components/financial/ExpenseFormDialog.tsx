@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useFinancialAuditLog } from "@/hooks/useFinancialAuditLog";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -59,6 +60,7 @@ const SUPPORTED_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
 export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: ExpenseFormDialogProps) {
   const queryClient = useQueryClient();
   const isEdit = !!editExpense;
+  const { logAction } = useFinancialAuditLog();
 
   const [currency, setCurrency] = useState<Currency>(
     (editExpense?.currency as Currency) || 'EUR'
@@ -290,11 +292,15 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
           .update(payload)
           .eq("id", editExpense.id);
         if (error) throw error;
+        logAction({ action: 'expense.updated', entityType: 'operating_expense', entityId: editExpense.id, oldValue: editExpense as any, newValue: payload as any });
       } else {
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from("operating_expenses")
-          .insert([payload]);
+          .insert([payload])
+          .select('id')
+          .single();
         if (error) throw error;
+        logAction({ action: 'expense.created', entityType: 'operating_expense', entityId: inserted?.id, newValue: payload as any });
       }
     },
     onSuccess: () => {

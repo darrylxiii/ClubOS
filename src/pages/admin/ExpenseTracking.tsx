@@ -14,6 +14,7 @@ import { useVendorSubscriptions } from "@/hooks/useVendorSubscriptions";
 import ExpenseFormDialog from "@/components/financial/ExpenseFormDialog";
 import RecurringExpensesPanel from "@/components/financial/RecurringExpensesPanel";
 import ExpenseFilters from "@/components/financial/ExpenseFilters";
+import { useFinancialAuditLog } from "@/hooks/useFinancialAuditLog";
 
 interface ExpenseCategory {
   id: string;
@@ -46,6 +47,7 @@ export default function ExpenseTracking() {
   const [editExpense, setEditExpense] = useState<OperatingExpense | null>(null);
   const [isCategorizing, setIsCategorizing] = useState(false);
   const queryClient = useQueryClient();
+  const { logAction } = useFinancialAuditLog();
   const currentYear = new Date().getFullYear();
 
   // Filters
@@ -150,12 +152,16 @@ export default function ExpenseTracking() {
   // Delete mutation
   const deleteExpense = useMutation({
     mutationFn: async (id: string) => {
+      // Fetch old value for audit
+      const { data: old } = await supabase.from("operating_expenses").select("*").eq("id", id).single();
       const { error } = await supabase.from("operating_expenses").delete().eq("id", id);
       if (error) throw error;
+      return old;
     },
-    onSuccess: () => {
+    onSuccess: (old) => {
       queryClient.invalidateQueries({ queryKey: ["operating-expenses"] });
       toast.success("Expense deleted.");
+      logAction({ action: 'expense.deleted', entityType: 'operating_expense', entityId: old?.id, oldValue: old as any });
     },
   });
 

@@ -13,7 +13,11 @@ type FinancialAction =
   | 'budget.updated'
   | 'invoice.generated'
   | 'payout.approved'
-  | 'commission.updated';
+  | 'commission.created'
+  | 'commission.updated'
+  | 'commission.approved'
+  | 'commission.paid'
+  | 'commission.cancelled';
 
 interface AuditPayload {
   action: FinancialAction;
