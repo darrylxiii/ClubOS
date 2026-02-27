@@ -5,6 +5,8 @@ import CTACallout from './CTACallout';
 import { cn } from '@/lib/utils';
 import { generateSlug } from '@/lib/highlight-utils';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 interface ArticleContentProps {
   content: ContentBlock[];
