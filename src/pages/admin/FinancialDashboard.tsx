@@ -14,6 +14,7 @@ import { YearSelector } from "@/components/financial/YearSelector";
 import { InvoiceStatusSummary } from "@/components/financial/InvoiceStatusSummary";
 import { MoneybirdInvoicesTable } from "@/components/financial/MoneybirdInvoicesTable";
 import { ReconciliationAlert } from "@/components/financial/ReconciliationAlert";
+import { UninvoicedFeesAlert } from "@/components/financial/UninvoicedFeesAlert";
 import { CashFlowProjection } from "@/components/financial/CashFlowProjection";
 import { ProfitLossCard } from "@/components/financial/ProfitLossCard";
 import { FinancialEventsTimeline } from "@/components/financial/FinancialEventsTimeline";
