@@ -35,7 +35,7 @@ export function ReconciliationAlert({ year }: ReconciliationAlertProps) {
       // Cross-reference: placement fees vs Moneybird invoices
       const { data: fees } = await supabase
         .from('placement_fees')
-        .select('id, fee_amount, company_id')
+        .select('id, fee_amount')
         .gte('created_at', startOfYear)
         .lte('created_at', endOfYear);
 
