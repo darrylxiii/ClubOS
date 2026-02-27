@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DollarSign, FileText, AlertCircle, CheckCircle, RefreshCw } from "lucide-react";
 import { MoneybirdFinancialMetrics } from "@/hooks/useMoneybirdFinancials";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getVATRate } from "@/lib/vatRates";
 
 interface RevenueSummaryCardsProps {
   metrics: MoneybirdFinancialMetrics | null;
@@ -23,12 +24,12 @@ export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing }: R
 
   // total_revenue is already NET (excl. VAT) from the edge function
   const netRevenue = metrics?.total_revenue || 0;
-  const grossRevenue = (metrics as any)?.total_revenue_gross || Math.round(netRevenue * 1.21);
+  const grossRevenue = (metrics as any)?.total_revenue_gross || Math.round(netRevenue * (1 + getVATRate()));
   const vatAmount = (metrics as any)?.vat_amount || (grossRevenue - netRevenue);
   
   // total_paid is already NET from the edge function
   const netCollected = metrics?.total_paid || 0;
-  const grossCollected = Math.round(netCollected * 1.21);
+  const grossCollected = Math.round(netCollected * (1 + getVATRate()));
 
   const collectionRate = netRevenue > 0
     ? ((netCollected / netRevenue) * 100).toFixed(1)

@@ -383,6 +383,8 @@ export function normalizeJobStatus(status: string): JobStatus {
     published: "published",
     active: "published",
     open: "published",
+    pending_approval: "pending_approval",
+    pending: "pending_approval",
     closed: "closed",
     filled: "closed",
     archived: "archived",

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatCurrency } from "@/lib/currency";
 
 interface TopClientsTableProps {
   year?: number;
@@ -35,14 +36,7 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
     return companies?.find(c => c.name?.toLowerCase() === name.toLowerCase());
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Import centralized formatCurrency - already imported at top
 
   const getPaymentScoreBadge = (score: number | null) => {
     if (score === null || score === undefined) return null;
@@ -73,8 +67,8 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
       </TableHeader>
       <TableBody>
         {displayClients.map((client, index) => {
-          // Calculate net revenue (excluding 21% VAT)
-          const netRevenue = client.revenue / 1.21;
+          // client.revenue is already NET from the edge function (moneybird-fetch-financials stores net amounts)
+          const netRevenue = client.revenue;
           const collectionRate = client.revenue > 0 
             ? (client.paid / client.revenue) * 100 
             : 0;

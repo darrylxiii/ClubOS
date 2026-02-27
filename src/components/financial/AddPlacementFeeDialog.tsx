@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useFinancialAuditLog } from '@/hooks/useFinancialAuditLog';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
@@ -28,6 +29,7 @@ const SALARY_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
 
 export function AddPlacementFeeDialog() {
   const queryClient = useQueryClient();
+  const { logAction } = useFinancialAuditLog();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -101,6 +103,19 @@ export function AddPlacementFeeDialog() {
       });
 
       if (error) throw error;
+
+      // Audit log the fee creation
+      logAction({
+        action: 'expense.created',
+        entityType: 'placement_fee',
+        newValue: {
+          job_id: formData.job_id,
+          fee_amount: feeAmount,
+          fee_percentage: feePercentage,
+          currency_code: formData.currency_code,
+          legal_entity: formData.legal_entity,
+        },
+      });
 
       toast.success('Placement fee created successfully');
       queryClient.invalidateQueries({ queryKey: ['placement-fees'] });

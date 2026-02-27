@@ -461,21 +461,24 @@ serve(async (req) => {
       clientRevenue[contactId].revenue += netAmount;  // Net revenue
       clientRevenue[contactId].paid += paidAmount > 0 ? netAmount * (paidAmount / amount) : 0;  // Net paid
 
-      // Payment aging for unpaid invoices
+      // Payment aging for unpaid invoices - use NET proportional amounts
       if (unpaidAmount > 0 && invoice.due_date) {
         const dueDate = new Date(invoice.due_date);
         const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
         
+        // Calculate NET unpaid (proportional to gross unpaid/gross total)
+        const netUnpaidAmount = amount > 0 ? netAmount * (unpaidAmount / amount) : 0;
+        
         if (daysOverdue <= 0) {
-          paymentAging.current += unpaidAmount;
+          paymentAging.current += netUnpaidAmount;
         } else if (daysOverdue <= 30) {
-          paymentAging.overdue_30 += unpaidAmount;
+          paymentAging.overdue_30 += netUnpaidAmount;
         } else if (daysOverdue <= 60) {
-          paymentAging.overdue_60 += unpaidAmount;
+          paymentAging.overdue_60 += netUnpaidAmount;
         } else if (daysOverdue <= 90) {
-          paymentAging.overdue_90 += unpaidAmount;
+          paymentAging.overdue_90 += netUnpaidAmount;
         } else {
-          paymentAging.overdue_90_plus += unpaidAmount;
+          paymentAging.overdue_90_plus += netUnpaidAmount;
         }
       }
     }

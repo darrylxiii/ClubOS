@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Receipt, TrendingUp, Clock, AlertTriangle } from "lucide-react";
 import { useVATSummary } from "@/hooks/useVATData";
+import { formatCurrency } from "@/lib/currency";
 
 interface VATLiabilityCardProps {
   year?: number;
@@ -20,14 +21,7 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
   const config = ENTITY_CONFIG[legalEntity || 'tqc_nl'] || ENTITY_CONFIG.tqc_nl;
   const isConsolidated = !legalEntity || legalEntity === 'all';
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Use centralized formatCurrency imported at top
 
   if (isLoading) {
     return (

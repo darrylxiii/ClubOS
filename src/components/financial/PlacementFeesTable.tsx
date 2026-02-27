@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useFinancialAuditLog } from '@/hooks/useFinancialAuditLog';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
   const [search, setSearch] = useState("");
   const [creatingInvoiceFor, setCreatingInvoiceFor] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { logAction } = useFinancialAuditLog();
 
   const filteredFees = fees.filter((fee) => {
     const searchLower = search.toLowerCase();
@@ -52,6 +54,19 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
           ? `Invoice ${data.invoiceNumber} already exists.`
           : `Invoice ${data.invoiceNumber} created.${data.moneybirdDraft ? ' Moneybird draft synced.' : ''}`
       );
+
+      if (!data.alreadyExisted) {
+        logAction({
+          action: 'invoice.generated',
+          entityType: 'partner_invoice',
+          entityId: data.partnerInvoiceId,
+          newValue: {
+            invoice_number: data.invoiceNumber,
+            fee_amount: data.feeAmount,
+            placement_fee_id: feeId,
+          },
+        });
+      }
 
       queryClient.invalidateQueries({ queryKey: ['placement-fees'] });
       queryClient.invalidateQueries({ queryKey: ['placement-fees-with-context'] });

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { addDays, differenceInDays, parseISO } from "date-fns";
+import { grossToNet, vatFromGross } from "@/lib/vatRates";
 
 interface ForecastPeriod {
   label: string;
@@ -111,12 +112,12 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
           else if (daysOverdue > 30) probability = 0.7;
           else if (daysOverdue > 0) probability = 0.85;
 
-          const netAmount = Number(inv.net_amount) || Number(inv.total_amount) / 1.21;
-          const vatAmount = Number(inv.vat_amount) || Number(inv.total_amount) - netAmount;
+          const netAmount = Number(inv.net_amount) || grossToNet(Number(inv.total_amount));
+          const vatAmountCalc = Number(inv.vat_amount) || Number(inv.total_amount) - netAmount;
           
           return {
             netCollections: acc.netCollections + netAmount * probability,
-            vatCollections: acc.vatCollections + vatAmount * probability,
+            vatCollections: acc.vatCollections + vatAmountCalc * probability,
             totalCollections: acc.totalCollections + (Number(inv.total_amount) || 0) * probability,
           };
         }, { netCollections: 0, vatCollections: 0, totalCollections: 0 }) || { netCollections: 0, vatCollections: 0, totalCollections: 0 };
@@ -164,9 +165,9 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
 
       // Total outstanding AR - show net amount (excl. VAT)
       const totalOutstandingNet = unpaidInvoices?.reduce((sum, inv) =>
-        sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+        sum + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0), 0) || 0;
       const totalOutstandingVAT = unpaidInvoices?.reduce((sum, inv) =>
-        sum + (Number(inv.vat_amount) || (Number(inv.total_amount) - Number(inv.total_amount) / 1.21) || 0), 0) || 0;
+        sum + (Number(inv.vat_amount) || vatFromGross(Number(inv.total_amount)) || 0), 0) || 0;
 
       // Days Sales Outstanding (DSO)
       const { data: paidInvoices } = await supabase

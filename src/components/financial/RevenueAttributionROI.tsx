@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/currency';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { grossToNet } from '@/lib/vatRates';
 
 /**
  * For subscriptions with revenue_attribution set,
@@ -27,7 +28,7 @@ export function RevenueAttributionROI() {
         .gte('invoice_date', `${currentYear}-01-01`);
       if (error) throw error;
       return (data || []).reduce(
-        (sum, inv) => sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0),
+        (sum, inv) => sum + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0),
         0
       );
     },
