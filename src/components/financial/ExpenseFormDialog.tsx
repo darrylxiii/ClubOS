@@ -292,11 +292,15 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
           .update(payload)
           .eq("id", editExpense.id);
         if (error) throw error;
+        logAction({ action: 'expense.updated', entityType: 'operating_expense', entityId: editExpense.id, oldValue: editExpense as any, newValue: payload as any });
       } else {
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from("operating_expenses")
-          .insert([payload]);
+          .insert([payload])
+          .select('id')
+          .single();
         if (error) throw error;
+        logAction({ action: 'expense.created', entityType: 'operating_expense', entityId: inserted?.id, newValue: payload as any });
       }
     },
     onSuccess: () => {
