@@ -55,14 +55,16 @@ export default function FinancialDashboard() {
 
   // P&L summary for PDF export (mirrors ProfitLossCard logic)
   const { data: plData } = useQuery({
-    queryKey: ['pl-export-summary', selectedYear],
+    queryKey: ['pl-export-summary', selectedYear, legalEntity],
     enabled: isFinanceOrAdmin,
     queryFn: async () => {
       const startOfYear = `${selectedYear}-01-01`;
-      const { data: inv } = await supabase
+      let invQuery = supabase
         .from('moneybird_sales_invoices')
         .select('total_amount, net_amount, vat_amount')
         .gte('invoice_date', startOfYear);
+      if (legalEntity !== 'all') invQuery = invQuery.eq('legal_entity', legalEntity);
+      const { data: inv } = await invQuery;
 
       const netRevenue = inv?.reduce((s, i) => s + (Number(i.net_amount) || grossToNet(Number(i.total_amount)) || 0), 0) || 0;
       const vatCollected = inv?.reduce((s, i) => s + (Number(i.vat_amount) || vatFromGross(Number(i.total_amount)) || 0), 0) || 0;
