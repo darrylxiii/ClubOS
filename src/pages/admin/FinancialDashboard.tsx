@@ -35,6 +35,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Currency, convertCurrency } from "@/lib/currencyConversion";
 import { supabase } from "@/integrations/supabase/client";
+import { grossToNet, vatFromGross } from "@/lib/vatRates";
 
 export default function FinancialDashboard() {
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
