@@ -152,12 +152,16 @@ export default function ExpenseTracking() {
   // Delete mutation
   const deleteExpense = useMutation({
     mutationFn: async (id: string) => {
+      // Fetch old value for audit
+      const { data: old } = await supabase.from("operating_expenses").select("*").eq("id", id).single();
       const { error } = await supabase.from("operating_expenses").delete().eq("id", id);
       if (error) throw error;
+      return old;
     },
-    onSuccess: () => {
+    onSuccess: (old) => {
       queryClient.invalidateQueries({ queryKey: ["operating-expenses"] });
       toast.success("Expense deleted.");
+      logAction({ action: 'expense.deleted', entityType: 'operating_expense', entityId: old?.id, oldValue: old as any });
     },
   });
 
