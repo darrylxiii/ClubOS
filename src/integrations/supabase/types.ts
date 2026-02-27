@@ -36925,6 +36925,7 @@ export type Database = {
           fee_amount_eur: number | null
           fee_percentage: number
           fee_percentage_used: number | null
+          fx_rate_used: number | null
           hire_sequence: number | null
           hired_date: string
           id: string
@@ -36965,6 +36966,7 @@ export type Database = {
           fee_amount_eur?: number | null
           fee_percentage: number
           fee_percentage_used?: number | null
+          fx_rate_used?: number | null
           hire_sequence?: number | null
           hired_date: string
           id?: string
@@ -37005,6 +37007,7 @@ export type Database = {
           fee_amount_eur?: number | null
           fee_percentage?: number
           fee_percentage_used?: number | null
+          fx_rate_used?: number | null
           hire_sequence?: number | null
           hired_date?: string
           id?: string
