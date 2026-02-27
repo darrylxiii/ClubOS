@@ -96,7 +96,7 @@ export default function FinancialDashboard() {
       const totalSubscriptionCosts = subs?.reduce((sum, sub) => {
         const start = new Date(sub.contract_start_date);
         const effective = start > yearStart ? start : yearStart;
-        const active = Math.max(0, (now.getFullYear() - effective.getFullYear()) * 12 + (now.getMonth() - effective.getMonth()) + 1);
+        const active = Math.max(0, (effectiveNow.getFullYear() - effective.getFullYear()) * 12 + (effectiveNow.getMonth() - effective.getMonth()) + 1);
         const costEur = (sub as any).monthly_cost_eur ?? sub.monthly_cost;
         return sum + (costEur * Math.min(active, monthsElapsed));
       }, 0) || 0;
