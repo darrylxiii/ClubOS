@@ -71,6 +71,7 @@ const FeatureControlCenter = lazy(() => import("@/pages/admin/FeatureControlCent
 // Avatar Control
 const AvatarControlHub = lazy(() => import("@/pages/admin/AvatarControlHub"));
 const BlogEngine = lazy(() => import("@/pages/BlogEngine"));
+const JobApprovals = lazy(() => import("@/pages/admin/JobApprovals"));
 
 
 // Talent Pool
@@ -148,6 +149,7 @@ export const adminRoutes = (
     {R("/admin/greenhouse-sync", GreenhouseSync)}
     {R("/admin/avatar-control", AvatarControlHub)}
     {R("/admin/blog-engine", BlogEngine)}
+    {R("/admin/job-approvals", JobApprovals)}
     
     {R("/talent-pool", TalentPool)}
     {R("/admin/talent-pool/lists", TalentPoolLists)}

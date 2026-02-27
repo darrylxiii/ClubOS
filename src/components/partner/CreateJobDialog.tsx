@@ -16,6 +16,7 @@ import { JobFormProgress } from "@/components/jobs/JobFormProgress";
 import { useJobFormDraft } from "@/hooks/useJobFormDraft";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/contexts/RoleContext";
 import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
 import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
 import { Separator } from "@/components/ui/separator";
@@ -50,6 +51,7 @@ const formatFileSize = (bytes: number): string => {
 
 const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }: CreateJobDialogProps) => {
   const { user } = useAuth();
+  const { currentRole } = useRole();
   const [submitStep, setSubmitStep] = useState<SubmitStep>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
@@ -413,7 +415,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           currency: formData.currency,
           company_id: formData.company_id,
           created_by: user?.id,
-          status: 'published',
+          status: (currentRole === 'admin' || currentRole === 'strategist') ? 'published' : 'pending_approval',
           is_stealth: isStealthEnabled,
           stealth_enabled_by: isStealthEnabled ? user?.id : null,
           stealth_enabled_at: isStealthEnabled ? new Date().toISOString() : null,
@@ -499,10 +501,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       setSubmitStep("complete");
       clearDraft();
 
+      const isAutoPublish = currentRole === 'admin' || currentRole === 'strategist';
       toast.success(
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-green-500" />
-          <span>Job posted successfully!</span>
+          <span>{isAutoPublish ? 'Job posted successfully.' : 'Job submitted for approval.'}</span>
         </div>
       );
 
