@@ -185,6 +185,7 @@ export default function FinancialDashboard() {
         isLoading={metricsLoading}
         onSync={() => syncFinancials(selectedYear)}
         isSyncing={isSyncing || manualSyncing}
+        legalEntity={entityParam}
       />
 
       <Card>
