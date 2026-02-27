@@ -6,9 +6,11 @@ import { formatCurrency } from "@/lib/revenueCalculations";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { grossToNet, vatFromGross } from "@/lib/vatRates";
 
 interface ProfitLossCardProps {
   year?: number;
+  legalEntity?: string;
 }
 
 function usePLData(year: number) {
