@@ -5,6 +5,8 @@ import CTACallout from './CTACallout';
 import { cn } from '@/lib/utils';
 import { generateSlug } from '@/lib/highlight-utils';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 interface ArticleContentProps {
   content: ContentBlock[];
@@ -24,6 +26,35 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
     } catch (error) {
       console.error('Failed to copy link:', error);
     }
+  };
+
+  const funnelCTAs = [
+    {
+      text: 'The Quantum Club connects top-tier talent with exceptional opportunities.',
+      link: '/auth',
+      label: 'Apply to join',
+    },
+    {
+      text: 'Companies partner with The Quantum Club to access curated, high-impact talent.',
+      link: '/partnerships',
+      label: 'Explore partnerships',
+    },
+  ];
+
+  const renderInlineCTA = (ctaIndex: number) => {
+    const cta = funnelCTAs[ctaIndex % funnelCTAs.length];
+    return (
+      <div key={`cta-${ctaIndex}`} className="my-8 py-5 px-6 border-l-2 border-border bg-muted/30 rounded-r-xl">
+        <p className="text-sm text-foreground/70 mb-2">{cta.text}</p>
+        <Link
+          to={cta.link}
+          className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:text-foreground/70 transition-colors"
+        >
+          {cta.label}
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    );
   };
 
   const renderBlock = (block: ContentBlock, index: number) => {
@@ -90,9 +121,21 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
     }
   };
 
+  // Build content with inline CTAs every 5th block (after 3rd, 8th, 13th, etc.)
+  const contentWithCTAs: React.ReactNode[] = [];
+  let ctaCounter = 0;
+  content.forEach((block, index) => {
+    contentWithCTAs.push(renderBlock(block, index));
+    // Inject CTA after every 5th content block, starting after the 3rd
+    if ((index + 1) >= 3 && (index + 1 - 3) % 5 === 0) {
+      contentWithCTAs.push(renderInlineCTA(ctaCounter));
+      ctaCounter++;
+    }
+  });
+
   return (
     <article className={cn("max-w-prose", className)}>
-      {content.map((block, index) => renderBlock(block, index))}
+      {contentWithCTAs}
     </article>
   );
 };

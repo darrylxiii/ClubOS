@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import BlogHero from '@/components/blog/BlogHero';
@@ -65,6 +65,22 @@ const Blog: React.FC = () => {
 
     return posts;
   }, [allPosts, debouncedSearch, activeCategory, featuredPost]);
+
+  // Pagination
+  const POSTS_PER_PAGE = 12;
+  const [visibleCount, setVisibleCount] = useState(POSTS_PER_PAGE);
+
+  const visiblePosts = useMemo(() => filteredPosts.slice(0, visibleCount), [filteredPosts, visibleCount]);
+  const hasMore = visibleCount < filteredPosts.length;
+
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => prev + POSTS_PER_PAGE);
+  }, []);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(POSTS_PER_PAGE);
+  }, [debouncedSearch, activeCategory]);
 
   const showFeatured = !debouncedSearch && !activeCategory && featuredPost;
   const resultsCount = filteredPosts.length;
@@ -138,11 +154,22 @@ const Blog: React.FC = () => {
               </div>
 
               <BlogGrid
-                posts={filteredPosts}
+                posts={visiblePosts}
                 searchQuery={debouncedSearch}
                 focusedIndex={isSearching ? focusedResultIndex : -1}
                 isLoading={isLoading}
               />
+
+              {hasMore && (
+                <div className="flex justify-center mt-12">
+                  <button
+                    onClick={loadMore}
+                    className="px-8 py-3 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+                  >
+                    Load more articles
+                  </button>
+                </div>
+              )}
             </BlogErrorBoundary>
           </section>
 

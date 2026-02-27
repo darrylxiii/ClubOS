@@ -1,150 +1,253 @@
 
-# Scale to 20-30+ Posts/Day with Elite SEO and Funnel Integration
 
-## Current State Assessment
+# Comprehensive Email System Audit — The Quantum Club
 
-**What exists:**
-- Blog engine with `blog-generate`, `blog-suggest`, `blog-engine-run` edge functions using Lovable AI Gateway
-- `blog_engine_settings` table with `posts_per_day` set to 1, engine is OFF (`is_active: false`)
-- 0 posts in the database -- all content is static seed data (2 posts in `src/data/blog.ts`)
-- Basic scheduler and queue system
-- No cron jobs set up to trigger the engine automatically
-- No sitemap, no robots.txt, no programmatic SEO pages
+## Current State Summary
 
-**What is missing for 20-30+ posts/day:**
-
-### Critical Gap 1: No Automation Loop
-The `blog-engine-run` function exists but nothing calls it. There is no cron job. The engine generates **one** post per invocation, checks `posts_per_day`, and stops. To produce 30 posts/day, it needs to be called repeatedly throughout the day.
-
-### Critical Gap 2: No Batch Generation
-Current flow: suggest 5 topics -> queue -> generate 1 at a time. For 30/day, this needs a batch orchestrator that fills the queue with 30+ topics and processes them in waves with rate-limit-aware delays.
-
-### Critical Gap 3: No SEO Infrastructure
-- No `sitemap.xml` (dynamic, pulling from `blog_posts` table)
-- No `robots.txt`
-- No category landing pages with proper meta tags in the DB-driven flow
-- `BlogPost.tsx` reads from static `getPostBySlug()` instead of `useDynamicBlogPost` hook -- DB posts will 404
-- No FAQ schema, no HowTo schema, no article schema for AI overview snippets
-- No internal linking engine running automatically after generation
-- No pagination on the blog listing (showing all posts in one grid will break at 500+ posts)
-
-### Critical Gap 4: No Funnel CTAs
-- Sidebar has no CTA to apply or request partnership
-- No "Apply to Join" or "Request Partnership" sticky CTA in articles
-- Newsletter capture exists but does not lead to the membership funnel
-- No mid-article CTA injection for AI-generated posts
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## Implementation Plan
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-### Phase 1: Fix the Content Pipeline for Volume
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
 
-**1a. Create `blog-batch-run` edge function**
-A new orchestrator function that:
-- Reads `posts_per_day` from settings (set to 30)
-- Counts how many posts were already generated today
-- Calculates remaining slots
-- Checks if queue has enough pending items; if not, calls `blog-suggest` with `autoQueue: true` to refill
-- Calls `blog-generate` in a loop with a 3-second delay between calls to avoid rate limits
-- Logs progress and handles 429 errors with exponential backoff
-- After all posts generated, calls `blog-relate` to update internal links
-- This single function can be called once per hour by a cron job, and it will self-regulate based on daily limits
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
 
-**1b. Set up pg_cron job to trigger the batch**
-SQL to schedule `blog-batch-run` every hour during the publishing window (09:00-17:00 UTC). Also schedule `blog-scheduler` every 5 minutes to auto-publish scheduled posts.
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
 
-**1c. Update `blog_engine_settings.posts_per_day` to 30**
-And set `is_active` to true once everything is wired up.
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
 
-### Phase 2: Fix the Critical BlogPost.tsx Bug
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
 
-**2a. Switch BlogPost.tsx to use dynamic hooks**
-Currently it imports `getPostBySlug` from static data. AI-generated posts from the DB will show "Article Not Found". Replace with `useDynamicBlogPost(category, slug)` hook that already exists and checks the DB first, falling back to static.
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
 
-### Phase 3: SEO Infrastructure
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
 
-**3a. Create `blog-sitemap` edge function**
-Generates a dynamic XML sitemap from `blog_posts` table (status = 'published'). Returns proper `<?xml>` with `<url>`, `<lastmod>`, `<changefreq>`, `<priority>` per post. Also includes category index pages.
+### 1.3 Emoji in Subject Lines (6 functions)
 
-**3b. Create `blog-robots` edge function**
-Returns a proper `robots.txt` pointing to the sitemap URL, allowing all crawlers, disallowing admin routes.
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
 
-**3c. Add pagination to Blog.tsx**
-At 30 posts/day, within a month there will be 900+ posts. The grid needs "Load More" or infinite scroll. Implement a simple "Show more" button that loads 12 posts at a time, with URL-synced page parameter for SEO.
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
 
-**3d. Enhance AI-generated article SEO**
-Update the `blog-generate` prompt to also produce:
-- `faqSchema`: Array of {question, answer} pairs (3-5 per article) for FAQ structured data
-- Longer, more detailed articles (2000+ words target) with more headings for featured snippet capture
-- Internal link suggestions (references to other TQC content)
+### 1.4 SPF Record Missing (DNS — not code)
 
-**3e. Add FAQ Schema to BlogPost page**
-Render `<script type="application/ld+json">` with FAQPage schema from the post's FAQ data. This wins Google AI Overview and "People Also Ask" placements.
-
-### Phase 4: Funnel Integration
-
-**4a. Add funnel CTAs to ArticleSidebar**
-Two sticky cards in the sidebar:
-- "For Exceptional Talent" -- Apply to become a member. Links to `/auth` or `/onboarding`
-- "For Companies" -- Request a partnership. Links to `/partnerships` or a contact form
-
-**4b. Add mid-article CTA injection**
-In `ArticleContent.tsx`, after every 3rd content block, inject a subtle inline CTA:
-- "Explore how The Quantum Club connects top-tier talent with exceptional opportunities." with a link to apply
-- Alternate between member and partnership CTAs
-- These should be visually distinct but not intrusive (match the editorial callout style)
-
-**4c. Add exit-intent / scroll-depth CTA**
-A subtle bottom banner that appears after 60% scroll depth: "Ready for your next move?" with Apply / Partner buttons. Not a popup -- a fixed bottom bar that slides in.
-
-### Phase 5: Content Quality and Differentiation
-
-**5a. Upgrade the generation prompt**
-- Require 2000+ word articles with 6-8 H2 sections
-- Include real data points, statistics, and specific examples (instruct AI to reference industry benchmarks)
-- Add author rotation (cycle through the 3 defined authors)
-- Generate articles in all 7 content formats across all 4 categories for maximum topic coverage
-- Include a "Key Insight" pullquote in every article
-
-**5b. Auto-categorize and tag for topic clusters**
-Update `blog-suggest` to think in topic clusters: pillar pages + supporting articles. Each suggestion should include a `cluster_id` linking it to a pillar topic, creating a tight internal linking web that signals topical authority to search engines.
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
+```
+This is a DNS change in the domain registrar.
 
 ---
 
-## Files Created/Modified
+## CATEGORY 2: Content & Copy Quality
 
-| File | Action |
-|---|---|
-| `supabase/functions/blog-batch-run/index.ts` | **Create** -- Batch orchestrator |
-| `supabase/functions/blog-sitemap/index.ts` | **Create** -- Dynamic XML sitemap |
-| `supabase/functions/blog-robots/index.ts` | **Create** -- robots.txt |
-| `supabase/functions/blog-generate/index.ts` | **Modify** -- Enhanced prompt for longer articles, FAQ, internal links |
-| `supabase/functions/blog-suggest/index.ts` | **Modify** -- Suggest 10 topics per call, cluster-aware |
-| `src/pages/BlogPost.tsx` | **Modify** -- Use `useDynamicBlogPost` instead of static lookup |
-| `src/pages/Blog.tsx` | **Modify** -- Add pagination (load more) |
-| `src/components/blog/ArticleSidebar.tsx` | **Modify** -- Add funnel CTAs |
-| `src/components/blog/ArticleContent.tsx` | **Modify** -- Mid-article CTA injection |
-| `src/components/blog/BlogSchema.tsx` | **Modify** -- Add FAQ schema support |
-| `src/components/blog/ScrollCTA.tsx` | **Create** -- Scroll-depth bottom CTA bar |
-| SQL (insert, not migration) | Set up pg_cron jobs for blog-batch-run and blog-scheduler |
-| SQL (insert, not migration) | Update blog_engine_settings to posts_per_day=30 |
+### 2.1 Inconsistent Tone
 
-## SEO Strategy Summary
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
 
-The combination of:
-1. **Volume** (30+ unique, long-form articles/day across 4 categories)
-2. **Topic clusters** (pillar + supporting articles with tight internal links)
-3. **Structured data** (BlogPosting + FAQ + BreadcrumbList schemas)
-4. **Dynamic sitemap** (auto-updated, submitted to search engines)
-5. **Funnel CTAs** (every article drives to Apply or Partner)
-6. **Content quality** (2000+ words, expert-attributed, data-driven)
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
 
-...creates a content moat that is extremely difficult to compete with, while every visitor is one click away from entering the TQC funnel.
+### 2.2 Hardcoded Contact Email Inconsistency
 
-## Important Notes
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
 
-- At 30 posts/day, Lovable AI credits will be consumed at a meaningful rate. Monitor usage in Settings > Workspace > Usage.
-- Rate limiting: the batch runner includes 3-second delays between generations and exponential backoff on 429 errors.
-- The `blog-batch-run` function is designed to be idempotent -- safe to call multiple times; it checks daily counts before generating.
-- Pagination prevents the blog listing from becoming unusable as content scales.
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+
+### 2.3 Missing "Powered by QUIN" Attribution
+
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+
+---
+
+## CATEGORY 3: Technical & Security Issues
+
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+
+### 3.2 `linear-gradient()` in Inline Styles
+
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
+```
+
+### 5.2 Centralize Plain-Text Generation
+
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+```
+
+---
+
+## Implementation Priority
+
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
+
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
+
+**Total: ~25 files modified**
+
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+

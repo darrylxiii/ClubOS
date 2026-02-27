@@ -1266,3 +1266,27 @@ verify_jwt = false
 # =============================================================================
 [functions.twilio-status-callback]
 verify_jwt = false
+
+# =============================================================================
+# Blog Engine (Cron-triggered, no JWT)
+# =============================================================================
+[functions.blog-generate]
+verify_jwt = false
+
+[functions.blog-suggest]
+verify_jwt = false
+
+[functions.blog-engine-run]
+verify_jwt = false
+
+[functions.blog-scheduler]
+verify_jwt = false
+
+[functions.blog-batch-run]
+verify_jwt = false
+
+[functions.blog-sitemap]
+verify_jwt = false
+
+[functions.blog-robots]
+verify_jwt = false
