@@ -311,6 +311,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Avatar Traffic Control", icon: Radio, path: "/admin/avatar-control" },
         { name: "Page Templates", icon: FileText, path: "/admin/templates" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-configuration" },
+        { name: "Blog Engine", icon: Edit, path: "/admin/blog-engine" },
       ],
     },
     // === SECURITY & MONITORING (consolidated into Security Hub) ===
