@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/currency';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { grossToNet } from '@/lib/vatRates';
 
 /**
  * For subscriptions with revenue_attribution set,
