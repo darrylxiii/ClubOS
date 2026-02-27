@@ -75,7 +75,7 @@ export function useCostIntelligence() {
       const totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
       const totalOperatingCosts = totalExpenses + totalMRC * ((new Date().getMonth()) + 1);
       const placementCount = fees.filter(f => f.status === 'paid' || f.status === 'invoiced').length || 1;
-      const netRevenue = invoices.reduce((s, inv) => s + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0);
+      const netRevenue = invoices.reduce((s, inv) => s + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0), 0);
 
       const costPerPlacement = totalOperatingCosts / placementCount;
       const costPerRevenueEuro = netRevenue > 0 ? totalOperatingCosts / netRevenue : 0;
