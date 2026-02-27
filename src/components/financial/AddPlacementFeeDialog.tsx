@@ -88,6 +88,11 @@ export function AddPlacementFeeDialog() {
       const selectedJob = availableJobs?.find((j: any) => j.id === formData.job_id);
       if (!selectedJob) throw new Error('Job not found');
 
+      // Compute and record the FX rate used for audit trail
+      const fxRateUsed = formData.currency_code !== 'EUR'
+        ? feeAmount / feeAmountEur
+        : null;
+
       const { error } = await supabase.from('placement_fees').insert({
         job_id: formData.job_id,
         partner_company_id: (selectedJob as any).company_id,
@@ -100,7 +105,8 @@ export function AddPlacementFeeDialog() {
         status: 'pending',
         hired_date: formData.hired_date,
         payment_due_date: new Date(new Date(formData.hired_date).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      });
+        fx_rate_used: fxRateUsed,
+      } as any);
 
       if (error) throw error;
 
