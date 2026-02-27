@@ -1,153 +1,253 @@
 
 
-# Financial System Elevation Plan: From 60/100 to 100/100
+# Comprehensive Email System Audit — The Quantum Club
 
 ## Current State Summary
 
-After the previous 4 sprints, the operational finance layer is strong, but several critical gaps remain:
-
-- **InvestorDashboard.tsx** still reads from `revenue_metrics` (0 rows) -- the entire page renders zeros
-- **investor_metrics_snapshots** has 0 rows -- the snapshot RPC was updated but never triggered
-- **InvestorDashboard** formats amounts as cents (divides by 100) but TQC stores EUR directly
-- The old Investor Dashboard and the new Due Diligence Center are disconnected -- two separate pages showing different (or empty) data
-- No AI-generated financial commentary (QUIN narrative)
-- No live investor portal with invite-code access
-- PDF export only has 3 pages (cover, summary, P&L) -- missing EBITDA bridge, concentration, and unit economics pages
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## Phase 1: Kill Remaining Dead Pages
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-### 1A. Retire the broken InvestorDashboard
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
 
-The `/admin/investor-dashboard` page queries `revenue_metrics` (0 rows forever) and `subscriptions` table (SaaS model that TQC does not use). It will always show zeros. Rather than trying to populate a SaaS-style table for a recruitment business, redirect this page to the Due Diligence Center which already has live data.
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
 
-**Changes:**
-- Replace `InvestorDashboard.tsx` content with a redirect to `/admin/due-diligence`
-- Remove dead `InvestorReportExport.tsx` (the cents-divided version) since `InvestorPDFExport.tsx` already replaced it
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
 
-### 1B. Fix the InvestorMetrics page
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
 
-`InvestorMetrics.tsx` depends on `investor_metrics_snapshots` (0 rows). Rewrite the snapshot capture to actually populate from live Moneybird data via an RPC call, then auto-trigger it when the page loads if no snapshots exist.
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
 
----
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
 
-## Phase 2: Unify the Investor Experience
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
 
-### 2A. Consolidate into a single "Investor Center"
+### 1.3 Emoji in Subject Lines (6 functions)
 
-Merge the best of the old Investor Dashboard (time range selector, MRR movement) with the Due Diligence Center into one cohesive page. Add two new tabs:
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
 
-- **Live Portal**: Real-time ARR ticker, client health matrix, placement velocity
-- **AI Commentary**: QUIN-generated quarterly narrative from real financial data
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
 
-### 2B. Enhance the PDF Export
+### 1.4 SPF Record Missing (DNS — not code)
 
-Add 3 more pages to `InvestorPDFExport.tsx`:
-- Page 4: EBITDA Bridge (Revenue to EBITDA waterfall)
-- Page 5: Revenue Concentration (HHI, top client shares)
-- Page 6: Unit Economics (CAC, LTV, gross margin, avg deal size)
-- Page 7: Transaction Readiness Score (10-dimension spider visual as table)
-
----
-
-## Phase 3: AI-Powered Financial Commentary
-
-### 3A. QUIN Financial Narrative Generator
-
-Create an edge function `generate-financial-commentary` that:
-1. Queries current year + previous year revenue, expenses, client counts, placement counts
-2. Sends structured financial data to an AI model (Lovable AI Gateway)
-3. Returns a natural-language quarterly narrative
-4. Stores it in a new `financial_commentaries` table
-
-### 3B. Commentary Display
-
-New component `QuinFinancialCommentary.tsx`:
-- Shows the latest AI-generated narrative
-- "Generate New Commentary" button for admins
-- Historical commentaries with timestamps
-
----
-
-## Phase 4: Live Investor Portal
-
-### 4A. Invite-Code Access
-
-Create a new `investor_access_codes` table storing hashed invite codes with expiry dates. Build a simple `/investor-portal` route with a code-entry gate -- no full auth required.
-
-### 4B. Live Dashboard
-
-The portal shows (read-only, no admin controls):
-- Real-time ARR/MRR ticker with auto-refresh
-- Multi-year P&L comparison
-- Revenue concentration visualization
-- Placement velocity (avg days from job open to hire)
-- Client health matrix (invoice consistency per client)
-- Transaction Readiness Score
-- "Powered by QUIN" AI commentary
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
+```
+This is a DNS change in the domain registrar.
 
 ---
 
-## Phase 5: Operational Refinements
+## CATEGORY 2: Content & Copy Quality
 
-### 5A. Revenue Waterfall Chart
+### 2.1 Inconsistent Tone
 
-New `RevenueWaterfallChart.tsx` -- shows how ARR grew quarter by quarter:
-- Starting ARR, New clients, Expansion, Contraction, Churned, Ending ARR
-- Uses Recharts bar chart with positive/negative stacking
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
 
-### 5B. Client Health Matrix
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
 
-New `ClientHealthMatrix.tsx`:
-- For each client, compute: invoice frequency, payment timeliness, revenue trend
-- Traffic-light status (green/yellow/red)
-- Sortable by revenue, health status, last invoice date
+### 2.2 Hardcoded Contact Email Inconsistency
 
-### 5C. Placement Velocity Tracker
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
 
-New `PlacementVelocity.tsx`:
-- Average days from job creation to hire (using `jobs.created_at` to `applications.status = 'hired'` timestamp)
-- Trend line over time
-- Benchmark against industry average (configurable)
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+
+### 2.3 Missing "Powered by QUIN" Attribution
+
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
 
 ---
 
-## Technical Details
+## CATEGORY 3: Technical & Security Issues
 
-### New Database Tables
-- `financial_commentaries`: id, quarter (e.g. "Q1 2026"), year, narrative (text), generated_at, generated_by
-- `investor_access_codes`: id, code_hash, label, expires_at, created_by, created_at, last_used_at
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
 
-### New Edge Function
-- `generate-financial-commentary`: Receives year/quarter, queries financial data, calls Lovable AI Gateway, stores result
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
 
-### New Components (7)
-- `QuinFinancialCommentary.tsx`
-- `RevenueWaterfallChart.tsx`
-- `ClientHealthMatrix.tsx`
-- `PlacementVelocity.tsx`
-- `InvestorPortalGate.tsx` (invite code entry)
-- `InvestorPortalDashboard.tsx` (read-only live view)
-- `LiveARRTicker.tsx`
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
 
-### Modified Files
-- `InvestorPDFExport.tsx` -- add 4 more pages
-- `DueDiligenceDashboard.tsx` -- add Live Portal and AI Commentary tabs
-- `InvestorDashboard.tsx` -- redirect to Due Diligence Center
-- Route configuration to add `/investor-portal`
+### 3.2 `linear-gradient()` in Inline Styles
 
-### Scoring Projection
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
 
-| Category | Current | After |
-|---|---|---|
-| Data integrity | 20/20 | 20/20 |
-| Investor-grade metrics | 14/20 | 19/20 |
-| Multi-year presentation | 10/15 | 14/15 |
-| Export / Data Room quality | 8/15 | 14/15 |
-| Unit economics accuracy | 7/10 | 9/10 |
-| Concentration / risk analysis | 7/10 | 9/10 |
-| Predictive / forward-looking | 6/10 | 9/10 |
-| Wow factor (live portal + AI) | 0/bonus | 7/bonus |
-| **Total** | **72/100** | **101/100** |
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
+```
+
+### 5.2 Centralize Plain-Text Generation
+
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+```
+
+---
+
+## Implementation Priority
+
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
+
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
+
+**Total: ~25 files modified**
+
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
 

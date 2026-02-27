@@ -1,6 +1,6 @@
 import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, FolderOpen, Cpu, FileText, TrendingUp, Shield, Fuel } from 'lucide-react';
+import { BarChart3, FolderOpen, Cpu, FileText, TrendingUp, Shield, Fuel, Sparkles, Activity } from 'lucide-react';
 import { MetricsOverviewDashboard } from '@/components/admin/due-diligence/MetricsOverviewDashboard';
 import { DataRoomManager } from '@/components/admin/due-diligence/DataRoomManager';
 import { TechStackDocumentation } from '@/components/admin/due-diligence/TechStackDocumentation';
@@ -11,6 +11,11 @@ import { InvestorPDFExport } from '@/components/investor/InvestorPDFExport';
 import { EBITDACard } from '@/components/financial/EBITDACard';
 import { RevenueConcentrationCard } from '@/components/financial/RevenueConcentrationCard';
 import { MultiYearPLTable } from '@/components/financial/MultiYearPLTable';
+import { LiveARRTicker } from '@/components/financial/LiveARRTicker';
+import { ClientHealthMatrix } from '@/components/financial/ClientHealthMatrix';
+import { PlacementVelocity } from '@/components/financial/PlacementVelocity';
+import { RevenueWaterfallChart } from '@/components/financial/RevenueWaterfallChart';
+import { QuinFinancialCommentary } from '@/components/financial/QuinFinancialCommentary';
 
 export default function DueDiligenceDashboard() {
   return (
@@ -30,7 +35,7 @@ export default function DueDiligenceDashboard() {
         </div>
 
         <Tabs defaultValue="metrics" className="space-y-4">
-          <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+          <TabsList className="grid grid-cols-8 w-full max-w-4xl">
             <TabsTrigger value="metrics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Metrics
@@ -46,6 +51,14 @@ export default function DueDiligenceDashboard() {
             <TabsTrigger value="readiness" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Readiness
+            </TabsTrigger>
+            <TabsTrigger value="live" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Live Portal
+            </TabsTrigger>
+            <TabsTrigger value="commentary" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              AI Commentary
             </TabsTrigger>
             <TabsTrigger value="dataroom" className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
@@ -76,6 +89,19 @@ export default function DueDiligenceDashboard() {
 
           <TabsContent value="readiness">
             <TransactionReadinessScore />
+          </TabsContent>
+
+          <TabsContent value="live" className="space-y-6">
+            <LiveARRTicker />
+            <RevenueWaterfallChart />
+            <div className="grid gap-6 md:grid-cols-2">
+              <ClientHealthMatrix />
+              <PlacementVelocity />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="commentary">
+            <QuinFinancialCommentary />
           </TabsContent>
 
           <TabsContent value="dataroom">
