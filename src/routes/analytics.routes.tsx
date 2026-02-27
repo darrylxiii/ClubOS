@@ -16,6 +16,7 @@ const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
 const CareerInsightsDashboard = lazy(() => import("@/pages/CareerInsightsDashboard"));
 const InvestorDashboard = lazy(() => import("@/pages/admin/InvestorDashboard"));
+const InvestorPortal = lazy(() => import("@/pages/InvestorPortal"));
 // MessagingAnalytics consolidated into Communication Hub
 // CompanyIntelligence moved to /companies/:companyId/intelligence (partner.routes.tsx)
 
@@ -124,6 +125,16 @@ export const analyticsRoutes = (
     <Route
       path="/messaging-analytics"
       element={<Navigate to="/admin/communication-hub?tab=messaging" replace />}
+    />
+    <Route
+      path="/investor-portal"
+      element={
+        <RouteErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <InvestorPortal />
+          </Suspense>
+        </RouteErrorBoundary>
+      }
     />
   </>
 );
