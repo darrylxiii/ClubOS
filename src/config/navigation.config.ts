@@ -111,6 +111,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     icon: GraduationCap,
     items: [
       { name: "Academy", icon: GraduationCap, path: "/academy" },
+      { name: "Blog", icon: BookOpen, path: "/blog" },
     ],
   },
   {
