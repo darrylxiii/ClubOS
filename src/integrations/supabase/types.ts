@@ -20400,6 +20400,39 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_commentaries: {
+        Row: {
+          created_at: string
+          financial_data: Json | null
+          generated_at: string
+          generated_by: string | null
+          id: string
+          narrative: string
+          quarter: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          financial_data?: Json | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          narrative: string
+          quarter: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          financial_data?: Json | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          narrative?: string
+          quarter?: string
+          year?: number
+        }
+        Relationships: []
+      }
       financial_events: {
         Row: {
           amount: number | null
@@ -24066,6 +24099,39 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           vat_percentage?: number | null
+        }
+        Relationships: []
+      }
+      investor_access_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          is_active: boolean
+          label: string
+          last_used_at: string | null
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          label: string
+          last_used_at?: string | null
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          last_used_at?: string | null
         }
         Relationships: []
       }
