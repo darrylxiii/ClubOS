@@ -25,7 +25,7 @@ export function ClientHealthMatrix({ year, legalEntity }: { year?: number; legal
     queryFn: async () => {
       let q = supabase
         .from('moneybird_sales_invoices')
-        .select('contact_id, contact_name, total_amount, net_amount, invoice_date, state')
+        .select('contact_id, contact_name, total_amount, net_amount, invoice_date')
         .gte('invoice_date', `${currentYear}-01-01`)
         .lt('invoice_date', `${currentYear + 1}-01-01`)
         .order('invoice_date', { ascending: true });
