@@ -25,6 +25,7 @@ const TAB_MAP: Record<string, string> = {
   'revenue-shares': 'revenue-shares',
   expenses: 'expenses',
   reconciliation: 'reconciliation',
+  controls: 'controls',
   moneybird: 'moneybird',
   'pipeline-settings': 'pipeline-settings',
 };
