@@ -1,66 +1,77 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import {
-  Bot,
+  BarChart3,
   Zap,
   FileText,
-  BarChart3,
+  FlaskConical,
+  Brain,
   Settings,
-  RefreshCcw,
-  Loader2,
+  Eye,
+  Users,
+  Clock,
+  MousePointerClick,
+  ArrowDown,
+  TrendingUp,
 } from 'lucide-react';
 import { useBlogEngineSettings } from '@/hooks/useBlogEngineSettings';
-import { useBlogGeneration } from '@/hooks/useBlogGeneration';
-import { toast } from 'sonner';
+import BlogQueueTable from '@/components/admin/BlogQueueTable';
+import BlogArticleManager from '@/components/admin/BlogArticleManager';
+import ABTestPanel from '@/components/admin/ABTestPanel';
+import BlogLearningsPanel from '@/components/admin/BlogLearningsPanel';
+import BlogEngineControlModal from '@/components/admin/BlogEngineControlModal';
 
 const BlogEngine: React.FC = () => {
-  const {
-    settings,
-    isLoading: settingsLoading,
-    isEngineActive,
-    updateSettings,
-    isSaving,
-  } = useBlogEngineSettings();
+  const { settings, isLoading: settingsLoading, isEngineActive } = useBlogEngineSettings();
 
-  const { addToQueue, fetchQueue, isGenerating } = useBlogGeneration();
-  const [queueItems, setQueueItems] = useState<any[]>([]);
-  const [queueLoading, setQueueLoading] = useState(true);
-  const [topicInput, setTopicInput] = useState('');
+  // Dashboard analytics
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['blog-dashboard-stats'],
+    queryFn: async () => {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-  React.useEffect(() => {
-    fetchQueue().then((items) => {
-      setQueueItems(items);
-      setQueueLoading(false);
-    });
-  }, []);
+      const [postsRes, analyticsRes, queueRes] = await Promise.all([
+        supabase.from('blog_posts').select('id, status, performance_score, title, slug', { count: 'exact' }),
+        supabase.from('blog_analytics' as any).select('*').gte('date', thirtyDaysAgo),
+        supabase.from('blog_generation_queue').select('id, status', { count: 'exact' }),
+      ]);
 
-  const handleToggleEngine = async () => {
-    try {
-      await updateSettings({ is_active: !isEngineActive });
-    } catch {
-      toast.error('Failed to toggle engine');
-    }
-  };
+      const posts = postsRes.data || [];
+      const analytics = (analyticsRes.data || []) as any[];
+      const queue = queueRes.data || [];
 
-  const handleQueueTopic = async () => {
-    if (!topicInput.trim()) return;
-    try {
-      await addToQueue(topicInput.trim(), 'career-insights');
-      setTopicInput('');
-      const items = await fetchQueue();
-      setQueueItems(items);
-    } catch {
-      toast.error('Failed to queue topic');
-    }
-  };
+      const totalViews = analytics.reduce((s: number, a: any) => s + (a.views || 0), 0);
+      const avgScroll = analytics.length
+        ? Math.round(analytics.reduce((s: number, a: any) => s + (a.avg_scroll_depth || 0), 0) / analytics.length)
+        : 0;
+      const totalClicks = analytics.reduce((s: number, a: any) => s + (a.cta_clicks || 0), 0);
+      const completions = analytics.reduce((s: number, a: any) => s + (a.completions || 0), 0);
+
+      const publishedPosts = posts.filter((p: any) => p.status === 'published');
+      const topPosts = [...publishedPosts]
+        .sort((a: any, b: any) => (b.performance_score || 0) - (a.performance_score || 0))
+        .slice(0, 5);
+
+      return {
+        totalPosts: posts.length,
+        published: publishedPosts.length,
+        drafts: posts.filter((p: any) => p.status === 'draft').length,
+        queuePending: queue.filter((q: any) => q.status === 'pending').length,
+        totalViews,
+        avgScroll,
+        totalClicks,
+        completions,
+        topPosts,
+      };
+    },
+  });
+
+  const stats = dashboardStats;
 
   return (
     <>
@@ -71,197 +82,216 @@ const BlogEngine: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-foreground">Blog Engine</h1>
-            <p className="text-muted-foreground mt-1">AI-powered content generation and management.</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-semibold text-foreground">Blog Engine</h1>
+              <p className="text-muted-foreground mt-1">
+                AI-powered content generation and management.
+                {settings && (
+                  <span className="ml-2">
+                    {settings.preferred_formats?.length || 0} formats active
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className={`w-3 h-3 rounded-full ${isEngineActive ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'}`} />
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch checked={isEngineActive} onCheckedChange={handleToggleEngine} disabled={settingsLoading} />
-              <Badge variant={isEngineActive ? 'default' : 'secondary'}>
-                {isEngineActive ? 'Active' : 'Paused'}
-              </Badge>
-            </div>
-          </div>
+          <BlogEngineControlModal />
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="dashboard" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Dashboard
+              <BarChart3 className="h-4 w-4" /> Dashboard
             </TabsTrigger>
             <TabsTrigger value="queue" className="gap-2">
-              <Zap className="h-4 w-4" />
-              Queue
+              <Zap className="h-4 w-4" /> Queue
+              {stats?.queuePending ? (
+                <Badge variant="secondary" className="ml-1 text-xs">{stats.queuePending}</Badge>
+              ) : null}
             </TabsTrigger>
             <TabsTrigger value="articles" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Articles
+              <FileText className="h-4 w-4" /> Articles
+            </TabsTrigger>
+            <TabsTrigger value="ab-tests" className="gap-2">
+              <FlaskConical className="h-4 w-4" /> A/B Tests
+            </TabsTrigger>
+            <TabsTrigger value="learnings" className="gap-2">
+              <Brain className="h-4 w-4" /> Learnings
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
+              <Settings className="h-4 w-4" /> Settings
             </TabsTrigger>
           </TabsList>
 
-          {/* Dashboard Tab */}
+          {/* Dashboard */}
           <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Published Articles</CardDescription>
-                  <CardTitle className="text-3xl">—</CardTitle>
-                </CardHeader>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Eye className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">Views (30d)</span>
+                  </div>
+                  <p className="text-2xl font-semibold">{stats?.totalViews ?? '—'}</p>
+                </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>In Queue</CardDescription>
-                  <CardTitle className="text-3xl">{queueItems?.length ?? 0}</CardTitle>
-                </CardHeader>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <FileText className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">Published</span>
+                  </div>
+                  <p className="text-2xl font-semibold">{stats?.published ?? '—'}</p>
+                </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Engine Status</CardDescription>
-                  <CardTitle className="text-3xl">
-                    <Badge variant={isEngineActive ? 'default' : 'secondary'}>
-                      {isEngineActive ? 'Running' : 'Paused'}
-                    </Badge>
-                  </CardTitle>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <ArrowDown className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">Avg Scroll</span>
+                  </div>
+                  <p className="text-2xl font-semibold">{stats?.avgScroll ?? '—'}%</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <MousePointerClick className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">CTA Clicks</span>
+                  </div>
+                  <p className="text-2xl font-semibold">{stats?.totalClicks ?? '—'}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">Completions</span>
+                  </div>
+                  <p className="text-2xl font-semibold">{stats?.completions ?? '—'}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Zap className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">In Queue</span>
+                  </div>
+                  <p className="text-2xl font-semibold">{stats?.queuePending ?? '—'}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Posts */}
+            {stats?.topPosts && stats.topPosts.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Top Performing Articles</CardTitle>
                 </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {stats.topPosts.map((post: any, i: number) => (
+                      <div key={post.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30">
+                        <span className="text-xs text-muted-foreground w-6">{i + 1}.</span>
+                        <span className="flex-1 text-sm font-medium truncate">{post.title}</span>
+                        <Badge variant="outline">{post.performance_score || 0}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Content Library Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-4 pb-4 text-center">
+                  <p className="text-3xl font-semibold text-foreground">{stats?.totalPosts ?? 0}</p>
+                  <p className="text-sm text-muted-foreground">Total Articles</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4 pb-4 text-center">
+                  <p className="text-3xl font-semibold text-foreground">{stats?.drafts ?? 0}</p>
+                  <p className="text-sm text-muted-foreground">Drafts Pending Review</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4 pb-4 text-center">
+                  <Badge variant={isEngineActive ? 'default' : 'secondary'} className="text-lg px-4 py-1">
+                    {isEngineActive ? 'Engine Running' : 'Engine Paused'}
+                  </Badge>
+                  <p className="text-sm text-muted-foreground mt-2">{settings?.posts_per_day ?? 1} posts/day</p>
+                </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          {/* Queue Tab */}
-          <TabsContent value="queue" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Generate New Article</CardTitle>
-                <CardDescription>Enter a topic to queue for AI generation.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-3">
-                  <Input
-                    placeholder="e.g., How to negotiate a senior role offer"
-                    value={topicInput}
-                    onChange={(e) => setTopicInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleQueueTopic()}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleQueueTopic} disabled={isGenerating || !topicInput.trim()}>
-                    {isGenerating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Bot className="h-4 w-4 mr-2" />}
-                    Generate
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Generation Queue</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {queueLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  </div>
-                ) : !queueItems?.length ? (
-                  <p className="text-muted-foreground text-center py-8">Queue is empty. Add a topic above.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {queueItems.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                        <div>
-                          <p className="font-medium text-foreground">{item.topic}</p>
-                        <p className="text-sm text-muted-foreground">
-                            {item.content_format || 'auto'} · {item.category}
-                          </p>
-                        </div>
-                        <Badge variant={item.status === 'completed' ? 'default' : 'secondary'}>
-                          {item.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          {/* Queue */}
+          <TabsContent value="queue">
+            <BlogQueueTable />
           </TabsContent>
 
-          {/* Articles Tab */}
+          {/* Articles */}
           <TabsContent value="articles">
-            <Card>
-              <CardHeader>
-                <CardTitle>Published Articles</CardTitle>
-                <CardDescription>Manage your published blog content.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  Article management coming soon. View published articles at{' '}
-                  <a href="/blog" className="text-accent hover:underline">/blog</a>.
-                </p>
-              </CardContent>
-            </Card>
+            <BlogArticleManager />
           </TabsContent>
 
-          {/* Settings Tab */}
+          {/* A/B Tests */}
+          <TabsContent value="ab-tests">
+            <ABTestPanel />
+          </TabsContent>
+
+          {/* Learnings */}
+          <TabsContent value="learnings">
+            <BlogLearningsPanel />
+          </TabsContent>
+
+          {/* Settings */}
           <TabsContent value="settings" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Engine Configuration</CardTitle>
-                <CardDescription>Control how the blog engine generates and publishes content.</CardDescription>
+                <CardDescription>
+                  Use the Engine Control button above for full configuration. This tab shows a summary.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Posts per day</Label>
-                  <Slider
-                    value={[settings?.posts_per_day ?? 1]}
-                    onValueChange={([v]) => updateSettings({ posts_per_day: v })}
-                    min={0}
-                    max={5}
-                    step={1}
-                    disabled={isSaving}
-                  />
-                  <p className="text-sm text-muted-foreground">{settings?.posts_per_day ?? 1} posts/day</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Minimum quality score</Label>
-                  <Slider
-                    value={[settings?.min_quality_score ?? 70]}
-                    onValueChange={([v]) => updateSettings({ min_quality_score: v })}
-                    min={0}
-                    max={100}
-                    step={5}
-                    disabled={isSaving}
-                  />
-                  <p className="text-sm text-muted-foreground">{settings?.min_quality_score ?? 70}/100</p>
-                </div>
-
-                <div className="flex items-center justify-between">
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Auto-publish</Label>
-                    <p className="text-sm text-muted-foreground">Automatically publish articles that pass quality checks.</p>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <Badge variant={isEngineActive ? 'default' : 'secondary'}>
+                      {isEngineActive ? 'Active' : 'Paused'}
+                    </Badge>
                   </div>
-                  <Switch
-                    checked={settings?.auto_publish ?? false}
-                    onCheckedChange={(v) => updateSettings({ auto_publish: v })}
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
                   <div>
-                    <Label>Require expert review</Label>
-                    <p className="text-sm text-muted-foreground">Hold articles for manual review before publishing.</p>
+                    <p className="text-sm text-muted-foreground">Posts/Day</p>
+                    <p className="font-medium">{settings?.posts_per_day ?? 1}</p>
                   </div>
-                  <Switch
-                    checked={settings?.require_medical_review ?? true}
-                    onCheckedChange={(v) => updateSettings({ require_medical_review: v })}
-                    disabled={isSaving}
-                  />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Auto-Publish</p>
+                    <Badge variant={settings?.auto_publish ? 'default' : 'outline'}>
+                      {settings?.auto_publish ? 'On' : 'Off'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Expert Review</p>
+                    <Badge variant={settings?.require_medical_review ? 'default' : 'outline'}>
+                      {settings?.require_medical_review ? 'Required' : 'Disabled'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Min Quality</p>
+                    <p className="font-medium">{settings?.min_quality_score ?? 70}/100</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Publishing Window</p>
+                    <p className="font-medium">
+                      {settings?.publishing_window_start || '09:00'} – {settings?.publishing_window_end || '17:00'}
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
