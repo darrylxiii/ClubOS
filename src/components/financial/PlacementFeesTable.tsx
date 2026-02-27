@@ -200,7 +200,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
                       )}
                       {fee.estimated_salary_min && fee.estimated_salary_max && (
                         <span className="text-xs text-muted-foreground">
-                          Est: {formatCurrency(fee.estimated_salary_min, fee.currency_code)} - {formatCurrency(fee.estimated_salary_max, fee.currency_code)}
+                          Est: {fmtCurrency(fee.estimated_salary_min, fee.currency_code)} - {fmtCurrency(fee.estimated_salary_max, fee.currency_code)}
                         </span>
                       )}
                     </div>
