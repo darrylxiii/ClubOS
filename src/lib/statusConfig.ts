@@ -88,7 +88,7 @@ export const applicationStatusConfig: Record<ApplicationStatus, StatusConfig> = 
 
 // ============= Job Status =============
 
-export type JobStatus = "draft" | "published" | "closed" | "archived";
+export type JobStatus = "draft" | "published" | "closed" | "archived" | "pending_approval";
 
 export const jobStatusConfig: Record<JobStatus, StatusConfig> = {
   draft: {
@@ -110,6 +110,12 @@ export const jobStatusConfig: Record<JobStatus, StatusConfig> = {
     label: "Archived",
     icon: Archive,
     className: "bg-muted/50 text-muted-foreground border-border/30",
+  },
+  pending_approval: {
+    label: "Pending Approval",
+    icon: Clock,
+    className: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    description: "Awaiting admin review before publishing.",
   },
 };
 

@@ -2,7 +2,7 @@ import { memo } from "react";
 import { JobStatusBadge as UnifiedJobStatusBadge } from "@/components/ui/UnifiedStatusBadge";
 import { getStatusConfig } from "@/lib/statusConfig";
 
-export type JobStatus = "draft" | "published" | "closed" | "archived";
+export type JobStatus = "draft" | "published" | "closed" | "archived" | "pending_approval";
 
 interface JobStatusBadgeProps {
   status: JobStatus;
