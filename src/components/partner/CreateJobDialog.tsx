@@ -16,6 +16,7 @@ import { JobFormProgress } from "@/components/jobs/JobFormProgress";
 import { useJobFormDraft } from "@/hooks/useJobFormDraft";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/contexts/RoleContext";
 import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
 import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
 import { Separator } from "@/components/ui/separator";
