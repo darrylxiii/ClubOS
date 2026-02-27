@@ -99,10 +99,10 @@ function usePLData(year: number, legalEntity?: string) {
   });
 }
 
-export function ProfitLossCard({ year }: ProfitLossCardProps) {
+export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
   const currentYear = year || new Date().getFullYear();
-  const { data, isLoading } = usePLData(currentYear);
-  const { data: priorData, isLoading: priorLoading } = usePLData(currentYear - 1);
+  const { data, isLoading } = usePLData(currentYear, legalEntity);
+  const { data: priorData, isLoading: priorLoading } = usePLData(currentYear - 1, legalEntity);
 
   if (isLoading) {
     return (

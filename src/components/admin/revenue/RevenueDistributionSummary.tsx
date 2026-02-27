@@ -20,15 +20,15 @@ export function RevenueDistributionSummary() {
         .select('total_amount, net_amount, vat_amount, state_normalized')
         .gte('invoice_date', startOfYear);
 
-      // Net revenue (excluding 21% VAT)
+      // Net revenue (excluding VAT)
       const totalNetRevenue = invoices?.reduce((sum, inv) => 
-        sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+        sum + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0), 0) || 0;
       const collectedNetRevenue = invoices?.filter(inv => inv.state_normalized === 'paid')
-        .reduce((sum, inv) => sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+        .reduce((sum, inv) => sum + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0), 0) || 0;
       
       // VAT tracking
       const vatCollected = invoices?.filter(inv => inv.state_normalized === 'paid')
-        .reduce((sum, inv) => sum + (Number(inv.vat_amount) || (Number(inv.total_amount) - Number(inv.total_amount) / 1.21) || 0), 0) || 0;
+        .reduce((sum, inv) => sum + (Number(inv.vat_amount) || vatFromGross(Number(inv.total_amount)) || 0), 0) || 0;
       
       // Gross for reference
       const totalGrossRevenue = invoices?.reduce((sum, inv) => 

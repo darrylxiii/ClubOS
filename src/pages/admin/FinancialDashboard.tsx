@@ -204,7 +204,7 @@ export default function FinancialDashboard() {
           <CashFlowProjection year={selectedYear} />
 
           <div className="grid gap-6 md:grid-cols-2">
-            <ProfitLossCard year={selectedYear} />
+            <ProfitLossCard year={selectedYear} legalEntity={entityParam} />
             <FinancialEventsTimeline />
           </div>
         </>

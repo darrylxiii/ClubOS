@@ -165,9 +165,9 @@ export function useRevenueForecasting(year?: number, includePipeline: boolean = 
 
       // Total outstanding AR - show net amount (excl. VAT)
       const totalOutstandingNet = unpaidInvoices?.reduce((sum, inv) =>
-        sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0), 0) || 0;
+        sum + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0), 0) || 0;
       const totalOutstandingVAT = unpaidInvoices?.reduce((sum, inv) =>
-        sum + (Number(inv.vat_amount) || (Number(inv.total_amount) - Number(inv.total_amount) / 1.21) || 0), 0) || 0;
+        sum + (Number(inv.vat_amount) || vatFromGross(Number(inv.total_amount)) || 0), 0) || 0;
 
       // Days Sales Outstanding (DSO)
       const { data: paidInvoices } = await supabase

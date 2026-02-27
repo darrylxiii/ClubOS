@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Receipt, TrendingUp, Clock, AlertTriangle } from "lucide-react";
 import { useVATSummary } from "@/hooks/useVATData";
+import { formatCurrency } from "@/lib/currency";
 
 interface VATLiabilityCardProps {
   year?: number;

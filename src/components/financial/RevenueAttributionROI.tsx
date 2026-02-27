@@ -28,7 +28,7 @@ export function RevenueAttributionROI() {
         .gte('invoice_date', `${currentYear}-01-01`);
       if (error) throw error;
       return (data || []).reduce(
-        (sum, inv) => sum + (Number(inv.net_amount) || Number(inv.total_amount) / 1.21 || 0),
+        (sum, inv) => sum + (Number(inv.net_amount) || grossToNet(Number(inv.total_amount)) || 0),
         0
       );
     },

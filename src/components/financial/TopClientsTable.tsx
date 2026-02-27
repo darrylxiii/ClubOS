@@ -67,8 +67,8 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
       </TableHeader>
       <TableBody>
         {displayClients.map((client, index) => {
-          // Calculate net revenue (excluding 21% VAT)
-          const netRevenue = client.revenue / 1.21;
+          // client.revenue is already NET from the edge function (moneybird-fetch-financials stores net amounts)
+          const netRevenue = client.revenue;
           const collectionRate = client.revenue > 0 
             ? (client.paid / client.revenue) * 100 
             : 0;

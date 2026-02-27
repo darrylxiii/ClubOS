@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DollarSign, FileText, AlertCircle, CheckCircle, RefreshCw } from "lucide-react";
 import { MoneybirdFinancialMetrics } from "@/hooks/useMoneybirdFinancials";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getVATRate } from "@/lib/vatRates";
 
 interface RevenueSummaryCardsProps {
   metrics: MoneybirdFinancialMetrics | null;
