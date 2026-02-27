@@ -94,6 +94,10 @@ serve(async (req) => {
     const dueDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const feeAmount = fee.fee_amount || 0;
 
+    // Determine VAT rate based on company country
+    const countryCode = company?.country_code || 'NL';
+    const taxRate = countryCode === 'AE' ? 5 : 21; // Dubai 5% VAT, NL 21% BTW
+
     const { data: partnerInvoice, error: invoiceError } = await supabase
       .from('partner_invoices')
       .insert({
@@ -102,9 +106,9 @@ serve(async (req) => {
         invoice_date: now.toISOString().split('T')[0],
         due_date: dueDate.toISOString().split('T')[0],
         subtotal: feeAmount,
-        tax_rate: 21, // Dutch VAT default
-        tax_amount: Math.round(feeAmount * 0.21 * 100) / 100,
-        total_amount: Math.round(feeAmount * 1.21 * 100) / 100,
+        tax_rate: taxRate,
+        tax_amount: Math.round(feeAmount * (taxRate / 100) * 100) / 100,
+        total_amount: Math.round(feeAmount * (1 + taxRate / 100) * 100) / 100,
         currency_code: fee.currency_code || 'EUR',
         status: 'draft',
         payment_terms_days: 30,
