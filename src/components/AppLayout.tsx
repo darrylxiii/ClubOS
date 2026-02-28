@@ -32,6 +32,7 @@ import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
 
 import { getNavigationForRole } from "@/config/navigation.config";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { SidebarErrorBoundary } from "@/components/SidebarErrorBoundary";
 import {
   Sidebar,
