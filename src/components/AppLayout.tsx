@@ -219,9 +219,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       {/* Global Navigation Tools */}
       
       <CommandPalette />
-      <Suspense fallback={null}>
-        <ClubAIVoice />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          <ClubAIVoice />
+        </Suspense>
+      </ErrorBoundary>
       <GlobalCallNotificationProvider />
       <MeetingNotificationManager />
     </div>
