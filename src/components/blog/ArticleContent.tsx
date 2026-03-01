@@ -114,15 +114,13 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
     }
   };
 
-  // Build content with inline CTAs every 5th block (after 3rd, 8th, 13th, etc.)
+  // Single CTA at article midpoint (only if 6+ blocks)
   const contentWithCTAs: React.ReactNode[] = [];
-  let ctaCounter = 0;
+  const midpoint = Math.floor(content.length / 2);
   content.forEach((block, index) => {
     contentWithCTAs.push(renderBlock(block, index));
-    // Inject CTA after every 5th content block, starting after the 3rd
-    if ((index + 1) >= 3 && (index + 1 - 3) % 5 === 0) {
-      contentWithCTAs.push(renderInlineCTA(ctaCounter));
-      ctaCounter++;
+    if (content.length >= 6 && index === midpoint) {
+      contentWithCTAs.push(renderInlineCTA());
     }
   });
 
