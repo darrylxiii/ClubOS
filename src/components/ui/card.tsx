@@ -9,22 +9,22 @@ const cardVariants = cva(
     variants: {
       variant: {
         default: [
-          "border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)]",
-          "shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]",
-          "hover:border-border/40 hover:bg-card/40",
+          "border-border/20 bg-card/80",
+          "shadow-md hover:shadow-lg",
+          "hover:border-border/40 hover:bg-card/90",
         ],
         static: [
-          "border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)]",
-          "shadow-[var(--shadow-glass-sm)]",
+          "border-border/20 bg-card/80",
+          "shadow-sm",
         ],
         elevated: [
-          "border-border/30 bg-card/50 backdrop-blur-[var(--blur-glass-strong)]",
-          "shadow-[var(--shadow-glass-lg)]",
+          "border-border/30 bg-card/90",
+          "shadow-lg",
         ],
         interactive: [
-          "border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)]",
-          "shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]",
-          "hover:border-border/40 hover:bg-card/40",
+          "border-border/20 bg-card/80",
+          "shadow-md hover:shadow-lg",
+          "hover:border-border/40 hover:bg-card/90",
           "cursor-pointer hover:scale-[1.01] active:scale-[0.99]",
         ],
         outline: [

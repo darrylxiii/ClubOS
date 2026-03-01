@@ -10,7 +10,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-card/40 backdrop-blur-[var(--blur-glass)] border border-border/40 hover:bg-card/60 hover:border-border/60 shadow-glass-md hover:shadow-glass-lg text-foreground transition-all",
+        default: "bg-card/80 border border-border/50 hover:bg-card/90 hover:border-border/60 shadow-md hover:shadow-lg text-foreground transition-all",
         primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg transition-all",
         outline: "border border-border/30 bg-card/20 backdrop-blur-[var(--blur-glass-subtle)] hover:bg-card/40 hover:border-border/50 shadow-glass-sm hover:shadow-glass-md text-foreground transition-all",

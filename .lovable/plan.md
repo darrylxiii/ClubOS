@@ -1,149 +1,253 @@
 
-# UI/UX Re-Audit -- Post Phase 1 Implementation
 
-## Updated Score: 52/100 (+18 from 34)
+# Comprehensive Email System Audit — The Quantum Club
 
-The Phase 1 changes successfully landed the brand palette, progressive disclosure on CandidateHome, Auth accessibility labels, DynamicBackground aria attributes, and the Jobs heading fix. However, significant issues remain across every category.
+## Current State Summary
 
----
-
-## What Improved
-
-| Change | Impact |
-|---|---|
-| Eclipse/ivory dark-mode tokens in `index.css` | Brand identity now present in dark mode |
-| CandidateHome refactored to 3 collapsible sections | Progressive disclosure working |
-| Auth inputs now have `sr-only` labels | WCAG Level A fix |
-| DynamicBackground has `aria-hidden` and `role="presentation"` | Screen reader improvement |
-| Jobs heading reduced to `text-2xl font-semibold` | Calm, editorial tone |
-| OceanBackgroundVideo removed from Jobs | No more duplicate video |
-| Mobile logo reduced to `h-10` in AppLayout | Header overflow fixed |
-| Dead OAuth buttons removed from Auth | No more misleading disabled UI |
-| Console.logs removed from ClubHome and CandidateHome | Cleaner production output |
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## Remaining Issues (grouped by priority)
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-### 1. Button Default Variant Still Glass (Contrast Failure) -- Score: -8
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
 
-The default button variant (`bg-card/40 backdrop-blur`) remains unchanged. This is the highest-impact single issue because:
-- Every `<Button>` without an explicit `variant` prop renders as translucent glass
-- On the video background, text contrast is unpredictable and fails WCAG AA
-- Buttons are visually indistinguishable from card surfaces and inputs
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
 
-**Fix:** Change the `default` variant to use `bg-card/80` minimum opacity (or swap default to `primary`). Keep `glass` as an explicit opt-in variant.
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
 
-### 2. Console.log Still Present in 10 Page Files -- Score: -4
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
 
-157 `console.log` calls remain across: `Meetings.tsx`, `WhatsAppInbox.tsx`, `Scheduling.tsx`, `Onboarding.tsx`, `OAuthOnboarding.tsx`, `RadioListen.tsx`, `Settings.tsx`, `MeetingRoom.tsx`. These were not cleaned in Phase 1.
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
 
-**Fix:** Replace all with `logger.debug`/`logger.warn` or strip via Vite plugin.
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
 
-### 3. Backdrop-blur on 387 Components -- Score: -6
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
 
-3,467 occurrences of `backdrop-blur` across 387 files. The plan called for reducing blur to header/sidebar/modals/popovers only, but content cards throughout the app still use `bg-card/50 backdrop-blur-sm`. This creates compositing layer bloat on mobile.
+### 1.3 Emoji in Subject Lines (6 functions)
 
-**Fix:** Bulk replace `bg-card/50 backdrop-blur-sm` with `bg-card` on content cards. Keep blur only on: header (AppLayout line 122), sidebar, modals, popovers, dropdowns.
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
 
-### 4. No Bottom Navigation on Mobile -- Score: -5
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
 
-The plan called for a mobile bottom nav bar (Home, Jobs, Messages, Profile, More). This was not implemented. Navigation remains hamburger-only.
+### 1.4 SPF Record Missing (DNS — not code)
 
-**Fix:** Create `MobileBottomNav.tsx` with 5 icons, show on `md:hidden`, hide on scroll-down/show on scroll-up.
-
-### 5. No Page Transitions -- Score: -4
-
-Route changes remain instantaneous. The plan called for wrapping `<Outlet>` in a `motion.div` with fade animation.
-
-**Fix:** In `ProtectedLayout.tsx`, wrap `<Outlet />` in `<motion.div key={location.pathname}>` with `animate={{ opacity: 1 }}` / `exit={{ opacity: 0 }}`.
-
-### 6. Auth Page Still 745 Lines Monolithic -- Score: -3
-
-Auth.tsx was cleaned (labels added, OAuth buttons removed) but not decomposed. It still handles login, signup, MFA, email verification, invite validation, OAuth callback, and password set in a single component.
-
-**Fix:** Extract into `LoginForm.tsx`, `SignupForm.tsx`, `MFAVerification.tsx`, `EmailVerification.tsx`, `InviteValidator.tsx` -- each under 200 lines.
-
-### 7. Candidate Jobs Page Still Has 5 Tabs -- Score: -3
-
-The plan called for consolidating to 3 tabs (Browse, Applied, Saved). The current candidate view still has 5 tabs: Opportunities, My Applications, Saved, Map, Interview Prep. Map and Interview Prep should be separate routes.
-
-**Fix:** Remove "Map" and "Interview Prep" tab triggers from candidate view in Jobs.tsx. Add them as standalone routes accessible from navigation config.
-
-### 8. Toast Messages May Still Have Exclamation Points -- Score: -2
-
-The plan called for removing all exclamation points. `Onboarding.tsx` line 150 still has `toast.success("Profile created successfully!")` and `Scheduling.tsx` line 234 has `toast.success("Booking link created!")`.
-
-**Fix:** Search and replace all `toast.*("...!")` patterns with calm sentence-case messages.
-
-### 9. No Unified WidgetSkeleton Component -- Score: -2
-
-The plan called for a single `<WidgetSkeleton>` with card/list/metric variants. Individual widgets still use inconsistent loading patterns. Some use `<Skeleton>`, some use inline `animate-pulse`, some show nothing.
-
-**Fix:** Create `src/components/ui/widget-skeleton.tsx` with 3 variants. Replace all widget loading states.
-
-### 10. Missing ErrorBoundary on Dashboard Widgets -- Score: -2
-
-CandidateHome widgets (SalaryInsightsWidget, SkillDemandWidget, CareerProgressWidget, etc.) are not wrapped in ErrorBoundary. If one fails, it can crash the entire section.
-
-**Fix:** Wrap each widget in `<ErrorBoundary>` with a compact fallback card.
-
-### 11. ClubHomeHeader Still Renders Duplicate Greeting -- Score: -2
-
-ClubHomeHeader still shows a full avatar + greeting + badges block inside the content area, while the AppLayout header and sidebar already show the user identity. This is redundant content.
-
-**Fix:** Simplify to a one-line "Welcome back, [name]" text without the large avatar block.
-
-### 12. "or" Divider After Sign In Button Leads to Nothing -- Score: -1
-
-Auth.tsx line 683 shows an "or" separator after the Sign In button, but the OAuth buttons below it were removed. Now "or" leads to just "Request Access" -- which is not an alternative sign-in method. The divider is misleading.
-
-**Fix:** Remove the "or" divider entirely, or move "Request Access" to a different location (e.g., below the card as a subtle link).
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
+```
+This is a DNS change in the domain registrar.
 
 ---
 
-## Implementation Plan (Priority Order)
+## CATEGORY 2: Content & Copy Quality
 
-### Phase A: Critical Contrast and Performance (Score impact: +14)
+### 2.1 Inconsistent Tone
 
-1. **Fix button default variant** in `button.tsx` -- change `bg-card/40` to `bg-card/80 border-border/50`
-2. **Bulk-reduce backdrop-blur** on content cards -- search/replace across card components to use opaque backgrounds
-3. **Create MobileBottomNav** component with 5 primary destinations
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
 
-### Phase B: Interaction Polish (Score impact: +9)
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
 
-4. **Add page transitions** in ProtectedLayout.tsx with framer-motion
-5. **Create WidgetSkeleton** component with 3 variants
-6. **Wrap dashboard widgets** in ErrorBoundary
+### 2.2 Hardcoded Contact Email Inconsistency
 
-### Phase C: Code Quality (Score impact: +9)
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
 
-7. **Remove remaining console.logs** from 10 page files
-8. **Fix toast exclamation points** across all files
-9. **Remove "or" divider** from Auth.tsx
-10. **Simplify ClubHomeHeader** to compact greeting
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
 
-### Phase D: Architecture (Score impact: +6)
+### 2.3 Missing "Powered by QUIN" Attribution
 
-11. **Decompose Auth.tsx** into sub-components
-12. **Consolidate Jobs tabs** to 3 for candidates
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
 
 ---
 
-## Projected Score After Full Implementation
+## CATEGORY 3: Technical & Security Issues
 
-| Category | Current | After Phase A-D |
-|---|---|---|
-| Visual consistency | 8/15 | 13/15 |
-| Information architecture | 6/10 | 9/10 |
-| Typography and readability | 7/10 | 9/10 |
-| Interaction design | 5/10 | 8/10 |
-| Accessibility | 6/10 | 9/10 |
-| Mobile and responsive | 5/10 | 8/10 |
-| Performance UI | 4/10 | 8/10 |
-| Error handling | 4/10 | 7/10 |
-| Brand fidelity | 5/10 | 9/10 |
-| Code quality | 3/5 | 5/5 |
-| **Total** | **52/100** | **85/100** |
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
 
-The remaining 15 points require real user testing, screen reader audits, low-end device performance lab, and professional design review.
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+
+### 3.2 `linear-gradient()` in Inline Styles
+
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
+```
+
+### 5.2 Centralize Plain-Text Generation
+
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+```
+
+---
+
+## Implementation Priority
+
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
+
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
+
+**Total: ~25 files modified**
+
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+

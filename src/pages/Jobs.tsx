@@ -566,22 +566,14 @@ const Jobs = () => {
                 <TabsList className="h-auto flex-wrap">
                   <TabsTrigger value="opportunities" className="gap-1.5">
                     <Briefcase className="w-3.5 h-3.5" />
-                    Opportunities ({filteredJobs.length})
+                    Browse ({filteredJobs.length})
                   </TabsTrigger>
                   <TabsTrigger value="applications" className="gap-1.5">
                     <FileText className="w-3.5 h-3.5" />
-                    My Applications
+                    Applied
                   </TabsTrigger>
                   <TabsTrigger value="saved" className="gap-1.5">
                     Saved ({savedJobs.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="map" className="gap-1.5">
-                    <Map className="w-3.5 h-3.5" />
-                    Map
-                  </TabsTrigger>
-                  <TabsTrigger value="interview-prep" className="gap-1.5">
-                    <Brain className="w-3.5 h-3.5" />
-                    Interview Prep
                   </TabsTrigger>
                 </TabsList>
 
