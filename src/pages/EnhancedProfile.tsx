@@ -371,18 +371,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
             <CardTitle className="text-lg">Profile Strength</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Profile Completeness</span>
-                <span className="font-semibold">75%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Add more experience, skills, and portfolio items to reach 100%
-              </p>
-            </div>
+            <ProfileStrengthMeter userId={isOwnProfile ? user?.id : viewingUserId} />
           </CardContent>
         </Card>
       </div>

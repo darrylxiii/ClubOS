@@ -597,9 +597,7 @@ export default function ApplicationDetail() {
 
               {/* Competition Insight */}
               <CompetitionInsight
-                totalCandidates={application.other_candidates_count + 1}
-                candidatesAhead={application.other_candidates_count}
-                candidatesBehind={0}
+                totalCandidates={application.other_candidates_count}
               />
             </div>
 

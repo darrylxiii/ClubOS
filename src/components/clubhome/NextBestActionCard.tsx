@@ -89,7 +89,7 @@ export const NextBestActionCard = () => {
       const { count: applicationCount } = await supabase
         .from('applications')
         .select('id', { count: 'exact', head: true })
-        .eq('candidate_id', user.id);
+        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`);
 
       if (!applicationCount || applicationCount === 0) {
         return {

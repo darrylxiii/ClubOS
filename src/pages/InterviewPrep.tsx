@@ -48,6 +48,30 @@ export default function InterviewPrep() {
     }
   }, [user]);
 
+  // Load saved STAR answers when selected application changes
+  useEffect(() => {
+    if (!user || !selectedApp) return;
+    (async () => {
+      const { data } = await supabase
+        .from('interview_prep_answers')
+        .select('situation, task, action, result')
+        .eq('user_id', user.id)
+        .eq('application_id', selectedApp.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (data && data.length > 0) {
+        setStarAnswers({
+          situation: (data[0] as any).situation || '',
+          task: (data[0] as any).task || '',
+          action: (data[0] as any).action || '',
+          result: (data[0] as any).result || '',
+        });
+      } else {
+        setStarAnswers({ situation: '', task: '', action: '', result: '' });
+      }
+    })();
+  }, [user, selectedApp?.id]);
+
   const fetchApplications = async () => {
     if (!user) return;
 
