@@ -202,7 +202,7 @@ export const CandidateHome = () => {
                 <ReferralStatsWidget />
               </DashboardSection>
               <DashboardSection columns={2}>
-                <ReferralStatsWidget />
+                <StrategistContactCard />
                 <AchievementsPreviewWidget />
               </DashboardSection>
               {user && (
