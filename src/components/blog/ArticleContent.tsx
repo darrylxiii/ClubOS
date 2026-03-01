@@ -28,29 +28,17 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
     }
   };
 
-  const funnelCTAs = [
-    {
-      text: 'The Quantum Club connects top-tier talent with exceptional opportunities.',
-      link: '/auth',
-      label: 'Apply to join',
-    },
-    {
-      text: 'Companies partner with The Quantum Club to access curated, high-impact talent.',
-      link: '/partnerships',
-      label: 'Explore partnerships',
-    },
-  ];
-
-  const renderInlineCTA = (ctaIndex: number) => {
-    const cta = funnelCTAs[ctaIndex % funnelCTAs.length];
+  const renderInlineCTA = () => {
     return (
-      <div key={`cta-${ctaIndex}`} className="my-8 py-5 px-6 border-l-2 border-border bg-muted/30 rounded-r-xl">
-        <p className="text-sm text-foreground/70 mb-2">{cta.text}</p>
+      <div key="midpoint-cta" className="my-8 py-5 px-6 border-l-2 border-border bg-muted/30 rounded-r-xl">
+        <p className="text-sm text-foreground/70 mb-2">
+          The Quantum Club connects exceptional professionals with opportunities that match their ambitions.
+        </p>
         <Link
-          to={cta.link}
+          to="/auth"
           className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:text-foreground/70 transition-colors"
         >
-          {cta.label}
+          Explore membership
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
