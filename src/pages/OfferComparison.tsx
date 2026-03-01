@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useProfile } from '@/hooks/useProfile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,10 +31,13 @@ export default function OfferComparison() {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [activeTab, setActiveTab] = useState('all');
 
-  const formatCurrency = (amount: number) => {
+  const { profile } = useProfile();
+  const userCurrency = profile?.preferred_currency || 'EUR';
+
+  const formatOfferCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
-      currency: 'EUR',
+      currency: userCurrency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
@@ -154,7 +158,7 @@ export default function OfferComparison() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Highest Offer</p>
-                <p className="text-xl font-bold">{formatCurrency(stats.highestOffer)}</p>
+                <p className="text-xl font-bold">{formatOfferCurrency(stats.highestOffer)}</p>
               </div>
             </div>
           </CardContent>

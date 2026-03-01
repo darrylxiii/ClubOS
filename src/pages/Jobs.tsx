@@ -273,10 +273,50 @@ const Jobs = () => {
     });
   }, [sortedJobs, userCurrency]);
 
-  const handleApply = (jobTitle: string) => {
-    toast.success(`Application submitted for ${jobTitle}`, {
-      description: "Your application has been submitted successfully."
-    });
+  const handleApply = async (jobTitle: string, jobId?: string, companyName?: string) => {
+    if (!user) {
+      toast.error("Please sign in to apply.");
+      return;
+    }
+
+    if (!jobId) {
+      toast.info("Opening job details to apply...");
+      return;
+    }
+
+    try {
+      const { data: existing } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('job_id', jobId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        toast.info("You've already applied to this role.");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('applications')
+        .insert([{
+          job_id: jobId,
+          user_id: user.id,
+          status: 'pending' as any,
+          applied_at: new Date().toISOString(),
+          position: jobTitle,
+          company_name: companyName || 'Unknown',
+        }]);
+
+      if (error) throw error;
+
+      toast.success(`Application submitted for ${jobTitle}`, {
+        description: "Your application has been submitted successfully."
+      });
+    } catch (error) {
+      console.error('Application error:', error);
+      toast.error("Failed to submit application. Please try again.");
+    }
   };
 
   const handleRefer = (jobId: string, jobTitle: string, company: string) => {
@@ -688,7 +728,7 @@ const Jobs = () => {
                           isContinuous={job.isContinuous}
                           hiredCount={job.hiredCount}
                           targetHireCount={job.targetHireCount}
-                          onApply={() => handleApply(job.title)} 
+                          onApply={() => handleApply(job.title, job.id, job.company)} 
                           onRefer={() => handleRefer(job.id, job.title, job.company)} 
                           onClubSync={() => handleClubSync(job.title)} 
                           onToggleSave={() => toggleSaveJob(job.id, job.title)} 
@@ -753,7 +793,7 @@ const Jobs = () => {
                           isContinuous={job.isContinuous}
                           hiredCount={job.hiredCount}
                           targetHireCount={job.targetHireCount}
-                          onApply={() => handleApply(job.title)} 
+                          onApply={() => handleApply(job.title, job.id, job.company)} 
                           onRefer={() => handleRefer(job.id, job.title, job.company)} 
                           onClubSync={() => handleClubSync(job.title)} 
                           onToggleSave={() => toggleSaveJob(job.id, job.title)} 

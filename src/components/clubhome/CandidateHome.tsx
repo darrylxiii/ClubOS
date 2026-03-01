@@ -45,19 +45,34 @@ export const CandidateHome = () => {
     try {
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('full_name, current_title, bio, avatar_url')
+        .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
         .eq('id', user.id)
         .single();
       
-      const completion = profileData ? 
-        (Object.values(profileData).filter(v => v).length / 4) * 100 : 0;
-      setProfileCompletion(Math.round(completion));
+      if (profileData) {
+        const fields = [
+          profileData.full_name,
+          profileData.current_title,
+          profileData.bio,
+          profileData.avatar_url,
+          profileData.phone,
+          profileData.location,
+          profileData.linkedin_url,
+          profileData.preferred_currency,
+          profileData.resume_url,
+          profileData.current_salary_min,
+        ];
+        const filled = fields.filter(v => v !== null && v !== undefined && v !== '').length;
+        setProfileCompletion(Math.round((filled / fields.length) * 100));
+      } else {
+        setProfileCompletion(0);
+      }
     } catch (error) {
       // Profile completion fetch failed silently
     }
   };
 
-  const [showCareer, setShowCareer] = useState(false);
+  const [showCareer, setShowCareer] = useState(true);
   const [showMarket, setShowMarket] = useState(false);
   const [showTools, setShowTools] = useState(false);
 

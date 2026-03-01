@@ -464,7 +464,7 @@ export default function OAuthOnboarding() {
       toast.success("Profile completed! Welcome to The Quantum Club!");
 
       setTimeout(() => {
-        navigate("/home", { replace: true });
+        navigate("/club-home", { replace: true });
       }, 500);
     } catch (error: unknown) {
       console.error('[OAuth Onboarding] Error:', error);

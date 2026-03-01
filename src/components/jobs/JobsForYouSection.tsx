@@ -26,7 +26,7 @@ interface Job {
 interface JobsForYouSectionProps {
   jobs: Job[];
   savedJobIds: string[];
-  onApply: (title: string) => void;
+  onApply: (title: string, id?: string, company?: string) => void;
   onRefer: (id: string, title: string, company: string) => void;
   onClubSync: (title: string) => void;
   onToggleSave: (id: string, title: string) => void;
@@ -124,7 +124,7 @@ export function JobsForYouSection({
               isContinuous={job.isContinuous}
               hiredCount={job.hiredCount}
               targetHireCount={job.targetHireCount}
-              onApply={() => onApply(job.title)}
+              onApply={() => onApply(job.title, job.id, job.company)}
               onRefer={() => onRefer(job.id, job.title, job.company)}
               onClubSync={() => onClubSync(job.title)}
               onToggleSave={() => onToggleSave(job.id, job.title)}
@@ -172,7 +172,7 @@ export function JobsForYouSection({
                   isContinuous={job.isContinuous}
                   hiredCount={job.hiredCount}
                   targetHireCount={job.targetHireCount}
-                  onApply={() => onApply(job.title)}
+                  onApply={() => onApply(job.title, job.id, job.company)}
                   onRefer={() => onRefer(job.id, job.title, job.company)}
                   onClubSync={() => onClubSync(job.title)}
                   onToggleSave={() => onToggleSave(job.id, job.title)}
