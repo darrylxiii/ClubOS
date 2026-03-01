@@ -253,6 +253,9 @@ export const PrivacySettings = ({
         </CardContent>
       </Card>
 
+      {/* Consent Receipts */}
+      <ConsentReceiptsViewer />
+
       {/* Data Management */}
       <Card>
         <CardHeader>

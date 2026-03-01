@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Clock } from "lucide-react";
 
 interface Strategist {
   id: string;
@@ -13,10 +13,18 @@ interface Strategist {
   current_title: string | null;
 }
 
+function formatSla(minutes: number): string {
+  if (minutes < 60) return `${Math.round(minutes)}m`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.round(hours / 24)}d`;
+}
+
 export function CompactStrategist() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [strategist, setStrategist] = useState<Strategist | null>(null);
+  const [avgResponseMin, setAvgResponseMin] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -36,9 +44,76 @@ export function CompactStrategist() {
         .eq('id', cp.assigned_strategist_id)
         .single();
 
-      if (data) setStrategist(data);
+      if (data) {
+        setStrategist(data);
+        computeSla(data.id);
+      }
     })();
   }, [user]);
+
+  // Compute average response time from messages
+  const computeSla = async (strategistId: string) => {
+    if (!user) return;
+    try {
+      // Get conversations that include both the candidate and strategist
+      const { data: participants } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      if (!participants?.length) return;
+
+      const convIds = participants.map(p => p.conversation_id);
+
+      // Get recent messages in those conversations from the strategist, ordered by time
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('conversation_id, sender_id, created_at')
+        .in('conversation_id', convIds)
+        .order('created_at', { ascending: true })
+        .limit(500);
+
+      if (!msgs?.length) return;
+
+      // Group messages by conversation
+      const byConv = new Map<string, typeof msgs>();
+      for (const m of msgs) {
+        const arr = byConv.get(m.conversation_id) || [];
+        arr.push(m);
+        byConv.set(m.conversation_id, arr);
+      }
+
+      // For each candidate message, find the next strategist reply and compute delta
+      const deltas: number[] = [];
+      for (const [, convMsgs] of byConv) {
+        for (let i = 0; i < convMsgs.length - 1; i++) {
+          if (convMsgs[i].sender_id === user.id) {
+            // find next reply from strategist
+            for (let j = i + 1; j < convMsgs.length; j++) {
+              if (convMsgs[j].sender_id === strategistId) {
+                const delta =
+                  (new Date(convMsgs[j].created_at).getTime() -
+                    new Date(convMsgs[i].created_at).getTime()) /
+                  60000;
+                if (delta > 0 && delta < 10080) {
+                  // ignore > 7 days
+                  deltas.push(delta);
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (deltas.length >= 2) {
+        const avg = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+        setAvgResponseMin(avg);
+      }
+    } catch (e) {
+      console.error("SLA compute error:", e);
+    }
+  };
 
   if (!strategist) return null;
 
@@ -59,9 +134,17 @@ export function CompactStrategist() {
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{strategist.full_name}</p>
-        <p className="text-xs text-muted-foreground truncate">
-          {strategist.current_title || "Talent Strategist"}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs text-muted-foreground truncate">
+            {strategist.current_title || "Talent Strategist"}
+          </p>
+          {avgResponseMin !== null && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              <Clock className="h-2.5 w-2.5" />
+              ~{formatSla(avgResponseMin)}
+            </span>
+          )}
+        </div>
       </div>
       <Button
         size="sm"
