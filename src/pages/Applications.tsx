@@ -287,7 +287,6 @@ function ApplicationCard({ application }: { application: Application }) {
           {/* Strategist Contact Card */}
           <StrategistContactCard
             strategist={application.talent_strategist}
-            lastContact="2 hours ago"
           />
 
           {/* Next Step Helper */}
