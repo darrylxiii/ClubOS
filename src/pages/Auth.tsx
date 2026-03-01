@@ -542,7 +542,7 @@ const Auth = () => {
     return <UnifiedLoader variant="page" showBranding />;
   }
   return <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-lg bg-background/30 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[32px]">
+      <Card className="w-full max-w-lg bg-card/95 border border-border/50 shadow-2xl rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2">
             <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" fetchPriority="high" />
