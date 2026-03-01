@@ -83,7 +83,7 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
     );
   }
 
-  console.log('[ClubHomeHeader] ✅ Rendering with user:', user.email, 'Profile:', profile?.full_name);
+  
 
   return (
     <div className="glass-subtle rounded-2xl p-6 space-y-4">
