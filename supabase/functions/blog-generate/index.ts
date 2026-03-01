@@ -123,20 +123,18 @@ The field for text content is ALWAYS "content", never "text". The field for quot
                   excerpt: { type: 'string', description: 'Short 1-2 sentence summary' },
                   content: {
                     type: 'array',
-                    minItems: 15,
                     items: {
                       type: 'object',
                       properties: {
                         type: { type: 'string', enum: ['paragraph', 'heading', 'quote', 'list', 'callout', 'image'] },
                         content: { type: 'string', description: 'Main text content of the block. Required for all block types.' },
-                        level: { type: 'number', enum: [2, 3, 4], description: 'Heading level. Required for heading blocks.' },
+                        level: { type: 'number', description: 'Heading level (2, 3, or 4). Required for heading blocks.' },
                         items: { type: 'array', items: { type: 'string' }, description: 'List items. Required for list blocks.' },
                         caption: { type: 'string', description: 'Attribution for quotes or caption for images.' },
                       },
                       required: ['type', 'content'],
-                      additionalProperties: false,
                     },
-                    description: 'Array of ContentBlock objects. Minimum 15 blocks for a substantive article.',
+                    description: 'Array of ContentBlock objects. Must have at least 15 blocks.',
                   },
                   keyTakeaways: { type: 'array', items: { type: 'string' } },
                   metaTitle: { type: 'string', description: 'Under 60 chars, include primary keyword' },
@@ -151,13 +149,11 @@ The field for text content is ALWAYS "content", never "text". The field for quot
                         answer: { type: 'string' },
                       },
                       required: ['question', 'answer'],
-                      additionalProperties: false,
                     },
                     description: '3-5 FAQ pairs for Google structured data',
                   },
                 },
                 required: ['title', 'excerpt', 'content', 'keyTakeaways', 'metaTitle', 'metaDescription', 'keywords', 'faqSchema'],
-                additionalProperties: false,
               },
             },
           },
@@ -177,7 +173,9 @@ The field for text content is ALWAYS "content", never "text". The field for quot
           status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      throw new Error(`AI generation failed: ${response.statusText}`);
+      const errBody = await response.text();
+      console.error(`AI gateway error (${response.status}):`, errBody);
+      throw new Error(`AI generation failed: ${response.status} - ${errBody.slice(0, 200)}`);
     }
 
     const aiResult = await response.json();
