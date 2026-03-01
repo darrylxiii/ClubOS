@@ -274,7 +274,7 @@ const Jobs = () => {
   }, [sortedJobs, userCurrency]);
 
   const handleApply = (jobTitle: string) => {
-    toast.success(`Applied to ${jobTitle}!`, {
+    toast.success(`Application submitted for ${jobTitle}`, {
       description: "Your application has been submitted successfully."
     });
   };
