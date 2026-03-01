@@ -1,17 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
 import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStatusTracker";
 import { JobRecommendations } from "@/components/candidate/JobRecommendations";
 import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
-import { QuickTipsCarousel } from "@/components/candidate/QuickTipsCarousel";
-import { quickTips } from "@/data/quickTips";
-import { Briefcase, X } from "lucide-react";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
@@ -29,8 +23,6 @@ import { SalaryInsightsWidget } from "./SalaryInsightsWidget";
 import { SkillDemandWidget } from "./SkillDemandWidget";
 import { CareerProgressWidget } from "./CareerProgressWidget";
 import { PushNotificationOptIn } from "@/components/notifications/PushNotificationOptIn";
-import { T } from "@/components/T";
-import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
 
