@@ -1,219 +1,48 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { ProfileCompletion } from "@/components/ProfileCompletion";
-import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
-import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStatusTracker";
-import { JobRecommendations } from "@/components/candidate/JobRecommendations";
-import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
-import { UnifiedStatsBar } from "./UnifiedStatsBar";
-import { DashboardSection } from "./DashboardSection";
-import { useRoleStats } from "@/hooks/useRoleStats";
-import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
-import { MessagesPreviewWidget } from "./MessagesPreviewWidget";
 import { NextBestActionCard } from "./NextBestActionCard";
-import { ReferralStatsWidget } from "./ReferralStatsWidget";
-import { AchievementsPreviewWidget } from "./AchievementsPreviewWidget";
-import { NotificationsPreviewWidget } from "./NotificationsPreviewWidget";
-import { InterviewCountdownWidget } from "./InterviewCountdownWidget";
-import { StrategistContactCard } from "./StrategistContactCard";
-import { SavedJobsWidget } from "./SavedJobsWidget";
-import { DocumentStatusWidget } from "./DocumentStatusWidget";
-import { SalaryInsightsWidget } from "./SalaryInsightsWidget";
-import { SkillDemandWidget } from "./SkillDemandWidget";
-import { CareerProgressWidget } from "./CareerProgressWidget";
-import { PushNotificationOptIn } from "@/components/notifications/PushNotificationOptIn";
-import { motion, AnimatePresence } from "framer-motion";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
+import { PipelineSnapshot } from "./PipelineSnapshot";
+import { CompactInterviewCountdown } from "./CompactInterviewCountdown";
+import { CompactStrategist } from "./CompactStrategist";
+import { DiscoveryGrid } from "./DiscoveryGrid";
+import { CompactProfileStrength } from "./CompactProfileStrength";
+import { motion } from "framer-motion";
+
+const fade = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.25 },
+};
 
 export const CandidateHome = () => {
-  const { user } = useAuth();
-  const { stats: roleStats, loading } = useRoleStats('user', user?.id);
-  const [profileCompletion, setProfileCompletion] = useState(0);
-
-  const stats = roleStats as { applications: number; matches: number; interviews: number; messages: number };
-
-  useEffect(() => {
-    if (user) {
-      fetchProfileCompletion();
-    }
-  }, [user]);
-
-  const fetchProfileCompletion = async () => {
-    if (!user) return;
-
-    try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileData) {
-        const fields = [
-          profileData.full_name,
-          profileData.current_title,
-          profileData.bio,
-          profileData.avatar_url,
-          profileData.phone,
-          profileData.location,
-          profileData.linkedin_url,
-          profileData.preferred_currency,
-          profileData.resume_url,
-          profileData.current_salary_min,
-        ];
-        const filled = fields.filter(v => v !== null && v !== undefined && v !== '').length;
-        setProfileCompletion(Math.round((filled / fields.length) * 100));
-      } else {
-        setProfileCompletion(0);
-      }
-    } catch (error) {
-      // Profile completion fetch failed silently
-    }
-  };
-
-  const [showCareer, setShowCareer] = useState(true);
-  const [showMarket, setShowMarket] = useState(false);
-  const [showTools, setShowTools] = useState(false);
-
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Above the fold: Stats + Next Action (max 3 items) */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <UnifiedStatsBar role="user" stats={stats} loading={loading} />
+    <div className="space-y-4 sm:space-y-5 max-w-4xl mx-auto">
+      {/* 1. QUIN Next Best Action */}
+      <motion.div {...fade}>
+        <NextBestActionCard />
       </motion.div>
 
-      <NextBestActionCard />
+      {/* 2. Pipeline snapshot + optional interview countdown */}
+      <motion.div {...fade} transition={{ ...fade.transition, delay: 0.05 }}>
+        <PipelineSnapshot />
+      </motion.div>
 
-      <ClubAIHomeChatWidget />
+      <CompactInterviewCountdown />
 
-      {/* ── Career Activity (collapsible) ── */}
-      <div className="space-y-3">
-        <button
-          onClick={() => setShowCareer(v => !v)}
-          className="flex items-center justify-between w-full text-left group"
-        >
-          <h2 className="text-lg font-semibold tracking-tight">Career Activity</h2>
-          <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-            {showCareer ? 'Collapse' : 'Expand'}
-          </span>
-        </button>
-        
-        <DashboardSection columns={2}>
-          <InterviewCountdownWidget />
-          <DocumentStatusWidget />
-        </DashboardSection>
+      {/* 3. Club AI chat */}
+      <motion.div {...fade} transition={{ ...fade.transition, delay: 0.1 }}>
+        <ClubAIHomeChatWidget />
+      </motion.div>
 
-        <AnimatePresence>
-          {showCareer && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25 }}
-              className="space-y-4 overflow-hidden"
-            >
-              <ProfileCompletion />
-              {user && (
-                <DashboardSection columns={2}>
-                  <ApplicationStatusTracker userId={user.id} />
-                  <JobRecommendations userId={user.id} />
-                </DashboardSection>
-              )}
-              <NotificationsPreviewWidget />
-              <PushNotificationOptIn />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* 4. Strategist (hidden if none assigned) */}
+      <CompactStrategist />
 
-      {/* ── Market Intelligence (collapsible) ── */}
-      <div className="space-y-3">
-        <button
-          onClick={() => setShowMarket(v => !v)}
-          className="flex items-center justify-between w-full text-left group"
-        >
-          <h2 className="text-lg font-semibold tracking-tight">Market Intelligence</h2>
-          <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-            {showMarket ? 'Collapse' : 'Expand'}
-          </span>
-        </button>
-        
-        <AnimatePresence>
-          {showMarket && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25 }}
-              className="space-y-4 overflow-hidden"
-            >
-              <DashboardSection columns={3}>
-                <SalaryInsightsWidget />
-                <SkillDemandWidget />
-                <CareerProgressWidget />
-              </DashboardSection>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* 5. Discovery grid: For You / Saved / Messages */}
+      <motion.div {...fade} transition={{ ...fade.transition, delay: 0.15 }}>
+        <DiscoveryGrid />
+      </motion.div>
 
-      {/* ── Tools & Resources (collapsible) ── */}
-      <div className="space-y-3">
-        <button
-          onClick={() => setShowTools(v => !v)}
-          className="flex items-center justify-between w-full text-left group"
-        >
-          <h2 className="text-lg font-semibold tracking-tight">Tools & Resources</h2>
-          <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-            {showTools ? 'Collapse' : 'Expand'}
-          </span>
-        </button>
-        
-        <AnimatePresence>
-          {showTools && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25 }}
-              className="space-y-4 overflow-hidden"
-            >
-              {user && (
-                <DashboardSection>
-                  <CandidateQuickActions
-                    profileCompletion={profileCompletion}
-                    newMatches={stats.matches}
-                    pendingApplications={stats.applications}
-                    upcomingInterviews={stats.interviews}
-                  />
-                </DashboardSection>
-              )}
-              <DashboardSection columns={2}>
-                <UpcomingMeetingsWidget />
-                <MessagesPreviewWidget />
-              </DashboardSection>
-              <DashboardSection columns={2}>
-                <SavedJobsWidget />
-                <ReferralStatsWidget />
-              </DashboardSection>
-              <DashboardSection columns={2}>
-                <StrategistContactCard />
-                <AchievementsPreviewWidget />
-              </DashboardSection>
-              {user && (
-                <DashboardSection>
-                  <ActivityTimeline userId={user.id} />
-                </DashboardSection>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* 6. Profile strength (hidden at 100%) */}
+      <CompactProfileStrength />
     </div>
   );
 };
