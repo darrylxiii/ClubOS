@@ -171,6 +171,8 @@ verify_jwt = false
 [functions.club-ai-chat]
 verify_jwt = true
 
+[functions.generate-candidate-interview-prep]
+verify_jwt = true
 
 [functions.analytics-ai-assistant]
 verify_jwt = false
