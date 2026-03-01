@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link2, Check } from 'lucide-react';
+import { Link2, Check, Lightbulb } from 'lucide-react';
 import { ContentBlock } from '@/data/blog';
 import CTACallout from './CTACallout';
 import { cn } from '@/lib/utils';
@@ -28,29 +28,17 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
     }
   };
 
-  const funnelCTAs = [
-    {
-      text: 'The Quantum Club connects top-tier talent with exceptional opportunities.',
-      link: '/auth',
-      label: 'Apply to join',
-    },
-    {
-      text: 'Companies partner with The Quantum Club to access curated, high-impact talent.',
-      link: '/partnerships',
-      label: 'Explore partnerships',
-    },
-  ];
-
-  const renderInlineCTA = (ctaIndex: number) => {
-    const cta = funnelCTAs[ctaIndex % funnelCTAs.length];
+  const renderInlineCTA = () => {
     return (
-      <div key={`cta-${ctaIndex}`} className="my-8 py-5 px-6 border-l-2 border-border bg-muted/30 rounded-r-xl">
-        <p className="text-sm text-foreground/70 mb-2">{cta.text}</p>
+      <div key="midpoint-cta" className="my-8 py-5 px-6 border-l-2 border-border bg-muted/30 rounded-r-xl">
+        <p className="text-sm text-foreground/70 mb-2">
+          The Quantum Club connects exceptional professionals with opportunities that match their ambitions.
+        </p>
         <Link
-          to={cta.link}
+          to="/auth"
           className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:text-foreground/70 transition-colors"
         >
-          {cta.label}
+          Explore membership
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
@@ -115,21 +103,24 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
           </div>
         );
       case 'callout':
-        return <CTACallout key={index} tipText={block.content} />;
+        return (
+          <div key={index} className="flex items-start gap-3 p-4 md:p-5 bg-muted/40 border border-border/50 rounded-xl my-8">
+            <Lightbulb className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
+            <p className="text-sm md:text-base text-foreground/80 leading-relaxed">{block.content}</p>
+          </div>
+        );
       default:
         return null;
     }
   };
 
-  // Build content with inline CTAs every 5th block (after 3rd, 8th, 13th, etc.)
+  // Single CTA at article midpoint (only if 6+ blocks)
   const contentWithCTAs: React.ReactNode[] = [];
-  let ctaCounter = 0;
+  const midpoint = Math.floor(content.length / 2);
   content.forEach((block, index) => {
     contentWithCTAs.push(renderBlock(block, index));
-    // Inject CTA after every 5th content block, starting after the 3rd
-    if ((index + 1) >= 3 && (index + 1 - 3) % 5 === 0) {
-      contentWithCTAs.push(renderInlineCTA(ctaCounter));
-      ctaCounter++;
+    if (content.length >= 6 && index === midpoint) {
+      contentWithCTAs.push(renderInlineCTA());
     }
   });
 
