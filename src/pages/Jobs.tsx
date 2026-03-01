@@ -309,7 +309,7 @@ const Jobs = () => {
         description: enabled ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
       });
     } catch (error) {
-      console.error('Error updating Club Sync:', error);
+      logger.error('Failed to update Club Sync', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
       toast.error('Failed to update Club Sync setting');
     }
   };
