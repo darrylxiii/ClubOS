@@ -198,46 +198,37 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --color-4: 195 100% 63%;
     --color-5: 90 100% 63%;
 
-    /* QuantumClub Glassmorphic Colors - Warm, Premium Palette */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    /* The Quantum Club — Monochromatic Editorial Palette */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 7%;
 
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
 
-    --popover: 0 0% 98%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
 
-    /* Elegant blue/purple premium palette */
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    /* Monochromatic primary — understated authority */
+    --primary: 0 0% 12%;
+    --primary-foreground: 0 0% 98%;
 
     --secondary: 0 0% 95%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary-foreground: 0 0% 12%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 35%; /* Fixed: was 40%, now 35% for 4.5:1 contrast ratio */
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98%;
 
-    --premium: 262 83% 58%;
-    --premium-foreground: 210 40% 98%;
-
-    --success: 142 65% 50%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%; /* Fixed: changed from gray to amber for semantic clarity */
-    --warning-foreground: 0 0% 10%;
-
-    --destructive: 0 75% 62%;
-    --destructive-foreground: 0 0% 100%;
+    --premium: 0 0% 25%;
+    --premium-foreground: 0 0% 98%;
 
     --border: 0 0% 90%;
-    --input: 0 0% 98%;
-    --ring: 0 0% 40%;
+    --input: 0 0% 96%;
+    --ring: 0 0% 30%;
 
-    --radius: 1.25rem;
+    --radius: 0.75rem;
 
     /* QuantumClub Premium Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 95%) 0%, hsl(0 0% 90%) 50%, hsl(0 0% 92%) 100%);
@@ -273,43 +264,36 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   .dark {
-    --background: 0 0% 10%;
-    --foreground: 0 0% 98%;
+    /* Eclipse — #0E0E10 */
+    --background: 0 0% 5.5%;
+    /* Ivory — #F5F4EF */
+    --foreground: 43 33% 95%;
 
-    --card: 0 0% 15%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 8%;
+    --card-foreground: 43 33% 95%;
 
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 43 33% 95%;
 
-    /* Elegant blue/purple premium palette (dark mode) */
-    --primary: 217 91% 60%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Monochromatic primary — ivory on eclipse */
+    --primary: 43 33% 95%;
+    --primary-foreground: 0 0% 5.5%;
 
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 43 33% 95%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 65%; /* Fixed: was 60%, now 65% for 4.5:1 contrast ratio in dark mode */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 43 33% 95%;
 
-    --premium: 262 83% 58%;
-    --premium-foreground: 210 40% 98%;
+    --premium: 0 0% 22%;
+    --premium-foreground: 43 33% 95%;
 
-    --success: 142 65% 55%;
-    --success-foreground: 0 0% 10%;
-
-    --warning: 38 92% 55%; /* Fixed: changed from gray to amber for semantic clarity */
-    --warning-foreground: 0 0% 10%;
-
-    --destructive: 0 75% 65%;
-    --destructive-foreground: 0 0% 10%;
-
-    --border: 0 0% 25%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 60%;
+    --border: 0 0% 16%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 50%;
 
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 18%) 50%, hsl(0 0% 16%) 100%);
     --gradient-mesh: radial-gradient(at 40% 20%, hsl(0 0% 20% / 0.12) 0px, transparent 50%),

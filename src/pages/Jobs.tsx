@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useRole } from "@/contexts/RoleContext";
-import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
+// OceanBackgroundVideo removed — global DynamicBackground handles this
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -122,7 +122,7 @@ const Jobs = () => {
         
         setSavedJobIds(data?.map(sj => sj.job_id) || []);
       } catch (error) {
-        console.error('Error fetching saved jobs:', error);
+        logger.warn('Failed to fetch saved jobs', { componentName: 'Jobs', error });
       } finally {
         setLoadingSavedJobs(false);
       }
@@ -199,7 +199,7 @@ const Jobs = () => {
         })) || [];
         setJobs(transformedJobs);
       } catch (error) {
-        console.error('Error fetching jobs:', error);
+        logger.error('Failed to fetch jobs', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
         toast.error('Failed to load jobs');
       } finally {
         setLoading(false);
@@ -232,7 +232,7 @@ const Jobs = () => {
             );
           }
         } catch (error) {
-          console.error('Error calculating match score:', error);
+          // Match score calculation failed silently
         }
       }
     };
@@ -274,7 +274,7 @@ const Jobs = () => {
   }, [sortedJobs, userCurrency]);
 
   const handleApply = (jobTitle: string) => {
-    toast.success(`Applied to ${jobTitle}!`, {
+    toast.success(`Application submitted for ${jobTitle}`, {
       description: "Your application has been submitted successfully."
     });
   };
@@ -285,8 +285,8 @@ const Jobs = () => {
   };
 
   const handleClubSync = (jobTitle: string) => {
-    toast.success(`Club Sync activated for ${jobTitle}!`, {
-      description: "Elite auto-apply initiated. You'll be notified of next steps."
+    toast.success(`Club Sync activated for ${jobTitle}`, {
+      description: "Auto-apply initiated. You will be notified of next steps."
     });
   };
 
@@ -309,7 +309,7 @@ const Jobs = () => {
         description: enabled ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
       });
     } catch (error) {
-      console.error('Error updating Club Sync:', error);
+      logger.error('Failed to update Club Sync', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
       toast.error('Failed to update Club Sync setting');
     }
   };
@@ -361,12 +361,12 @@ const Jobs = () => {
         if (error) throw error;
         
         setSavedJobIds(prev => [...prev, jobId]);
-        toast.success(`Saved ${jobTitle}!`, {
+        toast.success(`Saved ${jobTitle}`, {
           description: "You can view all saved jobs in the Saved tab."
         });
       }
     } catch (error) {
-      console.error('Error toggling saved job:', error);
+      logger.error('Failed to toggle saved job', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
       toast.error('Failed to save job. Please try again.');
     }
   };
@@ -500,8 +500,6 @@ const Jobs = () => {
   // ═══════════════════════════════════════════════
   return (
     <>
-      <OceanBackgroundVideo />
-      
       <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 pb-safe">
         <div className="space-y-6">
           {/* Search Bar - Full Width */}
@@ -509,23 +507,20 @@ const Jobs = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input 
               type="text" 
-              placeholder="Search elite opportunities by title, company, or skills..." 
+              placeholder="Search opportunities by title, company, or skills..." 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)} 
-              className="pl-12 h-14 text-base bg-card/30 backdrop-blur-xl border-border/40"
+              className="pl-12 h-14 text-base bg-card/80 border-border/40"
             />
           </div>
 
-          {/* Elite Opportunities Header */}
-          <div className="text-center space-y-3 py-8 border-b-2 border-border/40">
-            <p className="text-caps text-muted-foreground tracking-widest">
-              CURATED ROLES
-            </p>
-            <h1 className="text-5xl font-black uppercase tracking-tight">
-              Elite Opportunities
+          {/* Opportunities Header — editorial, understated */}
+          <div className="space-y-1 py-4 border-b border-border/30">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Opportunities
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Connecting only the 0.1% with each other
+            <p className="text-sm text-muted-foreground">
+              Curated roles for The Quantum Club members
             </p>
           </div>
 
@@ -730,12 +725,10 @@ const Jobs = () => {
                     ))}
                   </div>
                 ) : savedJobs.length === 0 ? (
-                  <div className="text-center py-24">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted/20 flex items-center justify-center">
-                      <Search className="w-12 h-12 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">No saved jobs yet</h3>
-                    <p className="text-muted-foreground">Start exploring and save opportunities that interest you</p>
+                  <div className="text-center py-16">
+                    <Search className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-1">No saved jobs yet</h3>
+                    <p className="text-sm text-muted-foreground">Browse opportunities and save roles that interest you</p>
                   </div>
                 ) : (
                   <div className={cn(

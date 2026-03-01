@@ -286,7 +286,7 @@ const Auth = () => {
         toast.error(data?.message || t('invite.invalidOrExpired'));
       }
     } catch (error) {
-      console.error("Error validating invite:", error);
+      logger.error("Invite validation failed", error instanceof Error ? error : new Error(String(error)), { componentName: 'Auth' });
       setInviteValid(false);
       toast.error(t('invite.errorValidating'));
     }
@@ -542,7 +542,7 @@ const Auth = () => {
     return <UnifiedLoader variant="page" showBranding />;
   }
   return <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-lg bg-background/30 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[32px]">
+      <Card className="w-full max-w-lg bg-card/95 border border-border/50 shadow-2xl rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2">
             <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" fetchPriority="high" />
@@ -652,13 +652,26 @@ const Auth = () => {
                   </AlertDescription>
                 </Alert>}
 
-              {!isLogin && <Input type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-2xl" required />}
+              {!isLogin && (
+                <div>
+                  <label htmlFor="auth-fullname" className="sr-only">{t('signup.fullName')}</label>
+                  <Input id="auth-fullname" type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl" required />
+                </div>
+              )}
 
-              <Input type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-2xl" required />
+              <div>
+                <label htmlFor="auth-email" className="sr-only">{t('login.email')}</label>
+                <Input id="auth-email" type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl" required />
+              </div>
 
-              {isLogin ? <Input type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-2xl" required /> : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
+              {isLogin ? (
+                <div>
+                  <label htmlFor="auth-password" className="sr-only">{t('login.password')}</label>
+                  <Input id="auth-password" type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-xl" required />
+                </div>
+              ) : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
 
-              <RainbowButton type="submit" disabled={isLoading || !isLogin && inviteValid !== true} className="w-full h-16 rounded-2xl font-bold text-lg">
+              <RainbowButton type="submit" disabled={isLoading || !isLogin && inviteValid !== true} className="w-full h-14 rounded-xl font-semibold text-base">
                 {isLoading ? tCommon('actions.loading') : isLogin ? t('login.signIn') : t('signup.createAccount')}
               </RainbowButton>
 
@@ -671,29 +684,7 @@ const Auth = () => {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <Button type="button" disabled variant="outline" className="w-full h-14 rounded-2xl font-semibold opacity-50 cursor-not-allowed">
-                  <GoogleIcon />
-                  <span className="flex items-center gap-2">
-                    {t('oauth.google')} — updating
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '3s' }} />
-                  </span>
-                </Button>
-
-                <Button type="button" disabled variant="outline" className="w-full h-14 rounded-2xl font-semibold opacity-50 cursor-not-allowed">
-                  <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                  </svg>
-                  <span className="flex items-center gap-2">
-                    {t('oauth.apple')} — updating
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '3s' }} />
-                  </span>
-                </Button>
-
-                <p className="text-center text-xs text-muted-foreground pt-1">
-                  Social sign-in temporarily unavailable. Use email to log in.
-                </p>
-              </div>
+              {/* OAuth buttons — hidden until properly configured */}
 
               <div className="text-center pt-2">
                 <button
