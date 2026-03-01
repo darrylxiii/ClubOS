@@ -233,35 +233,30 @@ export default defineConfig(({ mode, command }) => ({
 
     rollupOptions: {
       maxParallelFileOps: 1, // Minimum parallelism to reduce peak memory
-      treeshake: mode === 'production',
+      treeshake: true, // Deterministic: always enabled regardless of mode
       output: {
-        // OOM FIX: Always split heavy libs into separate chunks to reduce peak memory.
-        // Without this, Rollup tries to pack everything into fewer/bigger chunks
-        // which exhausts the heap on large projects.
+        // BOOT-SAFE CHUNKING: Only split truly heavy, lazily-loaded libraries.
+        // All eagerly-used React consumers (radix, framer-motion, i18next, router,
+        // tanstack, icons, forms, datefns) MUST stay in the vendor catch-all
+        // alongside React to prevent forwardRef initialization race conditions.
         manualChunks(id: string) {
           if (!id.includes('node_modules')) return undefined;
+          // Heavy lazy-loaded libraries — safe to isolate
           if (id.includes('recharts') || id.includes('d3-')) return 'charts';
           if (id.includes('@blocknote') || id.includes('@mantine')) return 'blocknote';
           if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
           if (id.includes('livekit') || id.includes('@livekit')) return 'livekit';
-          if (id.includes('framer-motion')) return 'motion';
-          if (id.includes('@radix-ui')) return 'radix';
-          if (id.includes('@supabase')) return 'supabase';
           if (id.includes('mermaid')) return 'mermaid';
           if (id.includes('fabric')) return 'fabric';
           if (id.includes('jspdf')) return 'pdf';
+          if (id.includes('mathjs')) return 'mathjs';
           if (id.includes('@sentry')) return 'sentry';
           if (id.includes('posthog')) return 'analytics';
           if (id.includes('@opentelemetry')) return 'telemetry';
-          if (id.includes('mathjs')) return 'mathjs';
-          if (id.includes('i18next')) return 'i18n';
-          if (id.includes('zod') || id.includes('react-hook-form') || id.includes('@hookform')) return 'forms';
-          if (id.includes('date-fns')) return 'datefns';
-          if (id.includes('lucide-react')) return 'icons';
-          if (id.includes('react-router')) return 'router';
-          if (id.includes('@tanstack')) return 'tanstack';
-          // React stays in the vendor catch-all to guarantee correct initialization order
-          // Catch-all: split remaining node_modules into a vendor chunk
+          if (id.includes('@elevenlabs')) return 'elevenlabs';
+          // Everything else (React, radix, framer-motion, i18next, router,
+          // tanstack, supabase, icons, forms, datefns, etc.) stays in vendor
+          // to guarantee correct React initialization order
           return 'vendor';
         },
       },
