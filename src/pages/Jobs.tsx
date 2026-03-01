@@ -273,20 +273,18 @@ const Jobs = () => {
     });
   }, [sortedJobs, userCurrency]);
 
-  const handleApply = async (jobTitle: string, jobId?: string) => {
+  const handleApply = async (jobTitle: string, jobId?: string, companyName?: string) => {
     if (!user) {
       toast.error("Please sign in to apply.");
       return;
     }
 
     if (!jobId) {
-      // Fallback: navigate to job detail for full application flow
       toast.info("Opening job details to apply...");
       return;
     }
 
     try {
-      // Check for existing application
       const { data: existing } = await supabase
         .from('applications')
         .select('id')
@@ -306,6 +304,8 @@ const Jobs = () => {
           user_id: user.id,
           status: 'pending' as any,
           applied_at: new Date().toISOString(),
+          position: jobTitle,
+          company_name: companyName || 'Unknown',
         }]);
 
       if (error) throw error;
