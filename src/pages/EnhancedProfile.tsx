@@ -23,6 +23,7 @@ import { ActivityTimeline } from "@/components/profile/ActivityTimeline";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ShareProfileDialog } from "@/components/profile/ShareProfileDialog";
 import { FreelanceInfoSection } from "@/components/profile/FreelanceInfoSection";
+import { ProfileStrengthMeter } from "@/components/profile/ProfileStrengthMeter";
 import EditProfileSlugDialog from "@/components/profile/EditProfileSlugDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
