@@ -55,7 +55,7 @@ async function fetchApplicationsOptimized(userId: string): Promise<ApplicationDa
         )
       )
     `)
-    .eq("user_id", userId)
+    .or(`user_id.eq.${userId},candidate_id.eq.${userId}`)
     .order("applied_at", { ascending: false });
 
   if (error) throw error;

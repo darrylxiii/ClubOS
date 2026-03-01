@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { toast } from "sonner";
-import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download, Loader2 as DownloadLoader } from "lucide-react";
+import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download, Loader2 as DownloadLoader, BookOpen } from "lucide-react";
 import { exportToCSV } from "@/utils/analyticsExport";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
@@ -18,13 +18,14 @@ import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { useApplications } from "@/hooks/useApplications";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InlineLoader } from "@/components/ui/unified-loader";
 import { RejectedApplicationsTab } from "@/components/candidate/RejectedApplicationsTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileApplicationPipeline } from "@/components/applications/MobileApplicationPipeline";
 import { useAchievementTrigger } from "@/hooks/useAchievementTrigger";
-import { useEffect } from "react";
 
 interface Application {
   id: string;
@@ -57,9 +58,47 @@ interface Application {
 
 export default function Applications({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
-  const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
+  const queryClient = useQueryClient();
+  const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true);
   const isMobile = useIsMobile();
   const { triggerAchievementCheck } = useAchievementTrigger();
+
+  // Realtime subscription for application stage updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('applications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'applications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'applications',
+          filter: `candidate_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const activeApplications = applications.filter(app => app.status === "active");
   const rejectedApplications = applications.filter(app => app.status === "rejected");
@@ -240,6 +279,18 @@ function ApplicationCard({ application }: { application: Application }) {
           </div>
 
           <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="min-h-[44px] min-w-[44px]"
+              title="Interview Prep"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/interview-prep');
+              }}
+            >
+              <BookOpen className="w-4 h-4" />
+            </Button>
             <Button
               size="icon"
               variant="ghost"

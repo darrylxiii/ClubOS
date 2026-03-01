@@ -105,7 +105,7 @@ export const CandidateHome = () => {
         
         <DashboardSection columns={2}>
           <InterviewCountdownWidget />
-          <StrategistContactCard />
+          <DocumentStatusWidget />
         </DashboardSection>
 
         <AnimatePresence>
@@ -199,10 +199,10 @@ export const CandidateHome = () => {
               </DashboardSection>
               <DashboardSection columns={2}>
                 <SavedJobsWidget />
-                <DocumentStatusWidget />
+                <ReferralStatsWidget />
               </DashboardSection>
               <DashboardSection columns={2}>
-                <ReferralStatsWidget />
+                <StrategistContactCard />
                 <AchievementsPreviewWidget />
               </DashboardSection>
               {user && (

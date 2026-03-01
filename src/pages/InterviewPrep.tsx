@@ -64,7 +64,7 @@ export default function InterviewPrep() {
             )
           )
         `)
-        .eq('candidate_id', user.id)
+        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`)
         .in('status', ['active', 'interview']);
 
       if (error) throw error;
@@ -91,8 +91,31 @@ export default function InterviewPrep() {
     }
   };
 
-  const saveStarAnswer = () => {
-    toast.success("STAR answer saved to your preparation notes");
+  const saveStarAnswer = async () => {
+    if (!user || !selectedApp) return;
+    const hasContent = starAnswers.situation || starAnswers.task || starAnswers.action || starAnswers.result;
+    if (!hasContent) {
+      toast.error("Please fill in at least one STAR field");
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('interview_prep_answers')
+        .insert({
+          user_id: user.id,
+          application_id: selectedApp.id,
+          situation: starAnswers.situation || null,
+          task: starAnswers.task || null,
+          action: starAnswers.action || null,
+          result: starAnswers.result || null,
+        } as any);
+      if (error) throw error;
+      toast.success("STAR answer saved to your preparation notes");
+      setStarAnswers({ situation: "", task: "", action: "", result: "" });
+    } catch (err) {
+      console.error('Error saving STAR answer:', err);
+      toast.error("Failed to save answer. Please try again.");
+    }
   };
 
   const commonQuestions = [
