@@ -14,12 +14,6 @@ import { TransactionReadinessScore } from '@/components/financial/TransactionRea
 import { RevenueWaterfallChart } from '@/components/financial/RevenueWaterfallChart';
 import { EBITDACard } from '@/components/financial/EBITDACard';
 
-async function hashCode(code: string): Promise<string> {
-  const encoded = new TextEncoder().encode(code.trim().toLowerCase());
-  const buf = await crypto.subtle.digest('SHA-256', encoded);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 export default function InvestorPortal() {
   const [code, setCode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,27 +45,17 @@ export default function InvestorPortal() {
 
     setIsChecking(true);
     try {
-      const codeHash = await hashCode(code);
-      
-      const { data, error } = await (supabase as any)
-        .from('investor_access_codes')
-        .select('id, label, expires_at')
-        .eq('code_hash', codeHash)
-        .gte('expires_at', new Date().toISOString())
-        .maybeSingle();
+      // Server-side verification — no direct table access from client
+      const { data, error } = await supabase.functions.invoke('verify-investor-code', {
+        body: { code: code.trim() },
+      });
 
-      if (error || !data) {
+      if (error || !data?.valid) {
         toast.error('Invalid or expired access code');
         return;
       }
 
-      // Update last_used_at
-      await (supabase as any)
-        .from('investor_access_codes')
-        .update({ last_used_at: new Date().toISOString() })
-        .eq('id', data.id);
-
-      // Store in session
+      // Store session
       sessionStorage.setItem('investor_portal_auth', JSON.stringify({
         expiry: data.expires_at,
         label: data.label,
