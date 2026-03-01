@@ -671,7 +671,7 @@ const Auth = () => {
                 </div>
               ) : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
 
-              <RainbowButton type="submit" disabled={isLoading || !isLogin && inviteValid !== true} className="w-full h-16 rounded-2xl font-bold text-lg">
+              <RainbowButton type="submit" disabled={isLoading || !isLogin && inviteValid !== true} className="w-full h-14 rounded-xl font-semibold text-base">
                 {isLoading ? tCommon('actions.loading') : isLogin ? t('login.signIn') : t('signup.createAccount')}
               </RainbowButton>
 
