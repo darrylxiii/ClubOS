@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { queueId, topic, category, targetKeywords, contentFormat } = await req.json();
+    const { queueId, topic, category, targetKeywords, contentFormat, slugOverride } = await req.json();
 
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     const supabase = createClient(
@@ -34,11 +34,45 @@ serve(async (req) => {
     }
 
     const format = contentFormat || 'deep-dive';
-    const slug = topic
+    const normalizedTopic = String(topic || '').trim();
+    if (!normalizedTopic) throw new Error('topic is required');
+
+    const baseSlug = normalizedTopic
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 80);
+
+    const normalizedSlugOverride = typeof slugOverride === 'string'
+      ? slugOverride
+          .toLowerCase()
+          .replace(/[^a-z0-9-]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 110)
+      : '';
+
+    const resolveUniqueSlug = async (candidateBase: string) => {
+      const safeBase = candidateBase || `article-${Date.now().toString(36)}`;
+      let candidate = safeBase.slice(0, 110);
+
+      for (let attempt = 0; attempt < 20; attempt++) {
+        const { data: existingRows, error: existingError } = await supabase
+          .from('blog_posts')
+          .select('id')
+          .eq('slug', candidate)
+          .limit(1);
+
+        if (existingError) throw existingError;
+        if (!existingRows || existingRows.length === 0) return candidate;
+
+        const suffix = `-${attempt + 2}`;
+        candidate = `${safeBase.slice(0, Math.max(1, 110 - suffix.length))}${suffix}`;
+      }
+
+      return `${safeBase.slice(0, 100)}-${Date.now().toString(36).slice(-8)}`;
+    };
+
+    const slug = await resolveUniqueSlug(normalizedSlugOverride || baseSlug);
 
     // Rotate authors
     const author = authorRotation[Math.floor(Math.random() * authorRotation.length)];
@@ -69,7 +103,7 @@ Writing standards:
 
 You write for senior professionals and C-suite executives who value substance over fluff.`;
 
-    const userPrompt = `Write a comprehensive, in-depth article about: "${topic}"
+    const userPrompt = `Write a comprehensive, in-depth article about: "${normalizedTopic}"
 Category: ${category}
 Target keywords: ${(targetKeywords || []).join(', ')}
 Author: ${author.name}, ${author.credentials}
@@ -97,70 +131,97 @@ CRITICAL - Use these exact field names for ContentBlock objects:
 
 The field for text content is ALWAYS "content", never "text". The field for quote attribution is ALWAYS "caption", never "attribution".`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const createToolParameters = (lightweightSchema = false) => ({
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        excerpt: { type: 'string' },
+        content: {
+          type: 'array',
+          items: lightweightSchema
+            ? {
+                type: 'object',
+                properties: {
+                  type: { type: 'string' },
+                  content: { type: 'string' },
+                  level: { type: 'integer' },
+                  items: { type: 'array', items: { type: 'string' } },
+                  caption: { type: 'string' },
+                },
+              }
+            : {
+                type: 'object',
+                properties: {
+                  type: { type: 'string' },
+                  content: { type: 'string' },
+                  level: { type: 'integer' },
+                  items: { type: 'array', items: { type: 'string' } },
+                  caption: { type: 'string' },
+                },
+                required: ['type', 'content'],
+              },
+        },
+        keyTakeaways: { type: 'array', items: { type: 'string' } },
+        metaTitle: { type: 'string' },
+        metaDescription: { type: 'string' },
+        keywords: { type: 'array', items: { type: 'string' } },
+        faqSchema: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              question: { type: 'string' },
+              answer: { type: 'string' },
+            },
+            required: ['question', 'answer'],
+          },
+        },
+      },
+      required: ['title', 'excerpt', 'content', 'keyTakeaways', 'metaTitle', 'metaDescription', 'keywords', 'faqSchema'],
+    });
+
+    const createAiPayload = (lightweightSchema = false) => ({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: 'create_article',
+            description: 'Create a structured blog article with FAQ schema',
+            parameters: createToolParameters(lightweightSchema),
+          },
+        },
+      ],
+      tool_choice: { type: 'function', function: { name: 'create_article' } },
+    });
+
+    let response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.7,
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'create_article',
-              description: 'Create a structured blog article with FAQ schema',
-              parameters: {
-                type: 'object',
-                properties: {
-                  title: { type: 'string' },
-                  excerpt: { type: 'string', description: 'Short 1-2 sentence summary' },
-                  content: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        type: { type: 'string', enum: ['paragraph', 'heading', 'quote', 'list', 'callout', 'image'] },
-                        content: { type: 'string', description: 'Main text content of the block. Required for all block types.' },
-                        level: { type: 'number', description: 'Heading level (2, 3, or 4). Required for heading blocks.' },
-                        items: { type: 'array', items: { type: 'string' }, description: 'List items. Required for list blocks.' },
-                        caption: { type: 'string', description: 'Attribution for quotes or caption for images.' },
-                      },
-                      required: ['type', 'content'],
-                    },
-                    description: 'Array of ContentBlock objects. Must have at least 15 blocks.',
-                  },
-                  keyTakeaways: { type: 'array', items: { type: 'string' } },
-                  metaTitle: { type: 'string', description: 'Under 60 chars, include primary keyword' },
-                  metaDescription: { type: 'string', description: 'Under 160 chars, compelling and keyword-rich' },
-                  keywords: { type: 'array', items: { type: 'string' } },
-                  faqSchema: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        question: { type: 'string' },
-                        answer: { type: 'string' },
-                      },
-                      required: ['question', 'answer'],
-                    },
-                    description: '3-5 FAQ pairs for Google structured data',
-                  },
-                },
-                required: ['title', 'excerpt', 'content', 'keyTakeaways', 'metaTitle', 'metaDescription', 'keywords', 'faqSchema'],
-              },
-            },
-          },
-        ],
-        tool_choice: { type: 'function', function: { name: 'create_article' } },
-      }),
+      body: JSON.stringify(createAiPayload(false)),
     });
+
+    if (!response.ok && response.status === 400) {
+      const primaryErrBody = await response.text();
+      console.warn('AI gateway rejected primary tool schema, retrying with lightweight schema:', primaryErrBody.slice(0, 200));
+
+      response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        },
+        body: JSON.stringify(createAiPayload(true)),
+      });
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -179,13 +240,29 @@ The field for text content is ALWAYS "content", never "text". The field for quot
     }
 
     const aiResult = await response.json();
-    
+
+    const parseModelJson = (raw: unknown) => {
+      if (typeof raw !== 'string') {
+        throw new Error('AI response did not include valid JSON');
+      }
+
+      const trimmed = raw.trim();
+      const unwrapped = trimmed.startsWith('```')
+        ? trimmed
+            .replace(/^```(?:json)?\s*/i, '')
+            .replace(/\s*```$/, '')
+            .trim()
+        : trimmed;
+
+      return JSON.parse(unwrapped);
+    };
+
     const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
     let content;
-    if (toolCall) {
-      content = JSON.parse(toolCall.function.arguments);
+    if (toolCall?.function?.arguments) {
+      content = parseModelJson(toolCall.function.arguments);
     } else {
-      content = JSON.parse(aiResult.choices[0].message.content);
+      content = parseModelJson(aiResult.choices?.[0]?.message?.content);
     }
 
     // --- Post-generation validation ---

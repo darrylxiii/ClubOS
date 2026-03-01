@@ -33,6 +33,8 @@ serve(async (req) => {
 
     // Call blog-generate to produce new content
     const generateUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-generate`;
+    const regenerationSlug = `${post.slug || post.id}-regen-${Date.now().toString(36).slice(-8)}`;
+
     const response = await fetch(generateUrl, {
       method: 'POST',
       headers: {
@@ -44,6 +46,7 @@ serve(async (req) => {
         category: post.category,
         targetKeywords: post.keywords || [],
         contentFormat: post.content_format || 'deep-dive',
+        slugOverride: regenerationSlug,
       }),
     });
 
