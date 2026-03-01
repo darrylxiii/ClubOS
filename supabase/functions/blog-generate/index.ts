@@ -154,7 +154,6 @@ The field for text content is ALWAYS "content", never "text". The field for quot
                   },
                 },
                 required: ['title', 'excerpt', 'content', 'keyTakeaways', 'metaTitle', 'metaDescription', 'keywords', 'faqSchema'],
-                additionalProperties: false,
               },
             },
           },
