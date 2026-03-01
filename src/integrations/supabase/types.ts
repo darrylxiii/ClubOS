@@ -23310,6 +23310,74 @@ export type Database = {
           },
         ]
       }
+      interview_prep_answers: {
+        Row: {
+          action: string | null
+          application_id: string | null
+          created_at: string
+          id: string
+          question: string | null
+          result: string | null
+          situation: string | null
+          task: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action?: string | null
+          application_id?: string | null
+          created_at?: string
+          id?: string
+          question?: string | null
+          result?: string | null
+          situation?: string | null
+          task?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string | null
+          application_id?: string | null
+          created_at?: string
+          id?: string
+          question?: string | null
+          result?: string | null
+          situation?: string | null
+          task?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_prep_answers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_prep_answers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_prep_answers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_prep_answers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+        ]
+      }
       interview_prep_briefs: {
         Row: {
           candidate_id: string | null
