@@ -361,7 +361,7 @@ const Jobs = () => {
         if (error) throw error;
         
         setSavedJobIds(prev => [...prev, jobId]);
-        toast.success(`Saved ${jobTitle}!`, {
+        toast.success(`Saved ${jobTitle}`, {
           description: "You can view all saved jobs in the Saved tab."
         });
       }
