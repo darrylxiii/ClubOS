@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Languages, Eye, EyeOff, Globe } from 'lucide-react';
 import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRole } from '@/contexts/RoleContext';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,17 +15,23 @@ import {
 /**
  * Language Switcher & Translation Debugger
  * - Always visible: Language Switcher (EN/NL)
- * - Admin only: Debug options (Show/Hide Missing)
+ * - Admin only (server-backed role): Debug options
  */
 export const LanguageSelector = () => {
     const { i18n } = useTranslation();
     const { data: coverage } = useTranslationCoverage();
-    const { user } = useAuth(); // Need to check role here if possible, or just user existence for now
     const [showMissing, setShowMissing] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 
-    // Check if admin (this is a basic check, enhance with useRole if needed)
-    const isAdmin = user?.email?.includes('darryl') || user?.user_metadata?.role === 'admin';
+    // Server-backed admin check via RoleContext (user_roles table)
+    let isAdmin = false;
+    try {
+        const { currentRole } = useRole();
+        isAdmin = currentRole === 'admin';
+    } catch {
+        // useRole throws if outside RoleProvider (e.g. public routes) — not admin
+        isAdmin = false;
+    }
 
     // Listen for trigger event from QuickAccessHub (keep legacy debug trigger)
     useEffect(() => {

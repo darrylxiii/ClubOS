@@ -17,9 +17,12 @@ export default defineConfig(({ mode, command }) => ({
   },
   optimizeDeps: {
     noDiscovery: true,
+    entries: ['src/main.tsx'],
     include: [
+      // Core React — must be pre-bundled and deduped
       'react', 'react-dom', 'react-dom/client',
       'react/jsx-runtime', 'react/jsx-dev-runtime',
+      // Eagerly-used React consumers — must share the same React instance
       'react-router-dom',
       '@supabase/supabase-js',
       '@tanstack/react-query',
@@ -30,9 +33,18 @@ export default defineConfig(({ mode, command }) => ({
       'lucide-react', 'date-fns',
       'framer-motion',
       'react-helmet-async',
-      'i18next', 'react-i18next',
-      '@elevenlabs/react', '@elevenlabs/client',
-      'jspdf', 'jspdf-autotable',
+      'i18next', 'react-i18next', 'i18next-browser-languagedetector',
+      'zod', 'react-hook-form', '@hookform/resolvers',
+      // Radix primitives used at startup
+      '@radix-ui/react-tooltip', '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-dialog', '@radix-ui/react-popover',
+      '@radix-ui/react-select', '@radix-ui/react-tabs',
+      '@radix-ui/react-slot', '@radix-ui/react-label',
+      '@radix-ui/react-separator', '@radix-ui/react-scroll-area',
+      '@radix-ui/react-avatar', '@radix-ui/react-switch',
+      '@radix-ui/react-checkbox', '@radix-ui/react-toggle',
+      '@radix-ui/react-toast', '@radix-ui/react-accordion',
+      '@radix-ui/react-progress', '@radix-ui/react-navigation-menu',
     ],
     exclude: ['mermaid', 'katex'],
   },
