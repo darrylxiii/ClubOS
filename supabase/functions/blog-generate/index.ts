@@ -56,7 +56,18 @@ serve(async (req) => {
 
     const existingArticles = (recentPosts || []).map(p => `"${p.title}" (/blog/${p.category}/${p.slug})`).join('\n');
 
-    const systemPrompt = `You are the editorial AI for The Quantum Club, a luxury invite-only talent platform connecting top-tier professionals with exceptional career opportunities. Write authoritative, data-driven career and talent content. Tone: calm, discreet, competent. Never use exclamation points. Format: ${format}. Target: 2000+ words with 6-8 H2 sections. Include specific data points, industry benchmarks, and actionable insights. Every article must have a "Key Insight" pullquote.`;
+    const systemPrompt = `You are the editorial AI for The Quantum Club, a luxury invite-only talent platform connecting top-tier professionals with exceptional career opportunities.
+
+Writing standards:
+- Tone: calm, discreet, competent. Never use exclamation points.
+- Every paragraph MUST contain a concrete insight, statistic, data point, or actionable recommendation. Never pad with generic filler.
+- Include at least 3 named companies or leaders as real-world examples.
+- Include at least 5 specific statistics or data points with context (e.g. "McKinsey found that 67% of...").
+- Target: 2000+ words with 8-12 H2/H3 sections.
+- End with actionable takeaways the reader can implement this week.
+- Format: ${format}.
+
+You write for senior professionals and C-suite executives who value substance over fluff.`;
 
     const userPrompt = `Write a comprehensive, in-depth article about: "${topic}"
 Category: ${category}
@@ -64,23 +75,27 @@ Target keywords: ${(targetKeywords || []).join(', ')}
 Author: ${author.name}, ${author.credentials}
 
 Requirements:
-- 2000+ words, 6-8 H2 sections minimum
-- Include specific statistics, benchmarks, and data points
-- Include a compelling pullquote as a "quote" block
-- End with actionable takeaways
-- Write for senior professionals and executives
+- Minimum 15 content blocks (paragraphs, headings, lists, quotes combined)
+- 8-12 H2/H3 sections with substantive content under each
+- At least 3 named companies or leaders as examples
+- At least 5 specific statistics with sources
+- Include 1-2 compelling pullquotes as "quote" blocks
+- End with actionable takeaways as a list block
 
 Existing articles for internal linking (reference 2-3 where relevant):
 ${existingArticles}
 
 Return the article using the provided tool. Include 3-5 FAQ pairs for structured data.
 
-ContentBlock types:
-- { type: "heading", level: 2|3, text: "..." }
-- { type: "paragraph", text: "..." }
-- { type: "list", style: "bullet"|"number", items: ["..."] }
-- { type: "quote", text: "...", attribution: "..." }
-- { type: "callout", variant: "tip"|"warning"|"info", title: "...", content: "..." }`;
+CRITICAL - Use these exact field names for ContentBlock objects:
+- { "type": "paragraph", "content": "The paragraph text..." }
+- { "type": "heading", "content": "Section Title", "level": 2 }
+- { "type": "heading", "content": "Subsection Title", "level": 3 }
+- { "type": "quote", "content": "The quote text", "caption": "Speaker Name, Title" }
+- { "type": "list", "content": "Optional list introduction", "items": ["Item 1", "Item 2", "Item 3"] }
+- { "type": "callout", "content": "Key insight or important tip text" }
+
+The field for text content is ALWAYS "content", never "text". The field for quote attribution is ALWAYS "caption", never "attribution".`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -89,7 +104,7 @@ ContentBlock types:
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -108,8 +123,20 @@ ContentBlock types:
                   excerpt: { type: 'string', description: 'Short 1-2 sentence summary' },
                   content: {
                     type: 'array',
-                    items: { type: 'object' },
-                    description: 'Array of ContentBlock objects',
+                    minItems: 15,
+                    items: {
+                      type: 'object',
+                      properties: {
+                        type: { type: 'string', enum: ['paragraph', 'heading', 'quote', 'list', 'callout', 'image'] },
+                        content: { type: 'string', description: 'Main text content of the block. Required for all block types.' },
+                        level: { type: 'number', enum: [2, 3, 4], description: 'Heading level. Required for heading blocks.' },
+                        items: { type: 'array', items: { type: 'string' }, description: 'List items. Required for list blocks.' },
+                        caption: { type: 'string', description: 'Attribution for quotes or caption for images.' },
+                      },
+                      required: ['type', 'content'],
+                      additionalProperties: false,
+                    },
+                    description: 'Array of ContentBlock objects. Minimum 15 blocks for a substantive article.',
                   },
                   keyTakeaways: { type: 'array', items: { type: 'string' } },
                   metaTitle: { type: 'string', description: 'Under 60 chars, include primary keyword' },
@@ -163,7 +190,28 @@ ContentBlock types:
       content = JSON.parse(aiResult.choices[0].message.content);
     }
 
-    // Insert blog post with FAQ and author
+    // --- Post-generation validation ---
+    const blocks = content.content || [];
+    
+    // Normalize: if AI used "text" instead of "content", fix it
+    for (const block of blocks) {
+      if (!block.content && block.text) {
+        block.content = block.text;
+        delete block.text;
+      }
+      if (block.attribution && !block.caption) {
+        block.caption = block.attribution;
+        delete block.attribution;
+      }
+    }
+
+    const totalChars = blocks.reduce((sum: number, b: any) => sum + (b.content?.length || 0), 0);
+    const headingCount = blocks.filter((b: any) => b.type === 'heading').length;
+    const blockCount = blocks.length;
+
+    const qualityPass = totalChars >= 6000 && blockCount >= 12 && headingCount >= 3;
+
+    // Insert blog post
     const { data: post, error: insertError } = await supabase
       .from('blog_posts')
       .insert({
@@ -171,7 +219,7 @@ ContentBlock types:
         title: content.title,
         excerpt: content.excerpt,
         category,
-        content: content.content,
+        content: blocks,
         hero_image: { url: '/placeholder.svg', alt: content.title },
         keywords: content.keywords,
         key_takeaways: content.keyTakeaways,
@@ -179,7 +227,7 @@ ContentBlock types:
         meta_description: content.metaDescription,
         faq_schema: content.faqSchema || [],
         author_id: author.id,
-        status: 'draft',
+        status: qualityPass ? 'draft' : 'failed',
         ai_generated: true,
         performance_score: 0,
       })
@@ -193,15 +241,18 @@ ContentBlock types:
       await supabase
         .from('blog_generation_queue')
         .update({
-          status: 'completed',
+          status: qualityPass ? 'completed' : 'failed',
           generated_post_id: post.id,
+          error_message: qualityPass ? null : `Quality check failed: ${totalChars} chars (need 6000+), ${blockCount} blocks (need 12+), ${headingCount} headings (need 3+)`,
           updated_at: new Date().toISOString(),
         })
         .eq('id', queueId);
     }
 
+    console.log(`Blog generated: "${content.title}" | ${blockCount} blocks, ${totalChars} chars, ${headingCount} headings | quality: ${qualityPass ? 'PASS' : 'FAIL'}`);
+
     return new Response(
-      JSON.stringify({ success: true, postId: post.id, title: post.title, slug: post.slug }),
+      JSON.stringify({ success: true, postId: post.id, title: post.title, slug: post.slug, qualityPass }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {

@@ -103,7 +103,12 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
           </div>
         );
       case 'callout':
-        return <CTACallout key={index} tipText={block.content} />;
+        return (
+          <div key={index} className="flex items-start gap-3 p-4 md:p-5 bg-muted/40 border border-border/50 rounded-xl my-8">
+            <Lightbulb className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
+            <p className="text-sm md:text-base text-foreground/80 leading-relaxed">{block.content}</p>
+          </div>
+        );
       default:
         return null;
     }

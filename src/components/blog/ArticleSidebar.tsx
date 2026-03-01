@@ -19,34 +19,28 @@ const ArticleSidebar: React.FC<ArticleSidebarProps> = ({ post, popularPosts, cla
           <TableOfContents content={post.content} variant="desktop" />
         </div>
 
-        {/* Funnel CTA: Talent */}
+        {/* Combined CTA */}
         <div className="border border-border rounded-2xl p-5">
-          <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">For Exceptional Talent</p>
+          <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Join The Quantum Club</p>
           <p className="text-sm text-foreground/80 mb-4 leading-relaxed">
-            Join a private network of top-tier professionals shaping the future of work.
+            A private network connecting exceptional talent with transformative opportunities.
           </p>
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-foreground/70 transition-colors"
-          >
-            Apply to join
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        {/* Funnel CTA: Partners */}
-        <div className="border border-border rounded-2xl p-5">
-          <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">For Companies</p>
-          <p className="text-sm text-foreground/80 mb-4 leading-relaxed">
-            Access curated talent that transforms organisations.
-          </p>
-          <Link
-            to="/partnerships"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Request a partnership
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-foreground/70 transition-colors"
+            >
+              Apply as talent
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              to="/partnerships"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Partner with us
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
 
         {popularPosts.length > 0 && (
