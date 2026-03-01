@@ -72,7 +72,7 @@ export const CandidateHome = () => {
     }
   };
 
-  const [showCareer, setShowCareer] = useState(false);
+  const [showCareer, setShowCareer] = useState(true);
   const [showMarket, setShowMarket] = useState(false);
   const [showTools, setShowTools] = useState(false);
 

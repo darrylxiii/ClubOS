@@ -30,10 +30,13 @@ export default function OfferComparison() {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [activeTab, setActiveTab] = useState('all');
 
-  const formatCurrency = (amount: number) => {
+  const { profile } = useProfile();
+  const userCurrency = profile?.preferred_currency || 'EUR';
+
+  const formatOfferCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
-      currency: 'EUR',
+      currency: userCurrency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);

@@ -273,10 +273,50 @@ const Jobs = () => {
     });
   }, [sortedJobs, userCurrency]);
 
-  const handleApply = (jobTitle: string) => {
-    toast.success(`Application submitted for ${jobTitle}`, {
-      description: "Your application has been submitted successfully."
-    });
+  const handleApply = async (jobTitle: string, jobId?: string) => {
+    if (!user) {
+      toast.error("Please sign in to apply.");
+      return;
+    }
+
+    if (!jobId) {
+      // Fallback: navigate to job detail for full application flow
+      toast.info("Opening job details to apply...");
+      return;
+    }
+
+    try {
+      // Check for existing application
+      const { data: existing } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('job_id', jobId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        toast.info("You've already applied to this role.");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('applications')
+        .insert({
+          job_id: jobId,
+          user_id: user.id,
+          status: 'pending',
+          applied_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      toast.success(`Application submitted for ${jobTitle}`, {
+        description: "Your application has been submitted successfully."
+      });
+    } catch (error) {
+      console.error('Application error:', error);
+      toast.error("Failed to submit application. Please try again.");
+    }
   };
 
   const handleRefer = (jobId: string, jobTitle: string, company: string) => {

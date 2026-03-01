@@ -44,7 +44,7 @@ export default function CandidateOnboarding() {
           
           if (profile) {
             if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
-              navigate('/home');
+              navigate('/club-home');
               return;
             } else {
               navigate('/pending-approval');
