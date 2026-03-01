@@ -105,7 +105,7 @@ export const CandidateHome = () => {
         
         <DashboardSection columns={2}>
           <InterviewCountdownWidget />
-          <StrategistContactCard />
+          <DocumentStatusWidget />
         </DashboardSection>
 
         <AnimatePresence>
