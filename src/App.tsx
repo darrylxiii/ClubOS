@@ -1,6 +1,4 @@
-// Build cache reset: 2026-02-17
-// Lazy-load Sentry to reduce initial bundle size (~150KB)
-import("@/lib/sentry").then(({ initSentry }) => initSentry()).catch(() => {});
+// Build cache reset: 2026-03-01
 
 import { lazy, Suspense, memo, useEffect } from "react";
 import { TracingProvider } from "@/lib/tracing/TracingProvider";
