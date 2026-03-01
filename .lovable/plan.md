@@ -1,253 +1,149 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
+# CEO Command Center -- AdminHome Redesign
 
-## Current State Summary
+## Vision
 
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+Transform the admin dashboard from a "collection of widgets" into a **CEO War Room** -- a single screen that answers the five questions every founder asks every morning:
+
+1. **How much money are we making?** (Revenue, pipeline, burn)
+2. **Are we winning or losing?** (KPIs, conversion, velocity)
+3. **What needs my attention right now?** (Alerts, blockers, approvals)
+4. **How is my team performing?** (Capacity, SLA compliance, output)
+5. **What should I do next?** (AI-recommended actions, scheduled meetings)
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Current State Assessment
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+The existing AdminHome has 11 widgets in a single vertical scroll. Issues:
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
+- **No hierarchy** -- Revenue, AI chat, meetings, and agent activity are all given equal visual weight
+- **No "at a glance" numbers** -- A CEO landing here cannot get the state of the business in 3 seconds
+- **Missing investor-grade metrics** -- No ARR, no MRR, no Rule of 40, no burn rate visible
+- **No quick-launch panel** -- 40+ admin routes exist but no fast way to reach critical ones
+- **ClubAI chat takes Zone 0.5** -- A chat widget should not be the second thing the CEO sees; it should be a floating assistant
+- **Predictive Signals are horizontally scrolling cards** -- Easy to miss; should be condensed into urgent-badge format
+- **No "health score"** -- No single number that says "the business is healthy/not"
 
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
+---
 
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+## Redesigned Layout (Top to Bottom)
 
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+### Zone 0: CEO Header Bar
+Replace the generic `ClubHomeHeader` greeting with a **power header**:
+- Left: "Good morning, [First Name]" (compact, one line)
+- Center: **Business Health Score** (0-100, color-coded ring/arc) calculated from KPI pillars
+- Right: Quick-action icon buttons: Refresh KPIs, Open Finance, Open Analytics, Notifications
 
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+### Zone 1: Revenue Ticker Strip
+A horizontal strip of 5-6 **hero numbers** -- the metrics a CEO checks first:
+- **MRR** (Monthly Recurring Revenue / annualized placement revenue)
+- **Pipeline Value** (weighted)
+- **Placements This Month** vs target
+- **Active Jobs**
+- **Avg Days to Hire**
+- **NPS Score**
 
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+Each with a delta badge (vs previous period). Clicking any number deep-links to the relevant dashboard. This replaces the current KPIScorecard and gives instant readability.
 
-### 1.3 Emoji in Subject Lines (6 functions)
+### Zone 2: Revenue and Growth Widget (existing, refined)
+Keep the current `RevenueGrowthWidget` but move it here as the first full-width card. It already has period selection, sparkline, pipeline bar, and expansion. No structural changes needed -- just ensure it sits directly below the ticker.
 
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
+### Zone 3: Command Strip + Predictive Signals (merged)
+Merge the current `CommandStrip` (Pending/Overdue/At Risk/Alerts) with `PredictiveSignalsStrip` into a single **Attention Required** strip:
+- Left half: 4 urgency badges (existing CommandStrip items)
+- Right half: Top 3 predictive signals as compact inline badges (icon + label + strength) instead of scrolling cards
+- If any signal is "Strong" (>=0.8), promote it to a red/amber pulsing badge
 
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+### Zone 4: Daily Briefing (existing, repositioned)
+Move `DailyBriefingBanner` here. It's dismissible and contextual -- perfect after the CEO has seen numbers and alerts.
 
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
+### Zone 5: Two-Column Operations View
 ```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
-
----
-
-## CATEGORY 2: Content & Copy Quality
-
-### 2.1 Inconsistent Tone
-
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
-
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
-
-### 2.2 Hardcoded Contact Email Inconsistency
-
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
-
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
-
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
-
----
-
-## CATEGORY 3: Technical & Security Issues
-
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
-
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
-
----
-
-## CATEGORY 4: Accessibility & Compliance
-
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
-
----
-
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
++---------------------------+---------------------------+
+|   Team Capacity (existing)|   Partner Engagement      |
+|   + SLA Compliance meter  |   (existing, keep as-is)  |
++---------------------------+---------------------------+
+|   Action Items (existing) |   Upcoming Meetings       |
+|   (AdminTasksWidget)      |   (ActiveMeetingsWidget)  |
++---------------------------+---------------------------+
 ```
 
-### 5.2 Centralize Plain-Text Generation
+### Zone 6: Quick Launch Grid
+A new **Quick Launch** section with 8-12 icon tiles for the most critical admin destinations:
+- Finance Hub, KPI Command Center, Talent Pool, Job Approvals, Security Hub, Global Analytics, Employee Dashboard, WhatsApp Hub, System Health, Feature Control
 
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
+Each tile: icon + label, 4 columns on desktop, 2 on mobile. Replaces the need to dig through the sidebar for common admin tasks.
+
+### Zone 7: Agent Activity + Live Operations (collapsed by default)
+Combine `AgentActivityWidget` and `LiveOperationsWidget` into a single expandable "Operations Monitor" card:
+- Default collapsed: Shows "X agents active, Y team members online, Z pending approvals" as a one-liner
+- Expanded: Shows both widgets side by side
+
+### Removed from Main View
+- **ClubAI Chat Widget**: Move to a **floating action button** (bottom-right, above MobileBottomNav) available on all pages, not just the dashboard. This frees valuable above-the-fold space.
+- **NPSPulseWidget as standalone**: Absorbed into the Zone 1 ticker strip (NPS number) and accessible via KPI Command Center deep-link.
 
 ---
 
-## Implementation Priority
+## Technical Implementation
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
+### New Components
 
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+1. **`CEOHealthScore.tsx`** -- Circular arc/ring showing 0-100 score derived from KPI pillar averages (efficiency, profitability, operations, NPS). Uses existing `useAdminKPIScorecard` hook.
 
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
+2. **`RevenueTickerStrip.tsx`** -- Horizontal strip of 5-6 metric pills. Pulls from existing `useRevenueAnalytics` and `useAdminKPIScorecard`. Each pill: label, value, delta badge, click handler.
 
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
+3. **`AttentionRequiredStrip.tsx`** -- Merges CommandStrip + PredictiveSignals into one row. Reuses existing query logic from both hooks.
+
+4. **`QuickLaunchGrid.tsx`** -- Static grid of Link tiles to admin routes. No data fetching, pure navigation.
+
+5. **`OperationsMonitor.tsx`** -- Collapsible wrapper around AgentActivity + LiveOperations. Uses framer-motion for expand/collapse.
+
+6. **`FloatingClubAI.tsx`** -- Fixed-position FAB (floating action button) that opens the existing ClubAIHomeChatWidget in a slide-up panel. Available globally via AppLayout, not just AdminHome.
+
+### Modified Components
+
+7. **`AdminHome.tsx`** -- Complete restructure of zone ordering (as described above).
+
+8. **`ClubHomeHeader.tsx`** -- Add CEOHealthScore component to center, add quick-action icon buttons to right.
+
+### Files Unchanged
+- `RevenueGrowthWidget.tsx` -- no changes needed
+- `TeamCapacityWidget.tsx` -- no changes needed  
+- `PartnerEngagementWidget.tsx` -- no changes needed
+- `AdminTasksWidget.tsx` -- no changes needed
+- `ActiveMeetingsWidget.tsx` -- no changes needed
+- `DailyBriefingBanner.tsx` -- no changes needed
+- `DashboardWidget.tsx` -- no changes needed
+- `DashboardSection.tsx` -- no changes needed
+
+### Data Flow
+- No new database tables or edge functions required
+- All data already available via existing hooks: `useAdminKPIScorecard`, `useRevenueAnalytics`, `usePredictiveSignals`, `useStrategistWorkload`, `usePartnerEngagement`
+- `CEOHealthScore` derives from `useAdminKPIScorecard` data (average of pillar scores)
+- `RevenueTickerStrip` derives from `useRevenueAnalytics` + `useAdminKPIScorecard`
 
 ---
 
-## Files to Modify
+## Design Specifications
 
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
+- **Health Score Ring**: 120px diameter, stroke-dasharray animation, color: green (>=70), amber (40-69), red (<40)
+- **Ticker Strip**: Horizontal scroll on mobile, flex-wrap on desktop. Each pill: `rounded-xl bg-card/80 border border-border/20 px-4 py-3`
+- **Quick Launch tiles**: `rounded-xl bg-card/60 hover:bg-card/80 border border-border/20 p-4`, icon 24px, label 11px
+- **Floating AI button**: `fixed bottom-20 right-4 md:bottom-6 z-50`, 56px circle, primary gradient, Sparkles icon
+- **All animations**: 200-300ms, ease-out, no bounce
 
-**Total: ~25 files modified**
+---
 
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+## Implementation Order
+
+1. Create `RevenueTickerStrip` (highest CEO value -- instant numbers)
+2. Create `CEOHealthScore` and update `ClubHomeHeader`
+3. Create `AttentionRequiredStrip` (merge command + signals)
+4. Create `QuickLaunchGrid` (fast admin navigation)
+5. Create `OperationsMonitor` (collapsed agent + live ops)
+6. Create `FloatingClubAI` and add to AppLayout
+7. Restructure `AdminHome.tsx` with new zone ordering
 
