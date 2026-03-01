@@ -652,11 +652,24 @@ const Auth = () => {
                   </AlertDescription>
                 </Alert>}
 
-              {!isLogin && <Input type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-2xl" required />}
+              {!isLogin && (
+                <div>
+                  <label htmlFor="auth-fullname" className="sr-only">{t('signup.fullName')}</label>
+                  <Input id="auth-fullname" type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl" required />
+                </div>
+              )}
 
-              <Input type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-2xl" required />
+              <div>
+                <label htmlFor="auth-email" className="sr-only">{t('login.email')}</label>
+                <Input id="auth-email" type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl" required />
+              </div>
 
-              {isLogin ? <Input type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-2xl" required /> : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
+              {isLogin ? (
+                <div>
+                  <label htmlFor="auth-password" className="sr-only">{t('login.password')}</label>
+                  <Input id="auth-password" type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-xl" required />
+                </div>
+              ) : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
 
               <RainbowButton type="submit" disabled={isLoading || !isLogin && inviteValid !== true} className="w-full h-16 rounded-2xl font-bold text-lg">
                 {isLoading ? tCommon('actions.loading') : isLogin ? t('login.signIn') : t('signup.createAccount')}
