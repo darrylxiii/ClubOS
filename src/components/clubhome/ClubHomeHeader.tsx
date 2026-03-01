@@ -86,36 +86,21 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
   
 
   return (
-    <div className="glass-subtle rounded-2xl p-6 space-y-4">
+    <div className="rounded-2xl border border-border/20 bg-card/80 p-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
-            <AvatarFallback>
-              {user?.email?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div>
-            {profileLoading ? (
-              <Skeleton className="h-8 w-48 mb-2" />
-            ) : (
-              <TypewriterGreeting 
-                greeting={getGreeting()} 
-                firstName={getFirstName()} 
-              />
-            )}
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary" className="gap-1">
-                {getRoleIcon()}
-                {getRoleLabel()}
-              </Badge>
-              <Badge variant="outline" className="gap-1">
-                <Sparkles className="h-3 w-3" />
-                <T k="common:home.clubMember" fallback="Club Member" />
-              </Badge>
-            </div>
-          </div>
+        <div className="flex items-center gap-3">
+          {profileLoading ? (
+            <Skeleton className="h-6 w-48" />
+          ) : (
+            <TypewriterGreeting 
+              greeting={getGreeting()} 
+              firstName={getFirstName()} 
+            />
+          )}
+          <Badge variant="secondary" className="gap-1 hidden sm:inline-flex">
+            {getRoleIcon()}
+            {getRoleLabel()}
+          </Badge>
         </div>
       </div>
     </div>

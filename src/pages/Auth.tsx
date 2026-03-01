@@ -675,14 +675,7 @@ const Auth = () => {
                 {isLoading ? tCommon('actions.loading') : isLogin ? t('login.signIn') : t('signup.createAccount')}
               </RainbowButton>
 
-              <div className="relative py-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border/30"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-background/50 text-foreground/70 rounded-full">or</span>
-                </div>
-              </div>
+              <div className="pt-4" />
 
               {/* OAuth buttons — hidden until properly configured */}
 

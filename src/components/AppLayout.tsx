@@ -204,7 +204,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             "pt-14 sm:pt-16",
             (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp') || location.pathname === '/crm/inbox')
               ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col'
-              : 'min-h-screen pb-4'
+              : 'min-h-screen pb-20 md:pb-4'
           )}
             style={{
               paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp') && location.pathname !== '/crm/inbox')
