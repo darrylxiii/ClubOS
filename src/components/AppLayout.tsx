@@ -227,6 +227,13 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       </ErrorBoundary>
       <GlobalCallNotificationProvider />
       <MeetingNotificationManager />
+
+      {/* Floating Club AI Assistant */}
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          <FloatingClubAI />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 };
