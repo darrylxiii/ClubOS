@@ -295,23 +295,6 @@ function ApplicationCard({ application }: { application: Application }) {
               size="icon"
               variant="ghost"
               className="min-h-[44px] min-w-[44px]"
-              onClick={async (e) => {
-                e.stopPropagation();
-                try {
-                  const shareUrl = `${window.location.origin}/applications/${application.id}/share`;
-                  await navigator.clipboard.writeText(shareUrl);
-                  toast.success("Share link copied to clipboard");
-                } catch {
-                  toast.error("Failed to copy share link");
-                }
-              }}
-            >
-              <Share2 className="w-4 h-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="min-h-[44px] min-w-[44px]"
               onClick={(e) => {
                 e.stopPropagation();
                 const exportData = [{
@@ -365,9 +348,7 @@ function ApplicationCard({ application }: { application: Application }) {
 
           {/* Competition Insight */}
           <CompetitionInsight
-            totalCandidates={application.other_candidates_count + 1}
-            candidatesAhead={application.other_candidates_count}
-            candidatesBehind={0}
+            totalCandidates={application.other_candidates_count}
           />
 
           {/* Timeline & Deadlines */}

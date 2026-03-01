@@ -40,15 +40,15 @@ export const NextBestActionCard = () => {
     queryFn: async (): Promise<NextAction | null> => {
       if (!user) return null;
 
-      // Check profile completion
+      // Check profile completion (same 10-field logic as CompactProfileStrength)
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, current_title, bio, avatar_url')
+        .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
         .eq('id', user.id)
         .single();
 
-      const profileFields = profile ? Object.values(profile).filter(v => v).length : 0;
-      const profileComplete = profileFields >= 4;
+      const profileFields = profile ? Object.values(profile).filter(v => v !== null && v !== undefined && v !== '').length : 0;
+      const profileComplete = profileFields >= 8; // 80% of 10 fields
 
       if (!profileComplete) {
         return {
@@ -89,7 +89,7 @@ export const NextBestActionCard = () => {
       const { count: applicationCount } = await supabase
         .from('applications')
         .select('id', { count: 'exact', head: true })
-        .eq('candidate_id', user.id);
+        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`);
 
       if (!applicationCount || applicationCount === 0) {
         return {
