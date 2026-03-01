@@ -285,8 +285,8 @@ const Jobs = () => {
   };
 
   const handleClubSync = (jobTitle: string) => {
-    toast.success(`Club Sync activated for ${jobTitle}!`, {
-      description: "Elite auto-apply initiated. You'll be notified of next steps."
+    toast.success(`Club Sync activated for ${jobTitle}`, {
+      description: "Auto-apply initiated. You will be notified of next steps."
     });
   };
 
