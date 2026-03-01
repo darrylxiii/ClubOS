@@ -72,7 +72,7 @@ export const CandidateHome = () => {
         (Object.values(profileData).filter(v => v).length / 4) * 100 : 0;
       setProfileCompletion(Math.round(completion));
     } catch (error) {
-      console.error('Error fetching profile completion:', error);
+      // Profile completion fetch failed silently
     }
   };
 
