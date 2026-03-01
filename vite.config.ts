@@ -16,7 +16,6 @@ export default defineConfig(({ mode, command }) => ({
     },
   },
   optimizeDeps: {
-    noDiscovery: true,
     entries: ['src/main.tsx'],
     include: [
       // Core React — must be pre-bundled and deduped
