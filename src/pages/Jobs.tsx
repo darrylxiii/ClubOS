@@ -232,7 +232,7 @@ const Jobs = () => {
             );
           }
         } catch (error) {
-          console.error('Error calculating match score:', error);
+          // Match score calculation failed silently
         }
       }
     };
