@@ -793,7 +793,7 @@ const Jobs = () => {
                           isContinuous={job.isContinuous}
                           hiredCount={job.hiredCount}
                           targetHireCount={job.targetHireCount}
-                          onApply={() => handleApply(job.title)} 
+                          onApply={() => handleApply(job.title, job.id, job.company)} 
                           onRefer={() => handleRefer(job.id, job.title, job.company)} 
                           onClubSync={() => handleClubSync(job.title)} 
                           onToggleSave={() => toggleSaveJob(job.id, job.title)} 
