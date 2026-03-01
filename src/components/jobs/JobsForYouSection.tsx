@@ -172,7 +172,7 @@ export function JobsForYouSection({
                   isContinuous={job.isContinuous}
                   hiredCount={job.hiredCount}
                   targetHireCount={job.targetHireCount}
-                  onApply={() => onApply(job.title)}
+                  onApply={() => onApply(job.title, job.id, job.company)}
                   onRefer={() => onRefer(job.id, job.title, job.company)}
                   onClubSync={() => onClubSync(job.title)}
                   onToggleSave={() => onToggleSave(job.id, job.title)}
