@@ -283,6 +283,18 @@ function ApplicationCard({ application }: { application: Application }) {
               size="icon"
               variant="ghost"
               className="min-h-[44px] min-w-[44px]"
+              title="Interview Prep"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/interview-prep');
+              }}
+            >
+              <BookOpen className="w-4 h-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="min-h-[44px] min-w-[44px]"
               onClick={async (e) => {
                 e.stopPropagation();
                 try {
