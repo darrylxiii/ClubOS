@@ -173,7 +173,9 @@ The field for text content is ALWAYS "content", never "text". The field for quot
           status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      throw new Error(`AI generation failed: ${response.statusText}`);
+      const errBody = await response.text();
+      console.error(`AI gateway error (${response.status}):`, errBody);
+      throw new Error(`AI generation failed: ${response.status} - ${errBody.slice(0, 200)}`);
     }
 
     const aiResult = await response.json();
