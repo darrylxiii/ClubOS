@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Shield, Ban, X, AlertTriangle } from 'lucide-react';
 import { StealthModeToggle } from '@/components/StealthModeToggle';
 import { CompanySearch } from '@/components/CompanySearch';
+import { ConsentReceiptsViewer } from '@/components/settings/ConsentReceiptsViewer';
 
 interface PrivacySettingsProps {
   blockedCompanies: string[];
