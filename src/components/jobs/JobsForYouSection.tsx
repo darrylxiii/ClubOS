@@ -26,7 +26,7 @@ interface Job {
 interface JobsForYouSectionProps {
   jobs: Job[];
   savedJobIds: string[];
-  onApply: (title: string) => void;
+  onApply: (title: string, id?: string, company?: string) => void;
   onRefer: (id: string, title: string, company: string) => void;
   onClubSync: (title: string) => void;
   onToggleSave: (id: string, title: string) => void;
