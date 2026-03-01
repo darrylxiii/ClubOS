@@ -199,7 +199,7 @@ export const CandidateHome = () => {
               </DashboardSection>
               <DashboardSection columns={2}>
                 <SavedJobsWidget />
-                <DocumentStatusWidget />
+                <ReferralStatsWidget />
               </DashboardSection>
               <DashboardSection columns={2}>
                 <ReferralStatsWidget />
