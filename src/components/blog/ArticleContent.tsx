@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link2, Check } from 'lucide-react';
+import { Link2, Check, Lightbulb } from 'lucide-react';
 import { ContentBlock } from '@/data/blog';
 import CTACallout from './CTACallout';
 import { cn } from '@/lib/utils';
