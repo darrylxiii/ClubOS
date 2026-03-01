@@ -24,6 +24,9 @@ import { CommandPalette } from "@/components/CommandPalette";
 const ClubAIVoice = lazy(() => 
   import("@/components/voice/ClubAIVoice").then(m => ({ default: m.ClubAIVoice }))
 );
+const FloatingClubAI = lazy(() =>
+  import("@/components/clubhome/FloatingClubAI").then(m => ({ default: m.FloatingClubAI }))
+);
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotionToggle } from "@/components/MotionToggle";
@@ -227,6 +230,13 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       </ErrorBoundary>
       <GlobalCallNotificationProvider />
       <MeetingNotificationManager />
+
+      {/* Floating Club AI Assistant */}
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          <FloatingClubAI />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 };
