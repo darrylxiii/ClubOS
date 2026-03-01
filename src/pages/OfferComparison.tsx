@@ -158,7 +158,7 @@ export default function OfferComparison() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Highest Offer</p>
-                <p className="text-xl font-bold">{formatCurrency(stats.highestOffer)}</p>
+                <p className="text-xl font-bold">{formatOfferCurrency(stats.highestOffer)}</p>
               </div>
             </div>
           </CardContent>

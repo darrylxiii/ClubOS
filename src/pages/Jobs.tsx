@@ -301,12 +301,12 @@ const Jobs = () => {
 
       const { error } = await supabase
         .from('applications')
-        .insert({
+        .insert([{
           job_id: jobId,
           user_id: user.id,
-          status: 'pending',
+          status: 'pending' as any,
           applied_at: new Date().toISOString(),
-        });
+        }]);
 
       if (error) throw error;
 
