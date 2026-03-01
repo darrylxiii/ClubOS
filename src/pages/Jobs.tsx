@@ -199,7 +199,7 @@ const Jobs = () => {
         })) || [];
         setJobs(transformedJobs);
       } catch (error) {
-        console.error('Error fetching jobs:', error);
+        logger.error('Failed to fetch jobs', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
         toast.error('Failed to load jobs');
       } finally {
         setLoading(false);
