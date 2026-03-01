@@ -500,8 +500,6 @@ const Jobs = () => {
   // ═══════════════════════════════════════════════
   return (
     <>
-      <OceanBackgroundVideo />
-      
       <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 pb-safe">
         <div className="space-y-6">
           {/* Search Bar - Full Width */}
@@ -509,23 +507,20 @@ const Jobs = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input 
               type="text" 
-              placeholder="Search elite opportunities by title, company, or skills..." 
+              placeholder="Search opportunities by title, company, or skills..." 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)} 
-              className="pl-12 h-14 text-base bg-card/30 backdrop-blur-xl border-border/40"
+              className="pl-12 h-14 text-base bg-card/80 border-border/40"
             />
           </div>
 
-          {/* Elite Opportunities Header */}
-          <div className="text-center space-y-3 py-8 border-b-2 border-border/40">
-            <p className="text-caps text-muted-foreground tracking-widest">
-              CURATED ROLES
-            </p>
-            <h1 className="text-5xl font-black uppercase tracking-tight">
-              Elite Opportunities
+          {/* Opportunities Header — editorial, understated */}
+          <div className="space-y-1 py-4 border-b border-border/30">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Opportunities
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Connecting only the 0.1% with each other
+            <p className="text-sm text-muted-foreground">
+              Curated roles for The Quantum Club members
             </p>
           </div>
 
