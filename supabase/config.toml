@@ -1273,6 +1273,9 @@ verify_jwt = false
 [functions.blog-generate]
 verify_jwt = false
 
+[functions.blog-regenerate]
+verify_jwt = false
+
 [functions.blog-suggest]
 verify_jwt = false
 
