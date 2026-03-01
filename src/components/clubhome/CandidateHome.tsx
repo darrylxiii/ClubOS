@@ -26,21 +26,10 @@ import { PushNotificationOptIn } from "@/components/notifications/PushNotificati
 import { motion, AnimatePresence } from "framer-motion";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
 
-const BANNER_DISMISS_KEY = 'tqc_club_projects_banner_dismissed';
-
 export const CandidateHome = () => {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const { stats: roleStats, loading } = useRoleStats('user', user?.id);
   const [profileCompletion, setProfileCompletion] = useState(0);
-  const [bannerDismissed, setBannerDismissed] = useState(() => {
-    return localStorage.getItem(BANNER_DISMISS_KEY) === 'true';
-  });
-
-  const handleDismissBanner = useCallback(() => {
-    setBannerDismissed(true);
-    localStorage.setItem(BANNER_DISMISS_KEY, 'true');
-  }, []);
 
   const stats = roleStats as { applications: number; matches: number; interviews: number; messages: number };
 
