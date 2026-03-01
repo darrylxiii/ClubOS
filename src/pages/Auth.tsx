@@ -286,7 +286,7 @@ const Auth = () => {
         toast.error(data?.message || t('invite.invalidOrExpired'));
       }
     } catch (error) {
-      console.error("Error validating invite:", error);
+      logger.error("Invite validation failed", error instanceof Error ? error : new Error(String(error)), { componentName: 'Auth' });
       setInviteValid(false);
       toast.error(t('invite.errorValidating'));
     }

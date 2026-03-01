@@ -79,7 +79,7 @@ export const DynamicBackground = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden">
+    <div className="fixed inset-0 z-0 overflow-hidden" role="presentation" aria-hidden="true">
       {renderBackground()}
       
       {/* Blur layer */}

@@ -725,12 +725,10 @@ const Jobs = () => {
                     ))}
                   </div>
                 ) : savedJobs.length === 0 ? (
-                  <div className="text-center py-24">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted/20 flex items-center justify-center">
-                      <Search className="w-12 h-12 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">No saved jobs yet</h3>
-                    <p className="text-muted-foreground">Start exploring and save opportunities that interest you</p>
+                  <div className="text-center py-16">
+                    <Search className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-1">No saved jobs yet</h3>
+                    <p className="text-sm text-muted-foreground">Browse opportunities and save roles that interest you</p>
                   </div>
                 ) : (
                   <div className={cn(

@@ -69,7 +69,7 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
 
   // PHASE 3: Wait for user to be available before rendering
   if (!user) {
-    console.log('[ClubHomeHeader] ⏸️ Waiting for user to load');
+    
     return (
       <div className="glass-subtle rounded-2xl p-6">
         <div className="flex items-center gap-4">

@@ -136,13 +136,13 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center md:hidden">
           <img
             src={quantumClubLogoLightShort}
-            alt="Quantum Club"
-            className="h-[77px] w-auto dark:block hidden"
+            alt="The Quantum Club"
+            className="h-10 w-auto dark:block hidden"
           />
           <img
             src={quantumClubLogoDarkShort}
-            alt="Quantum Club"
-            className="h-[77px] w-auto dark:hidden block"
+            alt="The Quantum Club"
+            className="h-10 w-auto dark:hidden block"
           />
         </div>
 

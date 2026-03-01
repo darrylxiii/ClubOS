@@ -18,13 +18,6 @@ const ClubHome = () => {
   // Combined loading state - wait for both auth and role
   const isReady = !roleLoading && !authLoading;
 
-  console.log('🏠 [ClubHome] State:', {
-    roleLoading,
-    authLoading,
-    isReady,
-    role,
-    user: !!user
-  });
 
   // Show simple loading state while checking auth and role
   if (!isReady) {
