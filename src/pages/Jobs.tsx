@@ -122,7 +122,7 @@ const Jobs = () => {
         
         setSavedJobIds(data?.map(sj => sj.job_id) || []);
       } catch (error) {
-        console.error('Error fetching saved jobs:', error);
+        logger.warn('Failed to fetch saved jobs', { componentName: 'Jobs', error });
       } finally {
         setLoadingSavedJobs(false);
       }
