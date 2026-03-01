@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useRole } from "@/contexts/RoleContext";
-import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
+// OceanBackgroundVideo removed — global DynamicBackground handles this
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
 import { useNavigate, useSearchParams } from "react-router-dom";
