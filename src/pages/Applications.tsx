@@ -18,13 +18,14 @@ import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { useApplications } from "@/hooks/useApplications";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InlineLoader } from "@/components/ui/unified-loader";
 import { RejectedApplicationsTab } from "@/components/candidate/RejectedApplicationsTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileApplicationPipeline } from "@/components/applications/MobileApplicationPipeline";
 import { useAchievementTrigger } from "@/hooks/useAchievementTrigger";
-import { useEffect } from "react";
 
 interface Application {
   id: string;
