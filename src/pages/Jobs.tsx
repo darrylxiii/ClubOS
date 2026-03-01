@@ -366,7 +366,7 @@ const Jobs = () => {
         });
       }
     } catch (error) {
-      console.error('Error toggling saved job:', error);
+      logger.error('Failed to toggle saved job', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
       toast.error('Failed to save job. Please try again.');
     }
   };
