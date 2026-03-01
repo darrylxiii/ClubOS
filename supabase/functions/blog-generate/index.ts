@@ -149,7 +149,6 @@ The field for text content is ALWAYS "content", never "text". The field for quot
                         answer: { type: 'string' },
                       },
                       required: ['question', 'answer'],
-                      additionalProperties: false,
                     },
                     description: '3-5 FAQ pairs for Google structured data',
                   },
