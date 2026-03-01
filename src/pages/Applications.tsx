@@ -58,9 +58,47 @@ interface Application {
 
 export default function Applications({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
-  const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
+  const queryClient = useQueryClient();
+  const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true);
   const isMobile = useIsMobile();
   const { triggerAchievementCheck } = useAchievementTrigger();
+
+  // Realtime subscription for application stage updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('applications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'applications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'applications',
+          filter: `candidate_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const activeApplications = applications.filter(app => app.status === "active");
   const rejectedApplications = applications.filter(app => app.status === "rejected");
