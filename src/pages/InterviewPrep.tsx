@@ -64,7 +64,7 @@ export default function InterviewPrep() {
             )
           )
         `)
-        .eq('candidate_id', user.id)
+        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`)
         .in('status', ['active', 'interview']);
 
       if (error) throw error;
