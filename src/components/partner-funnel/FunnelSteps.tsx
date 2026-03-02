@@ -259,6 +259,15 @@ export function FunnelSteps() {
         }
       }).catch(err => console.warn('Admin notification failed (non-blocking):', err));
 
+      // Non-blocking "Request Received" confirmation email to partner
+      supabase.functions.invoke('send-partner-request-received', {
+        body: {
+          email: formData.contact_email,
+          contactName: formData.contact_name,
+          companyName: formData.company_name || undefined,
+        }
+      }).catch(err => console.warn('Partner confirmation email failed (non-blocking):', err));
+
       await experiments.trackAllConversions('submission_complete');
       autoSave.markCompleted();
       setTimeout(() => autoSave.clear(), 1000);
