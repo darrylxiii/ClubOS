@@ -678,9 +678,9 @@ export function FunnelSteps() {
         return (
           <div className="space-y-5">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold mb-1">Almost done</h2>
+              <h2 className="text-2xl font-semibold mb-1">Review and submit</h2>
               <p className="text-sm text-muted-foreground">
-                Add your phone number so we can reach you — or skip and we'll use email.
+                Optional. Helps us reach you faster.
               </p>
             </div>
 
