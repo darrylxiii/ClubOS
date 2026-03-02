@@ -6,7 +6,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Benefit-focused FAQ fallbacks — no fee percentages, no contract language
 const getFAQResponse = (message: string): string => {
   const m = message.toLowerCase();
 
@@ -41,7 +40,6 @@ export function FunnelAIAssistant() {
     },
   ]);
 
-  // Benefit-oriented quick replies — no fee or contract language
   const quickReplies = [
     "How quickly can you find candidates?",
     "What seniority levels do you recruit?",
@@ -92,7 +90,6 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
     }
   };
 
-  // Send with the captured reply text directly
   const sendReply = (reply: string) => {
     if (isLoading) return;
     setMessages((prev) => [...prev, { role: "user", content: reply }]);
@@ -121,10 +118,10 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
 
   return (
     <>
-      {/* Floating trigger — pushed up on mobile to avoid overlapping submit button */}
+      {/* Floating trigger */}
       <Button
         size="lg"
-        className="fixed bottom-6 right-6 sm:bottom-6 max-sm:bottom-20 rounded-full w-14 h-14 shadow-lg z-50"
+        className="fixed bottom-6 right-6 sm:bottom-6 max-sm:bottom-20 rounded-full w-14 h-14 shadow-lg z-50 backdrop-blur-xl bg-card/80 border border-border/30 hover:bg-card/90"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
@@ -132,11 +129,11 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
 
       {/* Chat window */}
       {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-80 sm:w-96 h-[480px] shadow-2xl z-50 flex flex-col glass-effect">
+        <Card className="fixed bottom-24 right-6 w-80 sm:w-96 h-[480px] shadow-2xl z-50 flex flex-col glass">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm">QUIN</h3>
-              <p className="text-xs text-muted-foreground">The Quantum Club AI</p>
+              <p className="text-xs text-muted-foreground">Powered by QUIN</p>
             </div>
             <Button size="icon" variant="ghost" onClick={() => setIsOpen(false)}>
               <X className="w-4 h-4" />
@@ -171,7 +168,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
             </div>
           </ScrollArea>
 
-          {/* Quick replies — shown only on first message */}
+          {/* Quick replies */}
           {messages.length === 1 && (
             <div className="px-4 pb-2 border-t border-border pt-3">
               <p className="text-xs text-muted-foreground mb-2">Common questions:</p>

@@ -43,7 +43,6 @@ export function SocialProofCarousel() {
 
     if (data?.social_proof_items) {
       const items = data.social_proof_items as any[];
-      // Check if testimonials are real (not placeholder names)
       const placeholders = ['techcorp', 'innovateco', 'futurelabs', 'placeholder'];
       const isReal = items.length > 0 && !items.some(item =>
         placeholders.some(p => (item.company || '').toLowerCase().includes(p))
@@ -79,16 +78,14 @@ export function SocialProofCarousel() {
     </div>
   );
 
-  // If no real testimonials, show stats bar only
   if (!hasRealTestimonials) {
     const hasStats = (liveStats.active_roles || 0) > 0 || (liveStats.partnerships_this_month || 0) > 0;
     if (!hasStats) return null;
     return statsBar;
   }
 
-  // Real testimonials carousel
   return (
-    <Card className="p-8 glass-effect">
+    <Card className="p-8 glass">
       <div className="text-center">
         <Quote className="w-10 h-10 text-primary mx-auto mb-4" />
         <blockquote className="text-lg font-medium mb-4">
