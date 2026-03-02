@@ -25,7 +25,7 @@ const getFAQResponse = (message: string): string => {
     return "We work across Technology, Finance, Healthcare, Consulting, and high-growth scale-ups. Our sweet spot is companies where the right hire materially changes the outcome.";
   }
 
-  return "I can help with that. Our team will give you a detailed answer during the strategy call — usually within 24 hours of submitting your request.";
+  return "I can help with that. Our team will give you a detailed answer during the strategy call — usually within 24 hours of submitting your brief.";
 };
 
 export function FunnelAIAssistant() {
