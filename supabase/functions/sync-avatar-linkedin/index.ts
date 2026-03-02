@@ -193,7 +193,25 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fallback to Proxycurl
+    // Proxycurl fallback for missing avatar (even if Apify returned other data)
+    if (!profilePicUrl && PROXYCURL_API_KEY && fullName) {
+      try {
+        console.log('[sync-avatar-linkedin] Trying Proxycurl for missing avatar:', linkedinUrl);
+        const pcResp = await fetch(
+          `https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`,
+          { headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` } }
+        );
+        if (pcResp.ok) {
+          const pcData = await pcResp.json();
+          profilePicUrl = findField(pcData, PIC_ALIASES);
+          console.log('[sync-avatar-linkedin] Proxycurl avatar fallback:', !!profilePicUrl);
+        }
+      } catch (e) {
+        console.warn('[sync-avatar-linkedin] Proxycurl avatar fallback failed:', e.message);
+      }
+    }
+
+    // Full Proxycurl fallback (no data from Apify at all)
     if (!fullName && PROXYCURL_API_KEY) {
       try {
         console.log('[sync-avatar-linkedin] Trying Proxycurl for:', linkedinUrl);

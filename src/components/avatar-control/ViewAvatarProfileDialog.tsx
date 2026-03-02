@@ -121,7 +121,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                 )}
                 {account.location && (
                   <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {account.location}
+                    <MapPin className="h-3 w-3" /> {formatLocation(account.location)}
                   </span>
                 )}
               </div>
