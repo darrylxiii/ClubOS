@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, contactName, companyName, resumeUrl } = await req.json();
+    const { email, contactName, companyName, resumeUrl, isSecondReminder } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
