@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 
 // 3 clean, benefit-oriented step labels
-const STEPS = ["Your Details", "Hiring Needs", "Submit"];
+const STEPS = ["About you", "Your brief", "Review"];
 
 const STEP_TIME_ESTIMATES: Record<number, number> = {
   0: 1,
