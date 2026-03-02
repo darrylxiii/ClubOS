@@ -488,7 +488,7 @@ export function FunnelSteps() {
                 onClick={handleEmailCapture}
                 className="w-full min-h-[44px] text-base"
               >
-                Get Started
+                Continue
                 <ArrowRight className="w-4 h-4 ml-2" />
               </RainbowButton>
             )}
