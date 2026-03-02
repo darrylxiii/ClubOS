@@ -10,6 +10,7 @@ import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { AvatarSocialTarget } from '@/hooks/useAvatarSocialTargets';
 import { format, formatDistanceToNow } from 'date-fns';
 import { formatLocation } from '@/lib/format-location';
+import { versionedAvatarUrl } from '@/lib/avatar-url';
 
 interface AvatarAccountCardProps {
   account: AvatarAccount;
@@ -63,7 +64,7 @@ export function AvatarAccountCard({ account, activeSession, socialTargets, onSta
           {/* Header with profile picture */}
           <div className="flex items-start gap-3">
             <Avatar className="h-11 w-11 shrink-0 border border-border">
-              <AvatarImage src={account.avatar_url ?? undefined} alt={account.label} />
+              <AvatarImage src={versionedAvatarUrl(account.avatar_url, account.last_synced_at)} alt={account.label} />
               <AvatarFallback className="text-xs font-semibold bg-muted">{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">

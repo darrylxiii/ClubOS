@@ -16,6 +16,7 @@ import { useAvatarSocialTargets, SOCIAL_PLATFORMS } from '@/hooks/useAvatarSocia
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { formatLocation } from '@/lib/format-location';
+import { versionedAvatarUrl } from '@/lib/avatar-url';
 
 interface ViewAvatarProfileDialogProps {
   account: AvatarAccount | null;
@@ -91,7 +92,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
           )}
           <div className="absolute -bottom-10 left-6">
             <Avatar className="h-20 w-20 border-4 border-background shadow-lg">
-              <AvatarImage src={account.avatar_url ?? undefined} alt={account.label} />
+              <AvatarImage src={versionedAvatarUrl(account.avatar_url, account.last_synced_at)} alt={account.label} />
               <AvatarFallback className="text-lg font-bold bg-muted">{initials}</AvatarFallback>
             </Avatar>
           </div>
