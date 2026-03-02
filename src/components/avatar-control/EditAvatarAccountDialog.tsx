@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,11 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Eye, EyeOff, Loader2, Trash2, Linkedin, Twitter, MessageSquare, Instagram } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Trash2, Linkedin, Twitter, MessageSquare, Instagram, Upload, User } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { useAvatarSocialTargets, SOCIAL_PLATFORMS, SocialPlatform } from '@/hooks/useAvatarSocialTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { versionedAvatarUrl } from '@/lib/avatar-url';
 
 interface EditAvatarAccountDialogProps {
   account: AvatarAccount | null;

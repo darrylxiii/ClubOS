@@ -300,9 +300,6 @@ Deno.serve(async (req) => {
       updates.avatar_url = storedAvatarUrl;
     } else {
       console.log('[sync-avatar-linkedin] No new avatar found — keeping existing avatar_url');
-      if (!PROXYCURL_API_KEY) {
-        console.warn('[sync-avatar-linkedin] PROXYCURL_API_KEY is not configured — avatar fallback unavailable');
-      }
     }
 
     const { data: updated, error: updateError } = await supabase
