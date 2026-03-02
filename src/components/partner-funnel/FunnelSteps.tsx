@@ -464,6 +464,8 @@ export function FunnelSteps() {
       }
       return;
     }
+
+    setIsSubmitting(true);
     try {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
