@@ -391,7 +391,7 @@ export function FunnelSteps() {
       });
 
       if (error) {
-        toast({ title: "Submission failed", description: error.message, variant: "destructive" });
+        toast({ title: "Something went wrong. Please try again.", description: error.message, variant: "destructive" });
         return;
       }
 
