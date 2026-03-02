@@ -139,21 +139,21 @@ export default function PartnerFunnel() {
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">1</span>
             </div>
-            <span>Submit request</span>
+            <span>Share your brief</span>
           </div>
           <div className="h-px flex-1 bg-border" />
           <div className="flex flex-col items-center gap-1 text-center">
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">2</span>
             </div>
-            <span>Strategy call</span>
+            <span>Speak with a strategist</span>
           </div>
           <div className="h-px flex-1 bg-border" />
           <div className="flex flex-col items-center gap-1 text-center">
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">3</span>
             </div>
-            <span>Receive shortlist</span>
+            <span>Review your shortlist</span>
           </div>
         </div>
 
