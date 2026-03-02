@@ -36,7 +36,7 @@ export function FunnelAIAssistant() {
     {
       role: "assistant",
       content:
-        "Hi — I'm QUIN, The Quantum Club's AI assistant. Ask me anything about working with us.",
+        "I am QUIN. Ask me about our process, timelines, or industries we serve.",
     },
   ]);
 
