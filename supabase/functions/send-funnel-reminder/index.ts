@@ -57,7 +57,7 @@ serve(async (req) => {
           </p>
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center" style="padding:8px 0 24px;">
-              <a href="${resumeUrl}" style="display:inline-block;padding:14px 32px;background-color:#C9A24E;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
+              <a href="${resumeUrl}" style="display:inline-block;padding:14px 32px;background-color:#0E0E10;color:#F5F4EF;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
                 ${ctaText}
               </a>
             </td></tr>
