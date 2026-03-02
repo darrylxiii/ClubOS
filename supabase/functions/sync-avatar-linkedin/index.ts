@@ -163,7 +163,10 @@ Deno.serve(async (req) => {
             about = data.about || data.summary || data.bio || null;
             location = data.location || data.city || data.region || null;
             if (typeof location === 'object' && location !== null) {
-              location = (location as any).default || (location as any).city || JSON.stringify(location);
+              const loc = location as Record<string, string>;
+              const city = (loc.city || '').trim();
+              const country = (loc.country || '').trim();
+              location = (city && country) ? `${city}, ${country}` : (loc.full || city || country || loc.region || null);
             }
             topSkills = data.top_skills || data.skills || data.topSkills || null;
             if (topSkills && !Array.isArray(topSkills)) topSkills = null;
