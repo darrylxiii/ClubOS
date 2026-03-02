@@ -56,7 +56,6 @@ Deno.serve(async (req) => {
     console.log('[sync-avatar-linkedin] Syncing account:', accountId, 'URL:', linkedinUrl);
 
     const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
-    const PROXYCURL_API_KEY = Deno.env.get('PROXYCURL_API_KEY');
 
     let profilePicUrl: string | null = null;
     let connections: number | null = null;
