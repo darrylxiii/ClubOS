@@ -8,6 +8,13 @@ interface StepTiming {
   endTime?: number;
 }
 
+interface UtmOverrides {
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  source_channel?: string | null;
+}
+
 /**
  * Hook for tracking funnel analytics events
  * Uses the existing funnel_analytics table schema
@@ -16,40 +23,59 @@ export function useFunnelAnalytics(sessionId: string) {
   const stepTimings = useRef<StepTiming[]>([]);
   const interactionCount = useRef(0);
   const trackedStepViews = useRef<Set<number>>(new Set());
+  const utmOverrides = useRef<UtmOverrides | null>(null);
+
+  // Allow setting UTM overrides (e.g. from resumed session saved data)
+  const setUtmOverrides = useCallback((overrides: UtmOverrides) => {
+    utmOverrides.current = overrides;
+  }, []);
+
+  const getUtms = useCallback(() => {
+    if (utmOverrides.current) {
+      return {
+        source_channel: utmOverrides.current.source_channel || 'direct',
+        utm_source: utmOverrides.current.utm_source || null,
+        utm_medium: utmOverrides.current.utm_medium || null,
+        utm_campaign: utmOverrides.current.utm_campaign || null,
+      };
+    }
+    const params = new URLSearchParams(window.location.search);
+    return {
+      source_channel: params.get('source') || 'direct',
+      utm_source: params.get('utm_source'),
+      utm_medium: params.get('utm_medium'),
+      utm_campaign: params.get('utm_campaign'),
+    };
+  }, []);
 
   // Track step view (with deduplication)
   const trackStepView = useCallback(async (stepIndex: number, stepName: string) => {
-    // Deduplicate: only track each step view once per session
     if (trackedStepViews.current.has(stepIndex)) return;
     trackedStepViews.current.add(stepIndex);
 
-    // Record start time for this step
     stepTimings.current.push({
       step: stepIndex,
       startTime: Date.now(),
     });
 
     try {
+      const utms = getUtms();
       await supabase.from('funnel_analytics').insert({
         session_id: sessionId,
         step_number: stepIndex,
         step_name: stepName,
         action: 'view',
         user_agent: navigator.userAgent,
-        source_channel: new URLSearchParams(window.location.search).get("source") || "direct",
-        utm_source: new URLSearchParams(window.location.search).get("utm_source"),
-        utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
-        utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
+        ...utms,
         metadata: { funnel_version: 3 },
       });
     } catch (error) {
       logger.warn('Failed to track step view', { error, componentName: 'FunnelAnalytics' });
     }
-  }, [sessionId]);
+  }, [sessionId, getUtms]);
 
   // Track step completion
   const trackStepComplete = useCallback(async (stepIndex: number, stepName: string) => {
-    // Calculate time spent on step
     const currentTiming = stepTimings.current.find(t => t.step === stepIndex && !t.endTime);
     let timeSpentSeconds = 0;
     
@@ -69,7 +95,6 @@ export function useFunnelAnalytics(sessionId: string) {
         metadata: { funnel_version: 3 },
       });
       
-      // Reset interaction count for next step
       interactionCount.current = 0;
     } catch (error) {
       logger.warn('Failed to track step complete', { error, componentName: 'FunnelAnalytics' });
@@ -104,7 +129,6 @@ export function useFunnelAnalytics(sessionId: string) {
   // Track field interaction (lightweight)
   const trackFieldInteraction = useCallback((_fieldName: string, _interactionType: 'focus' | 'blur' | 'change') => {
     interactionCount.current += 1;
-    // Field interactions are tracked in-memory only to reduce DB writes
   }, []);
 
   // Track funnel completion (step 2 is the actual final step)
@@ -140,7 +164,6 @@ export function useFunnelAnalytics(sessionId: string) {
     }
   }, [sessionId]);
 
-  // Memoize the return value to prevent infinite re-renders
   return useMemo(() => ({
     trackStepView,
     trackStepComplete,
@@ -148,5 +171,6 @@ export function useFunnelAnalytics(sessionId: string) {
     trackFieldInteraction,
     trackFunnelComplete,
     trackExitIntent,
-  }), [trackStepView, trackStepComplete, trackStepAbandon, trackFieldInteraction, trackFunnelComplete, trackExitIntent]);
+    setUtmOverrides,
+  }), [trackStepView, trackStepComplete, trackStepAbandon, trackFieldInteraction, trackFunnelComplete, trackExitIntent, setUtmOverrides]);
 }

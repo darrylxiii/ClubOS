@@ -127,6 +127,15 @@ export function FunnelSteps() {
             if (data.current_step > 0) {
               setCurrentStep(data.current_step);
             }
+            // Restore saved UTMs for analytics accuracy
+            if (savedForm._saved_utm_source || savedForm._saved_utm_medium || savedForm._saved_utm_campaign) {
+              analytics.setUtmOverrides({
+                utm_source: savedForm._saved_utm_source || null,
+                utm_medium: savedForm._saved_utm_medium || null,
+                utm_campaign: savedForm._saved_utm_campaign || null,
+                source_channel: savedForm._saved_source_channel || 'direct',
+              });
+            }
             toast({
               title: "Welcome back.",
               description: "We've restored your progress.",

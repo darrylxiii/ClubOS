@@ -28,6 +28,17 @@ serve(async (req) => {
     const name = contactName || 'there';
     const company = companyName ? ` for ${companyName}` : '';
 
+    // Differentiate copy for first vs second reminder
+    const subject = isSecondReminder
+      ? `Last chance to finish your request, ${name}`
+      : `Your request is still waiting, ${name}`;
+
+    const bodyParagraph = isSecondReminder
+      ? `Your saved progress will be removed soon. Complete your partnership request${company} now -- it takes less than 60 seconds.`
+      : `You started a partnership request${company} but didn't finish. Your progress is saved -- it takes less than 60 seconds to complete.`;
+
+    const ctaText = isSecondReminder ? 'Complete Now' : 'Finish Your Request';
+
     const htmlBody = `
 <!DOCTYPE html>
 <html>
@@ -36,32 +47,25 @@ serve(async (req) => {
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
     <tr><td align="center" style="padding:40px 20px;">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;">
-        <!-- Header -->
         <tr><td style="padding:0 0 32px 0;text-align:center;">
           <p style="font-size:18px;font-weight:700;color:#0E0E10;margin:0;">The Quantum Club</p>
         </td></tr>
-        
-        <!-- Body -->
         <tr><td style="padding:32px;background-color:#f9f9f8;border-radius:12px;">
           <p style="font-size:16px;color:#0E0E10;margin:0 0 16px;">Hi ${name},</p>
           <p style="font-size:15px;color:#3d3d3d;line-height:1.6;margin:0 0 24px;">
-            You started a partnership request${company} but didn't finish. Your progress is saved — it takes less than 60 seconds to complete.
+            ${bodyParagraph}
           </p>
-          
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center" style="padding:8px 0 24px;">
               <a href="${resumeUrl}" style="display:inline-block;padding:14px 32px;background-color:#C9A24E;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
-                Finish Your Request
+                ${ctaText}
               </a>
             </td></tr>
           </table>
-          
           <p style="font-size:14px;color:#666;line-height:1.5;margin:0;">
             No upfront fees. No contracts. You only pay when we place a candidate.
           </p>
         </td></tr>
-        
-        <!-- Footer -->
         <tr><td style="padding:32px 0 0;text-align:center;">
           <p style="font-size:12px;color:#999;margin:0 0 8px;">
             The Quantum Club · Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands
@@ -78,9 +82,9 @@ serve(async (req) => {
 
     const plainText = `Hi ${name},
 
-You started a partnership request${company} but didn't finish. Your progress is saved — it takes less than 60 seconds to complete.
+${bodyParagraph}
 
-Finish your request: ${resumeUrl}
+${ctaText}: ${resumeUrl}
 
 No upfront fees. No contracts. You only pay when we place a candidate.
 
@@ -96,7 +100,7 @@ Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands`;
       body: JSON.stringify({
         from: 'The Quantum Club <partners@thequantumclub.nl>',
         to: [email],
-        subject: `Your request is still waiting, ${name}`,
+        subject,
         html: htmlBody,
         text: plainText,
         headers: {
