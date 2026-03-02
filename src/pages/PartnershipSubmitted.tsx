@@ -89,9 +89,7 @@ export default function PartnershipSubmitted() {
             alt="Quantum Club" 
             className="h-20 w-auto hidden dark:block"
           />
-          <div className="absolute right-4">
-            <ThemeToggle />
-          </div>
+          
         </div>
       </div>
 
