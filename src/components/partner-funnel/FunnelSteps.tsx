@@ -443,7 +443,27 @@ export function FunnelSteps() {
       return;
     }
 
-    setIsSubmitting(true);
+    // Final validation guard for required DB fields
+    const requiredFields: Record<string, string> = {
+      contact_name: formData.contact_name,
+      contact_email: formData.contact_email,
+      company_name: formData.company_name,
+      industry: formData.industry,
+      company_size: formData.company_size,
+    };
+    const missing = Object.entries(requiredFields)
+      .filter(([_, v]) => !v)
+      .map(([k]) => k);
+
+    if (missing.length > 0) {
+      toast({ title: "Please complete the required fields.", variant: "destructive" });
+      if (!formData.company_name || !formData.industry || !formData.contact_name || !formData.contact_email) {
+        setCurrentStep(0);
+      } else {
+        setCurrentStep(1);
+      }
+      return;
+    }
     try {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
