@@ -3,7 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, Shield, Play, Users, UserPlus, RefreshCw, Pencil, MapPin, Briefcase, Crown, Star, Sparkles, Eye } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Clock, Shield, Play, Users, UserPlus, RefreshCw, Pencil, MapPin, Briefcase, Crown, Star, Sparkles, Eye, Send } from 'lucide-react';
 import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -168,6 +169,31 @@ export function AvatarAccountCard({ account, activeSession, onStartSession, onSy
               )}
             </div>
           )}
+
+          {/* Connection Request Quota */}
+          {(() => {
+            const limit = account.weekly_connection_limit ?? 100;
+            const sent = account.weekly_connections_sent ?? 0;
+            const remaining = Math.max(0, limit - sent);
+            const pct = limit > 0 ? (remaining / limit) * 100 : 0;
+            const isDepleted = remaining === 0;
+            const colorClass = isDepleted ? 'text-red-400' : pct < 25 ? 'text-red-400' : pct < 50 ? 'text-amber-400' : 'text-emerald-400';
+            const barColor = isDepleted ? '[&>div]:bg-red-500' : pct < 25 ? '[&>div]:bg-red-500' : pct < 50 ? '[&>div]:bg-amber-500' : '[&>div]:bg-emerald-500';
+            return (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Send className="h-3 w-3" /> Invites
+                  </span>
+                  <span className={`font-mono font-medium ${colorClass}`}>
+                    {remaining}/{limit}
+                    {isDepleted && <span className="ml-1 text-red-400 font-semibold">Depleted</span>}
+                  </span>
+                </div>
+                <Progress value={pct} className={`h-1.5 ${barColor}`} />
+              </div>
+            );
+          })()}
 
           {/* About tooltip */}
           {account.about && (

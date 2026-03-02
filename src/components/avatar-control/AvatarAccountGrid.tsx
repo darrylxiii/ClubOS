@@ -15,7 +15,7 @@ interface AvatarAccountGridProps {
   onStartSession: (account: AvatarAccount) => void;
 }
 
-const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk'] as const;
+const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depleted'] as const;
 
 export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: AvatarAccountGridProps) {
   const { syncLinkedIn } = useAvatarAccounts();
@@ -53,6 +53,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         case 'In Use': return isInUse;
         case 'Paused': return a.status === 'paused' || a.status === 'banned';
         case 'At Risk': return a.risk_level === 'high' || a.risk_level === 'medium';
+        case 'Depleted': return (a.weekly_connections_sent ?? 0) >= (a.weekly_connection_limit ?? 100);
         default: return true;
       }
     });
@@ -64,6 +65,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
     inUse: activeSessions.length,
     paused: accounts.filter(a => a.status === 'paused' || a.status === 'banned').length,
     atRisk: accounts.filter(a => a.risk_level !== 'low').length,
+    depleted: accounts.filter(a => (a.weekly_connections_sent ?? 0) >= (a.weekly_connection_limit ?? 100)).length,
   }), [accounts, activeSessions, activeByAccount]);
 
   return (
@@ -76,7 +78,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {FILTER_OPTIONS.map(f => {
-            const count = f === 'All' ? counts.all : f === 'Available' ? counts.available : f === 'In Use' ? counts.inUse : f === 'Paused' ? counts.paused : counts.atRisk;
+            const count = f === 'All' ? counts.all : f === 'Available' ? counts.available : f === 'In Use' ? counts.inUse : f === 'Paused' ? counts.paused : f === 'At Risk' ? counts.atRisk : counts.depleted;
             return (
               <Badge
                 key={f}

@@ -18,7 +18,7 @@ interface EditAvatarAccountDialogProps {
 }
 
 export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAvatarAccountDialogProps) {
-  const { updateAccount, saveCredentials, deleteAccount } = useAvatarAccounts();
+  const { updateAccount, saveCredentials, deleteAccount, resetConnectionCounter } = useAvatarAccounts();
 
   const [label, setLabel] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -27,6 +27,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
   const [status, setStatus] = useState('available');
   const [riskLevel, setRiskLevel] = useState('low');
   const [maxDailyMinutes, setMaxDailyMinutes] = useState(120);
+  const [weeklyConnectionLimit, setWeeklyConnectionLimit] = useState(100);
+  const [weeklyConnectionsSent, setWeeklyConnectionsSent] = useState(0);
   const [notes, setNotes] = useState('');
   const [playbook, setPlaybook] = useState('');
   const [emailAccountAddress, setEmailAccountAddress] = useState('');
@@ -48,6 +50,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
       setStatus(account.status || 'available');
       setRiskLevel(account.risk_level || 'low');
       setMaxDailyMinutes(account.max_daily_minutes ?? 120);
+      setWeeklyConnectionLimit(account.weekly_connection_limit ?? 100);
+      setWeeklyConnectionsSent(account.weekly_connections_sent ?? 0);
       setNotes(account.notes || '');
       setPlaybook(account.playbook || '');
       setEmailAccountAddress(account.email_account_address || '');
@@ -91,6 +95,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
         status,
         risk_level: riskLevel,
         max_daily_minutes: maxDailyMinutes,
+        weekly_connection_limit: weeklyConnectionLimit,
+        weekly_connections_sent: weeklyConnectionsSent,
         notes: notes || null,
         playbook: playbook || null,
         email_account_address: emailAccountAddress || null,
@@ -176,6 +182,34 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
           <div className="space-y-1.5">
             <Label className="text-xs">Max Daily Minutes</Label>
             <Input type="number" value={maxDailyMinutes} onChange={e => setMaxDailyMinutes(Number(e.target.value))} />
+          </div>
+
+          {/* Connection Request Quota */}
+          <div className="border-t pt-4 space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Connection Request Quota</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Weekly Limit</Label>
+                <Input type="number" value={weeklyConnectionLimit} onChange={e => setWeeklyConnectionLimit(Number(e.target.value))} min={0} max={500} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Sent This Week</Label>
+                <Input type="number" value={weeklyConnectionsSent} onChange={e => setWeeklyConnectionsSent(Number(e.target.value))} min={0} />
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                if (account) resetConnectionCounter.mutate(account.id);
+                setWeeklyConnectionsSent(0);
+              }}
+              disabled={resetConnectionCounter.isPending}
+            >
+              Reset Counter to Zero
+            </Button>
           </div>
 
           {/* Credentials section */}
