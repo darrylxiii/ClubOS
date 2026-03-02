@@ -54,6 +54,8 @@ export function FunnelSteps() {
   // Email-first micro-step state
   const [emailCaptured, setEmailCaptured] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
+  const [emailVerificationStatus, setEmailVerificationStatus] = useState<'idle' | 'checking' | 'verified' | 'failed' | 'otp_sent' | 'otp_verified'>('idle');
+  const [emailVerifyReason, setEmailVerifyReason] = useState<string | null>(null);
 
   // Honeypot field for spam prevention
   const [honeypot, setHoneypot] = useState("");
