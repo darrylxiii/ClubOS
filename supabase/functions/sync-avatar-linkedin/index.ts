@@ -269,10 +269,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update account with all extracted data
+    // Update account with all extracted data — never overwrite avatar_url with null
     const updates: Record<string, unknown> = {
       linkedin_url: linkedinUrl,
-      avatar_url: storedAvatarUrl,
       connections_count: connections,
       followers_count: followers,
       linkedin_headline: headline,
