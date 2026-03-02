@@ -18,7 +18,7 @@ interface EditAvatarAccountDialogProps {
 }
 
 export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAvatarAccountDialogProps) {
-  const { updateAccount, saveCredentials, deleteAccount } = useAvatarAccounts();
+  const { updateAccount, saveCredentials, deleteAccount, resetConnectionCounter } = useAvatarAccounts();
 
   const [label, setLabel] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
