@@ -143,6 +143,20 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
         }
       }
 
+      // Save social targets
+      for (const p of SOCIAL_PLATFORMS) {
+        const s = socialState[p.value];
+        if (s.active || targets.find(t => t.platform === p.value)) {
+          await upsertSocialTarget.mutateAsync({
+            account_id: account.id,
+            platform: p.value,
+            is_active: s.active,
+            platform_handle: s.handle || null,
+            weekly_target: s.target,
+          });
+        }
+      }
+
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e.message || 'Save failed');
