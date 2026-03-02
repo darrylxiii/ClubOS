@@ -21707,6 +21707,8 @@ export type Database = {
           contact_name: string | null
           created_at: string | null
           current_step: number | null
+          email_quality: string | null
+          email_verified_at: string | null
           form_data: Json | null
           id: string
           last_active_at: string | null
@@ -21721,6 +21723,8 @@ export type Database = {
           contact_name?: string | null
           created_at?: string | null
           current_step?: number | null
+          email_quality?: string | null
+          email_verified_at?: string | null
           form_data?: Json | null
           id?: string
           last_active_at?: string | null
@@ -21735,6 +21739,8 @@ export type Database = {
           contact_name?: string | null
           created_at?: string | null
           current_step?: number | null
+          email_quality?: string | null
+          email_verified_at?: string | null
           form_data?: Json | null
           id?: string
           last_active_at?: string | null

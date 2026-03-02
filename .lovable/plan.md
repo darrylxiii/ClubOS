@@ -1,290 +1,253 @@
 
-# Partner Funnel Full Audit -- Final Plan (100/100)
 
-## Overview
+# Comprehensive Email System Audit — The Quantum Club
 
-This plan combines the previously approved tasks (welcome-back fix, admin enrichment, review summary, data guard, stale copy fix) with a new **hybrid email verification system**: verify silently via MillionVerifier + Findymail, and only show an OTP gate if the email fails deliverability checks. This maximizes correct emails without adding friction for legitimate users.
+## Current State Summary
+
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## The Hybrid Email Verification Flow
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
+
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
+
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+
+### 1.3 Emoji in Subject Lines (6 functions)
+
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
+
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+
+### 1.4 SPF Record Missing (DNS — not code)
+
+`send.thequantumclub.nl` needs an SPF TXT record:
 ```text
-User enters email -> Click "Continue"
-       |
-       v
-  Call verify-funnel-email (edge function)
-       |
-       v
-  MillionVerifier API check
-       |
-   +---+---+
-   |       |
-  OK    INVALID / DISPOSABLE / UNKNOWN
-   |       |
-   v       v
- Proceed   Findymail double-check
- to        |
- Phase B   +---+---+
-           |       |
-        VALID    STILL BAD
-           |       |
-           v       v
-        Proceed  Show inline message:
-        to       "We could not verify this email.
-        Phase B   Use a different address, or
-                  verify with a 6-digit code."
-                       |
-               +-------+-------+
-               |               |
-          Change email    Enter OTP
-               |               |
-               v               v
-          Re-run flow    send-email-verification
-                         (existing function)
-                               |
-                               v
-                         Enter 6-digit code
-                               |
-                               v
-                         Verified -> Proceed
+v=spf1 include:amazonses.com ~all
 ```
-
-**Why this is better than OTP-only or silent-only:**
-- 95%+ of real business emails pass MillionVerifier instantly -- zero friction for them
-- Fake/disposable emails get caught before any reminder is ever sent
-- The 5% edge cases (catch-all, new domains) get a graceful fallback via OTP instead of being blocked
-- OTP uses the existing `send-email-verification` function -- no new OTP infrastructure needed
+This is a DNS change in the domain registrar.
 
 ---
 
-## Task 1: Add MillionVerifier + Findymail Secrets
+## CATEGORY 2: Content & Copy Quality
 
-Two API keys need to be configured before the edge function can work:
-- `MILLIONVERIFIER_API_KEY`
-- `FINDYMAIL_API_KEY`
+### 2.1 Inconsistent Tone
 
-These will be requested via the secrets tool during implementation.
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
 
----
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
 
-## Task 2: New Edge Function -- `verify-funnel-email`
+### 2.2 Hardcoded Contact Email Inconsistency
 
-**File:** `supabase/functions/verify-funnel-email/index.ts`
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
 
-**Input:** `{ email: string }`
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
 
-**Flow:**
-1. Validate email format (zod)
-2. Call MillionVerifier: `GET https://api.millionverifier.com/api/v3/?api={KEY}&email={email}`
-3. If result is `ok` -> return `{ quality: 'verified' }`
-4. If result is `catch_all` or `unknown` -> call Findymail verify as second opinion
-5. If Findymail confirms deliverable -> return `{ quality: 'verified' }`
-6. If result is `invalid` or `disposable` (or Findymail also fails) -> return `{ quality: 'invalid', reason: 'disposable' | 'invalid' | 'unverifiable' }`
-7. Update `funnel_partial_submissions.email_quality` with the result
+### 2.3 Missing "Powered by QUIN" Attribution
 
-**Error handling:** If either API is down, return `{ quality: 'unknown' }` and allow the user through (fail open -- do not block leads due to third-party downtime).
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
 
 ---
 
-## Task 3: Database Migration
+## CATEGORY 3: Technical & Security Issues
 
-Add two columns to `funnel_partial_submissions`:
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
 
-```sql
-ALTER TABLE funnel_partial_submissions
-  ADD COLUMN IF NOT EXISTS email_quality TEXT DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
-```
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
 
-- `email_quality`: `pending`, `verified`, `catch_all`, `invalid`, `disposable`, `unknown`, `otp_verified`
-- `email_verified_at`: timestamp when verification completed (API or OTP)
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
 
----
+### 3.2 `linear-gradient()` in Inline Styles
 
-## Task 4: Update `handleEmailCapture` in FunnelSteps.tsx
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
 
-**Current flow:** Validate email format -> upsert partial -> show Phase B fields.
+**Fix**: Replace gradients with solid background colors.
 
-**New flow:**
-1. Validate email format (unchanged)
-2. Show a brief loading state on the Continue button ("Verifying...")
-3. Call `verify-funnel-email` edge function
-4. If `quality === 'verified'` or `quality === 'unknown'` (fail-open): proceed to Phase B as normal
-5. If `quality === 'invalid'` or `quality === 'disposable'`:
-   - Show an inline verification block (no modal, no page change) with:
-     - Message: "We could not verify this email address."
-     - Option A: "Use a different email" button -- clears the field, re-focuses it
-     - Option B: "Verify with a code" button -- calls the existing `send-email-verification` function, shows the `LazyInputOTP` component (already lazy-loaded in `LazyFunnelComponents.tsx`)
-   - On successful OTP entry, mark `email_quality = 'otp_verified'` and proceed to Phase B
+### 3.3 CSS `box-shadow` in Inline Styles
 
-**New state variables:**
-- `emailVerificationStatus`: `'idle' | 'checking' | 'verified' | 'failed' | 'otp_sent' | 'otp_verified'`
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
 
-**UI for the OTP fallback (inline, below the email field):**
-```
-"We could not verify this email address."
-[Use a different email]  [Verify with a code]
+### 3.4 `<ul>` Tag Usage
 
--- if "Verify with a code" clicked: --
-"Enter the 6-digit code sent to {email}"
-[  ][  ][  ][  ][  ][  ]
-[Resend code] (60s cooldown)
-```
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
 
-This reuses the existing `LazyInputOTP` component and `send-email-verification` edge function. No new OTP infrastructure.
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
 
 ---
 
-## Task 5: Fix Welcome Back Dialog False Triggers
+## CATEGORY 4: Accessibility & Compliance
 
-**File:** `src/components/partner-funnel/FunnelSteps.tsx` (lines 152-155)
+### 4.1 Missing `lang` Attribute on Content
 
-**Change:** Add a 5-minute staleness check so the dialog only appears when the saved data is older than 5 minutes:
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
 
 ```typescript
-const savedData = autoSave.load();
-const savedAge = savedData
-  ? Date.now() - new Date(savedData.timestamp).getTime()
-  : 0;
-const isStaleEnough = savedAge > 5 * 60 * 1000;
-
-if (
-  savedData &&
-  !savedData.completed &&
-  isStaleEnough &&
-  (savedData.currentStep > 0 ||
-    (savedData.formData?.contact_name && savedData.formData?.contact_email))
-) {
-  setTimeout(() => setResumeDialogOpen(true), 500);
-}
-```
-
----
-
-## Task 6: Add "Partner Request" Form Label
-
-**File:** `src/components/partner-funnel/FunnelSteps.tsx` (inside Card, above availability indicator, ~line 786)
-
-Add a subtle label:
-```tsx
-<p className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-2">
-  Partner Request
-</p>
-```
-
----
-
-## Task 7: Expand Review Summary (Step 2)
-
-**File:** `src/components/partner-funnel/FunnelSteps.tsx` (lines 712-730)
-
-Add all non-empty fields to the summary grid:
-- Company size, Roles per year, Budget, Website, Location, Description (truncated), Phone
-
-Each rendered conditionally with `{value && (<>...</>)}`.
-
----
-
-## Task 8: Final Validation Guard in `handleSubmit`
-
-**File:** `src/components/partner-funnel/FunnelSteps.tsx` (line 352+)
-
-Add a hard check for all `NOT NULL` database fields before the insert:
-```typescript
-const requiredFields = {
-  contact_name: formData.contact_name,
-  contact_email: formData.contact_email,
-  company_name: formData.company_name,
-  industry: formData.industry,
-  company_size: formData.company_size,
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
 };
-
-const missing = Object.entries(requiredFields)
-  .filter(([_, v]) => !v)
-  .map(([k]) => k);
-
-if (missing.length > 0) {
-  toast({ title: "Please complete the required fields.", variant: "destructive" });
-  if (!formData.company_size) setCurrentStep(1);
-  else setCurrentStep(0);
-  return;
-}
 ```
 
-Also remove `|| null` from `company_size` on line 369.
+### 5.2 Centralize Plain-Text Generation
 
----
-
-## Task 9: Enrich Admin Notification
-
-**File:** `supabase/functions/notify-admin-partner-request/index.ts`
-
-**Changes:**
-1. Accept full form data in the request body (company, industry, size, timeline, budget, roles, website, location, phone)
-2. Add `InfoRow` entries for each non-empty field in the admin email card
-3. Update the in-app notification message to include company and industry
-
-**Updated payload from client (line 408-415):**
 ```typescript
-supabase.functions.invoke('notify-admin-partner-request', {
-  body: {
-    requestId: crypto.randomUUID(),
-    name: formData.contact_name,
-    email: formData.contact_email,
-    type: 'partner',
-    company: formData.company_name,
-    industry: formData.industry,
-    companySize: formData.company_size,
-    timeline: formData.timeline,
-    budget: formData.budget_range,
-    rolesPerYear: formData.estimated_roles_per_year,
-    website: formData.website,
-    location: formData.headquarters_location,
-    phone: phoneNumber,
-  }
-});
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
 ```
 
 ---
 
-## Task 10: Fix Stale Copy in Reminder Email
+## Implementation Priority
 
-**File:** `supabase/functions/send-funnel-reminder/index.ts` (line 89)
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
 
-**Change:** Replace `"No upfront fees. No contracts. You only pay when we place a candidate."` with `"No fees until you hire."`
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
 
 ---
 
-## Task 11: Filter Reminders by Email Quality
+## Files to Modify
 
-**File:** `supabase/functions/process-funnel-reminders/index.ts`
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
 
-**Change:** Add `.not('email_quality', 'in', '("invalid","disposable")')` to both the first-touch and second-touch queries. This prevents sending reminder emails to addresses that MillionVerifier/Findymail flagged as undeliverable.
+**Total: ~25 files modified**
 
----
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
 
-## Files Summary
-
-| File | Change |
-|------|--------|
-| `src/components/partner-funnel/FunnelSteps.tsx` | Email verification flow, staleness check, form label, expanded summary, submit guard, enriched admin payload |
-| `supabase/functions/verify-funnel-email/index.ts` | New -- MillionVerifier + Findymail hybrid check |
-| `supabase/functions/notify-admin-partner-request/index.ts` | Accept and render full lead data |
-| `supabase/functions/send-funnel-reminder/index.ts` | Fix plain-text footer (line 89) |
-| `supabase/functions/process-funnel-reminders/index.ts` | Filter out invalid/disposable emails |
-| Database migration | Add `email_quality` and `email_verified_at` columns |
-
-## What Does NOT Change
-
-- Form field order, layout structure, and existing copy
-- Analytics, UTM tracking, exit intent, autosave mechanism (except staleness check)
-- RLS policies
-- Success page, QUIN assistant, trust badges
-- Confirmation email (`send-partner-request-received`)
-- OTP infrastructure (reuses existing `send-email-verification` function)
-
-## Secrets Required
-
-- `MILLIONVERIFIER_API_KEY` -- will be requested during implementation
-- `FINDYMAIL_API_KEY` -- will be requested during implementation
