@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,11 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Eye, EyeOff, Loader2, Trash2, Linkedin, Twitter, MessageSquare, Instagram } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Trash2, Linkedin, Twitter, MessageSquare, Instagram, Upload, User } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { useAvatarSocialTargets, SOCIAL_PLATFORMS, SocialPlatform } from '@/hooks/useAvatarSocialTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { versionedAvatarUrl } from '@/lib/avatar-url';
 
 interface EditAvatarAccountDialogProps {
   account: AvatarAccount | null;
@@ -35,7 +37,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
   const [notes, setNotes] = useState('');
   const [playbook, setPlaybook] = useState('');
   const [emailAccountAddress, setEmailAccountAddress] = useState('');
-
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
   // Social platform local state
   const [socialState, setSocialState] = useState<Record<SocialPlatform, { active: boolean; handle: string; target: number }>>({
     linkedin: { active: false, handle: '', target: 3 },
@@ -165,6 +168,31 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !account) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
+
+    setAvatarUploading(true);
+    try {
+      const ext = file.type.includes('png') ? 'png' : file.type.includes('webp') ? 'webp' : 'jpg';
+      const filePath = `linkedin-avatars/${account.id}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('avatars').upload(filePath, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      await supabase.from('linkedin_avatar_accounts').update({ avatar_url: newUrl }).eq('id', account.id);
+      toast.success('Avatar updated');
+      // Trigger refetch via invalidation handled by the hook
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed');
+    } finally {
+      setAvatarUploading(false);
+      if (avatarFileRef.current) avatarFileRef.current.value = '';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -173,6 +201,26 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
+          {/* Avatar upload */}
+          <div className="flex items-center gap-4">
+            <Avatar className="h-14 w-14 border border-border">
+              {avatarUploading ? (
+                <AvatarFallback><Loader2 className="h-5 w-5 animate-spin" /></AvatarFallback>
+              ) : account?.avatar_url ? (
+                <AvatarImage src={versionedAvatarUrl(account.avatar_url, account.last_synced_at)} alt={account.label} className="object-cover" />
+              ) : (
+                <AvatarFallback><User className="h-6 w-6 text-muted-foreground" /></AvatarFallback>
+              )}
+            </Avatar>
+            <div className="space-y-1">
+              <input ref={avatarFileRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" disabled={avatarUploading} />
+              <Button variant="outline" size="sm" onClick={() => avatarFileRef.current?.click()} disabled={avatarUploading}>
+                <Upload className="h-3.5 w-3.5 mr-1.5" />
+                {account?.avatar_url ? 'Change' : 'Upload'} Photo
+              </Button>
+              <p className="text-[11px] text-muted-foreground">JPG, PNG or WEBP. Max 5MB.</p>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Label</Label>
