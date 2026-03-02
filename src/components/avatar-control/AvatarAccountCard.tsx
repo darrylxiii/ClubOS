@@ -9,6 +9,7 @@ import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { AvatarSocialTarget } from '@/hooks/useAvatarSocialTargets';
 import { format, formatDistanceToNow } from 'date-fns';
+import { formatLocation } from '@/lib/format-location';
 
 interface AvatarAccountCardProps {
   account: AvatarAccount;
@@ -108,7 +109,7 @@ export function AvatarAccountCard({ account, activeSession, socialTargets, onSta
           {account.location && (
             <p className="text-[11px] text-muted-foreground flex items-center gap-1">
               <MapPin className="h-3 w-3 shrink-0" />
-              <span className="truncate">{account.location}</span>
+              <span className="truncate">{formatLocation(account.location)}</span>
             </p>
           )}
 

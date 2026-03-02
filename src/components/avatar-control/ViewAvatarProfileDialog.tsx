@@ -15,6 +15,7 @@ import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { useAvatarSocialTargets, SOCIAL_PLATFORMS } from '@/hooks/useAvatarSocialTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
+import { formatLocation } from '@/lib/format-location';
 
 interface ViewAvatarProfileDialogProps {
   account: AvatarAccount | null;
@@ -120,7 +121,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                 )}
                 {account.location && (
                   <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {account.location}
+                    <MapPin className="h-3 w-3" /> {formatLocation(account.location)}
                   </span>
                 )}
               </div>
