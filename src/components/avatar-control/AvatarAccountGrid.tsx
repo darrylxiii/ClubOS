@@ -101,6 +101,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
             onStartSession={onStartSession}
             onSyncLinkedIn={handleSyncLinkedIn}
             onEdit={setEditAccount}
+            onView={setViewAccount}
             isSyncing={syncingId === account.id}
           />
         ))}
