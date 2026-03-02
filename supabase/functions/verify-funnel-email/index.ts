@@ -12,7 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { email, sessionId } = await req.json();
+    const { email: rawEmail, sessionId } = await req.json();
+    const email = typeof rawEmail === 'string' ? rawEmail.trim() : rawEmail;
 
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
