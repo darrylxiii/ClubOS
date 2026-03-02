@@ -547,6 +547,17 @@ export function FunnelSteps() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <Label className="glass-label">Website</Label>
+                  <Input
+                    type="url"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="yourcompany.com"
+                    className="glass-input"
+                  />
+                </div>
               </div>
             )}
 
