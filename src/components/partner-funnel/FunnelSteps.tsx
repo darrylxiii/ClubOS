@@ -909,10 +909,52 @@ export function FunnelSteps() {
                 <span className="text-foreground font-medium truncate">{formData.company_name}</span>
                 <span>Industry</span>
                 <span className="text-foreground font-medium capitalize">{formData.industry}</span>
+                {formData.company_size && (
+                  <>
+                    <span>Company size</span>
+                    <span className="text-foreground font-medium">{formData.company_size}</span>
+                  </>
+                )}
+                {formData.estimated_roles_per_year && (
+                  <>
+                    <span>Roles / year</span>
+                    <span className="text-foreground font-medium">{formData.estimated_roles_per_year}</span>
+                  </>
+                )}
                 {formData.timeline && (
                   <>
                     <span>Timeline</span>
                     <span className="text-foreground font-medium capitalize">{formData.timeline.replace('_', ' ')}</span>
+                  </>
+                )}
+                {formData.budget_range && (
+                  <>
+                    <span>Budget</span>
+                    <span className="text-foreground font-medium">{formData.budget_range}</span>
+                  </>
+                )}
+                {formData.website && (
+                  <>
+                    <span>Website</span>
+                    <span className="text-foreground font-medium truncate">{formData.website}</span>
+                  </>
+                )}
+                {formData.headquarters_location && (
+                  <>
+                    <span>Location</span>
+                    <span className="text-foreground font-medium truncate">{formData.headquarters_location}</span>
+                  </>
+                )}
+                {phoneNumber && (
+                  <>
+                    <span>Phone</span>
+                    <span className="text-foreground font-medium">{phoneNumber}</span>
+                  </>
+                )}
+                {formData.description && (
+                  <>
+                    <span>Notes</span>
+                    <span className="text-foreground font-medium truncate">{formData.description.length > 100 ? formData.description.slice(0, 100) + '…' : formData.description}</span>
                   </>
                 )}
               </div>
