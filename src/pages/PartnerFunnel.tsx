@@ -123,13 +123,13 @@ export default function PartnerFunnel() {
       <div className="container mx-auto px-4 pt-6 pb-4">
         <div className="text-center max-w-2xl mx-auto mb-3">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight mb-3">
-            Your shortlist of senior candidates, ready in 14 days.
+            Senior talent, shortlisted for you within two weeks.
           </h1>
           <p className="text-lg text-muted-foreground mb-2">
-            Tell us who you're looking for — we handle sourcing, screening, and coordination.
+            Describe the role. We handle the rest.
           </p>
           <p className="text-sm text-muted-foreground">
-            No upfront fees. No contracts. You only pay for results.
+            No fees until you hire. No long-term contracts.
           </p>
         </div>
 
