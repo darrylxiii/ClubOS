@@ -79,6 +79,12 @@ export function AvatarAccountCard({ account, activeSession, onStartSession, onSy
             </div>
             {/* Edit + Sync buttons */}
             <div className="flex items-center gap-0.5 shrink-0">
+              {onView && (
+                <Button variant="ghost" size="icon" className="h-7 w-7"
+                  onClick={(e) => { e.stopPropagation(); onView(account); }} title="View profile">
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+              )}
               {onEdit && (
                 <Button variant="ghost" size="icon" className="h-7 w-7"
                   onClick={(e) => { e.stopPropagation(); onEdit(account); }} title="Edit account">
