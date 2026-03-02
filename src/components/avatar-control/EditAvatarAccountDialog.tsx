@@ -27,6 +27,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
   const [status, setStatus] = useState('available');
   const [riskLevel, setRiskLevel] = useState('low');
   const [maxDailyMinutes, setMaxDailyMinutes] = useState(120);
+  const [weeklyConnectionLimit, setWeeklyConnectionLimit] = useState(100);
+  const [weeklyConnectionsSent, setWeeklyConnectionsSent] = useState(0);
   const [notes, setNotes] = useState('');
   const [playbook, setPlaybook] = useState('');
   const [emailAccountAddress, setEmailAccountAddress] = useState('');
