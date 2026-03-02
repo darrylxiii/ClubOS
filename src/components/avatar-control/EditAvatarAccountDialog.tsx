@@ -253,6 +253,55 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
             </Button>
           </div>
 
+          {/* Social Platforms */}
+          <div className="border-t pt-4 space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Social Platforms</p>
+            {SOCIAL_PLATFORMS.map(p => {
+              const Icon = p.value === 'linkedin' ? Linkedin : p.value === 'twitter' ? Twitter : p.value === 'reddit' ? MessageSquare : Instagram;
+              const s = socialState[p.value];
+              return (
+                <div key={p.value} className="space-y-2 rounded-lg border border-border/30 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon className={`h-4 w-4 ${p.color}`} />
+                      <span className="text-sm font-medium">{p.label}</span>
+                    </div>
+                    <Switch
+                      checked={s.active}
+                      onCheckedChange={(checked) =>
+                        setSocialState(prev => ({ ...prev, [p.value]: { ...prev[p.value], active: checked } }))
+                      }
+                    />
+                  </div>
+                  {s.active && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Handle</Label>
+                        <Input
+                          className="h-8 text-xs"
+                          placeholder={p.value === 'reddit' ? 'u/username' : '@username'}
+                          value={s.handle}
+                          onChange={e => setSocialState(prev => ({ ...prev, [p.value]: { ...prev[p.value], handle: e.target.value } }))}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Weekly Target</Label>
+                        <Input
+                          type="number"
+                          className="h-8 text-xs"
+                          min={1}
+                          max={50}
+                          value={s.target}
+                          onChange={e => setSocialState(prev => ({ ...prev, [p.value]: { ...prev[p.value], target: Number(e.target.value) } }))}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
           {/* Credentials section */}
           <div className="border-t pt-4 space-y-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Credentials</p>
