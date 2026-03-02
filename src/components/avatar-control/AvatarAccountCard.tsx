@@ -10,6 +10,7 @@ import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { AvatarSocialTarget } from '@/hooks/useAvatarSocialTargets';
 import { format, formatDistanceToNow } from 'date-fns';
 import { formatLocation } from '@/lib/format-location';
+import { versionedAvatarUrl } from '@/lib/avatar-url';
 
 interface AvatarAccountCardProps {
   account: AvatarAccount;

@@ -296,6 +296,16 @@ Deno.serve(async (req) => {
       linkedin_email_from_scrape: linkedinEmailFromScrape,
     };
 
+    // Only update avatar_url if we actually got a new image — never wipe existing
+    if (storedAvatarUrl) {
+      updates.avatar_url = storedAvatarUrl;
+    } else {
+      console.log('[sync-avatar-linkedin] No new avatar found — keeping existing avatar_url');
+      if (!PROXYCURL_API_KEY) {
+        console.warn('[sync-avatar-linkedin] PROXYCURL_API_KEY is not configured — avatar fallback unavailable');
+      }
+    }
+
     const { data: updated, error: updateError } = await supabase
       .from('linkedin_avatar_accounts')
       .update(updates)

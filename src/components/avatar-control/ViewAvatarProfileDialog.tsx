@@ -16,6 +16,7 @@ import { useAvatarSocialTargets, SOCIAL_PLATFORMS } from '@/hooks/useAvatarSocia
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { formatLocation } from '@/lib/format-location';
+import { versionedAvatarUrl } from '@/lib/avatar-url';
 
 interface ViewAvatarProfileDialogProps {
   account: AvatarAccount | null;
