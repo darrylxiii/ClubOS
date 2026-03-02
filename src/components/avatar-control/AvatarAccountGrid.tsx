@@ -23,6 +23,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<typeof FILTER_OPTIONS[number]>('All');
   const [editAccount, setEditAccount] = useState<AvatarAccount | null>(null);
+  const [viewAccount, setViewAccount] = useState<AvatarAccount | null>(null);
 
   const handleSyncLinkedIn = (account: AvatarAccount) => {
     if (!account.linkedin_url) {
