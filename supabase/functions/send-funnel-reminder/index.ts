@@ -63,7 +63,7 @@ serve(async (req) => {
             </td></tr>
           </table>
           <p style="font-size:14px;color:#666;line-height:1.5;margin:0;">
-            No upfront fees. No contracts. You only pay when we place a candidate.
+            No fees until you hire.
           </p>
         </td></tr>
         <tr><td style="padding:32px 0 0;text-align:center;">

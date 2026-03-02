@@ -133,7 +133,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm">QUIN</h3>
-              <p className="text-xs text-muted-foreground">Powered by QUIN</p>
+              <p className="text-xs text-muted-foreground">AI assistant</p>
             </div>
             <Button size="icon" variant="ghost" onClick={() => setIsOpen(false)}>
               <X className="w-4 h-4" />

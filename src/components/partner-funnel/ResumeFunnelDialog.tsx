@@ -81,7 +81,7 @@ export function ResumeFunnelDialog({
                         className="sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                         autoFocus
                     >
-                        Continue Where I Left Off
+                        Continue
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

@@ -119,7 +119,7 @@ export default function PartnershipSubmitted() {
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <a href="https://thequantumclub.com">
-                  Return to Website
+                  Visit our website
                 </a>
               </Button>
             </div>

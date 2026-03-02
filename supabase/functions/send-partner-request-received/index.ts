@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
     `;
 
     const htmlContent = baseEmailTemplate({
-      preheader: 'Your partner request has been received. We will review it within 24 hours.',
+      preheader: 'Your brief has been received. We will review it within 24 hours.',
       content: emailContent,
       showHeader: true,
       showFooter: true,

@@ -160,7 +160,7 @@ export default function PartnerFunnel() {
         {/* Mobile: compact badge instead of full strip */}
         <div className="sm:hidden flex justify-center mb-4">
           <span className="text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-4 py-1.5">
-            3 simple steps — no fees, no contracts
+            Three steps. Under two minutes.
           </span>
         </div>
 

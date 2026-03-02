@@ -861,7 +861,7 @@ export function FunnelSteps() {
                     </>
                   ) : (
                     <>
-                      Submit — Free, No Obligation
+                      Submit your brief
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
