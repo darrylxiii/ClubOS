@@ -623,7 +623,7 @@ export function FunnelSteps() {
                     <SelectItem value="1_month">Within 1 month</SelectItem>
                     <SelectItem value="3_months">Within 3 months</SelectItem>
                     <SelectItem value="6_months">Within 6 months</SelectItem>
-                    <SelectItem value="planning">Just exploring</SelectItem>
+                    <SelectItem value="planning">No immediate need</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
