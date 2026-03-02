@@ -9,7 +9,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Clock, Shield, CheckCircle } from "lucide-react";
 
 interface ExitIntentPopupProps {
@@ -32,11 +31,11 @@ export function ExitIntentPopup({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="glass-effect max-w-md">
+      <AlertDialogContent className="glass max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
-            {isStepZero ? "Before you go" : "Don't Lose Your Progress!"}
+            {isStepZero ? "Before you go" : "Don't lose your progress"}
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-4">
             {isStepZero ? (
@@ -85,9 +84,9 @@ export function ExitIntentPopup({
               </>
             )}
 
-            <Badge variant="secondary" className="w-full justify-center py-2">
+            <p className="text-xs text-muted-foreground/70 tracking-wide text-center">
               No obligation — just a conversation.
-            </Badge>
+            </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-col sm:flex-row gap-2">

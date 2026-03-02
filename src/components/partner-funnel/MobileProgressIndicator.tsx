@@ -62,7 +62,7 @@ export function DesktopProgressSteps({
           {/* Step circle */}
           <div
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+              "w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-300",
               index < currentStep
                 ? "bg-primary border-primary text-primary-foreground"
                 : index === currentStep
@@ -71,16 +71,16 @@ export function DesktopProgressSteps({
             )}
           >
             {index < currentStep ? (
-              <CheckCircle className="w-5 h-5" />
+              <CheckCircle className="w-3.5 h-3.5" />
             ) : (
-              <span className="text-sm font-semibold">{index + 1}</span>
+              <span className="text-xs font-semibold">{index + 1}</span>
             )}
           </div>
           
           {/* Step label */}
           <span
             className={cn(
-              "ml-2 text-sm font-medium capitalize hidden lg:inline",
+              "ml-2 text-xs font-medium capitalize hidden lg:inline",
               index === currentStep
                 ? "text-foreground"
                 : index < currentStep
@@ -95,7 +95,7 @@ export function DesktopProgressSteps({
           {index < totalSteps - 1 && (
             <div
               className={cn(
-                "w-8 lg:w-16 h-0.5 mx-2 transition-all duration-300",
+                "w-8 lg:w-16 h-px mx-2 transition-all duration-300",
                 index < currentStep ? "bg-primary" : "bg-muted"
               )}
             />

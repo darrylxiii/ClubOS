@@ -1,25 +1,9 @@
-import { Shield, Lock, Award, CheckCircle, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-
 export function TrustBadges() {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 py-4">
-      <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
-        <Shield className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs">GDPR Compliant</span>
-      </Badge>
-      <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
-        <Lock className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs">256-bit SSL</span>
-      </Badge>
-      <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
-        <Award className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs">Zero Upfront Fees</span>
-      </Badge>
-      <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
-        <Clock className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs">24h Response</span>
-      </Badge>
+    <div className="text-center py-3">
+      <p className="text-xs text-muted-foreground/70 tracking-wide">
+        GDPR compliant · 256-bit encrypted · No upfront fees
+      </p>
     </div>
   );
 }
@@ -27,18 +11,9 @@ export function TrustBadges() {
 export function TrustBadgesMinimal() {
   return (
     <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
-      <div className="flex items-center gap-1">
-        <Shield className="w-3 h-3" />
-        <span>Secure</span>
-      </div>
-      <div className="flex items-center gap-1">
-        <Lock className="w-3 h-3" />
-        <span>Encrypted</span>
-      </div>
-      <div className="flex items-center gap-1">
-        <CheckCircle className="w-3 h-3" />
-        <span>GDPR</span>
-      </div>
+      <span>Secure</span>
+      <span>Encrypted</span>
+      <span>GDPR</span>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { migrateToast as toast } from "@/lib/notify";
-import { ArrowRight, ArrowLeft, CheckCircle, Users, Target, Loader2, Clock, Keyboard } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Loader2, Clock } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import PhoneInput from "react-phone-number-input";
@@ -24,7 +24,6 @@ import { MobileProgressIndicator, DesktopProgressSteps } from "./MobileProgressI
 import { SuccessConfetti } from "./SuccessConfetti";
 import { useFunnelAnalytics } from "@/hooks/useFunnelAnalytics";
 import { useActiveFunnelExperiments } from "@/hooks/useFunnelABTest";
-import { KeyboardHintToast } from "./KeyboardShortcuts";
 import { usePrefetch } from "./LazyFunnelComponents";
 import { NetworkStatusIndicator, InlineNetworkStatus } from "./NetworkStatusIndicator";
 import { StepTransition } from "./StepTransition";
@@ -47,7 +46,6 @@ export function FunnelSteps() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
-  const [showKeyboardHints, setShowKeyboardHints] = useState(true);
   const [exitIntentOpen, setExitIntentOpen] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'backward'>('forward');
   const [spotsLeft, setSpotsLeft] = useState(2);
@@ -127,7 +125,6 @@ export function FunnelSteps() {
             if (data.current_step > 0) {
               setCurrentStep(data.current_step);
             }
-            // Restore saved UTMs for analytics accuracy
             if (savedForm._saved_utm_source || savedForm._saved_utm_medium || savedForm._saved_utm_campaign) {
               analytics.setUtmOverrides({
                 utm_source: savedForm._saved_utm_source || null,
@@ -147,7 +144,7 @@ export function FunnelSteps() {
           setIsResuming(false);
         }
       })();
-      return; // Skip localStorage resume check
+      return;
     }
 
     // Load saved data from localStorage
@@ -223,7 +220,7 @@ export function FunnelSteps() {
           last_active_at: new Date().toISOString(),
         }, { onConflict: 'session_id' });
     } catch {
-      // Non-blocking — don't disrupt user flow
+      // Non-blocking
     }
   }, [sessionId, formData, currentStep]);
 
@@ -250,7 +247,6 @@ export function FunnelSteps() {
       return;
     }
 
-    // Persist UTM params into form_data so they survive resume flow
     const params = new URLSearchParams(window.location.search);
     const utmSource = params.get("utm_source");
     const utmMedium = params.get("utm_medium");
@@ -264,7 +260,6 @@ export function FunnelSteps() {
       } as any));
     }
 
-    // Save to DB immediately
     await upsertPartialSubmission(formData.contact_email);
     partialSaveRef.current = true;
     setEmailCaptured(true);
@@ -306,7 +301,6 @@ export function FunnelSteps() {
   const handleNext = async () => {
     if (!validateStep()) return;
 
-    // Update partial submission with latest data
     if (partialSaveRef.current) {
       await supabase
         .from('funnel_partial_submissions')
@@ -355,7 +349,6 @@ export function FunnelSteps() {
   };
 
   const handleSubmit = async () => {
-    // Honeypot check — silently reject bots
     if (honeypot) {
       toast({ title: "Request submitted.", description: "Your strategist will be in touch." });
       return;
@@ -401,7 +394,6 @@ export function FunnelSteps() {
         return;
       }
 
-      // Mark partial submission as completed
       if (partialSaveRef.current) {
         supabase
           .from('funnel_partial_submissions')
@@ -412,7 +404,6 @@ export function FunnelSteps() {
 
       await analytics.trackFunnelComplete(timeToComplete);
 
-      // Non-blocking admin notification
       supabase.functions.invoke('notify-admin-partner-request', {
         body: {
           requestId: crypto.randomUUID(),
@@ -422,7 +413,6 @@ export function FunnelSteps() {
         }
       }).catch(err => console.warn('Admin notification failed (non-blocking):', err));
 
-      // Non-blocking confirmation email
       supabase.functions.invoke('send-partner-request-received', {
         body: {
           email: formData.contact_email,
@@ -464,8 +454,7 @@ export function FunnelSteps() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Users className="w-10 h-10 text-primary mx-auto mb-3" />
-              <h2 className="text-xl font-semibold mb-1">
+              <h2 className="text-2xl font-semibold mb-1">
                 {emailCaptured ? "A few more details" : "Get your shortlist started"}
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -475,7 +464,7 @@ export function FunnelSteps() {
 
             {/* Phase A: Email only (or always visible once captured) */}
             <div>
-              <Label>Work Email *</Label>
+              <Label className="glass-label">Work Email *</Label>
               <Input
                 type="email"
                 value={formData.contact_email}
@@ -485,7 +474,7 @@ export function FunnelSteps() {
                 }}
                 onBlur={handleEmailBlur}
                 placeholder="jane@company.com"
-                className={cn(validation.hasError('contact_email') && "border-destructive")}
+                className={cn("glass-input", validation.hasError('contact_email') && "border-destructive")}
                 readOnly={emailCaptured}
                 autoFocus={!emailCaptured}
               />
@@ -495,6 +484,7 @@ export function FunnelSteps() {
             {/* Phase A button — show only before email is captured */}
             {!emailCaptured && (
               <Button
+                variant="primary"
                 onClick={handleEmailCapture}
                 className="w-full min-h-[44px] text-base"
               >
@@ -508,7 +498,7 @@ export function FunnelSteps() {
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label>Full Name *</Label>
+                    <Label className="glass-label">Full Name *</Label>
                     <Input
                       value={formData.contact_name}
                       onChange={(e) => {
@@ -517,14 +507,14 @@ export function FunnelSteps() {
                       }}
                       onBlur={() => validation.validateField('contact_name', formData.contact_name)}
                       placeholder="Jane Smith"
-                      className={cn(validation.hasError('contact_name') && "border-destructive")}
+                      className={cn("glass-input", validation.hasError('contact_name') && "border-destructive")}
                       autoFocus
                     />
                     <FieldError error={validation.getFieldError('contact_name')} />
                   </div>
 
                   <div>
-                    <Label>Company Name *</Label>
+                    <Label className="glass-label">Company Name *</Label>
                     <Input
                       value={formData.company_name}
                       onChange={(e) => {
@@ -533,14 +523,14 @@ export function FunnelSteps() {
                       }}
                       onBlur={() => validation.validateField('company_name', formData.company_name)}
                       placeholder="Acme Corp"
-                      className={cn(validation.hasError('company_name') && "border-destructive")}
+                      className={cn("glass-input", validation.hasError('company_name') && "border-destructive")}
                     />
                     <FieldError error={validation.getFieldError('company_name')} />
                   </div>
                 </div>
 
                 <div>
-                  <Label>Industry *</Label>
+                  <Label className="glass-label">Industry *</Label>
                   <Select
                     value={formData.industry}
                     onValueChange={(v) => setFormData({ ...formData, industry: v })}
@@ -583,14 +573,13 @@ export function FunnelSteps() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Target className="w-10 h-10 text-primary mx-auto mb-3" />
-              <h2 className="text-xl font-semibold mb-1">Your hiring needs</h2>
+              <h2 className="text-2xl font-semibold mb-1">Your hiring needs</h2>
               <p className="text-sm text-muted-foreground">Help us prepare for our first call</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label>Company Size *</Label>
+                <Label className="glass-label">Company Size *</Label>
                 <Select
                   value={formData.company_size}
                   onValueChange={(v) => setFormData({ ...formData, company_size: v })}
@@ -610,19 +599,20 @@ export function FunnelSteps() {
               </div>
 
               <div>
-                <Label>Estimated Roles / Year</Label>
+                <Label className="glass-label">Estimated Roles / Year</Label>
                 <Input
                   type="number"
                   value={formData.estimated_roles_per_year}
                   onChange={(e) => setFormData({ ...formData, estimated_roles_per_year: e.target.value })}
                   placeholder="e.g. 5"
+                  className="glass-input"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label>When do you need to start?</Label>
+                <Label className="glass-label">When do you need to start?</Label>
                 <Select
                   value={formData.timeline}
                   onValueChange={(v) => setFormData({ ...formData, timeline: v })}
@@ -641,7 +631,7 @@ export function FunnelSteps() {
               </div>
 
               <div>
-                <Label>Approximate Annual Budget</Label>
+                <Label className="glass-label">Approximate Annual Budget</Label>
                 <Select
                   value={formData.budget_range}
                   onValueChange={(v) => setFormData({ ...formData, budget_range: v })}
@@ -661,21 +651,23 @@ export function FunnelSteps() {
             </div>
 
             <div>
-              <Label>Anything else we should know? <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Label className="glass-label">Anything else we should know? <span className="text-muted-foreground font-normal">(optional)</span></Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Optional — share anything that would help us prepare for our call. Roles you're hiring for, seniority levels, or challenges you're facing."
                 rows={3}
+                className="glass-input"
               />
             </div>
 
             <div>
-              <Label>Location</Label>
+              <Label className="glass-label">Location</Label>
               <Input
                 value={formData.headquarters_location}
                 onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
                 placeholder="e.g. Amsterdam, Dubai, London"
+                className="glass-input"
               />
             </div>
           </div>
@@ -688,15 +680,14 @@ export function FunnelSteps() {
         return (
           <div className="space-y-5">
             <div className="text-center mb-6">
-              <CheckCircle className="w-10 h-10 text-primary mx-auto mb-3" />
-              <h2 className="text-xl font-semibold mb-1">Almost done</h2>
+              <h2 className="text-2xl font-semibold mb-1">Almost done</h2>
               <p className="text-sm text-muted-foreground">
                 Add your phone number so we can reach you — or skip and we'll use email.
               </p>
             </div>
 
             <div>
-              <Label>Phone Number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Label className="glass-label">Phone Number <span className="text-muted-foreground font-normal">(optional)</span></Label>
               <PhoneInput
                 international
                 countryCallingCodeEditable={false}
@@ -748,7 +739,7 @@ export function FunnelSteps() {
 
   if (isResuming) {
     return (
-      <Card className="p-8 glass-effect">
+      <Card className="p-5 sm:p-8 glass">
         <div className="flex items-center justify-center gap-3 py-8">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
           <span className="text-muted-foreground">Restoring your progress...</span>
@@ -781,30 +772,16 @@ export function FunnelSteps() {
         onStartFresh={handleStartFresh}
       />
 
-      {showKeyboardHints && currentStep === 0 && emailCaptured && (
-        <KeyboardHintToast onDismiss={() => setShowKeyboardHints(false)} />
-      )}
-
       <FunnelErrorBoundary stepName={STEPS[currentStep]}>
-        <Card className="p-8 glass-effect">
-          {/* Availability indicator */}
-          {(() => {
-            const indicatorColor =
-              spotsLeft >= 4 ? 'bg-primary' : spotsLeft >= 2 ? 'bg-primary/70' : 'bg-destructive';
-            const textColor =
-              spotsLeft >= 4 ? 'text-primary' : spotsLeft >= 2 ? 'text-primary' : 'text-destructive';
-            return (
-              <div className="flex items-center justify-center gap-3 p-3 glass-effect border border-primary/20 rounded-2xl mb-6">
-                <div className="relative">
-                  <div className={`w-2.5 h-2.5 ${indicatorColor} rounded-full animate-pulse`} />
-                  <div className={`absolute inset-0 w-2.5 h-2.5 ${indicatorColor} rounded-full animate-ping`} />
-                </div>
-                <span className="text-sm font-medium">
-                  <span className={textColor}>{spotsLeft}/5</span> partner spots available this quarter
-                </span>
-              </div>
-            );
-          })()}
+        <Card className="p-5 sm:p-8 glass">
+          {/* Availability indicator — minimal inline */}
+          <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
+            <div className={cn(
+              "w-1.5 h-1.5 rounded-full animate-pulse",
+              spotsLeft >= 4 ? 'bg-primary' : spotsLeft >= 2 ? 'bg-primary/70' : 'bg-destructive'
+            )} />
+            <span>{spotsLeft}/5 partner spots available this quarter</span>
+          </div>
 
           {/* Progress — hide until email is captured */}
           {emailCaptured && (
@@ -833,22 +810,8 @@ export function FunnelSteps() {
                     </Badge>
                   )}
                 </div>
-                {showKeyboardHints && currentStep < 2 && (
-                  <div className="hidden md:flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
-                      <Keyboard className="w-3 h-3" />
-                      <span>Enter</span> = Next
-                    </Badge>
-                    {currentStep > 0 && (
-                      <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
-                        <Keyboard className="w-3 h-3" />
-                        <span>Esc</span> = Back
-                      </Badge>
-                    )}
-                  </div>
-                )}
               </div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="h-1 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-500 ease-out"
                   style={{ width: `${((currentStep + 1) / 3) * 100}%` }}
@@ -880,6 +843,7 @@ export function FunnelSteps() {
               )}
               {currentStep < 2 ? (
                 <Button
+                  variant="primary"
                   onClick={handleNext}
                   className="flex-1 min-h-[44px] text-base"
                 >
@@ -888,6 +852,7 @@ export function FunnelSteps() {
                 </Button>
               ) : (
                 <Button
+                  variant="primary"
                   onClick={handleSubmit}
                   className="flex-1 min-h-[44px] text-base"
                   disabled={isSubmitting}
