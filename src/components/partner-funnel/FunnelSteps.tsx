@@ -777,7 +777,7 @@ export function FunnelSteps() {
               "w-1.5 h-1.5 rounded-full animate-pulse",
               spotsLeft >= 4 ? 'bg-primary' : spotsLeft >= 2 ? 'bg-primary/70' : 'bg-destructive'
             )} />
-            <span>{spotsLeft}/5 partner spots available this quarter</span>
+            <span>Limited availability this quarter</span>
           </div>
 
           {/* Progress — hide until email is captured */}
