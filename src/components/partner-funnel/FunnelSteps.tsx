@@ -366,9 +366,9 @@ export function FunnelSteps() {
         last_step_viewed: "submit",
         source_channel:
           new URLSearchParams(window.location.search).get("source") || "direct",
-        utm_source: new URLSearchParams(window.location.search).get("utm_source"),
-        utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
-        utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
+        utm_source: (formData as any)._saved_utm_source || new URLSearchParams(window.location.search).get("utm_source"),
+        utm_medium: (formData as any)._saved_utm_medium || new URLSearchParams(window.location.search).get("utm_medium"),
+        utm_campaign: (formData as any)._saved_utm_campaign || new URLSearchParams(window.location.search).get("utm_campaign"),
         status: 'pending',
         assigned_to: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
       });
