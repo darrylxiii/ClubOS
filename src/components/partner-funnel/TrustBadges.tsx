@@ -1,4 +1,4 @@
-import { Shield, Lock, Award, CheckCircle, Star } from "lucide-react";
+import { Shield, Lock, Award, CheckCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function TrustBadges() {
