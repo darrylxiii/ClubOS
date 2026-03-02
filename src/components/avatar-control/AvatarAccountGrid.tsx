@@ -15,7 +15,7 @@ interface AvatarAccountGridProps {
   onStartSession: (account: AvatarAccount) => void;
 }
 
-const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk'] as const;
+const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depleted'] as const;
 
 export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: AvatarAccountGridProps) {
   const { syncLinkedIn } = useAvatarAccounts();
