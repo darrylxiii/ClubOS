@@ -45,6 +45,26 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
     return map;
   }, [activeSessions]);
 
+  const accountsBehindOnPosts = useMemo(() => {
+    const behind = new Set<string>();
+    allTargets.forEach(t => {
+      if (t.is_active && t.weekly_posts_done < t.weekly_target) {
+        behind.add(t.account_id);
+      }
+    });
+    return behind;
+  }, [allTargets]);
+
+  const socialTargetsByAccount = useMemo(() => {
+    const map = new Map<string, typeof allTargets>();
+    allTargets.forEach(t => {
+      const arr = map.get(t.account_id) ?? [];
+      arr.push(t);
+      map.set(t.account_id, arr);
+    });
+    return map;
+  }, [allTargets]);
+
   const filtered = useMemo(() => {
     return accounts.filter(a => {
       if (search && !a.label.toLowerCase().includes(search.toLowerCase()) &&
@@ -56,10 +76,11 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         case 'Paused': return a.status === 'paused' || a.status === 'banned';
         case 'At Risk': return a.risk_level === 'high' || a.risk_level === 'medium';
         case 'Depleted': return (a.weekly_connections_sent ?? 0) >= (a.weekly_connection_limit ?? 100);
+        case 'Behind on Posts': return accountsBehindOnPosts.has(a.id);
         default: return true;
       }
     });
-  }, [accounts, search, filter, activeByAccount]);
+  }, [accounts, search, filter, activeByAccount, accountsBehindOnPosts]);
 
   const counts = useMemo(() => ({
     all: accounts.length,
