@@ -46,6 +46,10 @@ export interface AvatarAccount {
   daily_usage_minutes_today: number;
   sessions_today: number;
   last_cooldown_at: string | null;
+  // Connection request quota
+  weekly_connection_limit: number;
+  weekly_connections_sent: number;
+  weekly_connections_reset_at: string;
 }
 
 export function useAvatarAccounts() {
