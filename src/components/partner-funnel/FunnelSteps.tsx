@@ -152,8 +152,19 @@ export function FunnelSteps() {
 
     // Load saved data from localStorage
     const savedData = autoSave.load();
-    if (savedData && !savedData.completed && (savedData.currentStep > 0 || (savedData.formData?.contact_name && savedData.formData?.contact_email))) {
-      setTimeout(() => setResumeDialogOpen(true), 500);
+    if (savedData && !savedData.completed) {
+      const savedAge = savedData.timestamp
+        ? Date.now() - new Date(savedData.timestamp).getTime()
+        : 0;
+      const isStaleEnough = savedAge > 5 * 60 * 1000; // 5 minutes
+
+      if (
+        isStaleEnough &&
+        (savedData.currentStep > 0 ||
+          (savedData.formData?.contact_name && savedData.formData?.contact_email))
+      ) {
+        setTimeout(() => setResumeDialogOpen(true), 500);
+      }
     }
 
     const loadSpotsCount = async () => {
