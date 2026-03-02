@@ -24,7 +24,7 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { requestId, name, email, type } = await req.json();
+    const { requestId, name, email, type, company, industry, companySize, timeline, budget, rolesPerYear, website, location, phone } = await req.json();
 
     if (!requestId || !name || !email) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -62,7 +62,7 @@ serve(async (req) => {
       user_id: adminId,
       type: 'partner_request',
       title: `New ${type || 'partner'} request from ${name}`,
-      message: `${name} (${email}) submitted a membership request. Review and approve in the admin panel.`,
+      message: `${name} (${email})${company ? ` from ${company}` : ''}${industry ? ` · ${industry}` : ''} submitted a membership request.${timeline ? ` Timeline: ${timeline}.` : ''} Review in the admin panel.`,
       action_url: '/admin/members',
       metadata: { request_id: requestId },
       is_read: false,
@@ -92,6 +92,15 @@ serve(async (req) => {
             ${InfoRow({ icon: '👤', label: 'Name', value: name })}
             ${InfoRow({ icon: '📧', label: 'Email', value: email })}
             ${InfoRow({ icon: '🏷️', label: 'Type', value: (type || 'partner').charAt(0).toUpperCase() + (type || 'partner').slice(1) })}
+            ${company ? InfoRow({ icon: '🏢', label: 'Company', value: company }) : ''}
+            ${industry ? InfoRow({ icon: '🏭', label: 'Industry', value: industry }) : ''}
+            ${companySize ? InfoRow({ icon: '👥', label: 'Company Size', value: companySize }) : ''}
+            ${timeline ? InfoRow({ icon: '📅', label: 'Timeline', value: timeline }) : ''}
+            ${budget ? InfoRow({ icon: '💰', label: 'Budget', value: budget }) : ''}
+            ${rolesPerYear ? InfoRow({ icon: '🎯', label: 'Roles/Year', value: rolesPerYear }) : ''}
+            ${website ? InfoRow({ icon: '🌐', label: 'Website', value: website }) : ''}
+            ${location ? InfoRow({ icon: '📍', label: 'Location', value: location }) : ''}
+            ${phone ? InfoRow({ icon: '📞', label: 'Phone', value: phone }) : ''}
           `,
         })}
         ${Spacer(32)}

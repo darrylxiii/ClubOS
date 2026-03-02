@@ -86,7 +86,7 @@ ${bodyParagraph}
 
 ${ctaText}: ${resumeUrl}
 
-No upfront fees. No contracts. You only pay when we place a candidate.
+No fees until you hire.
 
 The Quantum Club
 Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands`;

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { migrateToast as toast } from "@/lib/notify";
-import { ArrowRight, ArrowLeft, CheckCircle, Loader2, Clock } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Loader2, Clock, AlertTriangle } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import PhoneInput from "react-phone-number-input";
@@ -54,6 +54,8 @@ export function FunnelSteps() {
   // Email-first micro-step state
   const [emailCaptured, setEmailCaptured] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
+  const [emailVerificationStatus, setEmailVerificationStatus] = useState<'idle' | 'checking' | 'verified' | 'failed' | 'otp_sent' | 'otp_verified'>('idle');
+  const [emailVerifyReason, setEmailVerifyReason] = useState<string | null>(null);
 
   // Honeypot field for spam prevention
   const [honeypot, setHoneypot] = useState("");
@@ -150,8 +152,19 @@ export function FunnelSteps() {
 
     // Load saved data from localStorage
     const savedData = autoSave.load();
-    if (savedData && !savedData.completed && (savedData.currentStep > 0 || (savedData.formData?.contact_name && savedData.formData?.contact_email))) {
-      setTimeout(() => setResumeDialogOpen(true), 500);
+    if (savedData && !savedData.completed) {
+      const savedAge = savedData.timestamp
+        ? Date.now() - new Date(savedData.timestamp).getTime()
+        : 0;
+      const isStaleEnough = savedAge > 5 * 60 * 1000; // 5 minutes
+
+      if (
+        isStaleEnough &&
+        (savedData.currentStep > 0 ||
+          (savedData.formData?.contact_name && savedData.formData?.contact_email))
+      ) {
+        setTimeout(() => setResumeDialogOpen(true), 500);
+      }
     }
 
     const loadSpotsCount = async () => {
@@ -263,7 +276,82 @@ export function FunnelSteps() {
 
     await upsertPartialSubmission(formData.contact_email);
     partialSaveRef.current = true;
-    setEmailCaptured(true);
+
+    // Silent email verification via MillionVerifier + Findymail
+    setEmailVerificationStatus('checking');
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-funnel-email', {
+        body: { email: formData.contact_email, sessionId },
+      });
+
+      if (error) {
+        console.warn('Email verification failed (proceeding):', error);
+        setEmailVerificationStatus('idle');
+        setEmailCaptured(true);
+        return;
+      }
+
+      const quality = data?.quality || 'unknown';
+
+      if (quality === 'verified' || quality === 'unknown' || quality === 'catch_all') {
+        setEmailVerificationStatus('verified');
+        setEmailCaptured(true);
+      } else {
+        // invalid or disposable
+        setEmailVerificationStatus('failed');
+        setEmailVerifyReason(data?.reason || 'invalid');
+      }
+    } catch {
+      // Fail open
+      setEmailVerificationStatus('idle');
+      setEmailCaptured(true);
+    }
+  };
+
+  // Handle OTP verification for failed emails
+  const handleSendOtp = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('send-email-verification', {
+        body: { email: formData.contact_email, type: 'funnel' },
+      });
+      if (error) throw error;
+      setEmailVerificationStatus('otp_sent');
+      toast({ title: "Verification code sent.", description: `Check ${formData.contact_email}.` });
+    } catch {
+      toast({ title: "Could not send code. Try again.", variant: "destructive" });
+    }
+  };
+
+  const handleVerifyOtp = async (code: string) => {
+    if (code.length !== 6) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-code', {
+        body: { email: formData.contact_email, code },
+      });
+      if (error) throw error;
+      if (data?.verified) {
+        setEmailVerificationStatus('otp_verified');
+        // Update email_quality in DB
+        if (partialSaveRef.current) {
+          supabase
+            .from('funnel_partial_submissions')
+            .update({ email_quality: 'otp_verified', email_verified_at: new Date().toISOString() })
+            .eq('session_id', sessionId)
+            .then(() => {});
+        }
+        setEmailCaptured(true);
+      } else {
+        toast({ title: "Invalid code. Please try again.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Verification failed. Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleUseAnotherEmail = () => {
+    setFormData(prev => ({ ...prev, contact_email: '' }));
+    setEmailVerificationStatus('idle');
+    setEmailVerifyReason(null);
   };
 
   // Handle email blur — auto-capture if valid
@@ -355,6 +443,28 @@ export function FunnelSteps() {
       return;
     }
 
+    // Final validation guard for required DB fields
+    const requiredFields: Record<string, string> = {
+      contact_name: formData.contact_name,
+      contact_email: formData.contact_email,
+      company_name: formData.company_name,
+      industry: formData.industry,
+      company_size: formData.company_size,
+    };
+    const missing = Object.entries(requiredFields)
+      .filter(([_, v]) => !v)
+      .map(([k]) => k);
+
+    if (missing.length > 0) {
+      toast({ title: "Please complete the required fields.", variant: "destructive" });
+      if (!formData.company_name || !formData.industry || !formData.contact_name || !formData.contact_email) {
+        setCurrentStep(0);
+      } else {
+        setCurrentStep(1);
+      }
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
@@ -366,7 +476,7 @@ export function FunnelSteps() {
         company_name: formData.company_name,
         website: formData.website || null,
         industry: formData.industry,
-        company_size: formData.company_size || null,
+        company_size: formData.company_size,
         headquarters_location: formData.headquarters_location || null,
         estimated_roles_per_year: formData.estimated_roles_per_year
           ? parseInt(formData.estimated_roles_per_year)
@@ -411,6 +521,15 @@ export function FunnelSteps() {
           name: formData.contact_name || 'Unknown',
           email: formData.contact_email || '',
           type: 'partner',
+          company: formData.company_name,
+          industry: formData.industry,
+          companySize: formData.company_size,
+          timeline: formData.timeline,
+          budget: formData.budget_range,
+          rolesPerYear: formData.estimated_roles_per_year,
+          website: formData.website,
+          location: formData.headquarters_location,
+          phone: phoneNumber,
         }
       }).catch(err => console.warn('Admin notification failed (non-blocking):', err));
 
@@ -482,8 +601,8 @@ export function FunnelSteps() {
               <FieldError error={validation.getFieldError('contact_email')} />
             </div>
 
-            {/* Phase A button — show only before email is captured */}
-            {!emailCaptured && (
+            {/* Phase A button — show only before email is captured and not during verification */}
+            {!emailCaptured && emailVerificationStatus === 'idle' && (
               <RainbowButton
                 onClick={handleEmailCapture}
                 className="w-full min-h-[44px] text-base"
@@ -491,6 +610,78 @@ export function FunnelSteps() {
                 Continue
                 <ArrowRight className="w-4 h-4 ml-2" />
               </RainbowButton>
+            )}
+
+            {/* Checking state */}
+            {emailVerificationStatus === 'checking' && (
+              <Button disabled className="w-full min-h-[44px] text-base">
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Verifying...
+              </Button>
+            )}
+
+            {/* Email verification failed — show options */}
+            {emailVerificationStatus === 'failed' && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border/60">
+                  <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <p className="text-sm text-muted-foreground">
+                    We could not verify this email address.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleUseAnotherEmail}
+                    className="flex-1 min-h-[44px]"
+                  >
+                    Use a different email
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSendOtp}
+                    className="flex-1 min-h-[44px]"
+                  >
+                    Verify with a code
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* OTP input */}
+            {(emailVerificationStatus === 'otp_sent') && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <p className="text-sm text-muted-foreground text-center">
+                  Enter the 6-digit code sent to <span className="font-medium text-foreground">{formData.contact_email}</span>
+                </p>
+                <div className="flex justify-center">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-48 text-center text-2xl tracking-[0.5em] font-mono h-12 rounded-md border border-input bg-background px-3"
+                    autoFocus
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      e.target.value = val;
+                      if (val.length === 6) {
+                        handleVerifyOtp(val);
+                      }
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Didn't receive it?{' '}
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    className="underline hover:text-foreground"
+                  >
+                    Resend code
+                  </button>
+                </p>
+              </div>
             )}
 
             {/* Phase B: Remaining fields (slide in after email capture) */}
@@ -720,10 +911,52 @@ export function FunnelSteps() {
                 <span className="text-foreground font-medium truncate">{formData.company_name}</span>
                 <span>Industry</span>
                 <span className="text-foreground font-medium capitalize">{formData.industry}</span>
+                {formData.company_size && (
+                  <>
+                    <span>Company size</span>
+                    <span className="text-foreground font-medium">{formData.company_size}</span>
+                  </>
+                )}
+                {formData.estimated_roles_per_year && (
+                  <>
+                    <span>Roles / year</span>
+                    <span className="text-foreground font-medium">{formData.estimated_roles_per_year}</span>
+                  </>
+                )}
                 {formData.timeline && (
                   <>
                     <span>Timeline</span>
                     <span className="text-foreground font-medium capitalize">{formData.timeline.replace('_', ' ')}</span>
+                  </>
+                )}
+                {formData.budget_range && (
+                  <>
+                    <span>Budget</span>
+                    <span className="text-foreground font-medium">{formData.budget_range}</span>
+                  </>
+                )}
+                {formData.website && (
+                  <>
+                    <span>Website</span>
+                    <span className="text-foreground font-medium truncate">{formData.website}</span>
+                  </>
+                )}
+                {formData.headquarters_location && (
+                  <>
+                    <span>Location</span>
+                    <span className="text-foreground font-medium truncate">{formData.headquarters_location}</span>
+                  </>
+                )}
+                {phoneNumber && (
+                  <>
+                    <span>Phone</span>
+                    <span className="text-foreground font-medium">{phoneNumber}</span>
+                  </>
+                )}
+                {formData.description && (
+                  <>
+                    <span>Notes</span>
+                    <span className="text-foreground font-medium truncate">{formData.description.length > 100 ? formData.description.slice(0, 100) + '…' : formData.description}</span>
                   </>
                 )}
               </div>
@@ -782,6 +1015,11 @@ export function FunnelSteps() {
 
       <FunnelErrorBoundary stepName={STEPS[currentStep]}>
         <Card className="p-5 sm:p-8 glass">
+          {/* Form label */}
+          <p className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-2">
+            Partner Request
+          </p>
+
           {/* Availability indicator — minimal inline */}
           <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
             <div className={cn(
