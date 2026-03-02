@@ -118,7 +118,6 @@ export function useAvatarAccounts() {
     mutationFn: async (payload: {
       accountId: string;
       linkedinPassword?: string;
-      emailAccountAddress?: string;
       emailAccountPassword?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke('avatar-account-credentials', {
@@ -129,6 +128,7 @@ export function useAvatarAccounts() {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avatar-accounts'] });
       toast.success('Credentials saved securely.');
     },
     onError: (e: Error) => toast.error(`Save failed: ${e.message}`),
