@@ -28,6 +28,7 @@ import { usePrefetch } from "./LazyFunnelComponents";
 import { NetworkStatusIndicator, InlineNetworkStatus } from "./NetworkStatusIndicator";
 import { StepTransition } from "./StepTransition";
 import { cn } from "@/lib/utils";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 
 // 3 clean, benefit-oriented step labels
 const STEPS = ["Your Details", "Hiring Needs", "Submit"];
