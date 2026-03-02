@@ -36,8 +36,8 @@ export function ResumeFunnelDialog({
         <AlertDialog open={open}>
             <AlertDialogContent className="sm:max-w-md">
                 <AlertDialogHeader>
-                    <AlertDialogTitle className="text-2xl font-bold flex items-center gap-2">
-                        👋 Welcome Back!
+                    <AlertDialogTitle className="text-2xl font-bold">
+                        Welcome back
                     </AlertDialogTitle>
                     <AlertDialogDescription className="space-y-4 pt-4">
                         <p className="text-base">
