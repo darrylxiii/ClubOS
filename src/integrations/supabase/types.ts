@@ -57989,6 +57989,7 @@ export type Database = {
         Returns: undefined
       }
       update_expired_assignments: { Args: never; Returns: undefined }
+      update_funnel_live_stats: { Args: never; Returns: undefined }
       update_overdue_invoices: { Args: never; Returns: undefined }
       update_relationship_metrics: {
         Args: { p_candidate_id: string }
