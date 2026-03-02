@@ -338,7 +338,7 @@ export function FunnelSteps() {
       }
       toast({
         title: "Welcome back.",
-        description: `Resuming at step ${savedData.currentStep + 1} of ${STEPS.length}`,
+        description: "Resuming where you left off.",
       });
     }
     setResumeDialogOpen(false);
