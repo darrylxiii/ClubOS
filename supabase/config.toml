@@ -725,6 +725,9 @@ verify_jwt = false
 [functions.calculate-funnel-metrics]
 verify_jwt = true
 
+[functions.verify-funnel-email]
+verify_jwt = false
+
 [functions.predict-aggregated-hiring-outcomes]
 verify_jwt = true
 
