@@ -597,7 +597,7 @@ export function FunnelSteps() {
               </div>
 
               <div>
-                <Label className="glass-label">Estimated Roles / Year</Label>
+                <Label className="glass-label">Roles per year</Label>
                 <Input
                   type="number"
                   value={formData.estimated_roles_per_year}
