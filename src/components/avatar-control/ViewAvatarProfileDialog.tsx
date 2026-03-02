@@ -9,8 +9,10 @@ import { Progress } from '@/components/ui/progress';
 import {
   Eye, EyeOff, Users, UserPlus, MapPin, Briefcase, Crown, Star,
   Sparkles, Shield, Clock, ExternalLink, GraduationCap, Award, Send, Plus,
+  Linkedin, Twitter, MessageSquare, Instagram,
 } from 'lucide-react';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
+import { useAvatarSocialTargets, SOCIAL_PLATFORMS } from '@/hooks/useAvatarSocialTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 
