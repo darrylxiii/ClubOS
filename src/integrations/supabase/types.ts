@@ -27208,6 +27208,9 @@ export type Database = {
           status: string
           top_skills: string[] | null
           updated_at: string
+          weekly_connection_limit: number
+          weekly_connections_reset_at: string
+          weekly_connections_sent: number
         }
         Insert: {
           about?: string | null
@@ -27253,6 +27256,9 @@ export type Database = {
           status?: string
           top_skills?: string[] | null
           updated_at?: string
+          weekly_connection_limit?: number
+          weekly_connections_reset_at?: string
+          weekly_connections_sent?: number
         }
         Update: {
           about?: string | null
@@ -27298,6 +27304,9 @@ export type Database = {
           status?: string
           top_skills?: string[] | null
           updated_at?: string
+          weekly_connection_limit?: number
+          weekly_connections_reset_at?: string
+          weekly_connections_sent?: number
         }
         Relationships: [
           {
