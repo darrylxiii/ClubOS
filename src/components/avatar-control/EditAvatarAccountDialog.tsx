@@ -201,6 +201,26 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
+          {/* Avatar upload */}
+          <div className="flex items-center gap-4">
+            <Avatar className="h-14 w-14 border border-border">
+              {avatarUploading ? (
+                <AvatarFallback><Loader2 className="h-5 w-5 animate-spin" /></AvatarFallback>
+              ) : account?.avatar_url ? (
+                <AvatarImage src={versionedAvatarUrl(account.avatar_url, account.last_synced_at)} alt={account.label} className="object-cover" />
+              ) : (
+                <AvatarFallback><User className="h-6 w-6 text-muted-foreground" /></AvatarFallback>
+              )}
+            </Avatar>
+            <div className="space-y-1">
+              <input ref={avatarFileRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" disabled={avatarUploading} />
+              <Button variant="outline" size="sm" onClick={() => avatarFileRef.current?.click()} disabled={avatarUploading}>
+                <Upload className="h-3.5 w-3.5 mr-1.5" />
+                {account?.avatar_url ? 'Change' : 'Upload'} Photo
+              </Button>
+              <p className="text-[11px] text-muted-foreground">JPG, PNG or WEBP. Max 5MB.</p>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Label</Label>
