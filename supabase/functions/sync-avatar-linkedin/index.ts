@@ -192,45 +192,36 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Proxycurl fallback for missing avatar (even if Apify returned other data)
-    if (!profilePicUrl && PROXYCURL_API_KEY && fullName) {
-      try {
-        console.log('[sync-avatar-linkedin] Trying Proxycurl for missing avatar:', linkedinUrl);
-        const pcResp = await fetch(
-          `https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`,
-          { headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` } }
-        );
-        if (pcResp.ok) {
-          const pcData = await pcResp.json();
-          profilePicUrl = findField(pcData, PIC_ALIASES);
-          console.log('[sync-avatar-linkedin] Proxycurl avatar fallback:', !!profilePicUrl);
-        }
-      } catch (e) {
-        console.warn('[sync-avatar-linkedin] Proxycurl avatar fallback failed:', e.message);
-      }
-    }
+    // Secondary Apify actor fallback for missing avatar
+    if (!profilePicUrl && APIFY_API_KEY && fullName) {
+      const username2 = extractUsername(linkedinUrl);
+      if (username2) {
+        try {
+          console.log('[sync-avatar-linkedin] Trying secondary Apify actor for avatar:', username2);
+          const controller2 = new AbortController();
+          const timeoutId2 = setTimeout(() => controller2.abort(), 30000);
 
-    // Full Proxycurl fallback (no data from Apify at all)
-    if (!fullName && PROXYCURL_API_KEY) {
-      try {
-        console.log('[sync-avatar-linkedin] Trying Proxycurl for:', linkedinUrl);
-        const response = await fetch(
-          `https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`,
-          { headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` } }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
-          headline = data.headline || data.occupation || null;
-          profilePicUrl = findField(data, PIC_ALIASES);
-          connections = parseNum(findField(data, CONN_ALIASES));
-          followers = parseNum(findField(data, FOLLOW_ALIASES));
-          console.log('[sync-avatar-linkedin] Proxycurl success:', fullName);
-        } else {
-          console.error('[sync-avatar-linkedin] Proxycurl HTTP error:', response.status);
+          const resp2 = await fetch(
+            `https://api.apify.com/v2/acts/curious_coder~linkedin-profile-scraper/run-sync-get-dataset-items?token=${APIFY_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ profileUrls: [linkedinUrl] }),
+              signal: controller2.signal,
+            }
+          );
+
+          clearTimeout(timeoutId2);
+
+          if (resp2.ok) {
+            const items2 = await resp2.json();
+            const raw2 = items2?.[0] || {};
+            profilePicUrl = findField(raw2, PIC_ALIASES);
+            console.log('[sync-avatar-linkedin] Secondary Apify actor avatar result:', !!profilePicUrl);
+          }
+        } catch (e) {
+          console.warn('[sync-avatar-linkedin] Secondary Apify actor failed:', e.message);
         }
-      } catch (e) {
-        console.warn('[sync-avatar-linkedin] Proxycurl failed:', e.message);
       }
     }
 
