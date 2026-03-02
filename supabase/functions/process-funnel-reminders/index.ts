@@ -19,23 +19,42 @@ serve(async (req) => {
     const appUrl = Deno.env.get('APP_URL') || 'https://os.thequantumclub.com';
     const baseUrl = appUrl.startsWith('http') ? appUrl : `https://${appUrl}`;
 
-    // Find incomplete submissions from 2-48 hours ago that haven't been reminded
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const now = Date.now();
+    const twoHoursAgo = new Date(now - 2 * 60 * 60 * 1000).toISOString();
+    const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+    const fortyEightHoursAgo = new Date(now - 48 * 60 * 60 * 1000).toISOString();
 
-    const { data: partials, error: fetchError } = await supabase
+    // --- Touch 1: First reminder (2–48h, reminder_count = 0) ---
+    const { data: firstTouch, error: firstError } = await supabase
       .from('funnel_partial_submissions')
       .select('*')
       .eq('completed', false)
-      .is('reminder_sent_at', null)
+      .eq('reminder_count', 0)
       .lt('created_at', twoHoursAgo)
       .gt('created_at', fortyEightHoursAgo)
       .not('contact_email', 'is', null)
       .limit(50);
 
-    if (fetchError) throw fetchError;
+    if (firstError) throw firstError;
 
-    if (!partials || partials.length === 0) {
+    // --- Touch 2: Second reminder (24h+ after first reminder, reminder_count = 1) ---
+    const { data: secondTouch, error: secondError } = await supabase
+      .from('funnel_partial_submissions')
+      .select('*')
+      .eq('completed', false)
+      .eq('reminder_count', 1)
+      .lt('reminder_sent_at', twentyFourHoursAgo)
+      .not('contact_email', 'is', null)
+      .limit(50);
+
+    if (secondError) throw secondError;
+
+    const allPartials = [
+      ...(firstTouch || []).map(p => ({ ...p, _touch: 1 })),
+      ...(secondTouch || []).map(p => ({ ...p, _touch: 2 })),
+    ];
+
+    if (allPartials.length === 0) {
       return new Response(JSON.stringify({ processed: 0, message: 'No reminders to send' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -44,26 +63,30 @@ serve(async (req) => {
     let sent = 0;
     let failed = 0;
 
-    for (const partial of partials) {
+    for (const partial of allPartials) {
       try {
         const resumeUrl = `${baseUrl}/partner?resume=${partial.session_id}`;
+        const isSecondTouch = partial._touch === 2;
 
-        // Call the send-funnel-reminder function
         const { error: invokeError } = await supabase.functions.invoke('send-funnel-reminder', {
           body: {
             email: partial.contact_email,
             contactName: partial.contact_name,
             companyName: partial.company_name,
             resumeUrl,
+            isSecondReminder: isSecondTouch,
           },
         });
 
         if (invokeError) throw invokeError;
 
-        // Mark as reminded
+        // Update reminder tracking
         await supabase
           .from('funnel_partial_submissions')
-          .update({ reminder_sent_at: new Date().toISOString() })
+          .update({
+            reminder_sent_at: new Date().toISOString(),
+            reminder_count: (partial.reminder_count || 0) + 1,
+          })
           .eq('id', partial.id);
 
         sent++;
@@ -74,7 +97,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({
-      processed: partials.length,
+      processed: allPartials.length,
       sent,
       failed,
     }), {

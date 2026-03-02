@@ -121,10 +121,10 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
 
   return (
     <>
-      {/* Floating trigger */}
+      {/* Floating trigger — pushed up on mobile to avoid overlapping submit button */}
       <Button
         size="lg"
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-50"
+        className="fixed bottom-6 right-6 sm:bottom-6 max-sm:bottom-20 rounded-full w-14 h-14 shadow-lg z-50"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}

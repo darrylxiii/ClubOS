@@ -241,6 +241,20 @@ export function FunnelSteps() {
       return;
     }
 
+    // Persist UTM params into form_data so they survive resume flow
+    const params = new URLSearchParams(window.location.search);
+    const utmSource = params.get("utm_source");
+    const utmMedium = params.get("utm_medium");
+    const utmCampaign = params.get("utm_campaign");
+    if (utmSource || utmMedium || utmCampaign) {
+      setFormData(prev => ({
+        ...prev,
+        _saved_utm_source: utmSource || '',
+        _saved_utm_medium: utmMedium || '',
+        _saved_utm_campaign: utmCampaign || '',
+      } as any));
+    }
+
     // Save to DB immediately
     await upsertPartialSubmission(formData.contact_email);
     partialSaveRef.current = true;
