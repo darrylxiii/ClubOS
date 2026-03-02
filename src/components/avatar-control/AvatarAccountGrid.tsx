@@ -118,6 +118,12 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         open={!!editAccount}
         onOpenChange={(open) => { if (!open) setEditAccount(null); }}
       />
+
+      <ViewAvatarProfileDialog
+        account={viewAccount}
+        open={!!viewAccount}
+        onOpenChange={(open) => { if (!open) setViewAccount(null); }}
+      />
     </div>
   );
 }
