@@ -474,7 +474,7 @@ export function FunnelSteps() {
         company_name: formData.company_name,
         website: formData.website || null,
         industry: formData.industry,
-        company_size: formData.company_size || null,
+        company_size: formData.company_size,
         headquarters_location: formData.headquarters_location || null,
         estimated_roles_per_year: formData.estimated_roles_per_year
           ? parseInt(formData.estimated_roles_per_year)
