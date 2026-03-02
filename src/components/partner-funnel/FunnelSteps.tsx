@@ -474,7 +474,7 @@ export function FunnelSteps() {
                   validation.clearError('contact_email');
                 }}
                 onBlur={handleEmailBlur}
-                placeholder="jane@company.com"
+                placeholder="you@yourcompany.com"
                 className={cn("glass-input", validation.hasError('contact_email') && "border-destructive")}
                 readOnly={emailCaptured}
                 autoFocus={!emailCaptured}
