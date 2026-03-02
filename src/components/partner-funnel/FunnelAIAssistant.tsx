@@ -42,9 +42,9 @@ export function FunnelAIAssistant() {
 
   const quickReplies = [
     "How quickly can you find candidates?",
-    "What seniority levels do you recruit?",
+    "What seniority levels do you cover?",
     "How does the process work?",
-    "Can you recruit internationally?",
+    "Do you recruit internationally?",
   ];
 
   const handleSend = async () => {
