@@ -1,284 +1,253 @@
 
-# Partner Funnel CRO Mega-Audit v2: The Definitive Plan
 
-## Corrected Data (Previous Plan Had Wrong Numbers)
+# Comprehensive Email System Audit — The Quantum Club
 
-The previous audit claimed "524 views, 3 completions, 0.6% conversion." That was wrong. Here are the real numbers from the last 3 months of `funnel_analytics`:
+## Current State Summary
 
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+
+---
+
+## CATEGORY 1: Deliverability Issues (Score Impact)
+
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
+
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
+
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+
+### 1.3 Emoji in Subject Lines (6 functions)
+
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
+
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+
+### 1.4 SPF Record Missing (DNS — not code)
+
+`send.thequantumclub.nl` needs an SPF TXT record:
 ```text
-Step 0 "Your Details":    495 unique sessions viewed  ->  68 completed  (13.7%)
-Step 1 "Hiring Needs":     69 viewed                  ->  54 completed  (78.3%)
-Step 2 "Submit":            54 viewed                  ->  49 completed  (90.7%)
-Funnel complete events:     7
-Actual partner_requests in DB (6 months): 20 total (15 superseded, 4 declined, 1 pending)
+v=spf1 include:amazonses.com ~all
+```
+This is a DNS change in the domain registrar.
+
+---
+
+## CATEGORY 2: Content & Copy Quality
+
+### 2.1 Inconsistent Tone
+
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
+
+### 2.2 Hardcoded Contact Email Inconsistency
+
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+
+### 2.3 Missing "Powered by QUIN" Attribution
+
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+
+---
+
+## CATEGORY 3: Technical & Security Issues
+
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+
+### 3.2 `linear-gradient()` in Inline Styles
+
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
 ```
 
-The real bottleneck is clear: **86.3% of visitors abandon at Step 0 before typing anything.** Once someone starts, the funnel performs well (78-91% step-to-step). The problem is first impression, not form complexity.
+### 5.2 Centralize Plain-Text Generation
 
-Also notable: Steps 3, 4, 5 appear in the analytics, meaning old data from the former 5-step funnel is mixed in, inflating "complete" counts. The `trackFunnelComplete` function still writes `step_number: 5` (line 126 of `useFunnelAnalytics.ts`) even though the funnel is now 3 steps.
-
----
-
-## CRITICAL ISSUES NOT IN PREVIOUS PLAN
-
-### NEW 1: Analytics are broken and recording phantom steps
-
-`useFunnelAnalytics.ts` line 126 hardcodes `step_number: 5` for funnel completion. The funnel is 3 steps (0, 1, 2). This means:
-- Completion events record at step 5, which doesn't exist
-- Historical data mixes 5-step and 3-step funnels, making analysis unreliable
-- The `trackVerification` function references step 4 "verification" (line 110) which was removed
-
-**Fix**: Update `trackFunnelComplete` to use `step_number: 2` (the actual final step). Remove the dead `trackVerification` function or update its step references. Add a `funnel_version` field to analytics events so old/new data can be filtered.
-
-### NEW 2: Step 0 fires 5+ duplicate "view" events per session
-
-The analytics query shows sessions like `6019216f` with 5 "view" events for step 0 in the same second. The `trackStepView` is called in a `useEffect` that depends on `[currentStep, analytics]` (line 148-149), where `analytics` is a new object every render because `useFunnelAnalytics` returns a fresh object reference. This causes infinite re-renders.
-
-**Fix**: Memoize the analytics hook return value, or add a "has already tracked this step" guard. This also inflates view counts -- the real unique session count may be lower than 495.
-
-### NEW 3: No reCAPTCHA despite the previous plan mentioning it
-
-The previous audit claimed "The funnel already has reCAPTCHA v3." It does not. There is zero reCAPTCHA code in the partner funnel components. The `react-google-recaptcha-v3` package is installed but not used here. This means any bot can submit the form directly.
-
-**Fix**: Add reCAPTCHA v3 scoring on the submit action, or add a lightweight honeypot field as a simpler alternative.
-
-### NEW 4: `handleQuickReply` race condition is still live
-
-`FunnelAIAssistant.tsx` line 95-98: `handleQuickReply` sets state then calls `handleSend()` in a `setTimeout(0)`. `handleSend` reads `message` from state which won't have updated yet. The `sendReply` function (line 101) correctly handles this, but `handleQuickReply` is dead code that could be called by mistake in future edits.
-
-**Fix**: Delete `handleQuickReply` entirely.
-
----
-
-## ISSUES FROM PREVIOUS PLAN: STATUS CHECK
-
-### Fake social proof -- STILL BROKEN
-DB confirms: `social_proof_items` contains "TechCorp", "InnovateCo", "FutureLabs" with `/placeholder.svg` logos. Not fixed.
-
-### "Step X of 5" in ProgressSaver -- STILL BROKEN  
-Line 163 of `ProgressSaver.tsx` shows "Step {currentStep + 1} of 5". The funnel has 3 steps.
-
-### "Step X/5" in SessionRecoveryBanner -- STILL BROKEN
-Line 107 shows `Step {currentStep + 1}/5`.
-
-### "Response within 19 minutes" -- STILL BROKEN
-`SuccessConfetti.tsx` line 97. Config says 48 hours.
-
-### "No-Cure-No-Pay guarantee" -- STILL PRESENT
-`SuccessConfetti.tsx` line 121. Contradicts the funnel's no-contract design philosophy.
-
-### No Helmet/meta tags on partner funnel -- STILL MISSING
-`CandidateOnboarding.tsx` has full Helmet with OG tags. `PartnerFunnel.tsx` has none. Zero SEO or social sharing support.
-
-### Exit intent only fires on step 1 -- STILL LIMITED
-Line 65: `if (currentStep > 0 && currentStep < 2)` means it only fires on step 1. Step 0 is where 86% of people leave.
-
-### No partial lead capture to DB -- STILL MISSING
-`funnel_partial_submissions` table does not exist. No `send-funnel-reminder` or `process-funnel-reminders` edge functions exist.
-
-### Form below the fold -- STILL AN ISSUE
-Page order: logo -> hero text -> 3-step strip -> full testimonial card -> form. On mobile the form requires significant scrolling.
-
----
-
-## THE COMPLETE IMPLEMENTATION PLAN
-
-### Phase 1: Fix What's Broken (Data Integrity)
-
-**Task 1: Fix analytics tracking**
-- File: `src/hooks/useFunnelAnalytics.ts`
-  - Change `step_number: 5` to `step_number: 2` in `trackFunnelComplete`
-  - Remove or fix `trackVerification` dead references to steps 4/5
-  - Add deduplication guard to `trackStepView` to prevent 5x writes per load
-  - Add `metadata: { funnel_version: 3 }` to all events for future filtering
-
-**Task 2: Fix hardcoded step counts**
-- File: `src/components/partner-funnel/ProgressSaver.tsx` line 163: change "of 5" to "of 3"
-- File: `src/components/partner-funnel/SessionRecoveryBanner.tsx` line 107: change "/5" to "/3"
-
-**Task 3: Fix success page false claims**
-- File: `src/components/partner-funnel/SuccessConfetti.tsx`
-  - Line 97: "Response within 19 minutes" -> "Your strategist will respond within 24 hours"
-  - Line 121: Remove "No-Cure-No-Pay guarantee" -> "You only pay when we place a candidate"
-
-**Task 4: Remove dead code**
-- File: `src/components/partner-funnel/FunnelAIAssistant.tsx` -- delete `handleQuickReply` function (lines 95-98)
-
-### Phase 2: Lead Capture Foundation (Highest ROI)
-
-**Task 5: Create partial submissions table**
-- DB migration:
-```sql
-CREATE TABLE public.funnel_partial_submissions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id TEXT NOT NULL UNIQUE,
-  contact_email TEXT NOT NULL,
-  contact_name TEXT,
-  company_name TEXT,
-  form_data JSONB DEFAULT '{}',
-  current_step INTEGER DEFAULT 0,
-  last_active_at TIMESTAMPTZ DEFAULT now(),
-  reminder_sent_at TIMESTAMPTZ,
-  completed BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-ALTER TABLE public.funnel_partial_submissions ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Anon can insert partial submissions"
-  ON public.funnel_partial_submissions FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Anon can update own partial submission"
-  ON public.funnel_partial_submissions FOR UPDATE TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "Anon can read own partial submission"
-  ON public.funnel_partial_submissions FOR SELECT TO anon USING (true);
-CREATE POLICY "Admins can read all partial submissions"
-  ON public.funnel_partial_submissions FOR SELECT TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
-```
-
-**Task 6: Split Step 0 into email-first micro-step**
-- File: `src/components/partner-funnel/FunnelSteps.tsx`
-- Add internal state `emailCaptured` (boolean, default false)
-- Step 0 Phase A: Show only "Work Email" field + "Get Started" button. Single field. Maximum simplicity.
-- On valid email blur or "Get Started" click: upsert to `funnel_partial_submissions` with session_id and email. Set `emailCaptured = true`.
-- Step 0 Phase B: Reveal Name, Company, Industry fields (slide-down animation). Email field stays visible but is pre-filled and read-only.
-- On "Continue" click (completing step 0): update the partial submission row with all form data.
-- On every subsequent step change: update `current_step` and `form_data` in the partial row.
-- On final submission: set `completed = true`.
-
-**Task 7: Add resume-from-email capability**
-- File: `src/components/partner-funnel/FunnelSteps.tsx`
-- On mount, check for `?resume={sessionId}` query param
-- If present, fetch from `funnel_partial_submissions` by session_id
-- Pre-fill form data, set step, set `emailCaptured = true`
-- Show "Welcome back" toast
-
-### Phase 3: Abandonment Recovery
-
-**Task 8: Build "Finish Your Request" reminder email**
-- New file: `supabase/functions/send-funnel-reminder/index.ts`
-  - Accepts `{ email, contactName, companyName, resumeUrl }`
-  - Sends branded email from `partners@thequantumclub.nl` via Resend
-  - Subject: "Your request is still waiting, {name}"
-  - Body: what they entered so far, resume link (`/partner?resume={sessionId}`), "takes 60 seconds to finish"
-  - Include List-Unsubscribe header
-
-- New file: `supabase/functions/process-funnel-reminders/index.ts`
-  - Queries `funnel_partial_submissions` where:
-    - `completed = false`
-    - `reminder_sent_at IS NULL`
-    - `created_at` between 2 hours and 48 hours ago
-    - `contact_email` is not null
-  - For each: calls `send-funnel-reminder`, updates `reminder_sent_at`
-  - Designed to be triggered via pg_cron (hourly) or manual invocation
-
-### Phase 4: Credibility and Above-the-Fold
-
-**Task 9: Replace fake social proof**
-- Option A (if real testimonials available): Update `funnel_config.social_proof_items` via DB update with real company names, real quotes, real logos
-- Option B (if no real testimonials yet): Replace `SocialProofCarousel.tsx` with a stats bar showing live numbers from `funnel_config.live_stats`: "87 active roles | 26 partnerships this month | Avg response: 48h"
-- This is a content/data decision -- implement Option B as the default since it uses real data
-
-**Task 10: Move form above the fold**
-- File: `src/pages/PartnerFunnel.tsx`
-- Reorder: Hero text -> Form card -> Social proof (below form)
-- On mobile, collapse the "how it works" 3-step strip to a single-line badge: "3 simple steps -- no fees, no contracts"
-- The email input field must be visible without scrolling on a 390px viewport
-
-**Task 11: Upgrade CTA copy**
-- File: `src/components/partner-funnel/FunnelSteps.tsx`
-- Step 0 Phase A button: "Get Started" (not "Continue")
-- Step 0 Phase B button: "Next: Your Hiring Needs"  
-- Step 1 button: "Review and Submit"
-- Step 2 button: "Submit -- Free, No Obligation" (not "Send My Request")
-
-**Task 12: Enable exit intent on Step 0**
-- File: `src/components/partner-funnel/FunnelSteps.tsx`
-- Change line 65: `if (currentStep >= 0 && currentStep < 2)` 
-- Change line 70: enable for `currentStep >= 0`
-- Different copy for step 0: "Before you go -- this takes under 60 seconds. No fees, no obligation."
-
-### Phase 5: SEO and Trust Polish
-
-**Task 13: Add Helmet meta tags**
-- File: `src/pages/PartnerFunnel.tsx`
-- Add `react-helmet-async` Helmet with:
-  - Title: "Partner with The Quantum Club -- Access Pre-Vetted Senior Talent"
-  - Meta description
-  - OG title, OG description, OG type
-  - `<link rel="canonical" href="https://os.thequantumclub.com/partner" />`
-  - `<meta name="robots" content="index, follow" />`
-
-**Task 14: Fix trust badge**
-- File: `src/components/partner-funnel/TrustBadges.tsx`
-- Remove or source "4.9/5 Rating" badge (no verifiable source exists)
-- Replace with "24h Response" or "48 Placements" (real metrics)
-
-**Task 15: Add honeypot spam field**
-- File: `src/components/partner-funnel/FunnelSteps.tsx`
-- Add a hidden input field (CSS `display: none` or `position: absolute; left: -9999px`)
-- If the field has a value on submit, silently reject (bots fill all fields)
-- Lighter-weight than reCAPTCHA, zero friction for real users
-
-### Phase 6: De-scope
-
-Per project rules (one de-scope per scope increase):
-- **De-scope**: The "Continue on another device" recovery dialog in `ProgressSaver.tsx` and `SessionRecoveryBanner.tsx`. The new DB-backed partial submissions + resume-from-email flow replaces this entirely. Remove the dialog UI and the `send-recovery-email` edge function call from these components.
-
----
-
-## Priority and Sequencing
-
-```text
-Phase 1 (Tasks 1-4):  Fix broken things         -- prerequisite, no dependencies
-Phase 2 (Tasks 5-7):  Partial capture + email-first -- highest ROI, needs DB migration first
-Phase 3 (Tasks 8):    Reminder emails            -- needs Task 5 table to exist
-Phase 4 (Tasks 9-12): Credibility + layout       -- independent, can parallel with Phase 2
-Phase 5 (Tasks 13-15): Polish                    -- independent
-Phase 6:              De-scope recovery dialog   -- after Phase 2 is confirmed working
-```
-
-Tasks 1-4 and 9-15 are independent and can be done in parallel.
-Tasks 5 must complete before 6, 7, and 8.
-
----
-
-## Expected Impact
-
-```text
-Current (real data):
-  495 sessions -> 68 step-0 completions (13.7%) -> 7 funnel_complete (1.4%)
-
-After email-first micro-step (Task 6):
-  495 sessions -> ~150 emails captured (30%) -> ~80 step-0 completions (16%)
-
-After reminder emails (Task 8):
-  +10-15% recovery on 150 partials = ~20 additional completions
-
-After credibility + layout fixes (Tasks 9-12):
-  Lift step-0 by 1.5x with real proof + above-fold form = ~120 step-0 completions
-
-Conservative projection: 40-60 completed submissions per 495 views (8-12%)
-vs. current 7 completions (1.4%) = 6-9x improvement
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
 ```
 
 ---
 
-## Files Summary
+## Implementation Priority
 
-**New files:**
-- `supabase/functions/send-funnel-reminder/index.ts`
-- `supabase/functions/process-funnel-reminders/index.ts`
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
 
-**Modified files:**
-- `src/hooks/useFunnelAnalytics.ts` (fix step numbers, dedup, add version)
-- `src/components/partner-funnel/FunnelSteps.tsx` (email-first, partial save, resume, CTAs, exit intent, honeypot)
-- `src/pages/PartnerFunnel.tsx` (layout reorder, Helmet meta tags)
-- `src/components/partner-funnel/SuccessConfetti.tsx` (fix false claims)
-- `src/components/partner-funnel/ProgressSaver.tsx` (fix step count, de-scope recovery dialog)
-- `src/components/partner-funnel/SessionRecoveryBanner.tsx` (fix step count, de-scope)
-- `src/components/partner-funnel/SocialProofCarousel.tsx` (stats-based proof fallback)
-- `src/components/partner-funnel/TrustBadges.tsx` (remove unverified rating)
-- `src/components/partner-funnel/FunnelAIAssistant.tsx` (remove dead code)
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
 
-**DB migration:**
-- Create `funnel_partial_submissions` table with RLS
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
+
+**Total: ~25 files modified**
+
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+

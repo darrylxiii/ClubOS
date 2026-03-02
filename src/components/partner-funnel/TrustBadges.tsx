@@ -1,4 +1,4 @@
-import { Shield, Lock, Award, CheckCircle, Star } from "lucide-react";
+import { Shield, Lock, Award, CheckCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function TrustBadges() {
@@ -17,8 +17,8 @@ export function TrustBadges() {
         <span className="text-xs">Zero Upfront Fees</span>
       </Badge>
       <Badge variant="outline" className="gap-1.5 py-1.5 px-3">
-        <Star className="w-3.5 h-3.5 text-primary" />
-        <span className="text-xs">4.9/5 Rating</span>
+        <Clock className="w-3.5 h-3.5 text-primary" />
+        <span className="text-xs">24h Response</span>
       </Badge>
     </div>
   );

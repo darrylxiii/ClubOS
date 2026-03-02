@@ -104,7 +104,7 @@ export function SessionRecoveryBanner({
               )}
             </div>
             <Badge variant="secondary" className="text-xs">
-              Step {currentStep + 1}/5
+              Step {currentStep + 1}/3
             </Badge>
           </div>
           

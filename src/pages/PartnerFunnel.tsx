@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { FunnelSteps } from "@/components/partner-funnel/FunnelSteps";
 import { FunnelAIAssistant } from "@/components/partner-funnel/FunnelAIAssistant";
 import { SocialProofCarousel } from "@/components/partner-funnel/SocialProofCarousel";
@@ -36,6 +37,9 @@ export default function PartnerFunnel() {
   if (!isActive) {
     return (
       <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>Partnership Applications Paused — The Quantum Club</title>
+        </Helmet>
         {/* Top Banner */}
         <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
@@ -71,6 +75,16 @@ export default function PartnerFunnel() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Partner with The Quantum Club — Access Pre-Vetted Senior Talent</title>
+        <meta name="description" content="Access pre-vetted senior talent. Tell us who you're looking for — we'll have a shortlist ready within two weeks. No upfront fees, no contracts." />
+        <meta property="og:title" content="Partner with The Quantum Club — Access Pre-Vetted Senior Talent" />
+        <meta property="og:description" content="Submit your hiring request and receive a curated shortlist of senior candidates within 14 days. No upfront fees, no contracts." />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://os.thequantumclub.com/partner" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
+
       {/* Top Banner */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
@@ -94,15 +108,18 @@ export default function PartnerFunnel() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center max-w-2xl mx-auto mb-4">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight mb-3">
-            Access pre-vetted senior talent.
+            Your shortlist of senior candidates, ready in 14 days.
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Tell us who you're looking for — we'll have a shortlist ready within two weeks. No upfront fees, no contracts.
+          <p className="text-lg text-muted-foreground mb-2">
+            Tell us who you're looking for — we handle sourcing, screening, and coordination.
+          </p>
+          <p className="text-sm font-semibold text-primary">
+            No upfront fees. No contracts. You only pay for results.
           </p>
         </div>
 
-        {/* How it works — 3 icon strip */}
-        <div className="flex items-center justify-center gap-2 sm:gap-6 mb-8 text-sm text-muted-foreground max-w-lg mx-auto">
+        {/* How it works — compact single-line on mobile */}
+        <div className="hidden sm:flex items-center justify-center gap-2 sm:gap-6 mb-6 text-sm text-muted-foreground max-w-lg mx-auto">
           <div className="flex flex-col items-center gap-1 text-center">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
               <span className="text-primary font-bold text-xs">1</span>
@@ -125,14 +142,21 @@ export default function PartnerFunnel() {
           </div>
         </div>
 
-        {/* Social Proof — above the form */}
-        <div className="max-w-2xl mx-auto mb-6">
-          <SocialProofCarousel />
+        {/* Mobile: compact badge instead of full strip */}
+        <div className="sm:hidden flex justify-center mb-6">
+          <span className="text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-4 py-1.5">
+            3 simple steps — no fees, no contracts
+          </span>
         </div>
 
-        {/* Main Funnel */}
+        {/* Main Funnel — ABOVE social proof for above-the-fold visibility */}
         <div className="max-w-2xl mx-auto">
           <FunnelSteps />
+        </div>
+
+        {/* Social Proof — below the form */}
+        <div className="max-w-2xl mx-auto mt-8">
+          <SocialProofCarousel />
         </div>
       </div>
 

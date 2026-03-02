@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { migrateToast as toast } from "@/lib/notify";
-import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Loader2, Clock, Keyboard, Building2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, ArrowLeft, CheckCircle, Users, Target, Loader2, Clock, Keyboard } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -23,7 +23,6 @@ import { useFormValidation, FieldError } from "@/hooks/useFormValidation";
 import { MobileProgressIndicator, DesktopProgressSteps } from "./MobileProgressIndicator";
 import { SuccessConfetti } from "./SuccessConfetti";
 import { useFunnelAnalytics } from "@/hooks/useFunnelAnalytics";
-import { ProgressSaver } from "./ProgressSaver";
 import { useActiveFunnelExperiments } from "@/hooks/useFunnelABTest";
 import { KeyboardHintToast } from "./KeyboardShortcuts";
 import { usePrefetch } from "./LazyFunnelComponents";
@@ -31,13 +30,13 @@ import { NetworkStatusIndicator, InlineNetworkStatus } from "./NetworkStatusIndi
 import { StepTransition } from "./StepTransition";
 import { cn } from "@/lib/utils";
 
-// 3 clean, benefit-oriented step labels — no "compliance" or "verification"
+// 3 clean, benefit-oriented step labels
 const STEPS = ["Your Details", "Hiring Needs", "Submit"];
 
 const STEP_TIME_ESTIMATES: Record<number, number> = {
-  0: 1, // Details – 1 min
-  1: 1, // Needs – 1 min
-  2: 0, // Submit – instant
+  0: 1,
+  1: 1,
+  2: 0,
 };
 
 export function FunnelSteps() {
@@ -53,21 +52,30 @@ export function FunnelSteps() {
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'backward'>('forward');
   const [spotsLeft, setSpotsLeft] = useState(2);
 
+  // Email-first micro-step state
+  const [emailCaptured, setEmailCaptured] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
+
+  // Honeypot field for spam prevention
+  const [honeypot, setHoneypot] = useState("");
+
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   usePrefetch(currentStep);
   const validation = useFormValidation();
   const analytics = useFunnelAnalytics(sessionId);
   const experiments = useActiveFunnelExperiments(sessionId);
+  const partialSaveRef = useRef(false);
 
-  // Exit intent – only on middle steps
+  // Exit intent – enable on step 0 and step 1
   const handleExitIntent = useCallback(() => {
-    if (currentStep > 0 && currentStep < 2) {
+    if (currentStep >= 0 && currentStep < 2) {
       setExitIntentOpen(true);
     }
   }, [currentStep]);
 
-  useExitIntent(currentStep > 0 && currentStep < 2, handleExitIntent);
+  useExitIntent(currentStep >= 0 && currentStep < 2, handleExitIntent);
 
   const autoSave = useFunnelAutoSave({
     storageKey: 'partner_funnel_save',
@@ -78,7 +86,7 @@ export function FunnelSteps() {
   const { countryCode } = useCountryDetection();
 
   const [formData, setFormData] = useState({
-    // Step 0 — Your Details (contact + company merged)
+    // Step 0 — Your Details
     contact_name: "",
     contact_email: "",
     company_name: "",
@@ -93,8 +101,47 @@ export function FunnelSteps() {
     description: "",
   });
 
-  // Load saved data and spots count
+  // Resume from email link (?resume=sessionId)
   useEffect(() => {
+    const resumeId = searchParams.get('resume');
+    if (resumeId) {
+      setIsResuming(true);
+      (async () => {
+        try {
+          const { data } = await supabase
+            .from('funnel_partial_submissions')
+            .select('*')
+            .eq('session_id', resumeId)
+            .single();
+
+          if (data && !data.completed) {
+            const savedForm = data.form_data as Record<string, string> || {};
+            setFormData(prev => ({
+              ...prev,
+              contact_email: data.contact_email || '',
+              contact_name: data.contact_name || '',
+              company_name: data.company_name || '',
+              ...savedForm,
+            }));
+            setEmailCaptured(true);
+            if (data.current_step > 0) {
+              setCurrentStep(data.current_step);
+            }
+            toast({
+              title: "Welcome back.",
+              description: "We've restored your progress.",
+            });
+          }
+        } catch {
+          // Silent fail — just start fresh
+        } finally {
+          setIsResuming(false);
+        }
+      })();
+      return; // Skip localStorage resume check
+    }
+
+    // Load saved data from localStorage
     const savedData = autoSave.load();
     if (savedData && !savedData.completed) {
       setResumeDialogOpen(true);
@@ -115,7 +162,7 @@ export function FunnelSteps() {
     loadSpotsCount();
   }, []);
 
-  // Auto-save
+  // Auto-save to localStorage
   useEffect(() => {
     if (currentStep > 0 || formData.contact_name || formData.contact_email) {
       autoSave.save({ ...formData, phoneNumber }, currentStep, sessionId);
@@ -132,7 +179,11 @@ export function FunnelSteps() {
         !e.target.closest('[role="textbox"]')
       ) {
         e.preventDefault();
-        handleNext();
+        if (currentStep === 0 && !emailCaptured) {
+          handleEmailCapture();
+        } else {
+          handleNext();
+        }
       }
       if (e.key === 'Escape' && currentStep > 0 && currentStep < 3) {
         e.preventDefault();
@@ -141,18 +192,75 @@ export function FunnelSteps() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentStep, formData, phoneNumber]);
+  }, [currentStep, formData, phoneNumber, emailCaptured]);
 
   // Track step views
   useEffect(() => {
     analytics.trackStepView(currentStep, STEPS[currentStep]);
   }, [currentStep, analytics]);
 
+  // Upsert partial submission to DB
+  const upsertPartialSubmission = useCallback(async (email: string) => {
+    try {
+      await supabase
+        .from('funnel_partial_submissions')
+        .upsert({
+          session_id: sessionId,
+          contact_email: email,
+          contact_name: formData.contact_name || null,
+          company_name: formData.company_name || null,
+          form_data: formData,
+          current_step: currentStep,
+          last_active_at: new Date().toISOString(),
+        }, { onConflict: 'session_id' });
+    } catch {
+      // Non-blocking — don't disrupt user flow
+    }
+  }, [sessionId, formData, currentStep]);
+
+  // Update partial submission on step change
+  useEffect(() => {
+    if (emailCaptured && partialSaveRef.current) {
+      supabase
+        .from('funnel_partial_submissions')
+        .update({
+          form_data: formData,
+          current_step: currentStep,
+          last_active_at: new Date().toISOString(),
+        })
+        .eq('session_id', sessionId)
+        .then(() => {});
+    }
+  }, [currentStep]);
+
+  // Handle email capture (Phase A → Phase B)
+  const handleEmailCapture = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.contact_email || !emailRegex.test(formData.contact_email)) {
+      toast({ title: "Please enter a valid work email", variant: "destructive" });
+      return;
+    }
+
+    // Save to DB immediately
+    await upsertPartialSubmission(formData.contact_email);
+    partialSaveRef.current = true;
+    setEmailCaptured(true);
+  };
+
+  // Handle email blur — auto-capture if valid
+  const handleEmailBlur = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.contact_email && emailRegex.test(formData.contact_email) && !emailCaptured) {
+      handleEmailCapture();
+    }
+    validation.validateField('contact_email', formData.contact_email);
+  };
+
   const validateStep = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     switch (currentStep) {
-      case 0: // Your Details
+      case 0:
         if (!formData.contact_name || !formData.contact_email || !formData.company_name || !formData.industry) {
           toast({ title: "Please fill in all required fields", variant: "destructive" });
           return false;
@@ -162,19 +270,33 @@ export function FunnelSteps() {
           return false;
         }
         break;
-      case 1: // Hiring Needs
+      case 1:
         if (!formData.company_size) {
           toast({ title: "Please select your company size", variant: "destructive" });
           return false;
         }
         break;
-      // Step 2 — no blocking validation; phone + privacy are optional/inline
     }
     return true;
   };
 
   const handleNext = async () => {
     if (!validateStep()) return;
+
+    // Update partial submission with latest data
+    if (partialSaveRef.current) {
+      await supabase
+        .from('funnel_partial_submissions')
+        .update({
+          contact_name: formData.contact_name,
+          company_name: formData.company_name,
+          form_data: formData,
+          current_step: currentStep + 1,
+          last_active_at: new Date().toISOString(),
+        })
+        .eq('session_id', sessionId);
+    }
+
     await analytics.trackStepComplete(currentStep, STEPS[currentStep]);
     setTransitionDirection('forward');
     setCurrentStep(currentStep + 1);
@@ -192,6 +314,10 @@ export function FunnelSteps() {
       setFormData(savedData.formData);
       setCurrentStep(savedData.currentStep);
       setPhoneNumber(savedData.formData.phoneNumber || "");
+      if (savedData.formData.contact_email) {
+        setEmailCaptured(true);
+        partialSaveRef.current = true;
+      }
       toast({
         title: "Welcome back.",
         description: `Resuming at step ${savedData.currentStep + 1} of ${STEPS.length}`,
@@ -206,6 +332,12 @@ export function FunnelSteps() {
   };
 
   const handleSubmit = async () => {
+    // Honeypot check — silently reject bots
+    if (honeypot) {
+      toast({ title: "Request submitted.", description: "Your strategist will be in touch." });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
@@ -225,7 +357,6 @@ export function FunnelSteps() {
         budget_range: formData.budget_range || null,
         timeline: formData.timeline || null,
         description: formData.description || null,
-        // Keep columns but send harmless defaults
         agreed_no_cure_no_pay: false,
         agreed_privacy: true,
         agreed_nda: false,
@@ -247,6 +378,15 @@ export function FunnelSteps() {
         return;
       }
 
+      // Mark partial submission as completed
+      if (partialSaveRef.current) {
+        supabase
+          .from('funnel_partial_submissions')
+          .update({ completed: true })
+          .eq('session_id', sessionId)
+          .then(() => {});
+      }
+
       await analytics.trackFunnelComplete(timeToComplete);
 
       // Non-blocking admin notification
@@ -259,7 +399,7 @@ export function FunnelSteps() {
         }
       }).catch(err => console.warn('Admin notification failed (non-blocking):', err));
 
-      // Non-blocking "Request Received" confirmation email to partner
+      // Non-blocking confirmation email
       supabase.functions.invoke('send-partner-request-received', {
         body: {
           email: formData.contact_email,
@@ -295,87 +435,121 @@ export function FunnelSteps() {
   const renderStep = () => {
     switch (currentStep) {
       // ─────────────────────────────────────────────
-      // STEP 0 — Your Details (contact + company)
+      // STEP 0 — Your Details (email-first micro-step)
       // ─────────────────────────────────────────────
       case 0:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
               <Users className="w-10 h-10 text-primary mx-auto mb-3" />
-              <h2 className="text-xl font-semibold mb-1">Tell us about yourself</h2>
-              <p className="text-sm text-muted-foreground">Takes about 60 seconds</p>
+              <h2 className="text-xl font-semibold mb-1">
+                {emailCaptured ? "A few more details" : "Get your shortlist started"}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {emailCaptured ? "Takes about 30 seconds" : "Enter your work email to begin"}
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Full Name *</Label>
-                <Input
-                  value={formData.contact_name}
-                  onChange={(e) => {
-                    setFormData({ ...formData, contact_name: e.target.value });
-                    validation.clearError('contact_name');
-                  }}
-                  onBlur={() => validation.validateField('contact_name', formData.contact_name)}
-                  placeholder="Jane Smith"
-                  className={cn(validation.hasError('contact_name') && "border-destructive")}
-                />
-                <FieldError error={validation.getFieldError('contact_name')} />
-              </div>
-
-              <div>
-                <Label>Work Email *</Label>
-                <Input
-                  type="email"
-                  value={formData.contact_email}
-                  onChange={(e) => {
-                    setFormData({ ...formData, contact_email: e.target.value });
-                    validation.clearError('contact_email');
-                  }}
-                  onBlur={() => validation.validateField('contact_email', formData.contact_email)}
-                  placeholder="jane@company.com"
-                  className={cn(validation.hasError('contact_email') && "border-destructive")}
-                />
-                <FieldError error={validation.getFieldError('contact_email')} />
-              </div>
+            {/* Phase A: Email only (or always visible once captured) */}
+            <div>
+              <Label>Work Email *</Label>
+              <Input
+                type="email"
+                value={formData.contact_email}
+                onChange={(e) => {
+                  setFormData({ ...formData, contact_email: e.target.value });
+                  validation.clearError('contact_email');
+                }}
+                onBlur={handleEmailBlur}
+                placeholder="jane@company.com"
+                className={cn(validation.hasError('contact_email') && "border-destructive")}
+                readOnly={emailCaptured}
+                autoFocus={!emailCaptured}
+              />
+              <FieldError error={validation.getFieldError('contact_email')} />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Company Name *</Label>
-                <Input
-                  value={formData.company_name}
-                  onChange={(e) => {
-                    setFormData({ ...formData, company_name: e.target.value });
-                    validation.clearError('company_name');
-                  }}
-                  onBlur={() => validation.validateField('company_name', formData.company_name)}
-                  placeholder="Acme Corp"
-                  className={cn(validation.hasError('company_name') && "border-destructive")}
-                />
-                <FieldError error={validation.getFieldError('company_name')} />
-              </div>
+            {/* Phase A button — show only before email is captured */}
+            {!emailCaptured && (
+              <Button
+                onClick={handleEmailCapture}
+                className="w-full min-h-[44px] text-base"
+              >
+                Get Started
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
 
-              <div>
-                <Label>Industry *</Label>
-                <Select
-                  value={formData.industry}
-                  onValueChange={(v) => setFormData({ ...formData, industry: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="technology">Technology</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="retail">Retail</SelectItem>
-                    <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                    <SelectItem value="consulting">Consulting</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Phase B: Remaining fields (slide in after email capture) */}
+            {emailCaptured && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Full Name *</Label>
+                    <Input
+                      value={formData.contact_name}
+                      onChange={(e) => {
+                        setFormData({ ...formData, contact_name: e.target.value });
+                        validation.clearError('contact_name');
+                      }}
+                      onBlur={() => validation.validateField('contact_name', formData.contact_name)}
+                      placeholder="Jane Smith"
+                      className={cn(validation.hasError('contact_name') && "border-destructive")}
+                      autoFocus
+                    />
+                    <FieldError error={validation.getFieldError('contact_name')} />
+                  </div>
+
+                  <div>
+                    <Label>Company Name *</Label>
+                    <Input
+                      value={formData.company_name}
+                      onChange={(e) => {
+                        setFormData({ ...formData, company_name: e.target.value });
+                        validation.clearError('company_name');
+                      }}
+                      onBlur={() => validation.validateField('company_name', formData.company_name)}
+                      placeholder="Acme Corp"
+                      className={cn(validation.hasError('company_name') && "border-destructive")}
+                    />
+                    <FieldError error={validation.getFieldError('company_name')} />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Industry *</Label>
+                  <Select
+                    value={formData.industry}
+                    onValueChange={(v) => setFormData({ ...formData, industry: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technology">Technology</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="healthcare">Healthcare</SelectItem>
+                      <SelectItem value="retail">Retail</SelectItem>
+                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="consulting">Consulting</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Honeypot field — invisible to humans, bots fill it */}
+            <input
+              type="text"
+              name="company_url_verify"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="absolute left-[-9999px] top-[-9999px] w-0 h-0 overflow-hidden opacity-0 pointer-events-none"
+            />
           </div>
         );
 
@@ -485,7 +659,7 @@ export function FunnelSteps() {
         );
 
       // ─────────────────────────────────────────────
-      // STEP 2 — Submit (no OTP, no contracts)
+      // STEP 2 — Submit
       // ─────────────────────────────────────────────
       case 2:
         return (
@@ -511,7 +685,7 @@ export function FunnelSteps() {
               />
             </div>
 
-            {/* Summary of what they submitted */}
+            {/* Summary */}
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2 text-sm">
               <p className="font-medium text-foreground mb-3">Your details</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
@@ -560,6 +734,17 @@ export function FunnelSteps() {
     }
   };
 
+  if (isResuming) {
+    return (
+      <Card className="p-8 glass-effect">
+        <div className="flex items-center justify-center gap-3 py-8">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <span className="text-muted-foreground">Restoring your progress...</span>
+        </div>
+      </Card>
+    );
+  }
+
   if (currentStep === 3) {
     return <Card className="p-8 glass-effect">{renderStep()}</Card>;
   }
@@ -588,7 +773,7 @@ export function FunnelSteps() {
         onStartFresh={handleStartFresh}
       />
 
-      {showKeyboardHints && currentStep === 0 && (
+      {showKeyboardHints && currentStep === 0 && emailCaptured && (
         <KeyboardHintToast onDismiss={() => setShowKeyboardHints(false)} />
       )}
 
@@ -613,50 +798,56 @@ export function FunnelSteps() {
             );
           })()}
 
-          {/* Progress */}
-          <MobileProgressIndicator
-            currentStep={currentStep}
-            totalSteps={3}
-            stepLabels={STEPS}
-          />
-          <DesktopProgressSteps
-            currentStep={currentStep}
-            totalSteps={3}
-            stepLabels={STEPS}
-          />
+          {/* Progress — hide until email is captured */}
+          {emailCaptured && (
+            <>
+              <MobileProgressIndicator
+                currentStep={currentStep}
+                totalSteps={3}
+                stepLabels={STEPS}
+              />
+              <DesktopProgressSteps
+                currentStep={currentStep}
+                totalSteps={3}
+                stepLabels={STEPS}
+              />
+            </>
+          )}
 
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                {remainingMinutes > 0 && (
-                  <Badge variant="outline" className="text-xs gap-1">
-                    <Clock className="w-3 h-3" />
-                    ~{remainingMinutes} min
-                  </Badge>
-                )}
-              </div>
-              {showKeyboardHints && currentStep < 2 && (
-                <div className="hidden md:flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
-                    <Keyboard className="w-3 h-3" />
-                    <span>Enter</span> = Next
-                  </Badge>
-                  {currentStep > 0 && (
-                    <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
-                      <Keyboard className="w-3 h-3" />
-                      <span>Esc</span> = Back
+          {emailCaptured && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {remainingMinutes > 0 && (
+                    <Badge variant="outline" className="text-xs gap-1">
+                      <Clock className="w-3 h-3" />
+                      ~{remainingMinutes} min
                     </Badge>
                   )}
                 </div>
-              )}
+                {showKeyboardHints && currentStep < 2 && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+                      <Keyboard className="w-3 h-3" />
+                      <span>Enter</span> = Next
+                    </Badge>
+                    {currentStep > 0 && (
+                      <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+                        <Keyboard className="w-3 h-3" />
+                        <span>Esc</span> = Back
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-500 ease-out"
+                  style={{ width: `${((currentStep + 1) / 3) * 100}%` }}
+                />
+              </div>
             </div>
-            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-500 ease-out"
-                style={{ width: `${((currentStep + 1) / 3) * 100}%` }}
-              />
-            </div>
-          </div>
+          )}
 
           <InlineNetworkStatus className="mb-4" />
 
@@ -666,57 +857,48 @@ export function FunnelSteps() {
 
           <TrustBadges />
 
-          {currentStep > 0 && currentStep < 3 && (
-            <div className="mt-4 flex justify-center">
-              <ProgressSaver
-                sessionId={sessionId}
-                currentStep={currentStep}
-                formData={formData}
-                email={formData.contact_email}
-              />
+          {/* Navigation — only show after email captured for step 0 */}
+          {(emailCaptured || currentStep > 0) && (
+            <div className="flex gap-4 mt-8">
+              {currentStep > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  className="flex-1 min-h-[44px] text-base"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              )}
+              {currentStep < 2 ? (
+                <Button
+                  onClick={handleNext}
+                  className="flex-1 min-h-[44px] text-base"
+                >
+                  {currentStep === 0 ? "Next: Your Hiring Needs" : "Review and Submit"}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  className="flex-1 min-h-[44px] text-base"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Submit — Free, No Obligation
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           )}
-
-          {/* Navigation */}
-          <div className="flex gap-4 mt-8">
-            {currentStep > 0 && (
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex-1 min-h-[44px] text-base"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            )}
-            {currentStep < 2 ? (
-              <Button
-                onClick={handleNext}
-                className="flex-1 min-h-[44px] text-base"
-              >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                className="flex-1 min-h-[44px] text-base"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    Send My Request
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
         </Card>
       </FunnelErrorBoundary>
 
