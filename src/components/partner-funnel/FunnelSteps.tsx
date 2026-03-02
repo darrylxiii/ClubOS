@@ -692,7 +692,7 @@ export function FunnelSteps() {
                 defaultCountry={countryCode as "NL" | "US" | "GB" | "DE" | undefined}
                 value={phoneNumber}
                 onChange={(v) => setPhoneNumber(v || "")}
-                placeholder="Add phone for faster response"
+                placeholder=""
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
             </div>
