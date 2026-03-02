@@ -168,6 +168,31 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !account) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
+
+    setAvatarUploading(true);
+    try {
+      const ext = file.type.includes('png') ? 'png' : file.type.includes('webp') ? 'webp' : 'jpg';
+      const filePath = `linkedin-avatars/${account.id}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('avatars').upload(filePath, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      await supabase.from('linkedin_avatar_accounts').update({ avatar_url: newUrl }).eq('id', account.id);
+      toast.success('Avatar updated');
+      // Trigger refetch via invalidation handled by the hook
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed');
+    } finally {
+      setAvatarUploading(false);
+      if (avatarFileRef.current) avatarFileRef.current.value = '';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
