@@ -1,7 +1,6 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { CheckCircle } from "lucide-react";
 import { PartnerRequestTracker } from "@/components/partner-funnel/PartnerRequestTracker";
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
