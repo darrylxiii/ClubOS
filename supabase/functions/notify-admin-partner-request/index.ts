@@ -24,7 +24,7 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { requestId, name, email, type } = await req.json();
+    const { requestId, name, email, type, company, industry, companySize, timeline, budget, rolesPerYear, website, location, phone } = await req.json();
 
     if (!requestId || !name || !email) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {

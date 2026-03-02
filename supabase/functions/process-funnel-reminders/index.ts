@@ -46,6 +46,7 @@ serve(async (req) => {
       .eq('reminder_count', 1)
       .lt('reminder_sent_at', twentyFourHoursAgo)
       .not('contact_email', 'is', null)
+      .not('email_quality', 'in', '("invalid","disposable")')
       .limit(50);
 
     if (secondError) throw secondError;
