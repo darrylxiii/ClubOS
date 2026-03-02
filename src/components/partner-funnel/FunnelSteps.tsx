@@ -1013,6 +1013,11 @@ export function FunnelSteps() {
 
       <FunnelErrorBoundary stepName={STEPS[currentStep]}>
         <Card className="p-5 sm:p-8 glass">
+          {/* Form label */}
+          <p className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-2">
+            Partner Request
+          </p>
+
           {/* Availability indicator — minimal inline */}
           <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
             <div className={cn(
