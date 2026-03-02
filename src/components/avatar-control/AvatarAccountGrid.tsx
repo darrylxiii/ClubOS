@@ -102,7 +102,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {FILTER_OPTIONS.map(f => {
-            const count = f === 'All' ? counts.all : f === 'Available' ? counts.available : f === 'In Use' ? counts.inUse : f === 'Paused' ? counts.paused : f === 'At Risk' ? counts.atRisk : counts.depleted;
+            const count = f === 'All' ? counts.all : f === 'Available' ? counts.available : f === 'In Use' ? counts.inUse : f === 'Paused' ? counts.paused : f === 'At Risk' ? counts.atRisk : f === 'Depleted' ? counts.depleted : counts.behindOnPosts;
             return (
               <Badge
                 key={f}
