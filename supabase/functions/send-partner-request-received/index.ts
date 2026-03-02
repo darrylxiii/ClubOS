@@ -51,8 +51,8 @@ Deno.serve(async (req) => {
     const appUrl = getEmailAppUrl();
 
     const emailContent = `
-      ${StatusBadge({ status: 'pending', text: 'REQUEST RECEIVED' })}
-      ${Heading({ text: 'We Received Your Partner Request', level: 1, align: 'center' })}
+      ${StatusBadge({ status: 'pending', text: 'BRIEF RECEIVED' })}
+      ${Heading({ text: 'Your Brief Has Been Received', level: 1, align: 'center' })}
       ${Spacer(24)}
       ${Paragraph(`Dear ${contactName},`, 'primary')}
       ${Spacer(8)}
