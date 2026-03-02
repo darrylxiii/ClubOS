@@ -465,7 +465,7 @@ export function FunnelSteps() {
 
             {/* Phase A: Email only (or always visible once captured) */}
             <div>
-              <Label className="glass-label">Work Email *</Label>
+              <Label className="glass-label">Work email</Label>
               <Input
                 type="email"
                 value={formData.contact_email}
