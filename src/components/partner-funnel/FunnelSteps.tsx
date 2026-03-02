@@ -629,7 +629,7 @@ export function FunnelSteps() {
               </div>
 
               <div>
-                <Label className="glass-label">Approximate Annual Budget</Label>
+                <Label className="glass-label">Recruitment budget (annual)</Label>
                 <Select
                   value={formData.budget_range}
                   onValueChange={(v) => setFormData({ ...formData, budget_range: v })}
