@@ -353,98 +353,140 @@ export const AdminMemberRequests = () => {
       if (!user) throw new Error('Not authenticated');
 
       const newStatus = reviewAction === 'approve' ? 'approved' : 'declined';
-      const tableName = selectedRequest.request_type === 'candidate' ? 'profiles' : 'partner_requests';
-      const statusColumn = selectedRequest.request_type === 'candidate' ? 'account_status' : 'status';
 
-      // Build update data with correct column names per table
-      const updateData: any = {
-        [statusColumn]: newStatus,
-      };
+      // ── PARTNER APPROVAL: use the provisioning edge function ──
+      if (reviewAction === 'approve' && selectedRequest.request_type === 'partner') {
+        console.log('[AdminMemberRequests] Invoking approve-partner-request for full provisioning');
+        const { data: provisionResult, error: provisionError } = await supabase.functions.invoke('approve-partner-request', {
+          body: { requestId: selectedRequest.id }
+        });
 
-      // Add reviewed fields based on request type
-      if (selectedRequest.request_type === 'candidate') {
-        // Candidates use account_* prefix
-        updateData.account_reviewed_at = new Date().toISOString();
-        updateData.account_approved_by = user.id;
+        if (provisionError) {
+          console.error('[AdminMemberRequests] Partner provisioning error:', provisionError);
+          const errorMsg = provisionResult?.error || provisionError.message || 'Partner provisioning failed';
+          toast.error(`Failed to provision partner: ${errorMsg}`, { duration: 8000 });
+          setSubmitting(false);
+          return;
+        }
+
+        console.log('[AdminMemberRequests] Partner provisioned successfully:', provisionResult);
+        toast.success(
+          `${selectedRequest.name} has been approved and provisioned.`,
+          { description: 'Auth user, company, and welcome email created.' }
+        );
+      }
+      // ── PARTNER DECLINE: direct DB update + direct email ──
+      else if (reviewAction === 'decline' && selectedRequest.request_type === 'partner') {
+        const { error: updateError } = await supabase
+          .from('partner_requests')
+          .update({
+            status: 'declined',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: user.id,
+            decline_reason: declineReason,
+          })
+          .eq('id', selectedRequest.id);
+
+        if (updateError) {
+          console.error('[AdminMemberRequests] Partner decline update error:', updateError);
+          throw updateError;
+        }
+
+        // Send decline email directly (not through generic routing)
+        if (sendEmail) {
+          const { error: emailErr } = await supabase.functions.invoke('send-partner-declined-email', {
+            body: {
+              email: selectedRequest.email,
+              contactName: selectedRequest.name,
+              companyName: selectedRequest.title_or_company || undefined,
+              declineReason: declineReason || undefined,
+            }
+          });
+          if (emailErr) {
+            console.warn('[AdminMemberRequests] Decline email failed:', emailErr);
+            toast.warning('Partner declined, but the notification email could not be sent.');
+          }
+        }
+
+        toast.success('Partner application declined.');
+      }
+      // ── CANDIDATE PATH: existing logic (direct DB update + generic notification) ──
+      else {
+        const tableName = 'profiles';
+        const updateData: any = {
+          account_status: newStatus,
+          account_reviewed_at: new Date().toISOString(),
+          account_approved_by: user.id,
+        };
         if (reviewAction === 'decline') {
           updateData.account_decline_reason = declineReason;
         }
-      } else {
-        // Partners use standard column names
-        updateData.reviewed_at = new Date().toISOString();
-        updateData.reviewed_by = user.id;
-        if (reviewAction === 'decline') {
-          updateData.decline_reason = declineReason;
+
+        const { error: updateError } = await supabase
+          .from(tableName)
+          .update(updateData)
+          .eq('id', selectedRequest.id);
+
+        if (updateError) {
+          console.error('[AdminMemberRequests] Candidate update error:', updateError);
+          throw updateError;
         }
-      }
 
-      const { error: updateError } = await supabase
-        .from(tableName)
-        .update(updateData)
-        .eq('id', selectedRequest.id);
+        // Send notification email for candidates
+        let emailError = null;
+        if (sendEmail) {
+          const { data: emailResult, error: emailErr } = await supabase.functions.invoke('send-approval-notification', {
+            body: {
+              userId: selectedRequest.id,
+              email: selectedRequest.email,
+              fullName: selectedRequest.name,
+              requestType: selectedRequest.request_type,
+              status: newStatus,
+              declineReason: reviewAction === 'decline' ? declineReason : undefined,
+            }
+          });
+          emailError = emailErr;
 
-      if (updateError) {
-        console.error('[AdminMemberRequests] Update error:', updateError);
-        throw updateError;
-      }
-
-      console.log('[AdminMemberRequests] Status updated successfully');
-
-      // Send notification email with error handling (only if sendEmail is checked)
-      let emailError = null;
-      if (sendEmail) {
-        const { data: emailResult, error: emailErr } = await supabase.functions.invoke('send-approval-notification', {
-          body: {
-            userId: selectedRequest.id,
-            email: selectedRequest.email,
-            fullName: selectedRequest.name,
-            requestType: selectedRequest.request_type,
-            status: newStatus,
-            declineReason: reviewAction === 'decline' ? declineReason : undefined,
+          if (emailErr) {
+            console.error('[AdminMemberRequests] Email notification error:', emailErr);
+          } else {
+            console.log('[AdminMemberRequests] Email sent successfully:', emailResult);
           }
-        });
-        emailError = emailErr;
-
-        if (emailErr) {
-          console.error('[AdminMemberRequests] Email notification error:', emailErr);
-        } else {
-          console.log('[AdminMemberRequests] Email sent successfully:', emailResult);
         }
-      }
 
-      // Send SMS notification if phone is available and status is approved (only if sendSMS is checked)
-      let smsSuccess = false;
-      if (sendSMS && reviewAction === 'approve' && selectedRequest.phone) {
-        const { data: smsResult, error: smsError } = await supabase.functions.invoke('send-approval-sms', {
-          body: {
-            phone: selectedRequest.phone,
-            fullName: selectedRequest.name,
-            requestType: selectedRequest.request_type,
+        // Send SMS notification if phone is available and status is approved
+        let smsSuccess = false;
+        if (sendSMS && reviewAction === 'approve' && selectedRequest.phone) {
+          const { data: smsResult, error: smsError } = await supabase.functions.invoke('send-approval-sms', {
+            body: {
+              phone: selectedRequest.phone,
+              fullName: selectedRequest.name,
+              requestType: selectedRequest.request_type,
+            }
+          });
+
+          if (smsError) {
+            console.error('[AdminMemberRequests] SMS notification error:', smsError);
+          } else {
+            console.log('[AdminMemberRequests] SMS sent successfully:', smsResult);
+            smsSuccess = true;
           }
-        });
-
-        if (smsError) {
-          console.error('[AdminMemberRequests] SMS notification error:', smsError);
-        } else {
-          console.log('[AdminMemberRequests] SMS sent successfully:', smsResult);
-          smsSuccess = true;
         }
-      }
 
-      // Show success toast with notification status
-      if (reviewAction === 'approve') {
-        const notifications = [];
-        if (!emailError) notifications.push('Email');
-        if (smsSuccess) notifications.push('SMS');
-        
-        toast.success(
-          `${selectedRequest.name} has been approved!`,
-          notifications.length > 0 
-            ? { description: `Notifications sent: ${notifications.join(', ')}` }
-            : undefined
-        );
-      } else {
-        toast.success('Application declined');
+        if (reviewAction === 'approve') {
+          const notifications = [];
+          if (!emailError) notifications.push('Email');
+          if (smsSuccess) notifications.push('SMS');
+          
+          toast.success(
+            `${selectedRequest.name} has been approved!`,
+            notifications.length > 0 
+              ? { description: `Notifications sent: ${notifications.join(', ')}` }
+              : undefined
+          );
+        } else {
+          toast.success('Application declined.');
+        }
       }
 
       // Close dialog and refresh
