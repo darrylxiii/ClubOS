@@ -276,7 +276,82 @@ export function FunnelSteps() {
 
     await upsertPartialSubmission(formData.contact_email);
     partialSaveRef.current = true;
-    setEmailCaptured(true);
+
+    // Silent email verification via MillionVerifier + Findymail
+    setEmailVerificationStatus('checking');
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-funnel-email', {
+        body: { email: formData.contact_email, sessionId },
+      });
+
+      if (error) {
+        console.warn('Email verification failed (proceeding):', error);
+        setEmailVerificationStatus('idle');
+        setEmailCaptured(true);
+        return;
+      }
+
+      const quality = data?.quality || 'unknown';
+
+      if (quality === 'verified' || quality === 'unknown' || quality === 'catch_all') {
+        setEmailVerificationStatus('verified');
+        setEmailCaptured(true);
+      } else {
+        // invalid or disposable
+        setEmailVerificationStatus('failed');
+        setEmailVerifyReason(data?.reason || 'invalid');
+      }
+    } catch {
+      // Fail open
+      setEmailVerificationStatus('idle');
+      setEmailCaptured(true);
+    }
+  };
+
+  // Handle OTP verification for failed emails
+  const handleSendOtp = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('send-email-verification', {
+        body: { email: formData.contact_email, type: 'funnel' },
+      });
+      if (error) throw error;
+      setEmailVerificationStatus('otp_sent');
+      toast({ title: "Verification code sent.", description: `Check ${formData.contact_email}.` });
+    } catch {
+      toast({ title: "Could not send code. Try again.", variant: "destructive" });
+    }
+  };
+
+  const handleVerifyOtp = async (code: string) => {
+    if (code.length !== 6) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-code', {
+        body: { email: formData.contact_email, code },
+      });
+      if (error) throw error;
+      if (data?.verified) {
+        setEmailVerificationStatus('otp_verified');
+        // Update email_quality in DB
+        if (partialSaveRef.current) {
+          supabase
+            .from('funnel_partial_submissions')
+            .update({ email_quality: 'otp_verified', email_verified_at: new Date().toISOString() })
+            .eq('session_id', sessionId)
+            .then(() => {});
+        }
+        setEmailCaptured(true);
+      } else {
+        toast({ title: "Invalid code. Please try again.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Verification failed. Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleUseAnotherEmail = () => {
+    setFormData(prev => ({ ...prev, contact_email: '' }));
+    setEmailVerificationStatus('idle');
+    setEmailVerifyReason(null);
   };
 
   // Handle email blur — auto-capture if valid
