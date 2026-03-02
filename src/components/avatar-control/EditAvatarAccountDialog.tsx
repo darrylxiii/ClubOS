@@ -21,6 +21,7 @@ interface EditAvatarAccountDialogProps {
 
 export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAvatarAccountDialogProps) {
   const { updateAccount, saveCredentials, deleteAccount, resetConnectionCounter } = useAvatarAccounts();
+  const { targets, upsertSocialTarget } = useAvatarSocialTargets(account?.id);
 
   const [label, setLabel] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -34,6 +35,14 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
   const [notes, setNotes] = useState('');
   const [playbook, setPlaybook] = useState('');
   const [emailAccountAddress, setEmailAccountAddress] = useState('');
+
+  // Social platform local state
+  const [socialState, setSocialState] = useState<Record<SocialPlatform, { active: boolean; handle: string; target: number }>>({
+    linkedin: { active: false, handle: '', target: 3 },
+    twitter: { active: false, handle: '', target: 3 },
+    reddit: { active: false, handle: '', target: 3 },
+    instagram: { active: false, handle: '', target: 3 },
+  });
 
   // Password fields
   const [linkedinPassword, setLinkedinPassword] = useState('');
