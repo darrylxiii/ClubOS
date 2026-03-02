@@ -456,10 +456,10 @@ export function FunnelSteps() {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-semibold mb-1">
-                {emailCaptured ? "A few more details" : "Get your shortlist started"}
+                {emailCaptured ? "Tell us about your company" : "Begin your search"}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {emailCaptured ? "Takes about 30 seconds" : "Enter your work email to begin"}
+                {emailCaptured ? "This takes less than a minute." : "We will follow up at this address."}
               </p>
             </div>
 
