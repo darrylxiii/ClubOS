@@ -152,8 +152,8 @@ export function FunnelSteps() {
 
     // Load saved data from localStorage
     const savedData = autoSave.load();
-    if (savedData && !savedData.completed) {
-      setResumeDialogOpen(true);
+    if (savedData && !savedData.completed && (savedData.currentStep > 0 || (savedData.formData?.contact_name && savedData.formData?.contact_email))) {
+      setTimeout(() => setResumeDialogOpen(true), 500);
     }
 
     const loadSpotsCount = async () => {

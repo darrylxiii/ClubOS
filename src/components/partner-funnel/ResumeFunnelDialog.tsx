@@ -36,8 +36,8 @@ export function ResumeFunnelDialog({
         <AlertDialog open={open}>
             <AlertDialogContent className="sm:max-w-md">
                 <AlertDialogHeader>
-                    <AlertDialogTitle className="text-2xl font-bold flex items-center gap-2">
-                        👋 Welcome Back!
+                    <AlertDialogTitle className="text-2xl font-bold">
+                        Welcome back
                     </AlertDialogTitle>
                     <AlertDialogDescription className="space-y-4 pt-4">
                         <p className="text-base">
@@ -73,12 +73,12 @@ export function ResumeFunnelDialog({
                 </AlertDialogHeader>
 
                 <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                    <AlertDialogCancel onClick={onStartFresh} className="sm:flex-1">
+                    <AlertDialogCancel onClick={onStartFresh} className="sm:flex-1 border-border/60 bg-card/40 hover:bg-card/60 text-foreground">
                         Start Fresh
                     </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onContinue}
-                        className="sm:flex-1 bg-primary hover:bg-primary/90"
+                        className="sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                         autoFocus
                     >
                         Continue Where I Left Off
