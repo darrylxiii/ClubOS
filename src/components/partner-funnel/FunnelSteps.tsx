@@ -571,8 +571,8 @@ export function FunnelSteps() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold mb-1">Your hiring needs</h2>
-              <p className="text-sm text-muted-foreground">Help us prepare for our first call</p>
+              <h2 className="text-2xl font-semibold mb-1">Tell us what you are looking for</h2>
+              <p className="text-sm text-muted-foreground">So we can prepare for our conversation.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
