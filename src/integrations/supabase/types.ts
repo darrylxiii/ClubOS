@@ -3739,6 +3739,69 @@ export type Database = {
           },
         ]
       }
+      avatar_social_targets: {
+        Row: {
+          account_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          platform: string
+          platform_handle: string | null
+          platform_url: string | null
+          responsible_user_id: string | null
+          updated_at: string
+          weekly_posts_done: number
+          weekly_reset_at: string
+          weekly_target: number
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          platform: string
+          platform_handle?: string | null
+          platform_url?: string | null
+          responsible_user_id?: string | null
+          updated_at?: string
+          weekly_posts_done?: number
+          weekly_reset_at?: string
+          weekly_target?: number
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          platform?: string
+          platform_handle?: string | null
+          platform_url?: string | null
+          responsible_user_id?: string | null
+          updated_at?: string
+          weekly_posts_done?: number
+          weekly_reset_at?: string
+          weekly_target?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avatar_social_targets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avatar_social_targets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       backup_policies: {
         Row: {
           created_at: string | null

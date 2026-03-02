@@ -5,9 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Eye, EyeOff, Loader2, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Trash2, Linkedin, Twitter, MessageSquare, Instagram } from 'lucide-react';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
+import { useAvatarSocialTargets, SOCIAL_PLATFORMS, SocialPlatform } from '@/hooks/useAvatarSocialTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -19,6 +21,7 @@ interface EditAvatarAccountDialogProps {
 
 export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAvatarAccountDialogProps) {
   const { updateAccount, saveCredentials, deleteAccount, resetConnectionCounter } = useAvatarAccounts();
+  const { targets, upsertSocialTarget } = useAvatarSocialTargets(account?.id);
 
   const [label, setLabel] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -32,6 +35,14 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
   const [notes, setNotes] = useState('');
   const [playbook, setPlaybook] = useState('');
   const [emailAccountAddress, setEmailAccountAddress] = useState('');
+
+  // Social platform local state
+  const [socialState, setSocialState] = useState<Record<SocialPlatform, { active: boolean; handle: string; target: number }>>({
+    linkedin: { active: false, handle: '', target: 3 },
+    twitter: { active: false, handle: '', target: 3 },
+    reddit: { active: false, handle: '', target: 3 },
+    instagram: { active: false, handle: '', target: 3 },
+  });
 
   // Password fields
   const [linkedinPassword, setLinkedinPassword] = useState('');
@@ -81,6 +92,22 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
     }
   }, [account, open]);
 
+  // Sync social state from fetched targets
+  useEffect(() => {
+    if (targets.length > 0 && account) {
+      const newState = { ...socialState };
+      SOCIAL_PLATFORMS.forEach(p => {
+        const t = targets.find(tt => tt.platform === p.value);
+        if (t) {
+          newState[p.value] = { active: t.is_active, handle: t.platform_handle || '', target: t.weekly_target };
+        } else {
+          newState[p.value] = { active: false, handle: '', target: 3 };
+        }
+      });
+      setSocialState(newState);
+    }
+  }, [targets, account]);
+
   const handleSave = async () => {
     if (!account) return;
     setSaving(true);
@@ -113,6 +140,20 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
         } catch (credErr: any) {
           toast.error(`Credentials save failed: ${credErr.message}`);
           // Don't block dialog close since main profile saved
+        }
+      }
+
+      // Save social targets
+      for (const p of SOCIAL_PLATFORMS) {
+        const s = socialState[p.value];
+        if (s.active || targets.find(t => t.platform === p.value)) {
+          await upsertSocialTarget.mutateAsync({
+            account_id: account.id,
+            platform: p.value,
+            is_active: s.active,
+            platform_handle: s.handle || null,
+            weekly_target: s.target,
+          });
         }
       }
 
@@ -210,6 +251,55 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
             >
               Reset Counter to Zero
             </Button>
+          </div>
+
+          {/* Social Platforms */}
+          <div className="border-t pt-4 space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Social Platforms</p>
+            {SOCIAL_PLATFORMS.map(p => {
+              const Icon = p.value === 'linkedin' ? Linkedin : p.value === 'twitter' ? Twitter : p.value === 'reddit' ? MessageSquare : Instagram;
+              const s = socialState[p.value];
+              return (
+                <div key={p.value} className="space-y-2 rounded-lg border border-border/30 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon className={`h-4 w-4 ${p.color}`} />
+                      <span className="text-sm font-medium">{p.label}</span>
+                    </div>
+                    <Switch
+                      checked={s.active}
+                      onCheckedChange={(checked) =>
+                        setSocialState(prev => ({ ...prev, [p.value]: { ...prev[p.value], active: checked } }))
+                      }
+                    />
+                  </div>
+                  {s.active && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Handle</Label>
+                        <Input
+                          className="h-8 text-xs"
+                          placeholder={p.value === 'reddit' ? 'u/username' : '@username'}
+                          value={s.handle}
+                          onChange={e => setSocialState(prev => ({ ...prev, [p.value]: { ...prev[p.value], handle: e.target.value } }))}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Weekly Target</Label>
+                        <Input
+                          type="number"
+                          className="h-8 text-xs"
+                          min={1}
+                          max={50}
+                          value={s.target}
+                          onChange={e => setSocialState(prev => ({ ...prev, [p.value]: { ...prev[p.value], target: Number(e.target.value) } }))}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Credentials section */}

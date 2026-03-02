@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
+import { useAvatarSocialTargets } from '@/hooks/useAvatarSocialTargets';
 import { AvatarAccountCard } from './AvatarAccountCard';
 import { EditAvatarAccountDialog } from './EditAvatarAccountDialog';
 import { ViewAvatarProfileDialog } from './ViewAvatarProfileDialog';
@@ -15,10 +16,11 @@ interface AvatarAccountGridProps {
   onStartSession: (account: AvatarAccount) => void;
 }
 
-const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depleted'] as const;
+const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depleted', 'Behind on Posts'] as const;
 
 export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: AvatarAccountGridProps) {
   const { syncLinkedIn } = useAvatarAccounts();
+  const { allTargets } = useAvatarSocialTargets();
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<typeof FILTER_OPTIONS[number]>('All');
@@ -43,6 +45,26 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
     return map;
   }, [activeSessions]);
 
+  const accountsBehindOnPosts = useMemo(() => {
+    const behind = new Set<string>();
+    allTargets.forEach(t => {
+      if (t.is_active && t.weekly_posts_done < t.weekly_target) {
+        behind.add(t.account_id);
+      }
+    });
+    return behind;
+  }, [allTargets]);
+
+  const socialTargetsByAccount = useMemo(() => {
+    const map = new Map<string, typeof allTargets>();
+    allTargets.forEach(t => {
+      const arr = map.get(t.account_id) ?? [];
+      arr.push(t);
+      map.set(t.account_id, arr);
+    });
+    return map;
+  }, [allTargets]);
+
   const filtered = useMemo(() => {
     return accounts.filter(a => {
       if (search && !a.label.toLowerCase().includes(search.toLowerCase()) &&
@@ -54,10 +76,11 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         case 'Paused': return a.status === 'paused' || a.status === 'banned';
         case 'At Risk': return a.risk_level === 'high' || a.risk_level === 'medium';
         case 'Depleted': return (a.weekly_connections_sent ?? 0) >= (a.weekly_connection_limit ?? 100);
+        case 'Behind on Posts': return accountsBehindOnPosts.has(a.id);
         default: return true;
       }
     });
-  }, [accounts, search, filter, activeByAccount]);
+  }, [accounts, search, filter, activeByAccount, accountsBehindOnPosts]);
 
   const counts = useMemo(() => ({
     all: accounts.length,
@@ -66,7 +89,8 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
     paused: accounts.filter(a => a.status === 'paused' || a.status === 'banned').length,
     atRisk: accounts.filter(a => a.risk_level !== 'low').length,
     depleted: accounts.filter(a => (a.weekly_connections_sent ?? 0) >= (a.weekly_connection_limit ?? 100)).length,
-  }), [accounts, activeSessions, activeByAccount]);
+    behindOnPosts: accountsBehindOnPosts.size,
+  }), [accounts, activeSessions, activeByAccount, accountsBehindOnPosts]);
 
   return (
     <div className="space-y-4">
@@ -78,7 +102,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {FILTER_OPTIONS.map(f => {
-            const count = f === 'All' ? counts.all : f === 'Available' ? counts.available : f === 'In Use' ? counts.inUse : f === 'Paused' ? counts.paused : f === 'At Risk' ? counts.atRisk : counts.depleted;
+            const count = f === 'All' ? counts.all : f === 'Available' ? counts.available : f === 'In Use' ? counts.inUse : f === 'Paused' ? counts.paused : f === 'At Risk' ? counts.atRisk : f === 'Depleted' ? counts.depleted : counts.behindOnPosts;
             return (
               <Badge
                 key={f}
@@ -100,6 +124,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
             key={account.id}
             account={account}
             activeSession={activeByAccount.get(account.id)}
+            socialTargets={socialTargetsByAccount.get(account.id)}
             onStartSession={onStartSession}
             onSyncLinkedIn={handleSyncLinkedIn}
             onEdit={setEditAccount}

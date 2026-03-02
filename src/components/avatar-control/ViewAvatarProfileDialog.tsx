@@ -9,8 +9,10 @@ import { Progress } from '@/components/ui/progress';
 import {
   Eye, EyeOff, Users, UserPlus, MapPin, Briefcase, Crown, Star,
   Sparkles, Shield, Clock, ExternalLink, GraduationCap, Award, Send, Plus,
+  Linkedin, Twitter, MessageSquare, Instagram,
 } from 'lucide-react';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
+import { useAvatarSocialTargets, SOCIAL_PLATFORMS } from '@/hooks/useAvatarSocialTargets';
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -34,6 +36,7 @@ const riskColors: Record<string, string> = {
 
 export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAvatarProfileDialogProps) {
   const { logConnectionsSent } = useAvatarAccounts();
+  const { targets, logSocialPost } = useAvatarSocialTargets(account?.id);
   const [linkedinPw, setLinkedinPw] = useState('');
   const [emailPw, setEmailPw] = useState('');
   const [showLinkedinPw, setShowLinkedinPw] = useState(false);
@@ -206,6 +209,69 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                 </div>
               );
             })()}
+
+            {/* Social Presence */}
+            <Separator />
+            <div>
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Social Presence
+              </h3>
+              <div className="space-y-3">
+                {SOCIAL_PLATFORMS.map(platform => {
+                  const target = targets.find(t => t.platform === platform.value);
+                  const PlatformIcon = platform.value === 'linkedin' ? Linkedin
+                    : platform.value === 'twitter' ? Twitter
+                    : platform.value === 'reddit' ? MessageSquare
+                    : Instagram;
+
+                  if (!target || !target.is_active) {
+                    return (
+                      <div key={platform.value} className="flex items-center gap-3 py-1.5 opacity-40">
+                        <PlatformIcon className={`h-4 w-4 ${platform.color}`} />
+                        <span className="text-xs text-muted-foreground">Not configured</span>
+                      </div>
+                    );
+                  }
+
+                  const pct = target.weekly_target > 0 ? (target.weekly_posts_done / target.weekly_target) * 100 : 0;
+                  const isDone = target.weekly_posts_done >= target.weekly_target;
+                  const barColor = isDone ? '[&>div]:bg-emerald-500' : pct >= 50 ? '[&>div]:bg-amber-500' : '[&>div]:bg-red-500';
+
+                  return (
+                    <div key={platform.value} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <PlatformIcon className={`h-4 w-4 ${platform.color}`} />
+                          <span className="text-xs font-medium">{platform.label}</span>
+                          {target.platform_handle && (
+                            <span className="text-[11px] text-muted-foreground">{target.platform_handle}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-mono ${isDone ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                            {target.weekly_posts_done}/{target.weekly_target}
+                          </span>
+                          {isDone && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/40 text-emerald-400">Done</Badge>}
+                        </div>
+                      </div>
+                      <Progress value={Math.min(pct, 100)} className={`h-1.5 ${barColor}`} />
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-muted-foreground">Log post:</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-[11px]"
+                          disabled={logSocialPost.isPending}
+                          onClick={() => logSocialPost.mutate({ targetId: target.id })}
+                        >
+                          <Plus className="h-3 w-3 mr-0.5" />1
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* About */}
             {account.about && (
