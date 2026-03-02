@@ -50,6 +50,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
       setStatus(account.status || 'available');
       setRiskLevel(account.risk_level || 'low');
       setMaxDailyMinutes(account.max_daily_minutes ?? 120);
+      setWeeklyConnectionLimit(account.weekly_connection_limit ?? 100);
+      setWeeklyConnectionsSent(account.weekly_connections_sent ?? 0);
       setNotes(account.notes || '');
       setPlaybook(account.playbook || '');
       setEmailAccountAddress(account.email_account_address || '');
