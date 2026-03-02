@@ -33,6 +33,7 @@ const riskColors: Record<string, string> = {
 };
 
 export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAvatarProfileDialogProps) {
+  const { logConnectionsSent } = useAvatarAccounts();
   const [linkedinPw, setLinkedinPw] = useState('');
   const [emailPw, setEmailPw] = useState('');
   const [showLinkedinPw, setShowLinkedinPw] = useState(false);
