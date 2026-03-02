@@ -14,6 +14,7 @@ interface AvatarAccountCardProps {
   onStartSession: (account: AvatarAccount) => void;
   onSyncLinkedIn?: (account: AvatarAccount) => void;
   onEdit?: (account: AvatarAccount) => void;
+  onView?: (account: AvatarAccount) => void;
   isSyncing?: boolean;
 }
 
@@ -36,7 +37,7 @@ function formatCompact(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
-export function AvatarAccountCard({ account, activeSession, onStartSession, onSyncLinkedIn, onEdit, isSyncing }: AvatarAccountCardProps) {
+export function AvatarAccountCard({ account, activeSession, onStartSession, onSyncLinkedIn, onEdit, onView, isSyncing }: AvatarAccountCardProps) {
   const isInUse = !!activeSession;
   const isAvailable = account.status === 'available' && !isInUse;
   const userName = activeSession?.profiles?.full_name ?? 'Unknown';
@@ -78,6 +79,12 @@ export function AvatarAccountCard({ account, activeSession, onStartSession, onSy
             </div>
             {/* Edit + Sync buttons */}
             <div className="flex items-center gap-0.5 shrink-0">
+              {onView && (
+                <Button variant="ghost" size="icon" className="h-7 w-7"
+                  onClick={(e) => { e.stopPropagation(); onView(account); }} title="View profile">
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+              )}
               {onEdit && (
                 <Button variant="ghost" size="icon" className="h-7 w-7"
                   onClick={(e) => { e.stopPropagation(); onEdit(account); }} title="Edit account">

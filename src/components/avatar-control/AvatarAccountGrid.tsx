@@ -6,6 +6,7 @@ import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { AvatarAccountCard } from './AvatarAccountCard';
 import { EditAvatarAccountDialog } from './EditAvatarAccountDialog';
+import { ViewAvatarProfileDialog } from './ViewAvatarProfileDialog';
 import { toast } from 'sonner';
 
 interface AvatarAccountGridProps {
@@ -22,6 +23,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<typeof FILTER_OPTIONS[number]>('All');
   const [editAccount, setEditAccount] = useState<AvatarAccount | null>(null);
+  const [viewAccount, setViewAccount] = useState<AvatarAccount | null>(null);
 
   const handleSyncLinkedIn = (account: AvatarAccount) => {
     if (!account.linkedin_url) {
@@ -99,6 +101,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
             onStartSession={onStartSession}
             onSyncLinkedIn={handleSyncLinkedIn}
             onEdit={setEditAccount}
+            onView={setViewAccount}
             isSyncing={syncingId === account.id}
           />
         ))}
@@ -114,6 +117,12 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         account={editAccount}
         open={!!editAccount}
         onOpenChange={(open) => { if (!open) setEditAccount(null); }}
+      />
+
+      <ViewAvatarProfileDialog
+        account={viewAccount}
+        open={!!viewAccount}
+        onOpenChange={(open) => { if (!open) setViewAccount(null); }}
       />
     </div>
   );

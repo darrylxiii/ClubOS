@@ -27362,6 +27362,13 @@ export type Database = {
             referencedRelation: "linkedin_avatar_accounts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "linkedin_avatar_daily_stats_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       linkedin_avatar_events: {
@@ -27395,6 +27402,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "linkedin_avatar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_events_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts_public"
             referencedColumns: ["id"]
           },
           {
@@ -27517,6 +27531,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "linkedin_avatar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_sessions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "linkedin_avatar_accounts_public"
             referencedColumns: ["id"]
           },
           {
@@ -56019,6 +56040,157 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      linkedin_avatar_accounts_public: {
+        Row: {
+          about: string | null
+          account_created_at: string | null
+          avatar_url: string | null
+          background_picture_url: string | null
+          connections_count: number | null
+          created_at: string | null
+          created_by: string | null
+          current_company: string | null
+          current_company_url: string | null
+          daily_usage_minutes_today: number | null
+          education_json: Json | null
+          email_account_address: string | null
+          experience_json: Json | null
+          featured_json: Json | null
+          followers_count: number | null
+          id: string | null
+          is_creator: boolean | null
+          is_influencer: boolean | null
+          is_premium: boolean | null
+          label: string | null
+          last_cooldown_at: string | null
+          last_synced_at: string | null
+          linkedin_email: string | null
+          linkedin_email_from_scrape: string | null
+          linkedin_headline: string | null
+          linkedin_url: string | null
+          linkedin_urn: string | null
+          location: string | null
+          max_daily_minutes: number | null
+          notes: string | null
+          open_to_work: boolean | null
+          owner_team: string | null
+          playbook: string | null
+          public_identifier: string | null
+          risk_level: string | null
+          risk_score: number | null
+          sessions_today: number | null
+          status: string | null
+          top_skills: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          about?: string | null
+          account_created_at?: string | null
+          avatar_url?: string | null
+          background_picture_url?: string | null
+          connections_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          current_company?: string | null
+          current_company_url?: string | null
+          daily_usage_minutes_today?: number | null
+          education_json?: Json | null
+          email_account_address?: string | null
+          experience_json?: Json | null
+          featured_json?: Json | null
+          followers_count?: number | null
+          id?: string | null
+          is_creator?: boolean | null
+          is_influencer?: boolean | null
+          is_premium?: boolean | null
+          label?: string | null
+          last_cooldown_at?: string | null
+          last_synced_at?: string | null
+          linkedin_email?: string | null
+          linkedin_email_from_scrape?: string | null
+          linkedin_headline?: string | null
+          linkedin_url?: string | null
+          linkedin_urn?: string | null
+          location?: string | null
+          max_daily_minutes?: number | null
+          notes?: string | null
+          open_to_work?: boolean | null
+          owner_team?: string | null
+          playbook?: string | null
+          public_identifier?: string | null
+          risk_level?: string | null
+          risk_score?: number | null
+          sessions_today?: number | null
+          status?: string | null
+          top_skills?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          about?: string | null
+          account_created_at?: string | null
+          avatar_url?: string | null
+          background_picture_url?: string | null
+          connections_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          current_company?: string | null
+          current_company_url?: string | null
+          daily_usage_minutes_today?: number | null
+          education_json?: Json | null
+          email_account_address?: string | null
+          experience_json?: Json | null
+          featured_json?: Json | null
+          followers_count?: number | null
+          id?: string | null
+          is_creator?: boolean | null
+          is_influencer?: boolean | null
+          is_premium?: boolean | null
+          label?: string | null
+          last_cooldown_at?: string | null
+          last_synced_at?: string | null
+          linkedin_email?: string | null
+          linkedin_email_from_scrape?: string | null
+          linkedin_headline?: string | null
+          linkedin_url?: string | null
+          linkedin_urn?: string | null
+          location?: string | null
+          max_daily_minutes?: number | null
+          notes?: string | null
+          open_to_work?: boolean | null
+          owner_team?: string | null
+          playbook?: string | null
+          public_identifier?: string | null
+          risk_level?: string | null
+          risk_score?: number | null
+          sessions_today?: number | null
+          status?: string | null
+          top_skills?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_avatar_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "linkedin_avatar_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]

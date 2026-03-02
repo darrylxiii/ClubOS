@@ -81,6 +81,7 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
     if (!account) return;
     setSaving(true);
     try {
+      // Include email_account_address in the direct DB update
       await updateAccount.mutateAsync({
         id: account.id,
         label,
@@ -92,16 +93,21 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
         max_daily_minutes: maxDailyMinutes,
         notes: notes || null,
         playbook: playbook || null,
+        email_account_address: emailAccountAddress || null,
       });
 
-      // Save credentials if changed
-      if (linkedinPassword || emailPassword || emailAccountAddress !== (account.email_account_address || '')) {
-        await saveCredentials.mutateAsync({
-          accountId: account.id,
-          linkedinPassword: linkedinPassword || undefined,
-          emailAccountAddress: emailAccountAddress || undefined,
-          emailAccountPassword: emailPassword || undefined,
-        });
+      // Always save credentials via edge function when passwords are present
+      if (linkedinPassword || emailPassword) {
+        try {
+          await saveCredentials.mutateAsync({
+            accountId: account.id,
+            linkedinPassword: linkedinPassword || undefined,
+            emailAccountPassword: emailPassword || undefined,
+          });
+        } catch (credErr: any) {
+          toast.error(`Credentials save failed: ${credErr.message}`);
+          // Don't block dialog close since main profile saved
+        }
       }
 
       onOpenChange(false);
