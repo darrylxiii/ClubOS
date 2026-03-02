@@ -599,8 +599,8 @@ export function FunnelSteps() {
               <FieldError error={validation.getFieldError('contact_email')} />
             </div>
 
-            {/* Phase A button — show only before email is captured */}
-            {!emailCaptured && (
+            {/* Phase A button — show only before email is captured and not during verification */}
+            {!emailCaptured && emailVerificationStatus === 'idle' && (
               <RainbowButton
                 onClick={handleEmailCapture}
                 className="w-full min-h-[44px] text-base"
@@ -608,6 +608,78 @@ export function FunnelSteps() {
                 Continue
                 <ArrowRight className="w-4 h-4 ml-2" />
               </RainbowButton>
+            )}
+
+            {/* Checking state */}
+            {emailVerificationStatus === 'checking' && (
+              <Button disabled className="w-full min-h-[44px] text-base">
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Verifying...
+              </Button>
+            )}
+
+            {/* Email verification failed — show options */}
+            {emailVerificationStatus === 'failed' && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border/60">
+                  <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <p className="text-sm text-muted-foreground">
+                    We could not verify this email address.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleUseAnotherEmail}
+                    className="flex-1 min-h-[44px]"
+                  >
+                    Use a different email
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSendOtp}
+                    className="flex-1 min-h-[44px]"
+                  >
+                    Verify with a code
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* OTP input */}
+            {(emailVerificationStatus === 'otp_sent') && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <p className="text-sm text-muted-foreground text-center">
+                  Enter the 6-digit code sent to <span className="font-medium text-foreground">{formData.contact_email}</span>
+                </p>
+                <div className="flex justify-center">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-48 text-center text-2xl tracking-[0.5em] font-mono h-12 rounded-md border border-input bg-background px-3"
+                    autoFocus
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      e.target.value = val;
+                      if (val.length === 6) {
+                        handleVerifyOtp(val);
+                      }
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Didn't receive it?{' '}
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    className="underline hover:text-foreground"
+                  >
+                    Resend code
+                  </button>
+                </p>
+              </div>
             )}
 
             {/* Phase B: Remaining fields (slide in after email capture) */}
