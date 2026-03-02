@@ -583,7 +583,7 @@ export function FunnelSteps() {
                   onValueChange={(v) => setFormData({ ...formData, company_size: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Number of employees" />
+                    <SelectValue placeholder="Select range" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1-10">1–10</SelectItem>
