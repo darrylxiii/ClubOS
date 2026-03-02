@@ -184,6 +184,34 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
             <Input type="number" value={maxDailyMinutes} onChange={e => setMaxDailyMinutes(Number(e.target.value))} />
           </div>
 
+          {/* Connection Request Quota */}
+          <div className="border-t pt-4 space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Connection Request Quota</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Weekly Limit</Label>
+                <Input type="number" value={weeklyConnectionLimit} onChange={e => setWeeklyConnectionLimit(Number(e.target.value))} min={0} max={500} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Sent This Week</Label>
+                <Input type="number" value={weeklyConnectionsSent} onChange={e => setWeeklyConnectionsSent(Number(e.target.value))} min={0} />
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                if (account) resetConnectionCounter.mutate(account.id);
+                setWeeklyConnectionsSent(0);
+              }}
+              disabled={resetConnectionCounter.isPending}
+            >
+              Reset Counter to Zero
+            </Button>
+          </div>
+
           {/* Credentials section */}
           <div className="border-t pt-4 space-y-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Credentials</p>

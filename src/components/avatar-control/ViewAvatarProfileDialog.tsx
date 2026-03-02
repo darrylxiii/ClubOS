@@ -155,6 +155,58 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
               <StatBox label="Usage Today" value={`${account.daily_usage_minutes_today}m`} icon={<Clock className="h-3.5 w-3.5" />} />
             </div>
 
+            {/* Connection Request Quota */}
+            <Separator />
+            {(() => {
+              const limit = account.weekly_connection_limit ?? 100;
+              const sent = account.weekly_connections_sent ?? 0;
+              const remaining = Math.max(0, limit - sent);
+              const pct = limit > 0 ? (remaining / limit) * 100 : 0;
+              const isDepleted = remaining === 0;
+              const colorClass = isDepleted ? 'text-red-400' : pct < 25 ? 'text-red-400' : pct < 50 ? 'text-amber-400' : 'text-emerald-400';
+              const barColor = isDepleted ? '[&>div]:bg-red-500' : pct < 25 ? '[&>div]:bg-red-500' : pct < 50 ? '[&>div]:bg-amber-500' : '[&>div]:bg-emerald-500';
+              const resetAt = account.weekly_connections_reset_at ? new Date(account.weekly_connections_reset_at) : null;
+              const nextReset = resetAt ? new Date(resetAt.getTime() + 7 * 24 * 60 * 60 * 1000) : null;
+              const dailySafe = Math.max(0, Math.floor(remaining / 7));
+
+              return (
+                <div>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                    <Send className="h-3 w-3 inline mr-1" /> Connection Requests
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-lg font-semibold ${colorClass}`}>{remaining} / {limit}</span>
+                      <span className="text-xs text-muted-foreground">remaining this week</span>
+                    </div>
+                    <Progress value={pct} className={`h-2 ${barColor}`} />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      {nextReset && (
+                        <span>Resets {format(nextReset, 'EEEE, d MMM yyyy')} at 00:00</span>
+                      )}
+                      <span>~{dailySafe}/day safe</span>
+                    </div>
+                    {/* Quick log buttons */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Log sent:</span>
+                      {[1, 5, 10, 25].map(n => (
+                        <Button
+                          key={n}
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2.5 text-xs"
+                          disabled={remaining < n || logConnectionsSent.isPending}
+                          onClick={() => logConnectionsSent.mutate({ accountId: account.id, count: n })}
+                        >
+                          <Plus className="h-3 w-3 mr-0.5" />{n}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* About */}
             {account.about && (
               <>
