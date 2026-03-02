@@ -197,6 +197,33 @@ export function AvatarAccountCard({ account, activeSession, socialTargets, onSta
             );
           })()}
 
+          {/* Social Status Dots */}
+          {socialTargets && socialTargets.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-muted-foreground">Social:</span>
+              <div className="flex items-center gap-1.5">
+                {(['linkedin', 'twitter', 'reddit', 'instagram'] as const).map(p => {
+                  const t = socialTargets.find(st => st.platform === p && st.is_active);
+                  const Icon = p === 'linkedin' ? Linkedin : p === 'twitter' ? Twitter : p === 'reddit' ? MessageSquare : Instagram;
+                  if (!t) return <Icon key={p} className="h-3 w-3 text-muted-foreground/30" />;
+                  const done = t.weekly_posts_done >= t.weekly_target;
+                  const behind = t.weekly_posts_done === 0;
+                  const dotColor = done ? 'text-emerald-400' : behind ? 'text-red-400' : 'text-amber-400';
+                  return (
+                    <Tooltip key={p}>
+                      <TooltipTrigger asChild>
+                        <Icon className={`h-3.5 w-3.5 ${dotColor}`} />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        {t.weekly_posts_done}/{t.weekly_target} posts this week
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* About tooltip */}
           {account.about && (
             <Tooltip>
