@@ -14,6 +14,7 @@ interface AvatarAccountCardProps {
   onStartSession: (account: AvatarAccount) => void;
   onSyncLinkedIn?: (account: AvatarAccount) => void;
   onEdit?: (account: AvatarAccount) => void;
+  onView?: (account: AvatarAccount) => void;
   isSyncing?: boolean;
 }
 
