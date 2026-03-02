@@ -1,253 +1,185 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
+# Partner Funnel Elite UI: Refined Plan (Critiqued and Corrected)
 
-## Current State Summary
+## Critique of the Previous Plan
 
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+The previous plan identified real problems but was sloppy in several areas. Here is what it got wrong, missed entirely, or would have broken:
+
+### Problems With the Previous Plan
+
+1. **`glass-effect` appears in 6 places, not 3.** The plan only listed `FunnelSteps.tsx` (2 uses) and `SocialProofCarousel.tsx` (1 use). It missed:
+   - `ExitIntentPopup.tsx` line 35 (`className="glass-effect max-w-md"`)
+   - `FunnelAIAssistant.tsx` line 135 (chat window Card)
+   - `PartnerFunnel.tsx` line 63 (inactive/paused state card)
+   All six must be replaced with the actual `glass` class.
+
+2. **Inconsistent trust messaging.** The plan proposes keeping "24h response" in the trust line, but the live stats bar below the card says "Avg response: **48h**". These contradict each other. The trust line must match reality. Remove "24h response" or change to "Fast response" without a number.
+
+3. **Plan ignores existing utility classes.** The codebase already has `glass-input` (line 528 of index.css) and `glass-label` (line 541). The plan proposes hand-rolling `text-xs uppercase tracking-wider text-muted-foreground font-medium` for labels -- that is exactly what `.glass-label` already does. Use the existing class.
+
+4. **Plan doesn't fix input styling.** The email input uses the default `Input` component. On a luxury dark page, inputs should use the existing `glass-input` class for the frosted depth effect. This is the single biggest miss -- the input is the first thing a user interacts with.
+
+5. **Card padding is too aggressive on mobile.** `p-8` (32px all around) on a 390px viewport leaves only 326px of usable width inside the card. Should be `p-5 sm:p-8`.
+
+6. **Plan leaves dead code behind.** Removing `KeyboardHintToast` render (line 784-786) without also removing:
+   - The `showKeyboardHints` state (line 50)
+   - The keyboard hint badges (lines 836-849)
+   - The `Keyboard` import (line 10)
+   - The `KeyboardHintToast` import (line 27)
+   This would leave orphan state and imports.
+
+7. **Plan doesn't address the inactive state page.** Lines 37-73 of `PartnerFunnel.tsx` show a "Partnership Applications Temporarily Paused" screen with a `glass-effect` class and a ThemeToggle. Both need the same fixes.
+
+8. **Progress bar is too thick.** `h-1.5` (6px) is chunky. Luxury forms use `h-1` or `h-px` progress lines.
+
+9. **"No upfront fees" line competes with heading.** The plan correctly identified this but the proposed fix (`text-foreground font-medium`) makes it too prominent. Better: `text-sm text-muted-foreground` -- let it be ambient, not a competing heading.
+
+10. **Chat window needs glass too.** The QUIN chat Card uses `glass-effect` and will render as a plain dark box. Must also get `glass`.
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Corrected Implementation Plan
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+### File 1: `src/pages/PartnerFunnel.tsx`
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
+**Remove ThemeToggle** (both active and inactive states):
+- Remove import of `ThemeToggle` (line 8)
+- Remove the ThemeToggle div at line 56-58 (inactive state)
+- Remove the ThemeToggle div at line 123-125 (active state)
 
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
+**Fix inactive state card**:
+- Line 63: Change `glass-effect` to `glass`
 
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+**Tighten hero spacing**:
+- Line 130: Change `py-8` to `pt-6 pb-4`
+- Line 131: Change `mb-4` to `mb-3`
+- Line 144: Change `mb-6` to `mb-4`
+- Line 168: Change `mb-6` to `mb-4`
 
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+**Tone down "No upfront fees" line**:
+- Line 138: Change `text-sm font-semibold text-primary` to `text-sm text-muted-foreground`
 
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+**Refine the 1-2-3 stepper**:
+- Lines 146, 153, 160: Change `w-8 h-8 rounded-full bg-primary/10` to `w-6 h-6 rounded-full bg-card/40 border border-border/30`
+- Change step number text from `text-primary font-bold text-xs` to `text-muted-foreground text-xs`
+- Connector lines (151, 158): keep as is (`h-px bg-border` is already minimal)
 
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+**Move social proof closer**:
+- Line 180: Change `mt-8` to `mt-6`
 
-### 1.3 Emoji in Subject Lines (6 functions)
+### File 2: `src/components/partner-funnel/FunnelSteps.tsx`
 
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
+**Replace all `glass-effect` with `glass`**:
+- Line 751: `glass-effect` to `glass` (resuming card)
+- Line 789: `glass-effect` to `glass` (main card)
+- Line 797: `glass-effect` to `glass-subtle` (availability indicator)
 
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+**Fix card padding for mobile**:
+- Lines 751 and 789: Change `p-8` to `p-5 sm:p-8`
 
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
+**Strip availability banner to inline text**:
+- Replace the entire bordered box (lines 791-807) with a minimal single line:
 ```text
-v=spf1 include:amazonses.com ~all
+<div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
+  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+  <span>{spotsLeft}/5 partner spots available this quarter</span>
+</div>
 ```
-This is a DNS change in the domain registrar.
+- Remove the `animate-ping` secondary dot entirely. One subtle pulse only.
 
----
+**Remove step header icons**:
+- Line 467: Remove `<Users className="w-10 h-10 text-primary mx-auto mb-3" />`
+- Line 586: Remove `<Target className="w-10 h-10 text-primary mx-auto mb-3" />`
+- Line 691: Remove `<CheckCircle className="w-10 h-10 text-primary mx-auto mb-3" />`
+- Update headings from `text-xl` to `text-2xl font-semibold`
 
-## CATEGORY 2: Content & Copy Quality
+**Use existing `glass-label` class on labels**:
+- Replace all `<Label>` in the funnel form fields with `<Label className="glass-label">`. This applies the existing `text-sm font-medium text-muted-foreground ml-1 mb-1.5 tracking-wide` from index.css.
 
-### 2.1 Inconsistent Tone
+**Use `glass-input` class on inputs**:
+- Add `glass-input` to the email Input className (line 488)
+- Add `glass-input` to Full Name, Company Name, Location inputs
+- Add `glass-input` to the Textarea
 
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+**Make primary CTAs use `variant="primary"`**:
+- Line 498: "Get Started" button -- add `variant="primary"`
+- Line 883: "Next: Your Hiring Needs" button -- add `variant="primary"`
+- Line 891: "Submit" button -- add `variant="primary"`
 
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
+**Remove KeyboardHintToast completely**:
+- Remove line 50: `const [showKeyboardHints, setShowKeyboardHints] = useState(true);`
+- Remove lines 784-786: the `KeyboardHintToast` render
+- Remove lines 836-849: the keyboard hint badges in the progress area
+- Remove import of `KeyboardHintToast` (line 27)
+- Remove import of `Keyboard` from lucide-react (line 10)
 
-### 2.2 Hardcoded Contact Email Inconsistency
+**Thin the progress bar**:
+- Line 851: Change `h-1.5` to `h-1`
+- Line 852-854: Change inner bar `h-full` stays, reduce border-radius -- keep `rounded-full`
 
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+**Clean up unused imports**:
+- Remove `Users`, `Target` from lucide-react import (line 10) since icons are removed
+- Remove `Keyboard` from lucide-react import
+- Remove `KeyboardHintToast` import (line 27)
+- Keep `CheckCircle` (still used in step 2 summary and DesktopProgressSteps)
 
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+### File 3: `src/components/partner-funnel/TrustBadges.tsx`
 
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
-
----
-
-## CATEGORY 3: Technical & Security Issues
-
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
-
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
-
----
-
-## CATEGORY 4: Accessibility & Compliance
-
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
-
----
-
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
+**Replace badges with a single muted text line**:
+```text
+export function TrustBadges() {
+  return (
+    <div className="text-center py-3">
+      <p className="text-xs text-muted-foreground/70 tracking-wide">
+        GDPR compliant · 256-bit encrypted · No upfront fees
+      </p>
+    </div>
+  );
+}
 ```
+- Remove "24h Response" to avoid contradicting the live stats bar showing "48h"
+- Remove all Badge, Shield, Lock, Award, Clock, CheckCircle imports
+- Keep `TrustBadgesMinimal` export unchanged (not used in funnel but may be used elsewhere)
 
-### 5.2 Centralize Plain-Text Generation
+### File 4: `src/components/partner-funnel/MobileProgressIndicator.tsx`
 
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
+**Refine DesktopProgressSteps**:
+- Line 65: Change `w-10 h-10` to `w-7 h-7`
+- Line 65: Change `border-2` to `border`
+- Line 74: Change `w-5 h-5` (CheckCircle) to `w-3.5 h-3.5`
+- Line 76: Change `text-sm` to `text-xs`
+- Line 98: Change `h-0.5` to `h-px`
 
----
+### File 5: `src/components/partner-funnel/FunnelAIAssistant.tsx`
 
-## Implementation Priority
+**Add glass treatment to trigger button**:
+- Line 127: Change plain `className` to include `backdrop-blur-xl bg-card/80 border border-border/30 hover:bg-card/90`
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
+**Fix chat window glass**:
+- Line 135: Change `glass-effect` to `glass`
 
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+### File 6: `src/components/partner-funnel/ExitIntentPopup.tsx`
 
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
+**Fix glass class**:
+- Line 35: Change `glass-effect` to `glass`
 
 ---
 
-## Files to Modify
+## What This Does NOT Touch (scope control)
+- No new components created
+- No copy rewriting beyond trust badges
+- No layout restructuring
+- All funnel logic, analytics, autosave, resume, exit intent unchanged
+- No color token changes
 
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+## Expected Visual Result
+- Frosted glass depth on every card and dialog (replacing the flat black boxes)
+- Single primary-colored CTA per view (green "Get Started" against glass card)
+- Zero icon headers -- typography-led hierarchy
+- Ambient trust line instead of badge clutter
+- Refined inputs with frosted glass treatment
+- Thinner, quieter progress indicators
+- No theme toggle distraction
+- No keyboard hint noise
 
