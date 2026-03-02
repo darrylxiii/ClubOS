@@ -73,12 +73,12 @@ export function ResumeFunnelDialog({
                 </AlertDialogHeader>
 
                 <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                    <AlertDialogCancel onClick={onStartFresh} className="sm:flex-1">
+                    <AlertDialogCancel onClick={onStartFresh} className="sm:flex-1 border-border/60 bg-card/40 hover:bg-card/60 text-foreground">
                         Start Fresh
                     </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onContinue}
-                        className="sm:flex-1 bg-primary hover:bg-primary/90"
+                        className="sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                         autoFocus
                     >
                         Continue Where I Left Off
