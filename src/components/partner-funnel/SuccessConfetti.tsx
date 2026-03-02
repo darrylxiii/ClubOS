@@ -118,9 +118,9 @@ export function SuccessConfetti({
               <CheckCircle className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="font-medium">No-Cure-No-Pay guarantee</p>
+              <p className="font-medium">You only pay for results</p>
               <p className="text-sm text-muted-foreground">
-                Remember: You only pay when we successfully place a candidate.
+                No upfront fees. You only pay when we successfully place a candidate.
               </p>
             </div>
           </div>

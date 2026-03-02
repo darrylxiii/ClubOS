@@ -160,7 +160,7 @@ export function ProgressSaver({
 
             <div className="p-3 rounded-lg bg-muted/50 border border-border/50 text-sm">
               <p className="text-muted-foreground">
-                <strong>Current progress:</strong> Step {currentStep + 1} of 5
+                <strong>Current progress:</strong> Step {currentStep + 1} of 3
               </p>
             </div>
           </div>

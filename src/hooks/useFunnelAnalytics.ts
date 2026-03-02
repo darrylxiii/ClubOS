@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 
@@ -15,9 +15,14 @@ interface StepTiming {
 export function useFunnelAnalytics(sessionId: string) {
   const stepTimings = useRef<StepTiming[]>([]);
   const interactionCount = useRef(0);
+  const trackedStepViews = useRef<Set<number>>(new Set());
 
-  // Track step view
+  // Track step view (with deduplication)
   const trackStepView = useCallback(async (stepIndex: number, stepName: string) => {
+    // Deduplicate: only track each step view once per session
+    if (trackedStepViews.current.has(stepIndex)) return;
+    trackedStepViews.current.add(stepIndex);
+
     // Record start time for this step
     stepTimings.current.push({
       step: stepIndex,
@@ -35,6 +40,7 @@ export function useFunnelAnalytics(sessionId: string) {
         utm_source: new URLSearchParams(window.location.search).get("utm_source"),
         utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
         utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
+        metadata: { funnel_version: 3 },
       });
     } catch (error) {
       logger.warn('Failed to track step view', { error, componentName: 'FunnelAnalytics' });
@@ -60,6 +66,7 @@ export function useFunnelAnalytics(sessionId: string) {
         action: 'complete',
         time_on_step_seconds: timeSpentSeconds,
         user_agent: navigator.userAgent,
+        metadata: { funnel_version: 3 },
       });
       
       // Reset interaction count for next step
@@ -87,6 +94,7 @@ export function useFunnelAnalytics(sessionId: string) {
         action: 'abandon',
         time_on_step_seconds: timeSpentSeconds,
         user_agent: navigator.userAgent,
+        metadata: { funnel_version: 3 },
       });
     } catch (error) {
       logger.warn('Failed to track step abandon', { error, componentName: 'FunnelAnalytics' });
@@ -94,39 +102,22 @@ export function useFunnelAnalytics(sessionId: string) {
   }, [sessionId]);
 
   // Track field interaction (lightweight)
-  const trackFieldInteraction = useCallback((fieldName: string, interactionType: 'focus' | 'blur' | 'change') => {
+  const trackFieldInteraction = useCallback((_fieldName: string, _interactionType: 'focus' | 'blur' | 'change') => {
     interactionCount.current += 1;
     // Field interactions are tracked in-memory only to reduce DB writes
   }, []);
 
-  // Track verification events
-  const trackVerification = useCallback(async (
-    type: 'email' | 'phone',
-    status: 'sent' | 'verified' | 'failed' | 'resend'
-  ) => {
-    try {
-      await supabase.from('funnel_analytics').insert({
-        session_id: sessionId,
-        step_number: type === 'email' ? 0 : 4,
-        step_name: type === 'email' ? 'contact' : 'verification',
-        action: `${type}_${status}`,
-        user_agent: navigator.userAgent,
-      });
-    } catch (error) {
-      logger.warn('Failed to track verification', { error, componentName: 'FunnelAnalytics' });
-    }
-  }, [sessionId]);
-
-  // Track funnel completion
+  // Track funnel completion (step 2 is the actual final step)
   const trackFunnelComplete = useCallback(async (totalTimeSeconds: number) => {
     try {
       await supabase.from('funnel_analytics').insert({
         session_id: sessionId,
-        step_number: 5,
+        step_number: 2,
         step_name: 'complete',
         action: 'funnel_complete',
         time_on_step_seconds: totalTimeSeconds,
         user_agent: navigator.userAgent,
+        metadata: { funnel_version: 3 },
       });
     } catch (error) {
       logger.warn('Failed to track funnel complete', { error, componentName: 'FunnelAnalytics' });
@@ -142,19 +133,20 @@ export function useFunnelAnalytics(sessionId: string) {
         step_name: 'exit_intent',
         action: `exit_${action}`,
         user_agent: navigator.userAgent,
+        metadata: { funnel_version: 3 },
       });
     } catch (error) {
       logger.warn('Failed to track exit intent', { error, componentName: 'FunnelAnalytics' });
     }
   }, [sessionId]);
 
-  return {
+  // Memoize the return value to prevent infinite re-renders
+  return useMemo(() => ({
     trackStepView,
     trackStepComplete,
     trackStepAbandon,
     trackFieldInteraction,
-    trackVerification,
     trackFunnelComplete,
     trackExitIntent,
-  };
+  }), [trackStepView, trackStepComplete, trackStepAbandon, trackFieldInteraction, trackFunnelComplete, trackExitIntent]);
 }

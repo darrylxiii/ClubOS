@@ -92,12 +92,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
     }
   };
 
-  const handleQuickReply = (reply: string) => {
-    setMessage(reply);
-    setTimeout(() => handleSend(), 0);
-  };
-
-  // Fix: send with the captured reply text, not stale state
+  // Send with the captured reply text directly
   const sendReply = (reply: string) => {
     if (isLoading) return;
     setMessages((prev) => [...prev, { role: "user", content: reply }]);
