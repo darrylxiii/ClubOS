@@ -33,6 +33,7 @@ serve(async (req) => {
       .lt('created_at', twoHoursAgo)
       .gt('created_at', fortyEightHoursAgo)
       .not('contact_email', 'is', null)
+      .not('email_quality', 'in', '("invalid","disposable")')
       .limit(50);
 
     if (firstError) throw firstError;
