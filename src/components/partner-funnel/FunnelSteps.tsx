@@ -844,7 +844,7 @@ export function FunnelSteps() {
                   onClick={handleNext}
                   className="flex-1 min-h-[44px] text-base"
                 >
-                  {currentStep === 0 ? "Next: Your Hiring Needs" : "Review and Submit"}
+                  Continue
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
