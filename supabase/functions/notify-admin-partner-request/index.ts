@@ -62,7 +62,7 @@ serve(async (req) => {
       user_id: adminId,
       type: 'partner_request',
       title: `New ${type || 'partner'} request from ${name}`,
-      message: `${name} (${email}) submitted a membership request. Review and approve in the admin panel.`,
+      message: `${name} (${email})${company ? ` from ${company}` : ''}${industry ? ` · ${industry}` : ''} submitted a membership request.${timeline ? ` Timeline: ${timeline}.` : ''} Review in the admin panel.`,
       action_url: '/admin/members',
       metadata: { request_id: requestId },
       is_read: false,
