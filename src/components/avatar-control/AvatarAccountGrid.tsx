@@ -89,7 +89,8 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
     paused: accounts.filter(a => a.status === 'paused' || a.status === 'banned').length,
     atRisk: accounts.filter(a => a.risk_level !== 'low').length,
     depleted: accounts.filter(a => (a.weekly_connections_sent ?? 0) >= (a.weekly_connection_limit ?? 100)).length,
-  }), [accounts, activeSessions, activeByAccount]);
+    behindOnPosts: accountsBehindOnPosts.size,
+  }), [accounts, activeSessions, activeByAccount, accountsBehindOnPosts]);
 
   return (
     <div className="space-y-4">
