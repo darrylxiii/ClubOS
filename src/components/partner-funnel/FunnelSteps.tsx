@@ -513,7 +513,7 @@ export function FunnelSteps() {
                   </div>
 
                   <div>
-                    <Label className="glass-label">Company Name *</Label>
+                    <Label className="glass-label">Company</Label>
                     <Input
                       value={formData.company_name}
                       onChange={(e) => {
@@ -521,7 +521,6 @@ export function FunnelSteps() {
                         validation.clearError('company_name');
                       }}
                       onBlur={() => validation.validateField('company_name', formData.company_name)}
-                      placeholder="Acme Corp"
                       className={cn("glass-input", validation.hasError('company_name') && "border-destructive")}
                     />
                     <FieldError error={validation.getFieldError('company_name')} />
