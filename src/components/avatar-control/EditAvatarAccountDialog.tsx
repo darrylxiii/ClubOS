@@ -95,6 +95,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
         status,
         risk_level: riskLevel,
         max_daily_minutes: maxDailyMinutes,
+        weekly_connection_limit: weeklyConnectionLimit,
+        weekly_connections_sent: weeklyConnectionsSent,
         notes: notes || null,
         playbook: playbook || null,
         email_account_address: emailAccountAddress || null,
