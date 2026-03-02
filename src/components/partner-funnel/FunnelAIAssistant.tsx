@@ -195,7 +195,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
                 placeholder="Ask a question..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 disabled={isLoading}
                 className="text-sm"
               />

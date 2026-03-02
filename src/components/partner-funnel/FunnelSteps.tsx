@@ -734,17 +734,6 @@ export function FunnelSteps() {
           </div>
         );
 
-      // ─────────────────────────────────────────────
-      // SUCCESS
-      // ─────────────────────────────────────────────
-      case 3:
-        return (
-          <SuccessConfetti
-            companyName={formData.company_name || "Partner"}
-            sessionId={sessionId}
-            onTrackRequest={() => setTrackDialogOpen(true)}
-          />
-        );
     }
   };
 
@@ -757,10 +746,6 @@ export function FunnelSteps() {
         </div>
       </Card>
     );
-  }
-
-  if (currentStep === 3) {
-    return <Card className="p-8 glass-effect">{renderStep()}</Card>;
   }
 
   const remainingMinutes = Object.entries(STEP_TIME_ESTIMATES)
