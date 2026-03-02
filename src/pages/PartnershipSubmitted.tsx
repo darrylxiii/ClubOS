@@ -99,18 +99,12 @@ export default function PartnershipSubmitted() {
           <div className="py-8">
             <div className="text-center mb-8">
               <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
-              <h1 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">
-                Successfully Submitted Partner Request
+              <h1 className="text-3xl font-semibold mb-3">
+                Your brief has been received
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Thank you for your interest in partnering with The Quantum Club. 
-                Your strategist is reviewing your request now.
+                A strategist is reviewing your brief and will be in touch within 24 hours.
               </p>
-              {companyName && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Company: <span className="font-medium">{decodeURIComponent(companyName)}</span>
-                </p>
-              )}
             </div>
 
             <div className="max-w-2xl mx-auto">
