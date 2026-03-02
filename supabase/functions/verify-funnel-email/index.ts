@@ -23,7 +23,7 @@ serve(async (req) => {
     }
 
     // Basic format check
-    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+    const emailRegex = new RegExp('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
     if (!emailRegex.test(email)) {
       return new Response(JSON.stringify({ quality: 'invalid', reason: 'invalid_format' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
