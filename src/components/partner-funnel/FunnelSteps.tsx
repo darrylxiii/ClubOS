@@ -498,7 +498,7 @@ export function FunnelSteps() {
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label className="glass-label">Full Name *</Label>
+                    <Label className="glass-label">Your name</Label>
                     <Input
                       value={formData.contact_name}
                       onChange={(e) => {
@@ -506,7 +506,6 @@ export function FunnelSteps() {
                         validation.clearError('contact_name');
                       }}
                       onBlur={() => validation.validateField('contact_name', formData.contact_name)}
-                      placeholder="Jane Smith"
                       className={cn("glass-input", validation.hasError('contact_name') && "border-destructive")}
                       autoFocus
                     />
