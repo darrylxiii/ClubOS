@@ -123,7 +123,7 @@ export default function PartnerFunnel() {
       <div className="container mx-auto px-4 pt-6 pb-4">
         <div className="text-center max-w-2xl mx-auto mb-3">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight mb-3">
-            Senior talent, shortlisted for you within two weeks.
+            0.1% of the market in hours, not days or weeks.
           </h1>
           <p className="text-lg text-muted-foreground mb-2">
             Describe the role. We handle the rest.
