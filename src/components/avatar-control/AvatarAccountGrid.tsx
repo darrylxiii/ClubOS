@@ -6,6 +6,7 @@ import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
 import { AvatarAccountCard } from './AvatarAccountCard';
 import { EditAvatarAccountDialog } from './EditAvatarAccountDialog';
+import { ViewAvatarProfileDialog } from './ViewAvatarProfileDialog';
 import { toast } from 'sonner';
 
 interface AvatarAccountGridProps {
