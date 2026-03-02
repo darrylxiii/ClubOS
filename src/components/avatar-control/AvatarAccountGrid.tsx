@@ -20,6 +20,7 @@ const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depl
 
 export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: AvatarAccountGridProps) {
   const { syncLinkedIn } = useAvatarAccounts();
+  const { allTargets } = useAvatarSocialTargets();
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<typeof FILTER_OPTIONS[number]>('All');
