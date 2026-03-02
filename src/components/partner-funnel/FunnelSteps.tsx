@@ -484,14 +484,13 @@ export function FunnelSteps() {
 
             {/* Phase A button — show only before email is captured */}
             {!emailCaptured && (
-              <Button
-                variant="primary"
+              <RainbowButton
                 onClick={handleEmailCapture}
                 className="w-full min-h-[44px] text-base"
               >
                 Get Started
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              </RainbowButton>
             )}
 
             {/* Phase B: Remaining fields (slide in after email capture) */}
