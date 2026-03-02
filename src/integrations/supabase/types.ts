@@ -21696,6 +21696,48 @@ export type Database = {
         }
         Relationships: []
       }
+      funnel_partial_submissions: {
+        Row: {
+          company_name: string | null
+          completed: boolean | null
+          contact_email: string
+          contact_name: string | null
+          created_at: string | null
+          current_step: number | null
+          form_data: Json | null
+          id: string
+          last_active_at: string | null
+          reminder_sent_at: string | null
+          session_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          completed?: boolean | null
+          contact_email: string
+          contact_name?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          form_data?: Json | null
+          id?: string
+          last_active_at?: string | null
+          reminder_sent_at?: string | null
+          session_id: string
+        }
+        Update: {
+          company_name?: string | null
+          completed?: boolean | null
+          contact_email?: string
+          contact_name?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          form_data?: Json | null
+          id?: string
+          last_active_at?: string | null
+          reminder_sent_at?: string | null
+          session_id?: string
+        }
+        Relationships: []
+      }
       gig_orders: {
         Row: {
           cancellation_reason: string | null
