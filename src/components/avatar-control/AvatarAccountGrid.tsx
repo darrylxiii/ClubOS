@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 import { AvatarAccount, useAvatarAccounts } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
+import { useAvatarSocialTargets } from '@/hooks/useAvatarSocialTargets';
 import { AvatarAccountCard } from './AvatarAccountCard';
 import { EditAvatarAccountDialog } from './EditAvatarAccountDialog';
 import { ViewAvatarProfileDialog } from './ViewAvatarProfileDialog';
@@ -15,7 +16,7 @@ interface AvatarAccountGridProps {
   onStartSession: (account: AvatarAccount) => void;
 }
 
-const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depleted'] as const;
+const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depleted', 'Behind on Posts'] as const;
 
 export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: AvatarAccountGridProps) {
   const { syncLinkedIn } = useAvatarAccounts();
