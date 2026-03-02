@@ -37,7 +37,7 @@ function formatCompact(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
-export function AvatarAccountCard({ account, activeSession, onStartSession, onSyncLinkedIn, onEdit, isSyncing }: AvatarAccountCardProps) {
+export function AvatarAccountCard({ account, activeSession, onStartSession, onSyncLinkedIn, onEdit, onView, isSyncing }: AvatarAccountCardProps) {
   const isInUse = !!activeSession;
   const isAvailable = account.status === 'available' && !isInUse;
   const userName = activeSession?.profiles?.full_name ?? 'Unknown';
