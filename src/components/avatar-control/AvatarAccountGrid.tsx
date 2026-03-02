@@ -53,6 +53,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
         case 'In Use': return isInUse;
         case 'Paused': return a.status === 'paused' || a.status === 'banned';
         case 'At Risk': return a.risk_level === 'high' || a.risk_level === 'medium';
+        case 'Depleted': return (a.weekly_connections_sent ?? 0) >= (a.weekly_connection_limit ?? 100);
         default: return true;
       }
     });
