@@ -727,7 +727,6 @@ export function FunnelSteps() {
               <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                 Terms of Service
               </a>.
-              No contracts, no upfront fees.
             </p>
           </div>
         );
