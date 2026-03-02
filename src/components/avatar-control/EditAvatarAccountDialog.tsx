@@ -37,7 +37,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
   const [notes, setNotes] = useState('');
   const [playbook, setPlaybook] = useState('');
   const [emailAccountAddress, setEmailAccountAddress] = useState('');
-
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
   // Social platform local state
   const [socialState, setSocialState] = useState<Record<SocialPlatform, { active: boolean; handle: string; target: number }>>({
     linkedin: { active: false, handle: '', target: 3 },
