@@ -30,14 +30,14 @@ serve(async (req) => {
 
     // Differentiate copy for first vs second reminder
     const subject = isSecondReminder
-      ? `Last chance to finish your request, ${name}`
-      : `Your request is still waiting, ${name}`;
+      ? `Your saved progress expires soon, ${name}`
+      : `Your brief is saved, ${name}`;
 
     const bodyParagraph = isSecondReminder
-      ? `Your saved progress will be removed soon. Complete your partnership request${company} now -- it takes less than 60 seconds.`
-      : `You started a partnership request${company} but didn't finish. Your progress is saved -- it takes less than 60 seconds to complete.`;
+      ? `Your saved progress will be removed soon. Complete your hiring brief${company} now — it takes less than two minutes.`
+      : `You began a hiring brief${company}. Your progress is saved — it takes less than two minutes to complete.`;
 
-    const ctaText = isSecondReminder ? 'Complete Now' : 'Finish Your Request';
+    const ctaText = isSecondReminder ? 'Complete Now' : 'Resume your brief';
 
     const htmlBody = `
 <!DOCTYPE html>
