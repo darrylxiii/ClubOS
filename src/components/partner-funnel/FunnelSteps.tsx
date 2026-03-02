@@ -653,7 +653,7 @@ export function FunnelSteps() {
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Optional — share anything that would help us prepare for our call. Roles you're hiring for, seniority levels, or challenges you're facing."
+                placeholder="Specific roles, seniority levels, or challenges..."
                 rows={3}
                 className="glass-input"
               />
