@@ -519,6 +519,15 @@ export function FunnelSteps() {
           name: formData.contact_name || 'Unknown',
           email: formData.contact_email || '',
           type: 'partner',
+          company: formData.company_name,
+          industry: formData.industry,
+          companySize: formData.company_size,
+          timeline: formData.timeline,
+          budget: formData.budget_range,
+          rolesPerYear: formData.estimated_roles_per_year,
+          website: formData.website,
+          location: formData.headquarters_location,
+          phone: phoneNumber,
         }
       }).catch(err => console.warn('Admin notification failed (non-blocking):', err));
 
