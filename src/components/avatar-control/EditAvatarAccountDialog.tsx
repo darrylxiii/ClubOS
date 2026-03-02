@@ -92,6 +92,22 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
     }
   }, [account, open]);
 
+  // Sync social state from fetched targets
+  useEffect(() => {
+    if (targets.length > 0 && account) {
+      const newState = { ...socialState };
+      SOCIAL_PLATFORMS.forEach(p => {
+        const t = targets.find(tt => tt.platform === p.value);
+        if (t) {
+          newState[p.value] = { active: t.is_active, handle: t.platform_handle || '', target: t.weekly_target };
+        } else {
+          newState[p.value] = { active: false, handle: '', target: 3 };
+        }
+      });
+      setSocialState(newState);
+    }
+  }, [targets, account]);
+
   const handleSave = async () => {
     if (!account) return;
     setSaving(true);
