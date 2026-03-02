@@ -83,6 +83,28 @@ export default function PartnerFunnel() {
         <meta property="og:type" content="website" />
         <link rel="canonical" href="https://os.thequantumclub.com/partner" />
         <meta name="robots" content="index, follow" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "The Quantum Club",
+          "url": "https://thequantumclub.com",
+          "logo": "https://os.thequantumclub.com/logo.png",
+          "description": "Luxury executive recruitment platform specialising in senior and C-suite placements across Technology, Finance, Healthcare, and Consulting.",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Pieter Cornelisz. Hooftstraat 41-2",
+            "addressLocality": "Amsterdam",
+            "addressCountry": "NL"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "url": "https://os.thequantumclub.com/partner"
+          },
+          "sameAs": [
+            "https://www.linkedin.com/company/thequantumclub"
+          ]
+        })}</script>
       </Helmet>
 
       {/* Top Banner */}

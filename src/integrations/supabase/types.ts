@@ -21582,6 +21582,7 @@ export type Database = {
           action: string
           created_at: string
           id: string
+          metadata: Json | null
           session_id: string
           source_channel: string | null
           step_name: string
@@ -21596,6 +21597,7 @@ export type Database = {
           action: string
           created_at?: string
           id?: string
+          metadata?: Json | null
           session_id: string
           source_channel?: string | null
           step_name: string
@@ -21610,6 +21612,7 @@ export type Database = {
           action?: string
           created_at?: string
           id?: string
+          metadata?: Json | null
           session_id?: string
           source_channel?: string | null
           step_name?: string
@@ -21707,6 +21710,7 @@ export type Database = {
           form_data: Json | null
           id: string
           last_active_at: string | null
+          reminder_count: number | null
           reminder_sent_at: string | null
           session_id: string
         }
@@ -21720,6 +21724,7 @@ export type Database = {
           form_data?: Json | null
           id?: string
           last_active_at?: string | null
+          reminder_count?: number | null
           reminder_sent_at?: string | null
           session_id: string
         }
@@ -21733,6 +21738,7 @@ export type Database = {
           form_data?: Json | null
           id?: string
           last_active_at?: string | null
+          reminder_count?: number | null
           reminder_sent_at?: string | null
           session_id?: string
         }

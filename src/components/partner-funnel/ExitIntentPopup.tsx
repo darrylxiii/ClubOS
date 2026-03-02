@@ -28,6 +28,7 @@ export function ExitIntentPopup({
   totalSteps,
 }: ExitIntentPopupProps) {
   const progressPercent = Math.round(((currentStep + 1) / totalSteps) * 100);
+  const isStepZero = currentStep === 0;
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -35,28 +36,54 @@ export function ExitIntentPopup({
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
-            Don't Lose Your Progress!
+            {isStepZero ? "Before you go" : "Don't Lose Your Progress!"}
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-4">
-            <p>
-              You're <span className="font-semibold text-primary">{progressPercent}%</span> through 
-              the application. Your progress is automatically saved.
-            </p>
-            
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-primary" />
-                <span>Progress saved locally</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Shield className="w-4 h-4 text-primary" />
-                <span>Your data is protected</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="w-4 h-4 text-primary" />
-                <span>Only ~2 minutes to complete</span>
-              </div>
-            </div>
+            {isStepZero ? (
+              <>
+                <p>
+                  This takes <span className="font-semibold text-primary">under 60 seconds</span>.
+                  No fees, no obligation — just a conversation about your hiring needs.
+                </p>
+
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span>Under 60 seconds to complete</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <span>No contracts or upfront fees</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Curated shortlist within 14 days</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>
+                  You're <span className="font-semibold text-primary">{progressPercent}%</span> through 
+                  the application. Your progress is automatically saved.
+                </p>
+                
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Progress saved locally</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <span>Your data is protected</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span>Only ~1 minute to complete</span>
+                  </div>
+                </div>
+              </>
+            )}
 
             <Badge variant="secondary" className="w-full justify-center py-2">
               No obligation — just a conversation.
@@ -68,7 +95,7 @@ export function ExitIntentPopup({
             Leave Anyway
           </AlertDialogCancel>
           <AlertDialogAction onClick={onStay} className="flex-1">
-            Continue Application
+            {isStepZero ? "Get Started" : "Continue Application"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

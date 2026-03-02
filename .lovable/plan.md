@@ -1,209 +1,253 @@
 
 
-# Partner Funnel CRO v3: The Remaining Gaps
+# Comprehensive Email System Audit — The Quantum Club
 
-## Current State After v2 Implementation
+## Current State Summary
 
-The v2 plan was well-executed. Email-first micro-step, partial lead capture table, reminder edge functions, form above the fold, CTA copy upgrades, honeypot, meta tags, trust badge fixes, and success page fixes are all live. Here is what is still broken, missing, or suboptimal.
-
----
-
-## 1. STILL BROKEN: Items From v2 That Were Not Fully Addressed
-
-### 1.1 `funnel_analytics` has no `metadata` column (CRITICAL)
-
-The `useFunnelAnalytics.ts` hook writes `metadata: { funnel_version: 3 }` on every event (lines ~40, 70, 87, etc.), but the `funnel_analytics` table has no `metadata` column. The columns are: `id, created_at, session_id, step_number, step_name, action, source_channel, utm_source, utm_medium, utm_campaign, user_agent, time_on_step_seconds`. Every analytics insert is silently failing or the metadata field is being dropped.
-
-**Fix**: Add a `metadata JSONB DEFAULT '{}'` column to `funnel_analytics` via migration. This is required for the `funnel_version` tag to actually persist and allow filtering old vs new funnel data.
-
-### 1.2 PartnershipSubmitted.tsx still links to authenticated routes (MEDIUM)
-
-Lines 123-128: "View Companies" navigates to `/companies` and "Go to Dashboard" navigates to `/home`. An anonymous partner who just submitted has no account -- these buttons will redirect to login. This was identified in the previous audit but never fixed.
-
-**Fix**: Replace with contextual actions:
-- "Book a Strategy Call" linking to the Cal.com booking page (or a Calendly equivalent)
-- "Return to Website" linking to `https://thequantumclub.com`
-
-### 1.3 `ProgressSaver.tsx` still has the legacy "Continue on another device" dialog (MEDIUM)
-
-The v2 plan said to de-scope this, but the full dialog UI and `send-recovery-email` call are still present (lines 52-97, 122-190). The new DB-backed resume flow (`?resume=sessionId`) replaces this entirely.
-
-**Fix**: Remove the recovery dialog, the `send-recovery-email` invocation, and the "Continue on another device" button. Keep only the save status indicator.
-
-### 1.4 `SessionRecoveryBanner.tsx` still calls `send-recovery-email` (LOW)
-
-Same issue -- lines 49-53 call the legacy `send-recovery-email` edge function. This component should either be removed or refactored to use the new `?resume=` flow.
-
-**Fix**: Remove the component if it is no longer rendered, or update it to use the new partial submissions resume URL.
-
-### 1.5 Exit intent copy is not differentiated by step (LOW)
-
-The v2 plan specified different copy for step 0 ("Before you go -- this takes under 60 seconds") vs step 1 (current copy). The `ExitIntentPopup` component still shows identical copy regardless of step. The `currentStep` prop is available but only used for the progress percentage.
-
-**Fix**: Add step-aware copy to `ExitIntentPopup`:
-- Step 0: "Before you go -- this takes under 60 seconds. No fees, no obligation."
-- Step 1: Current copy about progress being saved.
-
-### 1.6 No pg_cron schedule for `process-funnel-reminders` (MEDIUM)
-
-The edge function exists but there is no cron job to invoke it. Without this, no reminder emails will ever be sent automatically. The function just sits there unused.
-
-**Fix**: Create a migration that schedules `process-funnel-reminders` via `pg_cron` + `pg_net` to run hourly.
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## 2. NEW OPPORTUNITIES: What Would Make This Best-in-Class
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-### 2.1 Second reminder email at 24h (HIGH)
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
 
-The current system sends one reminder at 2-48h. Industry best practice is a 2-touch sequence:
-- Reminder 1 at ~2 hours: "You left your request unfinished"
-- Reminder 2 at ~24 hours: "Last chance -- your progress expires soon"
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
 
-The second email typically recovers an additional 3-5% of leads that ignored the first one.
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
 
-**Fix**: 
-- Add `reminder_count INTEGER DEFAULT 0` column to `funnel_partial_submissions`
-- Update `process-funnel-reminders` to send a second reminder at 24h for entries where `reminder_count = 1`
-- Create a slightly different email template for the second touch (more urgency, different subject line)
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
 
-### 2.2 QUIN chat widget overlaps submit button on mobile (MEDIUM)
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
 
-The `FunnelAIAssistant` floating button is `fixed bottom-6 right-6` (line 128). On mobile viewports (390px), this overlaps with the form card's bottom edge and the submit button. On step 2, when the user is trying to tap "Submit", the chat bubble competes for the tap target.
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
 
-**Fix**: Hide the QUIN chat button on mobile when the user is on step 2 (submit step), or move it to a less intrusive position. One approach: pass `currentStep` to `PartnerFunnel.tsx` and conditionally render `FunnelAIAssistant` only when `currentStep < 2`.
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
 
-### 2.3 No structured data / JSON-LD for search engines (LOW)
+### 1.3 Emoji in Subject Lines (6 functions)
 
-The page has good `<Helmet>` meta tags now, but no structured data. Adding `Organization` and `Service` JSON-LD would improve Google rich results when someone searches for "The Quantum Club recruitment" or similar.
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
 
-**Fix**: Add a `<script type="application/ld+json">` block in the Helmet with Organization schema (name, url, logo, contactPoint).
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
 
-### 2.4 Multi-touch reminder sequence with expiry warning (MEDIUM)
+### 1.4 SPF Record Missing (DNS — not code)
 
-Currently, partial submissions sit in the DB forever with no expiry. After 48 hours, no more reminders are sent but the data remains. A "Your progress will be deleted in 24 hours" email at 72h would create genuine urgency (and you should actually clean up old partials after 7 days for GDPR compliance).
-
-**Fix**:
-- Add a third email template: "Last chance -- your progress expires tomorrow"
-- Add a cleanup job that deletes incomplete partials older than 7 days
-- This satisfies GDPR data minimization requirements
-
-### 2.5 Admin dashboard visibility for partial leads (MEDIUM)
-
-The `funnel_partial_submissions` table exists but there is no admin UI to view captured emails. Admins currently have no visibility into who started but didn't finish. This data is extremely valuable for manual outreach.
-
-**Fix**: Add a "Partial Leads" tab or section in the admin analytics dashboard showing:
-- Email, name, company, step reached, time since last activity
-- A "Send Reminder" button for manual follow-up
-- Export to CSV for CRM import
-
-### 2.6 UTM parameter persistence through resume flow (LOW)
-
-When a user arrives via a Google Ads link (`/partner?utm_source=google&utm_medium=cpc`), the UTM params are captured at submission time (line 369-371 in FunnelSteps). But if they leave and come back via a reminder email (`/partner?resume=abc123`), the original UTM params are lost -- the resume URL has no UTMs.
-
-**Fix**: Save UTM params in the `form_data` JSONB of `funnel_partial_submissions` on initial capture. On submission, prefer the saved UTMs over current URL params (since the current URL will be the reminder email link, not the original ad).
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
+```
+This is a DNS change in the domain registrar.
 
 ---
 
-## Implementation Plan
+## CATEGORY 2: Content & Copy Quality
 
-### Task 1: Add metadata column to funnel_analytics
-- DB migration: `ALTER TABLE public.funnel_analytics ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';`
-- This unblocks the funnel_version filtering that was already coded
+### 2.1 Inconsistent Tone
 
-### Task 2: Fix PartnershipSubmitted.tsx buttons
-- File: `src/pages/PartnershipSubmitted.tsx`
-- Replace "View Companies" with "Book a Strategy Call" (external link)
-- Replace "Go to Dashboard" with "Return to Website" (link to thequantumclub.com)
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
 
-### Task 3: De-scope legacy recovery dialog
-- File: `src/components/partner-funnel/ProgressSaver.tsx`
-  - Remove the recovery dialog UI, the `send-recovery-email` call, and the "Continue on another device" button
-  - Keep only the save status indicator (`CloudSyncIndicator`)
-- File: `src/components/partner-funnel/SessionRecoveryBanner.tsx`
-  - Remove `send-recovery-email` call; either remove the component or update to use `?resume=` URL
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
 
-### Task 4: Schedule process-funnel-reminders via pg_cron
-- DB migration:
-```sql
-SELECT cron.schedule(
-  'process-funnel-reminders-hourly',
-  '0 * * * *',
-  $$
-  SELECT net.http_post(
-    url := current_setting('app.settings.supabase_url') || '/functions/v1/process-funnel-reminders',
-    headers := jsonb_build_object(
-      'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key'),
-      'Content-Type', 'application/json'
-    ),
-    body := '{}'::jsonb
-  );
-  $$
-);
+### 2.2 Hardcoded Contact Email Inconsistency
+
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+
+### 2.3 Missing "Powered by QUIN" Attribution
+
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+
+---
+
+## CATEGORY 3: Technical & Security Issues
+
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+
+### 3.2 `linear-gradient()` in Inline Styles
+
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
 ```
 
-### Task 5: Add second reminder + reminder_count column
-- DB migration: `ALTER TABLE public.funnel_partial_submissions ADD COLUMN IF NOT EXISTS reminder_count INTEGER DEFAULT 0;`
-- File: `supabase/functions/process-funnel-reminders/index.ts`
-  - Update query to also find entries where `reminder_count = 1` AND `reminder_sent_at` is older than 24 hours
-  - Send different subject/body for second touch: "Last chance to finish your request, {name}"
-  - Increment `reminder_count` on each send
-  - Update `reminder_sent_at` on each send
+### 5.2 Centralize Plain-Text Generation
 
-### Task 6: Step-aware exit intent copy
-- File: `src/components/partner-funnel/ExitIntentPopup.tsx`
-  - When `currentStep === 0`: show "Before you go -- this takes under 60 seconds. No fees, no obligation."
-  - When `currentStep === 1`: keep current copy about progress being saved
-
-### Task 7: Fix QUIN chat overlap on mobile
-- File: `src/components/partner-funnel/FunnelAIAssistant.tsx`
-  - Add a `hideOnMobile` prop or use a CSS media query to push the button to `bottom-20` on small screens
-  - Or: accept a `currentStep` prop and hide on step 2
-
-### Task 8: Save and restore UTM params through resume flow
-- File: `src/components/partner-funnel/FunnelSteps.tsx`
-  - On `handleEmailCapture`, save current UTM params into the `form_data` JSONB
-  - On `handleSubmit`, prefer saved UTMs from `form_data` over current URL params
-
-### Task 9: Add JSON-LD structured data
-- File: `src/pages/PartnerFunnel.tsx`
-  - Add Organization + Service JSON-LD in the Helmet
-
-### Task 10: GDPR cleanup job for old partials
-- DB migration: schedule a daily cron job that deletes `funnel_partial_submissions` where `completed = false AND created_at < now() - interval '7 days'`
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+```
 
 ---
 
-## Priority Order
+## Implementation Priority
 
-1. **Task 1** (metadata column) -- fixes silent analytics failures
-2. **Task 4** (pg_cron for reminders) -- without this, the entire reminder system does nothing
-3. **Task 5** (second reminder + count) -- doubles recovery potential
-4. **Task 2** (fix submitted page buttons) -- prevents dead-end UX
-5. **Task 3** (de-scope legacy recovery) -- removes dead code and confusion
-6. **Task 6** (exit intent copy) -- incremental lift on step 0
-7. **Task 8** (UTM persistence) -- attribution accuracy for paid traffic
-8. **Task 7** (QUIN overlap) -- mobile UX fix
-9. **Task 9** (JSON-LD) -- SEO polish
-10. **Task 10** (GDPR cleanup) -- compliance
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
+
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
 
 ---
 
-## Files Summary
+## Files to Modify
 
-**DB migrations:**
-- Add `metadata JSONB` to `funnel_analytics`
-- Add `reminder_count INTEGER` to `funnel_partial_submissions`
-- Schedule `process-funnel-reminders` via pg_cron (hourly)
-- Schedule GDPR cleanup of old partials (daily)
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
 
-**Modified files:**
-- `src/pages/PartnershipSubmitted.tsx` (fix buttons)
-- `src/components/partner-funnel/ProgressSaver.tsx` (remove legacy recovery dialog)
-- `src/components/partner-funnel/SessionRecoveryBanner.tsx` (remove/update)
-- `src/components/partner-funnel/ExitIntentPopup.tsx` (step-aware copy)
-- `src/components/partner-funnel/FunnelAIAssistant.tsx` (mobile overlap fix)
-- `src/components/partner-funnel/FunnelSteps.tsx` (UTM persistence in form_data)
-- `src/pages/PartnerFunnel.tsx` (JSON-LD structured data)
-- `supabase/functions/process-funnel-reminders/index.ts` (multi-touch sequence)
+**Total: ~25 files modified**
+
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
 

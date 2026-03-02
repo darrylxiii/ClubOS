@@ -120,11 +120,15 @@ export default function PartnershipSubmitted() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-              <Button size="lg" onClick={() => navigate("/companies")}>
-                View Companies
+              <Button size="lg" asChild>
+                <a href="https://cal.com/thequantumclub/strategy-call" target="_blank" rel="noopener noreferrer">
+                  Book a Strategy Call
+                </a>
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/home")}>
-                Go to Dashboard
+              <Button size="lg" variant="outline" asChild>
+                <a href="https://thequantumclub.com">
+                  Return to Website
+                </a>
               </Button>
             </div>
           </div>
