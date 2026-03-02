@@ -25,7 +25,7 @@ const getFAQResponse = (message: string): string => {
     return "We work across Technology, Finance, Healthcare, Consulting, and high-growth scale-ups. Our sweet spot is companies where the right hire materially changes the outcome.";
   }
 
-  return "I can help with that. Our team will give you a detailed answer during the strategy call — usually within 24 hours of submitting your request.";
+  return "I can help with that. Our team will give you a detailed answer during the strategy call — usually within 24 hours of submitting your brief.";
 };
 
 export function FunnelAIAssistant() {
@@ -36,15 +36,15 @@ export function FunnelAIAssistant() {
     {
       role: "assistant",
       content:
-        "Hi — I'm QUIN, The Quantum Club's AI assistant. Ask me anything about working with us.",
+        "I am QUIN. Ask me about our process, timelines, or industries we serve.",
     },
   ]);
 
   const quickReplies = [
     "How quickly can you find candidates?",
-    "What seniority levels do you recruit?",
+    "What seniority levels do you cover?",
     "How does the process work?",
-    "Can you recruit internationally?",
+    "Do you recruit internationally?",
   ];
 
   const handleSend = async () => {
@@ -133,7 +133,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm">QUIN</h3>
-              <p className="text-xs text-muted-foreground">Powered by QUIN</p>
+              <p className="text-xs text-muted-foreground">AI assistant</p>
             </div>
             <Button size="icon" variant="ghost" onClick={() => setIsOpen(false)}>
               <X className="w-4 h-4" />

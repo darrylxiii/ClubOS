@@ -123,13 +123,13 @@ export default function PartnerFunnel() {
       <div className="container mx-auto px-4 pt-6 pb-4">
         <div className="text-center max-w-2xl mx-auto mb-3">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight mb-3">
-            Your shortlist of senior candidates, ready in 14 days.
+            Senior talent, shortlisted for you within two weeks.
           </h1>
           <p className="text-lg text-muted-foreground mb-2">
-            Tell us who you're looking for — we handle sourcing, screening, and coordination.
+            Describe the role. We handle the rest.
           </p>
           <p className="text-sm text-muted-foreground">
-            No upfront fees. No contracts. You only pay for results.
+            No fees until you hire. No long-term contracts.
           </p>
         </div>
 
@@ -139,28 +139,28 @@ export default function PartnerFunnel() {
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">1</span>
             </div>
-            <span>Submit request</span>
+            <span>Share your brief</span>
           </div>
           <div className="h-px flex-1 bg-border" />
           <div className="flex flex-col items-center gap-1 text-center">
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">2</span>
             </div>
-            <span>Strategy call</span>
+            <span>Speak with a strategist</span>
           </div>
           <div className="h-px flex-1 bg-border" />
           <div className="flex flex-col items-center gap-1 text-center">
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">3</span>
             </div>
-            <span>Receive shortlist</span>
+            <span>Review your shortlist</span>
           </div>
         </div>
 
         {/* Mobile: compact badge instead of full strip */}
         <div className="sm:hidden flex justify-center mb-4">
           <span className="text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-4 py-1.5">
-            3 simple steps — no fees, no contracts
+            Three steps. Under two minutes.
           </span>
         </div>
 

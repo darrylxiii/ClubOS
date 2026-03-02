@@ -30,14 +30,14 @@ serve(async (req) => {
 
     // Differentiate copy for first vs second reminder
     const subject = isSecondReminder
-      ? `Last chance to finish your request, ${name}`
-      : `Your request is still waiting, ${name}`;
+      ? `Your saved progress expires soon, ${name}`
+      : `Your brief is saved, ${name}`;
 
     const bodyParagraph = isSecondReminder
-      ? `Your saved progress will be removed soon. Complete your partnership request${company} now -- it takes less than 60 seconds.`
-      : `You started a partnership request${company} but didn't finish. Your progress is saved -- it takes less than 60 seconds to complete.`;
+      ? `Your saved progress will be removed soon. Complete your hiring brief${company} now — it takes less than two minutes.`
+      : `You began a hiring brief${company}. Your progress is saved — it takes less than two minutes to complete.`;
 
-    const ctaText = isSecondReminder ? 'Complete Now' : 'Finish Your Request';
+    const ctaText = isSecondReminder ? 'Complete Now' : 'Resume your brief';
 
     const htmlBody = `
 <!DOCTYPE html>
@@ -57,13 +57,13 @@ serve(async (req) => {
           </p>
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center" style="padding:8px 0 24px;">
-              <a href="${resumeUrl}" style="display:inline-block;padding:14px 32px;background-color:#C9A24E;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
+              <a href="${resumeUrl}" style="display:inline-block;padding:14px 32px;background-color:#0E0E10;color:#F5F4EF;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
                 ${ctaText}
               </a>
             </td></tr>
           </table>
           <p style="font-size:14px;color:#666;line-height:1.5;margin:0;">
-            No upfront fees. No contracts. You only pay when we place a candidate.
+            No fees until you hire.
           </p>
         </td></tr>
         <tr><td style="padding:32px 0 0;text-align:center;">

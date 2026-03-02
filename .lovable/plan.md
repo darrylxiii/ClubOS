@@ -1,260 +1,253 @@
 
-# Partner Funnel Copy Audit: Every Word Scored
 
-## Current Score: 52/100
+# Comprehensive Email System Audit — The Quantum Club
 
-The funnel works mechanically but reads like a mid-tier SaaS lead form, not a luxury executive recruitment platform. The copy mixes tones (desperate urgency vs. calm discretion), contradicts itself in places, and defaults to generic SaaS phrasing instead of the brand voice: calm, discreet, competent.
+## Current State Summary
 
----
-
-## Audit by Surface (every visible string)
-
-### A. Hero Section (PartnerFunnel.tsx)
-
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| `Your shortlist of senior candidates, ready in 14 days.` | "ready in 14 days" is a hard promise that may not always hold. "Your shortlist" is possessive before they've done anything. Decent but reads like an ad headline, not a concierge. | `Senior talent, shortlisted for you within two weeks.` |
-| `Tell us who you're looking for — we handle sourcing, screening, and coordination.` | "Tell us" is a command. "Sourcing, screening, and coordination" is a list of operational tasks — not a benefit. | `Describe the role. We handle the rest.` |
-| `No upfront fees. No contracts. You only pay for results.` | Three negatives in a row. Defensive framing. "You only pay for results" is a cliche used by every contingency recruiter. | `No fees until you hire. No long-term contracts.` |
-| Stepper: `Submit request` / `Strategy call` / `Receive shortlist` | "Submit request" sounds bureaucratic. "Strategy call" is jargon. "Receive shortlist" is passive. | `Share your brief` / `Speak with a strategist` / `Review your shortlist` |
-| Mobile badge: `3 simple steps — no fees, no contracts` | Redundant with the line above it. "Simple" is a word that implies the alternative is complicated — unnecessary insecurity. | `Three steps. Under two minutes.` |
-
-**Hero score: 45/100** — functional but generic. Reads like a staffing agency, not The Quantum Club.
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-### B. Step 0 — Your Details (FunnelSteps.tsx)
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Step label: `Your Details` | Fine but generic. Every form says this. | `About you` |
-| Heading (pre-email): `Get your shortlist started` | "Get your X started" is SaaS growth-hack copy, not luxury. | `Begin your search` |
-| Subtext: `Enter your work email to begin` | Instructional, cold. | `We will follow up at this address.` |
-| Heading (post-email): `A few more details` | "A few more" signals friction. | `Tell us about your company` |
-| Subtext: `Takes about 30 seconds` | Fine but could be more confident. | `This takes less than a minute.` |
-| Label: `Work Email *` | The asterisk is SaaS convention. Not wrong, but not elite either. | `Work email` (remove asterisk; it's the only field — obviously required) |
-| Placeholder: `jane@company.com` | Generic. "Jane" is a stand-in. | `you@yourcompany.com` |
-| Label: `Full Name *` | Fine. | `Your name` |
-| Placeholder: `Jane Smith` | Same generic name. | Remove placeholder entirely — the label is sufficient. |
-| Label: `Company Name *` | Fine. | `Company` |
-| Placeholder: `Acme Corp` | Cartoon company name. Feels unserious. | Remove placeholder. |
-| Label: `Industry *` | Fine. | Keep. |
-| Placeholder: `Select industry` | Fine. | `Select your industry` |
-| Button: `Get Started` | Too casual for an executive audience. | `Continue` |
-| Button (post-email): `Next: Your Hiring Needs` | Exposes internal step names. Feels like a wizard, not a conversation. | `Continue` |
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
 
-**Step 0 score: 40/100** — reads like a product onboarding flow, not a private consultation intake.
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
 
----
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
 
-### C. Step 1 — Hiring Needs (FunnelSteps.tsx)
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Step label: `Hiring Needs` | Functional but blunt. | `Your brief` |
-| Heading: `Your hiring needs` | Same. | `Tell us what you are looking for` |
-| Subtext: `Help us prepare for our first call` | Good intent but "Help us" puts the burden on them. | `So we can prepare for our conversation.` |
-| Label: `Company Size *` | Fine. | Keep. |
-| Placeholder: `Number of employees` | Redundant with the label. | `Select range` |
-| Label: `Estimated Roles / Year` | Slash feels informal. "Estimated" hedges unnecessarily. | `Roles per year` |
-| Placeholder: `e.g. 5` | Fine. | Keep. |
-| Label: `When do you need to start?` | Good — conversational. | Keep. |
-| Options: `Immediately` / `Within 1 month` / etc. | Fine but `Just exploring` is too casual for a luxury platform. | Change `Just exploring` to `No immediate need` |
-| Label: `Approximate Annual Budget` | "Approximate" hedges. "Annual Budget" is vague — budget for what? | `Recruitment budget (annual)` |
-| Placeholder: `Select range` | Fine. | Keep. |
-| Label: `Anything else we should know?` | Good — conversational and inviting. | Keep. |
-| Placeholder: `Optional — share anything that would help us prepare for our call. Roles you're hiring for, seniority levels, or challenges you're facing.` | Way too long for a placeholder. Disappears on first keystroke. This guidance should be helper text below the field, not a placeholder. | Placeholder: `Specific roles, seniority levels, or challenges...` — keep it short. |
-| Label: `Location` | Ambiguous — location of what? The company? The roles? | `Headquarters location` (as the field name suggests) |
-| Placeholder: `e.g. Amsterdam, Dubai, London` | Fine. | Keep. |
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
 
-**Step 1 score: 55/100** — decent questions, but labels hedge too much and the textarea placeholder is a paragraph.
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
 
----
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
 
-### D. Step 2 — Submit (FunnelSteps.tsx)
+### 1.3 Emoji in Subject Lines (6 functions)
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Step label: `Submit` | Transactional. | `Review` |
-| Heading: `Almost done` | "Almost done" is overused in every SaaS funnel on earth. | `Review and submit` |
-| Subtext: `Add your phone number so we can reach you — or skip and we'll use email.` | "Skip and we'll use email" is awkward. Too many words. | `Optional. Helps us reach you faster.` |
-| Label: `Phone Number (optional)` | Fine. | Keep. |
-| Placeholder: `Add phone for faster response` | The placeholder is selling ("faster response"). Placeholders should be format hints, not pitches. | Remove placeholder — the PhoneInput has its own country selector and format. |
-| Summary heading: `Your details` | Fine. | Keep. |
-| Legal: `By submitting, you agree to our Privacy Policy and Terms of Service. No contracts, no upfront fees.` | "No contracts, no upfront fees" is repeated for the third time across the page. Feels like over-reassurance — the opposite of confidence. | `By submitting you agree to our Privacy Policy and Terms of Service.` |
-| Button: `Submit — Free, No Obligation` | "Free, No Obligation" is late-night infomercial language. Catastrophic for a luxury brand. This is the single worst line in the entire funnel. | `Submit your brief` |
-| Button (loading): `Submitting...` | Fine. | Keep. |
-| Back button: `Back` | Fine. | Keep. |
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
 
-**Step 2 score: 35/100** — "Submit — Free, No Obligation" alone tanks the score. Desperate language on the final CTA destroys trust.
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+
+### 1.4 SPF Record Missing (DNS — not code)
+
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
+```
+This is a DNS change in the domain registrar.
 
 ---
 
-### E. Availability Banner (FunnelSteps.tsx)
+## CATEGORY 2: Content & Copy Quality
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| `2/5 partner spots available this quarter` | "Partner spots" is artificial scarcity that a VP of Talent will see through instantly. X/5 is too specific — if it never changes, it's obviously fake. | `Limited availability this quarter` — or remove entirely. Scarcity tactics damage luxury trust. |
+### 2.1 Inconsistent Tone
 
-**Score: 25/100** — this is the most damaging single element. Manufactured urgency on a luxury platform.
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
 
----
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
 
-### F. Trust Badges (TrustBadges.tsx)
+### 2.2 Hardcoded Contact Email Inconsistency
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| `GDPR compliant · 256-bit encrypted · No upfront fees` | "No upfront fees" again (4th repetition). "256-bit encrypted" — nobody verifies this and it sounds like a VPN ad. | `GDPR compliant · End-to-end encrypted · No upfront fees` — but reduce repetitions across the page. If the hero already says "No fees until you hire", remove it here: `GDPR compliant · End-to-end encrypted` |
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
 
-**Score: 50/100** — functional but over-repeats.
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
 
----
+### 2.3 Missing "Powered by QUIN" Attribution
 
-### G. Exit Intent Popup (ExitIntentPopup.tsx)
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Title (step 0): `Before you go` | Generic. Every exit popup says this. | `A moment before you leave` |
-| Body: `This takes under 60 seconds. No fees, no obligation — just a conversation about your hiring needs.` | "Under 60 seconds" contradicts "under two minutes" from elsewhere. "No fees, no obligation" is the 5th repetition. | `This takes less than two minutes — and there is no commitment involved.` |
-| Bullet: `Under 60 seconds to complete` | Contradicts other estimates. | `Under two minutes to complete` |
-| Bullet: `No contracts or upfront fees` | 6th repetition. | `No contracts required` |
-| Bullet: `Curated shortlist within 14 days` | Fine. | `Shortlist delivered within two weeks` |
-| Footer: `No obligation — just a conversation.` | 7th repetition of the no-obligation message. | Remove entirely. |
-| CTA: `Get Started` | Fine for step 0. | Keep. |
-| Title (mid-flow): `Don't lose your progress` | Threatening tone. | `Your progress is saved` |
-| Body: `You're 67% through the application.` | "Application" implies they are being evaluated — wrong frame. They are the buyer, not the applicant. | `You are 67% through your brief.` |
-| Bullet: `Progress saved locally` | "Locally" is a technical detail. | `Your progress is saved` |
-| Bullet: `Your data is protected` | Vague. | `Data encrypted and private` |
-| Bullet: `Only ~1 minute to complete` | Contradicts "60 seconds" from earlier variant. | `Less than a minute to finish` |
-| Cancel: `Leave Anyway` | Passive-aggressive. "Anyway" implies judgment. | `Leave` |
-| CTA (mid-flow): `Continue Application` | "Application" again — wrong word. They are not applying. They are briefing us. | `Continue` |
-
-**Score: 30/100** — desperate, repetitive, and uses "application" framing which inverts the power dynamic. The partner is the buyer, not the applicant.
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
 
 ---
 
-### H. Resume Dialog (ResumeFunnelDialog.tsx)
+## CATEGORY 3: Technical & Security Issues
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Title: `Welcome back` | Fine. | Keep. |
-| Body: `You have an incomplete partnership request saved.` | "Incomplete" is negative framing. "Partnership request" — they did not request a partnership; they were telling us about their hiring needs. | `You have a saved brief in progress.` |
-| CTA: `Continue Where I Left Off` | Too long. | `Continue` |
-| Cancel: `Start Fresh` | Fine. | Keep. |
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
 
-**Score: 55/100** — mostly fine, one framing issue.
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
 
----
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
 
-### I. Success Page (PartnershipSubmitted.tsx)
+### 3.2 `linear-gradient()` in Inline Styles
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Title: `Successfully Submitted Partner Request` | ALL CAPS + "Successfully Submitted" + "Partner Request" = bureaucratic government form energy. | `Your brief has been received` |
-| Body: `Thank you for your interest in partnering with The Quantum Club. Your strategist is reviewing your request now.` | "Thank you for your interest" is a rejection letter opener. Every declined job applicant has read this phrase. | `A strategist is reviewing your brief and will be in touch within 24 hours.` |
-| Company label: `Company: {name}` | Redundant — they know their own company name. | Remove. |
-| CTA: `Book a Strategy Call` | Good. | Keep. |
-| CTA: `Return to Website` | Fine. | `Visit our website` |
-| ThemeToggle visible | Already removed from funnel but still present on success page. | Remove for consistency. |
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
 
-**Score: 30/100** — the success page reads like a government receipt, not a luxury confirmation.
+**Fix**: Replace gradients with solid background colors.
 
----
+### 3.3 CSS `box-shadow` in Inline Styles
 
-### J. Toast Messages (throughout FunnelSteps.tsx)
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| `Please enter a valid work email` | Fine. | Keep. |
-| `Please fill in all required fields` | Generic. | `Please complete the required fields.` |
-| `Please enter a valid email address` | Redundant with the first. | Consolidate — keep only one email validation message. |
-| `Please select your company size` | Fine. | Keep. |
-| `Request submitted.` / `Your strategist will be in touch within 24 hours.` | Good. | Keep. |
-| `Welcome back.` / `We've restored your progress.` | Good. | Keep. |
-| `Submission failed` | Too blunt. | `Something went wrong. Please try again.` |
-| Resume toast: `Resuming at step 2 of 3` | Exposes internals. | `Resuming where you left off.` |
+### 3.4 `<ul>` Tag Usage
 
-**Score: 60/100** — mostly fine, a few rough edges.
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
 
 ---
 
-### K. Reminder Emails (send-funnel-reminder)
+## CATEGORY 4: Accessibility & Compliance
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Subject 1: `Your request is still waiting, {name}` | "Still waiting" personifies the request — awkward. | `Your brief is saved, {name}` |
-| Subject 2: `Last chance to finish your request, {name}` | "Last chance" is aggressive urgency. | `Your saved progress expires soon, {name}` |
-| Body 1: `You started a partnership request for {company} but didn't finish.` | "But didn't finish" is accusatory. | `You began a hiring brief for {company}. Your progress is saved.` |
-| Body 2: `Your saved progress will be removed soon.` | Fine — factual urgency is acceptable. | Keep. |
-| CTA 1: `Finish Your Request` | "Finish" implies they failed. | `Resume your brief` |
-| CTA 2: `Complete Now` | Fine. | Keep. |
-| CTA button color: `#C9A24E` (gold) | Gold accents are prohibited per brand guidelines. | Change to `#F5F4EF` (ivory) text on `#0E0E10` (eclipse) background — monochromatic. |
-| Footer: `No upfront fees. No contracts. You only pay when we place a candidate.` | Repetition again, and "place a candidate" is recruiter jargon. | `No fees until you hire.` |
+### 4.1 Missing `lang` Attribute on Content
 
-**Score: 40/100** — accusatory language and gold CTA violate brand.
+The `<html lang="en">` is set correctly. Good.
 
----
+### 4.2 Missing `role="presentation"` on Some Tables
 
-### L. Confirmation Email (send-partner-request-received)
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
 
-Already uses the branded email template system with proper tone. Minor issues:
-- Uses gold accent color internally (EMAIL_COLORS.gold) — should be monochromatic per updated brand.
-- "Your partner request has been received" — should be "Your brief has been received."
-- "Request Received" status badge — should be "Brief Received."
+### 4.3 Preheader Padding Technique
 
-**Score: 65/100** — mostly good, terminology and color alignment needed.
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
 
 ---
 
-### M. QUIN Chat Assistant (FunnelAIAssistant.tsx)
+## CATEGORY 5: Structural Improvements
 
-| Current | Problem | Proposed |
-|---------|---------|----------|
-| Greeting: `Hi — I'm QUIN, The Quantum Club's AI assistant. Ask me anything about working with us.` | "Ask me anything" is too broad and casual. | `I am QUIN. Ask me about our process, timelines, or industries we serve.` |
-| Quick reply: `How quickly can you find candidates?` | Fine. | Keep. |
-| Quick reply: `What seniority levels do you recruit?` | Fine. | `What seniority levels do you cover?` |
-| Quick reply: `How does the process work?` | Fine. | Keep. |
-| Quick reply: `Can you recruit internationally?` | Fine. | `Do you recruit internationally?` |
-| Header: `QUIN` / `Powered by QUIN` | "Powered by QUIN" under "QUIN" is redundant. | `QUIN` / `AI assistant` |
-| Fallback: `I can help with that. Our team will give you a detailed answer during the strategy call — usually within 24 hours of submitting your request.` | Good. | Change "submitting your request" to "submitting your brief." |
+### 5.1 Centralize Unsubscribe Headers
 
-**Score: 65/100** — mostly good. Greeting is too casual.
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
+```
+
+### 5.2 Centralize Plain-Text Generation
+
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+```
 
 ---
 
-## Systemic Issues (across all surfaces)
+## Implementation Priority
 
-1. **"No fees / no obligation / no contracts" repeated 7+ times.** Over-reassurance signals insecurity. A luxury brand states terms once and moves on. Fix: say it once in the hero, nowhere else.
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
 
-2. **"Application" / "request" / "partnership request" terminology.** The partner is the buyer. They are not applying. They are briefing us. Fix: replace all instances with "brief" or "search."
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
 
-3. **Time estimates contradict each other.** "Under 60 seconds" (exit popup) vs. "about 30 seconds" (step 0) vs. "~1 minute" (exit popup mid-flow) vs. "under two minutes" (nowhere yet). Fix: standardise on "under two minutes" everywhere.
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
 
-4. **Gold color in emails violates brand.** Brand spec prohibits gold accents. The reminder email CTA button uses `#C9A24E`. Fix: switch to monochromatic eclipse/ivory.
-
-5. **Placeholder text used as guidance.** The textarea placeholder is 28 words and disappears on first keystroke. Fix: move to helper text below the field.
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
 
 ---
 
-## Summary of Changes
+## Files to Modify
 
-### Files to edit:
-- `src/pages/PartnerFunnel.tsx` — hero copy, stepper labels, mobile badge
-- `src/components/partner-funnel/FunnelSteps.tsx` — all step headings, labels, placeholders, buttons, availability banner, toast messages, step labels constant
-- `src/components/partner-funnel/ExitIntentPopup.tsx` — all copy
-- `src/components/partner-funnel/ResumeFunnelDialog.tsx` — body text, CTA label
-- `src/components/partner-funnel/TrustBadges.tsx` — remove "No upfront fees" (said elsewhere)
-- `src/components/partner-funnel/FunnelAIAssistant.tsx` — greeting, quick replies, subheader
-- `src/pages/PartnershipSubmitted.tsx` — title, body, remove company label, remove ThemeToggle
-- `supabase/functions/send-funnel-reminder/index.ts` — subjects, body copy, CTA labels, button color
-- `supabase/functions/send-partner-request-received/index.ts` — "request" to "brief" terminology
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
 
-### What does NOT change:
-- No new components
-- No layout or structural changes
-- No logic changes
-- Form field order stays the same
-- All analytics, autosave, resume, exit intent logic untouched
+**Total: ~25 files modified**
 
-### Target score: 92/100
-(Remaining 8 points require real testimonials and live social proof data, which is content, not copy.)
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+

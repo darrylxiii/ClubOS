@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 
 // 3 clean, benefit-oriented step labels
-const STEPS = ["Your Details", "Hiring Needs", "Submit"];
+const STEPS = ["About you", "Your brief", "Review"];
 
 const STEP_TIME_ESTIMATES: Record<number, number> = {
   0: 1,
@@ -281,7 +281,7 @@ export function FunnelSteps() {
     switch (currentStep) {
       case 0:
         if (!formData.contact_name || !formData.contact_email || !formData.company_name || !formData.industry) {
-          toast({ title: "Please fill in all required fields", variant: "destructive" });
+          toast({ title: "Please complete the required fields.", variant: "destructive" });
           return false;
         }
         if (!emailRegex.test(formData.contact_email)) {
@@ -338,7 +338,7 @@ export function FunnelSteps() {
       }
       toast({
         title: "Welcome back.",
-        description: `Resuming at step ${savedData.currentStep + 1} of ${STEPS.length}`,
+        description: "Resuming where you left off.",
       });
     }
     setResumeDialogOpen(false);
@@ -391,7 +391,7 @@ export function FunnelSteps() {
       });
 
       if (error) {
-        toast({ title: "Submission failed", description: error.message, variant: "destructive" });
+        toast({ title: "Something went wrong. Please try again.", description: error.message, variant: "destructive" });
         return;
       }
 
@@ -456,16 +456,16 @@ export function FunnelSteps() {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-semibold mb-1">
-                {emailCaptured ? "A few more details" : "Get your shortlist started"}
+                {emailCaptured ? "Tell us about your company" : "Begin your search"}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {emailCaptured ? "Takes about 30 seconds" : "Enter your work email to begin"}
+                {emailCaptured ? "This takes less than a minute." : "We will follow up at this address."}
               </p>
             </div>
 
             {/* Phase A: Email only (or always visible once captured) */}
             <div>
-              <Label className="glass-label">Work Email *</Label>
+              <Label className="glass-label">Work email</Label>
               <Input
                 type="email"
                 value={formData.contact_email}
@@ -474,7 +474,7 @@ export function FunnelSteps() {
                   validation.clearError('contact_email');
                 }}
                 onBlur={handleEmailBlur}
-                placeholder="jane@company.com"
+                placeholder="you@yourcompany.com"
                 className={cn("glass-input", validation.hasError('contact_email') && "border-destructive")}
                 readOnly={emailCaptured}
                 autoFocus={!emailCaptured}
@@ -488,7 +488,7 @@ export function FunnelSteps() {
                 onClick={handleEmailCapture}
                 className="w-full min-h-[44px] text-base"
               >
-                Get Started
+                Continue
                 <ArrowRight className="w-4 h-4 ml-2" />
               </RainbowButton>
             )}
@@ -498,7 +498,7 @@ export function FunnelSteps() {
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label className="glass-label">Full Name *</Label>
+                    <Label className="glass-label">Your name</Label>
                     <Input
                       value={formData.contact_name}
                       onChange={(e) => {
@@ -506,7 +506,6 @@ export function FunnelSteps() {
                         validation.clearError('contact_name');
                       }}
                       onBlur={() => validation.validateField('contact_name', formData.contact_name)}
-                      placeholder="Jane Smith"
                       className={cn("glass-input", validation.hasError('contact_name') && "border-destructive")}
                       autoFocus
                     />
@@ -514,7 +513,7 @@ export function FunnelSteps() {
                   </div>
 
                   <div>
-                    <Label className="glass-label">Company Name *</Label>
+                    <Label className="glass-label">Company</Label>
                     <Input
                       value={formData.company_name}
                       onChange={(e) => {
@@ -522,7 +521,6 @@ export function FunnelSteps() {
                         validation.clearError('company_name');
                       }}
                       onBlur={() => validation.validateField('company_name', formData.company_name)}
-                      placeholder="Acme Corp"
                       className={cn("glass-input", validation.hasError('company_name') && "border-destructive")}
                     />
                     <FieldError error={validation.getFieldError('company_name')} />
@@ -536,7 +534,7 @@ export function FunnelSteps() {
                     onValueChange={(v) => setFormData({ ...formData, industry: v })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select industry" />
+                      <SelectValue placeholder="Select your industry" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="technology">Technology</SelectItem>
@@ -573,8 +571,8 @@ export function FunnelSteps() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold mb-1">Your hiring needs</h2>
-              <p className="text-sm text-muted-foreground">Help us prepare for our first call</p>
+              <h2 className="text-2xl font-semibold mb-1">Tell us what you are looking for</h2>
+              <p className="text-sm text-muted-foreground">So we can prepare for our conversation.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -585,7 +583,7 @@ export function FunnelSteps() {
                   onValueChange={(v) => setFormData({ ...formData, company_size: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Number of employees" />
+                    <SelectValue placeholder="Select range" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1-10">1–10</SelectItem>
@@ -599,7 +597,7 @@ export function FunnelSteps() {
               </div>
 
               <div>
-                <Label className="glass-label">Estimated Roles / Year</Label>
+                <Label className="glass-label">Roles per year</Label>
                 <Input
                   type="number"
                   value={formData.estimated_roles_per_year}
@@ -625,13 +623,13 @@ export function FunnelSteps() {
                     <SelectItem value="1_month">Within 1 month</SelectItem>
                     <SelectItem value="3_months">Within 3 months</SelectItem>
                     <SelectItem value="6_months">Within 6 months</SelectItem>
-                    <SelectItem value="planning">Just exploring</SelectItem>
+                    <SelectItem value="planning">No immediate need</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label className="glass-label">Approximate Annual Budget</Label>
+                <Label className="glass-label">Recruitment budget (annual)</Label>
                 <Select
                   value={formData.budget_range}
                   onValueChange={(v) => setFormData({ ...formData, budget_range: v })}
@@ -655,14 +653,14 @@ export function FunnelSteps() {
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Optional — share anything that would help us prepare for our call. Roles you're hiring for, seniority levels, or challenges you're facing."
+                placeholder="Specific roles, seniority levels, or challenges..."
                 rows={3}
                 className="glass-input"
               />
             </div>
 
             <div>
-              <Label className="glass-label">Location</Label>
+              <Label className="glass-label">Headquarters location</Label>
               <Input
                 value={formData.headquarters_location}
                 onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
@@ -680,9 +678,9 @@ export function FunnelSteps() {
         return (
           <div className="space-y-5">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold mb-1">Almost done</h2>
+              <h2 className="text-2xl font-semibold mb-1">Review and submit</h2>
               <p className="text-sm text-muted-foreground">
-                Add your phone number so we can reach you — or skip and we'll use email.
+                Optional. Helps us reach you faster.
               </p>
             </div>
 
@@ -694,7 +692,7 @@ export function FunnelSteps() {
                 defaultCountry={countryCode as "NL" | "US" | "GB" | "DE" | undefined}
                 value={phoneNumber}
                 onChange={(v) => setPhoneNumber(v || "")}
-                placeholder="Add phone for faster response"
+                placeholder=""
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
             </div>
@@ -729,7 +727,6 @@ export function FunnelSteps() {
               <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                 Terms of Service
               </a>.
-              No contracts, no upfront fees.
             </p>
           </div>
         );
@@ -780,7 +777,7 @@ export function FunnelSteps() {
               "w-1.5 h-1.5 rounded-full animate-pulse",
               spotsLeft >= 4 ? 'bg-primary' : spotsLeft >= 2 ? 'bg-primary/70' : 'bg-destructive'
             )} />
-            <span>{spotsLeft}/5 partner spots available this quarter</span>
+            <span>Limited availability this quarter</span>
           </div>
 
           {/* Progress — hide until email is captured */}
@@ -847,7 +844,7 @@ export function FunnelSteps() {
                   onClick={handleNext}
                   className="flex-1 min-h-[44px] text-base"
                 >
-                  {currentStep === 0 ? "Next: Your Hiring Needs" : "Review and Submit"}
+                  Continue
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
@@ -864,7 +861,7 @@ export function FunnelSteps() {
                     </>
                   ) : (
                     <>
-                      Submit — Free, No Obligation
+                      Submit your brief
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}

@@ -41,7 +41,7 @@ export function ResumeFunnelDialog({
                     </AlertDialogTitle>
                     <AlertDialogDescription className="space-y-4 pt-4">
                         <p className="text-base">
-                            You have an incomplete partnership request saved.
+                            You have a saved brief in progress.
                         </p>
 
                         <div className="space-y-3 p-4 rounded-lg bg-muted/50 border border-border/50">
@@ -81,7 +81,7 @@ export function ResumeFunnelDialog({
                         className="sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                         autoFocus
                     >
-                        Continue Where I Left Off
+                        Continue
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

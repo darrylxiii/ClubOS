@@ -2,7 +2,7 @@ export function TrustBadges() {
   return (
     <div className="text-center py-3">
       <p className="text-xs text-muted-foreground/70 tracking-wide">
-        GDPR compliant · 256-bit encrypted · No upfront fees
+        GDPR compliant · End-to-end encrypted
       </p>
     </div>
   );

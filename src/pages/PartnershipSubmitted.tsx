@@ -1,7 +1,6 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { CheckCircle } from "lucide-react";
 import { PartnerRequestTracker } from "@/components/partner-funnel/PartnerRequestTracker";
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
@@ -89,9 +88,7 @@ export default function PartnershipSubmitted() {
             alt="Quantum Club" 
             className="h-20 w-auto hidden dark:block"
           />
-          <div className="absolute right-4">
-            <ThemeToggle />
-          </div>
+          
         </div>
       </div>
 
@@ -101,18 +98,12 @@ export default function PartnershipSubmitted() {
           <div className="py-8">
             <div className="text-center mb-8">
               <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
-              <h1 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">
-                Successfully Submitted Partner Request
+              <h1 className="text-3xl font-semibold mb-3">
+                Your brief has been received
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Thank you for your interest in partnering with The Quantum Club. 
-                Your strategist is reviewing your request now.
+                A strategist is reviewing your brief and will be in touch within 24 hours.
               </p>
-              {companyName && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Company: <span className="font-medium">{decodeURIComponent(companyName)}</span>
-                </p>
-              )}
             </div>
 
             <div className="max-w-2xl mx-auto">
@@ -127,7 +118,7 @@ export default function PartnershipSubmitted() {
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <a href="https://thequantumclub.com">
-                  Return to Website
+                  Visit our website
                 </a>
               </Button>
             </div>
