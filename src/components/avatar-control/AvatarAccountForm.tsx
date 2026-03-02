@@ -67,14 +67,17 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
             return;
           }
 
-          // Save credentials if provided
+          // Save credentials if provided -- await to ensure they persist
           if (form.linkedin_password || form.email_account_password) {
-            saveCredentials.mutate({
-              accountId,
-              linkedinPassword: form.linkedin_password || undefined,
-              emailAccountAddress: form.email_account_address || undefined,
-              emailAccountPassword: form.email_account_password || undefined,
-            });
+            try {
+              await saveCredentials.mutateAsync({
+                accountId,
+                linkedinPassword: form.linkedin_password || undefined,
+                emailAccountPassword: form.email_account_password || undefined,
+              });
+            } catch (credErr: any) {
+              toast.error(`Credentials save failed: ${credErr.message}`);
+            }
           }
 
           // Trigger LinkedIn sync if URL provided
