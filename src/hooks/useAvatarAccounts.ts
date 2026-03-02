@@ -173,5 +173,45 @@ export function useAvatarAccounts() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  return { ...accountsQuery, createAccount, updateAccount, syncLinkedIn, saveCredentials, deleteAccount, bulkSync };
+  const logConnectionsSent = useMutation({
+    mutationFn: async ({ accountId, count }: { accountId: string; count: number }) => {
+      const { error } = await supabase.rpc('increment_connections_sent' as any, {
+        p_account_id: accountId,
+        p_count: count,
+      });
+      // Fallback: direct update if RPC doesn't exist
+      if (error) {
+        const account = accountsQuery.data?.find(a => a.id === accountId);
+        if (!account) throw new Error('Account not found');
+        const newSent = Math.min(account.weekly_connections_sent + count, account.weekly_connection_limit);
+        const { error: updateError } = await supabase
+          .from('linkedin_avatar_accounts')
+          .update({ weekly_connections_sent: newSent } as any)
+          .eq('id', accountId);
+        if (updateError) throw updateError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avatar-accounts'] });
+      toast.success('Connection requests logged.');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resetConnectionCounter = useMutation({
+    mutationFn: async (accountId: string) => {
+      const { error } = await supabase
+        .from('linkedin_avatar_accounts')
+        .update({ weekly_connections_sent: 0, weekly_connections_reset_at: new Date().toISOString() } as any)
+        .eq('id', accountId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avatar-accounts'] });
+      toast.success('Counter reset.');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return { ...accountsQuery, createAccount, updateAccount, syncLinkedIn, saveCredentials, deleteAccount, bulkSync, logConnectionsSent, resetConnectionCounter };
 }
