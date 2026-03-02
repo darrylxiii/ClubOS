@@ -281,7 +281,7 @@ export function FunnelSteps() {
     switch (currentStep) {
       case 0:
         if (!formData.contact_name || !formData.contact_email || !formData.company_name || !formData.industry) {
-          toast({ title: "Please fill in all required fields", variant: "destructive" });
+          toast({ title: "Please complete the required fields.", variant: "destructive" });
           return false;
         }
         if (!emailRegex.test(formData.contact_email)) {
