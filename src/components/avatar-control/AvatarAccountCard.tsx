@@ -4,14 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
-import { Clock, Shield, Play, Users, UserPlus, RefreshCw, Pencil, MapPin, Briefcase, Crown, Star, Sparkles, Eye, Send } from 'lucide-react';
+import { Clock, Shield, Play, Users, UserPlus, RefreshCw, Pencil, MapPin, Briefcase, Crown, Star, Sparkles, Eye, Send, Linkedin, Twitter, MessageSquare, Instagram } from 'lucide-react';
 import { AvatarAccount } from '@/hooks/useAvatarAccounts';
 import { AvatarSession } from '@/hooks/useAvatarSessions';
+import { AvatarSocialTarget } from '@/hooks/useAvatarSocialTargets';
 import { format, formatDistanceToNow } from 'date-fns';
 
 interface AvatarAccountCardProps {
   account: AvatarAccount;
   activeSession?: AvatarSession | null;
+  socialTargets?: AvatarSocialTarget[];
   onStartSession: (account: AvatarAccount) => void;
   onSyncLinkedIn?: (account: AvatarAccount) => void;
   onEdit?: (account: AvatarAccount) => void;
