@@ -92,6 +92,15 @@ serve(async (req) => {
             ${InfoRow({ icon: '👤', label: 'Name', value: name })}
             ${InfoRow({ icon: '📧', label: 'Email', value: email })}
             ${InfoRow({ icon: '🏷️', label: 'Type', value: (type || 'partner').charAt(0).toUpperCase() + (type || 'partner').slice(1) })}
+            ${company ? InfoRow({ icon: '🏢', label: 'Company', value: company }) : ''}
+            ${industry ? InfoRow({ icon: '🏭', label: 'Industry', value: industry }) : ''}
+            ${companySize ? InfoRow({ icon: '👥', label: 'Company Size', value: companySize }) : ''}
+            ${timeline ? InfoRow({ icon: '📅', label: 'Timeline', value: timeline }) : ''}
+            ${budget ? InfoRow({ icon: '💰', label: 'Budget', value: budget }) : ''}
+            ${rolesPerYear ? InfoRow({ icon: '🎯', label: 'Roles/Year', value: rolesPerYear }) : ''}
+            ${website ? InfoRow({ icon: '🌐', label: 'Website', value: website }) : ''}
+            ${location ? InfoRow({ icon: '📍', label: 'Location', value: location }) : ''}
+            ${phone ? InfoRow({ icon: '📞', label: 'Phone', value: phone }) : ''}
           `,
         })}
         ${Spacer(32)}
