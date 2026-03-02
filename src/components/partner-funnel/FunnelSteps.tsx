@@ -660,7 +660,7 @@ export function FunnelSteps() {
             </div>
 
             <div>
-              <Label className="glass-label">Location</Label>
+              <Label className="glass-label">Headquarters location</Label>
               <Input
                 value={formData.headquarters_location}
                 onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
