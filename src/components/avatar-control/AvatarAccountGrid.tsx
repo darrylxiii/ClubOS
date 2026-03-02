@@ -124,6 +124,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
             key={account.id}
             account={account}
             activeSession={activeByAccount.get(account.id)}
+            socialTargets={socialTargetsByAccount.get(account.id)}
             onStartSession={onStartSession}
             onSyncLinkedIn={handleSyncLinkedIn}
             onEdit={setEditAccount}
