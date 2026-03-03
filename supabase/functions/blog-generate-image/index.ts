@@ -22,7 +22,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Generate image using Lovable AI with image model
+    // Use the correct supported image generation model
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -30,7 +30,7 @@ serve(async (req) => {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
+        model: 'google/gemini-3-pro-image-preview',
         messages: [
           {
             role: 'user',
@@ -73,10 +73,12 @@ serve(async (req) => {
       if (!uploadError) {
         const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
         imageUrl = urlData.publicUrl;
+      } else {
+        console.error('Image upload error:', uploadError);
       }
     }
 
-    if (postId) {
+    if (postId && imageUrl !== '/placeholder.svg') {
       await supabase
         .from('blog_posts')
         .update({ hero_image: { url: imageUrl, alt: prompt } })

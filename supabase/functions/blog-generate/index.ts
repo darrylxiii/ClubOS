@@ -25,12 +25,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Update queue status
+    // Atomic queue claim — use the DB function instead of SELECT then UPDATE
     if (queueId) {
-      await supabase
+      const { error: claimErr } = await supabase
         .from('blog_generation_queue')
-        .update({ status: 'generating', updated_at: new Date().toISOString() })
-        .eq('id', queueId);
+        .update({ status: 'generating', locked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('id', queueId)
+        .eq('status', 'pending');
+
+      // If claim fails (already claimed by another worker), skip
+      if (claimErr) {
+        console.warn(`Queue item ${queueId} claim failed, likely already processing`);
+      }
     }
 
     const format = contentFormat || 'deep-dive';
@@ -225,11 +231,22 @@ The field for text content is ALWAYS "content", never "text". The field for quot
 
     if (!response.ok) {
       if (response.status === 429) {
+        // On rate limit, release the queue item back to pending
+        if (queueId) {
+          await supabase.from('blog_generation_queue')
+            .update({ status: 'pending', locked_at: null, updated_at: new Date().toISOString() })
+            .eq('id', queueId);
+        }
         return new Response(JSON.stringify({ error: 'AI rate limit exceeded. Please try again later.', code: 'AI_RATE_LIMITED' }), {
           status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       if (response.status === 402) {
+        if (queueId) {
+          await supabase.from('blog_generation_queue')
+            .update({ status: 'pending', locked_at: null, updated_at: new Date().toISOString() })
+            .eq('id', queueId);
+        }
         return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add funds.', code: 'AI_CREDITS_EXHAUSTED' }), {
           status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -318,10 +335,25 @@ The field for text content is ALWAYS "content", never "text". The field for quot
         .update({
           status: qualityPass ? 'completed' : 'failed',
           generated_post_id: post.id,
+          locked_at: null,
           error_message: qualityPass ? null : `Quality check failed: ${totalChars} chars (need 6000+), ${blockCount} blocks (need 12+), ${headingCount} headings (need 3+)`,
           updated_at: new Date().toISOString(),
         })
         .eq('id', queueId);
+    }
+
+    // Fire-and-forget hero image generation (async, don't block response)
+    if (qualityPass && post.id) {
+      const imagePrompt = `${content.title} - ${category} - professional editorial`;
+      const imageUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-generate-image`;
+      fetch(imageUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        },
+        body: JSON.stringify({ postId: post.id, prompt: imagePrompt }),
+      }).catch(err => console.warn('Hero image generation fire-and-forget failed:', err.message));
     }
 
     console.log(`Blog generated: "${content.title}" | ${blockCount} blocks, ${totalChars} chars, ${headingCount} headings | quality: ${qualityPass ? 'PASS' : 'FAIL'}`);

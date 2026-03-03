@@ -17,6 +17,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Step 0: Release stuck queue items
+    await supabase.rpc('release_stuck_queue_items');
+
     // Check if engine is active
     const { data: settings } = await supabase
       .from('blog_engine_settings')
@@ -44,15 +47,9 @@ serve(async (req) => {
       });
     }
 
-    // Get next pending queue item
-    const { data: queueItem } = await supabase
-      .from('blog_generation_queue')
-      .select('*')
-      .eq('status', 'pending')
-      .order('priority', { ascending: false })
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .single();
+    // Atomic claim: use DB function instead of SELECT then UPDATE
+    const { data: claimedItems } = await supabase.rpc('claim_blog_queue_item');
+    const queueItem = claimedItems?.[0];
 
     if (!queueItem) {
       // Auto-suggest if queue empty
@@ -71,7 +68,7 @@ serve(async (req) => {
       });
     }
 
-    // Generate article
+    // Generate article (item already claimed as 'generating')
     const generateUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-generate`;
     const genResponse = await fetch(generateUrl, {
       method: 'POST',

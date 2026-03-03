@@ -19,6 +19,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Step 0: Release stuck queue items (generating for >10 min)
+    const { data: releasedCount } = await supabase.rpc('release_stuck_queue_items');
+    if (releasedCount && releasedCount > 0) {
+      console.log(`Released ${releasedCount} stuck queue items`);
+    }
+
     // Check engine settings
     const { data: settings } = await supabase
       .from('blog_engine_settings')
@@ -75,22 +81,16 @@ serve(async (req) => {
         await sleep(2000); // Let suggestions settle
       }
 
-      // Get next queue item
-      const { data: queueItem } = await supabase
-        .from('blog_generation_queue')
-        .select('*')
-        .eq('status', 'pending')
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .single();
+      // Atomic claim: use the DB function to claim next item
+      const { data: claimedItems } = await supabase.rpc('claim_blog_queue_item');
+      const queueItem = claimedItems?.[0];
 
       if (!queueItem) {
         results.push({ slug: '', success: false, error: 'Queue empty after refill' });
         break;
       }
 
-      // Generate article
+      // Generate article (queue item is already claimed as 'generating')
       const generateUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-generate`;
       const genResponse = await fetch(generateUrl, {
         method: 'POST',
@@ -143,6 +143,19 @@ serve(async (req) => {
     }
 
     const successCount = results.filter(r => r.success).length;
+
+    // Auto-run blog-relate for newly created posts
+    if (successCount > 0) {
+      const relateUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-relate`;
+      fetch(relateUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        },
+        body: JSON.stringify({}),
+      }).catch(err => console.warn('blog-relate fire-and-forget failed:', err.message));
+    }
 
     return new Response(JSON.stringify({
       message: `Batch complete: ${successCount}/${results.length} generated`,

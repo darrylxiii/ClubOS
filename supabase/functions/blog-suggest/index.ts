@@ -5,6 +5,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// Simple Levenshtein distance for dedup
+function levenshtein(a: string, b: string): number {
+  const matrix: number[][] = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b[i - 1] === a[j - 1]) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function similarity(a: string, b: string): number {
+  const la = a.toLowerCase().trim();
+  const lb = b.toLowerCase().trim();
+  const maxLen = Math.max(la.length, lb.length);
+  if (maxLen === 0) return 1;
+  return 1 - levenshtein(la, lb) / maxLen;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -29,7 +54,17 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(100);
 
-    const existingTopics = (existingPosts || []).map((p: any) => p.title).join(', ');
+    // Also get pending queue items for dedup
+    const { data: pendingQueue } = await supabase
+      .from('blog_generation_queue')
+      .select('topic')
+      .in('status', ['pending', 'generating']);
+
+    const existingTitles = (existingPosts || []).map((p: any) => p.title);
+    const pendingTopics = (pendingQueue || []).map((q: any) => q.topic);
+    const allExistingTopics = [...existingTitles, ...pendingTopics];
+
+    const existingTopics = existingTitles.join(', ');
     const existingCategories = (existingPosts || []).map((p: any) => p.category);
     const categoryCounts: Record<string, number> = {};
     existingCategories.forEach((c: string) => { categoryCounts[c] = (categoryCounts[c] || 0) + 1; });
@@ -86,12 +121,10 @@ For each, return using the provided tool. Include a cluster_id to group related 
                         isPillar: { type: 'boolean', description: 'True if this is a pillar/cornerstone article' },
                       },
                       required: ['topic', 'category', 'format', 'targetKeywords', 'priority', 'reasoning'],
-                      additionalProperties: false,
                     },
                   },
                 },
                 required: ['suggestions'],
-                additionalProperties: false,
               },
             },
           },
@@ -123,6 +156,20 @@ For each, return using the provided tool. Include a cluster_id to group related 
     } else {
       const parsed = JSON.parse(aiResult.choices[0].message.content);
       suggestions = parsed.suggestions || parsed;
+    }
+
+    // Dedup: filter out suggestions too similar to existing posts or pending queue
+    if (Array.isArray(suggestions)) {
+      const SIMILARITY_THRESHOLD = 0.8;
+      suggestions = suggestions.filter((s: any) => {
+        for (const existing of allExistingTopics) {
+          if (similarity(s.topic, existing) >= SIMILARITY_THRESHOLD) {
+            console.log(`Dedup: rejected "${s.topic}" (too similar to "${existing}")`);
+            return false;
+          }
+        }
+        return true;
+      });
     }
 
     if (autoQueue && Array.isArray(suggestions)) {
