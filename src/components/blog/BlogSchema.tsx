@@ -8,15 +8,42 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
   const postUrl = `${baseUrl}/blog/${post.category}/${post.slug}`;
   const wordCount = post.content.reduce((c, b) => c + (b.content + (b.items?.join(' ') || '')).split(/\s+/).filter(Boolean).length, 0);
 
+  const heroImageUrl = post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}`;
+  const fallbackOgImage = `${baseUrl}/og-image.gif`;
+  const ogImage = heroImageUrl && heroImageUrl !== `${baseUrl}/placeholder.svg` ? heroImageUrl : fallbackOgImage;
+
   const blogPostingSchema = {
     "@context": "https://schema.org", "@type": "BlogPosting",
     "mainEntityOfPage": { "@type": "WebPage", "@id": postUrl },
     "headline": post.title, "description": post.metaDescription,
-    "image": { "@type": "ImageObject", "url": post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}` },
-    "author": { "@type": "Person", "name": post.author.name, "jobTitle": post.author.credentials },
-    "publisher": { "@type": "Organization", "name": "The Quantum Club", "logo": { "@type": "ImageObject", "url": `${baseUrl}/quantum-clover-icon.png` } },
-    "datePublished": post.publishedAt, "dateModified": post.updatedAt, "wordCount": wordCount,
-    "articleSection": categoryData?.name || post.category, "keywords": post.keywords.join(', '),
+    "image": { "@type": "ImageObject", "url": ogImage, "width": 1200, "height": 630 },
+    "author": {
+      "@type": "Person",
+      "name": post.author.name,
+      "jobTitle": post.author.credentials,
+      "url": `${baseUrl}/blog`,
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "The Quantum Club",
+      "url": baseUrl,
+      "logo": { "@type": "ImageObject", "url": `${baseUrl}/quantum-clover-icon.png` },
+      "sameAs": [
+        "https://www.linkedin.com/company/thequantumclub",
+        "https://x.com/thequantumclub",
+      ],
+    },
+    "datePublished": post.publishedAt,
+    "dateModified": post.updatedAt || post.publishedAt,
+    "wordCount": wordCount,
+    "articleSection": categoryData?.name || post.category,
+    "keywords": post.keywords.join(', '),
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["#key-takeaways", "h1"],
+    },
   };
 
   const breadcrumbSchema = {
@@ -29,7 +56,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
     ],
   };
 
-  // FAQ Schema from post data (for AI-generated posts with faq_schema)
+  // FAQ Schema from post data
   const faqItems = (post as any).faqSchema || [];
   const faqSchema = faqItems.length > 0 ? {
     "@context": "https://schema.org",
@@ -44,26 +71,38 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
     })),
   } : null;
 
-  const heroImageUrl = post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}`;
-  const fallbackOgImage = `${baseUrl}/og-image.gif`;
-  const ogImage = heroImageUrl && heroImageUrl !== `${baseUrl}/placeholder.svg` ? heroImageUrl : fallbackOgImage;
-
   return (
     <Helmet>
       <link rel="canonical" href={postUrl} />
+
+      {/* OpenGraph Article Tags */}
       <meta property="og:title" content={post.metaTitle} />
       <meta property="og:description" content={post.metaDescription} />
       <meta property="og:type" content="article" />
       <meta property="og:url" content={postUrl} />
       <meta property="og:site_name" content="The Quantum Club" />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:image:width" content="432" />
-      <meta property="og:image:height" content="540" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:locale" content="en_US" />
+
+      {/* Article-specific OG tags */}
+      <meta property="article:published_time" content={post.publishedAt} />
+      <meta property="article:modified_time" content={post.updatedAt || post.publishedAt} />
+      <meta property="article:author" content={post.author.name} />
+      <meta property="article:section" content={categoryData?.name || post.category} />
+      {post.keywords.slice(0, 6).map((keyword, i) => (
+        <meta key={`tag-${i}`} property="article:tag" content={keyword} />
+      ))}
+
+      {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@thequantumclub" />
       <meta name="twitter:title" content={post.metaTitle} />
       <meta name="twitter:description" content={post.metaDescription} />
       <meta name="twitter:image" content={ogImage.replace('og-image.gif', 'og-image-twitter-v3.gif')} />
+
+      {/* JSON-LD Schemas */}
       <script type="application/ld+json">{JSON.stringify(blogPostingSchema)}</script>
       <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}

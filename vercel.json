@@ -1,4 +1,9 @@
 {
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/blog-sitemap" },
+    { "source": "/rss.xml", "destination": "https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/blog-rss" },
+    { "source": "/robots.txt", "destination": "https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/blog-robots" }
+  ],
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }

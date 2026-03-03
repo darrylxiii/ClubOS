@@ -30,7 +30,7 @@ serve(async () => {
     <description>Career insights, talent strategy, and leadership perspectives for senior professionals.</description>
     <language>en</language>
     <lastBuildDate>${now}</lastBuildDate>
-    <atom:link href="${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-rss" rel="self" type="application/rss+xml" />`;
+    <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml" />`;
 
     for (const post of (posts || [])) {
       const heroImage = post.hero_image as { url?: string } | null;
