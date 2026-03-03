@@ -27,6 +27,21 @@ interface DBBlogPost {
 // Default author for AI-generated content
 const defaultAuthor: Author = authors[0]; // TQC Editorial
 
+// Calculate read time from word count (~200 WPM)
+const calculateReadTime = (content: ContentBlock[] | null): number => {
+  if (!content || content.length === 0) return 5;
+  let wordCount = 0;
+  for (const block of content) {
+    if ('content' in block && typeof (block as any).content === 'string') {
+      wordCount += (block as any).content.split(/\s+/).filter(Boolean).length;
+    }
+    if ('text' in block && typeof (block as any).text === 'string') {
+      wordCount += (block as any).text.split(/\s+/).filter(Boolean).length;
+    }
+  }
+  return Math.max(1, Math.ceil(wordCount / 200));
+};
+
 // Transform database post to BlogPost format
 const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
   const heroImage = dbPost.hero_image as { url?: string; alt?: string; caption?: string } | null;
