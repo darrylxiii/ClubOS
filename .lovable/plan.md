@@ -1,193 +1,253 @@
 
 
-# Full Audit: CreateJobDialog — Score 78/100
+# Comprehensive Email System Audit — The Quantum Club
 
-## What is working well (+78)
-- Multi-step wizard structure is solid (5 steps, clear progression)
-- RBAC guards properly hide Pipeline, Fee, and Stealth from partners
-- Calendar date picker allows today (fixed)
-- Title min-length is 2 (fixed)
-- Description optional when file uploaded (fixed)
-- AED currency added
-- Task number uses timestamp (fixed)
-- Mobile step labels visible
-- Select dropdowns work inside Sheet (z-[100])
-- Draft auto-save every 30s
+## Current State Summary
 
-## What is STILL BROKEN (-22 points)
-
-### CRITICAL: Location Autocomplete Dropdown Invisible (-8)
-
-**Root cause confirmed:** `EnhancedLocationAutocomplete` renders its `PopoverContent` at default `z-50` (from `popover.tsx`). The Sheet overlay is `z-[80]`. The dropdown renders BEHIND the overlay and is unclickable.
-
-The Calendar PopoverContent was fixed with `z-[100] pointer-events-auto` (line 853), but no one applied the same fix to `EnhancedLocationAutocomplete`.
-
-**Fix:** Add a `popoverClassName` prop to `EnhancedLocationAutocomplete` and pass `z-[100] pointer-events-auto` from `CreateJobDialog`. Alternatively, hard-code `z-[100]` directly in the `EnhancedLocationAutocomplete`'s `PopoverContent` since it should always render above overlays.
-
-**Files:** `src/components/ui/enhanced-location-autocomplete.tsx` (line 338-339)
-
-### CRITICAL: No Close Confirmation (-5)
-
-`handleClose` (line 666-670) silently saves draft and closes. For a form that takes 5-10 minutes to fill, accidentally closing it (clicking overlay, pressing Escape, clicking X) should prompt "Your progress is saved. Leave anyway?" using the existing `ExitIntentPopup` pattern already used in partner funnel and candidate onboarding.
-
-**Fix:** Add `ConfirmDialog` or `ExitIntentPopup` pattern to `handleClose` when `hasUnsavedChanges` is true.
-
-**File:** `src/components/partner/CreateJobDialog.tsx`
-
-### HIGH: Draft Does Not Restore Full State (-4)
-
-`useJobFormDraft` only saves `formData`, `requiredTools`, and `niceToHaveTools`. It does NOT save or restore:
-- `requirements` (tag array)
-- `niceToHave` (tag array)
-- `startDate` (Date object)
-- `jobLocations` (multi-location array)
-- `currentStep` (which step user was on)
-- `isStealthEnabled`, `stealthViewerIds`
-- `pipelineType`, `feeConfig`
-
-When a draft is restored, the user sees the basic form fields but loses all tag inputs, location data, and step progress. This makes the draft feature misleading — it says "Draft restored" but half the data is gone.
-
-**Fix:** Extend `useJobFormDraft` to include `requirements`, `niceToHave`, `startDate`, `currentStep`, and `jobLocations` in the draft payload. On restore, set all these states.
-
-**Files:** `src/hooks/useJobFormDraft.ts`, `src/components/partner/CreateJobDialog.tsx`
-
-### MEDIUM: Salary Accepts Negative Values (-2)
-
-The salary Input fields have `min="0"` HTML attribute but no Zod validation or step validation prevents negative numbers. A user can type `-50000` and submit it.
-
-**Fix:** Add `.refine()` to `jobFormSchema` for `salary_min` and `salary_max` to reject values below 0. Also add step 2 validation.
-
-**File:** `src/schemas/jobFormSchema.ts`
-
-### MEDIUM: Remote Toggle Still Visible for Hybrid/Flexible (-2)
-
-The `hideRemoteToggle` prop is only set to `true` when `location_type === 'onsite'` (line 813). For `hybrid` and `flexible`, the remote toggle in `MultiLocationInput` still appears. But the work model is already chosen via RadioCards in Step 1 — showing a second "Remote Position" toggle inside MultiLocationInput is confusing and contradictory. The work model cards already handle this. The toggle should be hidden for ALL location types in the CreateJobDialog context since the RadioCards supersede it.
-
-**Fix:** Always pass `hideRemoteToggle={true}` in the CreateJobDialog, since the work model is already explicitly chosen.
-
-**File:** `src/components/partner/CreateJobDialog.tsx` (line 813)
-
-### LOW: No Keyboard Shortcuts (-1)
-
-No `Ctrl+Enter` to submit from the last step. No `Escape` to go back a step (currently closes the Sheet entirely).
-
-**Fix:** Add `onKeyDown` handler to the Sheet body: `Ctrl+Enter` on Step 4 triggers submit. Not blocking but good UX.
-
-**File:** `src/components/partner/CreateJobDialog.tsx`
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## Implementation Plan (10 fixes)
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-### Fix 1: Location Autocomplete z-index (CRITICAL)
-**File:** `src/components/ui/enhanced-location-autocomplete.tsx` (line 338-339)
-- Change the `PopoverContent` className to include `z-[100] pointer-events-auto`:
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
+
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
+
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+
+### 1.3 Emoji in Subject Lines (6 functions)
+
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
+
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+
+### 1.4 SPF Record Missing (DNS — not code)
+
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
 ```
-className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden z-[100] pointer-events-auto"
+This is a DNS change in the domain registrar.
+
+---
+
+## CATEGORY 2: Content & Copy Quality
+
+### 2.1 Inconsistent Tone
+
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
+
+### 2.2 Hardcoded Contact Email Inconsistency
+
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+
+### 2.3 Missing "Powered by QUIN" Attribution
+
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+
+---
+
+## CATEGORY 3: Technical & Security Issues
+
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+
+### 3.2 `linear-gradient()` in Inline Styles
+
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
 ```
 
-### Fix 2: Close Confirmation Dialog
-**File:** `src/components/partner/CreateJobDialog.tsx`
-- Add state: `const [showCloseConfirm, setShowCloseConfirm] = useState(false)`
-- Update `handleClose`: if `hasUnsavedChanges && submitStep === "idle"`, set `showCloseConfirm = true` instead of closing
-- Add a `ConfirmDialog` (already exists in the project) at the bottom of the component:
-  - Title: "Your progress is saved"
-  - Description: "Your draft has been saved and will be restored next time you open this form."
-  - Confirm: "Leave" / Cancel: "Continue editing"
-  - On confirm: `saveDraft(); onOpenChange(false);`
+### 5.2 Centralize Plain-Text Generation
 
-### Fix 3: Extend Draft to Include Full State
-**File:** `src/hooks/useJobFormDraft.ts`
-- Extend `DraftData` interface to include: `requirements: string[]`, `niceToHave: string[]`, `startDateISO: string | null`, `currentStep: number`, `jobLocations: LocationInput[]`
-- Update `saveDraft` to accept these additional params (add them as hook arguments)
-- Update `loadDraft` return type accordingly
-
-**File:** `src/components/partner/CreateJobDialog.tsx`
-- Pass additional state to the draft hook
-- On draft restore, set `requirements`, `niceToHave`, `startDate` (parse from ISO), `currentStep`, `jobLocations`
-
-### Fix 4: Salary Negative Value Guard
-**File:** `src/schemas/jobFormSchema.ts`
-- Add a second `.refine()` to check that parsed salary_min and salary_max are >= 0 when provided
-
-**File:** `src/components/partner/CreateJobDialog.tsx`
-- Add step 2 validation: if salary_min or salary_max is provided and < 0, show error
-
-### Fix 5: Always Hide Remote Toggle in CreateJobDialog
-**File:** `src/components/partner/CreateJobDialog.tsx` (line 813)
-- Change `hideRemoteToggle={formData.location_type === 'onsite'}` to `hideRemoteToggle={true}`
-- The work model RadioCards in Step 1 already handle remote/hybrid/flexible/onsite. The toggle in MultiLocationInput is redundant in this context.
-
-### Fix 6: Ctrl+Enter to Submit
-**File:** `src/components/partner/CreateJobDialog.tsx`
-- Add `onKeyDown` to the Sheet body div (line 1108):
-```
-onKeyDown={(e) => {
-  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && currentStep === TOTAL_STEPS - 1 && !isSubmitting) {
-    handleSubmit();
-  }
-}}
-```
-
-### Fix 7: Summary Row Span Fix
-**File:** `src/components/partner/CreateJobDialog.tsx` (line 1053)
-- The description SummaryRow is inside a `grid-cols-2` which truncates long text. Change description to span full width:
-```
-{formData.description && (
-  <div className="col-span-2">
-    <SummaryRow label="Description" value={formData.description.length > 150 ? formData.description.slice(0, 150) + '...' : formData.description} />
-  </div>
-)}
-```
-
-### Fix 8: Reset Form on Close (non-complete)
-**File:** `src/components/partner/CreateJobDialog.tsx` (line 292)
-- In the `useEffect` for `open`, when `!open`, also call `resetForm()` to clear stale state from memory so re-opening starts fresh (draft will be loaded from localStorage if available):
-```
-} else {
-  setCurrentStep(0);
-  resetForm(); // Clear stale in-memory state
-}
-```
-
-### Fix 9: Company Select Disabled When Pre-filled
-**File:** `src/components/partner/CreateJobDialog.tsx` (line 684)
-- If `companyId` prop is provided, disable the company Select:
-```
-disabled={isSubmitting || !!companyId}
-```
-
-### Fix 10: Tag Input Comma Support
-**File:** `src/components/partner/CreateJobDialog.tsx` (TagInput component, lines 102-143)
-- Update `onKeyDown` to also handle comma as a separator:
-```
-if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
-```
-- Also handle paste with comma-separated values:
-```
-onPaste={(e) => {
-  e.preventDefault();
-  const text = e.clipboardData.getData('text');
-  const items = text.split(',').map(s => s.trim()).filter(s => s && !tags.includes(s));
-  if (items.length) onChange([...tags, ...items]);
-}}
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
 ```
 
 ---
 
-## Files to Edit
+## Implementation Priority
 
-| File | Fixes |
-|------|-------|
-| `src/components/ui/enhanced-location-autocomplete.tsx` | Fix 1 (z-index) |
-| `src/hooks/useJobFormDraft.ts` | Fix 3 (extended draft) |
-| `src/schemas/jobFormSchema.ts` | Fix 4 (salary validation) |
-| `src/components/partner/CreateJobDialog.tsx` | Fixes 2, 3, 4, 5, 6, 7, 8, 9, 10 |
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
 
-## What Does NOT Change
-- Edge function `notify-admin-job-submitted`
-- Database schema (no migration)
-- Sheet component (`sheet.tsx`)
-- All sub-components (ToolSelector, StealthJobToggle, PipelineTypeSelector, JobFeeConfiguration, MultiLocationInput)
-- Popover base component (fix is in the consumer, not the base)
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
+
+**Total: ~25 files modified**
+
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
 

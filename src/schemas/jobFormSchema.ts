@@ -92,16 +92,24 @@ export const jobFormSchema = z.object({
   (data) => {
     const min = data.salary_min ? parseFloat(data.salary_min) : null;
     const max = data.salary_max ? parseFloat(data.salary_max) : null;
-    
     if (min !== null && max !== null) {
       return min <= max;
     }
     return true;
   },
-  {
-    message: "Minimum salary cannot exceed maximum salary",
-    path: ["salary_max"],
-  }
+  { message: "Minimum salary cannot exceed maximum salary", path: ["salary_max"] }
+).refine(
+  (data) => {
+    const min = data.salary_min ? parseFloat(data.salary_min) : null;
+    return min === null || min >= 0;
+  },
+  { message: "Salary cannot be negative", path: ["salary_min"] }
+).refine(
+  (data) => {
+    const max = data.salary_max ? parseFloat(data.salary_max) : null;
+    return max === null || max >= 0;
+  },
+  { message: "Salary cannot be negative", path: ["salary_max"] }
 );
 
 export type JobFormData = z.infer<typeof jobFormSchema>;

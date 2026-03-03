@@ -336,7 +336,7 @@ export function EnhancedLocationAutocomplete({
           </div>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden"
+          className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden z-[100] pointer-events-auto"
           align="start"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
