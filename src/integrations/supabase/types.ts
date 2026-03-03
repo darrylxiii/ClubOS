@@ -4503,6 +4503,33 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_subscribers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          source: string | null
+          subscribed_at: string | null
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          source?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          source?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Relationships: []
+      }
       booking_analytics: {
         Row: {
           avg_booking_time_minutes: number | null
