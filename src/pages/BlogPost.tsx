@@ -192,6 +192,15 @@ const BlogPost: React.FC = () => {
                 <AEOSummaryBox takeaways={post.keyTakeaways} />
                 <TableOfContents content={post.content} variant="mobile" />
                 <ArticleContent content={post.content} />
+
+                {/* AI content disclaimer per Google Search Essentials */}
+                {(post as any).ai_generated && (
+                  <div className="mt-8 py-4 px-5 rounded-xl border border-border bg-muted/30 text-sm text-muted-foreground flex items-center gap-2">
+                    <span className="text-accent">✦</span>
+                    <span>This article was generated with AI assistance and reviewed by The Quantum Club editorial team.</span>
+                  </div>
+                )}
+
                 <ArticleReactions postSlug={post.slug} />
               </div>
               <ArticleSidebar post={post} popularPosts={popularPosts} />
