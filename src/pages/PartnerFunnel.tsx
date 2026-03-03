@@ -71,7 +71,7 @@ export default function PartnerFunnel() {
     );
   }
 
-  return (
+  const content = (
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Partner with The Quantum Club — Access Pre-Vetted Senior Talent</title>
