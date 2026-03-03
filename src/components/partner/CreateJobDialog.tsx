@@ -474,7 +474,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       setSubmitStep("creating");
 
-      const isContinuous = pipelineType === "continuous";
+      const effectivePipelineType = isPartner ? "standard" : pipelineType;
+      const isContinuous = effectivePipelineType === "continuous";
       const jobFeeData = feeConfig.useOverride ? {
         job_fee_type: feeConfig.feeType,
         job_fee_percentage: feeConfig.feeType === 'percentage' || feeConfig.feeType === 'hybrid' ? feeConfig.feePercentage : null,
