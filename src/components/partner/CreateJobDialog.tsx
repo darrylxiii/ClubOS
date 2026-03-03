@@ -1094,7 +1094,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const stepRenderers = [renderStep0, renderStep1, renderStep2, renderStep3, renderStep4];
 
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
+    <Sheet open={open} onOpenChange={handleClose} modal={false}>
       <SheetContent side="right" className="glass sm:max-w-2xl w-full p-0 flex flex-col">
         {/* Header */}
         <div className="p-6 pb-0 space-y-4">
