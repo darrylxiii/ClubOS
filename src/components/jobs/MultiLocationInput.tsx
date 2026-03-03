@@ -45,6 +45,7 @@ export const MultiLocationInput = memo(({
   maxLocations = 5,
   className,
   disabled = false,
+  hideRemoteToggle = false,
 }: MultiLocationInputProps) => {
   const [isAddingLocation, setIsAddingLocation] = useState(false);
 
