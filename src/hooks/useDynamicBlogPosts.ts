@@ -57,7 +57,7 @@ const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
     metaDescription: dbPost.meta_description || dbPost.excerpt || '',
     keywords: dbPost.keywords || [],
     relatedProducts: dbPost.related_products || [],
-    socialProofCount: Math.floor(Math.random() * 500) + 100, // Dynamic social proof
+    socialProofCount: 0, // Populated from real analytics when available
     relatedArticles: [], // Will be populated by smart linking
   };
 };
