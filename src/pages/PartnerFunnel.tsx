@@ -181,4 +181,14 @@ export default function PartnerFunnel() {
       <FunnelAIAssistant />
     </div>
   );
+
+  if (RECAPTCHA_SITE_KEY) {
+    return (
+      <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
+        {content}
+      </GoogleReCaptchaProvider>
+    );
+  }
+
+  return content;
 }
