@@ -7,7 +7,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
-  Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button as EmailButton,
+  Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button,
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 
