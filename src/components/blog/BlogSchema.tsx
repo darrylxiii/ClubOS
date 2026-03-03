@@ -10,7 +10,10 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
 
   const heroImageUrl = post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}`;
   const fallbackOgImage = `${baseUrl}/og-image.gif`;
-  const ogImage = heroImageUrl && heroImageUrl !== `${baseUrl}/placeholder.svg` ? heroImageUrl : fallbackOgImage;
+  const isPlaceholder = !heroImageUrl || heroImageUrl === `${baseUrl}/placeholder.svg`;
+  const ogImage = isPlaceholder ? fallbackOgImage : heroImageUrl;
+  const ogImageWidth = isPlaceholder ? 432 : 1200;
+  const ogImageHeight = isPlaceholder ? 540 : 630;
 
   const blogPostingSchema = {
     "@context": "https://schema.org", "@type": "BlogPosting",
