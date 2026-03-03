@@ -1,253 +1,209 @@
 
+# Enterprise-Grade Job Creation System — Revised Plan
 
-# Comprehensive Email System Audit — The Quantum Club
+## Current State (Score: 38/100)
 
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+The existing `CreateJobDialog.tsx` is a 1042-line single-scroll `Dialog` with:
+- No multi-step wizard, no glass UI
+- No admin email notification on submission
+- No auto-created admin task
+- Missing DB columns: `experience_level`, `seniority_level`, `department`, `location_type` do NOT exist in the `jobs` table
+- The `nice_to_have` column exists but is unused by the form
+- No copy guidance — generic placeholders throughout
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Phase 1: Database Migration (required first)
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+Add the missing columns to the `jobs` table:
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
-
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
-
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
-
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
-
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
-
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
-
-### 1.3 Emoji in Subject Lines (6 functions)
-
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
-
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
-
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
+```sql
+ALTER TABLE public.jobs
+  ADD COLUMN IF NOT EXISTS experience_level text,
+  ADD COLUMN IF NOT EXISTS seniority_level text,
+  ADD COLUMN IF NOT EXISTS department text,
+  ADD COLUMN IF NOT EXISTS location_type text DEFAULT 'onsite',
+  ADD COLUMN IF NOT EXISTS urgency text DEFAULT 'no_rush',
+  ADD COLUMN IF NOT EXISTS expected_start_date date;
 ```
-This is a DNS change in the domain registrar.
+
+These are all nullable/defaulted, so no migration risk to existing data.
 
 ---
 
-## CATEGORY 2: Content & Copy Quality
+## Phase 2: Update Zod Schema
 
-### 2.1 Inconsistent Tone
+**File:** `src/schemas/jobFormSchema.ts`
 
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
-
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
-
-### 2.2 Hardcoded Contact Email Inconsistency
-
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
-
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
-
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+Add new fields:
+- `experience_level` — optional enum (junior, mid, senior, lead, director, vp_csuite)
+- `seniority_level` — optional enum (same values, kept separate for semantic clarity)
+- `department` — optional string
+- `location_type` — enum (onsite, hybrid, remote, flexible)
+- `urgency` — optional enum (immediate, two_weeks, one_month, three_months, no_rush)
+- `expected_start_date` — optional date string
+- `nice_to_have` — optional string array (already in DB, just needs form support)
+- `requirements` — optional string array (already in DB as jsonb)
 
 ---
 
-## CATEGORY 3: Technical & Security Issues
+## Phase 3: Rebuild CreateJobDialog as Multi-Step Wizard
 
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+**File:** `src/components/partner/CreateJobDialog.tsx` (full rewrite)
 
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+Replace the single `Dialog` with a `Sheet` (side="right") using `glass` class on `SheetContent`, matching the ExitIntentPopup aesthetic.
 
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+### Step Architecture
 
-### 3.2 `linear-gradient()` in Inline Styles
+Use a `currentStep` state (0-4) with a step indicator bar at the top. Each step validates before advancing. Back button always available. Draft auto-save continues working via existing `useJobFormDraft` hook.
 
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+### Step 0: Role Basics
+- **Company** — pre-filled if `companyId` prop set; Select with existing `companies` fetch
+- **Job Title** — Input, placeholder: "e.g. Senior Product Designer", character counter (5-200)
+- **Department** — Select: Engineering, Product, Design, Marketing, Sales, Operations, Finance, People, Legal, Other
+- **Employment Type** — visual radio cards with icons (Briefcase for Full-time, Clock for Part-time, FileText for Contract, Laptop for Freelance, GraduationCap for Internship)
+- **Seniority Level** — visual radio cards (Junior, Mid-Level, Senior, Lead, Director, VP/C-Suite)
 
-**Fix**: Replace gradients with solid background colors.
+Copy: "Start with the fundamentals. These details help us match the right candidates."
 
-### 3.3 CSS `box-shadow` in Inline Styles
+### Step 1: Location and Work Model
+- **Location Type** — radio cards (MapPin for On-site, Building for Hybrid, Globe for Remote, Compass for Flexible)
+- **Primary Location** — `EnhancedLocationAutocomplete` (existing), shown unless "Remote" selected
+- **Additional Locations** — `MultiLocationInput` (existing), collapsible
+- Conditional hint when Remote: "Candidates worldwide will be able to see this role."
 
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+Copy: "Where will this person work? Be specific — it improves match quality."
 
-### 3.4 `<ul>` Tag Usage
+### Step 2: Compensation and Timeline
+- **Currency + Salary Range** — existing min/max inputs with currency selector (EUR/USD/GBP)
+- Hint: "Compensation details are shared only with shortlisted candidates unless displayed on the listing."
+- **Expected Start** — date picker (optional)
+- **Urgency** — Select: Immediate, Within 2 weeks, Within 1 month, Within 3 months, No rush
 
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+Copy: "Setting expectations upfront reduces back-and-forth later."
 
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+### Step 3: Role Details
+- **Job Description** — Textarea (existing), placeholder: "What will this person do day-to-day? What does success look like in 6 months?"
+- **Requirements** — tag input (text items, stored as jsonb array)
+- **Nice-to-Have** — tag input (text items, stored in `nice_to_have` column)
+- **Required Tools** — `ToolSelector` (existing)
+- **Nice-to-Have Tools** — `ToolSelector` (existing)
+- **JD File Upload** — existing file upload logic
+- **Supporting Documents** — existing multi-file upload
+- **External URL** — existing field
+
+Copy: "Be specific about what matters. Vague descriptions attract vague applications."
+
+### Step 4: Settings and Review
+- **Pipeline Type** — `PipelineTypeSelector` (existing)
+- **Fee Configuration** — `JobFeeConfiguration` (existing, admin/strategist only)
+- **Stealth Mode** — `StealthJobToggle` + `StealthViewerSelector` (existing)
+- **Review Summary** — read-only glass-card with all entered data in structured sections
+- **Submit button**: "Submit for Review" (partners) or "Publish Role" (admin/strategist)
+
+### UI Pattern (matching ExitIntentPopup)
+- `SheetContent` with `glass` class, `side="right"`, `className="sm:max-w-2xl w-full"`
+- Step indicator: numbered circles with connecting lines, active step highlighted with primary color
+- Each step body in `bg-muted/50 rounded-lg p-4 space-y-4` sections
+- Footer: sticky bottom bar with Back/Next buttons, both `flex-1`
+- Progress percentage shown next to step indicator
+- Radio cards pattern: `rounded-lg border p-4 cursor-pointer hover:border-primary/50`, active: `border-primary bg-primary/5`
+
+### State Management
+- All existing state variables preserved (formData, tools, stealth, pipeline, fees, locations, files)
+- New state: `currentStep: number` (0-4), `stepValidation: Record<number, boolean>`
+- Step validation function per step: validates only that step's fields before allowing advance
+- Error state remains per-field with existing `fieldErrors` pattern
 
 ---
 
-## CATEGORY 4: Accessibility & Compliance
+## Phase 4: Admin Email Notification
 
-### 4.1 Missing `lang` Attribute on Content
+**New file:** `supabase/functions/notify-admin-job-submitted/index.ts`
 
-The `<html lang="en">` is set correctly. Good.
+Pattern: mirrors `send-partner-request-received` exactly.
 
-### 4.2 Missing `role="presentation"` on Some Tables
+- Accepts: `jobId`, `jobTitle`, `companyName`, `submittedByName`, `submittedByEmail`, `employmentType`, `location`, `urgency`
+- Uses `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` to query `user_roles` for admin users, then `profiles` for their emails
+- Sends branded email via Resend using `EMAIL_SENDERS.internal` with `getEmailHeaders()` and `htmlToPlainText()`
+- Subject: "New role submitted for review: {jobTitle}"
+- Body: StatusBadge(pending) + summary card + CTA button to `/admin/job-approvals`
+- Inserts into `notifications` table for each admin:
+  ```
+  { user_id, title, message, type: 'job_submitted', action_url: '/admin/job-approvals', category: 'jobs' }
+  ```
+- `verify_jwt = false` in config.toml (called from client after job insert)
 
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+**Config update:** Add to `supabase/config.toml`:
+```toml
+[functions.notify-admin-job-submitted]
+verify_jwt = false
+```
 
 ---
 
-## CATEGORY 5: Structural Improvements
+## Phase 5: Auto-Create Admin Task
 
-### 5.1 Centralize Unsubscribe Headers
+In `CreateJobDialog.tsx` `handleSubmit`, after successful job creation with `pending_approval` status:
 
-Create a shared function to avoid repeating header construction in 30+ files:
+1. Generate task number: query `unified_tasks` count, format as `TQ-XXXX`
+2. Insert into `unified_tasks`:
+   - `title`: "Review new role: {jobTitle}"
+   - `description`: "Submitted by {name} for {companyName}. Review and approve or decline."
+   - `priority`: "high"
+   - `status`: "pending"
+   - `task_type`: "review"
+   - `company_name`: companyName
+   - `position`: jobTitle
+   - `due_date`: 24 hours from now
+   - `created_by`: user.id
+   - (skip `project_id` and `board_id` — they are nullable, task will appear in the unassigned/inbox view)
+3. Insert creator as assignee: query first admin from `user_roles`, insert into `unified_task_assignees`
+
+Error handling: if task creation fails, log error but do NOT block the job submission (the job is already created).
+
+---
+
+## Phase 6: Wire Notification Call
+
+In `handleSubmit`, after job creation and task creation, invoke the edge function:
 
 ```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
-```
-
-### 5.2 Centralize Plain-Text Generation
-
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
+try {
+  await supabase.functions.invoke('notify-admin-job-submitted', {
+    body: { jobId, jobTitle: formData.title, companyName, ... }
+  });
+} catch (e) {
+  console.error('Admin notification failed:', e);
+  // Non-blocking: job is already created
+}
 ```
 
 ---
 
-## Implementation Priority
+## Files to Create/Edit
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
+| File | Action |
+|------|--------|
+| Database migration | Add 6 columns to `jobs` table |
+| `src/schemas/jobFormSchema.ts` | Add new field validations |
+| `src/components/partner/CreateJobDialog.tsx` | Full rewrite as multi-step Sheet wizard |
+| `supabase/functions/notify-admin-job-submitted/index.ts` | New edge function |
+| `supabase/config.toml` | Register new function |
 
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+## What Does NOT Change
+- All existing sub-components: ToolSelector, StealthJobToggle, StealthViewerSelector, PipelineTypeSelector, JobFeeConfiguration, EnhancedLocationAutocomplete, MultiLocationInput
+- ExitIntentPopup (the reference style)
+- Job approval flow in `/admin/job-approvals`
+- RLS policies on `jobs` table
+- File upload to `job-documents` bucket
+- Draft auto-save hook (`useJobFormDraft`)
+- The `handleSubmit` core logic (insert job, upload files, insert tools) — preserved and wrapped in steps
 
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
-
+## Error Handling Strategy
+- Each step validates independently before advancing
+- If job insert fails: show error, user stays on Step 4
+- If file upload fails: job is created, toast warning, user can re-upload later
+- If task/notification fails: non-blocking, logged silently
+- Draft auto-save runs every 30s across all steps (existing hook)
+- Closing the Sheet with unsaved changes triggers existing save-draft behavior
