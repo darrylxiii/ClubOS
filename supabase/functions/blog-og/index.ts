@@ -84,7 +84,7 @@ serve(async (req) => {
       "mainEntityOfPage": { "@type": "WebPage", "@id": postUrl },
       "headline": post.title, "description": post.meta_description,
       "image": { "@type": "ImageObject", "url": heroUrl, "width": 1200, "height": 630 },
-      "author": { "@type": "Person", "name": post.author_id || "TQC Editorial", "url": `${baseUrl}/blog` },
+      "author": { "@type": "Person", "name": mapAuthorName(post.author_id), "url": `${baseUrl}/blog` },
       "publisher": {
         "@type": "Organization", "name": "The Quantum Club", "url": baseUrl,
         "logo": { "@type": "ImageObject", "url": `${baseUrl}/quantum-clover-icon.png` },
