@@ -45,8 +45,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
   } : null;
 
   const heroImageUrl = post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}`;
-  const fallbackOgImage = `${baseUrl}/og-image.png`;
-  const fallbackOgGif = `${baseUrl}/og-image.gif`;
+  const fallbackOgImage = `${baseUrl}/og-image.gif`;
   const ogImage = heroImageUrl && heroImageUrl !== `${baseUrl}/placeholder.svg` ? heroImageUrl : fallbackOgImage;
 
   return (
@@ -58,9 +57,6 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
       <meta property="og:url" content={postUrl} />
       <meta property="og:site_name" content="The Quantum Club" />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:image" content={fallbackOgGif} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta name="twitter:card" content="summary_large_image" />

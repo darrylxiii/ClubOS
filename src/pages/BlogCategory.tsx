@@ -42,9 +42,6 @@ const BlogCategory: React.FC = () => {
         <meta property="og:description" content={categoryData.description} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`https://os.thequantumclub.com/blog/${category}`} />
-        <meta property="og:image" content="https://os.thequantumclub.com/og-image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />

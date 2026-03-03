@@ -80,9 +80,6 @@ export default function PartnerFunnel() {
         <meta property="og:description" content="Submit your hiring request and receive a curated shortlist of senior candidates within 14 days. No upfront fees, no contracts." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://os.thequantumclub.com/partner" />
-        <meta property="og:image" content="https://os.thequantumclub.com/og-image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
