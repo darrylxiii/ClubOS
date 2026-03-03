@@ -835,6 +835,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SelectItem value="EUR">€ EUR</SelectItem>
               <SelectItem value="USD">$ USD</SelectItem>
               <SelectItem value="GBP">£ GBP</SelectItem>
+              <SelectItem value="AED">د.إ AED</SelectItem>
             </SelectContent>
           </Select>
           <Input type="number" value={formData.salary_min} onChange={(e) => handleInputChange('salary_min', e.target.value)} placeholder="Min" min="0" className="glass-input" />
