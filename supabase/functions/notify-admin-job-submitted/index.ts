@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
         `,
       })}
       ${Spacer(24)}
-      ${EmailButton({ text: 'Review Role', href: `${appUrl}/admin/job-approvals`, variant: 'primary' })}
+      ${Button({ text: 'Review Role', url: `${appUrl}/admin/job-approvals`, variant: 'primary' })}
       ${Spacer(16)}
       ${Paragraph('This role will remain in "Pending Approval" until an admin reviews and publishes it.', 'muted')}
     `;
