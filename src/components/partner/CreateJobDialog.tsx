@@ -199,10 +199,6 @@ function StepIndicator({ currentStep, totalSteps }: { currentStep: number; total
       <p className="text-xs font-medium text-center sm:hidden text-muted-foreground">
         Step {currentStep + 1}: {STEP_META[currentStep].label}
       </p>
-            </div>
-          );
-        })}
-      </div>
       <Progress value={progress} className="h-1" />
     </div>
   );
