@@ -19,7 +19,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
     "@context": "https://schema.org", "@type": "BlogPosting",
     "mainEntityOfPage": { "@type": "WebPage", "@id": postUrl },
     "headline": post.title, "description": post.metaDescription,
-    "image": { "@type": "ImageObject", "url": ogImage, "width": 1200, "height": 630 },
+    "image": { "@type": "ImageObject", "url": ogImage, "width": ogImageWidth, "height": ogImageHeight },
     "author": {
       "@type": "Person",
       "name": post.author.name,
