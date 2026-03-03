@@ -814,6 +814,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             onChange={setJobLocations}
             onRemoteChange={() => {}}
             disabled={isSubmitting}
+            hideRemoteToggle={formData.location_type === 'onsite'}
           />
         </div>
       )}
