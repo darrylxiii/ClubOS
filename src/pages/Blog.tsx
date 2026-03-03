@@ -122,9 +122,6 @@ const Blog: React.FC = () => {
         <meta property="og:description" content="Career intelligence for top-tier talent. Explore articles on career strategy, talent trends, leadership, and industry insights." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://os.thequantumclub.com/blog" />
-        <meta property="og:image" content="https://os.thequantumclub.com/og-image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />

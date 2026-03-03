@@ -45,8 +45,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
   } : null;
 
   const heroImageUrl = post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}`;
-  const fallbackOgImage = `${baseUrl}/og-image.png`;
-  const fallbackOgGif = `${baseUrl}/og-image.gif`;
+  const fallbackOgImage = `${baseUrl}/og-image.gif`;
   const ogImage = heroImageUrl && heroImageUrl !== `${baseUrl}/placeholder.svg` ? heroImageUrl : fallbackOgImage;
 
   return (
