@@ -14,7 +14,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
     "headline": post.title, "description": post.metaDescription,
     "image": { "@type": "ImageObject", "url": post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}` },
     "author": { "@type": "Person", "name": post.author.name, "jobTitle": post.author.credentials },
-    "publisher": { "@type": "Organization", "name": "The Quantum Club", "logo": { "@type": "ImageObject", "url": `${baseUrl}/logo.png` } },
+    "publisher": { "@type": "Organization", "name": "The Quantum Club", "logo": { "@type": "ImageObject", "url": `${baseUrl}/quantum-clover-icon.png` } },
     "datePublished": post.publishedAt, "dateModified": post.updatedAt, "wordCount": wordCount,
     "articleSection": categoryData?.name || post.category, "keywords": post.keywords.join(', '),
   };
