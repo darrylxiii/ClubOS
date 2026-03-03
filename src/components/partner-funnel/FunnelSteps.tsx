@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { RECAPTCHA_ENABLED, RECAPTCHA_MIN_SCORE } from "@/config/recaptcha";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
