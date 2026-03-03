@@ -25378,10 +25378,13 @@ export type Database = {
           deal_probability: number | null
           deal_stage: string | null
           deal_value_override: number | null
+          department: string | null
           description: string | null
           embedding_generated_at: string | null
           employment_type: string | null
           expected_close_date: string | null
+          expected_start_date: string | null
+          experience_level: string | null
           external_url: string | null
           fee_source: string | null
           greenhouse_job_id: string | null
@@ -25405,6 +25408,7 @@ export type Database = {
           location_city: string | null
           location_country_code: string | null
           location_formatted: string | null
+          location_type: string | null
           longitude: number | null
           loss_reason_id: string | null
           nice_to_have: Json | null
@@ -25417,6 +25421,7 @@ export type Database = {
           salary_max: number | null
           salary_min: number | null
           salary_period: string | null
+          seniority_level: string | null
           show_referral_bonus: boolean | null
           status: string | null
           stealth_enabled_at: string | null
@@ -25426,6 +25431,7 @@ export type Database = {
           target_hire_count: number | null
           title: string
           updated_at: string | null
+          urgency: string | null
         }
         Insert: {
           benefits?: Json | null
@@ -25444,10 +25450,13 @@ export type Database = {
           deal_probability?: number | null
           deal_stage?: string | null
           deal_value_override?: number | null
+          department?: string | null
           description?: string | null
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          expected_start_date?: string | null
+          experience_level?: string | null
           external_url?: string | null
           fee_source?: string | null
           greenhouse_job_id?: string | null
@@ -25471,6 +25480,7 @@ export type Database = {
           location_city?: string | null
           location_country_code?: string | null
           location_formatted?: string | null
+          location_type?: string | null
           longitude?: number | null
           loss_reason_id?: string | null
           nice_to_have?: Json | null
@@ -25483,6 +25493,7 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           salary_period?: string | null
+          seniority_level?: string | null
           show_referral_bonus?: boolean | null
           status?: string | null
           stealth_enabled_at?: string | null
@@ -25492,6 +25503,7 @@ export type Database = {
           target_hire_count?: number | null
           title: string
           updated_at?: string | null
+          urgency?: string | null
         }
         Update: {
           benefits?: Json | null
@@ -25510,10 +25522,13 @@ export type Database = {
           deal_probability?: number | null
           deal_stage?: string | null
           deal_value_override?: number | null
+          department?: string | null
           description?: string | null
           embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
+          expected_start_date?: string | null
+          experience_level?: string | null
           external_url?: string | null
           fee_source?: string | null
           greenhouse_job_id?: string | null
@@ -25537,6 +25552,7 @@ export type Database = {
           location_city?: string | null
           location_country_code?: string | null
           location_formatted?: string | null
+          location_type?: string | null
           longitude?: number | null
           loss_reason_id?: string | null
           nice_to_have?: Json | null
@@ -25549,6 +25565,7 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           salary_period?: string | null
+          seniority_level?: string | null
           show_referral_bonus?: boolean | null
           status?: string | null
           stealth_enabled_at?: string | null
@@ -25558,6 +25575,7 @@ export type Database = {
           target_hire_count?: number | null
           title?: string
           updated_at?: string | null
+          urgency?: string | null
         }
         Relationships: [
           {
