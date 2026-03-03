@@ -577,8 +577,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           const submitterName = user?.user_metadata?.full_name || user?.email || 'Unknown';
 
           // Create task
-          const { data: taskCountData } = await supabase.from('unified_tasks').select('id', { count: 'exact', head: true });
-          const taskNum = `TQ-${String((taskCountData as any)?.length || 0 + 1).padStart(4, '0')}`;
+          const taskNum = `TQ-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
           const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin').limit(1);
           const adminId = adminRoles?.[0]?.user_id;
