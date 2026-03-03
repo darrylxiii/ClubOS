@@ -44,7 +44,7 @@ const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
     author,
     publishedAt: dbPost.published_at || dbPost.created_at,
     updatedAt: dbPost.updated_at,
-    readTime: Math.ceil((content?.length || 5) * 1.5), // Estimate read time
+    readTime: calculateReadTime(content),
     featured: false, // Can be determined by performance_score
     heroImage: {
       url: heroImage?.url || '/placeholder.svg',
