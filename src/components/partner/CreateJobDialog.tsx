@@ -898,7 +898,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           maxLength={5000}
           className={cn(getFieldError('description') && 'border-destructive')}
         />
-        <p className="text-xs text-muted-foreground">{formData.description.length}/5000 characters</p>
+        <p className="text-xs text-muted-foreground">{(formData.description || '').length}/5000 characters</p>
         {getFieldError('description') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('description')}</p>}
       </div>
 
