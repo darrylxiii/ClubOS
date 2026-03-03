@@ -140,7 +140,7 @@ serve(async (req) => {
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
         { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${baseUrl}/blog` },
-        { "@type": "ListItem", "position": 3, "name": category, "item": `${baseUrl}/blog/${category}` },
+        { "@type": "ListItem", "position": 3, "name": getCategoryName(category), "item": `${baseUrl}/blog/${category}` },
         { "@type": "ListItem", "position": 4, "name": post.title },
       ],
     });
