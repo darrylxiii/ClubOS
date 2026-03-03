@@ -1308,5 +1308,14 @@ verify_jwt = false
 [functions.blog-analyze]
 verify_jwt = false
 
+[functions.blog-rss]
+verify_jwt = false
+
+[functions.blog-health]
+verify_jwt = false
+
+[functions.blog-generate-image]
+verify_jwt = false
+
 [functions.generate-financial-commentary]
 verify_jwt = false
