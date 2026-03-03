@@ -62,8 +62,7 @@ serve(async (req) => {
 
         if (response.status === 429) {
           results.push({ id: post.id, slug: post.slug, status: 'rate_limited' });
-          // Wait 15 seconds before continuing
-          await new Promise(r => setTimeout(r, 15000));
+          await new Promise(r => setTimeout(r, 5000));
           continue;
         }
 
