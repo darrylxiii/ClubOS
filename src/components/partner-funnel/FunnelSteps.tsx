@@ -470,6 +470,23 @@ export function FunnelSteps() {
 
     setIsSubmitting(true);
     try {
+      // reCAPTCHA v3 verification (fail-open if not configured)
+      if (RECAPTCHA_ENABLED && executeRecaptcha) {
+        try {
+          const token = await executeRecaptcha('partner_request');
+          const { data: recaptchaResult } = await supabase.functions.invoke('verify-recaptcha', {
+            body: { token },
+          });
+          if (recaptchaResult?.success && recaptchaResult.score < RECAPTCHA_MIN_SCORE) {
+            toast({ title: "We could not verify this request. Please try again.", variant: "destructive" });
+            setIsSubmitting(false);
+            return;
+          }
+        } catch (e) {
+          console.warn('reCAPTCHA verification failed (proceeding):', e);
+        }
+      }
+
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
       const { error } = await supabase.from("partner_requests").insert({
