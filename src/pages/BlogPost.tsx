@@ -90,7 +90,7 @@ const BlogPost: React.FC = () => {
     day: 'numeric',
   });
 
-  const shareUrl = `https://thequantumclub.lovable.app/blog/${post.category}/${post.slug}`;
+  const shareUrl = `https://os.thequantumclub.com/blog/${post.category}/${post.slug}`;
 
   return (
     <>

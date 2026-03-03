@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 serve(async () => {
-  const baseUrl = 'https://thequantumclub.lovable.app';
+  const baseUrl = 'https://os.thequantumclub.com';
   const sitemapUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-sitemap`;
 
   const robotsTxt = `User-agent: Googlebot
