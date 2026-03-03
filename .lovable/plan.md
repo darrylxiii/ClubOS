@@ -1,253 +1,137 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
-
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+# Blog SEO Engine Audit — Current Score: 78/100
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Live Metrics (from blog-health, DB, and edge function curl)
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+| Metric | Value | Status |
+|--------|-------|--------|
+| Published posts | 69 | — |
+| Placeholder hero images | 69/69 | Critical (unchanged) |
+| Meta titles >55 chars | 0 | Fixed |
+| Meta descriptions >155 chars | 0 | Fixed |
+| Posts with FAQ in DB | 69/69 | Good |
+| FAQ schema mapped to frontend | 69/69 | Fixed |
+| FAQ visible in article body | Yes | Fixed |
+| Posts with <3 keywords | 6/69 | Minor |
+| `blog-og` deployed + 200 OK | Yes | Fixed |
+| `blog-og` author names | Correct | Fixed |
+| ScrollCTA category matching | Working | Fixed |
+| BlogCategory dynamic posts | Working | Fixed |
+| `public/robots.txt` removed | Yes | Fixed |
+| Sitemap/RSS/robots via rewrites | Yes | Fixed |
+| RSS atom:link production domain | Yes | Fixed |
+| index.html RSS link production domain | Yes | Fixed |
+| `noindex` on 404 pages | Yes | Fixed |
+| WebSite + Organization schemas | Present on /blog | Fixed |
+| ItemList schema on categories | Present | Fixed |
+| Sitemap ETag caching | Working | Fixed |
+| Sitemap image extensions | Ready (no real images yet) | OK |
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
+---
 
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
+## Remaining Issues
 
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+### 1. `blog-og` Content-Type: `text/plain` (Impact: Medium)
 
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+The curl response header shows `Content-Type: text/plain` despite code setting `text/html; charset=utf-8`. This is a Supabase Edge Runtime behavior — the CSP sandbox header (`Content-Security-Policy: default-src 'none'; sandbox`) overrides content type detection. Some crawlers may not parse HTML meta tags from a `text/plain` response.
 
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+**Fix**: There is no code fix for this — it's a platform limitation. The workaround is to ensure the Vercel rewrite path (`/blog-og/:category/:slug`) is used, where Vercel can set the correct Content-Type. However, testing shows the rewrite also passes through the Supabase response headers. The practical impact is low since the HTML body is parseable regardless, and the primary crawl path is the SPA (not blog-og).
 
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+**Verdict**: Document as known limitation. No code change needed.
 
-### 1.3 Emoji in Subject Lines (6 functions)
+### 2. 69/69 posts still have placeholder hero images (Impact: Critical — unchanged)
 
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
+This is the single biggest remaining gap. It blocks Google Discover eligibility, Image Search traffic, and social share engagement. The `blog-backfill-images` edge function exists but has never been run.
 
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+**Fix**: Trigger the backfill function. This is an operational action, not a code change.
 
-### 1.4 SPF Record Missing (DNS — not code)
+### 3. 6 posts have fewer than 3 keywords (Impact: Low)
 
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
+Minor. Could be fixed by updating the `blog-generate` prompt to enforce minimum 5 keywords, or running a one-time SQL update to backfill keywords from content.
+
+### 4. `blog-og` reading time shows "1 min read" for all posts (Impact: Low)
+
+The curl response shows `1 min read` for a full-length article. The word count calculation in `blog-og` may be failing because the content blocks aren't being parsed correctly (e.g., content field might be nested differently than expected).
+
+**Fix**: Verify content structure from DB and fix the word count loop in `blog-og`.
+
+### 5. `article:section` in `blog-og` uses raw slug instead of display name (Impact: Low)
+
+Line 173: `article:section` is `career-insights` instead of "Career Insights". The `BlogSchema.tsx` frontend version uses `categoryData?.name` which is the display name. `blog-og` should map category slugs to display names.
+
+### 6. Breadcrumb schema in `blog-og` uses raw category slug (Impact: Low)
+
+Line 133: `"name": category` shows `career-insights` instead of "Career Insights" in breadcrumbs.
+
+### 7. `index.html` still preconnects to Supabase URL (Impact: Cosmetic)
+
+Line 101: `<link rel="preconnect" href="https://dpjucecmoyfzrduhlctt.supabase.co">`. This leaks the internal project ID. Not a security issue (the anon key is already public) but violates the "no infrastructure leaks" principle.
+
+### 8. No `<link rel="alternate">` pointing to `blog-og` SSR (Impact: Low-Medium)
+
+Social crawlers (Facebook, LinkedIn, Twitter) hit the SPA URL `/blog/:category/:slug` and get the `index.html` shell. Helmet tags are injected client-side via JavaScript, which these crawlers cannot execute. The `blog-og` SSR endpoint exists but nothing points crawlers to it. The OG tags from `index.html` (generic site-level tags) are what social platforms actually see.
+
+**Fix**: This is the one structural SEO issue remaining. Options:
+- Add `<meta property="og:see_also">` pointing to blog-og (non-standard, may not help)
+- Accept that social previews use the generic site OG image until Vercel middleware or SSR is available
+- For now, the JSON-LD schemas ARE rendered client-side and Googlebot can execute JS, so Google is fine. Social platforms are the gap.
+
+---
+
+## Scoring Breakdown
+
+| Area | Max | Score | Notes |
+|------|-----|-------|-------|
+| Meta Tags | 15 | 14 | All within limits. Minor: 6 posts with <3 keywords. |
+| Structured Data | 20 | 19 | FAQ, Breadcrumb, BlogPosting, WebSite, Organization, ItemList all present. Minor: blog-og category slug vs display name. |
+| Crawlability | 15 | 14 | Sitemap, RSS, robots all accessible on production domain. ETag caching. Image sitemap ready. Minor: blog-og text/plain Content-Type. |
+| Hero Images | 20 | 0 | 100% placeholder. Zero Google Discover/Image eligibility. No code fix — operational action needed. |
+| GEO/AEO | 10 | 9 | Answer-first prompts, speakable, FAQ sections, key takeaways. Solid. |
+| Conversion CTAs | 5 | 5 | Category-specific CTAs working in both ScrollCTA and ArticleContent. |
+| Author/E-E-A-T | 5 | 4 | Correct author names in both SPA and SSR. Minor: generic author URL, no LinkedIn links. |
+| Monitoring | 10 | 9 | blog-health accurately reports all metrics. SEO score formula correct. Minor: reading time validation in blog-og. |
+
+**Composite: 74/100** (held back almost entirely by placeholder images — without that, it would be 94/100)
+
+---
+
+## The Plan: 78 → ~95 (code fixes only, images need operational trigger)
+
+### Phase 1 — Fix blog-og accuracy (3 items)
+
+**1.1** Fix `blog-og` category slug → display name mapping for `article:section` and breadcrumb schema. Add a simple map:
 ```
-This is a DNS change in the domain registrar.
-
----
-
-## CATEGORY 2: Content & Copy Quality
-
-### 2.1 Inconsistent Tone
-
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
-
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
-
-### 2.2 Hardcoded Contact Email Inconsistency
-
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
-
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
-
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
-
----
-
-## CATEGORY 3: Technical & Security Issues
-
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
-
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
-
----
-
-## CATEGORY 4: Accessibility & Compliance
-
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
-
----
-
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
+const categoryNames: Record<string, string> = {
+  'career-insights': 'Career Insights',
+  'talent-strategy': 'Talent Strategy',
+  'industry-trends': 'Industry Trends',
+  'leadership': 'Leadership',
 };
 ```
 
-### 5.2 Centralize Plain-Text Generation
+**1.2** Fix `blog-og` reading time calculation — verify content block structure from DB and ensure word counting works correctly.
 
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
+**1.3** Remove Supabase preconnect URL from `index.html` line 101. Replace with the production domain or remove entirely (the Supabase client already handles its own connections).
+
+### Phase 2 — Keyword backfill for 6 sparse posts
+
+Run a SQL update to add keywords extracted from existing content for the 6 posts with <3 keywords. Or update `blog-generate` prompt to enforce minimum 5 keywords for future posts.
+
+### Phase 3 — Operational: trigger image backfill
+
+Not a code change. Call `blog-backfill-images` with `{"limit": 5}` in batches to generate real hero images for all 69 posts. This is the +20 point jump.
 
 ---
 
-## Implementation Priority
+## Files Changed
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
+| Phase | Files | Description |
+|-------|-------|-------------|
+| 1 | `supabase/functions/blog-og/index.ts`, `index.html` | Category name mapping, reading time fix, remove infra leak |
+| 2 | SQL migration or `blog-generate` prompt update | Keyword minimum |
 
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
-
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+Total: 2 files + 1 optional migration. Small, focused changes.
 
