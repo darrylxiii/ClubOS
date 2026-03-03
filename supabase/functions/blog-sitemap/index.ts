@@ -8,7 +8,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const baseUrl = 'https://thequantumclub.lovable.app';
+    const baseUrl = 'https://os.thequantumclub.com';
     const categories = ['career-insights', 'talent-strategy', 'industry-trends', 'leadership'];
 
     // Fetch all published posts

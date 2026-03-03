@@ -4,7 +4,7 @@ import { BlogPost, BlogCategory } from '@/data/blog';
 interface BlogSchemaProps { post: BlogPost; categoryData?: BlogCategory; }
 
 const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
-  const baseUrl = 'https://thequantumclub.lovable.app';
+  const baseUrl = 'https://os.thequantumclub.com';
   const postUrl = `${baseUrl}/blog/${post.category}/${post.slug}`;
   const wordCount = post.content.reduce((c, b) => c + (b.content + (b.items?.join(' ') || '')).split(/\s+/).filter(Boolean).length, 0);
 
@@ -14,7 +14,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
     "headline": post.title, "description": post.metaDescription,
     "image": { "@type": "ImageObject", "url": post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}` },
     "author": { "@type": "Person", "name": post.author.name, "jobTitle": post.author.credentials },
-    "publisher": { "@type": "Organization", "name": "The Quantum Club", "logo": { "@type": "ImageObject", "url": `${baseUrl}/logo.png` } },
+    "publisher": { "@type": "Organization", "name": "The Quantum Club", "logo": { "@type": "ImageObject", "url": `${baseUrl}/quantum-clover-icon.png` } },
     "datePublished": post.publishedAt, "dateModified": post.updatedAt, "wordCount": wordCount,
     "articleSection": categoryData?.name || post.category, "keywords": post.keywords.join(', '),
   };
@@ -44,6 +44,11 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
     })),
   } : null;
 
+  const heroImageUrl = post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}`;
+  const fallbackOgImage = `${baseUrl}/og-image.png`;
+  const fallbackOgGif = `${baseUrl}/og-image.gif`;
+  const ogImage = heroImageUrl && heroImageUrl !== `${baseUrl}/placeholder.svg` ? heroImageUrl : fallbackOgImage;
+
   return (
     <Helmet>
       <link rel="canonical" href={postUrl} />
@@ -52,9 +57,17 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
       <meta property="og:type" content="article" />
       <meta property="og:url" content={postUrl} />
       <meta property="og:site_name" content="The Quantum Club" />
+      <meta property="og:image" content={ogImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image" content={fallbackOgGif} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@thequantumclub" />
       <meta name="twitter:title" content={post.metaTitle} />
       <meta name="twitter:description" content={post.metaDescription} />
+      <meta name="twitter:image" content={ogImage} />
       <script type="application/ld+json">{JSON.stringify(blogPostingSchema)}</script>
       <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
