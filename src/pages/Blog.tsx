@@ -129,7 +129,7 @@ const Blog: React.FC = () => {
         <meta name="twitter:site" content="@thequantumclub" />
         <meta name="twitter:title" content="Insights | The Quantum Club" />
         <meta name="twitter:description" content="Career intelligence for top-tier talent. Explore articles on career strategy, talent trends, and leadership." />
-        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v2.gif" />
+        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
