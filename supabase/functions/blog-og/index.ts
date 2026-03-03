@@ -1,5 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const authorMap: Record<string, string> = {
+  'tqc-editorial': 'TQC Editorial Team',
+  'tqc-sophia': 'Sophia Chen',
+  'tqc-marcus': 'Marcus Williams',
+  'tqc-elena': 'Elena Rodriguez',
+  'tqc-james': 'James Mitchell',
+  'tqc-sarah': 'Sarah Kim',
+};
+function mapAuthorName(authorId: string | null): string {
+  if (!authorId) return 'TQC Editorial Team';
+  return authorMap[authorId] || authorId.replace('tqc-', '').replace(/(^|\s)\S/g, l => l.toUpperCase());
+}
+
 serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -84,7 +97,7 @@ serve(async (req) => {
       "mainEntityOfPage": { "@type": "WebPage", "@id": postUrl },
       "headline": post.title, "description": post.meta_description,
       "image": { "@type": "ImageObject", "url": heroUrl, "width": 1200, "height": 630 },
-      "author": { "@type": "Person", "name": post.author_id || "TQC Editorial", "url": `${baseUrl}/blog` },
+      "author": { "@type": "Person", "name": mapAuthorName(post.author_id), "url": `${baseUrl}/blog` },
       "publisher": {
         "@type": "Organization", "name": "The Quantum Club", "url": baseUrl,
         "logo": { "@type": "ImageObject", "url": `${baseUrl}/quantum-clover-icon.png` },
@@ -137,7 +150,7 @@ serve(async (req) => {
 
   <meta property="article:published_time" content="${post.published_at}" />
   <meta property="article:modified_time" content="${post.updated_at || post.published_at}" />
-  <meta property="article:author" content="${escapeHtml(post.author_id || 'TQC Editorial')}" />
+  <meta property="article:author" content="${escapeHtml(mapAuthorName(post.author_id))}" />
   <meta property="article:section" content="${escapeHtml(category)}" />
   ${keywords.slice(0, 6).map(k => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join('\n  ')}
 
@@ -169,12 +182,8 @@ serve(async (req) => {
     </nav>
   </footer>
 
-  <!-- Hydrate SPA on top for interactive users -->
-  <script>
-    if (typeof window !== 'undefined' && !navigator.userAgent.match(/bot|crawl|spider|slurp|Googlebot|Bingbot|facebookexternalhit|Twitterbot|LinkedInBot|Perplexity|ChatGPT/i)) {
-      window.location.replace('${postUrl}');
-    }
-  </script>
+  <!-- This page is served for crawlers and social preview validators -->
+  <!-- Interactive users access articles via the SPA at the canonical URL -->
 </body>
 </html>`;
 

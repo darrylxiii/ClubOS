@@ -50,6 +50,20 @@ const BlogCategory: React.FC = () => {
         <meta name="twitter:title" content={`${categoryData.name} | The Quantum Club Insights`} />
         <meta name="twitter:description" content={categoryData.description} />
         <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": categoryData.name,
+          "description": categoryData.description,
+          "url": `https://os.thequantumclub.com/blog/${category}`,
+          "numberOfItems": posts.length,
+          "itemListElement": posts.slice(0, 10).map((p, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "url": `https://os.thequantumclub.com/blog/${p.category}/${p.slug}`,
+            "name": p.title
+          }))
+        })}</script>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">

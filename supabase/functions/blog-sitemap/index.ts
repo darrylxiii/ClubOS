@@ -18,6 +18,27 @@ serve(async (req) => {
       .eq('status', 'published')
       .order('published_at', { ascending: false });
 
+    // Compute ETag from latest updated_at
+    const allDates = (posts || []).map((p: any) => p.updated_at || p.published_at || '');
+    const latestDate = allDates.sort().reverse()[0] || '';
+    const etag = `"sitemap-${latestDate}"`;
+
+    // Check If-None-Match for 304
+    const ifNoneMatch = req.headers.get('if-none-match');
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return new Response(null, { status: 304 });
+    }
+
+    // Category lastmod: most recent post updated_at per category
+    const categoryLastmod: Record<string, string> = {};
+    for (const post of (posts || [])) {
+      const cat = post.category;
+      const date = (post.updated_at || post.published_at || '').split('T')[0];
+      if (!categoryLastmod[cat] || date > categoryLastmod[cat]) {
+        categoryLastmod[cat] = date;
+      }
+    }
+
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -31,11 +52,12 @@ serve(async (req) => {
     <priority>0.9</priority>
   </url>`;
 
-    // Category pages
+    // Category pages with lastmod
     for (const cat of categories) {
+      const lastmod = categoryLastmod[cat] ? `\n    <lastmod>${categoryLastmod[cat]}</lastmod>` : '';
       xml += `
   <url>
-    <loc>${baseUrl}/blog/${cat}</loc>
+    <loc>${baseUrl}/blog/${cat}</loc>${lastmod}
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>`;
@@ -58,7 +80,8 @@ serve(async (req) => {
     return new Response(xml, {
       headers: {
         'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+        'ETag': etag,
       },
     });
   } catch (error) {

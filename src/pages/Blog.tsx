@@ -130,6 +130,28 @@ const Blog: React.FC = () => {
         <meta name="twitter:title" content="Insights | The Quantum Club" />
         <meta name="twitter:description" content="Career intelligence for top-tier talent. Explore articles on career strategy, talent trends, and leadership." />
         <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "url": "https://os.thequantumclub.com",
+          "name": "The Quantum Club",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://os.thequantumclub.com/blog?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "The Quantum Club",
+          "url": "https://os.thequantumclub.com",
+          "logo": "https://os.thequantumclub.com/quantum-clover-icon.png",
+          "sameAs": [
+            "https://www.linkedin.com/company/thequantumclub",
+            "https://x.com/thequantumclub"
+          ]
+        })}</script>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
