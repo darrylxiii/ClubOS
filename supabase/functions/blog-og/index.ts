@@ -169,12 +169,8 @@ serve(async (req) => {
     </nav>
   </footer>
 
-  <!-- Hydrate SPA on top for interactive users -->
-  <script>
-    if (typeof window !== 'undefined' && !navigator.userAgent.match(/bot|crawl|spider|slurp|Googlebot|Bingbot|facebookexternalhit|Twitterbot|LinkedInBot|Perplexity|ChatGPT/i)) {
-      window.location.replace('${postUrl}');
-    }
-  </script>
+  <!-- This page is served for crawlers and social preview validators -->
+  <!-- Interactive users access articles via the SPA at the canonical URL -->
 </body>
 </html>`;
 
