@@ -491,7 +491,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         .from('jobs')
         .insert({
           title: finalFormData.title.trim(),
-          description: finalFormData.description.trim(),
+          description: (finalFormData.description || '').trim(),
           location: finalFormData.location.trim(),
           latitude: finalFormData.latitude,
           longitude: finalFormData.longitude,
