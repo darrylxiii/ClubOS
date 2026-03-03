@@ -104,16 +104,6 @@ const BlogPost: React.FC = () => {
         <title>{post.metaTitle}</title>
         <meta name="description" content={post.metaDescription} />
         <meta name="keywords" content={post.keywords.join(', ')} />
-        <meta property="og:title" content={post.metaTitle} />
-        <meta property="og:description" content={post.metaDescription} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://os.thequantumclub.com/blog/${post.category}/${post.slug}`} />
-        {post.heroImage.url !== '/placeholder.svg' && (
-          <meta property="og:image" content={post.heroImage.url} />
-        )}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={post.metaTitle} />
-        <meta name="twitter:description" content={post.metaDescription} />
       </Helmet>
 
       <BlogSchema post={post} categoryData={categoryData} />
