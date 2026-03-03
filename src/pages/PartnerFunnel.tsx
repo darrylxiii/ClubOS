@@ -81,13 +81,13 @@ export default function PartnerFunnel() {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://os.thequantumclub.com/partner" />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content="432" />
+        <meta property="og:image:height" content="540" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@thequantumclub" />
         <meta name="twitter:title" content="Partner with The Quantum Club — Access Pre-Vetted Senior Talent" />
         <meta name="twitter:description" content="Submit your hiring request and receive a curated shortlist of senior candidates within 14 days." />
-        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v2.gif" />
+        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
         <link rel="canonical" href="https://os.thequantumclub.com/partner" />
         <meta name="robots" content="index, follow" />
         <script type="application/ld+json">{JSON.stringify({

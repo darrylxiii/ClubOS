@@ -43,13 +43,13 @@ const BlogCategory: React.FC = () => {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`https://os.thequantumclub.com/blog/${category}`} />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content="432" />
+        <meta property="og:image:height" content="540" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@thequantumclub" />
         <meta name="twitter:title" content={`${categoryData.name} | The Quantum Club Insights`} />
         <meta name="twitter:description" content={categoryData.description} />
-        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v2.gif" />
+        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">

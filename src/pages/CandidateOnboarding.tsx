@@ -156,8 +156,8 @@ export default function CandidateOnboarding() {
           content={t('candidate.header.joinProfessionals', 'Join 2,500+ exceptional professionals in The Quantum Club. Only 3% of applicants are accepted.')} 
         />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content="432" />
+        <meta property="og:image:height" content="540" />
         <meta property="og:url" content="https://os.thequantumclub.com/onboarding" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@thequantumclub" />
@@ -166,7 +166,7 @@ export default function CandidateOnboarding() {
           name="twitter:description" 
           content={t('candidate.header.joinProfessionals', 'Join 2,500+ exceptional professionals. Only 3% of applicants are accepted.')} 
         />
-        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v2.gif" />
+        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
         <link rel="canonical" href="https://os.thequantumclub.com/onboarding" />
       </Helmet>
       
