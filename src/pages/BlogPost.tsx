@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { ChevronRight, Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
@@ -19,7 +19,6 @@ import ScrollCTA from '@/components/blog/ScrollCTA';
 import { Button } from '@/components/ui/button';
 import {
   getCategoryBySlug,
-  getRelatedPosts,
   blogPosts,
 } from '@/data/blog';
 import { useDynamicBlogPost, useDynamicBlogPosts } from '@/hooks/useDynamicBlogPosts';
@@ -34,7 +33,14 @@ const BlogPost: React.FC = () => {
   const { data: allPosts = [] } = useDynamicBlogPosts();
 
   const categoryData = category ? getCategoryBySlug(category) : undefined;
-  const relatedPosts = post ? getRelatedPosts(post.id, 3) : [];
+  // Use category/keyword-based related from dynamic posts instead of static getRelatedPosts
+  const relatedPosts = useMemo(() => {
+    if (!post) return [];
+    return allPosts
+      .filter((p) => p.id !== post.id)
+      .filter((p) => p.category === post.category || post.keywords.some((k) => p.keywords.includes(k)))
+      .slice(0, 3);
+  }, [post, allPosts]);
   const popularPosts = allPosts.filter((p) => p.id !== post?.id).slice(0, 3);
 
   const { trackCTAClick } = useBlogAnalytics({
