@@ -46,7 +46,7 @@ serve(async () => {
       <description>${escapeXml(post.excerpt || '')}</description>
       <pubDate>${new Date(post.published_at).toUTCString()}</pubDate>
       <category>${escapeXml(post.category)}</category>${imageUrl ? `
-      <enclosure url="${escapeXml(imageUrl)}" type="image/jpeg" length="0" />` : ''}
+      <enclosure url="${escapeXml(imageUrl)}" type="image/jpeg" length="1" />` : ''}
     </item>`;
     }
 

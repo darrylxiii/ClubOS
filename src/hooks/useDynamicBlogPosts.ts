@@ -60,7 +60,7 @@ const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
     publishedAt: dbPost.published_at || dbPost.created_at,
     updatedAt: dbPost.updated_at,
     readTime: calculateReadTime(content),
-    featured: false, // Can be determined by performance_score
+    featured: false,
     heroImage: {
       url: heroImage?.url || '/placeholder.svg',
       alt: heroImage?.alt || dbPost.title,
@@ -71,9 +71,11 @@ const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
     metaTitle: dbPost.meta_title || dbPost.title,
     metaDescription: dbPost.meta_description || dbPost.excerpt || '',
     keywords: dbPost.keywords || [],
+    faqSchema: (dbPost as any).faq_schema || [],
+    ai_generated: dbPost.ai_generated || false,
     relatedProducts: dbPost.related_products || [],
-    socialProofCount: 0, // Populated from real analytics when available
-    relatedArticles: [], // Will be populated by smart linking
+    socialProofCount: 0,
+    relatedArticles: [],
   };
 };
 

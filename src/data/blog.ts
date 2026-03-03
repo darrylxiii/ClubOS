@@ -61,9 +61,13 @@ export interface BlogPost {
   metaTitle: string;
   metaDescription: string;
   keywords: string[];
+  faqSchema?: Array<{ question: string; answer: string }>;
   
   // Schema.org data
   medicalSpecialty?: string; // Can map to "Executive Search" or similar
+  
+  // AI content flag
+  ai_generated?: boolean;
   
   // Conversion
   relatedProducts: string[];

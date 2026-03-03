@@ -190,11 +190,30 @@ const BlogPost: React.FC = () => {
                 <ArticleContent content={post.content} category={post.category} />
 
                 {/* AI content disclaimer per Google Search Essentials */}
-                {(post as any).ai_generated && (
+                {post.ai_generated && (
                   <div className="mt-8 py-4 px-5 rounded-xl border border-border bg-muted/30 text-sm text-muted-foreground flex items-center gap-2">
                     <span className="text-accent">✦</span>
                     <span>This article was generated with AI assistance and reviewed by The Quantum Club editorial team.</span>
                   </div>
+                )}
+
+                {/* FAQ Section */}
+                {post.faqSchema && post.faqSchema.length > 0 && (
+                  <section className="mt-12 pt-8 border-t border-border" id="faq">
+                    <h2 className="text-xl font-semibold text-foreground mb-6">Frequently Asked Questions</h2>
+                    <div className="space-y-4">
+                      {post.faqSchema.map((faq, i) => (
+                        <details key={i} className="group rounded-lg border border-border bg-muted/20 open:bg-muted/40 transition-colors">
+                          <summary className="cursor-pointer px-5 py-4 text-sm font-medium text-foreground select-none">
+                            {faq.question}
+                          </summary>
+                          <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        </details>
+                      ))}
+                    </div>
+                  </section>
                 )}
 
                 <ArticleReactions postSlug={post.slug} />

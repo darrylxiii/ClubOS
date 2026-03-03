@@ -11,10 +11,9 @@ serve(async (req) => {
     const baseUrl = 'https://os.thequantumclub.com';
     const categories = ['career-insights', 'talent-strategy', 'industry-trends', 'leadership'];
 
-    // Fetch all published posts
     const { data: posts } = await supabase
       .from('blog_posts')
-      .select('slug, category, updated_at, published_at')
+      .select('slug, category, updated_at, published_at, hero_image')
       .eq('status', 'published')
       .order('published_at', { ascending: false });
 
@@ -23,13 +22,12 @@ serve(async (req) => {
     const latestDate = allDates.sort().reverse()[0] || '';
     const etag = `"sitemap-${latestDate}"`;
 
-    // Check If-None-Match for 304
     const ifNoneMatch = req.headers.get('if-none-match');
     if (ifNoneMatch && ifNoneMatch === etag) {
       return new Response(null, { status: 304 });
     }
 
-    // Category lastmod: most recent post updated_at per category
+    // Category lastmod
     const categoryLastmod: Record<string, string> = {};
     for (const post of (posts || [])) {
       const cat = post.category;
@@ -40,7 +38,7 @@ serve(async (req) => {
     }
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>${baseUrl}</loc>
     <changefreq>daily</changefreq>
@@ -52,7 +50,6 @@ serve(async (req) => {
     <priority>0.9</priority>
   </url>`;
 
-    // Category pages with lastmod
     for (const cat of categories) {
       const lastmod = categoryLastmod[cat] ? `\n    <lastmod>${categoryLastmod[cat]}</lastmod>` : '';
       xml += `
@@ -63,15 +60,27 @@ serve(async (req) => {
   </url>`;
     }
 
-    // Individual posts
+    const escapeXml = (str: string) =>
+      str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
     for (const post of (posts || [])) {
       const lastmod = (post.updated_at || post.published_at || '').split('T')[0];
+      const heroImage = post.hero_image as { url?: string; alt?: string } | null;
+      const hasRealImage = heroImage?.url && heroImage.url !== '/placeholder.svg';
+      const imageUrl = hasRealImage
+        ? (heroImage!.url!.startsWith('http') ? heroImage!.url! : `${baseUrl}${heroImage!.url}`)
+        : null;
+
       xml += `
   <url>
     <loc>${baseUrl}/blog/${post.category}/${post.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.7</priority>${imageUrl ? `
+    <image:image>
+      <image:loc>${escapeXml(imageUrl)}</image:loc>
+      <image:caption>${escapeXml(heroImage?.alt || '')}</image:caption>
+    </image:image>` : ''}
   </url>`;
     }
 

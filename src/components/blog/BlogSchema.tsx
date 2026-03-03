@@ -10,13 +10,16 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
 
   const heroImageUrl = post.heroImage.url.startsWith('http') ? post.heroImage.url : `${baseUrl}${post.heroImage.url}`;
   const fallbackOgImage = `${baseUrl}/og-image.gif`;
-  const ogImage = heroImageUrl && heroImageUrl !== `${baseUrl}/placeholder.svg` ? heroImageUrl : fallbackOgImage;
+  const isPlaceholder = !heroImageUrl || heroImageUrl === `${baseUrl}/placeholder.svg`;
+  const ogImage = isPlaceholder ? fallbackOgImage : heroImageUrl;
+  const ogImageWidth = isPlaceholder ? 432 : 1200;
+  const ogImageHeight = isPlaceholder ? 540 : 630;
 
   const blogPostingSchema = {
     "@context": "https://schema.org", "@type": "BlogPosting",
     "mainEntityOfPage": { "@type": "WebPage", "@id": postUrl },
     "headline": post.title, "description": post.metaDescription,
-    "image": { "@type": "ImageObject", "url": ogImage, "width": 1200, "height": 630 },
+    "image": { "@type": "ImageObject", "url": ogImage, "width": ogImageWidth, "height": ogImageHeight },
     "author": {
       "@type": "Person",
       "name": post.author.name,
@@ -57,7 +60,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
   };
 
   // FAQ Schema from post data
-  const faqItems = (post as any).faqSchema || [];
+  const faqItems = post.faqSchema || [];
   const faqSchema = faqItems.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -82,8 +85,8 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
       <meta property="og:url" content={postUrl} />
       <meta property="og:site_name" content="The Quantum Club" />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
+      <meta property="og:image:width" content={String(ogImageWidth)} />
+      <meta property="og:image:height" content={String(ogImageHeight)} />
       <meta property="og:locale" content="en_US" />
 
       {/* Article-specific OG tags */}
@@ -100,7 +103,9 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
       <meta name="twitter:site" content="@thequantumclub" />
       <meta name="twitter:title" content={post.metaTitle} />
       <meta name="twitter:description" content={post.metaDescription} />
-      <meta name="twitter:image" content={ogImage.includes('og-image.gif') ? ogImage.replace('og-image.gif', 'og-image-twitter-v3.gif') : ogImage} />
+      <meta name="twitter:label1" content="Reading time" />
+      <meta name="twitter:data1" content={`${post.readTime} min read`} />
+      <meta name="twitter:image" content={isPlaceholder ? `${baseUrl}/og-image-twitter-v3.gif` : ogImage} />
 
       {/* JSON-LD Schemas */}
       <script type="application/ld+json">{JSON.stringify(blogPostingSchema)}</script>
