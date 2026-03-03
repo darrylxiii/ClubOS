@@ -115,7 +115,7 @@ export function PartnerRequestTracker() {
 
       {/* Strategist Card */}
       {!loading && strategist && (
-        <Card className="p-6 glass-effect border-primary/20">
+        <Card className="p-6 glass border-primary/20">
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
             Who will handle your request
           </div>
