@@ -75,9 +75,9 @@ serve(async (req) => {
         const result = await response.json();
         results.push({ id: post.id, slug: post.slug, status: 'success', imageUrl: result.imageUrl });
 
-        // Rate limit: wait 10 seconds between generations
+        // Rate limit: wait 3 seconds between generations
         if (batch.indexOf(post) < batch.length - 1) {
-          await new Promise(r => setTimeout(r, 10000));
+          await new Promise(r => setTimeout(r, 3000));
         }
       } catch (err) {
         results.push({ id: post.id, slug: post.slug, status: 'error', error: err.message });
