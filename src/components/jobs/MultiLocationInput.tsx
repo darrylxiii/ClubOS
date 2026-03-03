@@ -34,6 +34,7 @@ interface MultiLocationInputProps {
   maxLocations?: number;
   className?: string;
   disabled?: boolean;
+  hideRemoteToggle?: boolean;
 }
 
 export const MultiLocationInput = memo(({
