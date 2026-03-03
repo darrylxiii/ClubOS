@@ -7,6 +7,7 @@ interface UseBlogAnalyticsOptions {
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Detect device type
 const getDeviceType = (): string => {
@@ -26,8 +27,8 @@ export function useBlogAnalytics({ postSlug, enabled = true }: UseBlogAnalyticsO
 
   // Send tracking event to edge function
   const sendEvent = useCallback(async (
-    type: 'page_view' | 'scroll' | 'cta_click' | 'time_update' | 'exit',
-    data?: Record<string, unknown>
+    eventType: 'page_view' | 'scroll_depth' | 'cta_click' | 'time_update' | 'exit',
+    eventData?: Record<string, unknown>
   ) => {
     if (!enabled || !postSlug) return;
 
@@ -36,18 +37,19 @@ export function useBlogAnalytics({ postSlug, enabled = true }: UseBlogAnalyticsO
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${ANON_KEY}`,
         },
         body: JSON.stringify({
-          type,
+          eventType,
           postSlug,
           anonymousId: anonymousIdRef.current,
           sessionId: sessionIdRef.current,
-          data,
+          eventData,
         }),
+        keepalive: true, // Ensures request completes even on page unload
       });
     } catch (error) {
-      // Silent fail for analytics - don't disrupt user experience
+      // Silent fail for analytics — don't disrupt user experience
       console.debug('Blog analytics event failed:', error);
     }
   }, [postSlug, enabled]);
@@ -90,10 +92,10 @@ export function useBlogAnalytics({ postSlug, enabled = true }: UseBlogAnalyticsO
       if (scrollPercent > maxScrollRef.current) {
         maxScrollRef.current = scrollPercent;
 
-        // Debounce scroll events - only send every 5 seconds
+        // Debounce scroll events — only send every 5 seconds
         if (scrollTimeout) clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
-          sendEvent('scroll', { scrollDepth: maxScrollRef.current });
+          sendEvent('scroll_depth', { depth: maxScrollRef.current });
         }, 5000);
       }
     };
@@ -106,30 +108,16 @@ export function useBlogAnalytics({ postSlug, enabled = true }: UseBlogAnalyticsO
     };
   }, [postSlug, enabled, sendEvent]);
 
-  // Track exit (on page unload or visibility change)
+  // Track exit — use fetch with keepalive instead of sendBeacon (which can't set auth headers)
   useEffect(() => {
     if (!enabled || !postSlug) return;
 
     const handleExit = () => {
       const timeOnPage = Math.round((Date.now() - startTimeRef.current) / 1000);
-      
-      // Use sendBeacon for reliable exit tracking
-      // Note: sendBeacon doesn't support custom headers, so edge function should accept unauthenticated requests
-      const data = JSON.stringify({
-        type: 'exit',
-        postSlug,
-        anonymousId: anonymousIdRef.current,
-        sessionId: sessionIdRef.current,
-        data: {
-          timeOnPage,
-          scrollDepth: maxScrollRef.current,
-        },
+      sendEvent('exit', {
+        timeOnPage,
+        scrollDepth: maxScrollRef.current,
       });
-
-      navigator.sendBeacon(
-        `${SUPABASE_URL}/functions/v1/blog-track`,
-        data
-      );
     };
 
     const handleVisibilityChange = () => {
@@ -145,7 +133,7 @@ export function useBlogAnalytics({ postSlug, enabled = true }: UseBlogAnalyticsO
       window.removeEventListener('beforeunload', handleExit);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [postSlug, enabled]);
+  }, [postSlug, enabled, sendEvent]);
 
   // Public method to track CTA clicks
   const trackCTAClick = useCallback((ctaType: string, ctaTarget?: string) => {

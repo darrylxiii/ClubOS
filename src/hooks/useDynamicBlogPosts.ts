@@ -27,6 +27,21 @@ interface DBBlogPost {
 // Default author for AI-generated content
 const defaultAuthor: Author = authors[0]; // TQC Editorial
 
+// Calculate read time from word count (~200 WPM)
+const calculateReadTime = (content: ContentBlock[] | null): number => {
+  if (!content || content.length === 0) return 5;
+  let wordCount = 0;
+  for (const block of content) {
+    if ('content' in block && typeof (block as any).content === 'string') {
+      wordCount += (block as any).content.split(/\s+/).filter(Boolean).length;
+    }
+    if ('text' in block && typeof (block as any).text === 'string') {
+      wordCount += (block as any).text.split(/\s+/).filter(Boolean).length;
+    }
+  }
+  return Math.max(1, Math.ceil(wordCount / 200));
+};
+
 // Transform database post to BlogPost format
 const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
   const heroImage = dbPost.hero_image as { url?: string; alt?: string; caption?: string } | null;
@@ -44,7 +59,7 @@ const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
     author,
     publishedAt: dbPost.published_at || dbPost.created_at,
     updatedAt: dbPost.updated_at,
-    readTime: Math.ceil((content?.length || 5) * 1.5), // Estimate read time
+    readTime: calculateReadTime(content),
     featured: false, // Can be determined by performance_score
     heroImage: {
       url: heroImage?.url || '/placeholder.svg',
@@ -57,7 +72,7 @@ const transformDBPost = (dbPost: DBBlogPost): BlogPost => {
     metaDescription: dbPost.meta_description || dbPost.excerpt || '',
     keywords: dbPost.keywords || [],
     relatedProducts: dbPost.related_products || [],
-    socialProofCount: Math.floor(Math.random() * 500) + 100, // Dynamic social proof
+    socialProofCount: 0, // Populated from real analytics when available
     relatedArticles: [], // Will be populated by smart linking
   };
 };

@@ -1302,5 +1302,11 @@ verify_jwt = false
 [functions.blog-robots]
 verify_jwt = false
 
+[functions.blog-track]
+verify_jwt = false
+
+[functions.blog-analyze]
+verify_jwt = false
+
 [functions.generate-financial-commentary]
 verify_jwt = false
