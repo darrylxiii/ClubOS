@@ -166,7 +166,7 @@ export default function CandidateOnboarding() {
           name="twitter:description" 
           content={t('candidate.header.joinProfessionals', 'Join 2,500+ exceptional professionals. Only 3% of applicants are accepted.')} 
         />
-        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image.gif" />
+        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter.gif" />
         <link rel="canonical" href="https://os.thequantumclub.com/onboarding" />
       </Helmet>
       

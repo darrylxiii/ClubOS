@@ -49,7 +49,7 @@ const BlogCategory: React.FC = () => {
         <meta name="twitter:site" content="@thequantumclub" />
         <meta name="twitter:title" content={`${categoryData.name} | The Quantum Club Insights`} />
         <meta name="twitter:description" content={categoryData.description} />
-        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image.gif" />
+        <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter.gif" />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
