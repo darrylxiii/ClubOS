@@ -42,6 +42,7 @@ const STEP_TIME_ESTIMATES: Record<number, number> = {
 };
 
 export function FunnelSteps() {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [currentStep, setCurrentStep] = useState(0);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [startTime] = useState(Date.now());
