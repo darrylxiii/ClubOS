@@ -4,7 +4,7 @@ import { BlogPost, BlogCategory } from '@/data/blog';
 interface BlogSchemaProps { post: BlogPost; categoryData?: BlogCategory; }
 
 const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
-  const baseUrl = 'https://thequantumclub.lovable.app';
+  const baseUrl = 'https://os.thequantumclub.com';
   const postUrl = `${baseUrl}/blog/${post.category}/${post.slug}`;
   const wordCount = post.content.reduce((c, b) => c + (b.content + (b.items?.join(' ') || '')).split(/\s+/).filter(Boolean).length, 0);
 
