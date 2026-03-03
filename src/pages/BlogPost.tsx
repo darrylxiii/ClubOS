@@ -191,7 +191,7 @@ const BlogPost: React.FC = () => {
               <div className="flex-1 min-w-0">
                 <AEOSummaryBox takeaways={post.keyTakeaways} />
                 <TableOfContents content={post.content} variant="mobile" />
-                <ArticleContent content={post.content} />
+                <ArticleContent content={post.content} category={post.category} />
 
                 {/* AI content disclaimer per Google Search Essentials */}
                 {(post as any).ai_generated && (

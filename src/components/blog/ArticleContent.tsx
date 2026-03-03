@@ -11,9 +11,39 @@ import { ArrowRight } from 'lucide-react';
 interface ArticleContentProps {
   content: ContentBlock[];
   className?: string;
+  category?: string;
 }
 
-const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) => {
+const categoryCTAs: Record<string, { message: string; cta: string; link: string }> = {
+  'career-insights': {
+    message: 'The Quantum Club connects exceptional professionals with opportunities that match their ambitions.',
+    cta: 'Get matched to roles like these',
+    link: '/auth',
+  },
+  'talent-strategy': {
+    message: 'We help companies find and retain exceptional talent through discreet, high-touch sourcing.',
+    cta: 'See how we source for companies like yours',
+    link: '/partnerships',
+  },
+  'industry-trends': {
+    message: 'Stay ahead of market shifts with curated executive briefings delivered to your inbox.',
+    cta: 'Join the briefing list',
+    link: '/auth',
+  },
+  'leadership': {
+    message: 'Connect with a network of senior leaders navigating the same challenges.',
+    cta: 'Connect with our network',
+    link: '/auth',
+  },
+};
+
+const defaultInlineCTA = {
+  message: 'The Quantum Club connects exceptional professionals with opportunities that match their ambitions.',
+  cta: 'Explore membership',
+  link: '/auth',
+};
+
+const ArticleContent: React.FC<ArticleContentProps> = ({ content, className, category }) => {
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   const copyLink = async (slug: string) => {
@@ -28,17 +58,19 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className }) =
     }
   };
 
+  const ctaConfig = categoryCTAs[category || ''] || defaultInlineCTA;
+
   const renderInlineCTA = () => {
     return (
       <div key="midpoint-cta" className="my-8 py-5 px-6 border-l-2 border-border bg-muted/30 rounded-r-xl">
         <p className="text-sm text-foreground/70 mb-2">
-          The Quantum Club connects exceptional professionals with opportunities that match their ambitions.
+          {ctaConfig.message}
         </p>
         <Link
-          to="/auth"
+          to={ctaConfig.link}
           className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:text-foreground/70 transition-colors"
         >
-          Explore membership
+          {ctaConfig.cta}
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>

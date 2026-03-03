@@ -28,44 +28,56 @@ serve(async (req) => {
       placeholderResult,
       totalPostsResult,
       subscribersResult,
+      metaTitleResult,
+      metaDescResult,
     ] = await Promise.all([
-      // Page views in last 24h
       supabase
         .from('blog_page_views')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', last24h),
 
-      // Analytics aggregated in last 24h
       supabase
         .from('blog_analytics')
         .select('id', { count: 'exact', head: true })
         .gte('updated_at', last24h),
 
-      // Queue items stuck in 'generating'
       supabase
         .from('blog_generation_queue')
         .select('id, title, locked_at')
         .eq('status', 'generating'),
 
-      // Posts with placeholder images
       supabase
         .from('blog_posts')
         .select('id, title, slug', { count: 'exact' })
         .eq('status', 'published')
         .eq('hero_image', JSON.stringify({ url: '/placeholder.svg', alt: '' })),
 
-      // Total published posts
       supabase
         .from('blog_posts')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'published'),
 
-      // Total subscribers
       supabase
         .from('blog_subscribers')
         .select('id', { count: 'exact', head: true })
         .is('unsubscribed_at', null),
+
+      // SEO: posts with meta_title > 55 chars
+      supabase.rpc('exec_sql', { sql: "SELECT count(*) as cnt FROM blog_posts WHERE status = 'published' AND length(meta_title) > 55" }).then(() => null).catch(() => null),
+
+      // SEO: posts with meta_description > 155 chars
+      supabase.rpc('exec_sql', { sql: "SELECT count(*) as cnt FROM blog_posts WHERE status = 'published' AND length(meta_description) > 155" }).then(() => null).catch(() => null),
     ]);
+
+    // Manual meta check since rpc may not exist
+    const { data: metaIssues } = await supabase
+      .from('blog_posts')
+      .select('id, slug, meta_title, meta_description')
+      .eq('status', 'published');
+
+    const longTitles = (metaIssues || []).filter((p: any) => (p.meta_title || '').length > 55);
+    const longDescs = (metaIssues || []).filter((p: any) => (p.meta_description || '').length > 155);
+    const missingImages = placeholderResult.count || 0;
 
     const stuckItems = stuckQueueResult.data || [];
     const issues: string[] = [];
@@ -82,14 +94,37 @@ serve(async (req) => {
       issues.push(`${stuckItems.length} queue item(s) stuck in "generating" status`);
     }
 
+    if (longTitles.length > 0) {
+      issues.push(`${longTitles.length} post(s) have meta_title > 55 chars (SERP truncation)`);
+    }
+
+    if (longDescs.length > 0) {
+      issues.push(`${longDescs.length} post(s) have meta_description > 155 chars (SERP truncation)`);
+    }
+
+    if (missingImages > 0) {
+      issues.push(`${missingImages} post(s) still using placeholder hero images`);
+    }
+
+    const seoScore = Math.round(
+      100
+      - (longTitles.length / Math.max(1, totalPostsResult.count || 1)) * 20
+      - (longDescs.length / Math.max(1, totalPostsResult.count || 1)) * 20
+      - (missingImages / Math.max(1, totalPostsResult.count || 1)) * 30
+      - (stuckItems.length > 0 ? 10 : 0)
+    );
+
     const health = {
-      status: issues.length === 0 ? 'healthy' : 'degraded',
+      status: issues.length === 0 ? 'healthy' : issues.length <= 2 ? 'degraded' : 'critical',
       checkedAt: now.toISOString(),
+      seoScore: Math.max(0, Math.min(100, seoScore)),
       metrics: {
         pageViewsLast24h: pageViewsResult.count || 0,
         analyticsUpdatedLast24h: analyticsResult.count || 0,
         totalPublishedPosts: totalPostsResult.count || 0,
-        postsWithPlaceholderImages: placeholderResult.count || 0,
+        postsWithPlaceholderImages: missingImages,
+        postsWithLongMetaTitle: longTitles.length,
+        postsWithLongMetaDesc: longDescs.length,
         stuckQueueItems: stuckItems.length,
         activeSubscribers: subscribersResult.count || 0,
       },

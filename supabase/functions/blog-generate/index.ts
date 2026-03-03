@@ -102,10 +102,22 @@ Writing standards:
 - Tone: calm, discreet, competent. Never use exclamation points.
 - Every paragraph MUST contain a concrete insight, statistic, data point, or actionable recommendation. Never pad with generic filler.
 - Include at least 3 named companies or leaders as real-world examples.
-- Include at least 5 specific statistics or data points with context (e.g. "McKinsey found that 67% of...").
+- Include at least 5 specific statistics or data points with source name and year in parentheses (e.g. "McKinsey found that 67% of executives... (McKinsey, 2024)").
 - Target: 2000+ words with 8-12 H2/H3 sections.
 - End with actionable takeaways the reader can implement this week.
 - Format: ${format}.
+
+SEO constraints (STRICT):
+- metaTitle: MAXIMUM 55 characters including spaces. Front-load the primary keyword. No brand suffix.
+- metaDescription: EXACTLY 140-155 characters including spaces. Include a verb and primary keyword. Must read as a compelling reason to click.
+- excerpt: 120-160 characters.
+
+GEO (Generative Engine Optimization) rules — optimize for AI search engines (Perplexity, Google AI Overviews, ChatGPT):
+- Start every H2 section with a single direct-answer sentence of 15-25 words BEFORE elaborating. This sentence should directly answer the question implied by the heading.
+- Include 2-3 explicit inline definitions using the pattern: "[Term] refers to [concise definition]."
+- Include one structured comparison or "versus" section as a list block with clear contrasting points.
+- Include 3-5 Q&A pairs naturally in the content body as H3 questions followed by a direct-answer paragraph.
+- For every statistic, include the source organization name and year.
 
 You write for senior professionals and C-suite executives who value substance over fluff.`;
 

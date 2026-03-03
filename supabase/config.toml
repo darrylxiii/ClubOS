@@ -1317,5 +1317,11 @@ verify_jwt = false
 [functions.blog-generate-image]
 verify_jwt = false
 
+[functions.blog-backfill-images]
+verify_jwt = false
+
+[functions.blog-og]
+verify_jwt = false
+
 [functions.generate-financial-commentary]
 verify_jwt = false
