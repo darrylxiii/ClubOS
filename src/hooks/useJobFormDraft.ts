@@ -5,6 +5,11 @@ interface DraftData {
   formData: any;
   requiredTools: any[];
   niceToHaveTools: any[];
+  requirements: string[];
+  niceToHave: string[];
+  startDateISO: string | null;
+  currentStep: number;
+  jobLocations: any[];
   timestamp: number;
 }
 
@@ -15,7 +20,14 @@ export const useJobFormDraft = (
   formData: any,
   requiredTools: any[],
   niceToHaveTools: any[],
-  isOpen: boolean
+  isOpen: boolean,
+  extras?: {
+    requirements: string[];
+    niceToHave: string[];
+    startDate: Date | undefined;
+    currentStep: number;
+    jobLocations: any[];
+  }
 ) => {
   const autoSaveTimer = useRef<NodeJS.Timeout>();
   const lastSavedData = useRef<string>("");
@@ -27,6 +39,11 @@ export const useJobFormDraft = (
       formData,
       requiredTools,
       niceToHaveTools,
+      requirements: extras?.requirements || [],
+      niceToHave: extras?.niceToHave || [],
+      startDateISO: extras?.startDate ? extras.startDate.toISOString() : null,
+      currentStep: extras?.currentStep || 0,
+      jobLocations: extras?.jobLocations || [],
       timestamp: Date.now(),
     };
 
@@ -42,7 +59,7 @@ export const useJobFormDraft = (
         console.error("Failed to save draft:", error);
       }
     }
-  }, [formData, requiredTools, niceToHaveTools, isOpen]);
+  }, [formData, requiredTools, niceToHaveTools, isOpen, extras]);
 
   const loadDraft = useCallback((): DraftData | null => {
     try {
