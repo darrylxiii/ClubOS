@@ -60,7 +60,7 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
   };
 
   // FAQ Schema from post data
-  const faqItems = (post as any).faqSchema || [];
+  const faqItems = post.faqSchema || [];
   const faqSchema = faqItems.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "FAQPage",
