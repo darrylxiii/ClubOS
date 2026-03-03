@@ -1,7 +1,7 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Clock, Shield, UserCheck } from "lucide-react";
 import { PartnerRequestTracker } from "@/components/partner-funnel/PartnerRequestTracker";
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
@@ -88,16 +88,15 @@ export default function PartnershipSubmitted() {
             alt="Quantum Club" 
             className="h-20 w-auto hidden dark:block"
           />
-          
         </div>
       </div>
 
       {/* Success Content */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
-        <Card className="max-w-4xl mx-auto p-8 md:p-12">
+        <Card className="max-w-4xl mx-auto p-8 md:p-12 glass">
           <div className="py-8">
             <div className="text-center mb-8">
-              <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
+              <CheckCircle className="w-12 h-12 text-primary mx-auto mb-6" />
               <h1 className="text-3xl font-semibold mb-3">
                 Your brief has been received
               </h1>
@@ -106,13 +105,31 @@ export default function PartnershipSubmitted() {
               </p>
             </div>
 
+            {/* Next steps benefit list */}
+            <div className="max-w-md mx-auto mb-8">
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <UserCheck className="w-4 h-4 text-primary" />
+                  <span>A strategist will review your brief within 24 hours</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span>No fees until you hire</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span>Shortlist delivered within two weeks</span>
+                </div>
+              </div>
+            </div>
+
             <div className="max-w-2xl mx-auto">
               <PartnerRequestTracker />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <Button size="lg" asChild>
-                <a href="https://cal.com/thequantumclub/strategy-call" target="_blank" rel="noopener noreferrer">
+                <a href="/book/darryl">
                   Book a Strategy Call
                 </a>
               </Button>

@@ -103,7 +103,7 @@ export function PartnerRequestTracker() {
   return (
     <div className="space-y-6">
       {/* Availability Indicator */}
-      <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl">
+      <div className="flex items-center justify-center gap-3 p-4 glass border border-primary/20 rounded-2xl">
         <div className="relative">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
           <div className="absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
