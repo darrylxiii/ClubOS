@@ -12,6 +12,16 @@ function mapAuthorName(authorId: string | null): string {
   return authorMap[authorId] || authorId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
+const categoryNames: Record<string, string> = {
+  'career-insights': 'Career Insights',
+  'talent-strategy': 'Talent Strategy',
+  'industry-trends': 'Industry Trends',
+  'leadership': 'Leadership',
+};
+function getCategoryName(slug: string): string {
+  return categoryNames[slug] || slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
 serve(async (req) => {
   try {
     const url = new URL(req.url);
