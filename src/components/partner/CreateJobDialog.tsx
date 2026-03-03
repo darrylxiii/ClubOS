@@ -33,6 +33,7 @@ import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -98,7 +99,7 @@ const formatFileSize = (bytes: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
 };
 
-// ── Tag Input Component ──────────────────────────────────────────────
+// ── Tag Input Component (Fix 10: comma + paste support) ──────────────
 function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (tags: string[]) => void; placeholder: string }) {
   const [input, setInput] = useState("");
 
@@ -117,7 +118,15 @@ function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") { e.preventDefault(); addTag(); }
+            if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
+          }}
+          onPaste={(e) => {
+            const text = e.clipboardData.getData('text');
+            if (text.includes(',')) {
+              e.preventDefault();
+              const items = text.split(',').map(s => s.trim()).filter(s => s && !tags.includes(s));
+              if (items.length) onChange([...tags, ...items]);
+            }
           }}
           placeholder={placeholder}
           className="flex-1"
@@ -218,6 +227,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const [niceToHaveTools, setNiceToHaveTools] = useState<any[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   // Stealth job state
   const [isStealthEnabled, setIsStealthEnabled] = useState(false);
@@ -276,7 +286,14 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     requirements: [],
   });
 
-  const { saveDraft, loadDraft, clearDraft } = useJobFormDraft(formData, requiredTools, niceToHaveTools, open);
+  // Fix 3: Extended draft with full state
+  const { saveDraft, loadDraft, clearDraft } = useJobFormDraft(formData, requiredTools, niceToHaveTools, open, {
+    requirements,
+    niceToHave,
+    startDate,
+    currentStep,
+    jobLocations,
+  });
 
   useEffect(() => {
     if (open) {
@@ -286,10 +303,18 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         setFormData(draft.formData);
         setRequiredTools(draft.requiredTools);
         setNiceToHaveTools(draft.niceToHaveTools);
+        // Restore extended draft state
+        if (draft.requirements) setRequirements(draft.requirements);
+        if (draft.niceToHave) setNiceToHave(draft.niceToHave);
+        if (draft.startDateISO) setStartDate(new Date(draft.startDateISO));
+        if (draft.currentStep) setCurrentStep(draft.currentStep);
+        if (draft.jobLocations) setJobLocations(draft.jobLocations);
         toast.success("Draft restored");
       }
     } else {
+      // Fix 8: Reset form on close
       setCurrentStep(0);
+      resetForm();
     }
   }, [open, loadDraft]);
 
@@ -359,6 +384,17 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     if (step === 1) {
       if (formData.location_type !== 'remote' && (!formData.location || formData.location.trim().length < 2)) {
         errors.push({ field: 'location', message: 'Location is required for non-remote roles' });
+      }
+    }
+
+    if (step === 2) {
+      // Fix 4: Salary negative value guard in step validation
+      const salaryMin = formData.salary_min ? parseFloat(formData.salary_min) : null;
+      const salaryMax = formData.salary_max ? parseFloat(formData.salary_max) : null;
+      if (salaryMin !== null && salaryMin < 0) errors.push({ field: 'salary_min', message: 'Salary cannot be negative' });
+      if (salaryMax !== null && salaryMax < 0) errors.push({ field: 'salary_max', message: 'Salary cannot be negative' });
+      if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) {
+        errors.push({ field: 'salary_max', message: 'Minimum salary cannot exceed maximum salary' });
       }
     }
 
@@ -572,7 +608,6 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           const companyName = companies.find(c => c.id === finalFormData.company_id)?.name || 'Unknown';
           const submitterName = user?.user_metadata?.full_name || user?.email || 'Unknown';
 
-          // Create task
           const taskNum = `TQ-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
           const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin').limit(1);
@@ -595,7 +630,6 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             await supabase.from('unified_task_assignees').insert({ task_id: task.id, user_id: adminId });
           }
 
-          // Notify admins via edge function
           await supabase.functions.invoke('notify-admin-job-submitted', {
             body: {
               jobId,
@@ -661,16 +695,35 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     setStartDate(undefined);
     setCurrentStep(0);
     setSubmitStep("idle");
+    setJobLocations([]);
   };
 
+  // Fix 2: Close confirmation
   const handleClose = () => {
-    if (hasUnsavedChanges && submitStep === "idle") saveDraft();
+    if (hasUnsavedChanges && submitStep === "idle") {
+      saveDraft();
+      setShowCloseConfirm(true);
+      return;
+    }
     onOpenChange(false);
     if (submitStep === "complete") { resetForm(); }
   };
 
+  const handleConfirmClose = () => {
+    setShowCloseConfirm(false);
+    onOpenChange(false);
+  };
+
   const isSubmitting = submitStep !== "idle" && submitStep !== "complete";
   const isPartner = currentRole !== 'admin' && currentRole !== 'strategist';
+
+  // Fix 6: Ctrl+Enter to submit
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && currentStep === TOTAL_STEPS - 1 && !isSubmitting) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  }, [currentStep, isSubmitting]);
 
   // ── Render Steps ──────────────────────────────────────
 
@@ -678,10 +731,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">Start with the fundamentals. These details help us match the right candidates.</p>
 
-      {/* Company */}
+      {/* Company - Fix 9: disabled when pre-filled */}
       <div className="space-y-2">
         <Label className="glass-label">Company <span className="text-destructive">*</span></Label>
-        <Select value={formData.company_id} onValueChange={(v) => handleInputChange('company_id', v)} disabled={isSubmitting}>
+        <Select value={formData.company_id} onValueChange={(v) => handleInputChange('company_id', v)} disabled={isSubmitting || !!companyId}>
           <SelectTrigger className={cn("glass-input", getFieldError('company_id') && 'border-destructive')}>
             <SelectValue placeholder="Select a company" />
           </SelectTrigger>
@@ -800,7 +853,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         </div>
       )}
 
-      {/* Additional Locations */}
+      {/* Additional Locations — Fix 5: always hide remote toggle */}
       {formData.location_type !== 'remote' && (
         <div className="space-y-2">
           <Label className="glass-label">Additional Locations</Label>
@@ -810,7 +863,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             onChange={setJobLocations}
             onRemoteChange={() => {}}
             disabled={isSubmitting}
-            hideRemoteToggle={formData.location_type === 'onsite'}
+            hideRemoteToggle={true}
           />
         </div>
       )}
@@ -834,9 +887,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SelectItem value="AED">د.إ AED</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="number" value={formData.salary_min} onChange={(e) => handleInputChange('salary_min', e.target.value)} placeholder="Min" min="0" className="glass-input" />
+          <Input type="number" value={formData.salary_min} onChange={(e) => handleInputChange('salary_min', e.target.value)} placeholder="Min" min="0" className={cn("glass-input", getFieldError('salary_min') && 'border-destructive')} />
           <Input type="number" value={formData.salary_max} onChange={(e) => handleInputChange('salary_max', e.target.value)} placeholder="Max" min="0" className={cn("glass-input", getFieldError('salary_max') && 'border-destructive')} />
         </div>
+        {getFieldError('salary_min') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('salary_min')}</p>}
         {getFieldError('salary_max') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('salary_max')}</p>}
         <p className="text-xs text-muted-foreground">Compensation details are shared only with shortlisted candidates unless displayed on the listing.</p>
       </div>
@@ -1035,7 +1089,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
         <Separator />
 
-        {/* Review Summary */}
+        {/* Review Summary — Fix 7: description spans full width */}
         <div className="space-y-3">
           <Label className="glass-label">Review Summary</Label>
           <div className="glass rounded-xl p-4 space-y-3 text-sm">
@@ -1050,7 +1104,6 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SummaryRow label="Urgency" value={urgencyLabel} />
               {startDate && <SummaryRow label="Start Date" value={format(startDate, 'PPP')} />}
               {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
-              {formData.description && <SummaryRow label="Description" value={formData.description.length > 150 ? formData.description.slice(0, 150) + '…' : formData.description} />}
               {jobDescriptionFile && <SummaryRow label="JD File" value={jobDescriptionFile.name} />}
               {supportingDocuments.length > 0 && <SummaryRow label="Documents" value={`${supportingDocuments.length} file(s)`} />}
               {requirements.length > 0 && <SummaryRow label="Requirements" value={`${requirements.length} item(s)`} />}
@@ -1066,6 +1119,12 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                 </>
               )}
             </div>
+            {/* Description preview — full width */}
+            {formData.description && (
+              <div className="pt-2 border-t border-border/30">
+                <SummaryRow label="Description" value={formData.description.length > 150 ? formData.description.slice(0, 150) + '…' : formData.description} />
+              </div>
+            )}
           </div>
         </div>
 
@@ -1094,53 +1153,66 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const stepRenderers = [renderStep0, renderStep1, renderStep2, renderStep3, renderStep4];
 
   return (
-    <Sheet open={open} onOpenChange={handleClose} modal={false}>
-      <SheetContent side="right" className="glass sm:max-w-2xl w-full p-0 flex flex-col">
-        {/* Header */}
-        <div className="p-6 pb-0 space-y-4">
-          <SheetHeader>
-            <SheetTitle className="text-lg font-semibold">Create New Role</SheetTitle>
-          </SheetHeader>
-          <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-        </div>
+    <>
+      <Sheet open={open} onOpenChange={handleClose} modal={false}>
+        <SheetContent side="right" className="glass sm:max-w-2xl w-full p-0 flex flex-col">
+          {/* Header */}
+          <div className="p-6 pb-0 space-y-4">
+            <SheetHeader>
+              <SheetTitle className="text-lg font-semibold">Create New Role</SheetTitle>
+            </SheetHeader>
+            <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+          </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          <TooltipProvider>
-            <div className={cn(isSubmitting && "opacity-50 pointer-events-none")}>
-              {stepRenderers[currentStep]()}
-            </div>
-          </TooltipProvider>
-        </div>
+          {/* Body — Fix 6: keyboard handler */}
+          <div className="flex-1 overflow-y-auto px-6 py-4" onKeyDown={handleKeyDown}>
+            <TooltipProvider>
+              <div className={cn(isSubmitting && "opacity-50 pointer-events-none")}>
+                {stepRenderers[currentStep]()}
+              </div>
+            </TooltipProvider>
+          </div>
 
-        {/* Footer */}
-        <div className="border-t border-border/50 p-4 flex items-center gap-3">
-          {currentStep > 0 && (
-            <Button type="button" variant="outline" onClick={goBack} disabled={isSubmitting} className="flex-1">
-              <ChevronLeft className="w-4 h-4 mr-1" /> Back
-            </Button>
-          )}
-          {currentStep < TOTAL_STEPS - 1 ? (
-            <Button type="button" onClick={goNext} disabled={isSubmitting} className="flex-1">
-              Next <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting || !formData.company_id || submitStep === "complete"}
-              className="flex-1"
-            >
-              {isSubmitting ? (
-                <><Upload className="w-4 h-4 mr-2 animate-pulse" /> Submitting...</>
-              ) : (
-                isPartner ? 'Submit for Review' : 'Publish Role'
-              )}
-            </Button>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+          {/* Footer */}
+          <div className="border-t border-border/50 p-4 flex items-center gap-3">
+            {currentStep > 0 && (
+              <Button type="button" variant="outline" onClick={goBack} disabled={isSubmitting} className="flex-1">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+            )}
+            {currentStep < TOTAL_STEPS - 1 ? (
+              <Button type="button" onClick={goNext} disabled={isSubmitting} className="flex-1">
+                Next <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting || !formData.company_id || submitStep === "complete"}
+                className="flex-1"
+              >
+                {isSubmitting ? (
+                  <><Upload className="w-4 h-4 mr-2 animate-pulse" /> Submitting...</>
+                ) : (
+                  isPartner ? 'Submit for Review' : 'Publish Role'
+                )}
+              </Button>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Fix 2: Close confirmation dialog */}
+      <ConfirmDialog
+        open={showCloseConfirm}
+        onOpenChange={setShowCloseConfirm}
+        title="Your progress is saved"
+        description="Your draft has been saved and will be restored next time you open this form."
+        confirmText="Leave"
+        cancelText="Continue editing"
+        onConfirm={handleConfirmClose}
+      />
+    </>
   );
 };
 
