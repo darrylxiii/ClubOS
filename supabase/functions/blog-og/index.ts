@@ -180,7 +180,7 @@ serve(async (req) => {
   <meta property="article:published_time" content="${post.published_at}" />
   <meta property="article:modified_time" content="${post.updated_at || post.published_at}" />
   <meta property="article:author" content="${escapeHtml(authorName)}" />
-  <meta property="article:section" content="${escapeHtml(category)}" />
+  <meta property="article:section" content="${escapeHtml(getCategoryName(category))}" />
   ${keywords.slice(0, 6).map(k => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join('\n  ')}
 
   <meta name="twitter:card" content="summary_large_image" />
