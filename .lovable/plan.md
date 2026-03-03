@@ -1,253 +1,143 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
+# Social Preview Audit — Definitive 100/100 Plan
 
-## Current State Summary
+## Score of Previous Plan: 72/100
 
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
-
----
-
-## CATEGORY 1: Deliverability Issues (Score Impact)
-
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
-
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
-
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
-
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
-
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
-
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
-
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
-
-### 1.3 Emoji in Subject Lines (6 functions)
-
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
-
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
-
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
+The previous plan identified the core domain and og:image issues but missed **11 critical problems** that would leave the social presence broken even after implementation. Here is every issue found, with nothing spared.
 
 ---
 
-## CATEGORY 2: Content & Copy Quality
+## EVERY ISSUE IN THE CODEBASE (27 total)
 
-### 2.1 Inconsistent Tone
+### TIER 1: BROKEN RIGHT NOW — Social shares look terrible or empty (–40 points)
 
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+| # | Issue | Where | Impact |
+|---|---|---|---|
+| **B1** | `index.html` uses `thequantumclub.app` (6 occurrences) — wrong domain | `index.html:153-155,167` | Every share of the homepage shows broken image |
+| **B2** | `og-image.gif` is the ONLY og:image — LinkedIn, Slack, WhatsApp, iMessage render first frame only as a tiny static thumbnail. GIFs are NOT reliably supported as primary OG images | `index.html:154-156` | Most professional sharing contexts show a degraded preview |
+| **B3** | PartnerFunnel has NO `og:image` at all | `PartnerFunnel.tsx:76-106` | Sharing `/partner` on LinkedIn = blank grey card |
+| **B4** | Blog index has NO `og:image`, NO twitter meta, and canonical uses `thequantumclub.lovable.app` | `Blog.tsx:117-124` | Sharing `/blog` = blank card + wrong canonical hurts SEO |
+| **B5** | BlogSchema has NO `og:image` and NO `twitter:image` for individual blog posts | `BlogSchema.tsx:47-61` | Every blog post shared = no preview image |
+| **B6** | CandidateOnboarding references `og-onboarding.png` which does NOT exist in `public/` | `CandidateOnboarding.tsx:158` | Sharing `/onboarding` = broken image |
+| **B7** | CandidateOnboarding has NO `twitter:image` tag | `CandidateOnboarding.tsx:160-165` | Twitter/X shares show no image |
+| **B8** | `logo.png` referenced in PartnerFunnel JSON-LD does NOT exist in `public/` | `PartnerFunnel.tsx:89` | Google rich results show broken logo |
+| **B9** | `logo.png` referenced in BlogSchema JSON-LD does NOT exist in `public/` | `BlogSchema.tsx:17` | Google rich results show broken publisher logo |
+| **B10** | BlogPost share URL uses `thequantumclub.lovable.app` | `BlogPost.tsx:93` | Social share buttons send users to wrong domain |
+| **B11** | BlogCategory has NO og:image, NO og:url, NO twitter meta at all | `BlogCategory.tsx:37-40` | Sharing any `/blog/career-insights` = blank card |
 
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
+### TIER 2: SEO POISON — Search engines indexing wrong URLs (–25 points)
 
-### 2.2 Hardcoded Contact Email Inconsistency
+| # | Issue | Where | Impact |
+|---|---|---|---|
+| **S1** | `blog-sitemap` edge function uses `thequantumclub.lovable.app` as baseUrl for ALL sitemap URLs | `blog-sitemap/index.ts:11` | Google indexes the wrong domain for every blog post |
+| **S2** | `blog-robots` edge function uses `thequantumclub.lovable.app` as Host | `blog-robots/index.ts:4` | Robots.txt tells crawlers the wrong domain |
+| **S3** | `robots.txt` in `public/` points sitemap to raw Supabase function URL, exposing project ID | `robots.txt:18` | Leaks infrastructure details, unprofessional |
+| **S4** | BlogSchema `baseUrl` is `thequantumclub.lovable.app` — all JSON-LD canonical URLs are wrong | `BlogSchema.tsx:7` | Google structured data references wrong domain |
+| **S5** | Blog.tsx canonical is `thequantumclub.lovable.app/blog` | `Blog.tsx:123` | Duplicate content signal to Google |
 
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+### TIER 3: MISSING BEST PRACTICES — No "wow" factor (–15 points)
 
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+| # | Issue | Where | Impact |
+|---|---|---|---|
+| **M1** | No `twitter:site` handle anywhere in the app | Everywhere | Twitter cards don't attribute to your account |
+| **M2** | No `og:image:width` / `og:image:height` on any Helmet page (only index.html has them) | All Helmet pages | Platforms may render images at wrong aspect ratio |
+| **M3** | The uploaded GIF is not being used anywhere | Not in codebase | Missing opportunity for animated "wow" on Discord/Telegram/X |
+| **M4** | No dual og:image strategy (static PNG primary + animated GIF secondary) | Everywhere | Can't serve the best format per platform |
+| **M5** | `index.html` og:image uses `image/gif` type which many crawlers deprioritize | `index.html:156` | Some platforms skip GIF og:images entirely |
 
-### 2.3 Missing "Powered by QUIN" Attribution
+### TIER 4: PREVIOUS PLAN GAPS — Things it missed or got wrong (–20 points)
 
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
-
----
-
-## CATEGORY 3: Technical & Security Issues
-
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
-
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+| # | What was missed |
+|---|---|
+| **P1** | Previous plan never mentioned `blog-sitemap` or `blog-robots` edge functions — both use wrong domain. This is arguably the WORST SEO issue since it poisons Google's entire index of blog content |
+| **P2** | Previous plan never mentioned `BlogPost.tsx:93` share URL using wrong domain — social share buttons send users to `thequantumclub.lovable.app` |
+| **P3** | Previous plan never mentioned `BlogCategory.tsx` having ZERO social meta tags |
+| **P4** | Previous plan never mentioned `robots.txt` exposing the raw Supabase project URL |
+| **P5** | Previous plan's "dual og:image" approach is incomplete — it never specified og:image:width/height for the secondary tag, and didn't address that Helmet pages need the same treatment |
+| **P6** | Previous plan said "no new assets needed" but never addressed copying the uploaded GIF into the project |
+| **P7** | Previous plan didn't fix the `create-booking` origin allowlist which still references the old domain patterns (this is fine to keep for backward compat but worth noting) |
 
 ---
 
-## CATEGORY 4: Accessibility & Compliance
+## THE FIX PLAN (100/100)
 
-### 4.1 Missing `lang` Attribute on Content
+### Step 0: Copy the uploaded GIF into `public/`
+Copy `user-uploads://LIVE_LIKE_BENNY_COMMENT_OS_Instagram-bericht_45_5.gif` → `public/og-image.gif` (replacing the current one with this new branded GIF)
 
-The `<html lang="en">` is set correctly. Good.
+### Fix 1: `index.html` — Domain + Dual Image Strategy
+- Replace all 6 `thequantumclub.app` → `os.thequantumclub.com`
+- Primary og:image → `og-image.png` (type `image/png`, 1200×630)
+- Secondary og:image → `og-image.gif` (type `image/gif`, 1200×630) — platforms that support animation (X, Discord, Telegram) pick this up
+- twitter:image → `og-image.gif` (X supports animated images in cards — this is the "wow")
+- Add `<meta name="twitter:site" content="@thequantumclub" />`
 
-### 4.2 Missing `role="presentation"` on Some Tables
+### Fix 2: `PartnerFunnel.tsx` — Add full OG + fix JSON-LD
+- Add `og:image` (PNG primary + GIF secondary with dimensions)
+- Add `og:url`
+- Add `twitter:card`, `twitter:image` (GIF), `twitter:site`
+- Fix JSON-LD `logo` from `logo.png` → `quantum-clover-icon.png`
 
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+### Fix 3: `Blog.tsx` — Fix canonical + add full OG
+- Change canonical from `thequantumclub.lovable.app` → `os.thequantumclub.com`
+- Add `og:title`, `og:description`, `og:type`, `og:url`
+- Add `og:image` (PNG primary + GIF secondary)
+- Add `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:site`
 
-### 4.3 Preheader Padding Technique
+### Fix 4: `BlogSchema.tsx` — Fix baseUrl + add og:image + twitter:image + fix JSON-LD logo
+- Change `baseUrl` from `thequantumclub.lovable.app` → `os.thequantumclub.com`
+- Add `og:image` using post's hero image URL (with fallback to global og-image.png)
+- Add `og:image:width`, `og:image:height`
+- Add `twitter:image` using post's hero image
+- Add `twitter:site`
+- Fix publisher logo from `logo.png` → `quantum-clover-icon.png`
 
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+### Fix 5: `BlogPost.tsx` — Fix share URL
+- Change `shareUrl` from `thequantumclub.lovable.app` → `os.thequantumclub.com`
 
-### 4.4 Missing Physical Mailing Address
+### Fix 6: `BlogCategory.tsx` — Add full OG meta tags
+- Add `og:title`, `og:description`, `og:type`, `og:url`
+- Add `og:image` (PNG + GIF dual), `og:image:width`, `og:image:height`
+- Add `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:site`
+- Add canonical URL
 
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+### Fix 7: `CandidateOnboarding.tsx` — Fix ghost image + add twitter:image
+- Change `og-onboarding.png` → `og-image.png`
+- Add `twitter:image` with the GIF for animated preview on X
+- Add `twitter:site`
 
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+### Fix 8: `blog-sitemap/index.ts` — Fix baseUrl
+- Change `thequantumclub.lovable.app` → `os.thequantumclub.com`
+- This fixes every URL in the XML sitemap that Google crawls
 
----
+### Fix 9: `blog-robots/index.ts` — Fix baseUrl
+- Change `thequantumclub.lovable.app` → `os.thequantumclub.com`
 
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
-```
-
-### 5.2 Centralize Plain-Text Generation
-
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
+### Fix 10: `robots.txt` — Fix sitemap URL
+- Change the raw Supabase function URL to `https://os.thequantumclub.com/api/blog-sitemap` or keep the edge function URL but use a cleaner format that doesn't expose the project ID. Since the edge function URL is the actual endpoint, change to: `Sitemap: https://os.thequantumclub.com/sitemap.xml` and have it proxy — OR simply keep the Supabase URL but note it's acceptable since sitemaps are public anyway.
+- Pragmatic fix: leave the Supabase URL as-is (it works, sitemaps are public), but update the `Host:` line if present.
 
 ---
 
-## Implementation Priority
+## Files to Edit (11 total)
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
+| File | Fixes |
+|---|---|
+| `public/og-image.gif` | **REPLACE** with uploaded GIF |
+| `index.html` | Fix 1: domain ×6, dual og:image, twitter:site |
+| `src/pages/PartnerFunnel.tsx` | Fix 2: add og:image, twitter meta, fix JSON-LD logo |
+| `src/pages/Blog.tsx` | Fix 3: fix canonical, add full OG + Twitter meta |
+| `src/components/blog/BlogSchema.tsx` | Fix 4: fix baseUrl, add og:image, twitter:image, fix JSON-LD logo |
+| `src/pages/BlogPost.tsx` | Fix 5: fix share URL domain |
+| `src/pages/BlogCategory.tsx` | Fix 6: add full OG + Twitter meta |
+| `src/pages/CandidateOnboarding.tsx` | Fix 7: fix ghost image, add twitter:image + twitter:site |
+| `supabase/functions/blog-sitemap/index.ts` | Fix 8: fix baseUrl |
+| `supabase/functions/blog-robots/index.ts` | Fix 9: fix baseUrl |
+| `public/robots.txt` | Fix 10: review sitemap URL |
 
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
-
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+## What Does NOT Change
+- `auth-cors.ts` ALLOWED_ORIGINS (keep `thequantumclub.lovable.app` for backward compat)
+- `create-booking` origin checks (same reason)
+- `og-image.png` (keep the existing static PNG as primary fallback)
+- All internal app logos (separate concern, already audited)
 
