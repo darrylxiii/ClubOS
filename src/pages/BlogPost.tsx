@@ -75,18 +75,24 @@ const BlogPost: React.FC = () => {
 
   if (!post) {
     return (
-      <main className="flex-1 flex items-center justify-center pt-32">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-4">Article Not Found</h1>
-          <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
-          <Link to="/blog">
-            <Button className="rounded-full">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Insights
-            </Button>
-          </Link>
-        </div>
-      </main>
+      <>
+        <Helmet>
+          <meta name="robots" content="noindex, nofollow" />
+          <title>Article Not Found | The Quantum Club</title>
+        </Helmet>
+        <main className="flex-1 flex items-center justify-center pt-32">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold text-foreground mb-4">Article Not Found</h1>
+            <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
+            <Link to="/blog">
+              <Button className="rounded-full">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Insights
+              </Button>
+            </Link>
+          </div>
+        </main>
+      </>
     );
   }
 

@@ -50,7 +50,7 @@ serve(async (req) => {
         .from('blog_posts')
         .select('id, title, slug', { count: 'exact' })
         .eq('status', 'published')
-        .eq('hero_image', JSON.stringify({ url: '/placeholder.svg', alt: '' })),
+        .like('hero_image::text', '%placeholder.svg%'),
 
       supabase
         .from('blog_posts')

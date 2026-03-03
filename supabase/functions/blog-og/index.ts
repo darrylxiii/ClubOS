@@ -1,5 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const authorMap: Record<string, string> = {
+  'tqc-editorial': 'TQC Editorial Team',
+  'tqc-sophia': 'Sophia Chen',
+  'tqc-marcus': 'Marcus Williams',
+  'tqc-elena': 'Elena Rodriguez',
+  'tqc-james': 'James Mitchell',
+  'tqc-sarah': 'Sarah Kim',
+};
+function mapAuthorName(authorId: string | null): string {
+  if (!authorId) return 'TQC Editorial Team';
+  return authorMap[authorId] || authorId.replace('tqc-', '').replace(/(^|\s)\S/g, l => l.toUpperCase());
+}
+
 serve(async (req) => {
   try {
     const url = new URL(req.url);
