@@ -802,7 +802,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           <Label className="glass-label">Additional Locations</Label>
           <MultiLocationInput
             locations={jobLocations}
-            onLocationsChange={setJobLocations}
+            isRemote={false}
+            onChange={setJobLocations}
+            onRemoteChange={() => {}}
             disabled={isSubmitting}
           />
         </div>
