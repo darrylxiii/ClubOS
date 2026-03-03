@@ -123,8 +123,8 @@ const Blog: React.FC = () => {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://os.thequantumclub.com/blog" />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content="432" />
+        <meta property="og:image:height" content="540" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@thequantumclub" />
         <meta name="twitter:title" content="Insights | The Quantum Club" />
