@@ -1,253 +1,145 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
+# Audit of Current Plan — Score: 62/100
 
-## Current State Summary
+## What the previous plan got right (+62 points)
+- Correctly identified title min-length, description optionality, date picker, remote toggle, and RBAC issues
+- Properly scoped the fix to 3 files
+- Non-destructive approach (no migration needed)
 
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+## What the previous plan gets WRONG or MISSES (-38 points)
 
----
+### CRITICAL BUGS NOT ADDRESSED (-15 points)
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+**C1. Sheet `modal` fix is wrong (-5)**
+The plan says "add `modal={false}` to the Sheet". But the Sheet component wraps Radix `DialogPrimitive`, and the `modal` prop is not exposed on `<Sheet>` in shadcn/ui. The actual fix is to set `modal={false}` on the underlying Sheet implementation OR move the Popover portals outside the Sheet overlay. The plan hand-waves this without verifying the component API.
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+**C2. Calendar Popover also broken inside Sheet (-5)**
+The plan mentions adding `pointer-events-auto` to the Calendar PopoverContent but the current code at line 847 does NOT have this class on `PopoverContent`, only on `Calendar` itself (line 856). The Calendar popover dropdown is behind the Sheet overlay. Same root cause as the location autocomplete — both need the same fix.
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
+**C3. Task number generation is broken (-5)**
+Line 571-572: `select('id', { count: 'exact', head: true })` returns `null` data when `head: true`. Then `(taskCountData as any)?.length` is `undefined`. The task number will always be `TQ-0001`. The fix should use `.select('id', { count: 'exact' })` and read the `count` property, or just use a timestamp-based number.
 
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
+### RBAC GAPS NOT FULLY ADDRESSED (-8 points)
 
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+**R1. Stealth Mode visible to partners (-3)**
+The plan correctly identifies this but has no implementation detail. Lines 1003-1019 must be wrapped in `{!isPartner && (...)}`.
 
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+**R2. Pipeline Type visible to partners (-3)**
+Lines 977-986 must be hidden. Partners always get "standard". But the plan doesn't address what happens to the `pipelineType` state when partner submits — it defaults to `"standard"` which is correct, but the submit logic still references `pipelineType` which could be "continuous" if state is somehow altered. Should force `pipelineType = "standard"` for partners in `handleSubmit`.
 
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+**R3. Review Summary leaks admin data (-2)**
+The summary at lines 1024-1041 shows the same data to everyone. For partners it should NOT show pipeline type, stealth status, or fee info. The plan mentions this but has zero implementation detail.
 
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+### VALIDATION / SCHEMA MISMATCHES (-8 points)
 
-### 1.3 Emoji in Subject Lines (6 functions)
+**V1. Zod schema still enforces `min(5)` on title (-3)**
+The schema at `jobFormSchema.ts:49` says `min(5)`. The step validation at line 352 also checks `length < 5`. Both must change to `min(2)` / `length < 2`. The previous plan identifies this but the CURRENT CODE was never updated — so this fix is still outstanding.
 
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
+**V2. Zod schema still enforces `min(10)` on description (-3)**
+`jobFormSchema.ts:53` says `min(10)`. Step 3 validation at line 362 also enforces it. Neither accounts for file upload as an alternative. Need a `.refine()` or make description `.optional()` with step validation checking `(description.length >= 10 || jobDescriptionFile !== null)`.
 
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+**V3. No AED currency (-2)**
+The currency selector at lines 826-829 only has EUR/USD/GBP. Missing AED.
 
-### 1.4 SPF Record Missing (DNS — not code)
+### UX POLISH ISSUES (-7 points)
 
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
+**U1. Review Summary is too thin (-3)**
+- Does not show: description preview, start date, nice-to-have count, uploaded file names, pipeline type (for admins), stealth status (for admins)
+- Missing tool counts display
+
+**U2. No confirmation before closing with unsaved changes (-2)**
+`handleClose` at line 662 silently saves draft and closes. No "Are you sure?" prompt. For a form that could take 10+ minutes to fill, this is a poor UX.
+
+**U3. Step labels not shown on mobile (-2)**
+Line 189: `hidden sm:block` hides step labels on mobile. Users see only icons with no context. Should show abbreviated labels or at least the current step name prominently.
 
 ---
 
-## CATEGORY 2: Content & Copy Quality
+# Revised Masterplan (targeting 100/100)
 
-### 2.1 Inconsistent Tone
+## Fix 1: Title minimum length
+**Files:** `src/schemas/jobFormSchema.ts` (line 49), `src/components/partner/CreateJobDialog.tsx` (line 352)
+- Schema: change `.min(5, ...)` to `.min(2, "Title must be at least 2 characters")`
+- Step validation: change `length < 5` to `length < 2`
 
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+## Fix 2: Description optional when file uploaded
+**Files:** `src/schemas/jobFormSchema.ts` (lines 52-55), `src/components/partner/CreateJobDialog.tsx` (lines 361-364, 881)
+- Schema: change description to `.optional().or(z.literal(""))` and remove the `.min(10)` — validation moves to the step validator
+- Step 3 validation: `if ((!formData.description || formData.description.trim().length < 10) && !jobDescriptionFile)` — only error when BOTH are missing
+- Update label: remove asterisk, add hint text: "Optional if you upload a JD file below."
 
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
+## Fix 3: Sheet modal fix for nested popovers (Location + Calendar)
+**File:** `src/components/partner/CreateJobDialog.tsx` (line 1068)
+- Change `<Sheet open={open} onOpenChange={handleClose}>` to `<Sheet open={open} onOpenChange={handleClose} modal={false}>`
+- The shadcn/ui Sheet component DOES forward `modal` to `DialogPrimitive.Root` via the underlying Vaul drawer. Verify by checking `sheet.tsx`.
+- If Sheet doesn't support `modal`, the fallback is adding `forceMount` and `style={{ pointerEvents: 'auto' }}` to all `PopoverContent` and `SelectContent` components within the Sheet.
+- Also add `className="z-[100]"` to `PopoverContent` for the Calendar (line 847) to ensure it renders above the Sheet overlay.
 
-### 2.2 Hardcoded Contact Email Inconsistency
+## Fix 4: Calendar date comparison (allow today)
+**File:** `src/components/partner/CreateJobDialog.tsx` (line 855)
+- Change `disabled={(date) => date < new Date()}` to:
+  ```
+  disabled={(date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  }}
+  ```
 
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+## Fix 5: Hide Remote Toggle for On-site work model
+**File:** `src/components/jobs/MultiLocationInput.tsx`
+- Add optional prop `hideRemoteToggle?: boolean` to `MultiLocationInputProps` interface (line 29)
+- Wrap the Remote Toggle section (lines 112-135) in `{!hideRemoteToggle && (...)}`
+**File:** `src/components/partner/CreateJobDialog.tsx` (line 803)
+- Pass `hideRemoteToggle={formData.location_type === 'onsite'}` to `MultiLocationInput`
 
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+## Fix 6: RBAC — hide admin-only sections from partners
+**File:** `src/components/partner/CreateJobDialog.tsx`
+- Wrap Pipeline Type (lines 977-986) in `{!isPartner && (...)}` — partners always submit as "standard"
+- Wrap Stealth Mode section (lines 1003-1019) in `{!isPartner && (...)}` — partners cannot control visibility
+- In Review Summary: conditionally show admin-only rows (pipeline type, stealth, fee info) only for `!isPartner`
+- In `handleSubmit`: force `const effectivePipelineType = isPartner ? "standard" : pipelineType` and use that value
 
-### 2.3 Missing "Powered by QUIN" Attribution
+## Fix 7: Enhance Review Summary
+**File:** `src/components/partner/CreateJobDialog.tsx` (lines 1024-1041)
+- Add to everyone's summary: start date, description preview (first 150 chars truncated), uploaded file names, requirements count, nice-to-have count, tool counts
+- Add admin-only rows: pipeline type, stealth status, fee override status
+- Show "Submitted by" name for admins reviewing their own submissions
 
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+## Fix 8: Add AED currency
+**File:** `src/components/partner/CreateJobDialog.tsx` (after line 828)
+- Add `<SelectItem value="AED">د.إ AED</SelectItem>`
 
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+## Fix 9: Fix task number generation
+**File:** `src/components/partner/CreateJobDialog.tsx` (lines 571-572)
+- Replace broken count query with timestamp-based approach:
+  ```
+  const taskNum = `TQ-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  ```
+  This generates unique, sortable task numbers without a count query.
 
----
+## Fix 10: Mobile step label visibility
+**File:** `src/components/partner/CreateJobDialog.tsx` (lines 188-192)
+- Below the step indicator, add a visible current step name for mobile:
+  ```
+  <p className="text-xs font-medium text-center sm:hidden">
+    Step {currentStep + 1}: {STEP_META[currentStep].label}
+  </p>
+  ```
 
-## CATEGORY 3: Technical & Security Issues
+## Files to Edit
 
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+| File | Fixes |
+|------|-------|
+| `src/schemas/jobFormSchema.ts` | Fix 1 (title min), Fix 2 (description optional) |
+| `src/components/partner/CreateJobDialog.tsx` | Fixes 1-4, 6-10 (all UI/validation/RBAC) |
+| `src/components/jobs/MultiLocationInput.tsx` | Fix 5 (hideRemoteToggle prop) |
 
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
-
----
-
-## CATEGORY 4: Accessibility & Compliance
-
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
-
----
-
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
-```
-
-### 5.2 Centralize Plain-Text Generation
-
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
-
----
-
-## Implementation Priority
-
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
-
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
-
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+## What Does NOT Change
+- Edge function `notify-admin-job-submitted` (already correct)
+- Database schema (no migration)
+- All sub-components (ToolSelector, StealthJobToggle, etc.)
+- File upload logic, draft auto-save
+- The `handleSubmit` core insert logic
 
