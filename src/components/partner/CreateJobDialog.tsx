@@ -349,7 +349,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
     if (step === 0) {
       if (!formData.company_id) errors.push({ field: 'company_id', message: 'Please select a company' });
-      if (!formData.title || formData.title.trim().length < 5) errors.push({ field: 'title', message: 'Title must be at least 5 characters' });
+      if (!formData.title || formData.title.trim().length < 2) errors.push({ field: 'title', message: 'Title must be at least 2 characters' });
     }
 
     if (step === 1) {
