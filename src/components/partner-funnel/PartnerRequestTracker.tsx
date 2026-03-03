@@ -144,7 +144,7 @@ export function PartnerRequestTracker() {
       )}
 
       {/* Progress Overview */}
-      <Card className="p-6 glass-effect border-primary/20">
+      <Card className="p-6 glass border-primary/20">
         <div className="flex items-center gap-4 mb-4">
           <div className="flex-1">
             <h3 className="text-lg font-semibold mb-2">Partnership Journey</h3>
