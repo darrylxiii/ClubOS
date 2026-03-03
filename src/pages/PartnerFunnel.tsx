@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { FunnelSteps } from "@/components/partner-funnel/FunnelSteps";
 import { FunnelAIAssistant } from "@/components/partner-funnel/FunnelAIAssistant";
 import { SocialProofCarousel } from "@/components/partner-funnel/SocialProofCarousel";
@@ -69,7 +71,7 @@ export default function PartnerFunnel() {
     );
   }
 
-  return (
+  const content = (
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Partner with The Quantum Club — Access Pre-Vetted Senior Talent</title>
@@ -179,4 +181,14 @@ export default function PartnerFunnel() {
       <FunnelAIAssistant />
     </div>
   );
+
+  if (RECAPTCHA_SITE_KEY) {
+    return (
+      <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
+        {content}
+      </GoogleReCaptchaProvider>
+    );
+  }
+
+  return content;
 }
