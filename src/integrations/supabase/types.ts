@@ -4170,6 +4170,7 @@ export type Database = {
           error_message: string | null
           generated_post_id: string | null
           id: string
+          locked_at: string | null
           priority: number | null
           source: string | null
           status: string
@@ -4184,6 +4185,7 @@ export type Database = {
           error_message?: string | null
           generated_post_id?: string | null
           id?: string
+          locked_at?: string | null
           priority?: number | null
           source?: string | null
           status?: string
@@ -4198,6 +4200,7 @@ export type Database = {
           error_message?: string | null
           generated_post_id?: string | null
           id?: string
+          locked_at?: string | null
           priority?: number | null
           source?: string | null
           status?: string
@@ -57121,6 +57124,30 @@ export type Database = {
             }
             Returns: Json
           }
+      claim_blog_queue_item: {
+        Args: never
+        Returns: {
+          category: string
+          content_format: string | null
+          created_at: string
+          error_message: string | null
+          generated_post_id: string | null
+          id: string
+          locked_at: string | null
+          priority: number | null
+          source: string | null
+          status: string
+          target_keywords: string[] | null
+          topic: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "blog_generation_queue"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       clean_expired_caches: { Args: never; Returns: undefined }
       cleanup_expired_password_resets: { Args: never; Returns: undefined }
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
@@ -57795,6 +57822,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      release_stuck_queue_items: { Args: never; Returns: number }
       reset_user_verification_rate_limit: {
         Args: { _user_id: string; _verification_type?: string }
         Returns: Json
