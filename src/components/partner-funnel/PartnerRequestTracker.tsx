@@ -103,7 +103,7 @@ export function PartnerRequestTracker() {
   return (
     <div className="space-y-6">
       {/* Availability Indicator */}
-      <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl">
+      <div className="flex items-center justify-center gap-3 p-4 glass border border-primary/20 rounded-2xl">
         <div className="relative">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
           <div className="absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
@@ -115,7 +115,7 @@ export function PartnerRequestTracker() {
 
       {/* Strategist Card */}
       {!loading && strategist && (
-        <Card className="p-6 glass-effect border-primary/20">
+        <Card className="p-6 glass border-primary/20">
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
             Who will handle your request
           </div>
@@ -144,7 +144,7 @@ export function PartnerRequestTracker() {
       )}
 
       {/* Progress Overview */}
-      <Card className="p-6 glass-effect border-primary/20">
+      <Card className="p-6 glass border-primary/20">
         <div className="flex items-center gap-4 mb-4">
           <div className="flex-1">
             <h3 className="text-lg font-semibold mb-2">Partnership Journey</h3>

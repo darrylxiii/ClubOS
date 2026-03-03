@@ -28,38 +28,34 @@ export function ResumeFunnelDialog({
 }: ResumeFunnelDialogProps) {
     if (!savedData) return null;
 
-    // WS-5: Using centralized formatDateTime and formatRelativeTime from @/lib/format
-
     const progressPercentage = Math.round(((savedData.currentStep + 1) / totalSteps) * 100);
 
     return (
         <AlertDialog open={open}>
-            <AlertDialogContent className="sm:max-w-md">
+            <AlertDialogContent className="glass max-w-md">
                 <AlertDialogHeader>
-                    <AlertDialogTitle className="text-2xl font-bold">
+                    <AlertDialogTitle className="text-xl flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-primary" />
                         Welcome back
                     </AlertDialogTitle>
-                    <AlertDialogDescription className="space-y-4 pt-4">
-                        <p className="text-base">
-                            You have a saved brief in progress.
+                    <AlertDialogDescription className="space-y-4">
+                        <p>
+                            You are <span className="font-semibold text-primary">{progressPercentage}%</span> through
+                            your brief. Your progress is automatically saved.
                         </p>
 
-                        <div className="space-y-3 p-4 rounded-lg bg-muted/50 border border-border/50">
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                             <div className="flex items-center gap-2 text-sm">
-                                <Calendar className="w-4 h-4 text-muted-foreground" />
-                                <span className="font-medium">{formatDateTime(savedData.timestamp)}</span>
+                                <Calendar className="w-4 h-4 text-primary" />
+                                <span>Saved {formatRelativeTime(savedData.timestamp)}</span>
                             </div>
-
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Clock className="w-4 h-4" />
-                                <span>{formatRelativeTime(savedData.timestamp)}</span>
-                            </div>
-
                             <div className="flex items-center gap-2 text-sm">
                                 <TrendingUp className="w-4 h-4 text-primary" />
-                                <span className="font-medium">
-                                    Step {savedData.currentStep + 1} of {totalSteps} ({progressPercentage}% complete)
-                                </span>
+                                <span>Step {savedData.currentStep + 1} of {totalSteps}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                                <Clock className="w-4 h-4 text-primary" />
+                                <span>Less than a minute to finish</span>
                             </div>
                         </div>
 
@@ -73,14 +69,10 @@ export function ResumeFunnelDialog({
                 </AlertDialogHeader>
 
                 <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-                    <AlertDialogCancel onClick={onStartFresh} className="sm:flex-1 border-border/60 bg-card/40 hover:bg-card/60 text-foreground">
+                    <AlertDialogCancel onClick={onStartFresh} className="flex-1">
                         Start Fresh
                     </AlertDialogCancel>
-                    <AlertDialogAction
-                        onClick={onContinue}
-                        className="sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                        autoFocus
-                    >
+                    <AlertDialogAction onClick={onContinue} className="flex-1" autoFocus>
                         Continue
                     </AlertDialogAction>
                 </AlertDialogFooter>
