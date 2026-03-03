@@ -103,6 +103,8 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
       <meta name="twitter:site" content="@thequantumclub" />
       <meta name="twitter:title" content={post.metaTitle} />
       <meta name="twitter:description" content={post.metaDescription} />
+      <meta name="twitter:label1" content="Reading time" />
+      <meta name="twitter:data1" content={`${post.readTime} min read`} />
       <meta name="twitter:image" content={ogImage.includes('og-image.gif') ? ogImage.replace('og-image.gif', 'og-image-twitter-v3.gif') : ogImage} />
 
       {/* JSON-LD Schemas */}
