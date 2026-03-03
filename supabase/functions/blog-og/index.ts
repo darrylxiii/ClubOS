@@ -130,7 +130,7 @@ serve(async (req) => {
       },
       "datePublished": post.published_at, "dateModified": post.updated_at || post.published_at,
       "wordCount": wordCount,
-      "articleSection": category, "keywords": keywords.join(', '),
+      "articleSection": getCategoryName(category), "keywords": keywords.join(', '),
       "inLanguage": "en", "isAccessibleForFree": true,
       "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["#key-takeaways", "h1"] },
     });
