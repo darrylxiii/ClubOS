@@ -12,6 +12,16 @@ function mapAuthorName(authorId: string | null): string {
   return authorMap[authorId] || authorId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
+const categoryNames: Record<string, string> = {
+  'career-insights': 'Career Insights',
+  'talent-strategy': 'Talent Strategy',
+  'industry-trends': 'Industry Trends',
+  'leadership': 'Leadership',
+};
+function getCategoryName(slug: string): string {
+  return categoryNames[slug] || slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
 serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -120,7 +130,7 @@ serve(async (req) => {
       },
       "datePublished": post.published_at, "dateModified": post.updated_at || post.published_at,
       "wordCount": wordCount,
-      "articleSection": category, "keywords": keywords.join(', '),
+      "articleSection": getCategoryName(category), "keywords": keywords.join(', '),
       "inLanguage": "en", "isAccessibleForFree": true,
       "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["#key-takeaways", "h1"] },
     });
@@ -130,7 +140,7 @@ serve(async (req) => {
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
         { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${baseUrl}/blog` },
-        { "@type": "ListItem", "position": 3, "name": category, "item": `${baseUrl}/blog/${category}` },
+        { "@type": "ListItem", "position": 3, "name": getCategoryName(category), "item": `${baseUrl}/blog/${category}` },
         { "@type": "ListItem", "position": 4, "name": post.title },
       ],
     });
@@ -170,7 +180,7 @@ serve(async (req) => {
   <meta property="article:published_time" content="${post.published_at}" />
   <meta property="article:modified_time" content="${post.updated_at || post.published_at}" />
   <meta property="article:author" content="${escapeHtml(authorName)}" />
-  <meta property="article:section" content="${escapeHtml(category)}" />
+  <meta property="article:section" content="${escapeHtml(getCategoryName(category))}" />
   ${keywords.slice(0, 6).map(k => `<meta property="article:tag" content="${escapeHtml(k)}" />`).join('\n  ')}
 
   <meta name="twitter:card" content="summary_large_image" />
