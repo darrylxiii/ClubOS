@@ -854,7 +854,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               {startDate ? format(startDate, "PPP") : "Select a date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 z-[100] pointer-events-auto" align="start">
             <Calendar
               mode="single"
               selected={startDate}
@@ -862,7 +862,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                 setStartDate(d);
                 handleInputChange('expected_start_date', d ? format(d, 'yyyy-MM-dd') : null);
               }}
-              disabled={(date) => date < new Date()}
+              disabled={(date) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return date < today;
+              }}
               className={cn("p-3 pointer-events-auto")}
             />
           </PopoverContent>
