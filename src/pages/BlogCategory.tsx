@@ -1,34 +1,38 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
 import BlogGrid from '@/components/blog/BlogGrid';
 import NewsletterCapture from '@/components/blog/NewsletterCapture';
 import { Button } from '@/components/ui/button';
-import { getCategoryBySlug, getPostsByCategory } from '@/data/blog';
+import { getCategoryBySlug } from '@/data/blog';
+import { useDynamicBlogPostsByCategory } from '@/hooks/useDynamicBlogPosts';
 
 const BlogCategory: React.FC = () => {
   const { category } = useParams<{ category: string }>();
   const categoryData = category ? getCategoryBySlug(category) : undefined;
-
-  const posts = useMemo(() => {
-    return category ? getPostsByCategory(category) : [];
-  }, [category]);
+  const { data: posts, isLoading } = useDynamicBlogPostsByCategory(category || '');
 
   if (!categoryData) {
     return (
-      <main className="flex-1 flex items-center justify-center pt-32">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-4">Category Not Found</h1>
-          <p className="text-muted-foreground mb-6">The category you're looking for doesn't exist.</p>
-          <Link to="/blog">
-            <Button className="rounded-full">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Insights
-            </Button>
-          </Link>
-        </div>
-      </main>
+      <>
+        <Helmet>
+          <meta name="robots" content="noindex, nofollow" />
+          <title>Category Not Found | The Quantum Club</title>
+        </Helmet>
+        <main className="flex-1 flex items-center justify-center pt-32">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold text-foreground mb-4">Category Not Found</h1>
+            <p className="text-muted-foreground mb-6">The category you're looking for doesn't exist.</p>
+            <Link to="/blog">
+              <Button className="rounded-full">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Insights
+              </Button>
+            </Link>
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -85,7 +89,7 @@ const BlogCategory: React.FC = () => {
             </div>
 
             <section className="pb-16">
-              <BlogGrid posts={posts} />
+              <BlogGrid posts={posts} isLoading={isLoading} />
             </section>
           </div>
 

@@ -35,9 +35,9 @@ const defaultCTA = {
 const ScrollCTA: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const { categorySlug } = useParams<{ categorySlug?: string }>();
+  const { category } = useParams<{ category?: string }>();
 
-  const ctaConfig = categoryCTAs[categorySlug || ''] || defaultCTA;
+  const ctaConfig = categoryCTAs[category || ''] || defaultCTA;
 
   useEffect(() => {
     const handleScroll = () => {
