@@ -892,7 +892,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Description */}
       <div className="space-y-2">
-        <Label className="glass-label">Job Description <span className="text-destructive">*</span></Label>
+        <Label className="glass-label">Job Description {!jobDescriptionFile && <span className="text-destructive">*</span>}</Label>
+        <p className="text-xs text-muted-foreground -mt-1">Optional if you upload a JD file below.</p>
         <Textarea
           value={formData.description}
           onChange={(e) => handleInputChange('description', e.target.value)}
