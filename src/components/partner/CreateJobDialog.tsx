@@ -195,6 +195,10 @@ function StepIndicator({ currentStep, totalSteps }: { currentStep: number; total
           );
         })}
       </div>
+      {/* Mobile: show current step label */}
+      <p className="text-xs font-medium text-center sm:hidden text-muted-foreground">
+        Step {currentStep + 1}: {STEP_META[currentStep].label}
+      </p>
       <Progress value={progress} className="h-1" />
     </div>
   );
@@ -349,7 +353,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
     if (step === 0) {
       if (!formData.company_id) errors.push({ field: 'company_id', message: 'Please select a company' });
-      if (!formData.title || formData.title.trim().length < 5) errors.push({ field: 'title', message: 'Title must be at least 5 characters' });
+      if (!formData.title || formData.title.trim().length < 2) errors.push({ field: 'title', message: 'Title must be at least 2 characters' });
     }
 
     if (step === 1) {
@@ -359,8 +363,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     }
 
     if (step === 3) {
-      if (!formData.description || formData.description.trim().length < 10) {
-        errors.push({ field: 'description', message: 'Description must be at least 10 characters' });
+      if ((!formData.description || formData.description.trim().length < 10) && !jobDescriptionFile) {
+        errors.push({ field: 'description', message: 'Provide a description (10+ chars) or upload a JD file' });
       }
     }
 
@@ -466,7 +470,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       setSubmitStep("creating");
 
-      const isContinuous = pipelineType === "continuous";
+      const effectivePipelineType = isPartner ? "standard" : pipelineType;
+      const isContinuous = effectivePipelineType === "continuous";
       const jobFeeData = feeConfig.useOverride ? {
         job_fee_type: feeConfig.feeType,
         job_fee_percentage: feeConfig.feeType === 'percentage' || feeConfig.feeType === 'hybrid' ? feeConfig.feePercentage : null,
@@ -486,7 +491,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         .from('jobs')
         .insert({
           title: finalFormData.title.trim(),
-          description: finalFormData.description.trim(),
+          description: (finalFormData.description || '').trim(),
           location: finalFormData.location.trim(),
           latitude: finalFormData.latitude,
           longitude: finalFormData.longitude,
@@ -568,8 +573,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           const submitterName = user?.user_metadata?.full_name || user?.email || 'Unknown';
 
           // Create task
-          const { data: taskCountData } = await supabase.from('unified_tasks').select('id', { count: 'exact', head: true });
-          const taskNum = `TQ-${String((taskCountData as any)?.length || 0 + 1).padStart(4, '0')}`;
+          const taskNum = `TQ-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
           const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin').limit(1);
           const adminId = adminRoles?.[0]?.user_id;
@@ -806,6 +810,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             onChange={setJobLocations}
             onRemoteChange={() => {}}
             disabled={isSubmitting}
+            hideRemoteToggle={formData.location_type === 'onsite'}
           />
         </div>
       )}
@@ -826,6 +831,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SelectItem value="EUR">€ EUR</SelectItem>
               <SelectItem value="USD">$ USD</SelectItem>
               <SelectItem value="GBP">£ GBP</SelectItem>
+              <SelectItem value="AED">د.إ AED</SelectItem>
             </SelectContent>
           </Select>
           <Input type="number" value={formData.salary_min} onChange={(e) => handleInputChange('salary_min', e.target.value)} placeholder="Min" min="0" className="glass-input" />
@@ -844,7 +850,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               {startDate ? format(startDate, "PPP") : "Select a date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 z-[100] pointer-events-auto" align="start">
             <Calendar
               mode="single"
               selected={startDate}
@@ -852,7 +858,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                 setStartDate(d);
                 handleInputChange('expected_start_date', d ? format(d, 'yyyy-MM-dd') : null);
               }}
-              disabled={(date) => date < new Date()}
+              disabled={(date) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return date < today;
+              }}
               className={cn("p-3 pointer-events-auto")}
             />
           </PopoverContent>
@@ -878,7 +888,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Description */}
       <div className="space-y-2">
-        <Label className="glass-label">Job Description <span className="text-destructive">*</span></Label>
+        <Label className="glass-label">Job Description {!jobDescriptionFile && <span className="text-destructive">*</span>}</Label>
+        <p className="text-xs text-muted-foreground -mt-1">Optional if you upload a JD file below.</p>
         <Textarea
           value={formData.description}
           onChange={(e) => handleInputChange('description', e.target.value)}
@@ -887,7 +898,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           maxLength={5000}
           className={cn(getFieldError('description') && 'border-destructive')}
         />
-        <p className="text-xs text-muted-foreground">{formData.description.length}/5000 characters</p>
+        <p className="text-xs text-muted-foreground">{(formData.description || '').length}/5000 characters</p>
         {getFieldError('description') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('description')}</p>}
       </div>
 
@@ -973,17 +984,19 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
     return (
       <div className="space-y-5">
-        {/* Pipeline & Fee */}
-        <div className="space-y-4">
-          <PipelineTypeSelector
-            pipelineType={pipelineType}
-            onPipelineTypeChange={setPipelineType}
-            targetHireCount={targetHireCount}
-            onTargetHireCountChange={setTargetHireCount}
-            isUnlimited={isUnlimitedHires}
-            onIsUnlimitedChange={setIsUnlimitedHires}
-          />
-        </div>
+        {/* Pipeline & Fee — admin/strategist only */}
+        {!isPartner && (
+          <div className="space-y-4">
+            <PipelineTypeSelector
+              pipelineType={pipelineType}
+              onPipelineTypeChange={setPipelineType}
+              targetHireCount={targetHireCount}
+              onTargetHireCountChange={setTargetHireCount}
+              isUnlimited={isUnlimitedHires}
+              onIsUnlimitedChange={setIsUnlimitedHires}
+            />
+          </div>
+        )}
 
         {formData.company_id && !isPartner && (
           <>
@@ -998,25 +1011,27 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           </>
         )}
 
-        <Separator />
+        {!isPartner && <Separator />}
 
-        {/* Stealth */}
-        <div className="space-y-4">
-          <Label className="glass-label">Visibility</Label>
-          <StealthJobToggle
-            enabled={isStealthEnabled}
-            onEnabledChange={setIsStealthEnabled}
-            disabled={isSubmitting}
-          />
-          {isStealthEnabled && formData.company_id && (
-            <StealthViewerSelector
-              companyId={formData.company_id}
-              selectedUserIds={stealthViewerIds}
-              onSelectedUsersChange={setStealthViewerIds}
+        {/* Stealth — admin/strategist only */}
+        {!isPartner && (
+          <div className="space-y-4">
+            <Label className="glass-label">Visibility</Label>
+            <StealthJobToggle
+              enabled={isStealthEnabled}
+              onEnabledChange={setIsStealthEnabled}
               disabled={isSubmitting}
             />
-          )}
-        </div>
+            {isStealthEnabled && formData.company_id && (
+              <StealthViewerSelector
+                companyId={formData.company_id}
+                selectedUserIds={stealthViewerIds}
+                onSelectedUsersChange={setStealthViewerIds}
+                disabled={isSubmitting}
+              />
+            )}
+          </div>
+        )}
 
         <Separator />
 
@@ -1033,9 +1048,23 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SummaryRow label="Work Model" value={locationTypeLabel} />
               <SummaryRow label="Location" value={formData.location || '—'} />
               <SummaryRow label="Urgency" value={urgencyLabel} />
+              {startDate && <SummaryRow label="Start Date" value={format(startDate, 'PPP')} />}
               {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
+              {formData.description && <SummaryRow label="Description" value={formData.description.length > 150 ? formData.description.slice(0, 150) + '…' : formData.description} />}
+              {jobDescriptionFile && <SummaryRow label="JD File" value={jobDescriptionFile.name} />}
+              {supportingDocuments.length > 0 && <SummaryRow label="Documents" value={`${supportingDocuments.length} file(s)`} />}
               {requirements.length > 0 && <SummaryRow label="Requirements" value={`${requirements.length} item(s)`} />}
+              {niceToHave.length > 0 && <SummaryRow label="Nice-to-Have" value={`${niceToHave.length} item(s)`} />}
               {requiredTools.length > 0 && <SummaryRow label="Required Tools" value={`${requiredTools.length} selected`} />}
+              {niceToHaveTools.length > 0 && <SummaryRow label="Bonus Tools" value={`${niceToHaveTools.length} selected`} />}
+              {/* Admin-only summary rows */}
+              {!isPartner && (
+                <>
+                  <SummaryRow label="Pipeline" value={pipelineType === 'continuous' ? 'Continuous' : 'Standard'} />
+                  <SummaryRow label="Stealth" value={isStealthEnabled ? 'Enabled' : 'Off'} />
+                  {feeConfig.useOverride && <SummaryRow label="Fee Override" value="Yes" />}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1065,7 +1094,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const stepRenderers = [renderStep0, renderStep1, renderStep2, renderStep3, renderStep4];
 
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
+    <Sheet open={open} onOpenChange={handleClose} modal={false}>
       <SheetContent side="right" className="glass sm:max-w-2xl w-full p-0 flex flex-col">
         {/* Header */}
         <div className="p-6 pb-0 space-y-4">

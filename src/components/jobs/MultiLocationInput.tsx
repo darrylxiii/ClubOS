@@ -34,6 +34,7 @@ interface MultiLocationInputProps {
   maxLocations?: number;
   className?: string;
   disabled?: boolean;
+  hideRemoteToggle?: boolean;
 }
 
 export const MultiLocationInput = memo(({
@@ -44,6 +45,7 @@ export const MultiLocationInput = memo(({
   maxLocations = 5,
   className,
   disabled = false,
+  hideRemoteToggle = false,
 }: MultiLocationInputProps) => {
   const [isAddingLocation, setIsAddingLocation] = useState(false);
 
@@ -109,30 +111,32 @@ export const MultiLocationInput = memo(({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Remote Toggle */}
-      <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card/30">
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "flex items-center justify-center w-10 h-10 rounded-full transition-colors",
-            isRemote ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
-          )}>
-            <Globe2 className="h-5 w-5" />
+      {!hideRemoteToggle && (
+        <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card/30">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-full transition-colors",
+              isRemote ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+            )}>
+              <Globe2 className="h-5 w-5" />
+            </div>
+            <div>
+              <Label htmlFor="remote-toggle" className="text-sm font-medium cursor-pointer">
+                Remote Position
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Allow candidates to work from anywhere
+              </p>
+            </div>
           </div>
-          <div>
-            <Label htmlFor="remote-toggle" className="text-sm font-medium cursor-pointer">
-              Remote Position
-            </Label>
-            <p className="text-xs text-muted-foreground">
-              Allow candidates to work from anywhere
-            </p>
-          </div>
+          <Switch
+            id="remote-toggle"
+            checked={isRemote}
+            onCheckedChange={onRemoteChange}
+            disabled={disabled}
+          />
         </div>
-        <Switch
-          id="remote-toggle"
-          checked={isRemote}
-          onCheckedChange={onRemoteChange}
-          disabled={disabled}
-        />
-      </div>
+      )}
 
       {/* Location List */}
       <div className="space-y-2">

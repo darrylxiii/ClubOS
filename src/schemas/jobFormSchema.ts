@@ -46,13 +46,14 @@ export const jobFormSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(5, "Title must be at least 5 characters")
+    .min(2, "Title must be at least 2 characters")
     .max(200, "Title must be less than 200 characters"),
   description: z
     .string()
     .trim()
-    .min(10, "Description must be at least 10 characters")
-    .max(5000, "Description must be less than 5000 characters"),
+    .max(5000, "Description must be less than 5000 characters")
+    .optional()
+    .or(z.literal("")),
   location: z
     .string()
     .trim()
