@@ -984,17 +984,19 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
     return (
       <div className="space-y-5">
-        {/* Pipeline & Fee */}
-        <div className="space-y-4">
-          <PipelineTypeSelector
-            pipelineType={pipelineType}
-            onPipelineTypeChange={setPipelineType}
-            targetHireCount={targetHireCount}
-            onTargetHireCountChange={setTargetHireCount}
-            isUnlimited={isUnlimitedHires}
-            onIsUnlimitedChange={setIsUnlimitedHires}
-          />
-        </div>
+        {/* Pipeline & Fee — admin/strategist only */}
+        {!isPartner && (
+          <div className="space-y-4">
+            <PipelineTypeSelector
+              pipelineType={pipelineType}
+              onPipelineTypeChange={setPipelineType}
+              targetHireCount={targetHireCount}
+              onTargetHireCountChange={setTargetHireCount}
+              isUnlimited={isUnlimitedHires}
+              onIsUnlimitedChange={setIsUnlimitedHires}
+            />
+          </div>
+        )}
 
         {formData.company_id && !isPartner && (
           <>
@@ -1009,25 +1011,27 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           </>
         )}
 
-        <Separator />
+        {!isPartner && <Separator />}
 
-        {/* Stealth */}
-        <div className="space-y-4">
-          <Label className="glass-label">Visibility</Label>
-          <StealthJobToggle
-            enabled={isStealthEnabled}
-            onEnabledChange={setIsStealthEnabled}
-            disabled={isSubmitting}
-          />
-          {isStealthEnabled && formData.company_id && (
-            <StealthViewerSelector
-              companyId={formData.company_id}
-              selectedUserIds={stealthViewerIds}
-              onSelectedUsersChange={setStealthViewerIds}
+        {/* Stealth — admin/strategist only */}
+        {!isPartner && (
+          <div className="space-y-4">
+            <Label className="glass-label">Visibility</Label>
+            <StealthJobToggle
+              enabled={isStealthEnabled}
+              onEnabledChange={setIsStealthEnabled}
               disabled={isSubmitting}
             />
-          )}
-        </div>
+            {isStealthEnabled && formData.company_id && (
+              <StealthViewerSelector
+                companyId={formData.company_id}
+                selectedUserIds={stealthViewerIds}
+                onSelectedUsersChange={setStealthViewerIds}
+                disabled={isSubmitting}
+              />
+            )}
+          </div>
+        )}
 
         <Separator />
 
@@ -1044,9 +1048,23 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SummaryRow label="Work Model" value={locationTypeLabel} />
               <SummaryRow label="Location" value={formData.location || '—'} />
               <SummaryRow label="Urgency" value={urgencyLabel} />
+              {startDate && <SummaryRow label="Start Date" value={format(startDate, 'PPP')} />}
               {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
+              {formData.description && <SummaryRow label="Description" value={formData.description.length > 150 ? formData.description.slice(0, 150) + '…' : formData.description} />}
+              {jobDescriptionFile && <SummaryRow label="JD File" value={jobDescriptionFile.name} />}
+              {supportingDocuments.length > 0 && <SummaryRow label="Documents" value={`${supportingDocuments.length} file(s)`} />}
               {requirements.length > 0 && <SummaryRow label="Requirements" value={`${requirements.length} item(s)`} />}
+              {niceToHave.length > 0 && <SummaryRow label="Nice-to-Have" value={`${niceToHave.length} item(s)`} />}
               {requiredTools.length > 0 && <SummaryRow label="Required Tools" value={`${requiredTools.length} selected`} />}
+              {niceToHaveTools.length > 0 && <SummaryRow label="Bonus Tools" value={`${niceToHaveTools.length} selected`} />}
+              {/* Admin-only summary rows */}
+              {!isPartner && (
+                <>
+                  <SummaryRow label="Pipeline" value={pipelineType === 'continuous' ? 'Continuous' : 'Standard'} />
+                  <SummaryRow label="Stealth" value={isStealthEnabled ? 'Enabled' : 'Off'} />
+                  {feeConfig.useOverride && <SummaryRow label="Fee Override" value="Yes" />}
+                </>
+              )}
             </div>
           </div>
         </div>
