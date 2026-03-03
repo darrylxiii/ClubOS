@@ -85,8 +85,8 @@ const BlogSchema: React.FC<BlogSchemaProps> = ({ post, categoryData }) => {
       <meta property="og:url" content={postUrl} />
       <meta property="og:site_name" content="The Quantum Club" />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
+      <meta property="og:image:width" content={String(ogImageWidth)} />
+      <meta property="og:image:height" content={String(ogImageHeight)} />
       <meta property="og:locale" content="en_US" />
 
       {/* Article-specific OG tags */}
