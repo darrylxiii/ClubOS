@@ -341,11 +341,22 @@ The field for text content is ALWAYS "content", never "text". The field for quot
         status: qualityPass ? 'draft' : 'failed',
         ai_generated: true,
         performance_score: 0,
+        content_format: format,
       })
       .select()
       .single();
 
     if (insertError) throw insertError;
+
+    // Log AI usage for cost tracking
+    logAIUsage({
+      functionName: 'blog-generate',
+      tokensUsed: tokensUsed || undefined,
+      responseTimeMs: Date.now() - aiStartTime,
+      success: qualityPass,
+      requestPayload: { topic: normalizedTopic, category, format, slug },
+      ...clientInfo,
+    }).catch(() => {});
 
     // Update queue
     if (queueId) {

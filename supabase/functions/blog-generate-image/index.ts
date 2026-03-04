@@ -91,6 +91,16 @@ serve(async (req) => {
         .eq('id', postId);
     }
 
+    // Log AI usage for cost tracking
+    logAIUsage({
+      functionName: 'blog-generate-image',
+      tokensUsed: tokensUsed || undefined,
+      responseTimeMs: Date.now() - startTime,
+      success: imageUrl !== '/placeholder.svg',
+      requestPayload: { postId, prompt: prompt?.slice(0, 100) },
+      ...clientInfo,
+    }).catch(() => {});
+
     return new Response(JSON.stringify({ imageUrl, postId }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
