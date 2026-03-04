@@ -27,6 +27,7 @@ serve(async (req) => {
       stuckQueueResult,
       totalPostsResult,
       subscribersResult,
+      draftPostsResult,
     ] = await Promise.all([
       supabase
         .from('blog_page_views')
@@ -40,7 +41,7 @@ serve(async (req) => {
 
       supabase
         .from('blog_generation_queue')
-        .select('id, title, locked_at')
+        .select('id, topic, locked_at')
         .eq('status', 'generating'),
 
       supabase
@@ -52,6 +53,11 @@ serve(async (req) => {
         .from('blog_subscribers')
         .select('id', { count: 'exact', head: true })
         .is('unsubscribed_at', null),
+
+      supabase
+        .from('blog_posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'draft'),
     ]);
 
     // Detailed post checks for SEO validation
@@ -79,6 +85,7 @@ serve(async (req) => {
     const fewKeywords = posts.filter((p: any) => !p.keywords || (Array.isArray(p.keywords) && p.keywords.length < 3));
 
     const stuckItems = stuckQueueResult.data || [];
+    const draftPosts = draftPostsResult.count || 0;
     const issues: string[] = [];
     const totalPosts = totalPostsResult.count || 0;
 
@@ -118,6 +125,10 @@ serve(async (req) => {
       issues.push(`${fewKeywords.length} post(s) have fewer than 3 keywords`);
     }
 
+    if (draftPosts > 5) {
+      issues.push(`${draftPosts} draft post(s) sitting unpublished`);
+    }
+
     const maxPosts = Math.max(1, totalPosts);
     const seoScore = Math.round(
       100
@@ -145,12 +156,13 @@ serve(async (req) => {
         postsWithoutKeyTakeaways: missingTakeaways.length,
         postsWithFewKeywords: fewKeywords.length,
         stuckQueueItems: stuckItems.length,
+        draftPosts: draftPosts,
         activeSubscribers: subscribersResult.count || 0,
       },
       issues,
       stuckItems: stuckItems.map((i: any) => ({
         id: i.id,
-        title: i.title,
+        topic: i.topic,
         lockedAt: i.locked_at,
       })),
     };

@@ -1,5 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const categoryNames: Record<string, string> = {
+  'career-insights': 'Career Insights',
+  'talent-strategy': 'Talent Strategy',
+  'industry-trends': 'Industry Trends',
+  'leadership': 'Leadership',
+};
+
 serve(async () => {
   try {
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
@@ -38,6 +45,8 @@ serve(async () => {
         ? (heroImage.url.startsWith('http') ? heroImage.url : `${baseUrl}${heroImage.url}`)
         : '';
 
+      const displayCategory = categoryNames[post.category] || post.category;
+
       xml += `
     <item>
       <title>${escapeXml(post.title)}</title>
@@ -45,7 +54,7 @@ serve(async () => {
       <guid isPermaLink="true">${baseUrl}/blog/${post.category}/${post.slug}</guid>
       <description>${escapeXml(post.excerpt || '')}</description>
       <pubDate>${new Date(post.published_at).toUTCString()}</pubDate>
-      <category>${escapeXml(post.category)}</category>${imageUrl ? `
+      <category>${escapeXml(displayCategory)}</category>${imageUrl ? `
       <enclosure url="${escapeXml(imageUrl)}" type="image/jpeg" length="1" />` : ''}
     </item>`;
     }
