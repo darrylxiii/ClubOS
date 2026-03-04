@@ -34,10 +34,10 @@ serve(async (req) => {
       throw new Error(`Published post not found: ${postError?.message || postId}`);
     }
 
-    // Fetch active subscribers
+    // Fetch active subscribers with unsubscribe tokens
     const { data: subscribers, error: subError } = await supabase
       .from('blog_subscribers')
-      .select('id, email')
+      .select('id, email, unsubscribe_token')
       .is('unsubscribed_at', null);
 
     if (subError) throw subError;
@@ -47,32 +47,51 @@ serve(async (req) => {
       });
     }
 
-    const articleUrl = `${PRODUCTION_DOMAIN}/blog/${post.slug}`;
+    // Correct article URL: /blog/{category}/{slug}
+    const articleUrl = `${PRODUCTION_DOMAIN}/blog/${post.category}/${post.slug}`;
     const description = post.meta_description || post.excerpt || '';
     const heroUrl = post.hero_image?.url && post.hero_image.url !== '/placeholder.svg'
       ? post.hero_image.url
       : null;
 
-    // Build email HTML
-    const emailHtml = buildEmailHtml({
-      title: post.title,
-      description,
-      articleUrl,
-      heroUrl,
-      category: post.category,
-    });
-
-    // Send via Supabase Auth admin (or Resend if configured)
     const resendKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendKey) {
+      return new Response(JSON.stringify({
+        error: 'No email provider configured. Add RESEND_API_KEY secret to enable newsletter sending.',
+        subscriberCount: subscribers.length,
+      }), {
+        status: 422,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     let sentCount = 0;
     const errors: string[] = [];
 
-    if (resendKey) {
-      // Batch send via Resend
-      const batchSize = 50;
-      for (let i = 0; i < subscribers.length; i += batchSize) {
-        const batch = subscribers.slice(i, i + batchSize);
-        const bccList = batch.map((s: any) => s.email);
+    // Send individually so each email gets a personalized unsubscribe token
+    const batchSize = 50;
+    for (let i = 0; i < subscribers.length; i += batchSize) {
+      const batch = subscribers.slice(i, i + batchSize);
+
+      // For batch sending via BCC, use a generic unsubscribe link
+      // But per RFC 8058, we need per-subscriber tokens — send individually for compliance
+      for (const subscriber of batch) {
+        const unsubscribeUrl = `${PRODUCTION_DOMAIN}/blog?unsubscribe=${subscriber.unsubscribe_token}`;
+        const emailHtml = buildEmailHtml({
+          title: post.title,
+          description,
+          articleUrl,
+          heroUrl,
+          category: post.category,
+          unsubscribeUrl,
+        });
+
+        const plainText = buildPlainText({
+          title: post.title,
+          description,
+          articleUrl,
+          unsubscribeUrl,
+        });
 
         try {
           const res = await fetch('https://api.resend.com/emails', {
@@ -82,34 +101,29 @@ serve(async (req) => {
               Authorization: `Bearer ${resendKey}`,
             },
             body: JSON.stringify({
-              from: 'The Quantum Club <insights@mail.thequantumclub.com>',
-              to: 'insights@thequantumclub.com',
-              bcc: bccList,
+              from: 'The Quantum Club <insights@thequantumclub.nl>',
+              to: subscriber.email,
               subject: `New Insight: ${post.title}`,
               html: emailHtml,
+              text: plainText,
+              headers: {
+                'List-Unsubscribe': `<${unsubscribeUrl}>`,
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+              },
               tags: [{ name: 'category', value: 'blog-newsletter' }],
             }),
           });
 
-          const resBody = await res.text();
           if (res.ok) {
-            sentCount += batch.length;
+            sentCount++;
           } else {
-            errors.push(`Batch ${i / batchSize}: ${resBody}`);
+            const resBody = await res.text();
+            errors.push(`${subscriber.email}: ${resBody}`);
           }
         } catch (e) {
-          errors.push(`Batch ${i / batchSize}: ${e.message}`);
+          errors.push(`${subscriber.email}: ${e.message}`);
         }
       }
-    } else {
-      // No email provider configured
-      return new Response(JSON.stringify({
-        error: 'No email provider configured. Add RESEND_API_KEY secret to enable newsletter sending.',
-        subscriberCount: subscribers.length,
-      }), {
-        status: 422,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
 
     console.log(`Newsletter sent for "${post.title}": ${sentCount}/${subscribers.length} subscribers`);
@@ -132,26 +146,48 @@ serve(async (req) => {
   }
 });
 
+function buildPlainText(params: {
+  title: string;
+  description: string;
+  articleUrl: string;
+  unsubscribeUrl: string;
+}): string {
+  return `THE QUANTUM CLUB
+
+${params.title}
+
+${params.description}
+
+Read the full article: ${params.articleUrl}
+
+---
+You're receiving this because you subscribed to The Quantum Club insights.
+Unsubscribe: ${params.unsubscribeUrl}
+
+The Quantum Club
+Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands`;
+}
+
 function buildEmailHtml(params: {
   title: string;
   description: string;
   articleUrl: string;
   heroUrl: string | null;
   category: string;
+  unsubscribeUrl: string;
 }): string {
-  const { title, description, articleUrl, heroUrl, category } = params;
-  const unsubscribeUrl = `${PRODUCTION_DOMAIN}/blog?unsubscribe=true`;
+  const { title, description, articleUrl, heroUrl, category, unsubscribeUrl } = params;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0E0E10;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0E0E10;padding:40px 20px;">
+<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:40px 20px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#1a1a1e;border-radius:12px;overflow:hidden;">
         <!-- Header -->
         <tr><td style="padding:32px 32px 16px;text-align:center;">
-          <span style="color:#C9A24E;font-size:12px;letter-spacing:2px;text-transform:uppercase;">The Quantum Club · ${category.replace(/-/g, ' ')}</span>
+          <span style="color:#C9A24E;font-size:12px;letter-spacing:2px;text-transform:uppercase;">The Quantum Club &middot; ${category.replace(/-/g, ' ')}</span>
         </td></tr>
 
         ${heroUrl ? `<tr><td style="padding:0 32px;">
@@ -167,9 +203,12 @@ function buildEmailHtml(params: {
 
         <!-- Footer -->
         <tr><td style="padding:24px 32px;border-top:1px solid #2a2a2e;text-align:center;">
-          <p style="color:#666;font-size:11px;margin:0;">
+          <p style="color:#666;font-size:11px;margin:0 0 8px;">
             You're receiving this because you subscribed to The Quantum Club insights.<br/>
             <a href="${unsubscribeUrl}" style="color:#C9A24E;text-decoration:underline;">Unsubscribe</a>
+          </p>
+          <p style="color:#555;font-size:10px;margin:0;">
+            The Quantum Club &middot; Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands
           </p>
         </td></tr>
       </table>

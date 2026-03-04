@@ -17,10 +17,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Get published posts
+    // Get published posts with their metadata for learning extraction
     const { data: posts } = await supabase
       .from('blog_posts')
-      .select('id, slug, title, category, status, published_at')
+      .select('id, slug, title, category, content_format, keywords, status, published_at')
       .eq('status', 'published');
 
     if (!posts?.length) {
@@ -30,9 +30,11 @@ serve(async (req) => {
     }
 
     const results = [];
+    const winningPosts: any[] = [];
+    const losingPosts: any[] = [];
 
     for (const post of posts) {
-      // Get last 30 days analytics using correct column names
+      // Get last 30 days analytics
       const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
       const { data: analytics } = await supabase
         .from('blog_analytics')
@@ -48,9 +50,9 @@ serve(async (req) => {
       const totalClicks = rows.reduce((sum: number, a: any) => sum + (a.cta_clicks || 0), 0);
       const avgBounceRate = rows.length > 0
         ? rows.reduce((sum: number, a: any) => sum + (a.bounce_rate || 0), 0) / rows.length
-        : 1; // Default to 100% bounce if no data
+        : 1;
 
-      // Performance score: views + engagement + clicks + retention
+      // Performance score
       const score = Math.min(100, Math.round(
         (totalViews * 0.3) +
         (avgScroll * 0.3) +
@@ -71,9 +73,86 @@ serve(async (req) => {
         ctaClicks: totalClicks,
         bounceRate: Math.round(avgBounceRate * 100),
       });
+
+      // Collect for learnings
+      if (score >= 60) {
+        winningPosts.push(post);
+      } else if (score <= 15) {
+        losingPosts.push(post);
+      }
     }
 
-    return new Response(JSON.stringify({ analyzed: results.length, results }), {
+    // --- Intelligence Feedback Loop: populate blog_learnings ---
+    const learningsInserted = [];
+
+    // Extract winning patterns
+    if (winningPosts.length > 0) {
+      const winCategories: Record<string, number> = {};
+      const winFormats: Record<string, number> = {};
+      const winKeywords: Record<string, number> = {};
+
+      for (const p of winningPosts) {
+        winCategories[p.category] = (winCategories[p.category] || 0) + 1;
+        if (p.content_format) winFormats[p.content_format] = (winFormats[p.content_format] || 0) + 1;
+        (p.keywords || []).forEach((k: string) => { winKeywords[k] = (winKeywords[k] || 0) + 1; });
+      }
+
+      const topCategories = Object.entries(winCategories).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+      const topFormats = Object.entries(winFormats).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+      const topKeywords = Object.entries(winKeywords).sort((a, b) => b[1] - a[1]).slice(0, 10).map(e => e[0]);
+
+      const winInsight = `High-performing articles cluster in categories: ${topCategories.join(', ')}. Top formats: ${topFormats.join(', ') || 'varied'}. Recurring keywords: ${topKeywords.join(', ')}.`;
+
+      const { error: winErr } = await supabase
+        .from('blog_learnings')
+        .upsert({
+          learning_type: 'winning_pattern',
+          insight: winInsight,
+          confidence: Math.min(0.95, winningPosts.length / posts.length + 0.3),
+          source_posts: winningPosts.map((p: any) => p.id).slice(0, 20),
+          is_active: true,
+          applied_count: 0,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'learning_type' });
+
+      if (!winErr) learningsInserted.push('winning_pattern');
+    }
+
+    // Extract losing patterns
+    if (losingPosts.length > 0) {
+      const loseCategories: Record<string, number> = {};
+      const loseFormats: Record<string, number> = {};
+
+      for (const p of losingPosts) {
+        loseCategories[p.category] = (loseCategories[p.category] || 0) + 1;
+        if (p.content_format) loseFormats[p.content_format] = (loseFormats[p.content_format] || 0) + 1;
+      }
+
+      const bottomCategories = Object.entries(loseCategories).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+      const bottomFormats = Object.entries(loseFormats).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+
+      const loseInsight = `Underperforming articles cluster in categories: ${bottomCategories.join(', ')}. Weak formats: ${bottomFormats.join(', ') || 'varied'}. Consider different angles or keywords for these topics.`;
+
+      const { error: loseErr } = await supabase
+        .from('blog_learnings')
+        .upsert({
+          learning_type: 'underperforming',
+          insight: loseInsight,
+          confidence: Math.min(0.9, losingPosts.length / posts.length + 0.2),
+          source_posts: losingPosts.map((p: any) => p.id).slice(0, 20),
+          is_active: true,
+          applied_count: 0,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'learning_type' });
+
+      if (!loseErr) learningsInserted.push('underperforming');
+    }
+
+    return new Response(JSON.stringify({
+      analyzed: results.length,
+      results,
+      learnings: learningsInserted,
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
