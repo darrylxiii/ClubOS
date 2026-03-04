@@ -36,13 +36,35 @@ const BlogPost: React.FC = () => {
 
   const categoryData = category ? getCategoryBySlug(category) : undefined;
   // Use category/keyword-based related from dynamic posts instead of static getRelatedPosts
+  // Fetch related posts from blog_post_relations table
+  const { data: dbRelatedPosts } = useQuery({
+    queryKey: ['blog-related', post?.id],
+    queryFn: async () => {
+      if (!post?.id) return [];
+      const { data: relations } = await supabase
+        .from('blog_post_relations')
+        .select('related_post_id')
+        .eq('source_post_id', post.id)
+        .order('similarity_score', { ascending: false })
+        .limit(3);
+
+      if (!relations || relations.length === 0) return [];
+
+      const relatedIds = relations.map((r: any) => r.related_post_id).filter(Boolean);
+      return allPosts.filter((p) => relatedIds.includes(p.id));
+    },
+    enabled: !!post?.id && allPosts.length > 0,
+  });
+
+  // Fallback to category/keyword matching if no DB relations
   const relatedPosts = useMemo(() => {
+    if (dbRelatedPosts && dbRelatedPosts.length > 0) return dbRelatedPosts;
     if (!post) return [];
     return allPosts
       .filter((p) => p.id !== post.id)
       .filter((p) => p.category === post.category || post.keywords.some((k) => p.keywords.includes(k)))
       .slice(0, 3);
-  }, [post, allPosts]);
+  }, [post, allPosts, dbRelatedPosts]);
   const popularPosts = allPosts.filter((p) => p.id !== post?.id).slice(0, 3);
 
   const { trackCTAClick } = useBlogAnalytics({
