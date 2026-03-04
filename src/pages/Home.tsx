@@ -73,8 +73,12 @@ const Home = () => {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Welcome Header */}
       <div className="space-y-1">
-        <h1 className="text-3xl sm:text-4xl font-black uppercase">
-          {t('home.welcomeBack', { name: profile?.full_name?.split(' ')[0] || 'Member' })}
+        <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-wider">
+          {animatedGreeting}
+          <span className={cn(
+            "inline-block w-[2px] h-[1em] bg-foreground ml-0.5 align-baseline transition-opacity duration-500",
+            isComplete ? "opacity-0" : "animate-pulse opacity-100"
+          )} />
         </h1>
         <p className="text-muted-foreground">{t('home.personalizedDashboard')}</p>
       </div>
