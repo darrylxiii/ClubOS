@@ -269,7 +269,14 @@ The field for text content is ALWAYS "content", never "text". The field for quot
     }
 
     const aiResult = await response.json();
+    const aiStartTime = Date.now();
 
+    // Extract token usage for cost tracking
+    const tokensUsed = aiResult.usage?.total_tokens
+      || ((aiResult.usage?.prompt_tokens || 0) + (aiResult.usage?.completion_tokens || 0))
+      || null;
+
+    const clientInfo = extractClientInfo(req);
     const parseModelJson = (raw: unknown) => {
       if (typeof raw !== 'string') {
         throw new Error('AI response did not include valid JSON');
