@@ -175,7 +175,7 @@ export default function CRMDashboard() {
                     {overdueActivities.map(a => (
                       <div key={a.id} className="flex items-center justify-between p-2 rounded-md bg-muted/20 text-sm">
                         <span className="truncate">{a.subject}</span>
-                        <Badge variant="outline" className="text-xs ml-2 shrink-0">{a.activity_type || a.type}</Badge>
+                        <Badge variant="outline" className="text-xs ml-2 shrink-0">{a.activity_type}</Badge>
                       </div>
                     ))}
                     <Link to="/crm/focus" className="text-xs text-primary hover:underline flex items-center gap-1 pt-1">
