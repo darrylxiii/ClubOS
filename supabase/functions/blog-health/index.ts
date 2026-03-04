@@ -40,7 +40,7 @@ serve(async (req) => {
 
       supabase
         .from('blog_generation_queue')
-        .select('id, title, locked_at')
+        .select('id, topic, locked_at')
         .eq('status', 'generating'),
 
       supabase
