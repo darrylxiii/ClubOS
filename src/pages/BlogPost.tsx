@@ -134,6 +134,7 @@ const BlogPost: React.FC = () => {
         <title>{post.metaTitle}</title>
         <meta name="description" content={post.metaDescription} />
         <meta name="keywords" content={post.keywords.join(', ')} />
+        <link rel="canonical" href={shareUrl} />
       </Helmet>
 
       <BlogSchema post={post} categoryData={categoryData} />
