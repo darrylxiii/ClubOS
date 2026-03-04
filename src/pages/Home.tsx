@@ -20,6 +20,10 @@ const Home = () => {
   const { user } = useAuth();
   const { t } = useTranslation('common');
 
+  const greeting = t('home.welcomeBack', { name: profile?.full_name?.split(' ')[0] || 'Member' }).toUpperCase();
+  const animatedGreeting = useAnimatedText(greeting, "");
+  const isComplete = animatedGreeting.length === greeting.length;
+
   useEffect(() => {
     trackPageLoad('home');
   }, []);
