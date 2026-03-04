@@ -1,253 +1,171 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
-
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+# CRM System Audit — Score: 41/100 — Path to 100/100
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Brutal Scoring Breakdown
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+| Area | Max | Actual | Why |
+|------|-----|--------|-----|
+| Data architecture | 20 | 12 | Two dead systems (crm_contacts never existed), partner funnel disconnected, no outreach learnings table |
+| Instantly integration | 15 | 13 | Bi-directional sync is solid, sequence steps sync works, but no email body copy stored, no copy-to-performance correlation |
+| Pipeline & inbox | 15 | 14 | Kanban, DnD, AI reply classification, keyboard shortcuts all work |
+| Intelligence / ML loop | 15 | 0 | Zero. No `crm_outreach_learnings` table. `generate-outreach-strategy` queries campaign stats but never per-step copy performance. No feedback loop exists. |
+| Dashboard & UX | 10 | 3 | SeedCRMDataButton in production, 15 routes with no hierarchy, dashboard is a link farm not a command center |
+| Partner funnel → CRM bridge | 10 | 2 | `sync-partner-funnel-to-crm` function exists but is NEVER called — not by trigger, not by cron, not by UI. Dead code. |
+| Automation engine | 5 | 1 | Builder UI scaffolded, engine function exists, but no evidence of rules being persisted or firing |
+| Legacy cleanup | 5 | 0 | `crm_contacts` referenced in 5 files but table doesn't exist. `useCRMLeadScoring` hook queries phantom table. |
+| Copy analytics | 5 | 0 | `instantly_sequence_steps` has `subject_line` but no `body_text`. No analytics view for copy performance. |
+| **Total** | **100** | **41** | |
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
+---
 
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
+## Critical Findings
 
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+### 1. `sync-partner-funnel-to-crm` is dead code (-8 pts)
+The function exists, is well-written, and correctly maps `partner_requests` → `crm_prospects`. But it is **never invoked** — no trigger, no cron job, no UI button, no import in any frontend file. Every partner funnel submission is invisible to the CRM.
 
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+### 2. `crm_contacts` table does not exist but is referenced in 5 files (-5 pts)
+- `src/hooks/useCRMLeadScoring.ts` — queries `crm_contacts` (will 404)
+- `src/components/crm/CompanyCRMMetrics.tsx` — queries `crm_contacts` (will 404)
+- `src/components/crm/ContactProfileView.tsx` — queries `crm_contacts` (will 404)
+- `src/components/crm/ActivityTimeline.tsx` — joins `crm_contacts` (will fail)
+- `src/types/database.ts` — type references to `crm_contacts`
 
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+All these features silently break. Users see empty states.
 
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+### 3. No outreach copy storage or learning (-12 pts)
+`instantly_sequence_steps` stores `subject_line` but **no email body text**. The Instantly API does return step content, but `sync-instantly-sequence-steps` never saves it. Without the actual copy, you cannot correlate performance to content patterns.
 
-### 1.3 Emoji in Subject Lines (6 functions)
+### 4. `generate-outreach-strategy` has zero feedback from past performance (-7 pts)
+It queries `crm_campaigns` for "top performing" but only gets aggregate stats (total_sent, total_replies). It never looks at:
+- Which subject lines got highest open rates
+- Which body copy patterns got most replies
+- Which step in the sequence produces the most conversions
+- Reply sentiment breakdown per campaign
 
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
+### 5. SeedCRMDataButton visible in production dashboard (-3 pts)
 
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+### 6. Navigation is fragmented (-3 pts)
+CRM has 8 sidebar items + 3 more under "Outreach" (Campaigns, Email Sequencing, Lead Scoring). 11 CRM-related nav items with no grouping logic. "Campaigns" is under "Outreach" but should be under "CRM". "Email Sequencing" is a top-level route (`/email-sequences`) not under `/crm/`.
 
-### 1.4 SPF Record Missing (DNS — not code)
+### 7. Automation engine has no persisted rules (-3 pts)
 
-`send.thequantumclub.nl` needs an SPF TXT record:
+---
+
+## The 100/100 Implementation Plan
+
+### Phase 1: Fix broken foundations (remove dead code, activate dead functions)
+
+**1a. Delete orphaned `crm_contacts` references** — Remove or rewrite these 5 files:
+- `src/hooks/useCRMLeadScoring.ts` → rewrite to query `crm_prospects` (use `composite_score` or `lead_score`)
+- `src/components/crm/CompanyCRMMetrics.tsx` → rewrite to query `crm_prospects` by `company_domain`
+- `src/components/crm/ContactProfileView.tsx` → remove (or rewrite for prospects)
+- `src/components/crm/ActivityTimeline.tsx` → remove `crm_contacts` join, use `crm_prospects` via `prospect_id`
+- `src/types/database.ts` → remove `crm_contacts` type references
+
+**1b. Activate partner funnel → CRM bridge** — Create a DB trigger on `partner_requests` INSERT that calls `sync-partner-funnel-to-crm` via `pg_net.http_post`. This makes every funnel submission automatically appear in the CRM pipeline as a `new` stage prospect with `source = 'website'`.
+
+**1c. Remove `SeedCRMDataButton`** from `CRMDashboard.tsx` (lines 30, 41-45, 146).
+
+### Phase 2: Outreach Copy Intelligence Engine (the ML loop)
+
+**2a. Add `body_text` column to `instantly_sequence_steps`** — Migration:
+```sql
+ALTER TABLE instantly_sequence_steps 
+  ADD COLUMN IF NOT EXISTS body_text TEXT,
+  ADD COLUMN IF NOT EXISTS body_html TEXT;
+```
+
+**2b. Update `sync-instantly-sequence-steps`** to store the step body content from the Instantly API response (the API returns step content; the function just doesn't save it).
+
+**2c. Create `crm_outreach_learnings` table** — Migration:
+```sql
+CREATE TABLE crm_outreach_learnings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  learning_type TEXT NOT NULL, -- 'subject_pattern', 'body_pattern', 'timing', 'sequence_structure'
+  pattern TEXT NOT NULL, -- human-readable pattern description
+  evidence JSONB NOT NULL DEFAULT '{}', -- { examples, metrics, campaign_ids }
+  sample_size INTEGER DEFAULT 0,
+  confidence_score NUMERIC(5,2) DEFAULT 0,
+  performance_lift NUMERIC(5,2), -- % vs baseline
+  is_active BOOLEAN DEFAULT true,
+  applied_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE crm_outreach_learnings ENABLE ROW LEVEL SECURITY;
+-- Admin/strategist access only
+```
+
+**2d. Create `analyze-outreach-copy` edge function** — Scheduled daily via pg_cron. For each campaign with >50 sends:
+- Rank subject lines by open rate, body text by reply rate
+- Extract patterns (length, question marks, personalization token count, CTA type)
+- Map reply sentiment (from `crm_email_replies.classification`) back to the originating sequence step
+- Upsert winning/losing patterns into `crm_outreach_learnings`
+
+**2e. Wire learnings into `generate-outreach-strategy`** — Before the AI call (line 66), query `crm_outreach_learnings WHERE is_active = true ORDER BY confidence_score DESC LIMIT 15` and inject as structured context: "Proven patterns from your outreach data: ..."
+
+### Phase 3: CRM Command Center Dashboard
+
+**3a. Redesign `/crm` (CRMDashboard.tsx)** as a single-screen command center:
+- **Top row**: 6 compact KPI cards (pipeline value, hot leads, unread replies, meetings this week, reply rate 7d trend, active campaigns)
+- **Priority Actions section** (inline Focus View — overdue activities, hot replies needing response, new partner funnel leads). No separate route needed.
+- **Pipeline mini-bars** (horizontal stage bars with counts, not full kanban)
+- **Outreach learnings highlights** (top 3 winning patterns this week)
+- Remove tabs. Everything on one screen.
+
+**3b. Consolidate navigation** — Update `navigation.config.ts` to merge CRM + Outreach into one group with 6 items:
+- CRM Command Center (`/crm`)
+- Pipeline (`/crm/pipeline`)
+- Reply Inbox (`/crm/inbox`)
+- Campaigns (`/crm/campaigns`)
+- Analytics & Learnings (`/crm/analytics`) — add Copy Performance as a tab
+- Settings (`/crm/settings`) — absorb Integrations, Lead Scoring, Suppression, Imports, Audit Trail as tabs
+
+Add `Navigate` redirects for retired routes.
+
+### Phase 4: Copy Performance Analytics
+
+**4a. New `CopyPerformancePanel` component** — embedded as a tab in `/crm/analytics`:
+- Subject line leaderboard (subject, campaign, sends, open rate, confidence interval)
+- Body copy leaderboard (first 100 chars, reply rate, positive reply %)
+- Step-by-step heatmap (which step in the sequence converts best)
+- AI-generated "What to try next" from `crm_outreach_learnings`
+- Trend chart: rolling 7d reply rate
+
+### Phase 5: Automation + Cleanup
+
+**5a. Wire automation persistence** — Ensure `CRMAutomationBuilder` saves rules to a `crm_automation_rules` table and `crm-automation-engine` reads and executes them on prospect stage changes.
+
+**5b. Standardize scoring** — Remove dual `lead_score` / `composite_score` confusion. Pick `composite_score` as authoritative, update all references.
+
+**5c. Move `/email-sequences` under `/crm/sequences`** — Update route and add `Navigate` redirect.
+
+---
+
+## Execution Order
+
 ```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
-
----
-
-## CATEGORY 2: Content & Copy Quality
-
-### 2.1 Inconsistent Tone
-
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
-
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
-
-### 2.2 Hardcoded Contact Email Inconsistency
-
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
-
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
-
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
-
----
-
-## CATEGORY 3: Technical & Security Issues
-
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
-
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
-
----
-
-## CATEGORY 4: Accessibility & Compliance
-
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
-
----
-
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
+Phase 1a: Delete crm_contacts dead code (5 files)          ─┐
+Phase 1b: Activate partner funnel trigger                   ─┤ parallel
+Phase 1c: Remove SeedCRMDataButton                          ─┘
+                    │
+Phase 2a: Add body_text column to sequence_steps            ─┐
+Phase 2b: Update sync function to store body                ─┤ parallel
+Phase 2c: Create crm_outreach_learnings table               ─┘
+                    │
+Phase 2d: Create analyze-outreach-copy function             ─── (depends on 2a-c)
+Phase 2e: Wire learnings into strategy generation           ─── (depends on 2c)
+                    │
+Phase 3a: Redesign CRM dashboard                            ─┐
+Phase 3b: Consolidate navigation                            ─┘ parallel
+                    │
+Phase 4a: Copy Performance Analytics panel                  ─── (depends on 2c)
+                    │
+Phase 5a-c: Automation, scoring, route cleanup              ─── (last)
 ```
 
-### 5.2 Centralize Plain-Text Generation
-
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
-
----
-
-## Implementation Priority
-
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
-
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
-
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+Phases 1 and 2a-c are independent and run first. Phase 2d-e follows. Phase 3 is independent of Phase 2. Phase 4 depends on the learnings table. Phase 5 is cleanup.
 
