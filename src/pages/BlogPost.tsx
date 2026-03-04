@@ -2,6 +2,8 @@ import React, { useEffect, useMemo } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { ChevronRight, Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import ReadingProgress from '@/components/blog/ReadingProgress';
 import BlogSchema from '@/components/blog/BlogSchema';
 import AEOSummaryBox from '@/components/blog/AEOSummaryBox';
