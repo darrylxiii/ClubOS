@@ -13,6 +13,8 @@ serve(async (req) => {
 
   try {
     const { postId, prompt } = await req.json();
+    const startTime = Date.now();
+    const clientInfo = extractClientInfo(req);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
