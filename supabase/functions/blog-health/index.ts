@@ -156,6 +156,7 @@ serve(async (req) => {
         postsWithoutKeyTakeaways: missingTakeaways.length,
         postsWithFewKeywords: fewKeywords.length,
         stuckQueueItems: stuckItems.length,
+        draftPosts: draftPosts,
         activeSubscribers: subscribersResult.count || 0,
       },
       issues,
