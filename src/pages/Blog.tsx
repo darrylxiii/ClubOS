@@ -7,6 +7,8 @@ import BlogGrid from '@/components/blog/BlogGrid';
 import NewsletterCapture from '@/components/blog/NewsletterCapture';
 import BlogErrorBoundary from '@/components/blog/BlogErrorBoundary';
 import { useDynamicBlogPosts, useFeaturedBlogPost } from '@/hooks/useDynamicBlogPosts';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -41,6 +43,35 @@ const Blog: React.FC = () => {
   useEffect(() => {
     setFocusedResultIndex(-1);
   }, [debouncedSearch]);
+
+  // Secure unsubscribe handler via token
+  useEffect(() => {
+    const unsubscribeToken = searchParams.get('unsubscribe');
+    if (!unsubscribeToken) return;
+
+    const handleUnsubscribe = async () => {
+      try {
+        const response = await supabase.functions.invoke('blog-unsubscribe', {
+          body: { token: unsubscribeToken },
+        });
+
+        if (response.data?.success) {
+          toast.success('You have been unsubscribed from The Quantum Club newsletter.');
+        } else {
+          toast.error(response.data?.message || 'Invalid or expired unsubscribe link.');
+        }
+      } catch {
+        toast.error('Something went wrong. Please try again.');
+      }
+
+      // Clean URL
+      const params = new URLSearchParams(searchParams);
+      params.delete('unsubscribe');
+      setSearchParams(params, { replace: true });
+    };
+
+    handleUnsubscribe();
+  }, []);
 
   const filteredPosts = useMemo(() => {
     let posts = allPosts;

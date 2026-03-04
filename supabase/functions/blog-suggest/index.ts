@@ -76,9 +76,31 @@ serve(async (req) => {
       'leadership': categoryCounts['leadership'] || 0,
     }).sort((a, b) => a[1] - b[1]).map(e => e[0]);
 
+    // Read learnings from the intelligence feedback loop
+    const { data: learnings } = await supabase
+      .from('blog_learnings')
+      .select('learning_type, insight, confidence')
+      .eq('is_active', true)
+      .order('confidence', { ascending: false })
+      .limit(10);
+
+    const learningsBlock = (learnings && learnings.length > 0)
+      ? `\n\nPerformance learnings from past articles (use these to guide topic selection):\n${learnings.map((l: any) => `- [${l.learning_type}, confidence: ${(l.confidence * 100).toFixed(0)}%] ${l.insight}`).join('\n')}`
+      : '';
+
+    // Increment applied_count for used learnings
+    if (learnings && learnings.length > 0) {
+      for (const l of learnings) {
+        await supabase.rpc('increment_learning_applied_count', { learning_type_val: l.learning_type }).catch(() => {
+          // Fallback: direct update if RPC doesn't exist
+          supabase.from('blog_learnings').update({ applied_count: (l as any).applied_count + 1 }).eq('learning_type', l.learning_type);
+        });
+      }
+    }
+
     const prompt = `Given these existing articles: [${existingTopics}]
 
-Categories ranked by content gap (least content first): ${underservedCategory.join(', ')}
+Categories ranked by content gap (least content first): ${underservedCategory.join(', ')}${learningsBlock}
 
 Suggest 10 new article topics for The Quantum Club blog (a luxury invite-only talent platform for top-tier professionals). Prioritize underserved categories. Think in topic clusters: create pillar content and supporting articles.
 
