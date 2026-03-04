@@ -45,12 +45,11 @@ const BlogEngine: React.FC = () => {
       const analytics = (analyticsRes.data || []) as any[];
       const queue = queueRes.data || [];
 
-      const totalViews = analytics.reduce((s: number, a: any) => s + (a.views || 0), 0);
+      const totalViews = analytics.reduce((s: number, a: any) => s + (a.page_views || 0), 0);
       const avgScroll = analytics.length
-        ? Math.round(analytics.reduce((s: number, a: any) => s + (a.avg_scroll_depth || 0), 0) / analytics.length)
+        ? Math.round(analytics.reduce((s: number, a: any) => s + (a.scroll_depth || 0), 0) / analytics.length)
         : 0;
       const totalClicks = analytics.reduce((s: number, a: any) => s + (a.cta_clicks || 0), 0);
-      const completions = analytics.reduce((s: number, a: any) => s + (a.completions || 0), 0);
 
       const publishedPosts = posts.filter((p: any) => p.status === 'published');
       const topPosts = [...publishedPosts]
