@@ -7,6 +7,8 @@ import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStat
 import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnimatedText } from "@/hooks/useAnimatedText";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trackPageLoad } from "@/utils/performanceMonitoring";
 import { useQuery } from "@tanstack/react-query";
