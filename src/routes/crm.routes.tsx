@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -38,6 +38,8 @@ export const crmRoutes = (
     <Route path="/crm/audit-trail" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ProspectAuditTrail /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/integrations" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMIntegrations /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
     <Route path="/crm/settings" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CRMSettings /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-    <Route path="/email-sequences" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EmailSequencingHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    <Route path="/crm/sequences" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EmailSequencingHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+    {/* Redirect old route */}
+    <Route path="/email-sequences" element={<Navigate to="/crm/sequences" replace />} />
   </>
 );
