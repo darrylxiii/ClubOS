@@ -14,17 +14,6 @@ interface ActivityTimelineProps {
   limit?: number;
 }
 
-interface TouchpointActivity {
-  id: string;
-  type: string;
-  direction: string | null;
-  subject: string | null;
-  body_preview: string | null;
-  sentiment: string | null;
-  occurred_at: string;
-  created_at: string;
-}
-
 const activityIcons: Record<string, typeof Mail> = {
   email: Mail,
   call: Phone,
@@ -50,7 +39,7 @@ export function ActivityTimeline({
   companyId, 
   limit = 20 
 }: ActivityTimelineProps) {
-  const [activities, setActivities] = useState<TouchpointActivity[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,7 +51,7 @@ export function ActivityTimeline({
       let query = supabase
         .from('crm_touchpoints')
         .select('*')
-        .order('occurred_at', { ascending: false })
+        .order('performed_at', { ascending: false })
         .limit(limit);
 
       if (prospectId) {
@@ -73,7 +62,7 @@ export function ActivityTimeline({
 
       if (error) throw error;
 
-      setActivities((data || []) as TouchpointActivity[]);
+      setActivities(data || []);
     } catch (error) {
       console.error('Error loading activities:', error);
     } finally {
@@ -115,8 +104,9 @@ export function ActivityTimeline({
   return (
     <div className="space-y-3">
       {activities.map((activity) => {
-        const Icon = activityIcons[activity.type] || activityIcons.other;
-        const colorClass = activityColors[activity.type] || activityColors.other;
+        const touchpointType = activity.touchpoint_type || 'other';
+        const Icon = activityIcons[touchpointType] || activityIcons.other;
+        const colorClass = activityColors[touchpointType] || activityColors.other;
 
         return (
           <Card key={activity.id} className="hover:shadow-md transition-shadow">
@@ -132,7 +122,7 @@ export function ActivityTimeline({
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className="text-xs">
-                        {activity.type}
+                        {touchpointType}
                       </Badge>
                       {activity.direction && (
                         <Badge variant="outline" className="text-xs">
@@ -146,7 +136,7 @@ export function ActivityTimeline({
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(activity.occurred_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(activity.performed_at), { addSuffix: true })}
                     </span>
                   </div>
 
@@ -154,9 +144,9 @@ export function ActivityTimeline({
                     <h4 className="font-medium mb-1">{activity.subject}</h4>
                   )}
 
-                  {activity.body_preview && (
+                  {activity.content_preview && (
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                      {activity.body_preview}
+                      {activity.content_preview}
                     </p>
                   )}
                 </div>
