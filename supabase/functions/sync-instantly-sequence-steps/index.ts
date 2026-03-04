@@ -91,6 +91,8 @@ serve(async (req) => {
             variant_id: step.variant_id || null,
             variant_label: step.variant_label || null,
             subject_line: step.subject_line || null,
+            body_text: (step as any).body_text || (step as any).body || (step as any).content || null,
+            body_html: (step as any).body_html || (step as any).html_content || null,
             sent_count: step.sent_count || 0,
             open_count: step.open_count || 0,
             reply_count: step.reply_count || 0,

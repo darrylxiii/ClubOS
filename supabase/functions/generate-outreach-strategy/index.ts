@@ -72,6 +72,10 @@ Deno.serve(async (req) => {
       .order('confidence_score', { ascending: false })
       .limit(15);
 
+    const learningsContext = outreachLearnings && outreachLearnings.length > 0
+      ? `\n\nProven Patterns From Your Outreach Data (use these to inform your strategy):\n${outreachLearnings.map((l: any, i: number) => `${i + 1}. [${l.learning_type}] ${l.pattern} (confidence: ${l.confidence_score}%, lift: ${l.performance_lift || 'N/A'}%)`).join('\n')}`
+      : '';
+
     const systemPrompt = `You are an expert cold outreach strategist for The Quantum Club, a premium talent platform. Generate a comprehensive outreach strategy.
 
 Industry Context:
@@ -84,7 +88,7 @@ Industry Benchmarks:
 ${JSON.stringify(benchmarks?.[0] || { avg_open_rate: 25, avg_reply_rate: 4 }, null, 2)}
 
 Top Performing Campaign Patterns:
-${JSON.stringify(topCampaigns?.slice(0, 2) || [], null, 2)}
+${JSON.stringify(topCampaigns?.slice(0, 2) || [], null, 2)}${learningsContext}
 
 Generate a complete outreach strategy including:
 1. Recommended sequence structure (number of emails, timing)
