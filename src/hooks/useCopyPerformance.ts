@@ -86,14 +86,14 @@ export function useCopyPerformance() {
 
       // Subject line leaderboard
       const subjects: SubjectLinePerformance[] = steps
-        .filter(s => s.subject_line && s.total_sent > 0)
+        .filter(s => s.subject_line && (s.sent_count || 0) > 0)
         .map(s => ({
           subject_line: s.subject_line,
           campaign_name: s.campaign?.name || 'Unknown',
           campaign_id: s.campaign_id,
-          sends: s.total_sent || 0,
-          opens: s.total_opens || 0,
-          replies: s.total_replies || 0,
+          sends: s.sent_count || 0,
+          opens: s.open_count || 0,
+          replies: s.reply_count || 0,
           open_rate: s.open_rate || 0,
           reply_rate: s.reply_rate || 0,
           step_number: s.step_number || 1,
@@ -102,18 +102,19 @@ export function useCopyPerformance() {
 
       // Body copy leaderboard
       const bodies: BodyCopyPerformance[] = steps
-        .filter(s => s.body_text && s.total_sent > 0)
+        .filter(s => s.body_text && (s.sent_count || 0) > 0)
         .map(s => {
           const positiveCount = positiveRepliesByCampaign[s.campaign_id] || 0;
+          const sentCount = s.sent_count || 0;
           return {
             body_preview: (s.body_text || '').slice(0, 120),
             campaign_name: s.campaign?.name || 'Unknown',
             campaign_id: s.campaign_id,
-            sends: s.total_sent || 0,
-            replies: s.total_replies || 0,
+            sends: sentCount,
+            replies: s.reply_count || 0,
             reply_rate: s.reply_rate || 0,
             positive_replies: positiveCount,
-            positive_rate: s.total_sent > 0 ? (positiveCount / s.total_sent) * 100 : 0,
+            positive_rate: sentCount > 0 ? (positiveCount / sentCount) * 100 : 0,
             step_number: s.step_number || 1,
           };
         })
@@ -124,10 +125,10 @@ export function useCopyPerformance() {
       steps.forEach(s => {
         const n = s.step_number || 1;
         if (!stepMap[n]) stepMap[n] = { opens: [], replies: [], positives: [], sends: 0, campaigns: new Set() };
-        if (s.total_sent > 0) {
+        if ((s.sent_count || 0) > 0) {
           stepMap[n].opens.push(s.open_rate || 0);
           stepMap[n].replies.push(s.reply_rate || 0);
-          stepMap[n].sends += s.total_sent || 0;
+          stepMap[n].sends += s.sent_count || 0;
           stepMap[n].campaigns.add(s.campaign_id);
         }
       });

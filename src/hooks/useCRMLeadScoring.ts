@@ -111,10 +111,11 @@ export const useCRMLeadScoring = (prospectId: string) => {
 
       setScoreBreakdown(scores);
 
-      // Update the prospect's composite_score
+      // Update the prospect's lead_score (authoritative score column)
       await supabase
         .from('crm_prospects')
         .update({
+          lead_score: scores.total,
           composite_score: scores.total,
           updated_at: new Date().toISOString(),
         })
