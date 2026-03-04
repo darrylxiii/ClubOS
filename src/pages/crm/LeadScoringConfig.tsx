@@ -57,9 +57,10 @@ export default function LeadScoringConfig() {
               currentScore={75}
               scoreBreakdown={{
                 engagement: 30,
-                companyFit: 20,
-                roleSeniority: 15,
-                replySentiment: 10,
+                profile: 20,
+                assessment: 15,
+                referrals: 5,
+                skills_match: 5,
                 total: 75
               }}
             />
@@ -68,9 +69,10 @@ export default function LeadScoringConfig() {
               currentScore={52}
               scoreBreakdown={{
                 engagement: 20,
-                companyFit: 15,
-                roleSeniority: 10,
-                replySentiment: 7,
+                profile: 15,
+                assessment: 10,
+                referrals: 4,
+                skills_match: 3,
                 total: 52
               }}
             />
@@ -79,9 +81,10 @@ export default function LeadScoringConfig() {
               currentScore={35}
               scoreBreakdown={{
                 engagement: 10,
-                companyFit: 10,
-                roleSeniority: 10,
-                replySentiment: 5,
+                profile: 10,
+                assessment: 7,
+                referrals: 5,
+                skills_match: 3,
                 total: 35
               }}
             />
