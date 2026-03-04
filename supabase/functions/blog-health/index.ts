@@ -150,7 +150,7 @@ serve(async (req) => {
       issues,
       stuckItems: stuckItems.map((i: any) => ({
         id: i.id,
-        title: i.title,
+        topic: i.topic,
         lockedAt: i.locked_at,
       })),
     };
