@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
+import { logAIUsage, extractClientInfo } from "../_shared/ai-logger.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -269,7 +269,14 @@ The field for text content is ALWAYS "content", never "text". The field for quot
     }
 
     const aiResult = await response.json();
+    const aiStartTime = Date.now();
 
+    // Extract token usage for cost tracking
+    const tokensUsed = aiResult.usage?.total_tokens
+      || ((aiResult.usage?.prompt_tokens || 0) + (aiResult.usage?.completion_tokens || 0))
+      || null;
+
+    const clientInfo = extractClientInfo(req);
     const parseModelJson = (raw: unknown) => {
       if (typeof raw !== 'string') {
         throw new Error('AI response did not include valid JSON');
@@ -334,11 +341,22 @@ The field for text content is ALWAYS "content", never "text". The field for quot
         status: qualityPass ? 'draft' : 'failed',
         ai_generated: true,
         performance_score: 0,
+        content_format: format,
       })
       .select()
       .single();
 
     if (insertError) throw insertError;
+
+    // Log AI usage for cost tracking
+    logAIUsage({
+      functionName: 'blog-generate',
+      tokensUsed: tokensUsed || undefined,
+      responseTimeMs: Date.now() - aiStartTime,
+      success: qualityPass,
+      requestPayload: { topic: normalizedTopic, category, format, slug },
+      ...clientInfo,
+    }).catch(() => {});
 
     // Update queue
     if (queueId) {

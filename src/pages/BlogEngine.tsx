@@ -45,12 +45,11 @@ const BlogEngine: React.FC = () => {
       const analytics = (analyticsRes.data || []) as any[];
       const queue = queueRes.data || [];
 
-      const totalViews = analytics.reduce((s: number, a: any) => s + (a.views || 0), 0);
+      const totalViews = analytics.reduce((s: number, a: any) => s + (a.page_views || 0), 0);
       const avgScroll = analytics.length
-        ? Math.round(analytics.reduce((s: number, a: any) => s + (a.avg_scroll_depth || 0), 0) / analytics.length)
+        ? Math.round(analytics.reduce((s: number, a: any) => s + (a.scroll_depth || 0), 0) / analytics.length)
         : 0;
       const totalClicks = analytics.reduce((s: number, a: any) => s + (a.cta_clicks || 0), 0);
-      const completions = analytics.reduce((s: number, a: any) => s + (a.completions || 0), 0);
 
       const publishedPosts = posts.filter((p: any) => p.status === 'published');
       const topPosts = [...publishedPosts]
@@ -65,7 +64,6 @@ const BlogEngine: React.FC = () => {
         totalViews,
         avgScroll,
         totalClicks,
-        completions,
         topPosts,
       };
     },
@@ -167,10 +165,10 @@ const BlogEngine: React.FC = () => {
               <Card>
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    <span className="text-xs uppercase tracking-wide">Completions</span>
+                    <Users className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">Drafts</span>
                   </div>
-                  <p className="text-2xl font-semibold">{stats?.completions ?? '—'}</p>
+                  <p className="text-2xl font-semibold">{stats?.drafts ?? '—'}</p>
                 </CardContent>
               </Card>
               <Card>

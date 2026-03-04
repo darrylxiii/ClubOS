@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logAIUsage, extractClientInfo } from "../_shared/ai-logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,8 @@ serve(async (req) => {
 
   try {
     const { postId, prompt } = await req.json();
+    const startTime = Date.now();
+    const clientInfo = extractClientInfo(req);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
@@ -56,6 +59,9 @@ serve(async (req) => {
     }
 
     const result = await response.json();
+    const tokensUsed = result.usage?.total_tokens
+      || ((result.usage?.prompt_tokens || 0) + (result.usage?.completion_tokens || 0))
+      || null;
     const imageData = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     let imageUrl = '/placeholder.svg';
@@ -84,6 +90,16 @@ serve(async (req) => {
         .update({ hero_image: { url: imageUrl, alt: prompt } })
         .eq('id', postId);
     }
+
+    // Log AI usage for cost tracking
+    logAIUsage({
+      functionName: 'blog-generate-image',
+      tokensUsed: tokensUsed || undefined,
+      responseTimeMs: Date.now() - startTime,
+      success: imageUrl !== '/placeholder.svg',
+      requestPayload: { postId, prompt: prompt?.slice(0, 100) },
+      ...clientInfo,
+    }).catch(() => {});
 
     return new Response(JSON.stringify({ imageUrl, postId }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -929,7 +929,7 @@ export type Database = {
           learnings_extracted: Json | null
           outcome_quality: number | null
           reviewed_by: string | null
-          time_to_outcome: unknown
+          time_to_outcome: string | null
           user_id: string | null
           was_reviewed: boolean | null
         }
@@ -944,7 +944,7 @@ export type Database = {
           learnings_extracted?: Json | null
           outcome_quality?: number | null
           reviewed_by?: string | null
-          time_to_outcome?: unknown
+          time_to_outcome?: string | null
           user_id?: string | null
           was_reviewed?: boolean | null
         }
@@ -959,7 +959,7 @@ export type Database = {
           learnings_extracted?: Json | null
           outcome_quality?: number | null
           reviewed_by?: string | null
-          time_to_outcome?: unknown
+          time_to_outcome?: string | null
           user_id?: string | null
           was_reviewed?: boolean | null
         }
@@ -3810,7 +3810,7 @@ export type Database = {
           is_immutable: boolean | null
           last_backup_at: string | null
           metadata: Json | null
-          replication_frequency: unknown
+          replication_frequency: string
           retention_days: number
           table_name: string
           updated_at: string | null
@@ -3822,7 +3822,7 @@ export type Database = {
           is_immutable?: boolean | null
           last_backup_at?: string | null
           metadata?: Json | null
-          replication_frequency: unknown
+          replication_frequency: string
           retention_days: number
           table_name: string
           updated_at?: string | null
@@ -3834,7 +3834,7 @@ export type Database = {
           is_immutable?: boolean | null
           last_backup_at?: string | null
           metadata?: Json | null
-          replication_frequency?: unknown
+          replication_frequency?: string
           retention_days?: number
           table_name?: string
           updated_at?: string | null
@@ -57125,7 +57125,7 @@ export type Database = {
         Args: {
           p_bucket_id: string
           p_max_uploads: number
-          p_window_interval: unknown
+          p_window_interval: string
         }
         Returns: boolean
       }
@@ -57320,7 +57320,7 @@ export type Database = {
           participants_count: number
           reward_pool: number
           start_date: string
-          time_remaining: unknown
+          time_remaining: string
           title: string
           user_progress: Json
           user_rank: number
