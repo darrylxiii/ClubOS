@@ -125,10 +125,10 @@ export function useCopyPerformance() {
       steps.forEach(s => {
         const n = s.step_number || 1;
         if (!stepMap[n]) stepMap[n] = { opens: [], replies: [], positives: [], sends: 0, campaigns: new Set() };
-        if (s.total_sent > 0) {
+        if ((s.sent_count || 0) > 0) {
           stepMap[n].opens.push(s.open_rate || 0);
           stepMap[n].replies.push(s.reply_rate || 0);
-          stepMap[n].sends += s.total_sent || 0;
+          stepMap[n].sends += s.sent_count || 0;
           stepMap[n].campaigns.add(s.campaign_id);
         }
       });
