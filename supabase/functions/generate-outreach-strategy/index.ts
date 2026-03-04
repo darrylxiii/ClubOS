@@ -63,6 +63,15 @@ Deno.serve(async (req) => {
       .order('total_replied', { ascending: false })
       .limit(3);
 
+    // Get proven outreach learnings from the ML loop
+    const { data: outreachLearnings } = await supabase
+      .from('crm_outreach_learnings')
+      .select('learning_type, pattern, evidence, confidence_score, performance_lift')
+      .eq('is_active', true)
+      .gte('confidence_score', 50)
+      .order('confidence_score', { ascending: false })
+      .limit(15);
+
     const systemPrompt = `You are an expert cold outreach strategist for The Quantum Club, a premium talent platform. Generate a comprehensive outreach strategy.
 
 Industry Context:
