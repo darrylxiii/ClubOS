@@ -27,6 +27,7 @@ serve(async (req) => {
       stuckQueueResult,
       totalPostsResult,
       subscribersResult,
+      draftPostsResult,
     ] = await Promise.all([
       supabase
         .from('blog_page_views')
