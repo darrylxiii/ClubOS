@@ -3,127 +3,102 @@ import { supabase } from '@/integrations/supabase/client';
 import { LeadScoreBreakdown } from '@/types/crm';
 import { toast } from 'sonner';
 
-export const useCRMLeadScoring = (contactId: string) => {
+export const useCRMLeadScoring = (prospectId: string) => {
   const [scoreBreakdown, setScoreBreakdown] = useState<LeadScoreBreakdown | null>(null);
   const [loading, setLoading] = useState(false);
 
   const calculateLeadScore = async () => {
+    if (!prospectId) return null;
     setLoading(true);
     try {
       const scores: LeadScoreBreakdown = {
-        assessment: 0,      // Max 40 points
-        engagement: 0,      // Max 30 points
-        profile: 0,         // Max 15 points
-        referrals: 0,       // Max 10 points
-        skills_match: 0,    // Max 5 points
-        total: 0
+        assessment: 0,
+        engagement: 0,
+        profile: 0,
+        referrals: 0,
+        skills_match: 0,
+        total: 0,
       };
 
-      // Get contact and profile data
-      const { data: contact } = await supabase
-        .from('crm_contacts' as any)
-        .select('profile_id')
-        .eq('id', contactId)
+      // Get prospect data
+      const { data: prospect } = await supabase
+        .from('crm_prospects')
+        .select('*')
+        .eq('id', prospectId)
         .single();
 
-      if (!contact) {
-        throw new Error('Contact not found');
+      if (!prospect) {
+        throw new Error('Prospect not found');
       }
 
-      const userId = (contact as any).profile_id;
-
-      // 1. Assessment Score (Max 40 points)
-      const { data: assessments } = await supabase
-        .from('candidate_assessment_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (assessments) {
-        // Pressure Cooker score (15 points)
-        if (assessments.prioritization_skill) {
-          scores.assessment += assessments.prioritization_skill * 0.15;
-        }
-        // Self-awareness score (15 points)
-        if (assessments.self_awareness_score) {
-          scores.assessment += assessments.self_awareness_score * 0.15;
-        }
-        // Value consistency (10 points)
-        if (assessments.value_consistency_score) {
-          scores.assessment += assessments.value_consistency_score * 0.10;
-        }
-      }
-
-      // 2. Engagement Score (Max 30 points)
+      // 1. Engagement Score (Max 40 points) — based on touchpoints and replies
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const [messagesRes, activitiesRes, loginsRes] = await Promise.all([
+      const [touchpointsRes, repliesRes] = await Promise.all([
         supabase
-          .from('messages')
+          .from('crm_touchpoints')
           .select('*', { count: 'exact', head: true })
-          .eq('sender_id', userId)
-          .gte('created_at', thirtyDaysAgo.toISOString()),
+          .eq('prospect_id', prospectId)
+          .gte('occurred_at', thirtyDaysAgo.toISOString()),
         supabase
-          .from('crm_activities' as any)
+          .from('crm_email_replies')
           .select('*', { count: 'exact', head: true })
-          .eq('created_by', userId)
-          .gte('created_at', thirtyDaysAgo.toISOString()),
-        supabase
-          .from('profiles')
-          .select('updated_at')
-          .eq('id', userId)
-          .single()
+          .eq('prospect_id', prospectId),
       ]);
 
-      const messageCount = messagesRes.count || 0;
-      const activityCount = activitiesRes.count || 0;
-      
-      // Messages (10 points, 1 point per 2 messages)
-      scores.engagement += Math.min(10, messageCount * 0.5);
-      
-      // Activities (10 points, 2 points per activity)
-      scores.engagement += Math.min(10, activityCount * 2);
-      
-      // Recent activity (10 points if active in last 7 days)
-      if (loginsRes.data?.updated_at) {
-        const lastSeen = new Date(loginsRes.data.updated_at);
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        if (lastSeen > sevenDaysAgo) {
-          scores.engagement += 10;
-        }
-      }
+      const touchpointCount = touchpointsRes.count || 0;
+      const replyCount = repliesRes.count || 0;
 
-      // 3. Profile Completeness (Max 15 points)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      // Touchpoints (20 points max, 4 points per touchpoint)
+      scores.engagement += Math.min(20, touchpointCount * 4);
+      // Replies (20 points max, 10 points per reply)
+      scores.engagement += Math.min(20, replyCount * 10);
 
-      if (profile) {
-        let profileFields = 0;
-        if (profile.full_name) profileFields++;
-        if (profile.email) profileFields++;
-        if (profile.avatar_url) profileFields++;
-        if (profile.location) profileFields++;
-        
-        scores.profile = (profileFields / 4) * 15;
-      }
+      // 2. Profile Completeness (Max 30 points)
+      let profileFields = 0;
+      if (prospect.full_name) profileFields++;
+      if (prospect.email) profileFields++;
+      if (prospect.company_name) profileFields++;
+      if (prospect.job_title) profileFields++;
+      if (prospect.phone) profileFields++;
+      if (prospect.linkedin_url) profileFields++;
+      if (prospect.company_domain) profileFields++;
+      if (prospect.industry) profileFields++;
+      scores.profile = (profileFields / 8) * 30;
 
-      // 4. Referrals (Max 10 points)
-      const { count: referralCount } = await supabase
-        .from('referrals' as any)
-        .select('*', { count: 'exact', head: true })
-        .eq('referred_by', userId)
-        .eq('status', 'hired');
+      // 3. Assessment (Max 15 points) — based on stage progression
+      const stageScores: Record<string, number> = {
+        new: 0,
+        contacted: 3,
+        interested: 7,
+        qualified: 10,
+        meeting_booked: 13,
+        proposal_sent: 14,
+        won: 15,
+      };
+      scores.assessment = stageScores[prospect.stage] || 0;
 
-      scores.referrals = Math.min(10, (referralCount || 0) * 5);
+      // 4. Source quality (Max 10 points)
+      const sourceScores: Record<string, number> = {
+        partner_funnel: 10,
+        referral: 8,
+        website: 7,
+        linkedin: 5,
+        instantly: 3,
+        csv_import: 2,
+        manual: 1,
+      };
+      scores.referrals = sourceScores[prospect.source || ''] || 0;
 
-      // 5. Skills Match (Max 5 points) - placeholder for now
-      // This would compare skills against open jobs
-      scores.skills_match = 0;
+      // 5. Reply sentiment bonus (Max 5 points)
+      const sentimentScores: Record<string, number> = {
+        hot: 5,
+        warm: 3,
+        neutral: 1,
+        cold: 0,
+      };
+      scores.skills_match = sentimentScores[prospect.reply_sentiment || ''] || 0;
 
       // Calculate total
       scores.total = Math.round(
@@ -136,14 +111,14 @@ export const useCRMLeadScoring = (contactId: string) => {
 
       setScoreBreakdown(scores);
 
-      // Update the contact's lead score in the database
+      // Update the prospect's composite_score
       await supabase
-        .from('crm_contacts' as any)
-        .update({ 
-          lead_score: scores.total,
-          engagement_score: Math.round(scores.engagement)
+        .from('crm_prospects')
+        .update({
+          composite_score: scores.total,
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', contactId);
+        .eq('id', prospectId);
 
       return scores;
     } catch (error) {
@@ -160,14 +135,14 @@ export const useCRMLeadScoring = (contactId: string) => {
   };
 
   useEffect(() => {
-    if (contactId) {
+    if (prospectId) {
       calculateLeadScore();
     }
-  }, [contactId]);
+  }, [prospectId]);
 
   return {
     scoreBreakdown,
     loading,
-    recalculateScore
+    recalculateScore,
   };
 };

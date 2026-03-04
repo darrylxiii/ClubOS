@@ -416,90 +416,30 @@ export interface BookingLink {
 
 // ============= CRM Types =============
 
-export interface CRMContact {
+export interface CRMProspect {
   id: string;
-  profile_id: string;
-  company_id?: string | null;
-  contact_type: string;
-  lifecycle_stage?: string | null;
-  lead_score: number;
-  engagement_score: number;
-  tags: string[];
-  owner_id?: string | null;
-  created_at: string;
-  updated_at: string;
-  
-  // Joined profile data
-  profiles?: {
-    full_name: string;
-    email: string;
-    avatar_url?: string | null;
-  };
-  
-  // Joined company data
-  companies?: {
-    id: string;
-    name: string;
-    logo_url?: string | null;
-  };
-  
-  // Custom fields (typed)
-  custom_fields: Record<string, string | number | boolean | null>;
-  
-  // Computed fields
-  recent_activities?: CRMActivity[];
-  active_deals_count?: number;
-  lifetime_value?: number;
-}
-
-export interface CRMDeal {
-  id: string;
-  deal_type: string;
-  job_id?: string | null;
-  application_id?: string | null;
-  company_id?: string | null;
-  title: string;
-  description?: string | null;
-  value?: number | null;
-  currency: string;
+  email: string;
+  full_name: string;
+  company_name?: string | null;
+  job_title?: string | null;
+  phone?: string | null;
+  linkedin_url?: string | null;
+  company_domain?: string | null;
+  industry?: string | null;
   stage: string;
-  probability?: number | null;
-  close_date?: string | null;
-  owner_id?: string | null;
   source?: string | null;
+  composite_score: number;
+  reply_sentiment?: string | null;
   tags: string[];
+  notes?: string | null;
   created_at: string;
   updated_at: string;
-  closed_at?: string | null;
-  
-  // Joined contact data
-  crm_contacts?: {
-    id: string;
-    lead_score: number;
-    engagement_score: number;
-  };
-  
-  // Joined company data
-  companies?: {
-    id: string;
-    name: string;
-  };
-  
-  // Joined job data (if applicable)
-  jobs?: {
-    id: string;
-    title: string;
-  };
-  
-  // Custom fields (typed)
-  custom_fields: Record<string, string | number | boolean | null>;
 }
 
 export interface CRMActivity {
   id: string;
   activity_type: string;
-  contact_id?: string | null;
-  deal_id?: string | null;
+  prospect_id?: string | null;
   company_id?: string | null;
   subject?: string | null;
   description?: string | null;
@@ -512,11 +452,6 @@ export interface CRMActivity {
   completed_at?: string | null;
   created_at: string;
   
-  // Joined contact data
-  crm_contacts?: {
-    id: string;
-  };
-  
   // Joined creator data
   creator_profile?: {
     full_name: string;
@@ -528,243 +463,3 @@ export interface CRMActivity {
 }
 
 // ============= Document Types =============
-
-export interface Document {
-  id: string;
-  file_name: string;
-  file_url: string;
-  file_size: number;
-  file_type: string;
-  document_type: string;
-  uploaded_by: string;
-  application_id?: string | null;
-  candidate_profile_id?: string | null;
-  expires_at?: string | null;
-  is_archived: boolean;
-  archived_at?: string | null;
-  created_at: string;
-  updated_at: string;
-  
-  // Joined uploader data
-  uploader_profile?: {
-    full_name: string;
-    email: string;
-    avatar_url?: string | null;
-  };
-  
-  // Joined application data (if applicable)
-  applications?: {
-    id: string;
-    current_stage: string;
-  };
-  
-  // Computed fields
-  is_expired?: boolean;
-  days_until_expiry?: number;
-  file_size_mb?: number;
-}
-
-// ============= Assessment Types =============
-
-export interface AssessmentAssignment {
-  id: string;
-  assessment_id: string;
-  assigned_to: string;
-  assigned_by: string;
-  due_date?: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  completed_at?: string | null;
-  
-  // Joined assessment data
-  assessment_ref?: {
-    id: string;
-    name: string;
-    category: string;
-    estimated_time_minutes: number;
-  };
-  
-  // Joined assignee data
-  profiles?: {
-    full_name: string;
-    email: string;
-    avatar_url?: string | null;
-  };
-  
-  // Joined results
-  assessment_results?: AssessmentResult[];
-  
-  // Computed fields
-  is_overdue?: boolean;
-  days_until_due?: number;
-}
-
-export interface AssessmentResult {
-  id: string;
-  assignment_id: string;
-  score: number;
-  created_at: string;
-  completed_at: string;
-  
-  // Typed results_data based on assessment category
-  results_data: AssessmentResultData;
-  
-  // Joined assignment data
-  assessment_assignments?: {
-    id: string;
-    due_date?: string | null;
-  };
-}
-
-export type AssessmentResultData =
-  | { type: 'incubator'; score: number; plan_quality: number; execution_strategy: number }
-  | { type: 'swipe'; decisions_made: number; optimal_decisions: number; decision_quality: number }
-  | { type: 'pressure_cooker'; tasks_completed: number; prioritization_score: number }
-  | { type: 'blind_spot'; self_awareness_score: number; gaps: Array<{ dimension: string; gap_size: number }> }
-  | { type: 'values_poker'; top_values: string[]; allocation_efficiency: number }
-  | Record<string, unknown>;
-
-// ============= Message Types =============
-
-export interface Message {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  recipient_id?: string | null;
-  content: string;
-  message_type: string;
-  is_read: boolean;
-  read_at?: string | null;
-  created_at: string;
-  updated_at: string;
-  
-  // Joined sender data
-  sender_profile?: {
-    full_name: string;
-    email: string;
-    avatar_url?: string | null;
-  };
-  
-  // Joined recipient data
-  recipient_profile?: {
-    full_name: string;
-    email: string;
-    avatar_url?: string | null;
-  };
-  
-  // Joined conversation data
-  conversations?: {
-    id: string;
-    title?: string | null;
-    status: string;
-  };
-  
-  // Typed metadata
-  metadata: MessageMetadata;
-}
-
-export type MessageMetadata = {
-  attachments?: Array<{
-    name: string;
-    url: string;
-    size: number;
-    type: string;
-  }>;
-  quoted_message_id?: string;
-  ai_generated?: boolean;
-  sentiment?: 'positive' | 'neutral' | 'negative';
-  [key: string]: unknown;
-};
-
-// ============= Task & Project Types =============
-
-export interface UnifiedTask {
-  id: string;
-  title: string;
-  description?: string | null;
-  status: string;
-  priority: string;
-  due_date?: string | null;
-  assigned_to?: string | null;
-  board_id?: string | null;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  completed_at?: string | null;
-  
-  // Joined assignee data
-  assignee_profile?: {
-    full_name: string;
-    email: string;
-    avatar_url?: string | null;
-  };
-  
-  // Joined board data (if applicable)
-  task_boards?: {
-    id: string;
-    name: string;
-    icon: string;
-    color: string;
-  };
-  
-  // Typed metadata
-  metadata: TaskMetadata;
-  
-  // Computed fields
-  is_overdue?: boolean;
-  days_until_due?: number;
-  priority_score?: number;
-}
-
-export type TaskMetadata = {
-  subtasks?: Array<{
-    title: string;
-    completed: boolean;
-  }>;
-  checklist?: Array<{
-    item: string;
-    checked: boolean;
-  }>;
-  time_estimate_minutes?: number;
-  actual_time_minutes?: number;
-  blocked_by?: string[];
-  [key: string]: unknown;
-};
-
-// ============= Utility Types =============
-
-export type DatabaseError = {
-  message: string;
-  details?: string;
-  hint?: string;
-  code?: string;
-};
-
-export type PaginationParams = {
-  page: number;
-  pageSize: number;
-};
-
-export type PaginatedResponse<T> = {
-  data: T[];
-  count: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-};
-
-export type SortOrder = 'asc' | 'desc';
-
-export type DateRange = {
-  start: string | Date;
-  end: string | Date;
-};
-
-export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike' | 'in' | 'is';
-
-export type QueryFilter = {
-  column: string;
-  operator: FilterOperator;
-  value: unknown;
-};

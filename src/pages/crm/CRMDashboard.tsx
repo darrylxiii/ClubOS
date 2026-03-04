@@ -17,7 +17,6 @@ import {
   Calendar,
   MessageSquare,
   Focus,
-  DollarSign
 } from 'lucide-react';
 import { useCRMProspects } from '@/hooks/useCRMProspects';
 import { useCRMCampaigns } from '@/hooks/useCRMCampaigns';
@@ -27,7 +26,6 @@ import { CRMAnalyticsOverview } from '@/components/crm/CRMAnalyticsOverview';
 import { CRMWeightedPipeline } from '@/components/crm/CRMWeightedPipeline';
 import { CRMActivityReminderBell } from '@/components/crm/CRMActivityReminderBell';
 import { CRMRealtimeProvider } from '@/components/crm/CRMRealtimeProvider';
-import { SeedCRMDataButton } from '@/components/crm/SeedCRMDataButton';
 import { useState } from 'react';
 
 export default function CRMDashboard() {
@@ -37,12 +35,6 @@ export default function CRMDashboard() {
   const { replies, loading: repliesLoading, refetch: refetchReplies } = useCRMEmailReplies({ isActioned: false, limit: 100 });
 
   const loading = prospectsLoading || campaignsLoading || repliesLoading;
-  
-  const handleDataSeeded = () => {
-    refetchProspects();
-    refetchCampaigns();
-    refetchReplies();
-  };
 
   // Calculate stats
   const totalProspects = prospects.length;
@@ -143,7 +135,6 @@ export default function CRMDashboard() {
               <CRMActivityReminderBell />
             </div>
             <div className="flex gap-2">
-              <SeedCRMDataButton onSuccess={handleDataSeeded} />
               <Button variant="outline" asChild>
                 <Link to="/crm/campaigns">
                   <BarChart3 className="w-4 h-4 mr-2" />
