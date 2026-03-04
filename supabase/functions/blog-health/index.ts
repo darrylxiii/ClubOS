@@ -52,6 +52,11 @@ serve(async (req) => {
         .from('blog_subscribers')
         .select('id', { count: 'exact', head: true })
         .is('unsubscribed_at', null),
+
+      supabase
+        .from('blog_posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'draft'),
     ]);
 
     // Detailed post checks for SEO validation
