@@ -7,6 +7,8 @@ import BlogGrid from '@/components/blog/BlogGrid';
 import NewsletterCapture from '@/components/blog/NewsletterCapture';
 import BlogErrorBoundary from '@/components/blog/BlogErrorBoundary';
 import { useDynamicBlogPosts, useFeaturedBlogPost } from '@/hooks/useDynamicBlogPosts';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);

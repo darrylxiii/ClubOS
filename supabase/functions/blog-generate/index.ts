@@ -410,6 +410,33 @@ The field for text content is ALWAYS "content", never "text". The field for quot
         },
         body: JSON.stringify({ postId: post.id, prompt: imagePrompt }),
       }).catch(err => console.warn('Hero image generation fire-and-forget failed:', err.message));
+
+      // Auto-newsletter with spam protection: only send if no article was published in the last 6 hours
+      const { data: recentPublished } = await supabase
+        .from('blog_posts')
+        .select('published_at')
+        .eq('status', 'published')
+        .neq('id', post.id)
+        .order('published_at', { ascending: false })
+        .limit(1);
+
+      const sixHoursAgo = Date.now() - 6 * 3600000;
+      const lastPublishedAt = recentPublished?.[0]?.published_at;
+      const shouldSendNewsletter = !lastPublishedAt || new Date(lastPublishedAt).getTime() < sixHoursAgo;
+
+      if (shouldSendNewsletter) {
+        const newsletterUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-newsletter-send`;
+        fetch(newsletterUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+          body: JSON.stringify({ postId: post.id }),
+        }).catch(err => console.warn('Newsletter fire-and-forget failed:', err.message));
+      } else {
+        console.log(`Skipping newsletter: another article was published within 6 hours`);
+      }
     }
 
     console.log(`Blog generated: "${content.title}" | ${blockCount} blocks, ${totalChars} chars, ${headingCount} headings | quality: ${qualityPass ? 'PASS' : 'FAIL'}`);
