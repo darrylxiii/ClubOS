@@ -125,6 +125,10 @@ serve(async (req) => {
       issues.push(`${fewKeywords.length} post(s) have fewer than 3 keywords`);
     }
 
+    if (draftPosts > 5) {
+      issues.push(`${draftPosts} draft post(s) sitting unpublished`);
+    }
+
     const maxPosts = Math.max(1, totalPosts);
     const seoScore = Math.round(
       100
