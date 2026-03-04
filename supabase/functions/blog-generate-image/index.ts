@@ -59,6 +59,9 @@ serve(async (req) => {
     }
 
     const result = await response.json();
+    const tokensUsed = result.usage?.total_tokens
+      || ((result.usage?.prompt_tokens || 0) + (result.usage?.completion_tokens || 0))
+      || null;
     const imageData = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     let imageUrl = '/placeholder.svg';
