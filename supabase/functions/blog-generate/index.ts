@@ -316,6 +316,31 @@ The field for text content is ALWAYS "content", never "text". The field for quot
       }
     }
 
+    // --- Internal link validation ---
+    const publishedSlugs = new Set((recentPosts || []).map((p: any) => p.slug));
+    const internalLinkRegex = /\[([^\]]+)\]\((\/blog\/[^)]+)\)/g;
+    let brokenLinksRemoved = 0;
+
+    for (const block of blocks) {
+      if (block.type === 'paragraph' && block.content) {
+        block.content = block.content.replace(internalLinkRegex, (match: string, text: string, url: string) => {
+          // Extract slug from URL like /blog/category/slug
+          const parts = url.split('/').filter(Boolean);
+          const slug = parts[parts.length - 1];
+          if (!publishedSlugs.has(slug)) {
+            brokenLinksRemoved++;
+            console.warn(`Removed broken internal link: ${url}`);
+            return text; // Strip the link, keep the text
+          }
+          return match;
+        });
+      }
+    }
+
+    if (brokenLinksRemoved > 0) {
+      console.log(`Cleaned ${brokenLinksRemoved} broken internal links from generated content`);
+    }
+
     const totalChars = blocks.reduce((sum: number, b: any) => sum + (b.content?.length || 0), 0);
     const headingCount = blocks.filter((b: any) => b.type === 'heading').length;
     const blockCount = blocks.length;
