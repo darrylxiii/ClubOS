@@ -221,33 +221,27 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     },
   ],
   admin: [
-    // === CRM & SALES (pipeline, inbox, analytics, settings) ===
+    // === CRM & OUTREACH (consolidated from 2 groups into 1) ===
     {
-      title: "CRM & Sales",
+      title: "CRM & Outreach",
       icon: Contact,
       items: [
         { name: "CRM Dashboard", icon: LayoutDashboard, path: "/crm" },
-        { name: "Prospect Pipeline", icon: Target, path: "/crm/prospects" },
-        { name: "Focus View", icon: Target, path: "/crm/focus" },
+        { name: "Pipeline", icon: Target, path: "/crm/prospects" },
         { name: "Reply Inbox", icon: Mail, path: "/crm/inbox" },
-        { name: "CRM Analytics", icon: BarChart3, path: "/crm/analytics" },
-        { name: "Automations", icon: Zap, path: "/crm/automations" },
-        { name: "Integrations", icon: Link2, path: "/crm/integrations" },
+        { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
+        { name: "Analytics", icon: BarChart3, path: "/crm/analytics" },
         { name: "CRM Settings", icon: Settings, path: "/crm/settings" },
       ],
       roles: ['admin', 'strategist'],
     },
-    // === OUTREACH & PARTNERSHIPS (campaigns, WhatsApp, sequencing, partners) ===
+    // === PARTNERSHIPS ===
     {
-      title: "Outreach & Partnerships",
+      title: "Partnerships",
       icon: Zap,
-      badge: "New",
       items: [
         { name: "WhatsApp Hub", icon: Phone, path: "/admin/whatsapp", badge: "New" },
         { name: "WhatsApp Booking", icon: Calendar, path: "/admin/whatsapp-booking" },
-        { name: "Campaigns", icon: Zap, path: "/crm/campaigns" },
-        { name: "Email Sequencing", icon: Mail, path: "/email-sequences" },
-        { name: "Lead Scoring", icon: TrendingUp, path: "/crm/lead-scoring" },
         { name: "Partner Funnel", icon: Target, path: "/partner-funnel" },
         { name: "Partner Relationships", icon: Link2, path: "/partner/relationships" },
         { name: "Relationships Dashboard", icon: Building2, path: "/admin/company-relationships" },

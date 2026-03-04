@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CRMMetrics } from "@/types/crm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Briefcase, TrendingUp, Activity, Target, DollarSign } from "lucide-react";
+import { Users, TrendingUp, Activity, Target } from "lucide-react";
 
 interface CompanyCRMMetricsProps {
   companyId: string;
 }
 
+interface ProspectMetrics {
+  total_prospects: number;
+  hot_leads: number;
+  activities_this_month: number;
+  avg_score: number;
+}
+
 export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
-  const [metrics, setMetrics] = useState<CRMMetrics | null>(null);
+  const [metrics, setMetrics] = useState<ProspectMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,67 +24,45 @@ export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
 
   const loadMetrics = async () => {
     try {
+      // Get company domain to match prospects
+      const { data: company } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('id', companyId)
+        .single();
+
+      if (!company) return;
+
       const firstDayOfMonth = new Date();
       firstDayOfMonth.setDate(1);
       firstDayOfMonth.setHours(0, 0, 0, 0);
 
-      const [
-        contactsRes,
-        dealsRes,
-        activitiesRes,
-        closedDealsRes,
-        avgScoreRes
-      ] = await Promise.all([
-        // Total contacts
+      const [prospectsRes, hotRes, touchpointsRes] = await Promise.all([
         supabase
-          .from('crm_contacts' as any)
+          .from('crm_prospects')
+          .select('id, composite_score', { count: 'exact' })
+          .ilike('company_name', `%${company.name}%`),
+        supabase
+          .from('crm_prospects')
           .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId),
-        
-        // Active deals
+          .ilike('company_name', `%${company.name}%`)
+          .eq('reply_sentiment', 'hot'),
         supabase
-          .from('crm_deals' as any)
-          .select('id, value', { count: 'exact' })
-          .eq('company_id', companyId)
-          .is('closed_at', null),
-        
-        // Activities this month
-        supabase
-          .from('crm_activities' as any)
+          .from('crm_touchpoints')
           .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId)
-          .gte('created_at', firstDayOfMonth.toISOString()),
-        
-        // Closed deals this month
-        supabase
-          .from('crm_deals' as any)
-          .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId)
-          .gte('closed_at', firstDayOfMonth.toISOString()),
-        
-        // Average lead score
-        supabase
-          .from('crm_contacts' as any)
-          .select('lead_score')
-          .eq('company_id', companyId)
+          .gte('occurred_at', firstDayOfMonth.toISOString()),
       ]);
 
-      const pipelineValue = dealsRes.data?.reduce((sum: number, deal: any) => sum + (deal.value || 0), 0) || 0;
-      
-      const scores = avgScoreRes.data?.map((c: any) => c.lead_score) || [];
-      const avgLeadScore = scores.length > 0 
-        ? scores.reduce((a, b) => a + b, 0) / scores.length 
+      const scores = prospectsRes.data?.map((p: any) => p.composite_score || 0) || [];
+      const avgScore = scores.length > 0
+        ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
         : 0;
 
       setMetrics({
-        total_contacts: contactsRes.count || 0,
-        active_deals: dealsRes.count || 0,
-        pipeline_value: pipelineValue,
-        avg_lead_score: Math.round(avgLeadScore),
-        engagement_rate: 0, // Calculate based on activities vs contacts
-        conversion_rate: 0, // Calculate based on deals closed vs total
-        activities_this_month: activitiesRes.count || 0,
-        deals_closed_this_month: closedDealsRes.count || 0
+        total_prospects: prospectsRes.count || 0,
+        hot_leads: hotRes.count || 0,
+        activities_this_month: touchpointsRes.count || 0,
+        avg_score: avgScore,
       });
     } catch (error) {
       console.error('Error loading CRM metrics:', error);
@@ -113,18 +97,18 @@ export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
         CRM Metrics
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Total Contacts
+              Prospects
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.total_contacts}</div>
+            <div className="text-2xl font-bold">{metrics.total_prospects}</div>
             <p className="text-xs text-muted-foreground">
-              Avg Score: {metrics.avg_lead_score}/100
+              Avg Score: {metrics.avg_score}/100
             </p>
           </CardContent>
         </Card>
@@ -132,32 +116,12 @@ export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Briefcase className="w-4 h-4" />
-              Active Deals
+              <TrendingUp className="w-4 h-4" />
+              Hot Leads
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.active_deals}</div>
-            <p className="text-xs text-muted-foreground">
-              Closed this month: {metrics.deals_closed_this_month}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Pipeline Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              €{(metrics.pipeline_value / 1000).toFixed(1)}K
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total open opportunities
-            </p>
+            <div className="text-2xl font-bold">{metrics.hot_leads}</div>
           </CardContent>
         </Card>
 
@@ -170,28 +134,7 @@ export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.activities_this_month}</div>
-            <p className="text-xs text-muted-foreground">
-              Touchpoints logged
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Engagement
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.total_contacts > 0 
-                ? Math.round((metrics.activities_this_month / metrics.total_contacts) * 10) / 10
-                : 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Activities per contact
-            </p>
+            <p className="text-xs text-muted-foreground">Touchpoints logged</p>
           </CardContent>
         </Card>
       </div>

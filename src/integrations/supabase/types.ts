@@ -15459,6 +15459,48 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_outreach_learnings: {
+        Row: {
+          applied_count: number | null
+          confidence_score: number | null
+          created_at: string | null
+          evidence: Json
+          id: string
+          is_active: boolean | null
+          learning_type: string
+          pattern: string
+          performance_lift: number | null
+          sample_size: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          applied_count?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          evidence?: Json
+          id?: string
+          is_active?: boolean | null
+          learning_type: string
+          pattern: string
+          performance_lift?: number | null
+          sample_size?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          applied_count?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          evidence?: Json
+          id?: string
+          is_active?: boolean | null
+          learning_type?: string
+          pattern?: string
+          performance_lift?: number | null
+          sample_size?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       crm_prospects: {
         Row: {
           annual_value_source: string | null
@@ -22722,6 +22764,8 @@ export type Database = {
       }
       instantly_sequence_steps: {
         Row: {
+          body_html: string | null
+          body_text: string | null
           bounce_count: number | null
           campaign_id: string | null
           click_count: number | null
@@ -22741,6 +22785,8 @@ export type Database = {
           variant_label: string | null
         }
         Insert: {
+          body_html?: string | null
+          body_text?: string | null
           bounce_count?: number | null
           campaign_id?: string | null
           click_count?: number | null
@@ -22760,6 +22806,8 @@ export type Database = {
           variant_label?: string | null
         }
         Update: {
+          body_html?: string | null
+          body_text?: string | null
           bounce_count?: number | null
           campaign_id?: string | null
           click_count?: number | null
