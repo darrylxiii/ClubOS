@@ -1,253 +1,137 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
-
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+# Blog Engine Audit — Current Score: 82/100
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Live Metrics
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
-
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
-
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
-
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
-
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
-
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
-
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
-
-### 1.3 Emoji in Subject Lines (6 functions)
-
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
-
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
-
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
+| Metric | Value | Status |
+|--------|-------|--------|
+| Published posts | 69 | Good |
+| Placeholder hero images | 55/69 (80%) | Critical |
+| Real hero images | 14/69 (20%) | Progress (was 0) |
+| Meta titles >55 chars | 0 | Good |
+| Meta descriptions >155 chars | 0 | Good |
+| Posts with FAQ in DB | 69/69 | Good |
+| FAQ mapped to frontend | 69/69 | Good |
+| Posts with <3 keywords | 0 | Fixed |
+| Queue items stuck "generating" | 30 | Critical (NEW) |
+| Queue items with NULL locked_at | 30/30 | Bug |
+| Pending queue items | 6 | OK |
+| Draft posts (unpublished) | 15 | Attention |
+| Subscribers | 0 | No traction yet |
 
 ---
 
-## CATEGORY 2: Content & Copy Quality
+## Critical Issues
 
-### 2.1 Inconsistent Tone
+### 1. 30 queue items permanently stuck in "generating" (Impact: Critical — blocks pipeline)
 
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+The `release_stuck_queue_items()` function only resets items where `locked_at < now() - 10 min`. But all 30 stuck items have `locked_at = NULL`. They were set to "generating" without a `locked_at` timestamp — likely by the `blog-generate` function's manual UPDATE (lines 30-34) which only fires when `queueId` is provided, but `blog-batch-run` uses `claim_blog_queue_item()` which presumably sets `locked_at`. The mismatch means items claimed by one path but failed mid-generation have no `locked_at`, so the release function never touches them.
 
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
+**Fix**:
+1. Update `release_stuck_queue_items()` to ALSO release items where `status = 'generating' AND locked_at IS NULL AND updated_at < now() - interval '10 minutes'`.
+2. Run a one-time SQL fix to reset all 30 stuck items to `pending`.
 
-### 2.2 Hardcoded Contact Email Inconsistency
+### 2. 55 posts still have placeholder images (Impact: High)
 
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+Image backfill has made progress (14 real images now), but 55 remain. The `blog-backfill-images` function works but needs to be triggered repeatedly.
 
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+**Fix**: Continue triggering `blog-backfill-images` in batches. No code change needed — operational action.
 
-### 2.3 Missing "Powered by QUIN" Attribution
+### 3. 15 draft posts sitting unpublished (Impact: Medium)
 
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+These passed quality checks but were never published. If `auto_publish` is enabled in settings, this suggests posts generated before that setting was turned on.
 
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+**Fix**: Bulk-publish drafts that pass quality thresholds via a one-time SQL update.
 
----
+### 4. `blog-health` reports 0 stuck items despite 30 existing (Impact: High — monitoring is lying again)
 
-## CATEGORY 3: Technical & Security Issues
+The health check queries `status = 'generating'` and finds items, but the `stuckItems` array in the response was empty in the earlier curl. Looking at the code, line 43-44 selects `id, title, locked_at` — the `title` column likely doesn't exist on `blog_generation_queue` (it probably uses `topic`). If the query fails silently, the count could be wrong. Actually, the health endpoint DID report 0 stuck items earlier but the DB shows 30 — the query likely returns data but the `stuckItems.length` check on line 93 works fine. Let me re-check: the health endpoint response showed no stuck queue warning. This is because the query selects `title` which may not exist, causing the whole query to fail silently, returning empty data.
 
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+**Fix**: Change `select('id, title, locked_at')` to `select('id, topic, locked_at')` in `blog-health`. The column is `topic`, not `title`.
 
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+### 5. RSS `<category>` uses raw slug instead of display name (Impact: Low)
 
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+Line 48 of `blog-rss`: `<category>${escapeXml(post.category)}</category>` outputs `career-insights` instead of "Career Insights".
 
-### 3.2 `linear-gradient()` in Inline Styles
+**Fix**: Add the same `categoryNames` mapping used in `blog-og`.
 
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+### 6. `blog-generate` double-claims queue items (Impact: Low — race condition)
 
-**Fix**: Replace gradients with solid background colors.
+`blog-batch-run` calls `claim_blog_queue_item()` (atomic), then passes `queueId` to `blog-generate`, which does ANOTHER update to set `status = 'generating'` (lines 30-34). This second update targets `status = 'pending'` but the item is already `'generating'` from the claim function. The update silently fails (no rows matched), which is harmless but wasteful. More importantly, if `blog-generate` is called directly (not via batch-run) with a `queueId`, this path works correctly.
 
-### 3.3 CSS `box-shadow` in Inline Styles
+No fix needed — this is a harmless no-op.
 
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+### 7. `blog-og` SSR not reachable by social crawlers (Structural — unchanged)
 
-### 3.4 `<ul>` Tag Usage
+Social platforms (Facebook, LinkedIn, Twitter) hit the SPA URL and get generic `index.html` OG tags. The `blog-og` endpoint exists at `/blog-og/:category/:slug` but nothing points crawlers there.
 
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+**Fix**: Not solvable without SSR middleware. Documented as known limitation.
 
 ---
 
-## CATEGORY 4: Accessibility & Compliance
+## What is Working Well
 
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+- FAQ schema renders correctly for all 69 posts (verified)
+- `ai_generated` disclaimer shows on articles (verified)
+- ScrollCTA category matching works (verified)
+- BlogCategory uses dynamic posts (verified)
+- Sitemap with ETag caching and image extensions (verified)
+- RSS feed on production domain (verified)
+- `blog-og` correct author names and category display names (verified)
+- Meta titles/descriptions within limits (0 violations)
+- Keywords all ≥3 per post (0 violations)
+- WebSite + Organization + ItemList schemas present
+- FAQ sections visible in article body
+- `noindex` on 404/not-found pages
+- Category-specific inline CTAs in ArticleContent
+- Analytics pipeline (blog-track) with rate limiting
+- Image sitemap extensions ready for real images
 
 ---
 
-## CATEGORY 5: Structural Improvements
+## Scoring
 
-### 5.1 Centralize Unsubscribe Headers
+| Area | Max | Score | Notes |
+|------|-----|-------|-------|
+| Meta Tags | 15 | 15 | All within limits, keywords complete |
+| Structured Data | 20 | 20 | FAQ, Breadcrumb, BlogPosting, WebSite, Organization, ItemList |
+| Crawlability | 15 | 14 | Sitemap/RSS/robots accessible. RSS category uses raw slug. |
+| Hero Images | 20 | 5 | 14/69 real images (20%). Up from 0. |
+| GEO/AEO | 10 | 9 | Answer-first prompts, speakable, FAQ sections |
+| Conversion CTAs | 5 | 5 | Both ScrollCTA and inline CTA working |
+| Author/E-E-A-T | 5 | 4 | Correct names. No individual author URLs. |
+| Monitoring | 10 | 5 | blog-health has wrong column name, misses 30 stuck items, doesn't report drafts |
+| Pipeline Health | — | -5 | 30 stuck queue items, 15 unpublished drafts (deduction) |
 
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
-```
-
-### 5.2 Centralize Plain-Text Generation
-
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
+**Composite: 72/100** (lower than previous estimate due to discovering the stuck queue + broken monitoring)
 
 ---
 
-## Implementation Priority
+## The Plan: 72 → 92+ (code + data fixes)
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
+### Phase 1 — Fix Pipeline Critical (3 items)
 
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+**1.1** Fix `release_stuck_queue_items()` SQL function to also release items where `locked_at IS NULL AND updated_at < now() - interval '10 minutes'`. Run one-time SQL to reset all 30 stuck items.
 
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
+**1.2** Fix `blog-health` — change `select('id, title, locked_at')` to `select('id, topic, locked_at')` on line 43. Also change `i.title` to `i.topic` in the stuckItems map (line 152). Add a new metric: `draftPosts` count and an issue if drafts > 5.
 
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
+**1.3** Bulk-publish the 15 draft posts via SQL (set `status = 'published'`, `published_at = now()`).
 
----
+### Phase 2 — Polish (2 items)
 
-## Files to Modify
+**2.1** Add `categoryNames` map to `blog-rss` and use display names in `<category>` tags.
 
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
+**2.2** Continue triggering `blog-backfill-images` to process remaining 55 placeholder images (operational, batch calls).
 
-**Total: ~25 files modified**
+### Files Changed
 
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+| Phase | Files | Description |
+|-------|-------|-------------|
+| 1 | SQL migration (release function fix + data fix), `blog-health/index.ts` | Fix stuck queue + monitoring |
+| 2 | `blog-rss/index.ts` | Category display names |
+
+**Total: 2 edge functions + 1 migration. The biggest win is fixing the stuck queue — it unblocks the entire generation pipeline.**
 
