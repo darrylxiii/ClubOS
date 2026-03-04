@@ -11,13 +11,17 @@ serve(async (req) => {
   }
 
   try {
+    const body = await req.json().catch(() => ({}));
+    const autoRegenerate = body.autoRegenerate === true;
+    const maxRefresh = body.maxRefresh || 3;
+
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Find stale posts (published > 90 days ago, low performance)
+    // Find stale posts: published > 90 days ago with low performance
     const staleDate = new Date(Date.now() - 90 * 86400000).toISOString();
     const { data: stalePosts } = await supabase
       .from('blog_posts')
@@ -28,9 +32,48 @@ serve(async (req) => {
       .order('performance_score', { ascending: true })
       .limit(10);
 
+    if (!stalePosts?.length) {
+      return new Response(JSON.stringify({ message: 'No stale posts found', refreshed: 0 }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const results: Array<{ id: string; slug: string; status: string }> = [];
+
+    if (autoRegenerate) {
+      // Trigger blog-regenerate for the top N stale posts
+      const regenerateUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-regenerate`;
+      const toRefresh = stalePosts.slice(0, maxRefresh);
+
+      for (const post of toRefresh) {
+        try {
+          const res = await fetch(regenerateUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({ postId: post.id }),
+          });
+
+          const resBody = await res.text();
+          if (res.ok) {
+            results.push({ id: post.id, slug: post.slug, status: 'regenerated' });
+            console.log(`Refreshed: "${post.title}" (score: ${post.performance_score})`);
+          } else {
+            results.push({ id: post.id, slug: post.slug, status: `error: ${resBody}` });
+          }
+        } catch (e) {
+          results.push({ id: post.id, slug: post.slug, status: `error: ${e.message}` });
+        }
+      }
+    }
+
     return new Response(JSON.stringify({
-      staleCount: stalePosts?.length || 0,
-      posts: stalePosts || [],
+      staleCount: stalePosts.length,
+      posts: stalePosts,
+      refreshed: results.length,
+      results: autoRegenerate ? results : undefined,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
