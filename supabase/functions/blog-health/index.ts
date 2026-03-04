@@ -37,7 +37,7 @@ serve(async (req) => {
       supabase
         .from('blog_analytics')
         .select('id', { count: 'exact', head: true })
-        .gte('updated_at', last24h),
+        .gte('created_at', last24h),
 
       supabase
         .from('blog_generation_queue')

@@ -66,7 +66,7 @@ serve(async (req) => {
           .upsert({
             source_post_id: post.id,
             related_post_id: rel.relatedPostId,
-            relevance_score: Math.round(rel.score * 100) / 100,
+            similarity_score: Math.round(rel.score * 100) / 100,
             relation_type: post.category === posts.find((p: any) => p.id === rel.relatedPostId)?.category ? 'same-category' : 'cross-category',
           }, { onConflict: 'source_post_id,related_post_id' });
         relationsCreated++;

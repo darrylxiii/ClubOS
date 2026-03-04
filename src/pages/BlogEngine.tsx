@@ -64,7 +64,6 @@ const BlogEngine: React.FC = () => {
         totalViews,
         avgScroll,
         totalClicks,
-        completions,
         topPosts,
       };
     },
