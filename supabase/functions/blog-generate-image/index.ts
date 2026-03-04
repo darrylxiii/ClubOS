@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { logAIUsage, extractClientInfo } from "../_shared/ai-logger.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

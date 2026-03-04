@@ -165,10 +165,10 @@ const BlogEngine: React.FC = () => {
               <Card>
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    <span className="text-xs uppercase tracking-wide">Completions</span>
+                    <Users className="h-3.5 w-3.5" />
+                    <span className="text-xs uppercase tracking-wide">Drafts</span>
                   </div>
-                  <p className="text-2xl font-semibold">{stats?.completions ?? '—'}</p>
+                  <p className="text-2xl font-semibold">{stats?.drafts ?? '—'}</p>
                 </CardContent>
               </Card>
               <Card>
