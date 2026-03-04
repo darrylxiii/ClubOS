@@ -102,18 +102,19 @@ export function useCopyPerformance() {
 
       // Body copy leaderboard
       const bodies: BodyCopyPerformance[] = steps
-        .filter(s => s.body_text && s.total_sent > 0)
+        .filter(s => s.body_text && (s.sent_count || 0) > 0)
         .map(s => {
           const positiveCount = positiveRepliesByCampaign[s.campaign_id] || 0;
+          const sentCount = s.sent_count || 0;
           return {
             body_preview: (s.body_text || '').slice(0, 120),
             campaign_name: s.campaign?.name || 'Unknown',
             campaign_id: s.campaign_id,
-            sends: s.total_sent || 0,
-            replies: s.total_replies || 0,
+            sends: sentCount,
+            replies: s.reply_count || 0,
             reply_rate: s.reply_rate || 0,
             positive_replies: positiveCount,
-            positive_rate: s.total_sent > 0 ? (positiveCount / s.total_sent) * 100 : 0,
+            positive_rate: sentCount > 0 ? (positiveCount / sentCount) * 100 : 0,
             step_number: s.step_number || 1,
           };
         })
