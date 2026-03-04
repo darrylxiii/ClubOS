@@ -1,253 +1,128 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
+# Blog Engine Audit — Ruthless Score: 52/100
 
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+The plan in `.lovable/plan.md` is about the **email system**, not the blog engine. It scores 0 for blog relevance — it needs to be replaced entirely. Here is the real blog engine audit.
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Current State — What is Actually Broken
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+### CRITICAL: 7 Bugs That Make This System Unreliable
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
+**1. `blog-health` queries non-existent column (line 40)**
+`.gte('updated_at', last24h)` on `blog_analytics` — that table has no `updated_at` column (only `created_at`). The analytics health check silently returns 0 every time. Your monitoring is lying to you.
 
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
+**2. Dashboard shows 0 for everything (BlogEngine.tsx lines 48-53)**
+- `a.views` → column is `page_views`
+- `a.avg_scroll_depth` → column is `scroll_depth`
+- `a.completions` → column does not exist at all
 
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
+The admin dashboard is entirely decorative — every stat shows 0 or NaN.
 
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
+**3. `blog-relate` upserts fail silently (line 66-71)**
+Uses `onConflict: 'source_post_id,related_post_id'` but `blog_post_relations` has NO unique constraint on those columns. Result: either duplicate rows or silent errors. 0 relations exist. Related articles feature is dead.
 
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
+**4. `blog-relate` writes to wrong column (line 69)**
+Writes `relevance_score` but the column is named `similarity_score`. Every upsert fails.
 
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
+**5. `content_format` never stored (blog-generate line 322-337)**
+The insert object omits `content_format`. All 84 posts have `content_format = NULL` despite the column existing and the format being computed on line 42.
 
-### 1.3 Emoji in Subject Lines (6 functions)
+**6. 13 posts have meta titles >55 chars, 15 have descriptions >155 chars**
+Generated before prompt optimization. Violate the strict SEO constraints.
 
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
+**7. `RelatedArticles` component shows random posts, not related ones**
+`useDynamicBlogPosts.ts` hardcodes `relatedArticles: []`. The component receives posts passed from parent — but no parent ever queries `blog_post_relations`.
 
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+### HIGH: Security Holes
 
-### 1.4 SPF Record Missing (DNS — not code)
+**8. RLS allows ANY authenticated user to delete all blog posts**
+`blog_posts`, `blog_generation_queue`, `blog_engine_settings`, `blog_learnings`, `blog_content_signals` all have `USING (true) WITH CHECK (true)` for ALL operations for any `authenticated` user. A candidate could delete every post.
 
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
+**9. `blog_analytics` is publicly insertable and updatable (lines 89-99)**
+Any anonymous user can inflate page views or corrupt analytics data by calling the API directly.
+
+### MEDIUM: Missing Cost Tracking
+
+**10. Zero AI usage logging for blog functions**
+`blog-generate` uses the AI gateway but never calls `logAIUsage()`. `blog-generate-image` same. Other AI functions (interview reports, quick replies, etc.) all use the shared `ai-logger.ts`. Blog functions are the only ones that skip it. You have no idea how much content generation costs.
+
+**11. No cost calculation**
+Even if logging existed, there's no cost-per-article calculation. The `ai_usage_logs` table captures `tokens_used` but blog functions don't report tokens. The AI gateway response includes `usage.total_tokens` but it's never extracted.
+
+### LOW: Polish Issues
+
+**12. 55-70 posts still have placeholder hero images** — operational, not code.
+
+**13. `blog-refresh` identifies stale posts but never refreshes them** — it's read-only.
+
+**14. Newsletter system is scaffolded but non-functional** — 0 subscribers, no send function.
+
+---
+
+## Scoring Breakdown (Ruthless)
+
+| Dimension | Max | Score | Why |
+|-----------|-----|-------|-----|
+| Data Integrity | 15 | 3 | Dashboard reads wrong columns. Relations table empty. content_format never stored. |
+| Security | 15 | 3 | RLS wide open. Analytics publicly writable. Any user can destroy all content. |
+| Monitoring | 15 | 4 | blog-health queries non-existent column. Dashboard shows all zeros. |
+| Cost Tracking | 10 | 0 | Zero. No logging, no token counting, no cost attribution. |
+| SEO/Distribution | 15 | 12 | Schemas, sitemap, RSS, OG all work. Minor: meta violations on 28 posts. |
+| Content Pipeline | 15 | 10 | Generation works. Queue claiming works. But format not stored, relations broken. |
+| Analytics Pipeline | 10 | 8 | blog-track writes correctly. blog_analytics aggregation works. Just health/dashboard reads are broken. |
+| Admin UX | 5 | 2 | Dashboard is all zeros. Learnings and A/B test panels are scaffolded. |
+
+**Total: 52/100** (I was too generous at 72 last time — the security and data bugs are worse than I estimated.)
+
+---
+
+## The Plan: 52 → 100
+
+### Phase 1 — Fix Broken Queries (3 files)
+
+**1.1 `blog-health/index.ts` line 40**: Change `.gte('updated_at', last24h)` to `.gte('created_at', last24h)`.
+
+**1.2 `BlogEngine.tsx` lines 48-53**: Fix column mappings:
 ```
-This is a DNS change in the domain registrar.
-
----
-
-## CATEGORY 2: Content & Copy Quality
-
-### 2.1 Inconsistent Tone
-
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
-
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
-
-### 2.2 Hardcoded Contact Email Inconsistency
-
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
-
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
-
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
-
----
-
-## CATEGORY 3: Technical & Security Issues
-
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
-
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
-
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
-
-### 3.2 `linear-gradient()` in Inline Styles
-
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
-
-**Fix**: Replace gradients with solid background colors.
-
-### 3.3 CSS `box-shadow` in Inline Styles
-
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
-
----
-
-## CATEGORY 4: Accessibility & Compliance
-
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
-
----
-
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
+a.views → a.page_views
+a.avg_scroll_depth → a.scroll_depth
+remove a.completions entirely (column doesn't exist)
 ```
 
-### 5.2 Centralize Plain-Text Generation
+**1.3 `blog-relate/index.ts` line 69**: Change `relevance_score` to `similarity_score`.
 
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
+### Phase 2 — Fix Schema & Data (SQL migration)
 
----
+**2.1** Add unique constraint: `ALTER TABLE blog_post_relations ADD CONSTRAINT uq_source_related UNIQUE (source_post_id, related_post_id);`
 
-## Implementation Priority
+**2.2** Drop and replace overly permissive RLS policies on `blog_posts`, `blog_generation_queue`, `blog_engine_settings`, `blog_learnings`, `blog_content_signals` with `has_role(auth.uid(), 'admin') OR has_role(auth.uid(), 'strategist')` for write operations. Keep public SELECT on published posts.
 
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
+**2.3** Replace `blog_analytics` INSERT/UPDATE policies: restrict to service role only (edge functions use service_role key already, so public policies are unnecessary and dangerous).
 
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+**2.4** Truncate meta violations: UPDATE 13 titles to 55 chars, 15 descriptions to 155 chars.
 
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
+### Phase 3 — Add Cost Tracking (2 files)
 
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
+**3.1 `blog-generate/index.ts`**: After AI response, extract `aiResult.usage.total_tokens` (or `prompt_tokens + completion_tokens`). Call `logAIUsage()` with `functionName: 'blog-generate'`, `tokensUsed`, `responseTimeMs`, `success`. Also store `content_format` in the blog_posts insert.
 
----
+**3.2 `blog-generate-image/index.ts`**: Same pattern — log usage after image generation with `functionName: 'blog-generate-image'`.
 
-## Files to Modify
+### Phase 4 — Wire Related Articles
 
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
+**4.1** After fixing blog-relate, trigger it to populate relations for all 84 posts.
 
-**Total: ~25 files modified**
+**4.2** Update the blog post detail page to query `blog_post_relations` and pass actual related posts to `RelatedArticles` component instead of empty array.
 
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+### Files Changed
+
+| Phase | Files | Description |
+|-------|-------|-------------|
+| 1 | `blog-health/index.ts`, `BlogEngine.tsx`, `blog-relate/index.ts` | Fix wrong column names |
+| 2 | SQL migration | Unique constraint, RLS tightening, meta fixes |
+| 3 | `blog-generate/index.ts`, `blog-generate-image/index.ts` | AI usage logging + cost tracking + content_format |
+| 4 | `useDynamicBlogPosts.ts` or blog post page | Wire related articles from DB |
+
+**Total: 5 edge functions + 1 frontend file + 1 migration. Every change fixes a real bug — zero new features.**
 
