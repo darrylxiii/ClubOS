@@ -85,6 +85,7 @@ serve(async (req) => {
     const fewKeywords = posts.filter((p: any) => !p.keywords || (Array.isArray(p.keywords) && p.keywords.length < 3));
 
     const stuckItems = stuckQueueResult.data || [];
+    const draftPosts = draftPostsResult.count || 0;
     const issues: string[] = [];
     const totalPosts = totalPostsResult.count || 0;
 
