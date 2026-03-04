@@ -86,14 +86,14 @@ export function useCopyPerformance() {
 
       // Subject line leaderboard
       const subjects: SubjectLinePerformance[] = steps
-        .filter(s => s.subject_line && s.total_sent > 0)
+        .filter(s => s.subject_line && (s.sent_count || 0) > 0)
         .map(s => ({
           subject_line: s.subject_line,
           campaign_name: s.campaign?.name || 'Unknown',
           campaign_id: s.campaign_id,
-          sends: s.total_sent || 0,
-          opens: s.total_opens || 0,
-          replies: s.total_replies || 0,
+          sends: s.sent_count || 0,
+          opens: s.open_count || 0,
+          replies: s.reply_count || 0,
           open_rate: s.open_rate || 0,
           reply_rate: s.reply_rate || 0,
           step_number: s.step_number || 1,
