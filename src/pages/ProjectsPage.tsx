@@ -56,7 +56,7 @@ export default function ProjectsPage() {
 
   if (loadingProfile || loadingRoles) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center min-h-screen">
           <LoadingSpinner size="lg" />
         </div>
