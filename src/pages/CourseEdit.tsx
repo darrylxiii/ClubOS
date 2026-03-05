@@ -239,7 +239,7 @@ export default function CourseEdit() {
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="container max-w-5xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
