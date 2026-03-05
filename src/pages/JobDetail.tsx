@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { JobProfileHero } from "@/components/jobs/JobProfileHero";
 import { AboutRoleSection } from "@/components/jobs/AboutRoleSection";
 import { JobDescriptionViewer } from "@/components/jobs/JobDescriptionViewer";
