@@ -308,7 +308,7 @@ export default function JobDetail() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <UnifiedLoader variant="page" showBranding />
       </AppLayout>
     );
