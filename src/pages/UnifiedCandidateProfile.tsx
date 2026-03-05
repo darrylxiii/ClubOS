@@ -218,7 +218,7 @@ export default function UnifiedCandidateProfile() {
   const niceToHaveSkills = skills.filter((s) => !s.is_must_have).map((s) => s.skill_name);
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         {/* Back Button */}
         <BackButton
