@@ -200,7 +200,7 @@ export default function UnifiedCandidateProfile() {
             <Skeleton className="h-96 w-full rounded-2xl" />
           </div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
