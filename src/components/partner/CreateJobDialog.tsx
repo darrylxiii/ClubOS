@@ -747,17 +747,27 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">Start with the fundamentals. These details help us match the right candidates.</p>
 
-      {/* Company - Fix 9: disabled when pre-filled */}
+      {/* Company selector — unlocked for admin/strategist */}
       <div className="space-y-2">
         <Label className="glass-label">Company <span className="text-destructive">*</span></Label>
-        <Select value={formData.company_id} onValueChange={(v) => handleInputChange('company_id', v)} disabled={isSubmitting || !!companyId}>
-          <SelectTrigger className={cn("glass-input", getFieldError('company_id') && 'border-destructive')}>
-            <SelectValue placeholder="Select a company" />
-          </SelectTrigger>
-          <SelectContent>
-            {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {!isPartner && companies.length > 5 ? (
+          <CompanyCombobox
+            companies={companies}
+            value={formData.company_id}
+            onValueChange={(v) => handleInputChange('company_id', v)}
+            disabled={isSubmitting}
+            hasError={!!getFieldError('company_id')}
+          />
+        ) : (
+          <Select value={formData.company_id} onValueChange={(v) => handleInputChange('company_id', v)} disabled={isSubmitting || (!!companyId && isPartner)}>
+            <SelectTrigger className={cn("glass-input", getFieldError('company_id') && 'border-destructive')}>
+              <SelectValue placeholder="Select a company" />
+            </SelectTrigger>
+            <SelectContent>
+              {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
         {getFieldError('company_id') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('company_id')}</p>}
       </div>
 
