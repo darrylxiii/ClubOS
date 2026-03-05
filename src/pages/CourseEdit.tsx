@@ -454,6 +454,6 @@ export default function CourseEdit() {
           nextDisplayOrder={modules.length}
         />
       </div>
-    </AppLayout>
+    </>
   );
 }

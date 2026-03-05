@@ -231,7 +231,7 @@ const JobApprovals = () => {
           </AlertDialogContent>
         </AlertDialog>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 };
 

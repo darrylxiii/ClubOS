@@ -372,6 +372,6 @@ export default function CandidateAnalytics() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

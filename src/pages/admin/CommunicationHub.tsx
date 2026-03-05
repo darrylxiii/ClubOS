@@ -61,6 +61,6 @@ export default function CommunicationHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

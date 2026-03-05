@@ -222,6 +222,6 @@ export default function Pricing() {
           </p>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }

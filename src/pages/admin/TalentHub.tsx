@@ -67,6 +67,6 @@ export default function TalentHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }
