@@ -1,253 +1,117 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
-
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+# Application Speed Audit — Score: 38/100
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Scoring Breakdown
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+| Area | Max | Score | Notes |
+|------|-----|-------|-------|
+| Initial Load (FCP/LCP) | 20 | 12 | FCP 1096ms is passable but FP at 640ms shows 450ms gap. TTFB 439ms is over 2x the 200ms target. |
+| Bundle & Code Splitting | 20 | 6 | **No manualChunks configured.** 204 scripts loaded in dev. No vendor chunk splitting. `lucide-react` is 157KB single chunk. |
+| Double AppLayout Rendering | 15 | 0 | **CRITICAL.** 45 pages wrap in `<AppLayout>` while already inside `ProtectedLayout` → `AppLayout`. Every protected page renders 2 sidebars, 2 notification bells, 2 profile fetches, 2 command palettes. |
+| Asset Optimization | 10 | 3 | Favicons are 89KB each (PNG). `quantum-logo.svg` is 49KB. 7 apple-touch-icon variants. OG images are GIFs. |
+| Third-Party Script Impact | 10 | 6 | GTM deferred correctly. RB2B deferred. But GTM DoubleClick callback takes 1448ms. `cdn.tailwindcss.com` warning in console (loaded somewhere). |
+| Runtime Memory | 10 | 7 | 35MB heap on auth page is acceptable. 1004 DOM nodes on auth page is fine. No obvious leaks at startup. |
+| Query & Data Loading | 10 | 8 | `useAuthPrefetch` consolidates 4 queries. React Query has good staleTime (60s). `refetchOnWindowFocus: false`. |
+| Service Worker Strategy | 5 | 4 | Good: NetworkFirst for HTML, CacheFirst for fonts/images, NetworkOnly for edge functions. JS/CSS set to NetworkOnly which prevents caching benefits for hashed bundles. |
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
-
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
-
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
-
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
-
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
-
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
-
-### 1.3 Emoji in Subject Lines (6 functions)
-
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
-
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
-
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
+**Total: 38/100**
 
 ---
 
-## CATEGORY 2: Content & Copy Quality
+## Critical Issues (ordered by impact)
 
-### 2.1 Inconsistent Tone
+### 1. Double AppLayout Rendering (-15 pts) — THE BIGGEST ISSUE
 
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
+`ProtectedLayout.tsx` wraps all protected routes in `<AppLayout>`. But 45 individual pages ALSO wrap their content in `<AppLayout>`. This means:
 
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
+- **2x sidebar renders** (each with its own profile fetch, navigation computation, hooks)
+- **2x NotificationBell** (each with its own real-time subscription)
+- **2x CommandPalette** instances
+- **2x GlobalCallNotificationProvider**
+- **2x MeetingNotificationManager**
+- **2x DynamicBackground**
+- **2x useLastPipeline, useTranslationSync hooks**
+- **2x profile fetch** (`supabase.from('profiles').select(...)`)
 
-### 2.2 Hardcoded Contact Email Inconsistency
+This doubles DOM nodes, event listeners, network requests, and memory for every single protected page.
 
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+**Affected files (45):** Settings, Applications, Companies, JobDetail, CandidateProfile, AdminCandidates, ProjectsPage, Scheduling, ClubAI, CompanyIntelligence, Post, WorkspacePage, CandidateAnalytics, PrivacyPolicy, TermsOfService, and 30+ more.
 
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+**Fix:** Remove `<AppLayout>` wrapper from all 45 pages. They're already inside it via `ProtectedLayout`.
 
-### 2.3 Missing "Powered by QUIN" Attribution
+### 2. No Production Bundle Splitting (-14 pts)
 
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+`vite.config.ts` has no `manualChunks` configuration. The build produces no vendor splitting strategy. Key issues:
+- `lucide-react` at 157KB is loaded as a single chunk (should tree-shake to only used icons)
+- No separation of React core vs. heavy libraries (recharts, framer-motion, fabric, mermaid, etc.)
+- `chunkSizeWarningLimit: 10000` masks warnings about oversized chunks
+- `sourcemap: false` is correct for prod but `reportCompressedSize: false` hides gzip insights
 
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+**Fix:** Add `manualChunks` to split: react-vendor, ui-vendor (radix), chart-vendor (recharts), editor-vendor (tiptap/blocknote). Keep core React consumers in the same chunk per memory instructions.
 
----
+### 3. Oversized Assets (-7 pts)
 
-## CATEGORY 3: Technical & Security Issues
+| Asset | Size | Issue |
+|-------|------|-------|
+| `favicon.png` | 89KB | Should be <5KB |
+| `favicon-16x16.png` | 89KB | Identical 89KB — not actually 16x16 |
+| `favicon-32x32.png` | 89KB | Identical 89KB — not actually 32x32 |
+| `quantum-logo.svg` | 49KB | SVG not optimized (likely embedded bitmaps or excessive paths) |
+| `og-image.gif` | Unknown | GIF format is heavy; should be WebP or optimized PNG |
+| 7 apple-touch-icons | ~89KB each | Redundant sizes, all likely the same oversized PNG |
 
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+Every page load fetches at least 3 favicons = 267KB of wasted bandwidth on icons alone.
 
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+**Fix:** Compress favicons to proper sizes (<5KB each). Run SVGO on the logo. Convert OG GIFs to WebP.
 
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+### 4. JS/CSS NetworkOnly Service Worker Strategy (-1 pt)
 
-### 3.2 `linear-gradient()` in Inline Styles
+Hashed JS/CSS bundles (e.g., `App-B4mIiFk2.js`) are immutable by definition — the hash changes on every build. Setting them to `NetworkOnly` means returning users never benefit from cache. Should be `CacheFirst` with content-hash based expiry.
 
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+### 5. `cdn.tailwindcss.com` Loading (-2 pts)
 
-**Fix**: Replace gradients with solid background colors.
+Console shows a warning about the Tailwind CDN being loaded. This shouldn't be present in a project using PostCSS Tailwind. It adds ~100KB+ of unnecessary CSS processing. Likely injected by a third-party script or stale HTML reference.
 
-### 3.3 CSS `box-shadow` in Inline Styles
+### 6. AppLayout Makes Its Own Profile Fetch (-3 pts)
 
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
-
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+`AppLayout` line 77 does `supabase.from('profiles').select('full_name, avatar_url')` independently. This data is already available in `useAuthPrefetch`. With the double-render bug, this means 2 extra network requests per page load.
 
 ---
 
-## CATEGORY 4: Accessibility & Compliance
+## What's Working Well
 
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+- **Deferred third-party scripts** — GTM, RB2B, PostHog all use `requestIdleCallback`
+- **Lazy loading** — All routes use `React.lazy()` with Suspense
+- **Auth prefetch consolidation** — Single parallel query for roles/profile/prefs/MFA
+- **Deferred tracking providers** — `ProtectedProviders` defers ActivityTracker/TrackingProvider
+- **Font loading** — Preloaded Inter with fallback metrics to prevent CLS
+- **Boot recovery** — Robust error handling with cache reset in `index.html`
+- **QueryClient config** — Good defaults (60s stale, no refetch on focus)
 
 ---
 
-## CATEGORY 5: Structural Improvements
+## Implementation Plan to Reach 85+/100
 
-### 5.1 Centralize Unsubscribe Headers
+| Task | Points | Effort |
+|------|--------|--------|
+| Remove `<AppLayout>` from all 45 pages (they're already in ProtectedLayout) | +15 | Medium (repetitive but simple) |
+| Add `manualChunks` to vite.config.ts for vendor splitting | +8 | Small |
+| Compress favicons to proper sizes (16x16, 32x32) | +4 | Small |
+| Optimize quantum-logo.svg with SVGO | +1 | Small |
+| Change JS/CSS SW strategy from NetworkOnly to CacheFirst | +1 | Small |
+| Remove AppLayout's standalone profile fetch, use prefetch cache | +2 | Small |
+| Find and remove cdn.tailwindcss.com reference | +2 | Small |
+| **Total** | **+33** → **71/100** | |
 
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
-```
-
-### 5.2 Centralize Plain-Text Generation
-
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
-
----
-
-## Implementation Priority
-
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
-
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
-
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+### To reach 85+, additionally:
+| Task | Points | Effort |
+|------|--------|--------|
+| Tree-shake lucide-react (import individual icons, not the barrel) | +4 | Medium |
+| Add `loading="lazy"` to below-fold images across pages | +3 | Small |
+| Reduce TTFB with edge caching headers | +3 | Small |
+| Preload critical route chunks based on likely navigation | +4 | Small |
+| **Total** | **+14** → **85/100** | |
 
