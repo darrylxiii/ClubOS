@@ -227,7 +227,7 @@ export default function CourseEdit() {
 
   if (!course) {
     return (
-      <AppLayout>
+      <>
         <div className="container max-w-6xl mx-auto p-6 text-center py-12">
           <h2 className="text-2xl font-bold mb-4">Course not found</h2>
           <Link to="/academy/creator">
