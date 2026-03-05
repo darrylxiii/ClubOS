@@ -1,7 +1,7 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { CandidateHeroSection } from "@/components/candidate-profile/CandidateHeroSection";
