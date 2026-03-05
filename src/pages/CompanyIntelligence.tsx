@@ -89,7 +89,7 @@ export default function CompanyIntelligence() {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
