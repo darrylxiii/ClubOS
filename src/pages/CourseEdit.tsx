@@ -221,7 +221,7 @@ export default function CourseEdit() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
