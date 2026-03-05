@@ -115,7 +115,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
     );
   };
 
-  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   return (
     <Wrapper>
