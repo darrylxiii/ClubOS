@@ -962,6 +962,6 @@ export default function CandidateProfile() {
           onComplete={loadCandidate}
         />
       )}
-    </AppLayout>
+    </>
   );
 }

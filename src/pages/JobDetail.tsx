@@ -601,6 +601,6 @@ export default function JobDetail() {
           onJobUpdated={loadJobDetails}
         />
       )}
-    </AppLayout>
+    </>
   );
 }
