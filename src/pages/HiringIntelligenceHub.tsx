@@ -193,7 +193,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
     }
   };
 
-  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   if (loading) {
     return (

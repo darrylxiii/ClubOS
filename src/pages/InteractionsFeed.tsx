@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Search, Filter, Phone, Mail, MessageSquare, Video, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { CompanyInteraction } from '@/types/interaction';
-import { AppLayout } from '@/components/AppLayout';
+
 
 export default function InteractionsFeed({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
