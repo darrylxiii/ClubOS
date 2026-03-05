@@ -314,7 +314,7 @@ export default function RecordingPlaybackPage() {
             </AlertDescription>
           </Alert>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
