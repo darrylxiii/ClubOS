@@ -52,7 +52,7 @@ export default function GigDetailPage() {
           <h1 className="text-2xl font-bold mb-4">Gig Not Found</h1>
           <Button onClick={() => navigate("/projects/gigs")}>Browse Gigs</Button>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
