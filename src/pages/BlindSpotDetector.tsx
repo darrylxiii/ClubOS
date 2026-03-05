@@ -37,7 +37,7 @@ const BlindSpotDetector = memo(() => {
   };
 
   return (
-    <AppLayout>
+    <>
       {phase === 'intro' && (
         <BlindSpotIntro onStart={handleStart} />
       )}
