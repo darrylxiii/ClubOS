@@ -99,6 +99,66 @@ const formatFileSize = (bytes: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
 };
 
+// ── Company Combobox (searchable for admins) ──────────────────────
+function CompanyCombobox({ companies, value, onValueChange, disabled, hasError }: {
+  companies: Array<{ id: string; name: string }>;
+  value: string;
+  onValueChange: (v: string) => void;
+  disabled?: boolean;
+  hasError?: boolean;
+}) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [comboOpen, setComboOpen] = useState(false);
+  const filtered = companies.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const selectedName = companies.find(c => c.id === value)?.name || '';
+
+  return (
+    <Popover open={comboOpen} onOpenChange={setComboOpen} modal={false}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          disabled={disabled}
+          className={cn("w-full justify-between glass-input font-normal", hasError && 'border-destructive', !value && 'text-muted-foreground')}
+        >
+          {selectedName || "Select a company"}
+          <Building2 className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[100] pointer-events-auto" align="start">
+        <div className="p-2 border-b border-border">
+          <Input
+            placeholder="Search companies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 text-sm"
+            autoFocus
+          />
+        </div>
+        <div className="max-h-[200px] overflow-y-auto p-1">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-2 text-center">No companies found</p>
+          ) : (
+            filtered.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => { onValueChange(c.id); setComboOpen(false); setSearchQuery(""); }}
+                className={cn(
+                  "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-accent cursor-pointer flex items-center gap-2",
+                  c.id === value && "bg-accent font-medium"
+                )}
+              >
+                <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                {c.name}
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ── Tag Input Component (Fix 10: comma + paste support) ──────────────
 function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (tags: string[]) => void; placeholder: string }) {
   const [input, setInput] = useState("");
