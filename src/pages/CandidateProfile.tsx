@@ -169,7 +169,7 @@ export default function CandidateProfile() {
 
   if (!candidate) {
     return (
-      <AppLayout>
+      <>
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-12 text-center">
