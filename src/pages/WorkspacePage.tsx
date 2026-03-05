@@ -136,7 +136,7 @@ export default function WorkspacePage() {
           </div>
           <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
         </RoleGate>
-      </AppLayout>
+      </>
     );
   }
 
