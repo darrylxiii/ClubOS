@@ -248,7 +248,7 @@ export default function ModuleDetail() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center min-h-[60vh]">
           <SectionLoader />
         </div>
