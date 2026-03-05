@@ -39,7 +39,7 @@ export default function AssessmentsHub() {
   };
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={['admin', 'strategist']}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="space-y-1">
