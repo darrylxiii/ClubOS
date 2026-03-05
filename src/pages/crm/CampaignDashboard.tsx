@@ -53,7 +53,7 @@ export default function CampaignDashboard() {
   // Calculate totals
   const totalProspects = campaigns.reduce((sum, c) => sum + (c.total_prospects || 0), 0);
   const totalSent = campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0);
-  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replies || 0), 0);
+  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replied || 0), 0);
   const avgReplyRate = totalSent > 0 ? ((totalReplies / totalSent) * 100).toFixed(1) : '0';
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
 
@@ -211,10 +211,10 @@ interface CampaignCardProps {
 
 function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
   const replyRate = campaign.total_sent > 0 
-    ? ((campaign.total_replies / campaign.total_sent) * 100).toFixed(1) 
+    ? ((campaign.total_replied / campaign.total_sent) * 100).toFixed(1) 
     : '0';
   const openRate = campaign.total_sent > 0 
-    ? ((campaign.total_opens / campaign.total_sent) * 100).toFixed(1) 
+    ? ((campaign.total_opened / campaign.total_sent) * 100).toFixed(1) 
     : '0';
 
   const statusColors: Record<string, string> = {
@@ -281,11 +281,11 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
             </div>
             <p className="text-xs text-muted-foreground">Reply Rate</p>
           </div>
-          {campaign.total_bounces > 0 && (
+          {campaign.total_bounced > 0 && (
             <div className="text-center">
               <div className="flex items-center gap-1 text-lg font-bold text-red-500">
                 <AlertCircle className="w-4 h-4" />
-                {campaign.total_bounces}
+                {campaign.total_bounced}
               </div>
               <p className="text-xs text-muted-foreground">Bounces</p>
             </div>

@@ -53,7 +53,7 @@ export default function CRMDashboard() {
   const unreadReplies = replies.filter(r => !r.is_read).length;
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
   const totalSent = campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0);
-  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replies || 0), 0);
+  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replied || 0), 0);
   const replyRate = totalSent > 0 ? ((totalReplies / totalSent) * 100).toFixed(1) : '0';
 
   // Pipeline stage counts

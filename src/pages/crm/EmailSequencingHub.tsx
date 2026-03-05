@@ -83,8 +83,8 @@ export default function EmailSequencingHub() {
 
   // Calculate stats
   const totalSent = campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0);
-  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replies || 0), 0);
-  const totalOpens = campaigns.reduce((sum, c) => sum + (c.total_opens || 0), 0);
+  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replied || 0), 0);
+  const totalOpens = campaigns.reduce((sum, c) => sum + (c.total_opened || 0), 0);
   const replyRate = totalSent > 0 ? ((totalReplies / totalSent) * 100).toFixed(1) : '0';
   const openRate = totalSent > 0 ? ((totalOpens / totalSent) * 100).toFixed(1) : '0';
   const hotLeads = replies.filter(r => r.classification === 'interested').length;

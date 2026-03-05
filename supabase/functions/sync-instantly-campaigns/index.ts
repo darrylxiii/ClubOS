@@ -95,6 +95,7 @@ serve(async (req) => {
           total_bounced: analytics?.bounced_count || 0,
           total_unsubscribed: analytics?.unsubscribed_count || 0,
           total_opportunities: analytics?.total_opportunities || 0,
+          total_prospects: analytics?.leads_count || 0,
           contacted_count: analytics?.contacted_count || 0,
           completed_count: analytics?.completed_count || 0,
           new_leads_contacted: analytics?.new_leads_contacted_count || 0,
