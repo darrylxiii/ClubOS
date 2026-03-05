@@ -47,7 +47,7 @@ export default function GigDetailPage() {
 
   if (!gig) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Gig Not Found</h1>
           <Button onClick={() => navigate("/projects/gigs")}>Browse Gigs</Button>
