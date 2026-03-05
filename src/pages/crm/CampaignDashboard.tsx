@@ -53,7 +53,7 @@ export default function CampaignDashboard() {
   // Calculate totals
   const totalProspects = campaigns.reduce((sum, c) => sum + (c.total_prospects || 0), 0);
   const totalSent = campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0);
-  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replies || 0), 0);
+  const totalReplies = campaigns.reduce((sum, c) => sum + (c.total_replied || 0), 0);
   const avgReplyRate = totalSent > 0 ? ((totalReplies / totalSent) * 100).toFixed(1) : '0';
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
 
