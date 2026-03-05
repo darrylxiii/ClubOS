@@ -48,6 +48,6 @@ export default function RiskManagementDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

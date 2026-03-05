@@ -344,6 +344,6 @@ export default function WorkspaceList() {
         {/* Search Dialog */}
         <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

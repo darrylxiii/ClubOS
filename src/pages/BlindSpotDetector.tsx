@@ -64,7 +64,7 @@ const BlindSpotDetector = memo(() => {
           onBack={handleBackToAssessments}
         />
       )}
-    </AppLayout>
+    </>
   );
 });
 

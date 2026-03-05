@@ -422,6 +422,6 @@ export default function StrategistProjectsDashboard() {
           </DialogContent>
         </Dialog>
       </div>
-    </AppLayout>
+    </>
   );
 }

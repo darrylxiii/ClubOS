@@ -170,6 +170,6 @@ export default function ProjectsPage() {
           )}
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

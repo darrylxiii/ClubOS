@@ -144,6 +144,6 @@ export default function SubscriptionManagement() {
           </div>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

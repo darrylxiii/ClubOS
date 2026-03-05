@@ -75,7 +75,7 @@ const PressureCooker = memo(() => {
           onBack={handleBackToAssessments}
         />
       )}
-    </AppLayout>
+    </>
   );
 });
 

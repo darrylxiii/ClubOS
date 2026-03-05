@@ -81,6 +81,6 @@ export default function AssessmentsHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }
