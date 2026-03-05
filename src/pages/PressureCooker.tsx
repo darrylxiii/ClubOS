@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
+
 import { usePressureCookerSession } from '@/hooks/usePressureCookerSession';
 import { PRESSURE_COOKER_SCENARIOS } from '@/data/pressureCookerScenarios';
 import { PressureCookerIntro } from '@/components/pressure-cooker/PressureCookerIntro';
