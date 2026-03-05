@@ -265,6 +265,6 @@ export default function WorkspacePage() {
           onOpenChange={setShowQuickCapture} 
         />
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

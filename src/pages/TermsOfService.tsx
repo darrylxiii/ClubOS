@@ -594,7 +594,7 @@ const TermsOfService = () => {
           </div>
         </div>
       </LegalPageLayout>
-    </AppLayout>
+    </>
   );
 };
 

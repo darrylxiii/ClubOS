@@ -1093,6 +1093,6 @@ export default function Scheduling() {
         currentPage="/scheduling" 
         contextData={{ bookingLinksCount: bookingLinks.length }}
       />
-    </AppLayout>
+    </>
   );
 }
