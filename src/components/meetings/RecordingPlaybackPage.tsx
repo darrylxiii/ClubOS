@@ -294,7 +294,7 @@ export default function RecordingPlaybackPage() {
             <Skeleton className="h-96" />
           </div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
