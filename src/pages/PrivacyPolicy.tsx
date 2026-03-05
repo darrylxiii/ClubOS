@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/AppLayout";
+
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
