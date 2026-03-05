@@ -32,7 +32,7 @@ const TermsOfService = () => {
   ];
 
   return (
-    <AppLayout>
+    <>
       <LegalPageLayout
         title="Terms of Service" 
         lastUpdated={lastUpdated}
