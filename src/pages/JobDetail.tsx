@@ -310,7 +310,7 @@ export default function JobDetail() {
     return (
       <>
         <UnifiedLoader variant="page" showBranding />
-      </AppLayout>
+      </>
     );
   }
 
