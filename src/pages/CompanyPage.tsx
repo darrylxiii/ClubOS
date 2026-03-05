@@ -326,7 +326,7 @@ export default function CompanyPage() {
 
   if (!company) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card className="border-2">
             <CardContent className="py-12 text-center">
