@@ -316,7 +316,7 @@ export default function JobDetail() {
 
   if (!job) {
     return (
-      <AppLayout>
+      <>
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
           <p className="text-muted-foreground">Job not found</p>
           <Button onClick={() => navigate('/jobs')}>Back to Jobs</Button>
