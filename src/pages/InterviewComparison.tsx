@@ -142,7 +142,7 @@ export default function InterviewComparison() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
