@@ -141,7 +141,7 @@ export default function WorkspacePage() {
   }
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
           {/* Desktop Sidebar */}
