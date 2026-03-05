@@ -8,7 +8,7 @@ import { Eye, FileText, Briefcase, Award, TrendingUp, Users, Download, Search, T
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/utils/analyticsExport";
 import { toast } from "sonner";
-import { AppLayout } from "@/components/AppLayout";
+
 
 export default function CandidateAnalytics() {
   const { user } = useSupabaseAuth();
