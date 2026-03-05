@@ -519,7 +519,7 @@ const Settings = () => {
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
         <div className="flex items-center gap-3 mb-8">
           <SettingsIcon className="w-8 h-8 text-foreground" />
