@@ -1,4 +1,4 @@
-import { AppLayout } from '@/components/AppLayout';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, FolderOpen, Cpu, FileText, TrendingUp, Shield, Fuel, Sparkles, Activity } from 'lucide-react';
 import { MetricsOverviewDashboard } from '@/components/admin/due-diligence/MetricsOverviewDashboard';
