@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Video, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AppLayout } from '@/components/AppLayout';
+
 
 export default function JoinMeeting() {
   const navigate = useNavigate();
