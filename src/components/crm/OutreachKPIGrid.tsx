@@ -53,8 +53,8 @@ export function OutreachKPIGrid() {
 
   // Calculate KPIs
   const totalSent = campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0);
-  const totalOpened = campaigns.reduce((sum, c) => sum + (c.total_opens || 0), 0);
-  const totalReplied = campaigns.reduce((sum, c) => sum + (c.total_replies || 0), 0);
+  const totalOpened = campaigns.reduce((sum, c) => sum + (c.total_opened || 0), 0);
+  const totalReplied = campaigns.reduce((sum, c) => sum + (c.total_replied || 0), 0);
   const openRate = totalSent > 0 ? (totalOpened / totalSent * 100) : 0;
   const replyRate = totalSent > 0 ? (totalReplied / totalSent * 100) : 0;
   
