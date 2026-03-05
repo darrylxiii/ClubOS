@@ -504,7 +504,7 @@ export default function JobDashboard() {
             <p className="text-muted-foreground">Job not found</p>
           </CardContent>
         </Card>
-      </AppLayout>
+      </>
     );
   }
 
