@@ -118,7 +118,7 @@ export default function WorkspacePage() {
 
   if (error || !page) {
     return (
-      <AppLayout>
+      <>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
             {!isMobile && showSidebar && <SidebarContent />}
