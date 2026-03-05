@@ -1132,8 +1132,26 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
               {jobDescriptionFile && <SummaryRow label="JD File" value={jobDescriptionFile.name} />}
               {supportingDocuments.length > 0 && <SummaryRow label="Documents" value={`${supportingDocuments.length} file(s)`} />}
-              {requirements.length > 0 && <SummaryRow label="Requirements" value={`${requirements.length} item(s)`} />}
-              {niceToHave.length > 0 && <SummaryRow label="Nice-to-Have" value={`${niceToHave.length} item(s)`} />}
+              {requirements.length > 0 && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Requirements:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {requirements.map((r, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">{r}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {niceToHave.length > 0 && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Nice-to-Have:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {niceToHave.map((n, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border">{n}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {requiredTools.length > 0 && <SummaryRow label="Required Tools" value={`${requiredTools.length} selected`} />}
               {niceToHaveTools.length > 0 && <SummaryRow label="Bonus Tools" value={`${niceToHaveTools.length} selected`} />}
               {/* Admin-only summary rows */}
