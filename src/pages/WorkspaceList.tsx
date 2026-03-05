@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
+
 import { RoleGate } from '@/components/RoleGate';
 import { useRole } from '@/contexts/RoleContext';
 import { PageTreeSidebar } from '@/components/workspace/PageTreeSidebar';
