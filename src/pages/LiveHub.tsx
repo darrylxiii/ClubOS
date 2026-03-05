@@ -22,7 +22,7 @@ const LiveHub = () => {
       <ActiveCallProvider>
         <LiveHubLayout />
       </ActiveCallProvider>
-    </AppLayout>
+    </>
   );
 };
 

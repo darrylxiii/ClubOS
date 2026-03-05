@@ -600,6 +600,6 @@ export default function CreateGigPage() {
           </Button>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }

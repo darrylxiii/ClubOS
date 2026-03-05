@@ -242,6 +242,6 @@ export default function InterviewComparison() {
           </Card>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

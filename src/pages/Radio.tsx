@@ -28,6 +28,6 @@ export default function Radio() {
         {/* Mood-Based Playlists */}
         <RadioPlaylists />
       </div>
-    </AppLayout>
+    </>
   );
 }

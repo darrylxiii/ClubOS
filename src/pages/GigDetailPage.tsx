@@ -346,6 +346,6 @@ export default function GigDetailPage() {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }

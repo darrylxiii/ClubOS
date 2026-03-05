@@ -111,7 +111,7 @@ const SwipeGame = memo(() => {
       )}
       {stage === 'loading' && <LoadingScreen onComplete={handleLoadingComplete} />}
       {stage === 'results' && result && <ResultsDashboard result={result} />}
-    </AppLayout>
+    </>
   );
 });
 

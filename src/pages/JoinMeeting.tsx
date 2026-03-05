@@ -174,6 +174,6 @@ export default function JoinMeeting() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    </>
   );
 }

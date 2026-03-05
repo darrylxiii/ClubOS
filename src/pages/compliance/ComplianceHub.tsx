@@ -61,6 +61,6 @@ export default function ComplianceHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }
