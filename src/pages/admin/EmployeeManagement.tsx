@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/AppLayout";
+
 import { RoleGate } from "@/components/RoleGate";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
