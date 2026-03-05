@@ -28,7 +28,7 @@ const PrivacyPolicy = () => {
   ];
 
   return (
-    <AppLayout>
+    <>
       <LegalPageLayout
         title="Privacy Policy" 
         lastUpdated={lastUpdated}
