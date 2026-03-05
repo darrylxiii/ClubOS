@@ -745,7 +745,7 @@ const Settings = () => {
           setResumeModalOpen(false);
         }}
       />
-    </AppLayout>
+    </>
   );
 };
 

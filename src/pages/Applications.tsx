@@ -114,7 +114,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
     }
   }, [user, applications.length]);
 
-  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   if (isLoading) {
     return (

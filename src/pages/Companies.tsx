@@ -851,6 +851,6 @@ export default function Companies() {
           />
         </>
       )}
-    </AppLayout>
+    </>
   );
 }
