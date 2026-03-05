@@ -87,7 +87,7 @@ export default function GigDetailPage() {
   const images = gig.gallery_images || [];
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
