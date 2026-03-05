@@ -487,7 +487,7 @@ export default function JobDashboard() {
 
   if (roleLoading || jobRoleLoading || loading) {
     return (
-      <AppLayout>
+      <>
         <div className="animate-pulse space-y-4">
           <div className="h-32 bg-muted rounded"></div>
           <div className="h-96 bg-muted rounded"></div>
