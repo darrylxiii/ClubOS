@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
+
 import { RoleGate } from '@/components/RoleGate';
 import { PageHeader } from '@/components/workspace/PageHeader';
 import { DraggablePageTree } from '@/components/workspace/DraggablePageTree';
