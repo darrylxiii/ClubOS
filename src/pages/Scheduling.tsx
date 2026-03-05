@@ -330,7 +330,7 @@ export default function Scheduling() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <SchedulingSkeleton />
         </div>
