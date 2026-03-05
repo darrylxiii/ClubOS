@@ -603,7 +603,7 @@ const ClubAI = () => {
   const suggestedPrompts = getSuggestedPrompts();
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto px-4 h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="mb-3 pt-3 flex-shrink-0 flex justify-between items-start">
