@@ -320,7 +320,7 @@ export default function CompanyPage() {
         <div className="flex items-center justify-center h-[100dvh]">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
