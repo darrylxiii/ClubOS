@@ -138,7 +138,7 @@ export default function Pricing() {
   const plans = userType === "partner" ? PARTNER_PLANS : CANDIDATE_PLANS;
 
   return (
-    <AppLayout>
+    <>
       <div className="container max-w-7xl mx-auto py-8 px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
