@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
+
 import { RoleGate } from '@/components/RoleGate';
 import { PageHeader } from '@/components/workspace/PageHeader';
 import { DraggablePageTree } from '@/components/workspace/DraggablePageTree';
@@ -103,7 +103,7 @@ export default function WorkspacePage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
+      <>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
             {!isMobile && showSidebar && <SidebarContent />}
@@ -112,13 +112,13 @@ export default function WorkspacePage() {
             </div>
           </div>
         </RoleGate>
-      </AppLayout>
+      </>
     );
   }
 
   if (error || !page) {
     return (
-      <AppLayout>
+      <>
         <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
           <div className="flex h-[calc(100vh-64px)]">
             {!isMobile && showSidebar && <SidebarContent />}
@@ -136,12 +136,12 @@ export default function WorkspacePage() {
           </div>
           <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
         </RoleGate>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
           {/* Desktop Sidebar */}
@@ -265,6 +265,6 @@ export default function WorkspacePage() {
           onOpenChange={setShowQuickCapture} 
         />
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from '@/lib/motion';
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -187,7 +187,7 @@ export default function AdminCandidates() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -436,6 +436,6 @@ export default function AdminCandidates() {
           onClearSelection={() => setSelectedIds([])}
         />
       </div>
-    </AppLayout>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -487,24 +487,24 @@ export default function JobDashboard() {
 
   if (roleLoading || jobRoleLoading || loading) {
     return (
-      <AppLayout>
+      <>
         <div className="animate-pulse space-y-4">
           <div className="h-32 bg-muted rounded"></div>
           <div className="h-96 bg-muted rounded"></div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!job) {
     return (
-      <AppLayout>
+      <>
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Job not found</p>
           </CardContent>
         </Card>
-      </AppLayout>
+      </>
     );
   }
 
@@ -516,7 +516,7 @@ export default function JobDashboard() {
   ];
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
         {job && (
           <SharePipelineDialog
@@ -1264,6 +1264,6 @@ export default function JobDashboard() {
         isAdmin={role === 'admin'}
         onConfirm={handleDelete}
       />
-    </AppLayout>
+    </>
   );
 }

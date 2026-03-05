@@ -1,7 +1,7 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { CandidateHeroSection } from "@/components/candidate-profile/CandidateHeroSection";
@@ -189,7 +189,7 @@ export default function UnifiedCandidateProfile() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <Skeleton className="h-64 w-full rounded-2xl" />
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -200,17 +200,17 @@ export default function UnifiedCandidateProfile() {
             <Skeleton className="h-96 w-full rounded-2xl" />
           </div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!candidate) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
           <p className="text-muted-foreground">Candidate not found</p>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -218,7 +218,7 @@ export default function UnifiedCandidateProfile() {
   const niceToHaveSkills = skills.filter((s) => !s.is_must_have).map((s) => s.skill_name);
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         {/* Back Button */}
         <BackButton
@@ -470,6 +470,6 @@ export default function UnifiedCandidateProfile() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -371,7 +371,7 @@ export default function Companies() {
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
@@ -851,6 +851,6 @@ export default function Companies() {
           />
         </>
       )}
-    </AppLayout>
+    </>
   );
 }

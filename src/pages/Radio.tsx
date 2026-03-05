@@ -1,12 +1,12 @@
 import { LiveDJs } from "@/components/radio/LiveDJs";
 import { RadioPlaylists } from "@/components/radio/RadioPlaylists";
 import { Radio as RadioIcon } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Separator } from "@/components/ui/separator";
 
 export default function Radio() {
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -28,6 +28,6 @@ export default function Radio() {
         {/* Mood-Based Playlists */}
         <RadioPlaylists />
       </div>
-    </AppLayout>
+    </>
   );
 }

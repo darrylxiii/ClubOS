@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,7 +195,7 @@ export default function CreateGigPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto py-8 px-4 max-w-5xl">
         {/* Header */}
         <div className="mb-8">
@@ -600,6 +600,6 @@ export default function CreateGigPage() {
           </Button>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }

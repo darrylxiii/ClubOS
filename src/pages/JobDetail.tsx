@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { JobProfileHero } from "@/components/jobs/JobProfileHero";
 import { AboutRoleSection } from "@/components/jobs/AboutRoleSection";
 import { JobDescriptionViewer } from "@/components/jobs/JobDescriptionViewer";
@@ -308,20 +308,20 @@ export default function JobDetail() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <UnifiedLoader variant="page" showBranding />
-      </AppLayout>
+      </>
     );
   }
 
   if (!job) {
     return (
-      <AppLayout>
+      <>
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
           <p className="text-muted-foreground">Job not found</p>
           <Button onClick={() => navigate('/jobs')}>Back to Jobs</Button>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -330,7 +330,7 @@ export default function JobDetail() {
   );
 
   return (
-    <AppLayout>
+    <>
       <OceanBackgroundVideo />
 
       <div className="relative z-10 min-h-screen">
@@ -601,6 +601,6 @@ export default function JobDetail() {
           onJobUpdated={loadJobDetails}
         />
       )}
-    </AppLayout>
+    </>
   );
 }

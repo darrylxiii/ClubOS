@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Briefcase, Plus, Rocket, TrendingUp } from "lucide-react";
@@ -56,16 +56,16 @@ export default function ProjectsPage() {
 
   if (loadingProfile || loadingRoles) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center min-h-screen">
           <LoadingSpinner size="lg" />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto py-8 px-4">
         {/* Hero Section */}
         <div className="mb-8">
@@ -170,6 +170,6 @@ export default function ProjectsPage() {
           )}
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

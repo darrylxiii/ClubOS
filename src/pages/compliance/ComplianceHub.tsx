@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { RoleGate } from "@/components/RoleGate";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from "react-router-dom";
@@ -29,7 +29,7 @@ export default function ComplianceHub() {
   };
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={["admin"]}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="space-y-1">
@@ -61,6 +61,6 @@ export default function ComplianceHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -142,7 +142,7 @@ export default function InterviewComparison() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -242,6 +242,6 @@ export default function InterviewComparison() {
           </Card>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

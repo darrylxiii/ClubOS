@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/ui/model-selector";
@@ -603,7 +603,7 @@ const ClubAI = () => {
   const suggestedPrompts = getSuggestedPrompts();
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto px-4 h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="mb-3 pt-3 flex-shrink-0 flex justify-between items-start">
@@ -1014,7 +1014,7 @@ const ClubAI = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </AppLayout>
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, useEffect, useRef } from 'react';
-import { AppLayout } from '@/components/AppLayout';
+
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ export default function SubscriptionManagement() {
   }, [metrics.activeCount]);
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={['admin', 'strategist']}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
@@ -144,6 +144,6 @@ export default function SubscriptionManagement() {
           </div>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

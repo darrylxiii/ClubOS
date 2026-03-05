@@ -1,4 +1,4 @@
-import { AppLayout } from '@/components/AppLayout';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, AlertTriangle, Rocket, Shield } from 'lucide-react';
 import { CapacityPlanningDashboard } from '@/components/admin/risk/CapacityPlanningDashboard';
@@ -7,7 +7,7 @@ import { ScalingReadinessPanel } from '@/components/admin/risk/ScalingReadinessP
 
 export default function RiskManagementDashboard() {
   return (
-    <AppLayout>
+    <>
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -48,6 +48,6 @@ export default function RiskManagementDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

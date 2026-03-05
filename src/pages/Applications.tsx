@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { toast } from "sonner";
@@ -114,7 +114,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
     }
   }, [user, applications.length]);
 
-  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   if (isLoading) {
     return (

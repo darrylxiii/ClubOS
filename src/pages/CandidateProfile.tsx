@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -159,17 +159,17 @@ export default function CandidateProfile() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!candidate) {
     return (
-      <AppLayout>
+      <>
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-12 text-center">
@@ -182,12 +182,12 @@ export default function CandidateProfile() {
             </CardContent>
           </Card>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="min-h-screen bg-background">
         {/* Pipeline Context Banner */}
         {fromJobId && (
@@ -962,6 +962,6 @@ export default function CandidateProfile() {
           onComplete={loadCandidate}
         />
       )}
-    </AppLayout>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { AppLayout } from '@/components/AppLayout';
+
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,7 +97,7 @@ const JobApprovals = () => {
   };
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={['admin', 'strategist']} showLoading>
         <div className="max-w-4xl mx-auto p-6 space-y-6">
           <div className="flex items-center justify-between">
@@ -231,7 +231,7 @@ const JobApprovals = () => {
           </AlertDialogContent>
         </AlertDialog>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 };
 

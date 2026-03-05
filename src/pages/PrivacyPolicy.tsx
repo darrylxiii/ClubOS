@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/AppLayout";
+
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
@@ -28,7 +28,7 @@ const PrivacyPolicy = () => {
   ];
 
   return (
-    <AppLayout>
+    <>
       <LegalPageLayout
         title="Privacy Policy" 
         lastUpdated={lastUpdated}
@@ -534,7 +534,7 @@ const PrivacyPolicy = () => {
           </div>
         </div>
       </LegalPageLayout>
-    </AppLayout>
+    </>
   );
 };
 

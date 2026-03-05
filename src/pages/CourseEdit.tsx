@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,29 +217,29 @@ export default function CourseEdit() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center min-h-[60vh]">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!course) {
     return (
-      <AppLayout>
+      <>
         <div className="container max-w-6xl mx-auto p-6 text-center py-12">
           <h2 className="text-2xl font-bold mb-4">Course not found</h2>
           <Link to="/academy/creator">
             <Button>Back to Creator Hub</Button>
           </Link>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="container max-w-5xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -454,6 +454,6 @@ export default function CourseEdit() {
           nextDisplayOrder={modules.length}
         />
       </div>
-    </AppLayout>
+    </>
   );
 }

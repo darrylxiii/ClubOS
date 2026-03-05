@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/lib/notify";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -248,24 +248,24 @@ export default function ModuleDetail() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center min-h-[60vh]">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!module) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
           <h2 className="text-2xl font-bold mb-4">Module not found</h2>
           <Link to="/academy">
             <Button>Back to Academy</Button>
           </Link>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -273,7 +273,7 @@ export default function ModuleDetail() {
   const hasPreviousModule = currentModuleIndex > 0;
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
@@ -442,6 +442,6 @@ export default function ModuleDetail() {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }

@@ -8,7 +8,7 @@ import { Eye, FileText, Briefcase, Award, TrendingUp, Users, Download, Search, T
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/utils/analyticsExport";
 import { toast } from "sonner";
-import { AppLayout } from "@/components/AppLayout";
+
 
 export default function CandidateAnalytics() {
   const { user } = useSupabaseAuth();
@@ -37,7 +37,7 @@ export default function CandidateAnalytics() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -47,7 +47,7 @@ export default function CandidateAnalytics() {
           </div>
           <Skeleton className="h-96 w-full" />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -61,7 +61,7 @@ export default function CandidateAnalytics() {
   ];
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -372,6 +372,6 @@ export default function CandidateAnalytics() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

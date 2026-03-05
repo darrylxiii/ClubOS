@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
+
 import { RoleGate } from '@/components/RoleGate';
 import { useRole } from '@/contexts/RoleContext';
 import { PageTreeSidebar } from '@/components/workspace/PageTreeSidebar';
@@ -72,7 +72,7 @@ export default function WorkspaceList() {
   };
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={['admin', 'strategist', 'partner', 'user']}>
         <div className="flex h-[calc(100vh-64px)]">
           {showSidebar && <PageTreeSidebar />}
@@ -344,6 +344,6 @@ export default function WorkspaceList() {
         {/* Search Dialog */}
         <PageSearchDialog open={showSearch} onOpenChange={setShowSearch} />
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

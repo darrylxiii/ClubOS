@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -316,17 +316,17 @@ export default function CompanyPage() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center h-[100dvh]">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!company) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card className="border-2">
             <CardContent className="py-12 text-center">
@@ -342,12 +342,12 @@ export default function CompanyPage() {
             </CardContent>
           </Card>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Back Button */}
         <Button
@@ -939,6 +939,6 @@ export default function CompanyPage() {
           />
         </>
       )}
-    </AppLayout>
+    </>
   );
 }

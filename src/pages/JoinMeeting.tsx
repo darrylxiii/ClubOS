@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Video, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AppLayout } from '@/components/AppLayout';
+
 
 export default function JoinMeeting() {
   const navigate = useNavigate();
@@ -96,7 +96,7 @@ export default function JoinMeeting() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="flex items-center justify-center min-h-[80vh] p-4">
         <Card className="w-full max-w-md glass-subtle border-border/50">
           <CardHeader className="text-center space-y-2">
@@ -174,6 +174,6 @@ export default function JoinMeeting() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    </>
   );
 }

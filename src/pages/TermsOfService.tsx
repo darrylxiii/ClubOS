@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/AppLayout";
+
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
 import { Card } from "@/components/ui/card";
@@ -32,7 +32,7 @@ const TermsOfService = () => {
   ];
 
   return (
-    <AppLayout>
+    <>
       <LegalPageLayout
         title="Terms of Service" 
         lastUpdated={lastUpdated}
@@ -594,7 +594,7 @@ const TermsOfService = () => {
           </div>
         </div>
       </LegalPageLayout>
-    </AppLayout>
+    </>
   );
 };
 

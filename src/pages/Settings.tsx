@@ -1,4 +1,4 @@
-import { AppLayout } from "@/components/AppLayout";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -510,16 +510,16 @@ const Settings = () => {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
         <div className="flex items-center gap-3 mb-8">
           <SettingsIcon className="w-8 h-8 text-foreground" />
@@ -745,7 +745,7 @@ const Settings = () => {
           setResumeModalOpen(false);
         }}
       />
-    </AppLayout>
+    </>
   );
 };
 

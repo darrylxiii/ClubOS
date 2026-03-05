@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Phone, Mail, MessageSquare, Video, User, Calendar, Settings, AlertTriangle, Lightbulb, Target, Sparkles } from 'lucide-react';
 import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction';
-import { AppLayout } from '@/components/AppLayout';
+
 import { toast } from 'sonner';
 
 export default function CompanyIntelligence() {
@@ -85,21 +85,21 @@ export default function CompanyIntelligence() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!company) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-muted-foreground">Company not found</p>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -133,7 +133,7 @@ export default function CompanyIntelligence() {
   }, {} as Record<string, number>);
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
@@ -428,6 +428,6 @@ export default function CompanyIntelligence() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

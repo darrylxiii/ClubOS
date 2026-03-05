@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/AppLayout';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -239,7 +239,7 @@ export default function MeetingIntelligence() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -797,6 +797,6 @@ export default function MeetingIntelligence() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

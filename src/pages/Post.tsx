@@ -6,7 +6,7 @@ import { PostCard } from "@/components/feed/PostCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AppLayout } from "@/components/AppLayout";
+
 import { notify } from "@/lib/notify";
 
 export default function Post() {
@@ -97,18 +97,18 @@ export default function Post() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="max-w-3xl mx-auto py-8 px-4">
           <Skeleton className="h-12 w-32 mb-4" />
           <Skeleton className="h-64 w-full" />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (notFound || !post) {
     return (
-      <AppLayout>
+      <>
         <div className="max-w-3xl mx-auto py-8 px-4">
           <Button
             variant="ghost"
@@ -128,12 +128,12 @@ export default function Post() {
             </Button>
           </div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="max-w-3xl mx-auto py-8 px-4 space-y-4">
         <div className="flex items-center justify-between">
           <Button
@@ -156,6 +156,6 @@ export default function Post() {
         
         <PostCard post={post} onUpdate={fetchPost} />
       </div>
-    </AppLayout>
+    </>
   );
 }
