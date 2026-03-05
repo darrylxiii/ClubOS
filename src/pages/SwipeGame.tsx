@@ -104,7 +104,7 @@ const SwipeGame = memo(() => {
   }, []);
 
   return (
-    <AppLayout>
+    <>
       {stage === 'instructions' && <InstructionsPage onStart={handleStart} />}
       {stage === 'swiping' && (
         <SwipeInterface scenarios={SWIPE_SCENARIOS} onComplete={handleComplete} />
