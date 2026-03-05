@@ -321,7 +321,7 @@ export default function JobDetail() {
           <p className="text-muted-foreground">Job not found</p>
           <Button onClick={() => navigate('/jobs')}>Back to Jobs</Button>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
