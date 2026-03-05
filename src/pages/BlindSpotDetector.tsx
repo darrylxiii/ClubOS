@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppLayout } from '@/components/AppLayout';
+
 import { useBlindSpotSession } from '@/hooks/useBlindSpotSession';
 import { BLIND_SPOT_DIMENSIONS, BLIND_SPOT_SCENARIOS } from '@/data/blindSpotData';
 import { BlindSpotIntro } from '@/components/blind-spot/BlindSpotIntro';
