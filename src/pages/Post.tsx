@@ -102,7 +102,7 @@ export default function Post() {
           <Skeleton className="h-12 w-32 mb-4" />
           <Skeleton className="h-64 w-full" />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
