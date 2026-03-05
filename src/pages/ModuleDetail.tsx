@@ -265,7 +265,7 @@ export default function ModuleDetail() {
             <Button>Back to Academy</Button>
           </Link>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
