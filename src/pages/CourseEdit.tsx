@@ -234,7 +234,7 @@ export default function CourseEdit() {
             <Button>Back to Creator Hub</Button>
           </Link>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
