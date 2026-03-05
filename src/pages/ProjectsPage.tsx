@@ -60,7 +60,7 @@ export default function ProjectsPage() {
         <div className="flex items-center justify-center min-h-screen">
           <LoadingSpinner size="lg" />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
