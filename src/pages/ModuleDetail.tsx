@@ -273,7 +273,7 @@ export default function ModuleDetail() {
   const hasPreviousModule = currentModuleIndex > 0;
 
   return (
-    <AppLayout>
+    <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
