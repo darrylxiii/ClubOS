@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
+import { ReactNode, useState, useMemo, lazy, Suspense, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RadialMenuProvider } from "@/components/ui/radial-menu-provider";
