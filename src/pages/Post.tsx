@@ -156,6 +156,6 @@ export default function Post() {
         
         <PostCard post={post} onUpdate={fetchPost} />
       </div>
-    </AppLayout>
+    </>
   );
 }

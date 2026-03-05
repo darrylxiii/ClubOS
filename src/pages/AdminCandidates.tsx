@@ -436,6 +436,6 @@ export default function AdminCandidates() {
           onClearSelection={() => setSelectedIds([])}
         />
       </div>
-    </AppLayout>
+    </>
   );
 }

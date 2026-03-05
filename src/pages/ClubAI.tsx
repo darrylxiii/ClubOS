@@ -1014,7 +1014,7 @@ const ClubAI = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </AppLayout>
+    </>
   );
 };
 

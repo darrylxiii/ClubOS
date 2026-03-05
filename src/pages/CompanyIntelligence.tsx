@@ -428,6 +428,6 @@ export default function CompanyIntelligence() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }
