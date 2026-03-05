@@ -211,10 +211,10 @@ interface CampaignCardProps {
 
 function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
   const replyRate = campaign.total_sent > 0 
-    ? ((campaign.total_replies / campaign.total_sent) * 100).toFixed(1) 
+    ? ((campaign.total_replied / campaign.total_sent) * 100).toFixed(1) 
     : '0';
   const openRate = campaign.total_sent > 0 
-    ? ((campaign.total_opens / campaign.total_sent) * 100).toFixed(1) 
+    ? ((campaign.total_opened / campaign.total_sent) * 100).toFixed(1) 
     : '0';
 
   const statusColors: Record<string, string> = {
