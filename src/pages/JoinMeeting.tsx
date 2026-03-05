@@ -96,7 +96,7 @@ export default function JoinMeeting() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="flex items-center justify-center min-h-[80vh] p-4">
         <Card className="w-full max-w-md glass-subtle border-border/50">
           <CardHeader className="text-center space-y-2">
