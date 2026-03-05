@@ -112,7 +112,7 @@ export default function WorkspacePage() {
             </div>
           </div>
         </RoleGate>
-      </AppLayout>
+      </>
     );
   }
 
