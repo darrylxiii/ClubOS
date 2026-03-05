@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Phone, Mail, MessageSquare, Video, User, Calendar, Settings, AlertTriangle, Lightbulb, Target, Sparkles } from 'lucide-react';
 import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction';
-import { AppLayout } from '@/components/AppLayout';
+
 import { toast } from 'sonner';
 
 export default function CompanyIntelligence() {
