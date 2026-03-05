@@ -31,7 +31,7 @@ export default function SecurityHub() {
   };
 
   return (
-    <AppLayout>
+    <>
       <RoleGate allowedRoles={['admin', 'company_admin']}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="space-y-1">
