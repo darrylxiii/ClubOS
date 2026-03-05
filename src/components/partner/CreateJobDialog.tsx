@@ -99,6 +99,66 @@ const formatFileSize = (bytes: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
 };
 
+// ── Company Combobox (searchable for admins) ──────────────────────
+function CompanyCombobox({ companies, value, onValueChange, disabled, hasError }: {
+  companies: Array<{ id: string; name: string }>;
+  value: string;
+  onValueChange: (v: string) => void;
+  disabled?: boolean;
+  hasError?: boolean;
+}) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [comboOpen, setComboOpen] = useState(false);
+  const filtered = companies.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const selectedName = companies.find(c => c.id === value)?.name || '';
+
+  return (
+    <Popover open={comboOpen} onOpenChange={setComboOpen} modal={false}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          disabled={disabled}
+          className={cn("w-full justify-between glass-input font-normal", hasError && 'border-destructive', !value && 'text-muted-foreground')}
+        >
+          {selectedName || "Select a company"}
+          <Building2 className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[100] pointer-events-auto" align="start">
+        <div className="p-2 border-b border-border">
+          <Input
+            placeholder="Search companies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 text-sm"
+            autoFocus
+          />
+        </div>
+        <div className="max-h-[200px] overflow-y-auto p-1">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-2 text-center">No companies found</p>
+          ) : (
+            filtered.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => { onValueChange(c.id); setComboOpen(false); setSearchQuery(""); }}
+                className={cn(
+                  "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-accent cursor-pointer flex items-center gap-2",
+                  c.id === value && "bg-accent font-medium"
+                )}
+              >
+                <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                {c.name}
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ── Tag Input Component (Fix 10: comma + paste support) ──────────────
 function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (tags: string[]) => void; placeholder: string }) {
   const [input, setInput] = useState("");
@@ -325,13 +385,29 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const fetchCompanies = async () => {
     try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('id, name')
-        .eq('is_active', true)
-        .order('name');
-      if (error) throw error;
-      setCompanies(data || []);
+      const isAdminOrStrategist = currentRole === 'admin' || currentRole === 'strategist';
+      if (isAdminOrStrategist) {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name');
+        if (error) throw error;
+        setCompanies(data || []);
+      } else {
+        // Partners: only show companies they belong to
+        const { data, error } = await supabase
+          .from('company_members')
+          .select('company_id, companies(id, name)')
+          .eq('user_id', user?.id || '')
+          .eq('is_active', true);
+        if (error) throw error;
+        const memberCompanies = (data || [])
+          .map((m: any) => m.companies)
+          .filter(Boolean)
+          .sort((a: any, b: any) => a.name.localeCompare(b.name));
+        setCompanies(memberCompanies);
+      }
     } catch (error) {
       console.error('Error fetching companies:', error);
       toast.error("Failed to load companies");
@@ -731,17 +807,27 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">Start with the fundamentals. These details help us match the right candidates.</p>
 
-      {/* Company - Fix 9: disabled when pre-filled */}
+      {/* Company selector — unlocked for admin/strategist */}
       <div className="space-y-2">
         <Label className="glass-label">Company <span className="text-destructive">*</span></Label>
-        <Select value={formData.company_id} onValueChange={(v) => handleInputChange('company_id', v)} disabled={isSubmitting || !!companyId}>
-          <SelectTrigger className={cn("glass-input", getFieldError('company_id') && 'border-destructive')}>
-            <SelectValue placeholder="Select a company" />
-          </SelectTrigger>
-          <SelectContent>
-            {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {!isPartner && companies.length > 5 ? (
+          <CompanyCombobox
+            companies={companies}
+            value={formData.company_id}
+            onValueChange={(v) => handleInputChange('company_id', v)}
+            disabled={isSubmitting}
+            hasError={!!getFieldError('company_id')}
+          />
+        ) : (
+          <Select value={formData.company_id} onValueChange={(v) => handleInputChange('company_id', v)} disabled={isSubmitting || (!!companyId && isPartner)}>
+            <SelectTrigger className={cn("glass-input", getFieldError('company_id') && 'border-destructive')}>
+              <SelectValue placeholder="Select a company" />
+            </SelectTrigger>
+            <SelectContent>
+              {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
         {getFieldError('company_id') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('company_id')}</p>}
       </div>
 
@@ -1106,8 +1192,26 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
               {jobDescriptionFile && <SummaryRow label="JD File" value={jobDescriptionFile.name} />}
               {supportingDocuments.length > 0 && <SummaryRow label="Documents" value={`${supportingDocuments.length} file(s)`} />}
-              {requirements.length > 0 && <SummaryRow label="Requirements" value={`${requirements.length} item(s)`} />}
-              {niceToHave.length > 0 && <SummaryRow label="Nice-to-Have" value={`${niceToHave.length} item(s)`} />}
+              {requirements.length > 0 && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Requirements:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {requirements.map((r, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">{r}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {niceToHave.length > 0 && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Nice-to-Have:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {niceToHave.map((n, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border">{n}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {requiredTools.length > 0 && <SummaryRow label="Required Tools" value={`${requiredTools.length} selected`} />}
               {niceToHaveTools.length > 0 && <SummaryRow label="Bonus Tools" value={`${niceToHaveTools.length} selected`} />}
               {/* Admin-only summary rows */}

@@ -1,69 +1,253 @@
 
 
-# Job Creation Dialog — Fix + Audit
+# Comprehensive Email System Audit — The Quantum Club
 
-## The Core Bug: Company Selector Locked for Admins
+## Current State Summary
 
-**Root cause**: Line 737 in `CreateJobDialog.tsx`:
-```
-disabled={isSubmitting || !!companyId}
-```
-When `companyId` is passed as a prop (which happens from `PartnerJobsHome`, `JobManagement`, `CompanyPage`), the company dropdown is disabled for ALL roles including admin. Admins should always be able to change the company.
-
-**Fix**: Change the disabled condition to only lock for non-admin/strategist roles:
-```
-disabled={isSubmitting || (!!companyId && isPartner)}
-```
-
-This way partners stay locked to their company, but admins/strategists can switch to any partner.
+The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
 
 ---
 
-## Audit Findings
+## CATEGORY 1: Deliverability Issues (Score Impact)
 
-### What Works Well
-- 5-step wizard flow (Basics, Location, Compensation, Details, Review) is clean
-- Draft persistence with `useJobFormDraft`
-- Close confirmation with unsaved changes
-- Role-based field visibility (Stealth, Pipeline, Fees hidden from partners)
-- Auto-submit for review with admin task creation for partner submissions
-- Ctrl+Enter shortcut on review step
-- Multi-location input with geocoding
-- File uploads (JD + supporting docs)
-- Tag input with comma/paste support for requirements/nice-to-have
+### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
 
-### Issues to Fix
+Only **3** email functions include `List-Unsubscribe` headers:
+- `send-candidate-welcome-email` (recently added)
+- `send-team-invite`
+- `send-referral-invite`
 
-1. **Company selector locked for admins** (critical — the reported bug)
+**Missing from all others**, including:
+- `send-placement-congratulations-email`
+- `send-interview-scheduled-email`
+- `send-offer-notification-email`
+- `send-application-submitted-email`
+- `send-partner-welcome-email`
+- `send-partner-declined-email`
+- `send-recovery-email`
+- `send-notification-email`
+- `send-meeting-summary-email`
+- `send-booking-confirmation`
+- `send-booking-reminder`
+- `send-security-alert`
+- `send-password-reset-email`
+- `send-booking-pending-notification`
+- `guest-booking-actions` (4 send calls)
+- `send-partner-request-received`
+- `notify-admin-partner-request`
+- `send-scorecard-reminder`
+- `send-booking-reminder-email`
+- `_shared/email-notification-templates.ts` (3 send functions)
 
-2. **`fetchCompanies` has no role-based filtering** — It fetches ALL active companies. For partners, it should only show companies they're a member of (via `company_members`). Currently partners could theoretically select a different company if `companyId` were not locked. The lock masks this bug. We should add proper filtering for partners while unlocking for admins.
+**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
 
-3. **No company search/filter** — If there are many partner companies, the `SelectContent` becomes a long unfiltered list. Should add a searchable combobox for admins.
+### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
 
-4. **`resetForm` does not clear `jobLocations`** — Line 698 sets `setJobLocations([])` which is correct. Actually this is fine.
+Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
 
-5. **Review step description truncation** — Line 1125 truncates at 150 chars with `…`. Good, but the requirements/nice-to-have only show count, not the actual items. Users can't verify what they entered without going back.
+**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
 
-6. **No "Responsibilities" or "Benefits" fields** — The `JobFull` type supports `responsibilities` and `benefits` arrays but the create dialog doesn't expose them.
+### 1.3 Emoji in Subject Lines (6 functions)
+
+SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
+- `send-password-reset-email`: "🔐 Reset Your Password"
+- `send-meeting-summary-email`: "📊 Meeting Summary"
+- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
+- `send-booking-reminder`: "🔔 Reminder"
+- `send-security-alert`: emoji prefix
+
+**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
+
+### 1.4 SPF Record Missing (DNS — not code)
+
+`send.thequantumclub.nl` needs an SPF TXT record:
+```text
+v=spf1 include:amazonses.com ~all
+```
+This is a DNS change in the domain registrar.
 
 ---
 
-## Implementation Plan
+## CATEGORY 2: Content & Copy Quality
 
-### Fix 1: Unlock company selector for admins
-- Change line 737 disabled condition to `disabled={isSubmitting || (!!companyId && isPartner)}`
-- When admin changes company, update `formData.company_id` accordingly
+### 2.1 Inconsistent Tone
 
-### Fix 2: Role-based company fetching
-- For admin/strategist: fetch all active companies (current behavior — correct)
-- For partners: filter by `company_members` table to only show companies they belong to
-- Update `fetchCompanies` to branch based on `isPartner`
+Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
 
-### Fix 3: Searchable company selector for admins
-- Replace `Select` with a searchable combobox (using `cmdk` which is already installed) so admins can quickly find partner companies when the list grows
+**Fix**: Remove exclamation points from:
+- `send-referral-invite`: heading and subject line
+- Any other instances
 
-### Fix 4: Show requirements/nice-to-have details in Review
-- In `renderStep4`, show actual tag items instead of just count
+### 2.2 Hardcoded Contact Email Inconsistency
 
-These are focused, targeted fixes. The dialog is otherwise well-built.
+- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
+- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
+- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
+
+**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
+
+### 2.3 Missing "Powered by QUIN" Attribution
+
+Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
+
+**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+
+---
+
+## CATEGORY 3: Technical & Security Issues
+
+### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+
+Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+
+**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
+- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
+- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
+- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
+- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
+- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
+- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
+- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
+- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
+- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
+- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
+- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+
+### 3.2 `linear-gradient()` in Inline Styles
+
+`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+
+**Fix**: Replace gradients with solid background colors.
+
+### 3.3 CSS `box-shadow` in Inline Styles
+
+`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+
+### 3.4 `<ul>` Tag Usage
+
+`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
+
+**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
+
+---
+
+## CATEGORY 4: Accessibility & Compliance
+
+### 4.1 Missing `lang` Attribute on Content
+
+The `<html lang="en">` is set correctly. Good.
+
+### 4.2 Missing `role="presentation"` on Some Tables
+
+Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
+
+### 4.3 Preheader Padding Technique
+
+The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
+
+### 4.4 Missing Physical Mailing Address
+
+CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
+
+**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
+
+---
+
+## CATEGORY 5: Structural Improvements
+
+### 5.1 Centralize Unsubscribe Headers
+
+Create a shared function to avoid repeating header construction in 30+ files:
+
+```typescript
+// In email-config.ts
+export const getEmailHeaders = (): Record<string, string> => {
+  const appUrl = getEmailAppUrl();
+  return {
+    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+};
+```
+
+### 5.2 Centralize Plain-Text Generation
+
+```typescript
+export const htmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' ')
+    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&zwnj;/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+```
+
+---
+
+## Implementation Priority
+
+### Phase 1 — High Impact (deliverability score)
+1. Add `getEmailHeaders()` helper to `email-config.ts`
+2. Add `htmlToPlainText()` helper to `email-config.ts`
+3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
+4. Remove emoji from subject lines (6 functions)
+
+### Phase 2 — Rendering Fixes
+5. Replace all `rgba()` with solid hex in `components.ts`
+6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
+7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
+
+### Phase 3 — Compliance & Copy
+8. Add physical address to footer in `base-template.ts`
+9. Fix tone (remove exclamation points)
+10. Standardize contact email references
+11. Add "Powered by QUIN" where AI features are referenced
+
+### Phase 4 — DNS (manual, not code)
+12. Add SPF record for `send.thequantumclub.nl`
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
+| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
+| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
+| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
+| `send-placement-congratulations-email/index.ts` | Add headers + text |
+| `send-interview-scheduled-email/index.ts` | Add headers + text |
+| `send-offer-notification-email/index.ts` | Add headers + text |
+| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
+| `send-partner-welcome-email/index.ts` | Add headers + text |
+| `send-partner-declined-email/index.ts` | Add headers + text |
+| `send-recovery-email/index.ts` | Add headers + text |
+| `send-notification-email/index.ts` | Add headers + text |
+| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
+| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
+| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
+| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
+| `send-booking-pending-notification/index.ts` | Add headers + text |
+| `send-booking-reminder-email/index.ts` | Add headers + text |
+| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
+| `send-partner-request-received/index.ts` | Add headers + text |
+| `notify-admin-partner-request/index.ts` | Add headers + text |
+| `send-referral-invite/index.ts` | Fix exclamation points in copy |
+| `send-candidate-welcome-email/index.ts` | Add text fallback |
+
+**Total: ~25 files modified**
+
+This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
 
