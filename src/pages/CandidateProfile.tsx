@@ -163,7 +163,7 @@ export default function CandidateProfile() {
         <div className="flex items-center justify-center h-64">
           <SectionLoader />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
