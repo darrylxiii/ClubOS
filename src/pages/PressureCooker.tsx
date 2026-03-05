@@ -53,7 +53,7 @@ const PressureCooker = memo(() => {
   };
 
   return (
-    <AppLayout>
+    <>
       {phase === 'intro' && (
         <PressureCookerIntro
           scenario={scenario}
