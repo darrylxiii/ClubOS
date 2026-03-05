@@ -189,7 +189,7 @@ export default function UnifiedCandidateProfile() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <Skeleton className="h-64 w-full rounded-2xl" />
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
