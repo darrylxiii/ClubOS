@@ -47,7 +47,7 @@ export default function CandidateAnalytics() {
           </div>
           <Skeleton className="h-96 w-full" />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
