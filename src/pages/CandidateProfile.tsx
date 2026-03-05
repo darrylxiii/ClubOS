@@ -187,7 +187,7 @@ export default function CandidateProfile() {
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="min-h-screen bg-background">
         {/* Pipeline Context Banner */}
         {fromJobId && (
