@@ -1,7 +1,7 @@
 import { LiveDJs } from "@/components/radio/LiveDJs";
 import { RadioPlaylists } from "@/components/radio/RadioPlaylists";
 import { Radio as RadioIcon } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
+
 import { Separator } from "@/components/ui/separator";
 
 export default function Radio() {
