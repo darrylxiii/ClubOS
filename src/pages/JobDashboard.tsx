@@ -492,7 +492,7 @@ export default function JobDashboard() {
           <div className="h-32 bg-muted rounded"></div>
           <div className="h-96 bg-muted rounded"></div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
