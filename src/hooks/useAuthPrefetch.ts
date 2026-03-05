@@ -10,6 +10,8 @@ export interface AuthPrefetchData {
     account_status: string | null;
     onboarding_completed_at: string | null;
     company_id: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
   } | null;
   preferences: Record<string, any> | null;
   mfaFactors: { hasVerifiedTotp: boolean };
