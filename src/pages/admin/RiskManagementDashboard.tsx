@@ -1,4 +1,4 @@
-import { AppLayout } from '@/components/AppLayout';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, AlertTriangle, Rocket, Shield } from 'lucide-react';
 import { CapacityPlanningDashboard } from '@/components/admin/risk/CapacityPlanningDashboard';
