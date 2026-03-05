@@ -128,7 +128,7 @@ export default function Post() {
             </Button>
           </div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
