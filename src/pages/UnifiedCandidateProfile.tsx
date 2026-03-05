@@ -470,6 +470,6 @@ export default function UnifiedCandidateProfile() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

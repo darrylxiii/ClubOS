@@ -797,6 +797,6 @@ export default function MeetingIntelligence() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

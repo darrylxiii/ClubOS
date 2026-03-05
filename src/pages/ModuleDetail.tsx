@@ -442,6 +442,6 @@ export default function ModuleDetail() {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }
