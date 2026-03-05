@@ -1264,6 +1264,6 @@ export default function JobDashboard() {
         isAdmin={role === 'admin'}
         onConfirm={handleDelete}
       />
-    </AppLayout>
+    </>
   );
 }
