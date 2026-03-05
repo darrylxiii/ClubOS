@@ -203,13 +203,20 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
-          // CRITICAL: JS/CSS bundles use NetworkOnly to eliminate stale-asset issues
-          // Hashed bundles MUST come from network - cache mismatches cause boot failures
+          // Hashed JS/CSS bundles use CacheFirst — hash changes on every build
+          // so stale content is never served (new hash = new URL = cache miss)
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'NetworkOnly',
+            handler: 'CacheFirst',
             options: {
-              cacheName: 'static-resources'
+              cacheName: 'static-resources',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
             }
           }
         ]
