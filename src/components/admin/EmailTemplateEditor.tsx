@@ -97,7 +97,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto py-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
