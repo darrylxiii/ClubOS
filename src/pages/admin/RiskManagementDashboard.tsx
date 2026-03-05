@@ -7,7 +7,7 @@ import { ScalingReadinessPanel } from '@/components/admin/risk/ScalingReadinessP
 
 export default function RiskManagementDashboard() {
   return (
-    <AppLayout>
+    <>
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
