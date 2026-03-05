@@ -48,6 +48,8 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
         account_status: profileResult.data.account_status,
         onboarding_completed_at: profileResult.data.onboarding_completed_at,
         company_id: profileResult.data.company_id,
+        full_name: profileResult.data.full_name ?? null,
+        avatar_url: profileResult.data.avatar_url ?? null,
       }
     : null;
 

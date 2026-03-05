@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { AppLayout } from '@/components/AppLayout';
+
 import { TimestampedTranscript } from './TimestampedTranscript';
 import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
 import { RecordingClipCreator } from './RecordingClipCreator';
