@@ -18,7 +18,7 @@ const LiveHub = () => {
   if (!user) return null;
 
   return (
-    <AppLayout>
+    <>
       <ActiveCallProvider>
         <LiveHubLayout />
       </ActiveCallProvider>
