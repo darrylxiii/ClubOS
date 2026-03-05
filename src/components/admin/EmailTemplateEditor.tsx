@@ -270,6 +270,6 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AppLayout>
+    </>
   );
 }
