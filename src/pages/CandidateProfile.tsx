@@ -182,7 +182,7 @@ export default function CandidateProfile() {
             </CardContent>
           </Card>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
