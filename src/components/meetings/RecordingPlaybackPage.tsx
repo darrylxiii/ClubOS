@@ -958,6 +958,6 @@ export default function RecordingPlaybackPage() {
         recordingId={recording?.id || ''}
         recordingTitle={recording?.title || recording?.meeting?.title || 'Recording'}
       />
-    </AppLayout>
+    </>
   );
 }
