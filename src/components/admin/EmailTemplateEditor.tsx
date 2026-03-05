@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -98,7 +97,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto py-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -271,6 +270,6 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AppLayout>
+    </>
   );
 }

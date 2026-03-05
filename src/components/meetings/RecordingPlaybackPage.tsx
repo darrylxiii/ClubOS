@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { AppLayout } from '@/components/AppLayout';
+
 import { TimestampedTranscript } from './TimestampedTranscript';
 import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
 import { RecordingClipCreator } from './RecordingClipCreator';
@@ -282,7 +282,7 @@ export default function RecordingPlaybackPage() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -294,13 +294,13 @@ export default function RecordingPlaybackPage() {
             <Skeleton className="h-96" />
           </div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (!recording) {
     return (
-      <AppLayout>
+      <>
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -314,7 +314,7 @@ export default function RecordingPlaybackPage() {
             </AlertDescription>
           </Alert>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -333,7 +333,7 @@ export default function RecordingPlaybackPage() {
   }));
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -958,6 +958,6 @@ export default function RecordingPlaybackPage() {
         recordingId={recording?.id || ''}
         recordingTitle={recording?.title || recording?.meeting?.title || 'Recording'}
       />
-    </AppLayout>
+    </>
   );
 }

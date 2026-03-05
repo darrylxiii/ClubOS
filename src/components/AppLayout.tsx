@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
+import { ReactNode, useState, useMemo, lazy, Suspense, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RadialMenuProvider } from "@/components/ui/radial-menu-provider";
@@ -11,7 +11,7 @@ import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.p
 // Full logos (for expanded state) - these are the full text logos
 import quantumClubLogoDark from "@/assets/quantum-club-logo.png"; // Full logo - black for light theme
 import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo - white for dark theme
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthPrefetch } from "@/hooks/useAuthPrefetch";
 import { GlobalCallNotificationProvider } from "./GlobalCallNotificationProvider";
 import { MeetingNotificationManager } from "./meetings/MeetingNotificationManager";
 import { DynamicBackground } from "./DynamicBackground";
@@ -54,9 +54,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const { currentRole } = useRole();
   useLastPipeline(); // Track last visited pipeline route
-  const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
-  
-  // Lifted sidebar state - single source of truth for mobile menu
+  const { data: prefetchData } = useAuthPrefetch();
+  const userProfile = prefetchData?.profile ?? null;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Stable toggle callback to prevent re-renders
@@ -68,25 +67,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const handleSidebarOpenChange = useCallback((open: boolean) => {
     setSidebarOpen(open);
   }, []);
-
-  // Fetch user profile data including avatar
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user?.id) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (!error && data) {
-        setUserProfile(data);
-      }
-    };
-
-    fetchUserProfile();
-  }, [user?.id]);
 
   // Determine navigation based on current role from context
   // Memoize to prevent unnecessary recalculations and stop accumulation

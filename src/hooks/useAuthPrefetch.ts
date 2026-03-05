@@ -10,6 +10,8 @@ export interface AuthPrefetchData {
     account_status: string | null;
     onboarding_completed_at: string | null;
     company_id: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
   } | null;
   preferences: Record<string, any> | null;
   mfaFactors: { hasVerifiedTotp: boolean };
@@ -22,7 +24,7 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
     supabase.from('user_roles').select('role').eq('user_id', userId),
     supabase
       .from('profiles')
-      .select('account_status, onboarding_completed_at, company_id')
+      .select('account_status, onboarding_completed_at, company_id, full_name, avatar_url')
       .eq('id', userId)
       .single(),
     supabase
@@ -46,6 +48,8 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
         account_status: profileResult.data.account_status,
         onboarding_completed_at: profileResult.data.onboarding_completed_at,
         company_id: profileResult.data.company_id,
+        full_name: profileResult.data.full_name ?? null,
+        avatar_url: profileResult.data.avatar_url ?? null,
       }
     : null;
 

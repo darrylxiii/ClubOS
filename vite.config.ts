@@ -203,13 +203,20 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
-          // CRITICAL: JS/CSS bundles use NetworkOnly to eliminate stale-asset issues
-          // Hashed bundles MUST come from network - cache mismatches cause boot failures
+          // Hashed JS/CSS bundles use CacheFirst — hash changes on every build
+          // so stale content is never served (new hash = new URL = cache miss)
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'NetworkOnly',
+            handler: 'CacheFirst',
             options: {
-              cacheName: 'static-resources'
+              cacheName: 'static-resources',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
             }
           }
         ]
@@ -241,6 +248,53 @@ export default defineConfig(({ mode, command }) => ({
     rollupOptions: {
       maxParallelFileOps: 1,
       treeshake: true,
+      output: {
+        manualChunks(id) {
+          // Core React + consumers that MUST share the same React instance
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/scheduler/') ||
+            id.includes('node_modules/react-router') ||
+            id.includes('node_modules/@radix-ui/') ||
+            id.includes('node_modules/framer-motion/') ||
+            id.includes('node_modules/i18next') ||
+            id.includes('node_modules/react-i18next') ||
+            id.includes('node_modules/next-themes') ||
+            id.includes('node_modules/sonner') ||
+            id.includes('node_modules/cmdk') ||
+            id.includes('node_modules/vaul') ||
+            id.includes('node_modules/class-variance-authority') ||
+            id.includes('node_modules/clsx') ||
+            id.includes('node_modules/tailwind-merge')
+          ) {
+            return 'vendor-core';
+          }
+          // Charts
+          if (
+            id.includes('node_modules/recharts/') ||
+            id.includes('node_modules/d3-')
+          ) {
+            return 'vendor-charts';
+          }
+          // Editor tools
+          if (
+            id.includes('node_modules/@blocknote/') ||
+            id.includes('node_modules/@tiptap/') ||
+            id.includes('node_modules/@mantine/')
+          ) {
+            return 'vendor-editor';
+          }
+          // Supabase
+          if (id.includes('node_modules/@supabase/')) {
+            return 'vendor-supabase';
+          }
+          // Date utilities
+          if (id.includes('node_modules/date-fns')) {
+            return 'vendor-date';
+          }
+        },
+      },
     },
   },
 }));
