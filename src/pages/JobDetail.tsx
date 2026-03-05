@@ -330,7 +330,7 @@ export default function JobDetail() {
   );
 
   return (
-    <AppLayout>
+    <>
       <OceanBackgroundVideo />
 
       <div className="relative z-10 min-h-screen">
