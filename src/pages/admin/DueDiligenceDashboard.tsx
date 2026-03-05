@@ -113,6 +113,6 @@ export default function DueDiligenceDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

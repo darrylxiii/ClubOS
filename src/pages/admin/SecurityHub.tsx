@@ -65,6 +65,6 @@ export default function SecurityHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

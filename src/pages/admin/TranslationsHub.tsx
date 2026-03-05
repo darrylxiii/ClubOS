@@ -65,6 +65,6 @@ export default function TranslationsHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

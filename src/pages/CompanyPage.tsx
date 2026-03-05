@@ -939,6 +939,6 @@ export default function CompanyPage() {
           />
         </>
       )}
-    </AppLayout>
+    </>
   );
 }

@@ -498,7 +498,7 @@ export default function JobDashboard() {
 
   if (!job) {
     return (
-      <AppLayout>
+      <>
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Job not found</p>
