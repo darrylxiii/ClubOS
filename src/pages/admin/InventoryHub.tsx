@@ -61,6 +61,6 @@ export default function InventoryHub() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }

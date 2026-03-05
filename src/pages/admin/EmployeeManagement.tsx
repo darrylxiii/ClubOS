@@ -212,6 +212,6 @@ export default function EmployeeManagement() {
           </Tabs>
         </div>
       </RoleGate>
-    </AppLayout>
+    </>
   );
 }
