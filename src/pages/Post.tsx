@@ -108,7 +108,7 @@ export default function Post() {
 
   if (notFound || !post) {
     return (
-      <AppLayout>
+      <>
         <div className="max-w-3xl mx-auto py-8 px-4">
           <Button
             variant="ghost"
