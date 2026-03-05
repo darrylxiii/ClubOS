@@ -13,9 +13,9 @@ export interface CRMCampaign {
   sequence_steps: number;
   total_prospects: number;
   total_sent: number;
-  total_opens: number;
-  total_replies: number;
-  total_bounces: number;
+  total_opened: number;
+  total_replied: number;
+  total_bounced: number;
   reply_rate: number;
   open_rate: number;
   start_date: string | null;

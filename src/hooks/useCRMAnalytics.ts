@@ -182,8 +182,8 @@ export function useCRMAnalytics(options: UseCRMAnalyticsOptions = {}) {
         campaignId: campaign.id,
         campaignName: campaign.name,
         sent: campaign.total_sent || 0,
-        opened: campaign.total_opens || 0,
-        replied: campaign.total_replies || 0,
+        opened: campaign.total_opened || 0,
+        replied: campaign.total_replied || 0,
         openRate: campaign.open_rate || 0,
         replyRate: campaign.reply_rate || 0,
       }));

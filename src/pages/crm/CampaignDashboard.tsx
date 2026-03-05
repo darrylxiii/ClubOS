@@ -281,11 +281,11 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
             </div>
             <p className="text-xs text-muted-foreground">Reply Rate</p>
           </div>
-          {campaign.total_bounces > 0 && (
+          {campaign.total_bounced > 0 && (
             <div className="text-center">
               <div className="flex items-center gap-1 text-lg font-bold text-red-500">
                 <AlertCircle className="w-4 h-4" />
-                {campaign.total_bounces}
+                {campaign.total_bounced}
               </div>
               <p className="text-xs text-muted-foreground">Bounces</p>
             </div>
