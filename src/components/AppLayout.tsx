@@ -54,9 +54,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const { currentRole } = useRole();
   useLastPipeline(); // Track last visited pipeline route
-  const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
-  
-  // Lifted sidebar state - single source of truth for mobile menu
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Stable toggle callback to prevent re-renders
@@ -68,25 +65,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const handleSidebarOpenChange = useCallback((open: boolean) => {
     setSidebarOpen(open);
   }, []);
-
-  // Fetch user profile data including avatar
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user?.id) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (!error && data) {
-        setUserProfile(data);
-      }
-    };
-
-    fetchUserProfile();
-  }, [user?.id]);
 
   // Determine navigation based on current role from context
   // Memoize to prevent unnecessary recalculations and stop accumulation
