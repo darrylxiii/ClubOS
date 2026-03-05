@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useRef } from 'react';
-import { AppLayout } from '@/components/AppLayout';
+
 import { InstructionsPage } from '@/components/swipe-game/InstructionsPage';
 import { SwipeInterface } from '@/components/swipe-game/SwipeInterface';
 import { LoadingScreen } from '@/components/swipe-game/LoadingScreen';
