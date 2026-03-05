@@ -6,7 +6,7 @@ import { PostCard } from "@/components/feed/PostCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AppLayout } from "@/components/AppLayout";
+
 import { notify } from "@/lib/notify";
 
 export default function Post() {
