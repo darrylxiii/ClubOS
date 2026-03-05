@@ -325,13 +325,29 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const fetchCompanies = async () => {
     try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('id, name')
-        .eq('is_active', true)
-        .order('name');
-      if (error) throw error;
-      setCompanies(data || []);
+      const isAdminOrStrategist = currentRole === 'admin' || currentRole === 'strategist';
+      if (isAdminOrStrategist) {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name');
+        if (error) throw error;
+        setCompanies(data || []);
+      } else {
+        // Partners: only show companies they belong to
+        const { data, error } = await supabase
+          .from('company_members')
+          .select('company_id, companies(id, name)')
+          .eq('user_id', user?.id || '')
+          .eq('is_active', true);
+        if (error) throw error;
+        const memberCompanies = (data || [])
+          .map((m: any) => m.companies)
+          .filter(Boolean)
+          .sort((a: any, b: any) => a.name.localeCompare(b.name));
+        setCompanies(memberCompanies);
+      }
     } catch (error) {
       console.error('Error fetching companies:', error);
       toast.error("Failed to load companies");
