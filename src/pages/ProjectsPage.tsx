@@ -65,7 +65,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto py-8 px-4">
         {/* Hero Section */}
         <div className="mb-8">
