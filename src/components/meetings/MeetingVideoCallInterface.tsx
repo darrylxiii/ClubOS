@@ -1767,33 +1767,54 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Engagement Analytics Overlay — uses real audio level data */}
-      {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (
-        <EngagementAnalyticsOverlay
-          meetingId={meeting.id}
-          participants={Array.from(remoteStreams.entries()).map(([id, { name }]) => ({
+      {/* Engagement Analytics Overlay — uses real accumulated speaking time data */}
+      {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (() => {
+        const elapsedMs = meetingStarted ? Date.now() - (meeting.actual_start_time ? new Date(meeting.actual_start_time).getTime() : Date.now()) : 1;
+        const totalSpeakingTime = Array.from(speakingTimeRef.current.values()).reduce((a, b) => a + b, 0) || 1;
+
+        const remoteMetrics = Array.from(remoteStreams.entries()).map(([id, { name }]) => {
+          const speakingMs = speakingTimeRef.current.get(id) || 0;
+          const speakingPct = Math.round((speakingMs / Math.max(elapsedMs, 1)) * 100);
+          const speaking = isRemoteSpeaking(id);
+          // Engagement = speaking ratio weighted by recency (simple: speaking% clamped 0-100)
+          const engagement = Math.min(100, Math.round((speakingMs / totalSpeakingTime) * 100 * 1.2 + (speaking ? 20 : 0)));
+          return {
             id,
             name,
             role: 'participant' as 'host' | 'candidate' | 'interviewer' | 'participant',
-            speakingTimeMs: 0,
-            speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
-            isSpeaking: isRemoteSpeaking(id),
-            engagement: isRemoteSpeaking(id) ? 85 : 60,
-            sentimentTrend: 'neutral' as 'positive' | 'neutral' | 'negative'
-          })).concat([{
-            id: participantId,
-            name: participantName,
-            role: (userRole === 'host' || userRole === 'candidate' || userRole === 'interviewer' ? userRole : 'participant') as 'host' | 'candidate' | 'interviewer' | 'participant',
-            speakingTimeMs: committedTranscripts.length * 5000,
-            speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
-            isSpeaking: isTranscribing || !!partialTranscript,
-            engagement: Math.min(100, 60 + committedTranscripts.length * 2),
-            sentimentTrend: 'positive' as 'positive' | 'neutral' | 'negative'
-          }])}
-          elapsedTimeMs={meetingStarted ? Date.now() - (meeting.actual_start_time ? new Date(meeting.actual_start_time).getTime() : Date.now()) : 0}
-          onClose={() => setShowEngagementAnalytics(false)}
-        />
-      )}
+            speakingTimeMs: speakingMs,
+            speakingPercentage: speakingPct,
+            isSpeaking: speaking,
+            engagement: Math.max(10, engagement),
+            sentimentTrend: (speaking ? 'positive' : speakingMs > 0 ? 'neutral' : 'negative') as 'positive' | 'neutral' | 'negative'
+          };
+        });
+
+        const localSpeakingMs = speakingTimeRef.current.get('__local__') || 0;
+        const localSpeakingPct = Math.round((localSpeakingMs / Math.max(elapsedMs, 1)) * 100);
+        const localSpeaking = isTranscribing || !!partialTranscript;
+        const localEngagement = Math.min(100, Math.round((localSpeakingMs / totalSpeakingTime) * 100 * 1.2 + (localSpeaking ? 20 : 0)));
+
+        const localMetrics = {
+          id: participantId,
+          name: participantName,
+          role: (userRole === 'host' || userRole === 'candidate' || userRole === 'interviewer' ? userRole : 'participant') as 'host' | 'candidate' | 'interviewer' | 'participant',
+          speakingTimeMs: localSpeakingMs,
+          speakingPercentage: localSpeakingPct,
+          isSpeaking: localSpeaking,
+          engagement: Math.max(10, localEngagement),
+          sentimentTrend: (localSpeaking ? 'positive' : localSpeakingMs > 0 ? 'neutral' : 'negative') as 'positive' | 'neutral' | 'negative'
+        };
+
+        return (
+          <EngagementAnalyticsOverlay
+            meetingId={meeting.id}
+            participants={[...remoteMetrics, localMetrics]}
+            elapsedTimeMs={elapsedMs}
+            onClose={() => setShowEngagementAnalytics(false)}
+          />
+        );
+      })()}
     </div>
   );
 
