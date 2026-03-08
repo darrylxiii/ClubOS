@@ -180,14 +180,6 @@ export function MeetingVideoCallInterface({
     participantName,
     enableE2EE: false,
     onRemoteStream: async (remoteParticipantId, stream) => {
-      console.log('[Meeting] 📹 Remote stream received from:', remoteParticipantId);
-      console.log('[Meeting] 📹 Stream details:', {
-        streamId: stream.id,
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length,
-        totalTracks: stream.getTracks().length
-      });
-
       // Fetch participant name from database
       const { data: participant } = await supabase
         .from('meeting_participants')
@@ -196,15 +188,12 @@ export function MeetingVideoCallInterface({
         .or(`user_id.eq.${remoteParticipantId},session_token.eq.${remoteParticipantId}`)
         .single();
 
-      console.log('[Meeting] 👤 Found participant info:', participant);
-
       // Determine display name
       let displayName = `Participant ${remoteParticipantId.slice(0, 6)}`;
       if (participant) {
         if (participant.guest_name) {
           displayName = participant.guest_name;
         } else if (participant.user_id) {
-          // Fetch user profile for authenticated users
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, email')
@@ -217,20 +206,11 @@ export function MeetingVideoCallInterface({
         }
       }
 
-      console.log('[Meeting] ✅ Setting display name:', displayName, 'for participant:', remoteParticipantId);
-      console.log('[Meeting] 🎥 About to update remoteStreams Map with:', {
-        participantId: remoteParticipantId,
-        displayName,
-        streamId: stream.id,
-        hasTracks: stream.getTracks().length > 0
-      });
-
       setRemoteStreams(prev => {
         const newMap = new Map(prev).set(remoteParticipantId, {
           stream,
           name: displayName
         });
-        console.log('[Meeting] 📊 Updated remoteStreams Map, now has', newMap.size, 'participants');
         return newMap;
       });
     },
