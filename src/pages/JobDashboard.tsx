@@ -26,6 +26,8 @@ import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTa
 import { EnhancedCandidateActionDialog } from "@/components/partner/EnhancedCandidateActionDialog";
 import { ExpandablePipelineStage } from "@/components/partner/ExpandablePipelineStage";
 import { CandidateActionDialog } from "@/components/partner/CandidateActionDialog";
+import { InternalReviewPanel } from "@/components/partner/InternalReviewPanel";
+import { PartnerFirstReviewPanel } from "@/components/partner/PartnerFirstReviewPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -516,6 +518,24 @@ export default function JobDashboard() {
     { name: "Offer", order: 3 },
   ];
 
+  const internalReviewPendingCount = applications.filter(
+    (app) =>
+      app.status !== 'rejected' &&
+      (app.internal_review_status === null ||
+        typeof app.internal_review_status === 'undefined' ||
+        app.internal_review_status === 'pending'),
+  ).length;
+
+  const partnerReviewPendingCount = applications.filter(
+    (app) =>
+      app.internal_review_status === 'approved' &&
+      (app.partner_review_status === null ||
+        typeof app.partner_review_status === 'undefined' ||
+        app.partner_review_status === 'pending'),
+  ).length;
+
+  const pendingReviewsCount = internalReviewPendingCount + partnerReviewPendingCount;
+
   return (
     <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
@@ -832,7 +852,13 @@ export default function JobDashboard() {
                         const count = metrics?.stageBreakdown[stage.order] || 0;
                         const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
                         const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                        const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
+                        const stageApplications = applications.filter(
+                          (app) =>
+                            app.current_stage_index === stage.order &&
+                            (app.partner_review_status === null ||
+                              typeof app.partner_review_status === 'undefined' ||
+                              app.partner_review_status === 'approved'),
+                        );
 
                         // Stage health indicator
                         const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
@@ -1010,7 +1036,7 @@ export default function JobDashboard() {
 
         {/* Consolidated Tabs - Reduced from 8 to 3 */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Intelligence
             </TabsTrigger>
@@ -1022,6 +1048,12 @@ export default function JobDashboard() {
             )}
             <TabsTrigger value="analytics" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+              Reviews
+              {pendingReviewsCount > 0 && (
+                <Badge variant="secondary" className="ml-1">{pendingReviewsCount}</Badge>
+              )}
             </TabsTrigger>
             {(role === 'admin' || role === 'strategist') && (
               <TabsTrigger value="email-dump" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
@@ -1131,8 +1163,12 @@ export default function JobDashboard() {
             <JobAnalytics jobId={job.id} />
           </TabsContent>
 
-          {(role === 'admin' || role === 'strategist') && (
-            <TabsContent value="email-dump" className="space-y-4 mt-6">
+          <TabsContent value="reviews" className="space-y-4 mt-6">
+            {(role === 'admin' || role === 'strategist') ? (
+              <InternalReviewPanel jobId={job.id} />
+            ) : null}
+            <PartnerFirstReviewPanel jobId={job.id} />
+          </TabsContent>
               <EmailDumpTab
                 jobId={job.id}
                 jobTitle={job.title}

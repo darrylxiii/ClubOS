@@ -3020,9 +3020,22 @@ export type Database = {
           created_at: string
           current_stage_index: number
           id: string
+          internal_review_notes: string | null
+          internal_review_status:
+            | Database["public"]["Enums"]["internal_review_status_enum"]
+            | null
+          internal_reviewed_at: string | null
+          internal_reviewed_by: string | null
           job_id: string
           match_factors: Json | null
           match_score: number | null
+          partner_review_notes: string | null
+          partner_review_rating: number | null
+          partner_review_status:
+            | Database["public"]["Enums"]["partner_review_status_enum"]
+            | null
+          partner_reviewed_at: string | null
+          partner_reviewed_by: string | null
           position: string
           probation_end_date: string | null
           probation_status: string | null
@@ -3051,9 +3064,22 @@ export type Database = {
           created_at?: string
           current_stage_index?: number
           id?: string
+          internal_review_notes?: string | null
+          internal_review_status?:
+            | Database["public"]["Enums"]["internal_review_status_enum"]
+            | null
+          internal_reviewed_at?: string | null
+          internal_reviewed_by?: string | null
           job_id: string
           match_factors?: Json | null
           match_score?: number | null
+          partner_review_notes?: string | null
+          partner_review_rating?: number | null
+          partner_review_status?:
+            | Database["public"]["Enums"]["partner_review_status_enum"]
+            | null
+          partner_reviewed_at?: string | null
+          partner_reviewed_by?: string | null
           position: string
           probation_end_date?: string | null
           probation_status?: string | null
@@ -3082,9 +3108,22 @@ export type Database = {
           created_at?: string
           current_stage_index?: number
           id?: string
+          internal_review_notes?: string | null
+          internal_review_status?:
+            | Database["public"]["Enums"]["internal_review_status_enum"]
+            | null
+          internal_reviewed_at?: string | null
+          internal_reviewed_by?: string | null
           job_id?: string
           match_factors?: Json | null
           match_score?: number | null
+          partner_review_notes?: string | null
+          partner_review_rating?: number | null
+          partner_review_status?:
+            | Database["public"]["Enums"]["partner_review_status_enum"]
+            | null
+          partner_reviewed_at?: string | null
+          partner_reviewed_by?: string | null
           position?: string
           probation_end_date?: string | null
           probation_status?: string | null
@@ -3119,10 +3158,52 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "applications_internal_reviewed_by_fkey"
+            columns: ["internal_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "applications_internal_reviewed_by_fkey"
+            columns: ["internal_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_internal_reviewed_by_fkey"
+            columns: ["internal_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "applications_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_partner_reviewed_by_fkey"
+            columns: ["partner_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "applications_partner_reviewed_by_fkey"
+            columns: ["partner_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_partner_reviewed_by_fkey"
+            columns: ["partner_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -37200,6 +37281,86 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_reviewers: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          is_primary: boolean | null
+          job_id: string
+          review_type: string
+          reviewer_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          is_primary?: boolean | null
+          job_id: string
+          review_type: string
+          reviewer_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          is_primary?: boolean | null
+          job_id?: string
+          review_type?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_reviewers_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "pipeline_reviewers_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_reviewers_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_reviewers_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_reviewers_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "pipeline_reviewers_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_reviewers_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_stage_mappings: {
         Row: {
           created_at: string | null
@@ -43741,6 +43902,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      review_feedback_aggregates: {
+        Row: {
+          avg_rating: number | null
+          avg_review_time_hours: number | null
+          entity_id: string
+          entity_type: string
+          id: string
+          top_approval_traits: Json | null
+          top_rejection_reasons: Json | null
+          total_approved: number | null
+          total_hold: number | null
+          total_rejected: number | null
+          total_shared: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_rating?: number | null
+          avg_review_time_hours?: number | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          top_approval_traits?: Json | null
+          top_rejection_reasons?: Json | null
+          total_approved?: number | null
+          total_hold?: number | null
+          total_rejected?: number | null
+          total_shared?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_rating?: number | null
+          avg_review_time_hours?: number | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          top_approval_traits?: Json | null
+          top_rejection_reasons?: Json | null
+          total_approved?: number | null
+          total_hold?: number | null
+          total_rejected?: number | null
+          total_shared?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       reward_decisions: {
         Row: {
@@ -58295,6 +58501,11 @@ export type Database = {
         | "top_rated"
         | "top_rated_plus"
         | "expert_vetted"
+      internal_review_status_enum:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "needs_info"
       inventory_asset_status:
         | "active"
         | "fully_depreciated"
@@ -58327,6 +58538,7 @@ export type Database = {
         | "server_invite"
         | "role_change"
         | "achievement"
+      partner_review_status_enum: "pending" | "approved" | "rejected" | "hold"
       project_status:
         | "draft"
         | "open"
@@ -58630,6 +58842,12 @@ export const Constants = {
         "top_rated_plus",
         "expert_vetted",
       ],
+      internal_review_status_enum: [
+        "pending",
+        "approved",
+        "rejected",
+        "needs_info",
+      ],
       inventory_asset_status: [
         "active",
         "fully_depreciated",
@@ -58666,6 +58884,7 @@ export const Constants = {
         "role_change",
         "achievement",
       ],
+      partner_review_status_enum: ["pending", "approved", "rejected", "hold"],
       project_status: [
         "draft",
         "open",
