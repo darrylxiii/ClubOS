@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,11 @@ import { useMeetingWebRTC } from '@/hooks/useMeetingWebRTC';
 import { useMeetingUI } from '@/hooks/useMeetingUI';
 import { useMeetingConnectionQuality } from '@/hooks/useMeetingConnectionQuality';
 import { useMeetingQualityMonitor } from '@/hooks/useMeetingQualityMonitor';
+import { useMeetingKeyboardShortcuts } from '@/hooks/useMeetingKeyboardShortcuts';
+import { useMutedSpeakingDetector } from '@/hooks/useMutedSpeakingDetector';
+import { useAudioLevelMonitor } from '@/hooks/useAudioLevelMonitor';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { meetingLogger as log } from '@/lib/meetingLogger';
 import { ControlsPanel } from '@/components/video-call/ControlsPanel';
 import { VideoGrid } from '@/components/video-call/VideoGrid';
 import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
@@ -94,10 +98,13 @@ export function MeetingVideoCallInterface({
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
   const [isHandRaised, setIsHandRaised] = useState(false);
+  const [remoteHandRaises, setRemoteHandRaises] = useState<Map<string, boolean>>(new Map());
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
+  const [focusedParticipantId, setFocusedParticipantId] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [userRole, setUserRole] = useState<string>('participant');
   const [isRecording, setIsRecording] = useState(false);
@@ -228,7 +235,8 @@ export function MeetingVideoCallInterface({
       });
     },
     onParticipantLeft: (remoteParticipantId) => {
-      console.log('[Meeting] Participant left:', remoteParticipantId);
+      log.debug('Meeting', 'Participant left: ' + remoteParticipantId);
+      setRemoteHandRaises(prev => { const n = new Map(prev); n.delete(remoteParticipantId); return n; });
       setRemoteStreams(prev => {
         const newMap = new Map(prev);
         newMap.delete(remoteParticipantId);
@@ -314,7 +322,7 @@ export function MeetingVideoCallInterface({
   // Adaptive Quality Director (Auto-Downgrade)
   useEffect(() => {
     if (suggestedAction === 'audio-only' && isVideoEnabled) {
-      console.warn('[Meeting] 📉 Critical network quality detected. Switching to Audio Only.');
+      log.warn('Meeting', 'Critical network quality detected. Switching to Audio Only.');
       toggleVideo();
       toast.warning('Poor connection detected', {
         description: 'Turning off video to preserve audio quality.'
@@ -327,6 +335,52 @@ export function MeetingVideoCallInterface({
       // });
     }
   }, [suggestedAction, isVideoEnabled, toggleVideo]);
+
+  // Active speaker detection via audio levels on remote streams
+  const remoteStreamMap = useMemo(() => {
+    const map = new Map<string, MediaStream>();
+    remoteStreams.forEach(({ stream }, id) => map.set(id, stream));
+    return map;
+  }, [remoteStreams]);
+
+  const { isSpeaking: isRemoteSpeaking } = useAudioLevelMonitor({
+    streams: remoteStreamMap,
+    speakingThreshold: 0.05,
+    updateInterval: 150,
+  });
+
+  // Keyboard shortcuts (M=mute, V=video, S=screen, H=hand, F=fullscreen)
+  const handleToggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  // Refs for handlers to avoid hook-ordering issues
+  const handleToggleScreenShareRef = useRef<() => void>(() => {});
+  const handleToggleHandRaiseRef = useRef<() => void>(() => {});
+  const handleEndCallRef = useRef<() => void>(() => {});
+
+  useMeetingKeyboardShortcuts({
+    onToggleAudio: toggleAudio,
+    onToggleVideo: toggleVideo,
+    onToggleScreenShare: () => handleToggleScreenShareRef.current(),
+    onToggleHandRaise: () => handleToggleHandRaiseRef.current(),
+    onEndCall: () => handleEndCallRef.current(),
+    onToggleFullscreen: handleToggleFullscreen,
+    enabled: meetingStarted && !showDiagnostics,
+  });
+
+  // "You are muted" detection
+  useMutedSpeakingDetector({
+    localStream,
+    isAudioEnabled,
+    enabled: meetingStarted && !showDiagnostics,
+  });
 
   // Compositor-based recording with consent (PRIMARY RECORDING SYSTEM)
   const {
@@ -367,7 +421,7 @@ export function MeetingVideoCallInterface({
           stream,
           isSpeaking: false
         });
-        console.log('[Meeting] 🎥 Added remote participant to compositor:', name);
+        log.debug('Meeting', 'Added remote participant to compositor: ' + name);
       }
     });
 
@@ -375,7 +429,7 @@ export function MeetingVideoCallInterface({
     prevParticipantIds.forEach(prevId => {
       if (!currentParticipantIds.has(prevId)) {
         removeRecordingParticipant(prevId);
-        console.log('[Meeting] 🎥 Removed participant from compositor:', prevId);
+        log.debug('Meeting', 'Removed participant from compositor: ' + prevId);
       }
     });
 
@@ -387,7 +441,7 @@ export function MeetingVideoCallInterface({
     setShowDiagnostics(false);
 
     try {
-      console.log('[Meeting] 🎬 Initializing media for meeting:', meeting.title, '| Participant ID:', participantId, '| Is Guest:', isGuest);
+      log.debug('Meeting', `Initializing media for ${meeting.title} | ${participantId} | Guest: ${isGuest}`);
       await initializeMedia();
       toast.success('Joined meeting room');
 
@@ -467,24 +521,27 @@ export function MeetingVideoCallInterface({
       }
     }
 
-    // Emit meeting.ended analytics event
-    try {
-      await supabase.from('activity_feed').insert({
-        user_id: participantId,
-        event_type: 'meeting.ended',
-        event_data: {
-          meeting_id: meeting.id,
-          duration_ms: meeting.actual_start_time
-            ? Date.now() - new Date(meeting.actual_start_time).getTime()
-            : 0,
-          participant_count: remoteStreams.size + 1,
-          was_recorded: isCompositorRecording,
-          transcription_enabled: transcriptionEnabled,
-        },
-        visibility: 'internal',
-      });
-    } catch (_) {
-      // Non-blocking analytics
+    // Emit meeting.ended analytics event (skip for guests with non-UUID participantIds)
+    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(participantId);
+    if (isValidUUID) {
+      try {
+        await supabase.from('activity_feed').insert({
+          user_id: participantId,
+          event_type: 'meeting.ended',
+          event_data: {
+            meeting_id: meeting.id,
+            duration_ms: meeting.actual_start_time
+              ? Date.now() - new Date(meeting.actual_start_time).getTime()
+              : 0,
+            participant_count: remoteStreams.size + 1,
+            was_recorded: isCompositorRecording,
+            transcription_enabled: transcriptionEnabled,
+          },
+          visibility: 'internal',
+        });
+      } catch (_) {
+        // Non-blocking analytics
+      }
     }
 
     // Trigger post-meeting debrief analysis
@@ -618,6 +675,11 @@ export function MeetingVideoCallInterface({
     }
   };
 
+  // Wire handler refs for keyboard shortcuts (must be after handler declarations)
+  handleToggleScreenShareRef.current = handleToggleScreenShare;
+  handleToggleHandRaiseRef.current = handleToggleHandRaise;
+  handleEndCallRef.current = handleEndCall;
+
   // Handler functions now provided by useMeetingUI hook
 
   const handleReaction = async (emoji: string) => {
@@ -707,7 +769,7 @@ export function MeetingVideoCallInterface({
     };
 
     // Initial heartbeat - run immediately
-    console.log('[Meeting] ❤️ Starting presence heartbeat for:', participantId);
+    log.debug('Meeting', 'Starting presence heartbeat for: ' + participantId);
     updateHeartbeat();
 
     // Update every 10 seconds
@@ -736,7 +798,7 @@ export function MeetingVideoCallInterface({
 
       // If we're in the call UI but marked as left, fix it (target specific record)
       if (data && data.left_at !== null) {
-        console.warn('[Meeting] ⚠️ Participant incorrectly marked as left - auto-fixing...');
+        log.warn('Meeting', 'Participant incorrectly marked as left - auto-fixing...');
 
         await supabase
           .from('meeting_participants')
@@ -778,6 +840,8 @@ export function MeetingVideoCallInterface({
         },
         (payload: any) => {
           const signal = payload.new;
+          if (signal.sender_id === participantId) return; // Ignore own signals
+
           if (signal.signal_type === 'reaction') {
             const reactionData = signal.signal_data;
             const newReaction = {
@@ -787,16 +851,22 @@ export function MeetingVideoCallInterface({
             };
 
             setReactions(prev => [...prev, newReaction]);
-
-            // Show toast
-            toast(`${reactionData.participantName} reacted with ${reactionData.emoji}`, {
-              duration: 2000
-            });
-
-            // Remove after animation
+            toast(`${reactionData.participantName} reacted with ${reactionData.emoji}`, { duration: 2000 });
             setTimeout(() => {
               setReactions(prev => prev.filter(r => r.id !== newReaction.id));
             }, 3000);
+          } else if (signal.signal_type === 'hand_raise') {
+            const data = signal.signal_data;
+            setRemoteHandRaises(prev => {
+              const n = new Map(prev);
+              if (data.raised) {
+                n.set(signal.sender_id, true);
+                toast(`${data.participantName} raised their hand`, { duration: 3000 });
+              } else {
+                n.delete(signal.sender_id);
+              }
+              return n;
+            });
           }
         }
       )
@@ -818,7 +888,7 @@ export function MeetingVideoCallInterface({
         .eq('meeting_id', meeting.id)
         .eq('request_status', 'pending');
 
-      console.log('[Meeting] 📋 Pending join requests:', count || 0);
+      log.debug('Meeting', 'Pending join requests: ' + (count || 0));
       setPendingRequestsCount(count || 0);
     };
 
@@ -838,7 +908,7 @@ export function MeetingVideoCallInterface({
           filter: `meeting_id=eq.${meeting.id}`
         },
         () => {
-          console.log('[Meeting] 🔔 Join request change detected');
+          log.debug('Meeting', 'Join request change detected');
           checkPendingRequests();
         }
       )
@@ -863,20 +933,17 @@ export function MeetingVideoCallInterface({
         .eq('status', 'accepted')  // Only count accepted participants
         .is('left_at', null);       // Who haven't left yet
 
-      console.log('[Meeting] 👥 Accepted participants in DB:', count);
-      console.log('[Meeting] 📊 Participant details:', data);
-      console.log('[Meeting] 🔗 WebRTC connected participants:', participants.length);
+      log.debug('Meeting', `Participants: DB=${count}, WebRTC=${participants.length}`);
 
       // Count connected WebRTC participants + local participant as the active count
       const activeParticipantCount = participants.length + 1; // +1 for local
-      console.log('[Meeting] 🎯 Active participants (WebRTC + local):', activeParticipantCount);
 
       setTotalParticipants(activeParticipantCount);
 
       // CRITICAL FIX: Allow meeting to start with 1 participant (solo user)
       // This fixes the "waiting for more participants" deadlock
       if (activeParticipantCount >= 1 && !meetingStarted) {
-        console.log('[Meeting] ✅ Starting meeting with', activeParticipantCount, 'participant(s)');
+        log.debug('Meeting', 'Starting meeting with ' + activeParticipantCount + ' participant(s)');
         setMeetingStarted(true);
       }
     };
@@ -895,7 +962,7 @@ export function MeetingVideoCallInterface({
           filter: `meeting_id=eq.${meeting.id}`
         },
         (payload) => {
-          console.log('[Meeting] 🔔 Participant change detected:', payload.eventType, payload.new);
+          log.debug('Meeting', 'Participant change detected: ' + payload.eventType);
           fetchParticipants();
         }
       )
@@ -919,10 +986,10 @@ export function MeetingVideoCallInterface({
         .maybeSingle();
 
       if (data?.role) {
-        console.log('[Meeting] 👤 User role fetched:', data.role);
+        log.debug('Meeting', 'User role: ' + data.role);
         setUserRole(data.role);
       } else if (meeting.host_id === participantId) {
-        console.log('[Meeting] 👑 User is host, setting role');
+        log.debug('Meeting', 'User is host');
         setUserRole('host');
       }
 
@@ -989,19 +1056,19 @@ export function MeetingVideoCallInterface({
 
   // Main call interface with ultra-premium background
   const allParticipants = [
-    // Local participant with their camera OR screen share
+    // Local participant
     {
       id: 'local',
       display_name: participantName + (isGuest ? ' (Guest)' : '') + (isScreenSharing ? ' (Screen)' : ''),
       role: (meeting.host_id === participantId ? 'host' : 'participant') as 'host' | 'participant',
       is_muted: !isAudioEnabled,
-      is_video_off: !isVideoEnabled && !isScreenSharing, // If screen sharing, video is "on"
+      is_video_off: !isVideoEnabled && !isScreenSharing,
       is_screen_sharing: isScreenSharing,
       is_hand_raised: isHandRaised,
       is_speaking: false,
       stream: (isScreenSharing && screenStream) ? screenStream : (localStream || undefined)
     },
-    // Remote participants
+    // Remote participants — with real hand-raise and active speaker data
     ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
       id,
       display_name: name,
@@ -1009,8 +1076,8 @@ export function MeetingVideoCallInterface({
       is_muted: false,
       is_video_off: false,
       is_screen_sharing: false,
-      is_hand_raised: false,
-      is_speaking: false,
+      is_hand_raised: remoteHandRaises.get(id) || false,
+      is_speaking: isRemoteSpeaking(id),
       stream
     }))
   ];
@@ -1162,7 +1229,7 @@ export function MeetingVideoCallInterface({
               isHost={meeting.host_id === participantId}
               onEnd={onEnd}
               onFallbackToWebRTC={() => {
-                console.log('[Meeting] 🔄 Falling back to WebRTC P2P mode');
+                log.debug('Meeting', 'Falling back to WebRTC P2P mode');
                 setUseLiveKitMode(false);
                 toast.info('Switched to direct peer-to-peer mode', {
                   description: 'Using direct connection for this meeting'
@@ -1192,11 +1259,12 @@ export function MeetingVideoCallInterface({
               is_muted: false,
               is_video_off: false,
               is_screen_sharing: false,
-              is_hand_raised: false,
-              is_speaking: false,
+              is_hand_raised: remoteHandRaises.get(id) || false,
+              is_speaking: isRemoteSpeaking(id),
               stream
             }))}
             layout={layout}
+            focusedParticipantId={focusedParticipantId || undefined}
           />
         )}
       </div>
@@ -1679,7 +1747,7 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Engagement Analytics Overlay — uses transcription activity as speaking proxy */}
+      {/* Engagement Analytics Overlay — uses real audio level data */}
       {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (
         <EngagementAnalyticsOverlay
           meetingId={meeting.id}
@@ -1689,14 +1757,14 @@ export function MeetingVideoCallInterface({
             role: 'participant' as 'host' | 'candidate' | 'interviewer' | 'participant',
             speakingTimeMs: 0,
             speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
-            isSpeaking: false,
-            engagement: Math.min(100, Math.floor(50 + Math.random() * 30)), // TODO: wire real audio levels
+            isSpeaking: isRemoteSpeaking(id),
+            engagement: isRemoteSpeaking(id) ? 85 : 60,
             sentimentTrend: 'neutral' as 'positive' | 'neutral' | 'negative'
           })).concat([{
             id: participantId,
             name: participantName,
             role: (userRole === 'host' || userRole === 'candidate' || userRole === 'interviewer' ? userRole : 'participant') as 'host' | 'candidate' | 'interviewer' | 'participant',
-            speakingTimeMs: committedTranscripts.length * 5000, // Rough estimate: ~5s per transcript segment
+            speakingTimeMs: committedTranscripts.length * 5000,
             speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
             isSpeaking: isTranscribing || !!partialTranscript,
             engagement: Math.min(100, 60 + committedTranscripts.length * 2),
