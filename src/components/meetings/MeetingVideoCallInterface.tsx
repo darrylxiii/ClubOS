@@ -1372,7 +1372,13 @@ export function MeetingVideoCallInterface({
               is_hand_raised: !!remoteHandRaises.get(id),
               is_speaking: isRemoteSpeaking(id),
               stream,
-              connectionQuality: peerStats.get(id)?.quality || 'good'
+              connectionQuality: peerStats.get(id)?.quality || 'good',
+              peerStats: peerStats.get(id) ? {
+                latency: peerStats.get(id)!.latency,
+                jitter: peerStats.get(id)!.jitter,
+                packetLoss: peerStats.get(id)!.packetLoss,
+                bitrate: peerStats.get(id)!.bitrate,
+              } : undefined
             }))}
             layout={layout}
             focusedParticipantId={focusedParticipantId || undefined}
