@@ -1277,6 +1277,7 @@ export function MeetingVideoCallInterface({
             }))}
             layout={layout}
             focusedParticipantId={focusedParticipantId || undefined}
+            onPinParticipant={(id) => setFocusedParticipantId(prev => prev === id ? null : id)}
           />
         )}
       </div>
