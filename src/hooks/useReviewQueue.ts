@@ -223,7 +223,7 @@ export function useReviewQueue(jobId?: string) {
   }: PartnerReviewFeedbackInput) => {
     const reviewerId = await getCurrentUserId();
 
-    const roleFeedbackPromise = supabase.from('role_candidate_feedback').insert({
+    await supabase.from('role_candidate_feedback').insert({
       job_id: application.jobId,
       candidate_id: application.candidateId,
       application_id: application.id,
@@ -243,32 +243,26 @@ export function useReviewQueue(jobId?: string) {
       },
     });
 
-    const requests = [roleFeedbackPromise];
-
     if (application.companyId) {
-      requests.push(
-        supabase.from('company_candidate_feedback').insert({
-          company_id: application.companyId,
-          candidate_id: application.candidateId,
-          application_id: application.id,
-          job_id: application.jobId,
-          feedback_type: feedbackType,
-          stage_name: 'partner_review',
-          rejection_reason: rejectionReason,
-          feedback_text: notes,
-          rating,
-          skills_mismatch: specificGaps,
-          provided_by: reviewerId,
-          metadata: {
-            review_layer: 'partner_first_review',
-            tags,
-            ideal_candidate: idealCandidate,
-          },
-        }),
-      );
+      await supabase.from('company_candidate_feedback').insert({
+        company_id: application.companyId,
+        candidate_id: application.candidateId,
+        application_id: application.id,
+        job_id: application.jobId,
+        feedback_type: feedbackType,
+        stage_name: 'partner_review',
+        rejection_reason: rejectionReason,
+        feedback_text: notes,
+        rating,
+        skills_mismatch: specificGaps,
+        provided_by: reviewerId,
+        metadata: {
+          review_layer: 'partner_first_review',
+          tags,
+          ideal_candidate: idealCandidate,
+        },
+      });
     }
-
-    await Promise.all(requests);
   };
 
   const approveInternalMutation = useMutation({
