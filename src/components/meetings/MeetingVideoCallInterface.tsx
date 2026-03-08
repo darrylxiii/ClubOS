@@ -180,14 +180,6 @@ export function MeetingVideoCallInterface({
     participantName,
     enableE2EE: false,
     onRemoteStream: async (remoteParticipantId, stream) => {
-      console.log('[Meeting] 📹 Remote stream received from:', remoteParticipantId);
-      console.log('[Meeting] 📹 Stream details:', {
-        streamId: stream.id,
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length,
-        totalTracks: stream.getTracks().length
-      });
-
       // Fetch participant name from database
       const { data: participant } = await supabase
         .from('meeting_participants')
@@ -196,15 +188,12 @@ export function MeetingVideoCallInterface({
         .or(`user_id.eq.${remoteParticipantId},session_token.eq.${remoteParticipantId}`)
         .single();
 
-      console.log('[Meeting] 👤 Found participant info:', participant);
-
       // Determine display name
       let displayName = `Participant ${remoteParticipantId.slice(0, 6)}`;
       if (participant) {
         if (participant.guest_name) {
           displayName = participant.guest_name;
         } else if (participant.user_id) {
-          // Fetch user profile for authenticated users
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, email')
@@ -217,20 +206,11 @@ export function MeetingVideoCallInterface({
         }
       }
 
-      console.log('[Meeting] ✅ Setting display name:', displayName, 'for participant:', remoteParticipantId);
-      console.log('[Meeting] 🎥 About to update remoteStreams Map with:', {
-        participantId: remoteParticipantId,
-        displayName,
-        streamId: stream.id,
-        hasTracks: stream.getTracks().length > 0
-      });
-
       setRemoteStreams(prev => {
         const newMap = new Map(prev).set(remoteParticipantId, {
           stream,
           name: displayName
         });
-        console.log('[Meeting] 📊 Updated remoteStreams Map, now has', newMap.size, 'participants');
         return newMap;
       });
     },
@@ -438,9 +418,9 @@ export function MeetingVideoCallInterface({
 
   const handleConsentDeclined = () => {
     setShowConsentModal(false);
-    // Leave meeting if they decline completely
-    toast.info('You chose to leave the meeting');
-    onEnd();
+    // Allow user to stay in meeting without recording
+    setHasGivenConsent(false);
+    toast.info('You can continue without recording. Your audio and video will not be captured.');
   };
 
   const handleRetry = () => {
@@ -469,6 +449,16 @@ export function MeetingVideoCallInterface({
         console.error('[Meeting] Failed to save recording:', error);
       }
     }
+
+    // Trigger post-meeting debrief analysis
+    try {
+      await supabase.functions.invoke('meeting-debrief', {
+        body: { meeting_id: meeting.id }
+      });
+    } catch (err) {
+      // Non-blocking — debrief is best-effort
+    }
+
     cleanup();
     onEnd();
   };
@@ -568,9 +558,27 @@ export function MeetingVideoCallInterface({
   };
 
   // Handler functions for ControlsPanel
-  const handleToggleHandRaise = () => {
-    setIsHandRaised(prev => !prev);
+  const handleToggleHandRaise = async () => {
+    const newState = !isHandRaised;
+    setIsHandRaised(newState);
     toast(isHandRaised ? 'Hand lowered' : 'Hand raised');
+
+    // Broadcast hand raise to all participants via webrtc_signals
+    try {
+      await supabase.from('webrtc_signals').insert({
+        meeting_id: meeting.id,
+        sender_id: participantId,
+        receiver_id: 'all',
+        signal_type: 'hand_raise',
+        signal_data: {
+          raised: newState,
+          participantName,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (err) {
+      console.error('[Meeting] Failed to broadcast hand raise:', err);
+    }
   };
 
   const handleOpenChat = () => setShowChat(true);
@@ -916,19 +924,6 @@ export function MeetingVideoCallInterface({
     };
   }, []);
 
-  // Debug: Log remote streams when they change
-  useEffect(() => {
-    console.log('[Meeting] 🔍 Remote streams updated, Map size:', remoteStreams.size);
-    remoteStreams.forEach((value, key) => {
-      console.log('[Meeting] 📊 Remote stream entry:', {
-        participantId: key,
-        name: value.name,
-        streamId: value.stream.id,
-        videoTracks: value.stream.getVideoTracks().length,
-        audioTracks: value.stream.getAudioTracks().length
-      });
-    });
-  }, [remoteStreams]);
 
   // Show diagnostics first
   if (showDiagnostics) {
@@ -991,41 +986,18 @@ export function MeetingVideoCallInterface({
       stream: (isScreenSharing && screenStream) ? screenStream : (localStream || undefined)
     },
     // Remote participants
-    ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => {
-      console.log('[Meeting] 🎭 Mapping remote participant:', {
-        id,
-        name,
-        streamId: stream.id,
-        hasStream: !!stream,
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length
-      });
-      return {
-        id,
-        display_name: name,
-        role: 'participant' as 'host' | 'participant',
-        is_muted: false,
-        is_video_off: false,
-        is_screen_sharing: false,
-        is_hand_raised: false,
-        is_speaking: false,
-        stream
-      };
-    })
-  ];
-
-  // Log the constructed allParticipants array
-  console.log('[Meeting] 🎬 All participants constructed:', {
-    total: allParticipants.length,
-    local: allParticipants[0]?.display_name,
-    remoteCount: allParticipants.length - 1,
-    participants: allParticipants.map(p => ({
-      id: p.id,
-      name: p.display_name,
-      hasStream: !!p.stream,
-      streamId: p.stream?.id
+    ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
+      id,
+      display_name: name,
+      role: 'participant' as 'host' | 'participant',
+      is_muted: false,
+      is_video_off: false,
+      is_screen_sharing: false,
+      is_hand_raised: false,
+      is_speaking: false,
+      stream
     }))
-  });
+  ];
 
   const content = (
     <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-950 via-gray-900 to-black overflow-hidden"
@@ -1308,14 +1280,6 @@ export function MeetingVideoCallInterface({
         />
       )}
 
-      {/* AI Interview Analysis Overlay (The Neural Link) */}
-      {!isMobile && meetingStarted && (
-        <LiveInterviewAnalysis
-          meetingId={meeting.id}
-          transcript={transcript}
-        />
-      )}
-
       {/* On-Screen Reactions */}
       <OnScreenReactions reactions={reactions.map(r => ({
         id: r.id,
@@ -1323,8 +1287,8 @@ export function MeetingVideoCallInterface({
         participant_name: r.name
       }))} />
 
-      {/* Controls Panel - Desktop (Disabled for LiveKit Video) */}
-      {!isMobile && false && (
+      {/* Controls Panel - Desktop */}
+      {!isMobile && (
         <ControlsPanel
           isAudioEnabled={isAudioEnabled}
           isVideoEnabled={isVideoEnabled}
