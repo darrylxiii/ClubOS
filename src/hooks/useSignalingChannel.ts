@@ -65,7 +65,7 @@ export function useSignalingChannel({
   const sendSignal = useCallback(async (signal: SignalPayload) => {
     const signalKey = `${signal.type}-${signal.receiverId || 'broadcast'}-${Date.now()}`;
     try {
-      log.debug('[Signaling] Sending:', signal.type, 'to:', signal.receiverId || 'broadcast');
+      log.debug('Signaling', 'Sending: ' + signal.type + ' to: ' + (signal.receiverId || 'broadcast'));
       await supabase.from('webrtc_signals').insert({
         meeting_id: meetingId,
         sender_id: participantId,
