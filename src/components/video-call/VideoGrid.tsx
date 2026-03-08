@@ -158,10 +158,10 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
   const isTwoParticipants = visibleParticipants.length === 2;
 
   return (
-    <div className="h-full w-full p-4 md:p-8 flex items-center justify-center">
+    <div className="h-full w-full p-2 sm:p-4 md:p-8 flex items-center justify-center">
       <div
         className={cn(
-          "grid gap-4 md:gap-6 w-full h-full transition-all duration-500 ease-in-out",
+          "grid gap-2 sm:gap-4 md:gap-6 w-full h-full transition-all duration-500 ease-in-out",
           isSingleParticipant && "place-items-center",
           visibleParticipants.length > 1 && "auto-rows-fr"
         )}
@@ -169,8 +169,12 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
           gridTemplateColumns: isSingleParticipant
             ? '1fr'
             : isTwoParticipants
-              ? 'repeat(2, minmax(0, 1fr))'
-              : `repeat(${gridCols}, minmax(0, 1fr))`,
+              ? window.innerWidth < 640
+                ? '1fr'           // Mobile: stack vertically for 2 participants
+                : 'repeat(2, minmax(0, 1fr))'
+              : window.innerWidth < 640
+                ? gridCols > 2 ? 'repeat(2, minmax(0, 1fr))' : '1fr'  // Mobile: max 2 cols
+                : `repeat(${gridCols}, minmax(0, 1fr))`,
           maxWidth: isSingleParticipant ? '1200px' : '100%',
           maxHeight: isSingleParticipant ? '80vh' : '100%',
         }}
