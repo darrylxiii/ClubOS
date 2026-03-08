@@ -519,7 +519,7 @@ export function MeetingVideoCallInterface({
         await stopCompositorRecording();
         toast.success('Recording saved and analysis started');
       } catch (error) {
-        console.error('[Meeting] Failed to save recording:', error);
+        log.error('Meeting', 'Failed to save recording:', error);
       }
     }
 
