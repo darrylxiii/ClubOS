@@ -390,6 +390,31 @@ export function MeetingVideoCallInterface({
     return () => clearInterval(interval);
   }, [audioLevels, isTranscribing, partialTranscript]);
 
+  // Auto-pin active speaker in spotlight mode (2s debounce)
+  const activeSpeakerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (userPinnedParticipant || layout !== 'spotlight') return; // User manually pinned — don't override
+
+    // Find current active speaker from audioLevels
+    let currentSpeakerId: string | null = null;
+    audioLevels.forEach((level, id) => {
+      if (level.isSpeaking && id !== participantId) {
+        currentSpeakerId = id;
+      }
+    });
+
+    if (currentSpeakerId && currentSpeakerId !== focusedParticipantId) {
+      if (activeSpeakerTimerRef.current) clearTimeout(activeSpeakerTimerRef.current);
+      activeSpeakerTimerRef.current = setTimeout(() => {
+        setFocusedParticipantId(currentSpeakerId);
+      }, 2000);
+    }
+
+    return () => {
+      if (activeSpeakerTimerRef.current) clearTimeout(activeSpeakerTimerRef.current);
+    };
+  }, [audioLevels, layout, userPinnedParticipant, focusedParticipantId, participantId]);
+
   // Keyboard shortcuts (M=mute, V=video, S=screen, H=hand, F=fullscreen)
   const handleToggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
