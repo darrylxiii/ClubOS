@@ -1056,19 +1056,19 @@ export function MeetingVideoCallInterface({
 
   // Main call interface with ultra-premium background
   const allParticipants = [
-    // Local participant with their camera OR screen share
+    // Local participant
     {
       id: 'local',
       display_name: participantName + (isGuest ? ' (Guest)' : '') + (isScreenSharing ? ' (Screen)' : ''),
       role: (meeting.host_id === participantId ? 'host' : 'participant') as 'host' | 'participant',
       is_muted: !isAudioEnabled,
-      is_video_off: !isVideoEnabled && !isScreenSharing, // If screen sharing, video is "on"
+      is_video_off: !isVideoEnabled && !isScreenSharing,
       is_screen_sharing: isScreenSharing,
       is_hand_raised: isHandRaised,
       is_speaking: false,
       stream: (isScreenSharing && screenStream) ? screenStream : (localStream || undefined)
     },
-    // Remote participants
+    // Remote participants — with real hand-raise and active speaker data
     ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
       id,
       display_name: name,
@@ -1076,8 +1076,8 @@ export function MeetingVideoCallInterface({
       is_muted: false,
       is_video_off: false,
       is_screen_sharing: false,
-      is_hand_raised: false,
-      is_speaking: false,
+      is_hand_raised: remoteHandRaises.get(id) || false,
+      is_speaking: isRemoteSpeaking(id),
       stream
     }))
   ];
