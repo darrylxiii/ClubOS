@@ -132,9 +132,19 @@ export default function MeetingRoom() {
     };
 
     const handlePageHide = (e: PageTransitionEvent) => {
-      // pagehide is more reliable on iOS Safari
-      if (e.persisted) return; // bfcache — page is not being discarded
-      handleBeforeUnload(new BeforeUnloadEvent('beforeunload'));
+      if (e.persisted) return;
+      // Fire the same cleanup logic
+      if (navigator.sendBeacon) {
+        const blob = new Blob([cleanupPayload], { type: 'application/json' });
+        navigator.sendBeacon(cleanupUrl, blob);
+      } else {
+        fetch(cleanupUrl, {
+          method: 'POST',
+          body: cleanupPayload,
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+        }).catch(() => {});
+      }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
