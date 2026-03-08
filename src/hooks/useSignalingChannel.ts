@@ -102,7 +102,7 @@ export function useSignalingChannel({
         .limit(10);
 
       if (error || !signals?.length) return;
-      log.debug('[Signaling] Polling found', signals.length, 'signals');
+      log.debug('Signaling', 'Polling found ' + signals.length + ' signals');
 
       for (const sig of signals) {
         onSignal({
