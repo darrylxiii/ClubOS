@@ -429,7 +429,7 @@ export function MeetingVideoCallInterface({
     prevParticipantIds.forEach(prevId => {
       if (!currentParticipantIds.has(prevId)) {
         removeRecordingParticipant(prevId);
-        console.log('[Meeting] 🎥 Removed participant from compositor:', prevId);
+        log.debug('Meeting', 'Removed participant from compositor: ' + prevId);
       }
     });
 
