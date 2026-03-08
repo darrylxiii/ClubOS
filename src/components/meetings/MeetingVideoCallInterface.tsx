@@ -431,6 +431,11 @@ export function MeetingVideoCallInterface({
   const handleToggleHandRaiseRef = useRef<() => void>(() => {});
   const handleEndCallRef = useRef<() => void>(() => {});
 
+  // Gallery page navigation via keyboard (arrow keys)
+  const galleryPageRef = useRef(0);
+  const galleryTotalPagesRef = useRef(1);
+  const [, forceGalleryUpdate] = useState(0);
+
   useMeetingKeyboardShortcuts({
     onToggleAudio: toggleAudio,
     onToggleVideo: toggleVideo,
@@ -438,6 +443,8 @@ export function MeetingVideoCallInterface({
     onToggleHandRaise: () => handleToggleHandRaiseRef.current(),
     onEndCall: () => handleEndCallRef.current(),
     onToggleFullscreen: handleToggleFullscreen,
+    onNextPage: () => forceGalleryUpdate(v => v + 1), // VideoGrid handles internally via onPageChange
+    onPrevPage: () => forceGalleryUpdate(v => v - 1),
     enabled: meetingStarted && !showDiagnostics,
   });
 
