@@ -29,6 +29,7 @@ interface VideoGridProps {
   layout?: 'grid' | 'spotlight' | 'sidebar';
   presenterId?: string;
   onPinParticipant?: (participantId: string) => void;
+  onPageChange?: (page: number) => void;
 }
 
 const PARTICIPANTS_PER_PAGE = 9;
