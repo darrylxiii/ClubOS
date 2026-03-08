@@ -152,7 +152,7 @@ export default function MeetingRoom() {
         .maybeSingle();
 
       if (error) {
-        console.error('Database error loading meeting:', error);
+        log.error('MeetingRoom', 'Database error loading meeting:', error);
         throw error;
       }
 
