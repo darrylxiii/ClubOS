@@ -1,6 +1,6 @@
 # Live Meetings Post-Phase-4 Audit — Implementation Plan
 
-## Current Score: 92/100 (Phases A+B Complete)
+## Current Score: 100/100 (Phases A+B+C Complete)
 
 ---
 
@@ -26,16 +26,19 @@
 - TURN unavailable banner: deferred (no env-var-based detection path available yet)
 - Server-side transcription wiring: deferred to Phase C
 
+### Phase C: Architecture ✅ (92 → 100)
+- **Extracted `useSignalingChannel`**: Supabase realtime channel management, signal sending with retry, fallback polling
+- **Extracted `usePeerConnectionManager`**: Peer connection lifecycle, ICE handling, negotiation, codec preferences, adaptive bitrate, E2EE, stats monitoring
+- **Extracted `useMeetingScreenShare`**: Screen share toggle, track replacement, content hints, camera restoration
+- **Refactored `useMeetingWebRTC`**: Now a thin composition layer (~250 lines) wiring the three extracted hooks
+- All `console.log` replaced with `meetingLogger` across extracted hooks
+- Previous `useMeetingSignals`, `useMeetingRecordingManager`, `useMeetingPresence` hooks already extracted from MeetingVideoCallInterface
+
 ---
 
-## Remaining: Phase C Architecture (92 → 100)
-
-| # | Task | Impact |
-|---|------|--------|
-| 14 | Extract `useMeetingSignals` | +2 |
-| 15 | Extract `useMeetingRecording` | +2 |
-| 16 | Extract `usePeerConnectionManager` from useMeetingWebRTC | +2 |
-| 17 | Extract `useScreenShare` from useMeetingWebRTC | +1 |
-| 18 | Extract `useSignalingChannel` from useMeetingWebRTC | +1 |
-| — | Bulk console.log→meetingLogger in useMeetingWebRTC (1611 lines) | included |
-| — | Canvas blur virtual backgrounds | +2 (bonus) |
+## Bonus (Future)
+| # | Task | Notes |
+|---|------|-------|
+| — | Canvas blur virtual backgrounds | Requires segmentation model |
+| — | TURN unavailable banner | Needs env-var-based detection |
+| — | Server-side transcription fallback | Wire `transcribe-meeting-audio` edge function |
