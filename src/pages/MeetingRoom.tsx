@@ -334,7 +334,7 @@ export default function MeetingRoom() {
               .from('meetings')
               .update({ status: 'completed' })
               .eq('id', meeting.id);
-            console.log('[MeetingRoom] ✅ Meeting status updated to completed');
+            log.debug('MeetingRoom', 'Meeting status updated to completed');
           }
         }
       } else if (guestSessionToken) {
