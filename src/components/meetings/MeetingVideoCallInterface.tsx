@@ -598,28 +598,7 @@ export function MeetingVideoCallInterface({
     }
   };
 
-  const handleOpenChat = () => setShowChat(true);
-  const handleOpenParticipants = () => setShowParticipants(true);
-  const handleOpenSettings = () => setShowSettings(true);
-  const handleOpenNotes = () => setShowNotes(true);
-  const handleToggleCaptions = () => setCaptionsEnabled(prev => !prev);
-  const handleOpenTranscription = () => setShowTranscription(true);
-  const handleOpenHostSettings = () => setShowHostSettings(true);
-  const handleOpenMeetingInfo = () => setShowMeetingDetails(true);
-  const handleOpenInterviewIntelligence = () => setShowInterviewIntelligence(true);
-  const handleOpenBreakoutRooms = () => setShowBreakoutRooms(true);
-  const handleOpenPolls = () => setShowPolls(true);
-  const handleOpenQA = () => setShowQA(true);
-  const handleOpenBackgrounds = () => setShowBackgrounds(true);
-  const handleToggleLayout = () => setLayout(prev => prev === 'grid' ? 'spotlight' : 'grid');
-  const handleToggleBackchannel = () => setShowBackchannel(prev => !prev);
-  const handleToggleVoting = () => setShowVoting(prev => !prev);
-
-  // Phase 6: Advanced AI Features
-  const handleToggleClubAIVoice = () => setShowClubAIVoice(prev => !prev);
-  const handleToggleTranslation = () => setShowTranslation(prev => !prev);
-  const handleTogglePredictiveHiring = () => setShowPredictiveHiring(prev => !prev);
-  const handleToggleEngagementAnalytics = () => setShowEngagementAnalytics(prev => !prev);
+  // Handler functions now provided by useMeetingUI hook
 
   const handleReaction = async (emoji: string) => {
     if (!hostSettings.allowReactions && meeting.host_id !== participantId) {
