@@ -672,6 +672,11 @@ export function MeetingVideoCallInterface({
     }
   };
 
+  // Wire handler refs for keyboard shortcuts (must be after handler declarations)
+  handleToggleScreenShareRef.current = handleToggleScreenShare;
+  handleToggleHandRaiseRef.current = handleToggleHandRaise;
+  handleEndCallRef.current = handleEndCall;
+
   // Handler functions now provided by useMeetingUI hook
 
   const handleReaction = async (emoji: string) => {
