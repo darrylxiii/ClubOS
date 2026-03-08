@@ -57,7 +57,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
+import { Video, Users, Brain, WifiOff, RefreshCw, AlertTriangle, X } from 'lucide-react';
 import { MeetingTimer } from '@/components/meetings/MeetingTimer';
 import { useMeetingTranscript } from '@/hooks/useMeetingTranscript';
 import { LiveInterviewAnalysis } from './analysis/LiveInterviewAnalysis';
