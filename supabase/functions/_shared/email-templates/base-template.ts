@@ -183,7 +183,7 @@ export const baseEmailTemplate = ({
       <td align="center" style="padding: 20px 16px;">
 
         <!-- Container Table — no border-radius so GIF fills flush to top edge -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0 0 16px 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0 0 16px 16px; overflow: hidden;">
 
           ${showHeader ? `
           <!-- GIF Header — edge-to-edge, no gaps -->

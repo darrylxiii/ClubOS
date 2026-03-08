@@ -74,7 +74,7 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
     }
   };
 
-  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   return (
     <Wrapper>
