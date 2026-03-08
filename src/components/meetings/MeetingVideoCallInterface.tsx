@@ -837,6 +837,8 @@ export function MeetingVideoCallInterface({
         },
         (payload: any) => {
           const signal = payload.new;
+          if (signal.sender_id === participantId) return; // Ignore own signals
+
           if (signal.signal_type === 'reaction') {
             const reactionData = signal.signal_data;
             const newReaction = {
@@ -846,16 +848,22 @@ export function MeetingVideoCallInterface({
             };
 
             setReactions(prev => [...prev, newReaction]);
-
-            // Show toast
-            toast(`${reactionData.participantName} reacted with ${reactionData.emoji}`, {
-              duration: 2000
-            });
-
-            // Remove after animation
+            toast(`${reactionData.participantName} reacted with ${reactionData.emoji}`, { duration: 2000 });
             setTimeout(() => {
               setReactions(prev => prev.filter(r => r.id !== newReaction.id));
             }, 3000);
+          } else if (signal.signal_type === 'hand_raise') {
+            const data = signal.signal_data;
+            setRemoteHandRaises(prev => {
+              const n = new Map(prev);
+              if (data.raised) {
+                n.set(signal.sender_id, true);
+                toast(`${data.participantName} raised their hand`, { duration: 3000 });
+              } else {
+                n.delete(signal.sender_id);
+              }
+              return n;
+            });
           }
         }
       )
