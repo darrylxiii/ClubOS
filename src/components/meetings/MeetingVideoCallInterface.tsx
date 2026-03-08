@@ -1259,11 +1259,12 @@ export function MeetingVideoCallInterface({
               is_muted: false,
               is_video_off: false,
               is_screen_sharing: false,
-              is_hand_raised: false,
-              is_speaking: false,
+              is_hand_raised: remoteHandRaises.get(id) || false,
+              is_speaking: isRemoteSpeaking(id),
               stream
             }))}
             layout={layout}
+            focusedParticipantId={focusedParticipantId || undefined}
           />
         )}
       </div>
