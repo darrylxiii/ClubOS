@@ -1,23 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
 import { useBandwidthMonitor } from './useBandwidthMonitor';
-import { useSimulcast } from './useSimulcast';
 import { useMobileOptimizations } from './useMobileOptimizations';
-import { useE2EEncryption } from './useE2EEncryption';
 import { toast } from 'sonner';
-import { optimizeSessionDescription } from '@/utils/sdpMunger';
 import { meetingLogger as log } from '@/lib/meetingLogger';
-
-import { DEFAULT_RTC_CONFIG, getE2EEConfig, supportsE2EEncryption, getDynamicRTCConfig } from '@/utils/webrtcConfig';
+import { supportsE2EEncryption } from '@/utils/webrtcConfig';
+import { useSignalingChannel } from './useSignalingChannel';
+import { usePeerConnectionManager } from './usePeerConnectionManager';
+import { useMeetingScreenShare } from './useMeetingScreenShare';
 
 interface MeetingWebRTCConfig {
   meetingId: string;
-  participantId: string; // Can be user ID or guest session ID
+  participantId: string;
   participantName: string;
   onRemoteStream: (participantId: string, stream: MediaStream) => void;
   onParticipantLeft: (participantId: string) => void;
-  enableE2EE?: boolean; // Enable end-to-end encryption
+  enableE2EE?: boolean;
 }
 
 export function useMeetingWebRTC({
@@ -26,1587 +24,263 @@ export function useMeetingWebRTC({
   participantName,
   onRemoteStream,
   onParticipantLeft,
-  enableE2EE = false
+  enableE2EE = false,
 }: MeetingWebRTCConfig) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [connectionState, setConnectionState] = useState<string>('new');
-  const [participants, setParticipants] = useState<string[]>([]);
   const [error, setError] = useState<{ message: string; recoverable: boolean } | null>(null);
-  const [channelStatus, setChannelStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
-  const [e2eeActive, setE2eeActive] = useState(false);
 
-  // E2E Encryption hook
-  const e2ee = useE2EEncryption(meetingId);
-  const e2eeEnabledRef = useRef(enableE2EE);
-
-  // Dynamic RTC config — fetched once, cached in ref
-  const dynamicRTCConfigRef = useRef<RTCConfiguration | null>(null);
-
-  // Get the appropriate RTC config, using cached dynamic config if available
-  const getRTCConfig = useCallback(() => {
-    if (dynamicRTCConfigRef.current) {
-      return dynamicRTCConfigRef.current;
-    }
-    if (e2eeEnabledRef.current && supportsE2EEncryption()) {
-      return getE2EEConfig();
-    }
-    return DEFAULT_RTC_CONFIG;
-  }, []);
-
-  // Fetch dynamic TURN credentials on mount (async, non-blocking)
-  useEffect(() => {
-    let cancelled = false;
-    getDynamicRTCConfig({ enableE2EE: enableE2EE }).then(config => {
-      if (!cancelled) {
-        dynamicRTCConfigRef.current = config;
-      }
-    }).catch(() => {
-      // Fallback is handled inside getDynamicRTCConfig
-    });
-    return () => { cancelled = true; };
-  }, [enableE2EE]);
-
-  const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
-  const signalChannel = useRef<RealtimeChannel | null>(null);
   const hasJoinedRef = useRef(false);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
-  const signalRetryQueue = useRef<Map<string, { signal: any; retries: number; timestamp: number }>>(new Map());
-  const mediaReadyRef = useRef(false);
-  const localStreamRef = useRef<MediaStream | null>(null);
-  const pendingJoinSignals = useRef<string[]>([]);
-  const pendingCandidates = useRef<Map<string, RTCIceCandidateInit[]>>(new Map()); // Buffer for early candidates
-  const leftParticipantsRef = useRef<Set<string>>(new Set()); // Track who has left to prevent reconnection
-  const { stats, getVideoConstraints } = useBandwidthMonitor();
 
-  // Video optimization hooks
-  const { configureSimulcast, adaptToNetworkConditions, setScreenShareContentHint, getSimulcastStats } = useSimulcast();
-  const { isMobile, isTablet, videoSettings, connectionType, getMediaConstraints, getSDPOptions } = useMobileOptimizations({ enableBatterySaving: true });
+  const { stats } = useBandwidthMonitor();
+  const { getMediaConstraints } = useMobileOptimizations({ enableBatterySaving: true });
 
-  // Video stats state
-  const [videoStats, setVideoStats] = useState({
-    framesSent: 0,
-    framesReceived: 0,
-    qualityLimitationReason: 'none' as string,
-    availableBandwidth: 0
+  // --- Signal dispatch callback (stable via useCallback) ---
+  const handleSignalDispatch = useCallback((signal: { sender_id: string; signal_type: string; signal_data: any }) => {
+    switch (signal.signal_type) {
+      case 'join':
+        pcManager.handleParticipantJoin(signal.sender_id);
+        break;
+      case 'offer':
+        pcManager.handleOffer(signal.sender_id, signal.signal_data);
+        break;
+      case 'answer':
+        pcManager.handleAnswer(signal.sender_id, signal.signal_data);
+        break;
+      case 'ice-candidate':
+        pcManager.handleIceCandidate(signal.sender_id, signal.signal_data);
+        break;
+      case 'leave':
+        pcManager.handleParticipantLeave(signal.sender_id);
+        break;
+      case 'screen-share-start':
+        toast(`${signal.sender_id.slice(0, 8)} is sharing their screen`, { duration: 2000 });
+        break;
+      case 'screen-share-stop':
+      case 'video-state':
+      case 'audio-state':
+        break;
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps — refs are stable
+
+  // 1. Signaling channel
+  const signaling = useSignalingChannel({
+    meetingId,
+    participantId,
+    onSignal: handleSignalDispatch,
   });
 
-  // Helper: Wait for channel to be ready with timeout
-  const waitForChannelReady = useCallback((channel: RealtimeChannel | null, timeout: number = 5000): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (channel?.state === 'joined') {
-        console.log('[WebRTC] ✅ Channel already joined');
-        resolve();
-        return;
-      }
+  // 2. Peer connection manager
+  const pcManager = usePeerConnectionManager({
+    meetingId,
+    participantId,
+    participantName,
+    enableE2EE,
+    onRemoteStream,
+    onParticipantLeft,
+    sendSignal: signaling.sendSignal,
+  });
 
-      console.log('[WebRTC] ⏳ Waiting for channel to be ready...');
-      const timer = setTimeout(() => {
-        console.warn('[WebRTC] ⚠️ Channel subscription timeout');
-        reject(new Error('Channel subscription timeout'));
-      }, timeout);
+  // 3. Screen share
+  const screenShare = useMeetingScreenShare({
+    peerConnections: pcManager.peerConnections,
+    localStreamRef: pcManager.localStreamRef,
+    sendSignal: signaling.sendSignal,
+    configureVideoSender: pcManager.configureVideoSender,
+    setScreenShareContentHint: pcManager.setScreenShareContentHint,
+  });
 
-      const checkState = setInterval(() => {
-        if (channel?.state === 'joined') {
-          clearTimeout(timer);
-          clearInterval(checkState);
-          console.log('[WebRTC] ✅ Channel ready');
-          resolve();
-        }
-      }, 100);
-    });
-  }, []);
-
-  // Configure video sender with simulcast and adaptive bitrate
-  const configureVideoSender = useCallback(async (pc: RTCPeerConnection, targetParticipantId: string, isScreenShare: boolean = false) => {
-    const videoSender = pc.getSenders().find(s => s.track?.kind === 'video');
-    if (!videoSender) {
-      console.log('[WebRTC] No video sender found for:', targetParticipantId);
-      return;
-    }
-
-    // Apply simulcast for 3-layer adaptive quality
-    const simulcastConfigured = await configureSimulcast(videoSender, undefined, isScreenShare);
-
-    if (!simulcastConfigured) {
-      // Fallback: adaptive bitrate based on device type and connection
-      const params = videoSender.getParameters();
-      if (!params.encodings || params.encodings.length === 0) {
-        params.encodings = [{}];
-      }
-
-      // Set bitrate based on device type and connection
-      let maxBitrate = 2500000; // 2.5 Mbps default
-      if (isMobile || connectionType === '2g') {
-        maxBitrate = 300000; // 300 Kbps for mobile/2G
-      } else if (isTablet || connectionType === '3g') {
-        maxBitrate = 800000; // 800 Kbps for tablet/3G
-      }
-
-      params.encodings[0].maxBitrate = maxBitrate;
-      params.encodings[0].networkPriority = 'medium' as RTCPriorityType;
-
-      try {
-        await videoSender.setParameters(params);
-        console.log('[WebRTC] 🎥 Video sender configured with fallback bitrate:', maxBitrate / 1000, 'kbps');
-      } catch (error) {
-        console.warn('[WebRTC] Failed to set video sender parameters:', error);
-      }
-    }
-
-    // Apply content hint for screen sharing
-    if (isScreenShare && videoSender.track) {
-      setScreenShareContentHint(videoSender.track, 'detail');
-    }
-  }, [configureSimulcast, setScreenShareContentHint, isMobile, isTablet, connectionType]);
-
-  // Set VP9/VP8 codec preference for better quality
-  const setVP9Preference = useCallback((pc: RTCPeerConnection) => {
-    try {
-      const transceivers = pc.getTransceivers();
-      const videoTransceiver = transceivers.find(t =>
-        t.receiver.track?.kind === 'video' || t.sender.track?.kind === 'video'
-      );
-
-      if (videoTransceiver && RTCRtpSender.getCapabilities) {
-        const codecs = RTCRtpSender.getCapabilities('video')?.codecs || [];
-        const preferredCodecs = [
-          ...codecs.filter(c => c.mimeType === 'video/VP9'),
-          ...codecs.filter(c => c.mimeType === 'video/VP8'),
-          ...codecs.filter(c => c.mimeType === 'video/H264')
-        ];
-
-        if (preferredCodecs.length > 0 && videoTransceiver.setCodecPreferences) {
-          videoTransceiver.setCodecPreferences(preferredCodecs);
-          console.log('[WebRTC] 🎬 VP9/VP8 codec preference set');
-        }
-      }
-    } catch (error) {
-      console.warn('[WebRTC] Failed to set codec preferences:', error);
-    }
-  }, []);
-
-  // Monitor video stats for adaptive quality
-  const monitorVideoStats = useCallback(async (pc: RTCPeerConnection, targetParticipantId: string) => {
-    try {
-      const stats = await pc.getStats();
-      let localVideoStats = {
-        framesSent: 0,
-        framesReceived: 0,
-        qualityLimitationReason: 'none',
-        availableBandwidth: 0
-      };
-
-      stats.forEach(report => {
-        if (report.type === 'outbound-rtp' && report.kind === 'video') {
-          localVideoStats.framesSent = report.framesSent || 0;
-          localVideoStats.qualityLimitationReason = report.qualityLimitationReason || 'none';
-        }
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          localVideoStats.framesReceived = report.framesReceived || 0;
-        }
-        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-          localVideoStats.availableBandwidth = (report.availableOutgoingBitrate || 0) / 1000;
-        }
-      });
-
-      setVideoStats(localVideoStats);
-
-      // Adaptive quality based on bandwidth
-      const videoSender = pc.getSenders().find(s => s.track?.kind === 'video');
-      if (videoSender && localVideoStats.availableBandwidth > 0) {
-        await adaptToNetworkConditions(videoSender, localVideoStats.availableBandwidth);
-      }
-    } catch (error) {
-      console.warn('[WebRTC] Failed to monitor video stats:', error);
-    }
-  }, [adaptToNetworkConditions]);
-
-  // Initialize local media with strict race condition fixes
+  // --- Initialize local media ---
   const initializeMedia = useCallback(async () => {
     try {
-      console.log('[WebRTC] 🎬 STEP 1: Requesting media permissions...');
+      log.debug('WebRTC', 'Requesting media permissions…');
       setError(null);
-      setChannelStatus('connecting');
 
-      // 1. Get local media FIRST with mobile-optimized constraints
       const constraints = getMediaConstraints();
-      console.log('[WebRTC] 📱 Using constraints:', {
-        device: isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop',
-        video: videoSettings,
-        connection: connectionType
-      });
-
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-      console.log('[WebRTC] ✅ STEP 2: Media acquired, setting state...');
       setLocalStream(stream);
-      localStreamRef.current = stream;
-      mediaReadyRef.current = true;
+      pcManager.setLocalStream(stream);
+      signaling.setMediaReady(true);
 
-      // Add tracks to existing peer connections (if any were created before media was ready)
-      if (peerConnections.current.size > 0) {
-        console.log('[WebRTC] Adding tracks to', peerConnections.current.size, 'existing peer connections');
-        peerConnections.current.forEach((pc, peerId) => {
-          stream.getTracks().forEach(track => {
-            pc.addTrack(track, stream);
-          });
+      // Add tracks to existing PCs
+      if (pcManager.peerConnections.current.size > 0) {
+        pcManager.peerConnections.current.forEach((pc) => {
+          stream.getTracks().forEach(track => pc.addTrack(track, stream));
         });
       }
 
-      // 2. WAIT for channel to be FULLY ready (increased timeout, no fallback)
-      console.log('[WebRTC] ⏳ STEP 3: Waiting for signaling channel...');
-      await waitForChannelReady(signalChannel.current, 10000);
-      setChannelStatus('connected');
+      // Wait for channel ready
+      await signaling.waitForChannelReady();
 
-      // 3. ONLY NOW send join signal
+      // Send join signal
       if (!hasJoinedRef.current) {
-        console.log('[WebRTC] 📢 STEP 4: Sending join signal...');
-        await sendSignal({
-          type: 'join',
-          data: { name: participantName }
-        });
+        await signaling.sendSignal({ type: 'join', data: { name: participantName } });
         hasJoinedRef.current = true;
-        console.log('[WebRTC] ✅ Join signal sent, ready for peer connections');
       }
 
-      // 4. Process pending offers that arrived early
-      if (pendingJoinSignals.current.length > 0) {
-        console.log('[WebRTC] 📋 Processing', pendingJoinSignals.current.length, 'queued signals');
-        for (const senderId of pendingJoinSignals.current) {
-          await handleParticipantJoinInternal(senderId);
-        }
-        pendingJoinSignals.current = [];
-      }
+      // Process queued joins
+      await pcManager.processPendingJoins();
 
       return stream;
-    } catch (error: unknown) {
-      console.error('[WebRTC] ❌ Media initialization failed:', error);
-      setChannelStatus('error');
-
-      // Specific error messages
-      const err = error as { name?: string; message?: string };
-      const recoverable = err.name !== 'NotAllowedError' && err.name !== 'PermissionDeniedError';
+    } catch (err: unknown) {
+      log.error('WebRTC', 'Media init failed:', err);
+      const e = err as { name?: string; message?: string };
+      const recoverable = e.name !== 'NotAllowedError' && e.name !== 'PermissionDeniedError';
       setError({
-        message: err.name === 'NotFoundError'
-          ? 'No camera or microphone detected'
-          : err.name === 'NotAllowedError'
-            ? 'Camera/microphone access denied. Click "Allow" in browser.'
-            : err.name === 'NotReadableError'
-              ? 'Camera/microphone is being used by another app'
-              : `Failed to access media: ${err.message || 'Unknown error'}`,
-        recoverable
+        message: e.name === 'NotFoundError' ? 'No camera or microphone detected'
+          : e.name === 'NotAllowedError' ? 'Camera/microphone access denied. Click "Allow" in browser.'
+          : e.name === 'NotReadableError' ? 'Camera/microphone is being used by another app'
+          : `Failed to access media: ${e.message || 'Unknown error'}`,
+        recoverable,
       });
-
-      throw error;
+      throw err;
     }
-  }, [getVideoConstraints, participantName, meetingId]);
+  }, [getMediaConstraints, participantName, signaling, pcManager]);
 
-  // Create peer connection - ONLY call after media is ready
-  const createPeerConnection = useCallback((targetParticipantId: string) => {
-    // Check if connection already exists
-    if (peerConnections.current.has(targetParticipantId)) {
-      console.log('[WebRTC] ♻️ Reusing existing peer connection for:', targetParticipantId);
-      return peerConnections.current.get(targetParticipantId)!;
-    }
-
-    const currentStream = localStreamRef.current;
-    if (!currentStream || !mediaReadyRef.current) {
-      console.error('[WebRTC] ❌ Cannot create peer connection, media not ready! | Local stream ref:', !!localStreamRef.current, '| Media ready flag:', mediaReadyRef.current);
-      throw new Error('Media not initialized');
-    }
-
-    console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current, '| Tracks:', currentStream.getTracks().length, '| E2EE:', e2eeEnabledRef.current);
-
-    const pc = new RTCPeerConnection(getRTCConfig());
-
-    // Store the connection immediately to prevent duplicates
-    peerConnections.current.set(targetParticipantId, pc);
-
-    // Apply E2E encryption if enabled
-    if (e2eeEnabledRef.current && supportsE2EEncryption()) {
-      setTimeout(async () => {
-        const success = await e2ee.enableEncryption(pc, targetParticipantId);
-        if (success) {
-          console.log('[WebRTC] 🔒 E2EE enabled for peer:', targetParticipantId);
-          setE2eeActive(true);
-        }
-      }, 100);
-    }
-
-    // Add local stream tracks with comprehensive logging
-    console.log('[WebRTC] ✅ Adding local tracks to peer connection for:', targetParticipantId);
-    console.log('[WebRTC] 📊 Current stream details:', {
-      streamId: currentStream.id,
-      videoTracks: currentStream.getVideoTracks().length,
-      audioTracks: currentStream.getAudioTracks().length,
-      allTracksEnabled: currentStream.getTracks().every(t => t.enabled),
-      trackDetails: currentStream.getTracks().map(t => ({
-        kind: t.kind,
-        id: t.id,
-        enabled: t.enabled,
-        readyState: t.readyState,
-        muted: t.muted
-      }))
-    });
-
-    // Verify tracks are ready before adding - filter out dead/disabled tracks
-    const tracksToAdd = currentStream.getTracks().filter(track => {
-      const isReady = track.readyState === 'live';
-      if (!isReady) {
-        console.warn('[WebRTC] ⚠️ Skipping track (not ready):', {
-          kind: track.kind,
-          readyState: track.readyState,
-          enabled: track.enabled,
-          muted: track.muted
-        });
-      }
-      return isReady;
-    });
-
-    if (tracksToAdd.length === 0) {
-      console.error('[WebRTC] ❌ No live tracks available to add to peer connection!');
-      // Don't throw - try to continue anyway, tracks might become live
-    }
-
-    tracksToAdd.forEach(track => {
-      console.log('[WebRTC] ✅ Adding live track:', track.kind, 'ID:', track.id, 'enabled:', track.enabled, 'ready:', track.readyState);
-      const sender = pc.addTrack(track, currentStream);
-      console.log('[WebRTC] ✅ Track added, sender:', sender.track?.kind, 'track ID:', sender.track?.id);
-      
-      // Monitor track state changes
-      track.onended = () => {
-        console.warn('[WebRTC] ⚠️ Track ended:', track.kind, track.id);
-      };
-      track.onmute = () => {
-        console.warn('[WebRTC] ⚠️ Track muted:', track.kind, track.id);
-      };
-      track.onunmute = () => {
-        console.log('[WebRTC] ✅ Track unmuted:', track.kind, track.id);
-      };
-    });
-
-    // Configure VP9 codec preference
-    setVP9Preference(pc);
-
-    // Configure video sender with simulcast after tracks added
-    setTimeout(() => {
-      if (currentStream.getVideoTracks().length > 0) {
-        configureVideoSender(pc, targetParticipantId, false);
-      }
-    }, 150);
-
-    // Handle remote stream
-    pc.ontrack = (event) => {
-      console.log('[WebRTC] 📨 Received remote track from:', targetParticipantId, 'Kind:', event.track.kind, 'Streams:', event.streams.length, 'Track ID:', event.track.id);
-      const [remoteStream] = event.streams;
-      if (remoteStream) {
-        const videoTracks = remoteStream.getVideoTracks();
-        const audioTracks = remoteStream.getAudioTracks();
-        console.log('[WebRTC] ✅ Remote stream details:', {
-          streamId: remoteStream.id,
-          videoTracks: videoTracks.length,
-          audioTracks: audioTracks.length,
-          videoEnabled: videoTracks[0]?.enabled,
-          audioEnabled: audioTracks[0]?.enabled
-        });
-
-        // Log each track
-        remoteStream.getTracks().forEach(track => {
-          console.log('[WebRTC] 📹 Track:', track.kind, 'ID:', track.id, 'Enabled:', track.enabled, 'Ready:', track.readyState);
-        });
-
-        console.log('[WebRTC] 🎥 Calling onRemoteStream for participant:', targetParticipantId);
-        onRemoteStream(targetParticipantId, remoteStream);
-      } else {
-        console.warn('[WebRTC] ⚠️ No remote stream in track event');
-      }
-    };
-
-    // Handle ICE candidates
-    pc.onicecandidate = async (event) => {
-      if (event.candidate) {
-        console.log('[WebRTC] Sending ICE candidate to:', targetParticipantId);
-        await sendSignal({
-          type: 'ice-candidate',
-          receiverId: targetParticipantId,
-          data: event.candidate
-        });
-      }
-    };
-
-    // Enhanced ICE connection state monitoring with auto-recovery
-    pc.oniceconnectionstatechange = () => {
-      const iceState = pc.iceConnectionState;
-      console.log('[WebRTC] 🧊 ICE state for', targetParticipantId, ':', iceState);
-
-      // Don't reconnect if participant has left
-      if (leftParticipantsRef.current.has(targetParticipantId)) {
-        console.log('[WebRTC] 🚫 Skipping reconnection for left participant:', targetParticipantId);
-        if (iceState === 'failed' || iceState === 'disconnected') {
-          peerConnections.current.delete(targetParticipantId);
-          onParticipantLeft(targetParticipantId);
-        }
-        return;
-      }
-
-      switch (iceState) {
-        case 'checking':
-          toast.info(`Connecting to ${targetParticipantId.slice(0, 8)}...`, { id: `conn-${targetParticipantId}` });
-          break;
-        case 'connected':
-        case 'completed':
-          toast.success(`Connected to ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
-          setError(null);
-          // Monitor connection stats
-          monitorConnectionStats(targetParticipantId);
-          break;
-        case 'disconnected':
-          toast.warning(`Connection unstable with ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
-          console.log('[WebRTC] 🔄 Attempting ICE restart...');
-          pc.restartIce();
-
-          // Check if participant is still in meeting before retrying
-          setTimeout(async () => {
-            if (pc.iceConnectionState === 'disconnected' && !leftParticipantsRef.current.has(targetParticipantId)) {
-              const { data } = await supabase
-                .from('meeting_participants')
-                .select('left_at')
-                .eq('meeting_id', meetingId)
-                .or(`user_id.eq.${targetParticipantId},session_token.eq.${targetParticipantId}`)
-                .maybeSingle();
-
-              if (data?.left_at !== null) {
-                console.log('[WebRTC] 👋 Participant has left, stopping reconnection');
-                leftParticipantsRef.current.add(targetParticipantId);
-                peerConnections.current.delete(targetParticipantId);
-                onParticipantLeft(targetParticipantId);
-              }
-            }
-          }, 3000);
-          break;
-        case 'failed':
-          toast.error(`Failed to connect to ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
-
-          // Verify participant is still in meeting before full reconnection
-          setTimeout(async () => {
-            if (pc.iceConnectionState === 'failed' && !leftParticipantsRef.current.has(targetParticipantId)) {
-              const { data } = await supabase
-                .from('meeting_participants')
-                .select('left_at')
-                .eq('meeting_id', meetingId)
-                .or(`user_id.eq.${targetParticipantId},session_token.eq.${targetParticipantId}`)
-                .maybeSingle();
-
-              if (data?.left_at !== null) {
-                console.log('[WebRTC] 👋 Participant has left, stopping reconnection');
-                leftParticipantsRef.current.add(targetParticipantId);
-                peerConnections.current.delete(targetParticipantId);
-                onParticipantLeft(targetParticipantId);
-              } else {
-                console.log('[WebRTC] 🔁 Full reconnection attempt...');
-                peerConnections.current.delete(targetParticipantId);
-                await handleParticipantJoinInternal(targetParticipantId);
-              }
-            }
-          }, 2000);
-          break;
-        case 'closed':
-          console.log('[WebRTC] Connection closed for:', targetParticipantId);
-          peerConnections.current.delete(targetParticipantId);
-          onParticipantLeft(targetParticipantId);
-          break;
-      }
-    };
-
-    // Handle renegotiation when needed - simplified pattern
-    pc.onnegotiationneeded = async () => {
-      try {
-        console.log('[WebRTC] 🔄 Negotiation needed for:', targetParticipantId);
-
-        const offer = await pc.createOffer();
-
-        // Apply SDP optimization with FEC and DTX enabled
-        const optimizedOffer = optimizeSessionDescription(offer, {
-          enableOpusFEC: true,
-          enableOpusDTX: true, // Enable DTX for bandwidth savings during silence
-          opusMaxAverageBitrate: 64000,
-          preferredVideoCodec: 'VP9'
-        });
-
-        await pc.setLocalDescription(optimizedOffer);
-
-        await sendSignal({
-          type: 'offer',
-          receiverId: targetParticipantId,
-          data: optimizedOffer
-        });
-
-        console.log('[WebRTC] ✅ Renegotiation offer sent');
-      } catch (error) {
-        console.error('[WebRTC] ❌ Renegotiation failed:', error);
-      }
-    };
-
-    // Connection state changes
-    pc.onconnectionstatechange = () => {
-      console.log('[WebRTC] Connection state:', pc.connectionState, 'for:', targetParticipantId);
-      setConnectionState(pc.connectionState);
-
-      if (pc.connectionState === 'failed') {
-        setError({ message: 'Connection lost, reconnecting...', recoverable: true });
-      } else if (pc.connectionState === 'disconnected') {
-        setError({ message: 'Connection unstable', recoverable: true });
-      } else if (pc.connectionState === 'connected') {
-        setError(null);
-      }
-    };
-
-    return pc;
-  }, [localStream, onRemoteStream, onParticipantLeft]);
-
-  // Monitor connection stats and adapt quality
-  const monitorConnectionStats = async (targetParticipantId: string) => {
-    const pc = peerConnections.current.get(targetParticipantId);
-    if (!pc) return;
-
-    try {
-      const stats = await pc.getStats();
-      stats.forEach(report => {
-        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-          console.log('[WebRTC] 📊 Active connection:', {
-            localType: report.localCandidateType,
-            remoteType: report.remoteCandidateType,
-            protocol: report.protocol,
-            currentRoundTripTime: report.currentRoundTripTime
-          });
-
-          // Alert if using TURN relay
-          if (report.localCandidateType === 'relay' || report.remoteCandidateType === 'relay') {
-            console.log('[WebRTC] ⚠️ Using TURN relay - direct P2P not possible');
-            toast.info('Connected via relay server', { id: 'relay-notification', duration: 3000 });
-          }
-        }
-      });
-    } catch (error) {
-      console.error('[WebRTC] Failed to get stats:', error);
-    }
-  };
-
-  // Adapt video quality based on network conditions
-  const adaptVideoQuality = useCallback(async (targetParticipantId: string) => {
-    const pc = peerConnections.current.get(targetParticipantId);
-    if (!pc) return;
-
-    try {
-      const stats = await pc.getStats();
-      let packetsLost = 0;
-      let packetsReceived = 0;
-      let rtt = 0;
-
-      stats.forEach(report => {
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          packetsLost = report.packetsLost || 0;
-          packetsReceived = report.packetsReceived || 0;
-        }
-        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-          rtt = (report.currentRoundTripTime || 0) * 1000;
-        }
-      });
-
-      const packetLossRate = packetsReceived > 0 ? (packetsLost / (packetsLost + packetsReceived)) * 100 : 0;
-
-      // Determine quality based on network conditions
-      let recommendedQuality: 'high' | 'medium' | 'low';
-      if (packetLossRate < 2 && rtt < 150) {
-        recommendedQuality = 'high';
-      } else if (packetLossRate < 5 && rtt < 300) {
-        recommendedQuality = 'medium';
-      } else {
-        recommendedQuality = 'low';
-      }
-
-      // Apply quality settings
-      const senders = pc.getSenders();
-      const videoSender = senders.find(s => s.track?.kind === 'video');
-
-      if (videoSender) {
-        const params = videoSender.getParameters();
-        if (!params.encodings) params.encodings = [{}];
-
-        switch (recommendedQuality) {
-          case 'high':
-            params.encodings[0].maxBitrate = 2500000;
-            params.encodings[0].scaleResolutionDownBy = 1;
-            break;
-          case 'medium':
-            params.encodings[0].maxBitrate = 1000000;
-            params.encodings[0].scaleResolutionDownBy = 2;
-            break;
-          case 'low':
-            params.encodings[0].maxBitrate = 500000;
-            params.encodings[0].scaleResolutionDownBy = 4;
-            break;
-        }
-
-        await videoSender.setParameters(params);
-        console.log('[WebRTC] 🎥 Adapted to', recommendedQuality, 'quality | Packet loss:', packetLossRate.toFixed(2), '% | RTT:', rtt.toFixed(0), 'ms');
-      }
-    } catch (error) {
-      console.error('[WebRTC] Failed to adapt quality:', error);
-    }
-  }, []);
-
-  // Monitor quality and video stats every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      peerConnections.current.forEach((pc, participantId) => {
-        adaptVideoQuality(participantId);
-        monitorVideoStats(pc, participantId);
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [adaptVideoQuality, monitorVideoStats]);
-
-  // Send signal through Supabase with retry logic
-  const sendSignal = async (signal: {
-    type: string;
-    receiverId?: string;
-    data: any;
-  }) => {
-    const signalKey = `${signal.type}-${signal.receiverId || 'broadcast'}-${Date.now()}`;
-
-    try {
-      console.log('[WebRTC] 📤 Sending signal:', signal.type, 'to:', signal.receiverId || 'broadcast', 'from:', participantId);
-
-      await supabase.from('webrtc_signals').insert({
-        meeting_id: meetingId,
-        sender_id: participantId,
-        receiver_id: signal.receiverId || null,
-        signal_type: signal.type,
-        signal_data: signal.data
-      });
-
-      console.log('[WebRTC] ✅ Signal sent successfully:', signal.type);
-
-      // Remove from retry queue if it was there
-      signalRetryQueue.current.delete(signalKey);
-    } catch (error) {
-      console.error('[WebRTC] ❌ Failed to send signal:', signal.type, error);
-
-      // Add to retry queue for critical signals
-      if (['join', 'offer', 'answer'].includes(signal.type)) {
-        const existing = signalRetryQueue.current.get(signalKey);
-        const retries = existing ? existing.retries + 1 : 1;
-
-        if (retries <= 3) {
-          signalRetryQueue.current.set(signalKey, {
-            signal,
-            retries,
-            timestamp: Date.now()
-          });
-
-          console.log('[WebRTC] 🔄 Signal queued for retry:', signal.type, 'attempt:', retries);
-
-          // Retry after exponential backoff
-          setTimeout(() => sendSignal(signal), Math.min(1000 * Math.pow(2, retries), 5000));
-        } else {
-          console.error('[WebRTC] ❌ Signal retry limit exceeded:', signal.type);
-          setError({ message: 'Failed to send signal. Connection may be unstable.', recoverable: true });
-        }
-      }
-    }
-  };
-
-  // Handle incoming offer - simplified pattern
-  const handleOffer = async (senderId: string, offer: RTCSessionDescriptionInit) => {
-    console.log('[WebRTC] 📞 Handling offer from:', senderId, '| Media ready:', mediaReadyRef.current);
-
-    // Check if media is ready before handling offer
-    if (!mediaReadyRef.current || !localStreamRef.current) {
-      console.warn('[WebRTC] ⚠️ Received offer but media not ready yet. Queuing sender:', senderId);
-      if (!pendingJoinSignals.current.includes(senderId)) {
-        pendingJoinSignals.current.push(senderId);
-      }
-      return;
-    }
-
-    let pc = peerConnections.current.get(senderId);
-    if (!pc) {
-      console.log('[WebRTC] 🆕 Creating new peer connection for offer from:', senderId);
-      pc = createPeerConnection(senderId);
-      setParticipants(prev => [...new Set([...prev, senderId])]);
-    }
-
-    try {
-      console.log('[WebRTC] 📝 Setting remote description (offer) from:', senderId);
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-
-      console.log('[WebRTC] 🎤 Creating answer for:', senderId);
-      const answer = await pc.createAnswer();
-
-      // Apply SDP optimization with FEC enabled
-      const optimizedAnswer = optimizeSessionDescription(answer, {
-        enableOpusFEC: true,
-        enableOpusDTX: false,
-        opusMaxAverageBitrate: 64000
-      });
-
-      await pc.setLocalDescription(optimizedAnswer);
-
-      console.log('[WebRTC] 📤 Sending answer to:', senderId);
-      await sendSignal({
-        type: 'answer',
-        receiverId: senderId,
-        data: optimizedAnswer
-      });
-
-      console.log('[WebRTC] ✅ Answer sent successfully to:', senderId);
-
-      // Flush any queued ICE candidates
-      const candidates = pendingCandidates.current.get(senderId);
-      if (candidates && candidates.length > 0) {
-        console.log('[WebRTC] 🧊 Flushing', candidates.length, 'queued candidates for', senderId);
-        for (const candidate of candidates) {
-          try {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-          } catch (e) {
-            console.warn('[WebRTC] Failed to add queued candidate:', e);
-          }
-        }
-        pendingCandidates.current.delete(senderId);
-      }
-    } catch (error) {
-      console.error('[WebRTC] ❌ Error handling offer from:', senderId, error);
-    }
-  };
-
-  // Handle incoming answer
-  const handleAnswer = async (senderId: string, answer: RTCSessionDescriptionInit) => {
-    console.log('[WebRTC] Handling answer from:', senderId);
-
-    const pc = peerConnections.current.get(senderId);
-    if (pc && pc.signalingState === 'have-local-offer') {
-      try {
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
-
-        console.log('[WebRTC] Answer processed successfully from:', senderId);
-
-        // Flush any queued ICE candidates
-        const candidates = pendingCandidates.current.get(senderId);
-        if (candidates && candidates.length > 0) {
-          console.log('[WebRTC] 🧊 Flushing', candidates.length, 'queued candidates for', senderId);
-          for (const candidate of candidates) {
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (e) {
-              console.warn('[WebRTC] Failed to add queued candidate:', e);
-            }
-          }
-          pendingCandidates.current.delete(senderId);
-        }
-      } catch (error) {
-        console.error('[WebRTC] Error setting remote description:', error);
-      }
-    } else {
-      console.warn('[WebRTC] Received answer but not in correct state:', pc?.signalingState);
-    }
-  };
-
-  // Handle ICE candidate
-  const handleIceCandidate = async (senderId: string, candidate: RTCIceCandidateInit) => {
-    console.log('[WebRTC] Handling ICE candidate from:', senderId);
-
-    const pc = peerConnections.current.get(senderId);
-
-    // If PC exists and has remote description, add immediately
-    if (pc && pc.remoteDescription && pc.remoteDescription.type) {
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        console.log('[WebRTC] ICE candidate added successfully');
-      } catch (error) {
-        console.error('[WebRTC] Error adding ICE candidate:', error);
-      }
-    } else {
-      // Otherwise queue it
-      console.warn('[WebRTC] Remote description not ready, queuing candidate for:', senderId);
-      const current = pendingCandidates.current.get(senderId) || [];
-      pendingCandidates.current.set(senderId, [...current, candidate]);
-    }
-  };
-
-  // Fallback polling for participants (when realtime fails)
-  const pollParticipants = useCallback(async () => {
-    // Don't poll if media isn't ready
-    if (!mediaReadyRef.current) {
-      console.log('[WebRTC] ⏸️ Skipping participant poll, media not ready');
-      return;
-    }
-
-    try {
-      const { data: participants, error } = await supabase
-        .from('meeting_participants')
-        .select('user_id, session_token, left_at')
-        .eq('meeting_id', meetingId)
-        .is('left_at', null);
-
-      if (error) {
-        console.error('[WebRTC] ❌ Failed to poll participants:', error);
-        return;
-      }
-
-      if (participants) {
-        console.log('[WebRTC] 📊 Polled participants:', participants.length);
-
-        const newParticipantIds = participants
-          .map(p => p.user_id || p.session_token)
-          .filter((id): id is string =>
-            id !== null &&
-            id !== participantId &&
-            !leftParticipantsRef.current.has(id) // Skip participants who have left
-          );
-
-        // Check for new participants
-        for (const newId of newParticipantIds) {
-          const currentParticipants = Array.from(peerConnections.current.keys());
-          if (!currentParticipants.includes(newId)) {
-            console.log('[WebRTC] 🆕 New participant found via polling:', newId);
-
-            // Check if we already have a connection
-            if (peerConnections.current.has(newId)) {
-              console.log('[WebRTC] Already have connection to:', newId);
-              continue;
-            }
-
-            // Use wrapper to respect media-ready check
-            await handleParticipantJoin(newId);
-          }
-        }
-
-        // Remove participants who have left from our local state
-        const activeParticipantIds = new Set(newParticipantIds);
-        const currentConnections = Array.from(peerConnections.current.keys());
-
-        for (const connectedId of currentConnections) {
-          if (!activeParticipantIds.has(connectedId)) {
-            console.log('[WebRTC] 👋 Participant no longer in meeting (detected by poll):', connectedId);
-            leftParticipantsRef.current.add(connectedId);
-
-            const pc = peerConnections.current.get(connectedId);
-            if (pc) {
-              pc.close();
-              peerConnections.current.delete(connectedId);
-            }
-
-            onParticipantLeft(connectedId);
-          }
-        }
-
-        setParticipants(newParticipantIds);
-      }
-    } catch (error) {
-      console.error('[WebRTC] ❌ Participant polling error:', error);
-    }
-  }, [meetingId, participantId, onParticipantLeft]);
-
-  // Fallback polling for signals (when realtime fails)
-  const pollSignals = useCallback(async () => {
-    // Don't poll if media isn't ready
-    if (!mediaReadyRef.current) {
-      console.log('[WebRTC] ⏸️ Skipping signal poll, media not ready');
-      return;
-    }
-
-    try {
-      const { data: signals, error } = await supabase
-        .from('webrtc_signals')
-        .select('*')
-        .eq('meeting_id', meetingId)
-        .or(`receiver_id.eq.${participantId},receiver_id.is.null`)
-        .neq('sender_id', participantId)
-        .eq('processed', false)
-        .order('created_at', { ascending: true })
-        .limit(10);
-
-      if (error) {
-        console.error('[WebRTC] ❌ Failed to poll signals:', error);
-        return;
-      }
-
-      if (signals && signals.length > 0) {
-        console.log('[WebRTC] 📊 Processing', signals.length, 'signals from polling');
-
-        for (const signal of signals) {
-          // Process signal - cast signal_data to appropriate type via unknown
-          switch (signal.signal_type) {
-            case 'join':
-              await handleParticipantJoin(signal.sender_id);
-              break;
-            case 'offer':
-              await handleOffer(signal.sender_id, signal.signal_data as unknown as RTCSessionDescriptionInit);
-              break;
-            case 'answer':
-              await handleAnswer(signal.sender_id, signal.signal_data as unknown as RTCSessionDescriptionInit);
-              break;
-            case 'ice-candidate':
-              await handleIceCandidate(signal.sender_id, signal.signal_data as unknown as RTCIceCandidateInit);
-              break;
-          }
-
-          // Mark as processed
-          await supabase
-            .from('webrtc_signals')
-            .update({ processed: true })
-            .eq('id', signal.id);
-        }
-      }
-    } catch (error) {
-      console.error('[WebRTC] ❌ Signal polling error:', error);
-    }
-  }, [meetingId, participantId]);
-
-  // Start fallback polling when channel is unreliable
-  useEffect(() => {
-    if (channelStatus === 'disconnected' || channelStatus === 'error') {
-      console.log('[WebRTC] 🔄 Starting fallback polling due to channel issues');
-
-      // Poll participants and signals every 2 seconds
-      pollingInterval.current = setInterval(() => {
-        pollParticipants();
-        pollSignals();
-      }, 2000);
-
-      return () => {
-        if (pollingInterval.current) {
-          clearInterval(pollingInterval.current);
-          pollingInterval.current = null;
-        }
-      };
-    } else if (pollingInterval.current) {
-      // Stop polling when channel is healthy
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = null;
-    }
-  }, [channelStatus, pollParticipants, pollSignals]);
-  // Internal handler that requires media to be ready - WITH PERFECT NEGOTIATION
-  const handleParticipantJoinInternal = async (newParticipantId: string) => {
-    if (newParticipantId === participantId) {
-      console.log('[WebRTC] Ignoring own join signal');
-      return;
-    }
-
-    // Check if participant has left - don't reconnect
-    if (leftParticipantsRef.current.has(newParticipantId)) {
-      console.log('[WebRTC] 🚫 Ignoring join from participant who has left:', newParticipantId);
-      return;
-    }
-
-    // Double-check media is ready before proceeding
-    if (!mediaReadyRef.current || !localStreamRef.current) {
-      console.error('[WebRTC] ❌ handleParticipantJoinInternal called but media not ready!');
-      if (!pendingJoinSignals.current.includes(newParticipantId)) {
-        pendingJoinSignals.current.push(newParticipantId);
-      }
-      return;
-    }
-
-    // Verify the participant is approved AND still in the meeting
-    try {
-      console.log('[WebRTC] 🔍 Verifying participant approval status for:', newParticipantId);
-      const { data, error } = await supabase
-        .from('meeting_participants')
-        .select('status, session_token, user_id, left_at')
-        .eq('meeting_id', meetingId)
-        .or(`user_id.eq.${newParticipantId},session_token.eq.${newParticipantId}`)
-        .maybeSingle();
-
-      if (error || !data) {
-        console.error('[WebRTC] ❌ Participant not found or error:', error);
-        return;
-      }
-
-      // Check if participant has left
-      if (data.left_at !== null) {
-        console.warn('[WebRTC] ⚠️ Participant has left the meeting, not connecting');
-        leftParticipantsRef.current.add(newParticipantId);
-        return;
-      }
-
-      if (data.status !== 'accepted') {
-        console.warn('[WebRTC] ⚠️ Participant not yet accepted (status:', data.status, ')');
-        return;
-      }
-
-      console.log('[WebRTC] ✅ Participant verified as accepted and in meeting');
-    } catch (error) {
-      console.error('[WebRTC] ❌ Error verifying participant approval:', error);
-      return;
-    }
-
-    const currentStream = localStreamRef.current;
-    console.log('[WebRTC] ✅ Media confirmed ready | Stream tracks:', currentStream.getTracks().length);
-
-    // Check if we already have a connection
-    if (peerConnections.current.has(newParticipantId)) {
-      console.log('[WebRTC] Already have connection to:', newParticipantId);
-      return;
-    }
-
-    // Create peer connection with tracks for BOTH peers
-    const pc = createPeerConnection(newParticipantId);
-    setParticipants(prev => [...new Set([...prev, newParticipantId])]);
-
-    // Only higher ID initiates offer to prevent simultaneous offers
-    const shouldInitiate = participantId > newParticipantId;
-
-    if (shouldInitiate) {
-      console.log('[WebRTC] 📞 Initiating offer (higher ID) to:', newParticipantId);
-
-      try {
-        console.log('[WebRTC] 🎬 Creating offer with', currentStream.getTracks().length, 'tracks');
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-
-        console.log('[WebRTC] ✅ Offer created, sending to:', newParticipantId);
-
-        await sendSignal({
-          type: 'offer',
-          receiverId: newParticipantId,
-          data: offer
-        });
-
-        console.log('[WebRTC] ✅ Offer sent successfully to:', newParticipantId);
-      } catch (error) {
-        console.error('[WebRTC] ❌ Failed to create/send offer to:', newParticipantId, error);
-      }
-    } else {
-      console.log('[WebRTC] 🤝 Waiting for offer (lower ID) from:', newParticipantId);
-    }
-  };
-
-  // External handler that queues join signals until media is ready
-  const handleParticipantJoin = async (newParticipantId: string) => {
-    if (!mediaReadyRef.current || !localStreamRef.current) {
-      console.log('[WebRTC] ⏸️ Media not ready, queueing join signal from:', newParticipantId, '| Media ready:', mediaReadyRef.current, '| Stream ref:', !!localStreamRef.current);
-      if (!pendingJoinSignals.current.includes(newParticipantId)) {
-        pendingJoinSignals.current.push(newParticipantId);
-        console.log('[WebRTC] 📝 Queued participant:', newParticipantId, '| Queue length:', pendingJoinSignals.current.length);
-      }
-      return;
-    }
-
-    console.log('[WebRTC] ✅ Media is ready (stream in ref), processing join from:', newParticipantId);
-    await handleParticipantJoinInternal(newParticipantId);
-  };
-
-  // Join meeting and set up signaling - STABLE effect that doesn't re-run
-  useEffect(() => {
-    if (!meetingId) return;
-
-    console.log('[WebRTC] 🔧 Setting up signaling for meeting:', meetingId, '| Participant:', participantId);
-
-    // Subscribe to webrtc_signals
-    const channel = supabase
-      .channel(`meeting-${meetingId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'webrtc_signals',
-          filter: `meeting_id=eq.${meetingId}`
-        },
-        async (payload: any) => {
-          const signal = payload.new;
-
-          // Ignore own signals
-          if (signal.sender_id === participantId) {
-            console.log('[WebRTC] 🔄 Ignoring own signal:', signal.signal_type);
-            return;
-          }
-
-          // Ignore signals meant for others
-          if (signal.receiver_id && signal.receiver_id !== participantId) {
-            console.log('[WebRTC] 📭 Ignoring signal for others:', signal.signal_type, 'from:', signal.sender_id, 'to:', signal.receiver_id);
-            return;
-          }
-
-          console.log('[WebRTC] 📨 Received signal:', signal.signal_type, 'from:', signal.sender_id, 'receiver:', signal.receiver_id || 'broadcast');
-
-          switch (signal.signal_type) {
-            case 'join':
-              console.log('[WebRTC] 👤 JOIN signal received from:', signal.sender_id);
-              await handleParticipantJoin(signal.sender_id);
-              break;
-            case 'offer':
-              console.log('[WebRTC] 📞 OFFER signal received from:', signal.sender_id);
-              await handleOffer(signal.sender_id, signal.signal_data);
-              break;
-            case 'answer':
-              console.log('[WebRTC] ✅ ANSWER signal received from:', signal.sender_id);
-              await handleAnswer(signal.sender_id, signal.signal_data);
-              break;
-            case 'ice-candidate':
-              console.log('[WebRTC] 🧊 ICE-CANDIDATE signal received from:', signal.sender_id);
-              await handleIceCandidate(signal.sender_id, signal.signal_data);
-              break;
-            case 'leave':
-              console.log('[WebRTC] 👋 LEAVE signal received from:', signal.sender_id);
-
-              // Mark as left to prevent reconnection
-              leftParticipantsRef.current.add(signal.sender_id);
-
-              // Clean up peer connection
-              const pc = peerConnections.current.get(signal.sender_id);
-              if (pc) {
-                pc.close();
-                peerConnections.current.delete(signal.sender_id);
-              }
-
-              // Remove from participants list
-              setParticipants(prev => prev.filter(p => p !== signal.sender_id));
-
-              // Notify UI
-              onParticipantLeft(signal.sender_id);
-              toast.info(`${signal.sender_id.slice(0, 8)} left the meeting`, { duration: 2000 });
-              break;
-            case 'screen-share-start':
-              console.log('[WebRTC] 🖥️ SCREEN-SHARE-START signal received from:', signal.sender_id);
-              // Remote user started screen sharing - their video track will be replaced automatically
-              toast(`${signal.sender_id.slice(0, 8)} is sharing their screen`, { duration: 2000 });
-              break;
-            case 'screen-share-stop':
-              console.log('[WebRTC] 🖥️ SCREEN-SHARE-STOP signal received from:', signal.sender_id);
-              // Remote user stopped screen sharing - their camera track will be restored automatically
-              break;
-            case 'video-state':
-            case 'audio-state':
-              // Handle remote media state changes (logged but not acted on)
-              console.log('[WebRTC] 🎛️ Media state change from:', signal.sender_id, signal.signal_data);
-              break;
-            default:
-              console.log('[WebRTC] ❓ Unknown signal type:', signal.signal_type);
-          }
-        }
-      )
-      .subscribe((status, err) => {
-        console.log('[WebRTC] 📡 Channel subscription status:', status, err);
-        if (status === 'SUBSCRIBED') {
-          setChannelStatus('connected');
-        } else if (status === 'CHANNEL_ERROR') {
-          setChannelStatus('error');
-        } else if (status === 'TIMED_OUT') {
-          setChannelStatus('disconnected');
-        } else if (status === 'CLOSED') {
-          console.warn('[WebRTC] ⚠️ Channel closed');
-          setChannelStatus('disconnected');
-        }
-      });
-
-    signalChannel.current = channel;
-
-    // Wait for channel to be ready, then send join signal if media is ready
-    const setupChannel = async () => {
-      console.log('[WebRTC] ⏳ Waiting for channel to be ready...');
-      setChannelStatus('connecting');
-
-      // Wait for channel to be subscribed with timeout
-      const channelReady = await Promise.race([
-        new Promise<boolean>((resolve) => {
-          const checkSubscription = () => {
-            const state = channel.state;
-            console.log('[WebRTC] 📡 Current channel state:', state);
-
-            if (state === 'joined') {
-              console.log('[WebRTC] ✅ Channel ready and joined');
-              setChannelStatus('connected');
-              resolve(true);
-            } else if (state === 'closed') {
-              console.warn('[WebRTC] ⚠️ Channel is closed, retrying...');
-              resolve(false);
-            } else {
-              setTimeout(checkSubscription, 100);
-            }
-          };
-          checkSubscription();
-        }),
-        new Promise<boolean>((resolve) => {
-          setTimeout(() => {
-            console.warn('[WebRTC] ⏱️ Channel setup timeout after 10s');
-            setChannelStatus('error');
-            resolve(false);
-          }, 10000);
-        })
-      ]);
-
-      if (!channelReady) {
-        console.error('[WebRTC] ❌ Channel failed to initialize, will use polling');
-        return;
-      }
-
-      // If we have media already, send join signal immediately
-      // Otherwise, initializeMedia will send it when ready
-      if (mediaReadyRef.current && !hasJoinedRef.current) {
-        console.log('[WebRTC] 📢 Media already available, sending join signal');
-        await sendSignal({
-          type: 'join',
-          data: { name: participantName }
-        });
-        hasJoinedRef.current = true;
-        console.log('[WebRTC] ✅ Join signal sent immediately (media pre-initialized)');
-      } else {
-        console.log('[WebRTC] ⏸️ Waiting for media to be initialized before sending join signal | Media ready:', mediaReadyRef.current, '| Has joined:', hasJoinedRef.current);
-      }
-    };
-
-    setupChannel();
-
-    // Fallback: Send join signal after timeout if media init hangs
-    const mediaInitTimeout = setTimeout(() => {
-      if (!mediaReadyRef.current && channel.state === 'joined' && !hasJoinedRef.current) {
-        console.warn('[WebRTC] ⚠️ Media init timeout (5s) - sending join anyway');
-        sendSignal({ type: 'join', data: { name: participantName } });
-        hasJoinedRef.current = true;
-      }
-    }, 5000);
-
-    return () => {
-      clearTimeout(mediaInitTimeout);
-
-      // Announce leave
-      console.log('[WebRTC] 👋 Leaving meeting, sending leave signal');
-      sendSignal({
-        type: 'leave',
-        data: {}
-      });
-
-      channel.unsubscribe();
-      signalChannel.current = null;
-      hasJoinedRef.current = false;
-    };
-  }, [meetingId, participantId, participantName]);
-
-  // Toggle video
+  // --- Toggle video ---
   const toggleVideo = useCallback(async () => {
-    const currentStream = localStreamRef.current;
-    if (currentStream) {
-      const videoTrack = currentStream.getVideoTracks()[0];
-      if (videoTrack) {
+    const stream = pcManager.localStreamRef.current;
+    if (stream) {
+      const track = stream.getVideoTracks()[0];
+      if (track) {
         const newState = !isVideoEnabled;
-        videoTrack.enabled = newState;
+        track.enabled = newState;
         setIsVideoEnabled(newState);
-        console.log('[WebRTC] Video toggled:', newState ? 'ON' : 'OFF');
-
-        // Notify peers about video state change
-        await sendSignal({
-          type: 'video-state',
-          data: { enabled: newState }
-        });
+        await signaling.sendSignal({ type: 'video-state', data: { enabled: newState } });
       }
     } else {
-      // If no stream exists, try to initialize it
-      console.log('[WebRTC] No stream found, attempting to reinitialize...');
-      try {
-        await initializeMedia();
-      } catch (error) {
-        console.error('[WebRTC] Failed to reinitialize media:', error);
-      }
+      try { await initializeMedia(); } catch {}
     }
-  }, [isVideoEnabled, initializeMedia]);
+  }, [isVideoEnabled, initializeMedia, signaling, pcManager]);
 
-  // Toggle audio
+  // --- Toggle audio ---
   const toggleAudio = useCallback(async () => {
-    const currentStream = localStreamRef.current;
-    if (currentStream) {
-      const audioTrack = currentStream.getAudioTracks()[0];
-      if (audioTrack) {
+    const stream = pcManager.localStreamRef.current;
+    if (stream) {
+      const track = stream.getAudioTracks()[0];
+      if (track) {
         const newState = !isAudioEnabled;
-        audioTrack.enabled = newState;
+        track.enabled = newState;
         setIsAudioEnabled(newState);
-        console.log('[WebRTC] Audio toggled:', newState ? 'ON' : 'OFF');
-
-        // Notify peers about audio state change
-        await sendSignal({
-          type: 'audio-state',
-          data: { enabled: newState }
-        });
+        await signaling.sendSignal({ type: 'audio-state', data: { enabled: newState } });
       }
     }
-  }, [isAudioEnabled]);
+  }, [isAudioEnabled, signaling, pcManager]);
 
-  // Screen sharing
-  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
-
-  const toggleScreenShare = useCallback(async () => {
-    if (screenStream) {
-      // Stop screen sharing
-      screenStream.getTracks().forEach(track => track.stop());
-      setScreenStream(null);
-
-      // Notify peers to stop displaying screen share
-      await sendSignal({
-        type: 'screen-share-stop',
-        data: {}
-      });
-
-      return false;
-    } else {
-      // Start screen sharing
-      try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            cursor: 'always',
-            displaySurface: 'monitor'
-          } as any,
-          audio: true  // Capture system audio when available
-        });
-
-        setScreenStream(stream);
-
-        // Replace video track in all peer connections
-        const screenTrack = stream.getVideoTracks()[0];
-
-        // Apply content hint for screen sharing optimization
-        setScreenShareContentHint(screenTrack, 'detail');
-
-        peerConnections.current.forEach(async (pc) => {
-          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-          if (sender) {
-            await sender.replaceTrack(screenTrack);
-            // Configure sender for screen sharing (higher bitrate, lower framerate)
-            await configureVideoSender(pc, '', true);
-          }
-        });
-
-        // Notify peers about screen share
-        await sendSignal({
-          type: 'screen-share-start',
-          data: {}
-        });
-
-        // Handle when user stops sharing via browser UI
-        screenTrack.onended = async () => {
-          setScreenStream(null);
-
-          // Restore camera track
-          const currentStream = localStreamRef.current;
-          if (currentStream) {
-            const cameraTrack = currentStream.getVideoTracks()[0];
-            peerConnections.current.forEach((pc) => {
-              const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-              if (sender && cameraTrack) {
-                sender.replaceTrack(cameraTrack);
-              }
-            });
-          }
-
-          await sendSignal({
-            type: 'screen-share-stop',
-            data: {}
-          });
-        };
-
-        return true;
-      } catch (error) {
-        console.error('[WebRTC] Failed to start screen share:', error);
-        return false;
-      }
-    }
-  }, [screenStream, localStream, peerConnections]);
-
-  // Send reaction
+  // --- Send reaction ---
   const sendReaction = useCallback(async (emoji: string) => {
-    await sendSignal({
-      type: 'reaction',
-      data: { emoji, participantName }
-    });
-  }, [participantName]);
+    await signaling.sendSignal({ type: 'reaction', data: { emoji, participantName } });
+  }, [participantName, signaling]);
 
-  // Picture-in-Picture support
-  const enablePictureInPicture = async () => {
-    const currentStream = localStreamRef.current;
-    if (!currentStream || !document.pictureInPictureEnabled) {
-      console.warn('[PiP] Picture-in-Picture not supported');
-      return false;
-    }
-
+  // --- Picture-in-Picture ---
+  const enablePictureInPicture = useCallback(async () => {
+    const stream = pcManager.localStreamRef.current;
+    if (!stream || !document.pictureInPictureEnabled) return false;
     try {
-      const videoElement = document.createElement('video');
-      videoElement.srcObject = currentStream;
-      videoElement.muted = true;
-      await videoElement.play();
-      await videoElement.requestPictureInPicture();
+      const el = document.createElement('video');
+      el.srcObject = stream; el.muted = true;
+      await el.play();
+      await el.requestPictureInPicture();
       return true;
-    } catch (error) {
-      console.error('[PiP] Failed to enable picture-in-picture:', error);
-      return false;
-    }
-  };
+    } catch { return false; }
+  }, [pcManager]);
 
-  // Cleanup with robust teardown
+  // --- Cleanup ---
   const cleanup = useCallback(() => {
-    console.log('[WebRTC] Cleaning up all resources...');
+    const stream = pcManager.localStreamRef.current;
+    if (stream) { stream.getTracks().forEach(t => t.stop()); pcManager.setLocalStream(null); }
+    if (screenShare.screenStream) { screenShare.screenStream.getTracks().forEach(t => t.stop()); }
+    pcManager.cleanupConnections();
 
-    try {
-      // Stop all local tracks
-      const currentStream = localStreamRef.current;
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => {
-          track.stop();
-          console.log('[WebRTC] Stopped track:', track.kind);
-        });
-        localStreamRef.current = null;
-      }
+    void signaling.sendSignal({ type: 'leave', data: {} });
 
-      // Stop screen share if active
-      if (screenStream) {
-        screenStream.getTracks().forEach(track => {
-          track.stop();
-          console.log('[WebRTC] Stopped screen share track');
-        });
-      }
+    void supabase.from('meeting_participants')
+      .update({ left_at: new Date().toISOString(), status: 'left' })
+      .eq('meeting_id', meetingId)
+      .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+      .is('left_at', null);
 
-      // Close all peer connections
-      peerConnections.current.forEach((pc, id) => {
-        console.log('[WebRTC] Closing peer connection:', id);
-        pc.close();
-      });
-      peerConnections.current.clear();
+    setLocalStream(null);
+    screenShare.setScreenStream(null);
+    setError(null);
+  }, [meetingId, participantId, pcManager, screenShare, signaling]);
 
-      // Clear refs
-      leftParticipantsRef.current.clear();
-
-      // Unsubscribe from channel and send leave signal
-      if (signalChannel.current) {
-        // Send leave signal before unsubscribing
-        void sendSignal({
-          type: 'leave',
-          data: {}
-        });
-
-        signalChannel.current.unsubscribe();
-        signalChannel.current = null;
-      }
-
-      // Mark as left in database
-      void supabase
-        .from('meeting_participants')
-        .update({ left_at: new Date().toISOString(), status: 'left' })
-        .eq('meeting_id', meetingId)
-        .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
-        .is('left_at', null);
-
-      setLocalStream(null);
-      setScreenStream(null);
-      setParticipants([]);
-      setError(null);
-
-      console.log('[WebRTC] Cleanup complete');
-    } catch (err) {
-      console.error('[WebRTC] Error during cleanup:', err);
+  // --- Retry connection ---
+  const retryConnection = useCallback(async () => {
+    if (reconnectAttempts.current >= maxReconnectAttempts) {
+      setError({ message: 'Failed to connect after multiple attempts. Please refresh the page.', recoverable: false });
+      return;
     }
-  }, [localStream, screenStream, meetingId, participantId]);
+    reconnectAttempts.current++;
+    setError(null);
+    toast.info(`Reconnecting (${reconnectAttempts.current}/${maxReconnectAttempts})…`);
+    pcManager.cleanupConnections();
+    hasJoinedRef.current = false;
+    signaling.setMediaReady(false);
+    try {
+      await initializeMedia();
+      toast.success('Reconnected successfully');
+      reconnectAttempts.current = 0;
+    } catch {
+      setError({ message: 'Reconnection failed. Please try again.', recoverable: true });
+    }
+  }, [initializeMedia, pcManager, signaling]);
+
+  // Participant polling on channel issues
+  useEffect(() => {
+    if (signaling.channelStatus === 'disconnected' || signaling.channelStatus === 'error') {
+      const id = setInterval(pcManager.pollParticipants, 2000);
+      return () => clearInterval(id);
+    }
+  }, [signaling.channelStatus, pcManager]);
 
   return {
     localStream,
     isVideoEnabled,
     isAudioEnabled,
-    connectionState,
-    participants,
-    screenStream,
+    connectionState: pcManager.connectionState,
+    participants: pcManager.participants,
+    screenStream: screenShare.screenStream,
     networkQuality: stats.quality,
     bandwidth: stats.bandwidth,
     latency: stats.latency,
-    videoStats,
+    videoStats: pcManager.videoStats,
     error,
-    channelStatus,
-    peerConnections: peerConnections.current,
-    // E2E Encryption state
+    channelStatus: signaling.channelStatus,
+    peerConnections: pcManager.peerConnections.current,
     e2eeState: {
-      enabled: e2eeActive,
-      isSupported: e2ee.isSupported(),
-      keyVersion: e2ee.state.keyVersion,
-      peersEncrypted: e2ee.state.peersEncrypted.size,
-      error: e2ee.state.error
+      enabled: pcManager.e2eeActive,
+      isSupported: pcManager.e2ee.isSupported(),
+      keyVersion: pcManager.e2ee.state.keyVersion,
+      peersEncrypted: pcManager.e2ee.state.peersEncrypted.size,
+      error: pcManager.e2ee.state.error,
     },
     toggleE2EE: async () => {
-      if (!supportsE2EEncryption()) {
-        toast.error('E2E encryption not supported in this browser');
-        return;
-      }
-      
-      if (e2eeEnabledRef.current) {
-        // Disable
-        e2eeEnabledRef.current = false;
-        e2ee.disableEncryption();
-        setE2eeActive(false);
+      if (!supportsE2EEncryption()) { toast.error('E2E encryption not supported in this browser'); return; }
+      if (pcManager.e2eeEnabledRef.current) {
+        pcManager.e2eeEnabledRef.current = false;
+        pcManager.e2ee.disableEncryption();
         toast.info('End-to-end encryption disabled');
       } else {
-        // Enable - need to recreate connections with E2EE config
-        e2eeEnabledRef.current = true;
-        toast.info('Enabling end-to-end encryption...');
-        
-        // Apply to existing connections
-        for (const [peerId, pc] of peerConnections.current) {
-          const success = await e2ee.enableEncryption(pc, peerId);
-          if (success) {
-            console.log('[WebRTC] 🔒 E2EE applied to existing peer:', peerId);
-          }
+        pcManager.e2eeEnabledRef.current = true;
+        toast.info('Enabling end-to-end encryption…');
+        for (const [peerId, pc] of pcManager.peerConnections.current) {
+          await pcManager.e2ee.enableEncryption(pc, peerId);
         }
-        setE2eeActive(true);
         toast.success('End-to-end encryption enabled');
       }
     },
     initializeMedia,
     toggleVideo,
     toggleAudio,
-    toggleScreenShare,
+    toggleScreenShare: screenShare.toggleScreenShare,
     sendReaction,
     enablePictureInPicture,
     cleanup,
-    retryConnection: async () => {
-      console.log('[WebRTC] 🔄 Manual retry triggered, attempt:', reconnectAttempts.current + 1);
-
-      if (reconnectAttempts.current >= maxReconnectAttempts) {
-        setError({ message: 'Failed to connect after multiple attempts. Please refresh the page.', recoverable: false });
-        toast.error('Connection failed after multiple attempts');
-        return;
-      }
-
-      reconnectAttempts.current++;
-      setError(null);
-      setChannelStatus('connecting');
-
-      toast.info(`Reconnecting (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})...`);
-
-      // Clean up existing connections
-      peerConnections.current.forEach((pc) => pc.close());
-      peerConnections.current.clear();
-      setParticipants([]);
-
-      // Unsubscribe from old channel
-      if (signalChannel.current) {
-        signalChannel.current.unsubscribe();
-        signalChannel.current = null;
-      }
-
-      // Reset flags
-      hasJoinedRef.current = false;
-      mediaReadyRef.current = false;
-
-      // Re-initialize media
-      try {
-        await initializeMedia();
-        toast.success('Reconnected successfully');
-        reconnectAttempts.current = 0; // Reset on success
-      } catch (error) {
-        console.error('[WebRTC] ❌ Retry failed:', error);
-        setError({ message: 'Reconnection failed. Please try again.', recoverable: true });
-      }
-    }
+    retryConnection,
   };
 }
