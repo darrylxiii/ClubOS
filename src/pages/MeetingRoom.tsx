@@ -231,7 +231,7 @@ export default function MeetingRoom() {
           log.error('MeetingRoom', 'Error updating participant:', updateError);
           throw updateError;
         }
-        console.log('[MeetingRoom] ✅ User rejoined meeting (updated existing record)');
+        log.debug('MeetingRoom', 'User rejoined meeting (updated existing record)');
       } else {
         // Insert new participant with immediate heartbeat
         const { error: insertError } = await supabase
