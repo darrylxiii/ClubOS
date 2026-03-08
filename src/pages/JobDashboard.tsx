@@ -1036,7 +1036,7 @@ export default function JobDashboard() {
 
         {/* Consolidated Tabs - Reduced from 8 to 3 */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Intelligence
             </TabsTrigger>
@@ -1048,6 +1048,12 @@ export default function JobDashboard() {
             )}
             <TabsTrigger value="analytics" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+              Reviews
+              {pendingReviewsCount > 0 && (
+                <Badge variant="secondary" className="ml-1">{pendingReviewsCount}</Badge>
+              )}
             </TabsTrigger>
             {(role === 'admin' || role === 'strategist') && (
               <TabsTrigger value="email-dump" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
