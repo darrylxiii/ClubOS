@@ -421,7 +421,7 @@ export function MeetingVideoCallInterface({
           stream,
           isSpeaking: false
         });
-        console.log('[Meeting] 🎥 Added remote participant to compositor:', name);
+        log.debug('Meeting', 'Added remote participant to compositor: ' + name);
       }
     });
 
