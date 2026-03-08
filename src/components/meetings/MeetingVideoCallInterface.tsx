@@ -996,7 +996,7 @@ export function MeetingVideoCallInterface({
       }
 
       if (error) {
-        console.error('[Meeting] ❌ Error fetching role:', error);
+        log.error('Meeting', 'Error fetching role:', error);
       }
     };
 
