@@ -215,7 +215,7 @@ export function usePeerConnectionManager({
       await pc.setLocalDescription(opt);
       await sendSignal({ type: 'answer', receiverId: senderId, data: opt });
       await flushCandidates(pc, senderId);
-    } catch (e) { log.error('[PC] Offer handling failed:', e); }
+    } catch (e) { log.error('PC', 'Offer handling failed:', e); }
   }, [createPeerConnection, sendSignal, flushCandidates]);
 
   const handleAnswer = useCallback(async (senderId: string, answer: RTCSessionDescriptionInit) => {
