@@ -274,7 +274,7 @@ export default function MeetingRoom() {
 
       setInCall(true);
     } catch (error: unknown) {
-      console.error('[MeetingRoom] ❌ Error joining meeting:', error);
+      log.error('MeetingRoom', 'Error joining meeting:', error);
       
       // Detect RLS policy violation (authorization error)
       const err = error as { message?: string; code?: string };
