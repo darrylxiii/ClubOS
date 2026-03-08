@@ -933,13 +933,10 @@ export function MeetingVideoCallInterface({
         .eq('status', 'accepted')  // Only count accepted participants
         .is('left_at', null);       // Who haven't left yet
 
-      console.log('[Meeting] 👥 Accepted participants in DB:', count);
-      console.log('[Meeting] 📊 Participant details:', data);
-      console.log('[Meeting] 🔗 WebRTC connected participants:', participants.length);
+      log.debug('Meeting', `Participants: DB=${count}, WebRTC=${participants.length}`);
 
       // Count connected WebRTC participants + local participant as the active count
       const activeParticipantCount = participants.length + 1; // +1 for local
-      console.log('[Meeting] 🎯 Active participants (WebRTC + local):', activeParticipantCount);
 
       setTotalParticipants(activeParticipantCount);
 
