@@ -259,7 +259,7 @@ export default function MeetingRoom() {
             throw insertError;
           }
         } else {
-          console.log('[MeetingRoom] ✅ User joined meeting successfully');
+          log.debug('MeetingRoom', 'User joined meeting successfully');
         }
       }
 
