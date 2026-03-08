@@ -29,7 +29,7 @@ export default defineConfig(({ mode, command }) => ({
       'use-sync-external-store/shim/with-selector',
       'sonner', 'next-themes', 'clsx', 'tailwind-merge',
       'class-variance-authority',
-      'lucide-react', 'date-fns',
+      'date-fns',
       'framer-motion',
       'react-helmet-async',
       'i18next', 'react-i18next', 'i18next-browser-languagedetector',
