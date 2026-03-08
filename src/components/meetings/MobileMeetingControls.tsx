@@ -123,11 +123,11 @@ export function MobileMeetingControls({
       label: 'Notes',
       onClick: () => { onOpenNotes(); setMoreOpen(false); }
     },
-    {
+    ...(onOpenBackgrounds ? [{
       icon: Palette,
       label: 'Backgrounds',
       onClick: () => { onOpenBackgrounds(); setMoreOpen(false); }
-    },
+    }] : []),
     {
       icon: Settings,
       label: 'Settings',
