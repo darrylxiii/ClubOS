@@ -254,30 +254,34 @@ export function MeetingVideoCallInterface({
 
   const isAnyTranscriptionActive = isTranscribing || !!transcript;
 
-  // Health check for meeting infrastructure on mount
+  // Health check for meeting infrastructure on mount — use result to decide LiveKit mode
+  const [liveKitAvailable, setLiveKitAvailable] = useState(false);
+
   useEffect(() => {
     const checkInfrastructure = async () => {
-      console.log('[Meeting] 🏥 Checking infrastructure health...');
-      
       try {
-        // Check LiveKit health
         const { data: lkHealth, error: lkError } = await supabase.functions.invoke('livekit-health', { body: {} });
-        console.log('[Meeting] LiveKit health:', lkError ? '❌ ' + lkError.message : lkHealth);
-        
-        // Check ElevenLabs by attempting token fetch
-        const { data: elToken, error: elError } = await supabase.functions.invoke('elevenlabs-scribe-token', {
-          body: { meeting_id: meeting.id, participant_id: participantId }
-        });
-        console.log('[Meeting] ElevenLabs token:', elError ? '❌ ' + elError.message : '✅ OK');
+        if (!lkError && lkHealth?.status === 'ok') {
+          setLiveKitAvailable(true);
+        }
       } catch (err) {
-        console.error('[Meeting] ❌ Infrastructure health check failed:', err);
+        // LiveKit not available — stay on P2P
       }
     };
     
-    // Run health check after a short delay to not block initial render
     const timer = setTimeout(checkInfrastructure, 2000);
     return () => clearTimeout(timer);
-  }, [meeting.id, participantId]);
+  }, [meeting.id]);
+
+  // Auto-switch to LiveKit SFU when 3+ remote participants are connected
+  useEffect(() => {
+    if (!liveKitAvailable || useLiveKitMode) return;
+
+    if (remoteStreams.size >= 3) {
+      setUseLiveKitMode(true);
+      toast.info('Switched to server-relayed video for better quality with multiple participants');
+    }
+  }, [remoteStreams.size, liveKitAvailable, useLiveKitMode]);
 
   const { overallStats, worstQuality, suggestedAction } = useMeetingConnectionQuality({
     peerConnections: peerConnections || new Map(),
