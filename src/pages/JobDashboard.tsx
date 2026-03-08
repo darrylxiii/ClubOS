@@ -1127,6 +1127,7 @@ export default function JobDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4 mt-6">
+            <JobInterviewRecordingsPanel jobId={job.id} />
             <JobAnalytics jobId={job.id} />
           </TabsContent>
 
