@@ -667,15 +667,12 @@ export function MeetingVideoCallInterface({
     };
   }, []);
 
-  // Legacy recording functions removed - compositor recording is the sole path
-  // handleToggleRecording now controls compositor recording directly
+  // Recording toggle — compositor is the single source of truth
   const handleToggleRecording = async () => {
     if (isCompositorRecording) {
       await stopCompositorRecording();
-      setIsRecording(false);
     } else {
       await startCompositorRecording();
-      setIsRecording(true);
     }
   };
 
