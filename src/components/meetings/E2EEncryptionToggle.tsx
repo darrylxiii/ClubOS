@@ -124,6 +124,33 @@ export function E2EEncryptionToggle({
           )}
         </TooltipContent>
       </Tooltip>
+
+      {isEnabled && keyVersion > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-muted-foreground"
+              onClick={() => setSafetyOpen(true)}
+            >
+              Verify
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-sm">Verify safety number with peer</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      <E2ESafetyNumberDialog
+        open={safetyOpen}
+        onOpenChange={setSafetyOpen}
+        localKeyVersion={keyVersion}
+        peerName={peerName}
+        peerId={peerId}
+        meetingId={meetingId}
+      />
     </TooltipProvider>
   );
 }
