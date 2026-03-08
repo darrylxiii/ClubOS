@@ -407,7 +407,7 @@ export default function MeetingRoom() {
     const currentParticipantId = user?.id || guestSessionToken || `guest-${Date.now()}`;
     const displayName = user?.user_metadata?.full_name || user?.email || guestName;
 
-    console.log('[MeetingRoom] Entering call with participant ID:', currentParticipantId, 'Display name:', displayName);
+    log.debug('MeetingRoom', 'Entering call with participant ID: ' + currentParticipantId);
 
     return (
       <MeetingVideoCallInterface
