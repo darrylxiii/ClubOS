@@ -769,7 +769,7 @@ export function MeetingVideoCallInterface({
     };
 
     // Initial heartbeat - run immediately
-    console.log('[Meeting] ❤️ Starting presence heartbeat for:', participantId);
+    log.debug('Meeting', 'Starting presence heartbeat for: ' + participantId);
     updateHeartbeat();
 
     // Update every 10 seconds
