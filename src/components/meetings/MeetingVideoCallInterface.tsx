@@ -107,6 +107,7 @@ export function MeetingVideoCallInterface({
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [focusedParticipantId, setFocusedParticipantId] = useState<string | null>(null);
+  const [userPinnedParticipant, setUserPinnedParticipant] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [userRole, setUserRole] = useState<string>('participant');
