@@ -307,7 +307,7 @@ export function MeetingVideoCallInterface({
     }
   }, [remoteStreams.size, liveKitAvailable, useLiveKitMode]);
 
-  const { overallStats, worstQuality, suggestedAction } = useMeetingConnectionQuality({
+  const { overallStats, peerStats, worstQuality, suggestedAction } = useMeetingConnectionQuality({
     peerConnections: peerConnections || new Map(),
     meetingId: meeting.id,
     userId: participantId,
