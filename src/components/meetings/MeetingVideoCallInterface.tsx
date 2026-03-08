@@ -58,6 +58,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
+import { MeetingTimer } from '@/components/meetings/MeetingTimer';
 import { useMeetingTranscript } from '@/hooks/useMeetingTranscript';
 import { LiveInterviewAnalysis } from './analysis/LiveInterviewAnalysis';
 
@@ -1188,7 +1189,10 @@ export function MeetingVideoCallInterface({
       <div className="absolute top-6 left-6 z-50 animate-in slide-in-from-left duration-500">
         <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-6 py-3 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] space-y-2">
           <h3 className="font-semibold text-white text-base tracking-wide">{meeting.title}</h3>
-          <p className="text-xs text-white/60 font-mono">{meeting.meeting_code}</p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-white/60 font-mono">{meeting.meeting_code}</p>
+            <MeetingTimer startTime={meeting.actual_start_time || meeting.scheduled_start} />
+          </div>
         </div>
       </div>
 
@@ -1273,6 +1277,7 @@ export function MeetingVideoCallInterface({
             }))}
             layout={layout}
             focusedParticipantId={focusedParticipantId || undefined}
+            onPinParticipant={(id) => setFocusedParticipantId(prev => prev === id ? null : id)}
           />
         )}
       </div>

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, memo } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Video, VideoOff, Hand, Monitor, Crown } from 'lucide-react';
+import { Mic, MicOff, VideoOff, Hand, Monitor, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScreenShareOverlay } from './ScreenShareOverlay';
 import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
+import { meetingLogger as log } from '@/lib/meetingLogger';
 
 interface ParticipantTileProps {
   participant: {
@@ -17,15 +17,16 @@ interface ParticipantTileProps {
     is_hand_raised: boolean;
     is_speaking: boolean;
     stream?: MediaStream;
-    audioLevel?: number; // 0-1 normalized audio level
+    audioLevel?: number;
   };
   isLocal?: boolean;
   isFocused?: boolean;
   className?: string;
   hideScreenShare?: boolean;
+  onPin?: (participantId: string) => void;
 }
 
-const ParticipantTileComponent = memo(function ParticipantTile({ participant, isLocal, isFocused, className, hideScreenShare }: ParticipantTileProps) {
+const ParticipantTileComponent = memo(function ParticipantTile({ participant, isLocal, isFocused, className, hideScreenShare, onPin }: ParticipantTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -33,7 +34,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !participant.stream) {
-      console.log(`[ParticipantTile] ⏸️ Not setting stream for ${participant.display_name}`, {
+      log.debug('ParticipantTile', `Not setting stream for ${participant.display_name}`, {
         hasVideoRef: !!video,
         hasStream: !!participant.stream
       });
@@ -44,22 +45,14 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
     const stream = participant.stream;
     const videoTracks = stream.getVideoTracks();
     
-    console.log(`[ParticipantTile] 🎬 Attaching stream for ${participant.display_name}`, {
+    log.debug('ParticipantTile', `Attaching stream for ${participant.display_name}`, {
       streamId: stream.id,
-      videoOff: participant.is_video_off,
       videoTracks: videoTracks.length,
       audioTracks: stream.getAudioTracks().length,
-      trackStates: stream.getTracks().map(t => ({
-        kind: t.kind,
-        enabled: t.enabled,
-        readyState: t.readyState,
-        muted: t.muted
-      }))
     });
 
-    // Verify video track exists
     if (videoTracks.length === 0) {
-      console.warn(`[ParticipantTile] ⚠️ No video tracks for ${participant.display_name}`);
+      log.warn('ParticipantTile', `No video tracks for ${participant.display_name}`);
       setIsLoading(false);
       return;
     }
@@ -68,68 +61,61 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
     let retryCount = 0;
     const maxRetries = 3;
     
-    // Function to attach stream and attempt playback
     const attachStream = async () => {
       try {
         video.srcObject = stream;
         
-        // Attempt play with retry logic for autoplay restrictions
         const attemptPlay = async (): Promise<void> => {
           try {
             await video.play();
-            console.log(`[ParticipantTile] ✅ Video playing for ${participant.display_name}`);
+            log.debug('ParticipantTile', `Video playing for ${participant.display_name}`);
             setIsLoading(false);
           } catch (err: unknown) {
             const e = err as { name?: string; message?: string };
             if (e.name === 'NotAllowedError' && retryCount < maxRetries) {
               retryCount++;
-              console.warn(`[ParticipantTile] ⚠️ Autoplay blocked for ${participant.display_name}, retry ${retryCount}/${maxRetries}`);
-              // Retry after increasing delay
+              log.warn('ParticipantTile', `Autoplay blocked for ${participant.display_name}, retry ${retryCount}/${maxRetries}`);
               await new Promise(resolve => setTimeout(resolve, 300 * retryCount));
               return attemptPlay();
             } else if (e.name === 'AbortError') {
-              // AbortError usually means the element was removed or src changed - not critical
-              console.log(`[ParticipantTile] Play aborted for ${participant.display_name} (likely element removed)`);
+              log.debug('ParticipantTile', `Play aborted for ${participant.display_name} (likely element removed)`);
             } else {
-              console.error(`[ParticipantTile] ❌ Video play failed for ${participant.display_name}:`, e.message);
+              log.error('ParticipantTile', `Video play failed for ${participant.display_name}: ${e.message}`);
             }
             setIsLoading(false);
           }
         };
 
         video.onloadedmetadata = () => {
-          console.log(`[ParticipantTile] ✅ Video metadata loaded for ${participant.display_name}`);
+          log.debug('ParticipantTile', `Video metadata loaded for ${participant.display_name}`);
           attemptPlay();
         };
 
         video.onloadeddata = () => {
-          console.log(`[ParticipantTile] ✅ Video data loaded for ${participant.display_name}`);
+          log.debug('ParticipantTile', `Video data loaded for ${participant.display_name}`);
         };
 
         video.onerror = (e) => {
-          console.error(`[ParticipantTile] ❌ Video element error for ${participant.display_name}:`, e);
+          log.error('ParticipantTile', `Video element error for ${participant.display_name}`, e);
           setIsLoading(false);
         };
         
       } catch (error) {
-        console.error(`[ParticipantTile] ❌ Failed to attach stream for ${participant.display_name}:`, error);
+        log.error('ParticipantTile', `Failed to attach stream for ${participant.display_name}`, error);
         setIsLoading(false);
       }
     };
 
-    // Check if video track is live before attaching
     if (videoTrack.readyState !== 'live') {
-      console.warn(`[ParticipantTile] ⚠️ Video track not live for ${participant.display_name}:`, videoTrack.readyState);
+      log.warn('ParticipantTile', `Video track not live for ${participant.display_name}: ${videoTrack.readyState}`);
       
-      // Wait for track to become live
       const onLive = () => {
-        console.log(`[ParticipantTile] ✅ Video track now live for ${participant.display_name}`);
+        log.debug('ParticipantTile', `Video track now live for ${participant.display_name}`);
         attachStream();
       };
       
       videoTrack.addEventListener('unmute', onLive, { once: true });
       
-      // Also try immediately in case it becomes live soon
       const checkInterval = setInterval(() => {
         if (videoTrack.readyState === 'live') {
           clearInterval(checkInterval);
@@ -138,13 +124,11 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         }
       }, 200);
       
-      // Cleanup timeout - don't wait forever
       const timeout = setTimeout(() => {
         clearInterval(checkInterval);
         videoTrack.removeEventListener('unmute', onLive);
-        // Try attaching anyway in case readyState is wrong
         if (video.srcObject !== stream) {
-          console.log(`[ParticipantTile] ⏳ Timeout waiting for live track, attaching anyway for ${participant.display_name}`);
+          log.debug('ParticipantTile', `Timeout waiting for live track, attaching anyway for ${participant.display_name}`);
           attachStream();
         }
       }, 3000);
@@ -168,7 +152,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
     <div
       className={cn(
         "relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-950/90 via-gray-900/80 to-black/90 backdrop-blur-xl",
-        "border border-white/10 transition-all duration-500 ease-out group",
+        "border border-white/10 transition-all duration-500 ease-out group cursor-pointer",
         "shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)]",
         participant.is_speaking && "ring-2 ring-emerald-400/60 shadow-[0_0_32px_rgba(34,197,94,0.3)]",
         isFocused && "ring-2 ring-primary/80 shadow-[0_0_40px_rgba(var(--primary)/0.4)]",
@@ -177,6 +161,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onPin?.(participant.id)}
     >
       {/* Video/Avatar Display */}
       {participant.stream && !participant.is_video_off ? (
@@ -191,7 +176,6 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
               participant.is_screen_sharing && "object-contain bg-black"
             )}
           />
-          {/* Screen share overlay for presenter to prevent infinite loop */}
           {hideScreenShare && participant.is_screen_sharing && (
             <ScreenShareOverlay participantName={participant.display_name} />
           )}
@@ -219,7 +203,17 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         </div>
       )}
 
-      {/* Name & Status Bar - Glassmorphic overlay */}
+      {/* Pin indicator on hover */}
+      {isHovered && onPin && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 animate-in fade-in duration-200">
+          <div className="px-3 py-1.5 bg-black/70 backdrop-blur-xl rounded-full border border-white/20 flex items-center gap-1.5">
+            <Pin className="h-3 w-3 text-white/80" />
+            <span className="text-xs text-white/80 font-medium">{isFocused ? 'Unpin' : 'Pin'}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Name & Status Bar */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/40 backdrop-blur-2xl border-t border-white/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -259,7 +253,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         </div>
       </div>
 
-      {/* Hand Raised Indicator */}
+      {/* Hand Raised */}
       {participant.is_hand_raised && (
         <div className="absolute top-4 right-20 animate-bounce">
           <div className="p-2.5 bg-yellow-500/90 backdrop-blur-sm rounded-full shadow-xl shadow-yellow-500/50 border border-yellow-400/30">
@@ -268,7 +262,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         </div>
       )}
 
-      {/* Speaking Badge - Enhanced with audio level */}
+      {/* Speaking Badge */}
       {participant.is_speaking && (
         <div className="absolute top-4 left-4">
           <SpeakingBadge
@@ -278,7 +272,7 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         </div>
       )}
 
-      {/* Connection Quality Indicator - Refined */}
+      {/* Connection Quality */}
       <div className="absolute top-4 right-4">
         <div className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl rounded-full border border-white/10 shadow-lg">
           <div className="flex items-end gap-0.5">
