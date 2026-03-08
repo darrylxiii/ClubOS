@@ -1,74 +1,159 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 92/100 (In-Meeting) | Ecosystem: 82/100
 
----
+# Candidate Review & Feedback Intelligence System — Implementation Plan
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+This is a large, multi-phase implementation. I recommend implementing it in **3 batches** to keep each change reviewable and stable.
 
 ---
 
-## Remaining
+## Batch 1: Database + Core Review UI (Phases 1-2)
 
-### Phase G2: In-Meeting Feature Parity ✅ (82 → 92)
-- Auto-pin active speaker in spotlight mode (2s debounce, user-pin override)
-- Meeting lock toggle for host (DB column `is_locked` + HostSettingsPanel UI)
-- Raise hand queue with timestamps and ordered list in ParticipantsPanel
-- Bandwidth quality presets (HD/Standard/Low) in DeviceSelector
-- Per-participant network quality tooltip (RTT/jitter/packetLoss/bitrate on hover)
-- Gallery page keyboard navigation (arrow keys)
-- Noise suppression UI toggle in DeviceSelector
+### Phase 1: Database Migration
 
-### Phase H: Polish & Automation ✅ (92 → 100)
-- **Date range filter on MeetingHistoryTab**: From/To date inputs with clear button, useMemo filtering
-- **sendBeacon mobile cleanup**: `beforeunload` + `pagehide` → `navigator.sendBeacon` for reliable participant cleanup on mobile/tab close
-- **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
-- **Auto-advance pipeline on strong_yes**: `extract-candidate-performance` auto-advances `applications.pipeline_stage` when `hiring_recommendation === 'strong_yes'`, with audit log
+**Single migration** adding:
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+1. **Two enums**: `internal_review_status_enum` (`pending`, `approved`, `rejected`, `needs_info`) and `partner_review_status_enum` (`pending`, `approved`, `rejected`, `hold`)
 
-### Phase I2: Remaining Ecosystem
+2. **New columns on `applications`**:
+   - `internal_review_status`, `internal_reviewed_by` (FK profiles), `internal_reviewed_at`, `internal_review_notes`
+   - `partner_review_status`, `partner_reviewed_by` (FK profiles), `partner_reviewed_at`, `partner_review_notes`, `partner_review_rating` (1-5)
+   - All nullable, default null — existing apps unaffected
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+3. **New table `pipeline_reviewers`**: `id`, `job_id` FK jobs, `reviewer_id` FK profiles, `review_type` text (`internal`/`partner`), `is_primary` boolean, `assigned_by` FK profiles, `assigned_at` timestamp
+   - RLS: admin/strategist full CRUD; reviewers read own rows
+
+4. **New table `review_feedback_aggregates`**: `id`, `entity_type` text (`company`/`job`), `entity_id` uuid, `total_shared`, `total_approved`, `total_rejected`, `total_hold` (all int default 0), `avg_rating` numeric, `top_rejection_reasons` JSONB, `top_approval_traits` JSONB, `avg_review_time_hours` numeric, `updated_at` timestamp
+   - RLS: admin/strategist/partner read
+
+5. **DB trigger** on `applications` when `partner_review_status` changes → updates `review_feedback_aggregates` for both company and job entity types (upsert counts, recalculate avg_rating, avg_review_time)
+
+### Phase 2: Review UI Components
+
+**New files:**
+
+- **`src/hooks/useReviewQueue.ts`** — Fetches applications filtered by `internal_review_status` or `partner_review_status`, joins candidate_profiles + profiles (sourced_by), job requirements. Provides `approveInternal`, `rejectInternal`, `approvePartner`, `rejectPartner`, `holdPartner` mutations that update status columns AND insert into `company_candidate_feedback` + `role_candidate_feedback`.
+
+- **`src/components/partner/InternalReviewPanel.tsx`** — Table view for admin/strategist:
+  - Queries `internal_review_status = 'pending'` for current job
+  - Columns: candidate name, title, match score, source channel, sourced_by, CV status
+  - Checkbox multi-select with bulk Approve/Reject bar
+  - Quick approve → sets `internal_review_status = 'approved'`, `partner_review_status = 'pending'`
+
+- **`src/components/partner/PartnerFirstReviewPanel.tsx`** — Card-by-card review for partners:
+  - One candidate at a time, progress indicator ("3 of 12")
+  - Card content: name, photo, title, years exp, location, key skills (green/red vs job requirements), salary bar (expectation vs band), source info, TQC internal recommendation note
+  - Quick-tag feedback chips: `skills_gap`, `too_junior`, `too_senior`, `salary`, `location`, `culture`, `great_fit`, `strong_technical`, `leadership_potential`
+  - Star rating (1-5)
+  - On Approve: optional notes + rating → writes to both feedback tables → next card
+  - On Reject: mandatory primary reason dropdown + specific gaps tags + "ideal candidate" free text → writes to both feedback tables → next card
+  - On Hold: optional notes → next card
+  - Keyboard shortcuts: → Approve, ← Reject, ↓ Hold
+
+- **`src/pages/JobDashboard.tsx`** edits:
+  - Add "Reviews" tab between "Analytics" and "Rejected"
+  - Reviews tab content: sub-tabs "Internal Review" (admin/strategist only) | "Partner Review" (partner + admin) | "Metrics" (Phase 3)
+  - Show pending review count badge on tab
+
+- **`src/components/partner/ExpandablePipelineStage.tsx`** edit:
+  - Filter pipeline candidates to only show those with `partner_review_status = 'approved'` OR `partner_review_status IS NULL` (backward compat)
+
+- **`src/components/partner/PipelineCustomizer.tsx`** edit:
+  - Add "Assign First Reviewer" section at bottom
+  - Dropdown to select partner user(s) from company_members
+  - Toggle for `is_primary`
+  - Saves to `pipeline_reviewers` table
+
+---
+
+## Batch 2: Metrics + Intelligence (Phases 3-4)
+
+### Phase 3: Review Conversion Metrics
+
+- **`src/components/partner/ReviewConversionMetrics.tsx`** — Reads from `review_feedback_aggregates` + `applications`:
+  - Funnel: Sourced → Shared → Approved → Pipeline (recharts funnel)
+  - Approval rate % with company average comparison
+  - Top rejection reasons bar chart (from `company_candidate_feedback`)
+  - Top approval traits bar chart
+  - Batch trend line ("Batch 1: 20% → Batch 3: 45%")
+  - Avg review turnaround time
+
+- **`src/components/partner/ReviewerPerformanceCard.tsx`** — Admin view:
+  - Per-reviewer stats from `applications` grouped by `partner_reviewed_by`
+  - Reviews completed, avg time, approval rate, SLA compliance
+
+### Phase 4: Feedback Intelligence Engine
+
+- **`src/components/intelligence/CompanyHiringIntelligence.tsx`** — Aggregates `company_candidate_feedback` across all jobs for a company:
+  - Pattern cards: "70% rejected for salary mismatch", "Culture fit valued 2x over technical"
+  - Shown on company profile page for strategists
+
+- **`src/components/intelligence/JobSearchCalibration.tsx`** — Aggregates `role_candidate_feedback` for current job:
+  - "Based on feedback, consider: raising seniority, expanding location"
+  - Auto-generated via AI (`google/gemini-2.5-flash-lite`) from rejection patterns
+
+- **`supabase/functions/analyze-review-patterns/index.ts`** — Edge function:
+  - Called manually or after every 5th partner review
+  - Aggregates feedback → identifies company-wide patterns → writes insights to `company_intelligence` and `review_feedback_aggregates.top_rejection_reasons`/`top_approval_traits`
+  - Uses `google/gemini-2.5-flash-lite` for pattern summarization
+
+---
+
+## Batch 3: Timeline + Sourcing + Notifications (Phases 5-7)
+
+### Phase 5: Unified Candidate 360 Timeline
+
+- **`src/components/candidate-profile/CandidateTimelineHub.tsx`** — Replaces `ActivityFeedCard` + `ApplicationLogViewer` in `UnifiedCandidateProfile.tsx`:
+  - Merges: `candidate_application_logs`, `candidate_interactions`, `interview_feedback`, `company_candidate_feedback`, `role_candidate_feedback`, pipeline stage changes
+  - Type filter pills: All | Reviews | Calls | Emails | Meetings | Decisions
+  - Actor filter dropdown
+  - Each entry: icon, type badge, description, actor avatar, relative timestamp
+  - Expandable details for rich entries
+
+### Phase 6: Sourcing & Profile Visibility
+
+- **`src/components/candidate-profile/SourcingAttributionBadge.tsx`** — "Sourced by [Name] via [Channel] on [Date]"
+  - Queries `applications.sourced_by` → joins `profiles` for name
+  - Added to `CandidateHeroSection.tsx`
+
+- **`src/pages/UnifiedCandidateProfile.tsx`** edits:
+  - Replace `ActivityFeedCard` + `ApplicationLogViewer` with `CandidateTimelineHub`
+  - Add review history card for admin (all partner verdicts across applications)
+  - Add strategist contact card for candidates
+  - Add partner's own review history card
+
+### Phase 7: Notifications & SLA
+
+- **DB trigger migration**: On `applications.partner_review_status` change → insert into `activity_feed` with appropriate event type
+- **DB trigger**: When `internal_review_status` set to `approved` → insert notification for assigned partner reviewer (from `pipeline_reviewers`)
+- **SLA tracking**: Trigger creates `unified_tasks` when partner review is pending > 48h (scheduled via `pg_cron`)
+
+---
+
+## Files Summary
+
+| New Files | Purpose |
+|-----------|---------|
+| `src/hooks/useReviewQueue.ts` | Review data fetching + mutations |
+| `src/components/partner/InternalReviewPanel.tsx` | Admin pre-screening table |
+| `src/components/partner/PartnerFirstReviewPanel.tsx` | Partner card-by-card review |
+| `src/components/partner/ReviewConversionMetrics.tsx` | Funnel + metrics dashboard |
+| `src/components/partner/ReviewerPerformanceCard.tsx` | Per-reviewer stats |
+| `src/components/intelligence/CompanyHiringIntelligence.tsx` | Company pattern detection |
+| `src/components/intelligence/JobSearchCalibration.tsx` | Job search refinement |
+| `src/components/candidate-profile/CandidateTimelineHub.tsx` | Unified 360 timeline |
+| `src/components/candidate-profile/SourcingAttributionBadge.tsx` | Sourcing badge |
+| `supabase/functions/analyze-review-patterns/index.ts` | AI pattern analysis |
+| 1 SQL migration (Phase 1) | Tables, columns, triggers |
+| 1 SQL migration (Phase 7) | Notification triggers |
+
+| Edited Files | Changes |
+|-------------|---------|
+| `JobDashboard.tsx` | Add Reviews tab with sub-tabs |
+| `ExpandablePipelineStage.tsx` | Filter by partner_review_status |
+| `PipelineCustomizer.tsx` | Reviewer assignment section |
+| `UnifiedCandidateProfile.tsx` | Swap timeline, add role-specific cards |
+| `CandidateHeroSection.tsx` | Add SourcingAttributionBadge |
+| `supabase/config.toml` | Register analyze-review-patterns |
+
+I recommend starting with **Batch 1** (database + review UI). Shall I proceed?
+
