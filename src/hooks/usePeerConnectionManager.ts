@@ -224,7 +224,7 @@ export function usePeerConnectionManager({
       try {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
         await flushCandidates(pc, senderId);
-      } catch (e) { log.error('[PC] Answer handling failed:', e); }
+      } catch (e) { log.error('PC', 'Answer handling failed:', e); }
     }
   }, [flushCandidates]);
 
