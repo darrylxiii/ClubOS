@@ -986,10 +986,10 @@ export function MeetingVideoCallInterface({
         .maybeSingle();
 
       if (data?.role) {
-        console.log('[Meeting] 👤 User role fetched:', data.role);
+        log.debug('Meeting', 'User role: ' + data.role);
         setUserRole(data.role);
       } else if (meeting.host_id === participantId) {
-        console.log('[Meeting] 👑 User is host, setting role');
+        log.debug('Meeting', 'User is host');
         setUserRole('host');
       }
 
