@@ -1,11 +1,12 @@
 # Live Meetings Audit — Implementation Plan
 
-## Current Score: 58/100 (Phase 1 complete)
+## Current Score: 75/100 (Phases 1–2 complete)
 
 ---
 
-## Completed — Phase 1: Critical Fixes ✅ (34 → 58)
+## Completed
 
+### Phase 1: Critical Fixes ✅ (34 → 58)
 - Re-enabled desktop ControlsPanel (removed `false &&` gate)
 - Removed duplicate LiveInterviewAnalysis render
 - Removed all render-path console.log statements
@@ -14,17 +15,15 @@
 - Consent decline allows staying without recording
 - Post-meeting debrief trigger added to handleEndCall
 
+### Phase 2: Infrastructure ✅ (58 → 75)
+- Dynamic TURN credential fetching wired into useMeetingWebRTC (fetches on mount, caches in ref)
+- Hardcoded OpenRelay/Metered credentials removed from webrtcConfig.ts (STUN-only fallback)
+- Auto-switch to LiveKit SFU at 3+ remote participants (uses health check result)
+- Health check results now used to determine LiveKit availability
+
 ---
 
 ## Remaining
-
-### Phase 2: Infrastructure (58 → 75)
-
-| # | Task | File(s) | Points |
-|---|------|---------|--------|
-| 1 | Call fetchDynamicTURNCredentials before peer connections | useMeetingWebRTC.ts | +5 |
-| 2 | Remove hardcoded TURN credentials from client | webrtcConfig.ts | +3 |
-| 3 | Auto-switch to LiveKit SFU at 3+ participants | MeetingVideoCallInterface.tsx | +5 |
 
 ### Phase 3: Polish (75 → 90)
 
@@ -42,6 +41,6 @@
 |---|------|---------|--------|
 | 9 | Server-side transcription via Lovable AI | New edge function | +4 |
 | 10 | Cloud recording via LiveKit Egress | New integration | +3 |
-| 11 | Use health check results for initial mode | MeetingVideoCallInterface.tsx | +1 |
-| 12 | meeting.ended analytics event | MeetingVideoCallInterface.tsx | +1 |
-| 13 | Hash meeting passwords | Migration | +1 |
+| 11 | meeting.ended analytics event | MeetingVideoCallInterface.tsx | +1 |
+| 12 | Hash meeting passwords | Migration | +1 |
+| 13 | Remove unused ElevenLabs health check from mount | MeetingVideoCallInterface.tsx | +1 |
