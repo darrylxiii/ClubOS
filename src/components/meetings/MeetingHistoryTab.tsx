@@ -47,17 +47,40 @@ export function MeetingHistoryTab() {
     meeting_type: "interview",
   });
 
-  // Filter recordings by search
-  const filteredRecordings = recordings.filter(r => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const title = r.title || r.meeting?.title || '';
-    return (
-      title.toLowerCase().includes(query) ||
-      r.executive_summary?.toLowerCase().includes(query) ||
-      r.transcript?.toLowerCase().includes(query)
-    );
-  });
+  // Filter recordings by search and date range
+  const filteredRecordings = useMemo(() => {
+    return recordings.filter(r => {
+      // Text search
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const title = r.title || r.meeting?.title || '';
+        const matchesText = (
+          title.toLowerCase().includes(query) ||
+          r.executive_summary?.toLowerCase().includes(query) ||
+          r.transcript?.toLowerCase().includes(query)
+        );
+        if (!matchesText) return false;
+      }
+
+      // Date range filter
+      const recordingDate = r.recorded_at || r.created_at;
+      if (recordingDate) {
+        if (dateFrom) {
+          const from = startOfDay(new Date(dateFrom));
+          if (isBefore(new Date(recordingDate), from)) return false;
+        }
+        if (dateTo) {
+          const to = endOfDay(new Date(dateTo));
+          if (isAfter(new Date(recordingDate), to)) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [recordings, searchQuery, dateFrom, dateTo]);
+
+  const hasDateFilter = dateFrom || dateTo;
+  const clearDateFilter = () => { setDateFrom(""); setDateTo(""); };
 
   const handleFileUpload = async () => {
     if (!user || !uploadFile) {
