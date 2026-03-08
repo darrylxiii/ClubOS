@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { MeetingRecordingExtended } from '@/hooks/useMeetingRecordings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { MeetingSummaryCardInfo } from './MeetingSummaryCardInfo';
 
 interface MeetingRecordingCardProps {
   recording: MeetingRecordingExtended;
