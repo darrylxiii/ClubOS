@@ -907,7 +907,7 @@ export function MeetingVideoCallInterface({
             setRemoteHandRaises(prev => {
               const n = new Map(prev);
               if (data.raised) {
-                n.set(signal.sender_id, true);
+                n.set(signal.sender_id, { raised: true, timestamp: Date.now(), name: data.participantName });
                 toast(`${data.participantName} raised their hand`, { duration: 3000 });
               } else {
                 n.delete(signal.sender_id);
