@@ -269,7 +269,7 @@ export default function MeetingRoom() {
           .from('meetings')
           .update({ status: 'in_progress' })
           .eq('id', meeting.id);
-        console.log('[MeetingRoom] ✅ Meeting status reset to in_progress');
+        log.debug('MeetingRoom', 'Meeting status reset to in_progress');
       }
 
       setInCall(true);
