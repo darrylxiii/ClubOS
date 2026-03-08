@@ -34,8 +34,14 @@ interface VideoGridProps {
 
 const PARTICIPANTS_PER_PAGE = 9;
 
-export function VideoGrid({ participants, localParticipant, focusedParticipantId, layout = 'grid', presenterId, onPinParticipant }: VideoGridProps) {
+export function VideoGrid({ participants, localParticipant, focusedParticipantId, layout = 'grid', presenterId, onPinParticipant, onPageChange }: VideoGridProps) {
   const [currentPage, setCurrentPage] = useState(0);
+
+  // Expose page changes for keyboard nav
+  const changePage = (page: number) => {
+    setCurrentPage(page);
+    onPageChange?.(page);
+  };
 
   const allParticipants = useMemo(() =>
     localParticipant ? [localParticipant, ...participants] : participants,
