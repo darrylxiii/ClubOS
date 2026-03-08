@@ -80,13 +80,25 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
 
       if (error) throw error;
 
+      // Also fetch from candidate_interview_recordings for data populated by analysis pipeline
+      const { data: interviewRecordings } = await supabase
+        .from('candidate_interview_recordings')
+        .select('*')
+        .eq('candidate_id', candidateId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
       const parsedInsights: InterviewInsight[] = [];
       let totalScore = 0;
       let scoreCount = 0;
 
+      // Merge data from both sources
+      const processedMeetingIds = new Set<string>();
+
       meetings?.forEach((meeting: any) => {
         const analysis = meeting.meeting_recording_analysis?.[0];
         if (!analysis?.ai_analysis) return;
+        processedMeetingIds.add(meeting.id);
 
         const aiData = analysis.ai_analysis as any;
 
@@ -117,6 +129,22 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
           recommendation: aiData.decision_guidance?.recommendation ||
                           aiData.recommendation ||
                           null,
+        });
+      });
+
+      // Add insights from candidate_interview_recordings not already covered
+      (interviewRecordings as any[] || []).forEach((rec: any) => {
+        if (rec.meeting_id && processedMeetingIds.has(rec.meeting_id)) return;
+
+        parsedInsights.push({
+          meetingId: rec.meeting_id || rec.id,
+          meetingTitle: rec.job_title || 'Interview',
+          meetingDate: rec.interview_date || rec.created_at,
+          overallScore: 0,
+          strengths: [],
+          areasForImprovement: [],
+          keyMoments: [],
+          recommendation: rec.recommendation || null,
         });
       });
 
