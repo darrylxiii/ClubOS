@@ -3,6 +3,7 @@
  * Shows encryption status and allows toggling E2EE for meetings
  */
 
+import { useState } from 'react';
 import { Shield, ShieldCheck, ShieldOff, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { supportsE2EEncryption } from '@/utils/webrtcConfig';
+import { E2ESafetyNumberDialog } from './E2ESafetyNumberDialog';
 
 interface E2EEncryptionToggleProps {
   isEnabled: boolean;
@@ -23,6 +25,9 @@ interface E2EEncryptionToggleProps {
   error?: string | null;
   onToggle: () => void;
   disabled?: boolean;
+  meetingId?: string;
+  peerName?: string;
+  peerId?: string;
 }
 
 export function E2EEncryptionToggle({
@@ -33,8 +38,12 @@ export function E2EEncryptionToggle({
   totalPeers,
   error,
   onToggle,
-  disabled = false
+  disabled = false,
+  meetingId = '',
+  peerName = 'Peer',
+  peerId = '',
 }: E2EEncryptionToggleProps) {
+  const [safetyOpen, setSafetyOpen] = useState(false);
   const browserSupported = supportsE2EEncryption();
   
   // Determine status
@@ -115,6 +124,33 @@ export function E2EEncryptionToggle({
           )}
         </TooltipContent>
       </Tooltip>
+
+      {isEnabled && keyVersion > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-muted-foreground"
+              onClick={() => setSafetyOpen(true)}
+            >
+              Verify
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-sm">Verify safety number with peer</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      <E2ESafetyNumberDialog
+        open={safetyOpen}
+        onOpenChange={setSafetyOpen}
+        localKeyVersion={keyVersion}
+        peerName={peerName}
+        peerId={peerId}
+        meetingId={meetingId}
+      />
     </TooltipProvider>
   );
 }

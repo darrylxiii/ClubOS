@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { MeetingRecordingExtended } from '@/hooks/useMeetingRecordings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { MeetingSummaryCardInfo } from './MeetingSummaryCardInfo';
 
 interface MeetingRecordingCardProps {
   recording: MeetingRecordingExtended;
@@ -185,22 +186,28 @@ export function MeetingRecordingCard({
               </div>
             </div>
 
-            {/* Meta info */}
-            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-              {participantCount > 0 && (
-                <div className="flex items-center gap-1">
-                  <Users className="h-3.5 w-3.5" />
-                  <span>{participantCount} participant{participantCount !== 1 ? 's' : ''}</span>
-                </div>
-              )}
-              
+            {/* Summary info: duration, participants, topics, cost */}
+            <div className="mt-3">
+              <MeetingSummaryCardInfo
+                durationSeconds={recording.duration_seconds}
+                participantCount={participantCount}
+                topics={(() => {
+                  try {
+                    const analysis = recording.ai_analysis as any;
+                    return analysis?.topics || analysis?.key_topics || undefined;
+                  } catch { return undefined; }
+                })()}
+              />
+            </div>
+
+            {/* Meta badges */}
+            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
               {hasTranscript && (
-                <div className="flex items-center gap-1 text-green-500">
+                <div className="flex items-center gap-1 text-emerald-500">
                   <FileText className="h-3.5 w-3.5" />
                   <span>Transcript</span>
                 </div>
               )}
-              
               {hasAnalysis && (
                 <div className="flex items-center gap-1 text-purple-500">
                   <Sparkles className="h-3.5 w-3.5" />
