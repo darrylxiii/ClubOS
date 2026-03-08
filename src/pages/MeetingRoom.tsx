@@ -176,10 +176,16 @@ export default function MeetingRoom() {
   const handleJoinMeeting = async () => {
     if (!meeting) return;
 
-    // Check password first if required
-    if (meeting.access_type === 'password' && meeting.meeting_password !== password) {
-      toast.error('Incorrect password');
-      return;
+    // Check password via server-side hash verification
+    if (meeting.access_type === 'password') {
+      const { data: isValid } = await supabase.rpc('verify_meeting_password', {
+        p_meeting_id: meeting.id,
+        p_password: password,
+      });
+      if (!isValid) {
+        toast.error('Incorrect password');
+        return;
+      }
     }
 
     // For guests, show the approval dialog
