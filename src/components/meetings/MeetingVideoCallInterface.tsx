@@ -871,7 +871,7 @@ export function MeetingVideoCallInterface({
             });
           } else if (signal.signal_type === 'audio-state') {
             const data = signal.signal_data;
-            setRemoteMuteStates(prev => new Map(prev).set(signal.sender_id, data.muted));
+            setRemoteMuteStates(prev => new Map(prev).set(signal.sender_id, !data.enabled));
           } else if (signal.signal_type === 'video-state') {
             const data = signal.signal_data;
             setRemoteVideoOffStates(prev => new Map(prev).set(signal.sender_id, !data.enabled));
