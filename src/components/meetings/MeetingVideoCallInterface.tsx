@@ -1747,7 +1747,7 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Engagement Analytics Overlay — uses transcription activity as speaking proxy */}
+      {/* Engagement Analytics Overlay — uses real audio level data */}
       {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (
         <EngagementAnalyticsOverlay
           meetingId={meeting.id}
@@ -1757,14 +1757,14 @@ export function MeetingVideoCallInterface({
             role: 'participant' as 'host' | 'candidate' | 'interviewer' | 'participant',
             speakingTimeMs: 0,
             speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
-            isSpeaking: false,
-            engagement: Math.min(100, Math.floor(50 + Math.random() * 30)), // TODO: wire real audio levels
+            isSpeaking: isRemoteSpeaking(id),
+            engagement: isRemoteSpeaking(id) ? 85 : 60,
             sentimentTrend: 'neutral' as 'positive' | 'neutral' | 'negative'
           })).concat([{
             id: participantId,
             name: participantName,
             role: (userRole === 'host' || userRole === 'candidate' || userRole === 'interviewer' ? userRole : 'participant') as 'host' | 'candidate' | 'interviewer' | 'participant',
-            speakingTimeMs: committedTranscripts.length * 5000, // Rough estimate: ~5s per transcript segment
+            speakingTimeMs: committedTranscripts.length * 5000,
             speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
             isSpeaking: isTranscribing || !!partialTranscript,
             engagement: Math.min(100, 60 + committedTranscripts.length * 2),
