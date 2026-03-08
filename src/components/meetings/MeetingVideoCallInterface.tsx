@@ -507,7 +507,7 @@ export function MeetingVideoCallInterface({
       await retryConnection();
       toast.success('Connection retry initiated');
     } catch (error) {
-      console.error('[Meeting] Retry failed:', error);
+      log.error('Meeting', 'Retry failed:', error);
       toast.error('Retry failed. Please refresh the page.');
     }
   };
