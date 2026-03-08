@@ -418,9 +418,9 @@ export function MeetingVideoCallInterface({
 
   const handleConsentDeclined = () => {
     setShowConsentModal(false);
-    // Leave meeting if they decline completely
-    toast.info('You chose to leave the meeting');
-    onEnd();
+    // Allow user to stay in meeting without recording
+    setHasGivenConsent(false);
+    toast.info('You can continue without recording. Your audio and video will not be captured.');
   };
 
   const handleRetry = () => {
