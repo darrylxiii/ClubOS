@@ -934,19 +934,6 @@ export function MeetingVideoCallInterface({
     };
   }, []);
 
-  // Debug: Log remote streams when they change
-  useEffect(() => {
-    console.log('[Meeting] 🔍 Remote streams updated, Map size:', remoteStreams.size);
-    remoteStreams.forEach((value, key) => {
-      console.log('[Meeting] 📊 Remote stream entry:', {
-        participantId: key,
-        name: value.name,
-        streamId: value.stream.id,
-        videoTracks: value.stream.getVideoTracks().length,
-        audioTracks: value.stream.getAudioTracks().length
-      });
-    });
-  }, [remoteStreams]);
 
   // Show diagnostics first
   if (showDiagnostics) {
