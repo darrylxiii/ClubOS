@@ -1412,7 +1412,7 @@ export function MeetingVideoCallInterface({
           isAudioEnabled={isAudioEnabled}
           isVideoEnabled={isVideoEnabled}
           isScreenSharing={!!screenStream}
-          isRecording={isRecording}
+          isRecording={isCompositorRecording}
           isHandRaised={isHandRaised}
           onToggleAudio={toggleAudio}
           onToggleVideo={toggleVideo}
