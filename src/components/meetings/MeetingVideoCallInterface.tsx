@@ -908,7 +908,7 @@ export function MeetingVideoCallInterface({
           filter: `meeting_id=eq.${meeting.id}`
         },
         () => {
-          console.log('[Meeting] 🔔 Join request change detected');
+          log.debug('Meeting', 'Join request change detected');
           checkPendingRequests();
         }
       )
