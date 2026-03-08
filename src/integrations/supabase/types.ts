@@ -31404,6 +31404,7 @@ export type Database = {
           meeting_password: string | null
           meeting_type: string | null
           original_user_request: string | null
+          password_hash: string | null
           pmr_id: string | null
           recording_url: string | null
           recurrence_rule: string | null
@@ -31459,6 +31460,7 @@ export type Database = {
           meeting_password?: string | null
           meeting_type?: string | null
           original_user_request?: string | null
+          password_hash?: string | null
           pmr_id?: string | null
           recording_url?: string | null
           recurrence_rule?: string | null
@@ -31514,6 +31516,7 @@ export type Database = {
           meeting_password?: string | null
           meeting_type?: string | null
           original_user_request?: string | null
+          password_hash?: string | null
           pmr_id?: string | null
           recording_url?: string | null
           recurrence_rule?: string | null
@@ -58176,6 +58179,10 @@ export type Database = {
       validate_job_pipeline_share: {
         Args: { _password?: string; _token: string }
         Returns: Json
+      }
+      verify_meeting_password: {
+        Args: { p_meeting_id: string; p_password: string }
+        Returns: boolean
       }
     }
     Enums: {
