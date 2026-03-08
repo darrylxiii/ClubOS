@@ -568,9 +568,27 @@ export function MeetingVideoCallInterface({
   };
 
   // Handler functions for ControlsPanel
-  const handleToggleHandRaise = () => {
-    setIsHandRaised(prev => !prev);
+  const handleToggleHandRaise = async () => {
+    const newState = !isHandRaised;
+    setIsHandRaised(newState);
     toast(isHandRaised ? 'Hand lowered' : 'Hand raised');
+
+    // Broadcast hand raise to all participants via webrtc_signals
+    try {
+      await supabase.from('webrtc_signals').insert({
+        meeting_id: meeting.id,
+        sender_id: participantId,
+        receiver_id: 'all',
+        signal_type: 'hand_raise',
+        signal_data: {
+          raised: newState,
+          participantName,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (err) {
+      console.error('[Meeting] Failed to broadcast hand raise:', err);
+    }
   };
 
   const handleOpenChat = () => setShowChat(true);
