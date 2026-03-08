@@ -26,6 +26,8 @@ import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTa
 import { EnhancedCandidateActionDialog } from "@/components/partner/EnhancedCandidateActionDialog";
 import { ExpandablePipelineStage } from "@/components/partner/ExpandablePipelineStage";
 import { CandidateActionDialog } from "@/components/partner/CandidateActionDialog";
+import { InternalReviewPanel } from "@/components/partner/InternalReviewPanel";
+import { PartnerFirstReviewPanel } from "@/components/partner/PartnerFirstReviewPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
