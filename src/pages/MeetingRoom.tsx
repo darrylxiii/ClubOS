@@ -157,7 +157,7 @@ export default function MeetingRoom() {
       }
 
       if (!data) {
-        console.log('Meeting not found with code:', meetingCode);
+        log.debug('MeetingRoom', 'Meeting not found with code: ' + meetingCode);
         toast.error('Meeting not found. Please check the meeting link.');
         // Don't auto-navigate - let user see the error
         setLoading(false);
