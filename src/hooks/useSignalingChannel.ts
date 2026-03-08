@@ -114,7 +114,7 @@ export function useSignalingChannel({
         await supabase.from('webrtc_signals').update({ processed: true }).eq('id', sig.id);
       }
     } catch (e) {
-      log.error('[Signaling] Poll error:', e);
+      log.error('Signaling', 'Poll error:', e);
     }
   }, [meetingId, participantId, onSignal]);
 
