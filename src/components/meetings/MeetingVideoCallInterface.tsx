@@ -235,7 +235,8 @@ export function MeetingVideoCallInterface({
       });
     },
     onParticipantLeft: (remoteParticipantId) => {
-      console.log('[Meeting] Participant left:', remoteParticipantId);
+      log.debug('Meeting', 'Participant left: ' + remoteParticipantId);
+      setRemoteHandRaises(prev => { const n = new Map(prev); n.delete(remoteParticipantId); return n; });
       setRemoteStreams(prev => {
         const newMap = new Map(prev);
         newMap.delete(remoteParticipantId);
