@@ -1163,8 +1163,12 @@ export default function JobDashboard() {
             <JobAnalytics jobId={job.id} />
           </TabsContent>
 
-          {(role === 'admin' || role === 'strategist') && (
-            <TabsContent value="email-dump" className="space-y-4 mt-6">
+          <TabsContent value="reviews" className="space-y-4 mt-6">
+            {(role === 'admin' || role === 'strategist') ? (
+              <InternalReviewPanel jobId={job.id} />
+            ) : null}
+            <PartnerFirstReviewPanel jobId={job.id} />
+          </TabsContent>
               <EmailDumpTab
                 jobId={job.id}
                 jobTitle={job.title}
