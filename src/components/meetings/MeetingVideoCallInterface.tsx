@@ -450,7 +450,7 @@ export function MeetingVideoCallInterface({
       // Show consent modal after joining
       setShowConsentModal(true);
     } catch (error: unknown) {
-      console.error('[Meeting] ❌ Failed to initialize media:', error);
+      log.error('Meeting', 'Failed to initialize media:', error);
       const err = error as { name?: string };
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
