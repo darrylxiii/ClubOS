@@ -798,7 +798,7 @@ export function MeetingVideoCallInterface({
 
       // If we're in the call UI but marked as left, fix it (target specific record)
       if (data && data.left_at !== null) {
-        console.warn('[Meeting] ⚠️ Participant incorrectly marked as left - auto-fixing...');
+        log.warn('Meeting', 'Participant incorrectly marked as left - auto-fixing...');
 
         await supabase
           .from('meeting_participants')
