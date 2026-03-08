@@ -32,7 +32,7 @@ import { InterviewReportView } from '@/components/meetings/InterviewReportView';
 import { BreakoutRoomsPanel } from '@/components/meetings/BreakoutRoomsPanel';
 import { MeetingPollPanel } from '@/components/meetings/MeetingPollPanel';
 import { MeetingQAPanel } from '@/components/meetings/MeetingQAPanel';
-import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgroundSelector';
+// VirtualBackgroundSelector removed — canvas-based VB deferred to future release
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { ClubAIVoiceAssistant } from '@/components/meetings/ClubAIVoiceAssistant';
