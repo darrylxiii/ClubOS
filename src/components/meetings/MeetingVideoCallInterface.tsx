@@ -888,7 +888,7 @@ export function MeetingVideoCallInterface({
         .eq('meeting_id', meeting.id)
         .eq('request_status', 'pending');
 
-      console.log('[Meeting] 📋 Pending join requests:', count || 0);
+      log.debug('Meeting', 'Pending join requests: ' + (count || 0));
       setPendingRequestsCount(count || 0);
     };
 
