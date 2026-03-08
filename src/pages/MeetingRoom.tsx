@@ -164,7 +164,7 @@ export default function MeetingRoom() {
         return;
       }
 
-      console.log('Meeting loaded successfully:', data);
+      log.debug('MeetingRoom', 'Meeting loaded successfully');
       setMeeting(data);
     } catch (error: unknown) {
       console.error('Error loading meeting:', error);
