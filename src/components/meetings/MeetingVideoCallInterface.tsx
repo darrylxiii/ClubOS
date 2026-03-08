@@ -58,6 +58,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
+import { MeetingTimer } from '@/components/meetings/MeetingTimer';
 import { useMeetingTranscript } from '@/hooks/useMeetingTranscript';
 import { LiveInterviewAnalysis } from './analysis/LiveInterviewAnalysis';
 
