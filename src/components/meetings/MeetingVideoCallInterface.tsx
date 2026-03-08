@@ -1257,7 +1257,7 @@ export function MeetingVideoCallInterface({
               is_video_off: !isVideoEnabled,
               is_screen_sharing: isScreenSharing,
               is_hand_raised: isHandRaised,
-              is_speaking: false,
+              is_speaking: isTranscribing || !!partialTranscript,
               stream: localStream
             } : undefined}
             participants={Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
