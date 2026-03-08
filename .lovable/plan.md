@@ -1,6 +1,6 @@
 # Live Meetings Audit — Implementation Plan
 
-## Current Score: 75/100 (Phases 1–2 complete)
+## Current Score: 90/100 (Phases 1–3 complete)
 
 ---
 
@@ -21,19 +21,16 @@
 - Auto-switch to LiveKit SFU at 3+ remote participants (uses health check result)
 - Health check results now used to determine LiveKit availability
 
+### Phase 3: Polish ✅ (75 → 90)
+- Extracted 25+ UI panel states into `useMeetingUI` hook (reduced component by ~40 lines)
+- Virtual background stub replaced with proper handler (blur/none/image with user feedback)
+- Engagement analytics now uses real transcript data (speaking time, active transcription state)
+- Screen share now requests system audio (`audio: true` in getDisplayMedia)
+- Mobile VideoGrid: responsive columns (1-col stack on mobile, 2-col max for small screens)
+
 ---
 
 ## Remaining
-
-### Phase 3: Polish (75 → 90)
-
-| # | Task | File(s) | Points |
-|---|------|---------|--------|
-| 4 | Extract sub-hooks from 1700-line component | New hooks | +5 |
-| 5 | Fix virtual background stub (canvas blur or remove) | VirtualBackgroundSelector.tsx | +3 |
-| 6 | Wire real speaking-time data to EngagementAnalyticsOverlay | MeetingVideoCallInterface.tsx | +2 |
-| 7 | Screen share with system audio | useMeetingWebRTC.ts | +2 |
-| 8 | Mobile VideoGrid stack layout | VideoGrid.tsx | +3 |
 
 ### Phase 4: Enterprise (90 → 100)
 
@@ -43,4 +40,4 @@
 | 10 | Cloud recording via LiveKit Egress | New integration | +3 |
 | 11 | meeting.ended analytics event | MeetingVideoCallInterface.tsx | +1 |
 | 12 | Hash meeting passwords | Migration | +1 |
-| 13 | Remove unused ElevenLabs health check from mount | MeetingVideoCallInterface.tsx | +1 |
+| 13 | Remove unused ElevenLabs health check | MeetingVideoCallInterface.tsx | +1 |
