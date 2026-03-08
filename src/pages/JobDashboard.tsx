@@ -62,6 +62,7 @@ import {
 } from "@/components/job-dashboard";
 import { motion } from "framer-motion";
 import { EmailDumpTab } from "@/components/jobs/email-dump";
+import { JobInterviewRecordingsPanel } from "@/components/partner/JobInterviewRecordingsPanel";
 import {
   DndContext,
   closestCenter,
@@ -1126,6 +1127,7 @@ export default function JobDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4 mt-6">
+            <JobInterviewRecordingsPanel jobId={job.id} />
             <JobAnalytics jobId={job.id} />
           </TabsContent>
 

@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -21,6 +20,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get meeting details
@@ -40,17 +40,17 @@ serve(async (req) => {
       .map((t: any) => `${t.speaker_name}: ${t.transcript_text}`)
       .join('\n');
 
-    console.log('[Extract Hiring Manager] Analyzing transcript...');
+    console.log('[Extract Hiring Manager] Analyzing transcript via Lovable AI...');
 
-    // Call AI to extract hiring manager patterns
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Lovable AI Gateway instead of OpenAI directly
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -71,19 +71,28 @@ Return a JSON object with:
             content: `Analyze this interview transcript:\n\n${fullTranscript}`
           }
         ],
-        response_format: { type: "json_object" },
         temperature: 0.3,
       }),
     });
 
     if (!aiResponse.ok) {
-      throw new Error(`OpenAI API error: ${await aiResponse.text()}`);
+      const errorText = await aiResponse.text();
+      throw new Error(`AI gateway error (${aiResponse.status}): ${errorText}`);
     }
 
     const aiResult = await aiResponse.json();
-    const analysis = JSON.parse(aiResult.choices[0].message.content);
+    const rawContent = aiResult.choices[0].message.content;
+    
+    // Parse JSON from response, handling potential markdown code blocks
+    let analysis;
+    try {
+      const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/);
+      analysis = JSON.parse(jsonMatch ? jsonMatch[1].trim() : rawContent);
+    } catch {
+      analysis = JSON.parse(rawContent);
+    }
 
-    console.log('[Extract Hiring Manager] Analysis complete:', analysis);
+    console.log('[Extract Hiring Manager] Analysis complete');
 
     // Store hiring manager profile or update existing
     if (meeting.host_id && meeting.company_id) {

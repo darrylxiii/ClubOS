@@ -736,46 +736,8 @@ CRITICAL REQUIREMENTS:
       }
     }
 
-    // Create tasks from action items
-    if (aiAnalysis.actionItems?.length > 0) {
-      try {
-        const tasks = aiAnalysis.actionItems.slice(0, 5).map((item: any) => ({
-          title: String(item.task || 'Follow up task'),
-          description: `From meeting: ${meetingData.title || 'Interview'}`,
-          priority: String(item.priority || 'medium'),
-          status: 'todo',
-          user_id: recording.host_id,
-          category: String(item.category || 'follow_up')
-        }));
-
-        await supabase.from('unified_tasks').insert(tasks);
-        console.log(`[Analysis] ✅ Created ${tasks.length} tasks`);
-      } catch (err) {
-        console.warn('[Analysis] Could not create tasks:', err);
-      }
-    }
-
-    // Log to audit table
-    try {
-      await supabase.from('meeting_data_audit').insert({
-        meeting_id: recording.meeting_id,
-        recording_id: recordingId,
-        check_type: 'ai_analysis',
-        passed: true,
-        details: {
-          duration_ms: Date.now() - startTime,
-          transcript_length: transcript.length,
-          retry_count: currentRetryCount,
-          used_fallback: usedFallback,
-          is_reanalysis: isReanalysis
-        }
-      });
-    } catch (err) {
-      console.warn('[Analysis] Could not log to audit:', err);
-    }
-
-    const totalTime = Date.now() - startTime;
-    console.log(`[Analysis] ✅ Completed in ${totalTime}ms:`, recordingId);
+    // Task creation is handled by bridge-meeting-to-pilot to avoid duplicates.
+    // Do NOT insert into unified_tasks here.
 
     // Trigger embedding generation for ML/RAG integration
     try {
@@ -795,6 +757,54 @@ CRITICAL REQUIREMENTS:
       }
     } catch (embErr) {
       console.warn('[Analysis] ⚠️ Failed to trigger embedding generation:', embErr);
+    }
+
+    // Chain: trigger bridge-meeting-to-intelligence for company/CRM wiring
+    if (recording.meeting_id) {
+      try {
+        const bridgeResponse = await fetch(`${supabaseUrl}/functions/v1/bridge-meeting-to-intelligence`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ meetingId: recording.meeting_id, recordingId })
+        });
+        
+        if (bridgeResponse.ok) {
+          console.log('[Analysis] 🌉 Bridge-to-intelligence triggered successfully');
+        } else {
+          console.warn('[Analysis] ⚠️ Bridge-to-intelligence returned non-OK:', bridgeResponse.status);
+        }
+      } catch (bridgeErr) {
+        console.warn('[Analysis] ⚠️ Failed to trigger bridge-to-intelligence:', bridgeErr);
+      }
+    }
+
+    // Chain: trigger bridge-meeting-to-pilot for task creation from action items
+    if (recording.meeting_id && aiAnalysis.actionItems?.length > 0) {
+      try {
+        const pilotResponse = await fetch(`${supabaseUrl}/functions/v1/bridge-meeting-to-pilot`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            meetingId: recording.meeting_id, 
+            recordingId,
+            actionItems: aiAnalysis.actionItems 
+          })
+        });
+        
+        if (pilotResponse.ok) {
+          console.log('[Analysis] ✅ Bridge-to-pilot triggered for task creation');
+        } else {
+          console.warn('[Analysis] ⚠️ Bridge-to-pilot returned non-OK:', pilotResponse.status);
+        }
+      } catch (pilotErr) {
+        console.warn('[Analysis] ⚠️ Failed to trigger bridge-to-pilot:', pilotErr);
+      }
     }
 
     return new Response(
