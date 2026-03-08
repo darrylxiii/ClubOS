@@ -248,7 +248,7 @@ export default function MeetingRoom() {
         if (insertError) {
           // Handle unique constraint violation (race condition - another insert happened)
           if (insertError.code === '23505') {
-            console.log('[MeetingRoom] ⚠️ Concurrent join detected, updating instead...');
+            log.debug('MeetingRoom', 'Concurrent join detected, updating instead...');
             await supabase
               .from('meeting_participants')
               .update({ left_at: null, status: 'accepted', last_seen: now })
