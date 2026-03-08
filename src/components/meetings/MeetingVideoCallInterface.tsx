@@ -1144,6 +1144,27 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
+      {/* TURN Unavailable Banner — dismissible */}
+      {turnUnavailable && !turnBannerDismissed && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 max-w-md animate-in fade-in slide-in-from-top duration-300">
+          <div className="backdrop-blur-2xl bg-amber-500/15 border border-amber-500/30 px-4 py-3 rounded-lg shadow-xl">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white">STUN-only mode</p>
+                <p className="text-xs text-white/60">TURN relay unavailable. Connections behind strict firewalls may fail.</p>
+              </div>
+              <button
+                onClick={() => setTurnBannerDismissed(true)}
+                className="p-1 rounded hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Error Recovery Banner - compact top notification */}
       {error && !error.recoverable && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 max-w-md">
