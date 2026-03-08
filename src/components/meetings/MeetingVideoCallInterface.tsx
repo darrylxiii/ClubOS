@@ -673,7 +673,7 @@ export function MeetingVideoCallInterface({
         }
       });
     } catch (err) {
-      console.error('[Meeting] Failed to broadcast hand raise:', err);
+      log.error('Meeting', 'Failed to broadcast hand raise:', err);
     }
   };
 
