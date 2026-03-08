@@ -114,6 +114,8 @@ export function MeetingVideoCallInterface({
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hasGivenConsent, setHasGivenConsent] = useState(false);
+  const [turnUnavailable, setTurnUnavailable] = useState(false);
+  const [turnBannerDismissed, setTurnBannerDismissed] = useState(false);
 
   // All UI panel states extracted into a dedicated hook
   const {
