@@ -360,22 +360,7 @@ export function MeetingVideoCallInterface({
     }
   }, []);
 
-  useMeetingKeyboardShortcuts({
-    onToggleAudio: toggleAudio,
-    onToggleVideo: toggleVideo,
-    onToggleScreenShare: handleToggleScreenShare ?? (() => {}),
-    onToggleHandRaise: handleToggleHandRaise ?? (() => {}),
-    onEndCall: handleEndCall ?? (() => {}),
-    onToggleFullscreen: handleToggleFullscreen,
-    enabled: meetingStarted && !showDiagnostics,
-  });
-
-  // "You are muted" detection
-  useMutedSpeakingDetector({
-    localStream,
-    isAudioEnabled,
-    enabled: meetingStarted && !showDiagnostics,
-  });
+  // Keyboard shortcuts and muted detection are initialized after handler declarations below
 
   // Compositor-based recording with consent (PRIMARY RECORDING SYSTEM)
   const {
