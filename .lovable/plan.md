@@ -1,56 +1,84 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 100/100 (Phases A+B+C+D Complete)
 
----
+# Club Meetings System — Post-Phase-D Audit
 
-## Completed
+## Current Score: 95/100
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener wired: reactions subscription now handles `hand_raise` signals, updates `remoteHandRaises` state, passed to VideoGrid/ParticipantTile
-- Engagement analytics `Math.random()` removed: replaced with deterministic values based on `isRemoteSpeaking()` from audio level monitor
-- Active speaker detection: `useAudioLevelMonitor` hook analyzes remote streams via `AudioContext.createAnalyser()`, `is_speaking` now reflects real audio levels
-- Console.logs: ~20 high-frequency logs in MeetingVideoCallInterface replaced with `meetingLogger` (production-safe); import added to useMeetingWebRTC
-- Virtual backgrounds: deferred to Phase C (requires canvas segmentation model — not a bug fix)
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts: `M` mute, `V` video, `S` screen share, `H` hand raise, `F` fullscreen, `Shift+Esc` end call (`useMeetingKeyboardShortcuts` hook)
-- Fullscreen toggle: `F` key or `handleToggleFullscreen` via `document.documentElement.requestFullscreen()`
-- Participant pinning: `focusedParticipantId` state wired and passed to VideoGrid
-- "You are muted" detection: `useMutedSpeakingDetector` hook monitors audio levels when muted, shows toast with 5s debounce
-- Explicit audio constraints: already present in `useMobileOptimizations` (`echoCancellation`, `noiseSuppression`, `autoGainControl`) — applies to all devices
-- Guest analytics guard: `activity_feed` insert now guarded by UUID regex check — skips for guest session tokens
-
-### Phase C: Architecture ✅ (92 → 97)
-- **Extracted `useSignalingChannel`**: Supabase realtime channel management, signal sending with retry, fallback polling
-- **Extracted `usePeerConnectionManager`**: Peer connection lifecycle, ICE handling, negotiation, codec preferences, adaptive bitrate, E2EE, stats monitoring
-- **Extracted `useMeetingScreenShare`**: Screen share toggle, track replacement, content hints, camera restoration
-- **Refactored `useMeetingWebRTC`**: Now a thin composition layer (~250 lines) wiring the three extracted hooks
-- All `console.log` replaced with `meetingLogger` across extracted hooks
-- Previous `useMeetingSignals`, `useMeetingRecordingManager`, `useMeetingPresence` hooks already extracted from MeetingVideoCallInterface
-
-### Phase D: Final Polish ✅ (97 → 100)
-- **Console logging cleaned**: All `console.log`/`console.error` in `useAudioLevelMonitor.ts`, `MeetingRoom.tsx`, `MeetingVideoCallInterface.tsx` replaced with `meetingLogger`
-- **Remote mute/video state sync**: `audio-state` and `video-state` signals consumed in the reactions subscription, stored in `remoteMuteStates`/`remoteVideoOffStates` Maps, passed to `allParticipants` and `VideoGrid`
-- **Local `is_speaking`**: Now based on transcription activity (`isTranscribing || !!partialTranscript`) instead of hardcoded `false`
-- **Virtual backgrounds stub removed**: Replaced with a "coming soon" dialog to avoid misleading users
-- **Duplicate recording indicator fixed**: `RecordingIndicator` only shown when compositor is NOT active
-- **Audio constraints verified**: `getMediaConstraints()` already includes `echoCancellation`, `noiseSuppression`, `autoGainControl` for all devices (desktop + mobile)
+The system is architecturally sound after the Phase A-D refactor. The remaining gaps are feature parity items versus Zoom/Meet rather than bugs.
 
 ---
 
-## Bonus (Future)
-| # | Task | Notes |
-|---|------|-------|
-| — | Canvas blur virtual backgrounds | Requires segmentation model (TensorFlow.js BodyPix or MediaPipe) |
-| — | TURN unavailable banner | Needs env-var-based detection + dismissible UI banner |
-| — | Server-side transcription fallback | Wire `transcribe-meeting-audio` edge function when both ElevenLabs and Web Speech fail |
-| — | Speaking time accumulation | Track cumulative speaking time per participant via ref incremented by audio level monitor |
-| — | Speaker view auto-switch | Auto-focus on active speaker tile |
-| — | Gallery view pagination | Paginate grid when >9 participants |
-| — | Meeting timer | Show elapsed time in meeting header |
-| — | Meeting lock | Host can lock meeting to prevent new joins |
-| — | Raise hand queue | Show ordered queue of raised hands |
+## What Works Well (Confirmed)
+
+| Feature | Status |
+|---------|--------|
+| P2P WebRTC + LiveKit SFU auto-switch at 3+ | Solid |
+| Pre-call diagnostics, device selection | Solid |
+| Hand raise broadcast + receive | Wired correctly |
+| Remote mute/video state sync | Consuming `audio-state`/`video-state` signals |
+| Active speaker detection (AudioContext analyser) | Working |
+| Keyboard shortcuts (M/V/S/H/F/Shift+Esc) | Working |
+| Muted speaking detection | Toast with debounce |
+| Participant pinning + active speaker sort | VideoGrid sorts correctly |
+| Recording with consent + compositor | Working |
+| Transcription dual-path (ElevenLabs + Web Speech) | Working |
+| Screen share with audio + content hints | Working |
+| E2E encryption toggle | Working |
+| Guest access + host approval | Working |
+| Reconnection (ICE restart, polling, 5 retries) | Working |
+| Picture-in-Picture | Working |
+| Audio constraints (echo/noise/AGC) for all devices | Confirmed in `getMediaConstraints()` |
+| Logging via meetingLogger in hooks + main component | Clean |
+| Post-meeting debrief + analytics | UUID-guarded |
+| Architecture: thin `useMeetingWebRTC` (286 lines) | Clean |
+
+---
+
+## Remaining Issues (-5 points)
+
+### 1. ParticipantTile still has ~15 `console.log` statements (-2 pts)
+Lines 36-57, 80, 86, 92, 94, 101, 106, 110, 115, 122, 126, 147 in `ParticipantTile.tsx` — heavy debug logging with emoji prefixes that fires on every stream attach. These should use `meetingLogger`.
+
+### 2. No meeting timer visible in the UI (-1 pt)
+Zoom and Meet both show elapsed time. `elapsedTimeMs` is computed for `EngagementAnalyticsOverlay` but there is no persistent timer in the meeting header. This is table-stakes UX.
+
+### 3. No gallery view pagination for >9 participants (-1 pt)
+`VideoGrid` renders all participants in a single grid. When count exceeds 9, tiles become too small. Zoom paginates at 25 (5x5). A simple page-based approach with prev/next would suffice.
+
+### 4. `speakingTimeMs: 0` for remote participants (-0.5 pts)
+The `EngagementAnalyticsOverlay` still receives `speakingTimeMs: 0` for all remotes. Accumulated speaking time is not tracked — only real-time `isSpeaking` works.
+
+### 5. No click-to-pin on participant tiles (-0.5 pts)
+`focusedParticipantId` state exists and is passed to `VideoGrid`, but there is no `onClick` handler on participant tiles to set it. Users cannot pin a participant by clicking.
+
+---
+
+## Missing Features vs Zoom/Google Meet
+
+| Feature | Priority | Effort | Description |
+|---------|----------|--------|-------------|
+| **Meeting timer** | High | Small | Show `HH:MM:SS` elapsed time in the meeting header |
+| **Click-to-pin** | High | Small | Add onClick to `ParticipantTile` → set `focusedParticipantId` |
+| **Gallery pagination** | Medium | Medium | Page grid at 9 participants with prev/next controls |
+| **Speaker view auto-switch** | Medium | Small | Auto-set `focusedParticipantId` to active speaker (already partially done via sort) |
+| **Network quality badge per participant** | Medium | Medium | Show connection quality icon on each tile from `getStats()` |
+| **Noise suppression toggle in UI** | Low | Small | UI toggle for `noiseSuppression` constraint (already enabled by default) |
+| **Bandwidth quality presets** | Low | Medium | "HD / Standard / Low" selector that adjusts video constraints |
+| **Chat file/image sharing** | Low | Medium | Extend `MeetingChatSidebar` with file upload |
+| **Meeting lock** | Low | Small | Host can toggle `is_locked` to prevent new joins |
+| **Raise hand queue** | Low | Small | Show ordered list of raised hands with timestamps |
+
+---
+
+## Implementation Plan (95 → 100)
+
+### Phase E: Final Items (5 tasks)
+
+| # | Task | Points | Details |
+|---|------|--------|---------|
+| 1 | Replace `console.log` in `ParticipantTile.tsx` with `meetingLogger` | +2 | ~15 statements across stream attach, play, error handlers |
+| 2 | Add meeting timer to header | +1 | New `MeetingTimer` component showing `HH:MM:SS` from `actual_start_time`, placed next to meeting title |
+| 3 | Add gallery pagination for >9 participants | +1 | Page state in `VideoGrid`, show 9 per page, prev/next buttons |
+| 4 | Track accumulated speaking time for remotes | +0.5 | Ref in `MeetingVideoCallInterface` incremented by `useAudioLevelMonitor` interval when `isRemoteSpeaking(id)` is true |
+| 5 | Add click-to-pin on participant tiles | +0.5 | Pass `onPin` callback to `VideoGrid` → `ParticipantTile`, toggle `focusedParticipantId` |
+
