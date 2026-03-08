@@ -6,6 +6,8 @@ import { ScreenShareOverlay } from './ScreenShareOverlay';
 import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
 import { meetingLogger as log } from '@/lib/meetingLogger';
 
+export type TileConnectionQuality = 'excellent' | 'good' | 'fair' | 'poor' | 'disconnected';
+
 interface ParticipantTileProps {
   participant: {
     id: string;
@@ -18,6 +20,7 @@ interface ParticipantTileProps {
     is_speaking: boolean;
     stream?: MediaStream;
     audioLevel?: number;
+    connectionQuality?: TileConnectionQuality;
   };
   isLocal?: boolean;
   isFocused?: boolean;
