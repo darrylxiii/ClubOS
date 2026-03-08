@@ -66,7 +66,7 @@ export function useMeetingScreenShare({
 
       return true;
     } catch (error) {
-      log.error('[ScreenShare] Failed to start:', error);
+      log.error('ScreenShare', 'Failed to start:', error);
       return false;
     }
   }, [screenStream, peerConnections, localStreamRef, sendSignal, configureVideoSender, setScreenShareContentHint]);

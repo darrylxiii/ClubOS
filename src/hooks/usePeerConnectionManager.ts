@@ -264,7 +264,7 @@ export function usePeerConnectionManager({
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         await sendSignal({ type: 'offer', receiverId: newId, data: offer });
-      } catch (e) { log.error('[PC] Offer creation failed:', e); }
+      } catch (e) { log.error('PC', 'Offer creation failed:', e); }
     }
   }, [participantId, meetingId, createPeerConnection, sendSignal]);
 
