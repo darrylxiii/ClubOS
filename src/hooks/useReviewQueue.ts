@@ -243,7 +243,7 @@ export function useReviewQueue(jobId?: string) {
       },
     });
 
-    const requests: Promise<unknown>[] = [roleFeedbackPromise];
+    const requests = [roleFeedbackPromise];
 
     if (application.companyId) {
       requests.push(
