@@ -7,6 +7,7 @@ import { useMobileOptimizations } from './useMobileOptimizations';
 import { useE2EEncryption } from './useE2EEncryption';
 import { toast } from 'sonner';
 import { optimizeSessionDescription } from '@/utils/sdpMunger';
+import { meetingLogger as log } from '@/lib/meetingLogger';
 
 import { DEFAULT_RTC_CONFIG, getE2EEConfig, supportsE2EEncryption, getDynamicRTCConfig } from '@/utils/webrtcConfig';
 
