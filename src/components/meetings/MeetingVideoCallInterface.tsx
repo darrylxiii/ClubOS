@@ -1694,20 +1694,7 @@ export function MeetingVideoCallInterface({
         onOpenChange={setShowQA}
       />
 
-      {/* Virtual Backgrounds — placeholder for future canvas-based implementation */}
-      {showBackgrounds && (
-        <Dialog open={showBackgrounds} onOpenChange={setShowBackgrounds}>
-          <DialogContent className="max-w-md z-[10200]">
-            <DialogHeader>
-              <DialogTitle>Virtual Backgrounds</DialogTitle>
-            </DialogHeader>
-            <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm">Virtual backgrounds require GPU-accelerated canvas processing.</p>
-              <p className="text-sm mt-2">This feature is coming soon.</p>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Virtual Backgrounds — removed from UI. Feature-flagged out until canvas segmentation model is available. */}
 
       {/* Interviewer Backchannel - Only for interviewers */}
       {showBackchannel && ['host', 'interviewer', 'observer'].includes(userRole) && (
