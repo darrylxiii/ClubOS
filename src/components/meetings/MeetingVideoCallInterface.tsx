@@ -1277,8 +1277,8 @@ export function MeetingVideoCallInterface({
         participant_name: r.name
       }))} />
 
-      {/* Controls Panel - Desktop (Disabled for LiveKit Video) */}
-      {!isMobile && false && (
+      {/* Controls Panel - Desktop */}
+      {!isMobile && (
         <ControlsPanel
           isAudioEnabled={isAudioEnabled}
           isVideoEnabled={isVideoEnabled}
