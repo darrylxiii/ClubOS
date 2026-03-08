@@ -521,24 +521,28 @@ export function MeetingVideoCallInterface({
       }
     }
 
-    // Emit meeting.ended analytics event
-    try {
-      await supabase.from('activity_feed').insert({
-        user_id: participantId,
-        event_type: 'meeting.ended',
-        event_data: {
-          meeting_id: meeting.id,
-          duration_ms: meeting.actual_start_time
-            ? Date.now() - new Date(meeting.actual_start_time).getTime()
-            : 0,
-          participant_count: remoteStreams.size + 1,
-          was_recorded: isCompositorRecording,
-          transcription_enabled: transcriptionEnabled,
-        },
-        visibility: 'internal',
-      });
-    } catch (_) {
-      // Non-blocking analytics
+    // Emit meeting.ended analytics event (skip for guests with non-UUID participantIds)
+    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(participantId);
+    if (isValidUUID) {
+      try {
+        await supabase.from('activity_feed').insert({
+          user_id: participantId,
+          event_type: 'meeting.ended',
+          event_data: {
+            meeting_id: meeting.id,
+            duration_ms: meeting.actual_start_time
+              ? Date.now() - new Date(meeting.actual_start_time).getTime()
+              : 0,
+            participant_count: remoteStreams.size + 1,
+            was_recorded: isCompositorRecording,
+            transcription_enabled: transcriptionEnabled,
+          },
+          visibility: 'internal',
+        });
+      } catch (_) {
+        // Non-blocking analytics
+      }
+    }
     }
 
     // Trigger post-meeting debrief analysis
