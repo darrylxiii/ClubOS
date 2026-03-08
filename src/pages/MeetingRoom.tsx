@@ -106,7 +106,7 @@ export default function MeetingRoom() {
 
     const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
       // This only fires on actual browser close/refresh, not component unmount
-      console.log('[MeetingRoom] 🧹 Cleaning up participant on page unload/close');
+      log.debug('MeetingRoom', 'Cleaning up participant on page unload/close');
       
       // Mark participant as left
       try {
