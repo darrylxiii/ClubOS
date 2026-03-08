@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Video, Lock, Users, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { logger } from '@/lib/logger';
+import { meetingLogger as log } from '@/lib/meetingLogger';
 
 export default function MeetingRoom() {
   const { meetingCode } = useParams();
@@ -68,11 +69,11 @@ export default function MeetingRoom() {
       const isActive = data.last_seen && 
         (new Date().getTime() - new Date(data.last_seen).getTime()) < 60000; // Extended to 60s for reliability
       
-      console.log('[MeetingRoom] 🔍 Host presence check:', { 
+      log.debug('MeetingRoom', 'Host presence check: ' + JSON.stringify({ 
         hasActiveRecord: !!data, 
         lastSeen: data.last_seen, 
         isActive 
-      });
+      }));
       
       setHostIsPresent(isActive);
     };
@@ -105,7 +106,7 @@ export default function MeetingRoom() {
 
     const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
       // This only fires on actual browser close/refresh, not component unmount
-      console.log('[MeetingRoom] 🧹 Cleaning up participant on page unload/close');
+      log.debug('MeetingRoom', 'Cleaning up participant on page unload/close');
       
       // Mark participant as left
       try {
@@ -125,7 +126,7 @@ export default function MeetingRoom() {
             .is('left_at', null);
         }
       } catch (error) {
-        console.error('[MeetingRoom] ❌ Error marking participant as left:', error);
+        log.error('MeetingRoom', 'Error marking participant as left:', error);
       }
     };
 
@@ -151,22 +152,22 @@ export default function MeetingRoom() {
         .maybeSingle();
 
       if (error) {
-        console.error('Database error loading meeting:', error);
+        log.error('MeetingRoom', 'Database error loading meeting:', error);
         throw error;
       }
 
       if (!data) {
-        console.log('Meeting not found with code:', meetingCode);
+        log.debug('MeetingRoom', 'Meeting not found with code: ' + meetingCode);
         toast.error('Meeting not found. Please check the meeting link.');
         // Don't auto-navigate - let user see the error
         setLoading(false);
         return;
       }
 
-      console.log('Meeting loaded successfully:', data);
+      log.debug('MeetingRoom', 'Meeting loaded successfully');
       setMeeting(data);
     } catch (error: unknown) {
-      console.error('Error loading meeting:', error);
+      log.error('MeetingRoom', 'Error loading meeting:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to load meeting. Please try again.');
     } finally {
       setLoading(false);
@@ -227,10 +228,10 @@ export default function MeetingRoom() {
           .eq('id', existingParticipant.id);
 
         if (updateError) {
-          console.error('[MeetingRoom] ❌ Error updating participant:', updateError);
+          log.error('MeetingRoom', 'Error updating participant:', updateError);
           throw updateError;
         }
-        console.log('[MeetingRoom] ✅ User rejoined meeting (updated existing record)');
+        log.debug('MeetingRoom', 'User rejoined meeting (updated existing record)');
       } else {
         // Insert new participant with immediate heartbeat
         const { error: insertError } = await supabase
@@ -247,18 +248,18 @@ export default function MeetingRoom() {
         if (insertError) {
           // Handle unique constraint violation (race condition - another insert happened)
           if (insertError.code === '23505') {
-            console.log('[MeetingRoom] ⚠️ Concurrent join detected, updating instead...');
+            log.debug('MeetingRoom', 'Concurrent join detected, updating instead...');
             await supabase
               .from('meeting_participants')
               .update({ left_at: null, status: 'accepted', last_seen: now })
               .eq('meeting_id', meeting.id)
               .eq('user_id', user.id);
           } else {
-            console.error('[MeetingRoom] ❌ Error inserting participant:', insertError);
+            log.error('MeetingRoom', 'Error inserting participant:', insertError);
             throw insertError;
           }
         } else {
-          console.log('[MeetingRoom] ✅ User joined meeting successfully');
+          log.debug('MeetingRoom', 'User joined meeting successfully');
         }
       }
 
@@ -268,12 +269,12 @@ export default function MeetingRoom() {
           .from('meetings')
           .update({ status: 'in_progress' })
           .eq('id', meeting.id);
-        console.log('[MeetingRoom] ✅ Meeting status reset to in_progress');
+        log.debug('MeetingRoom', 'Meeting status reset to in_progress');
       }
 
       setInCall(true);
     } catch (error: unknown) {
-      console.error('[MeetingRoom] ❌ Error joining meeting:', error);
+      log.error('MeetingRoom', 'Error joining meeting:', error);
       
       // Detect RLS policy violation (authorization error)
       const err = error as { message?: string; code?: string };
@@ -301,7 +302,7 @@ export default function MeetingRoom() {
   };
 
   const handleGuestJoinApproved = (name: string, sessionToken: string) => {
-    console.log('[MeetingRoom] Guest approved with session token:', sessionToken);
+    log.debug('MeetingRoom', 'Guest approved with session token: ' + sessionToken);
     setGuestName(name);
     setGuestSessionToken(sessionToken);
     setShowGuestDialog(false);
@@ -333,7 +334,7 @@ export default function MeetingRoom() {
               .from('meetings')
               .update({ status: 'completed' })
               .eq('id', meeting.id);
-            console.log('[MeetingRoom] ✅ Meeting status updated to completed');
+            log.debug('MeetingRoom', 'Meeting status updated to completed');
           }
         }
       } else if (guestSessionToken) {
@@ -345,7 +346,7 @@ export default function MeetingRoom() {
           .is('left_at', null);
       }
     } catch (error) {
-      console.error('[MeetingRoom] Error marking participant as left:', error);
+      log.error('MeetingRoom', 'Error marking participant as left:', error);
     }
     
     setInCall(false);
@@ -406,7 +407,7 @@ export default function MeetingRoom() {
     const currentParticipantId = user?.id || guestSessionToken || `guest-${Date.now()}`;
     const displayName = user?.user_metadata?.full_name || user?.email || guestName;
 
-    console.log('[MeetingRoom] Entering call with participant ID:', currentParticipantId, 'Display name:', displayName);
+    log.debug('MeetingRoom', 'Entering call with participant ID: ' + currentParticipantId);
 
     return (
       <MeetingVideoCallInterface

@@ -32,7 +32,7 @@ import { InterviewReportView } from '@/components/meetings/InterviewReportView';
 import { BreakoutRoomsPanel } from '@/components/meetings/BreakoutRoomsPanel';
 import { MeetingPollPanel } from '@/components/meetings/MeetingPollPanel';
 import { MeetingQAPanel } from '@/components/meetings/MeetingQAPanel';
-import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgroundSelector';
+// VirtualBackgroundSelector removed — canvas-based VB deferred to future release
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { ClubAIVoiceAssistant } from '@/components/meetings/ClubAIVoiceAssistant';
@@ -99,6 +99,8 @@ export function MeetingVideoCallInterface({
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [remoteHandRaises, setRemoteHandRaises] = useState<Map<string, boolean>>(new Map());
+  const [remoteMuteStates, setRemoteMuteStates] = useState<Map<string, boolean>>(new Map());
+  const [remoteVideoOffStates, setRemoteVideoOffStates] = useState<Map<string, boolean>>(new Map());
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
@@ -448,7 +450,7 @@ export function MeetingVideoCallInterface({
       // Show consent modal after joining
       setShowConsentModal(true);
     } catch (error: unknown) {
-      console.error('[Meeting] ❌ Failed to initialize media:', error);
+      log.error('Meeting', 'Failed to initialize media:', error);
       const err = error as { name?: string };
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
@@ -505,7 +507,7 @@ export function MeetingVideoCallInterface({
       await retryConnection();
       toast.success('Connection retry initiated');
     } catch (error) {
-      console.error('[Meeting] Retry failed:', error);
+      log.error('Meeting', 'Retry failed:', error);
       toast.error('Retry failed. Please refresh the page.');
     }
   };
@@ -517,7 +519,7 @@ export function MeetingVideoCallInterface({
         await stopCompositorRecording();
         toast.success('Recording saved and analysis started');
       } catch (error) {
-        console.error('[Meeting] Failed to save recording:', error);
+        log.error('Meeting', 'Failed to save recording:', error);
       }
     }
 
@@ -625,7 +627,7 @@ export function MeetingVideoCallInterface({
       toast.success('Picture-in-Picture enabled');
 
     } catch (error) {
-      console.error('[PiP] Failed to enable:', error);
+      log.error('Meeting', 'Failed to enable PiP:', error);
       toast.error('Failed to enable Picture-in-Picture');
     }
   };
@@ -671,7 +673,7 @@ export function MeetingVideoCallInterface({
         }
       });
     } catch (err) {
-      console.error('[Meeting] Failed to broadcast hand raise:', err);
+      log.error('Meeting', 'Failed to broadcast hand raise:', err);
     }
   };
 
@@ -701,7 +703,7 @@ export function MeetingVideoCallInterface({
         }
       });
     } catch (error) {
-      console.error('[Meeting] Failed to send reaction:', error);
+      log.error('Meeting', 'Failed to send reaction:', error);
     }
   };
 
@@ -764,7 +766,7 @@ export function MeetingVideoCallInterface({
           }
         }
       } catch (error) {
-        console.error('[Meeting] ❌ Heartbeat exception:', error);
+        log.error('Meeting', 'Heartbeat exception:', error);
       }
     };
 
@@ -867,6 +869,12 @@ export function MeetingVideoCallInterface({
               }
               return n;
             });
+          } else if (signal.signal_type === 'audio-state') {
+            const data = signal.signal_data;
+            setRemoteMuteStates(prev => new Map(prev).set(signal.sender_id, !data.enabled));
+          } else if (signal.signal_type === 'video-state') {
+            const data = signal.signal_data;
+            setRemoteVideoOffStates(prev => new Map(prev).set(signal.sender_id, !data.enabled));
           }
         }
       )
@@ -994,7 +1002,7 @@ export function MeetingVideoCallInterface({
       }
 
       if (error) {
-        console.error('[Meeting] ❌ Error fetching role:', error);
+        log.error('Meeting', 'Error fetching role:', error);
       }
     };
 
@@ -1065,7 +1073,7 @@ export function MeetingVideoCallInterface({
       is_video_off: !isVideoEnabled && !isScreenSharing,
       is_screen_sharing: isScreenSharing,
       is_hand_raised: isHandRaised,
-      is_speaking: false,
+      is_speaking: isTranscribing || !!partialTranscript,
       stream: (isScreenSharing && screenStream) ? screenStream : (localStream || undefined)
     },
     // Remote participants — with real hand-raise and active speaker data
@@ -1073,8 +1081,8 @@ export function MeetingVideoCallInterface({
       id,
       display_name: name,
       role: 'participant' as 'host' | 'participant',
-      is_muted: false,
-      is_video_off: false,
+      is_muted: remoteMuteStates.get(id) || false,
+      is_video_off: remoteVideoOffStates.get(id) || false,
       is_screen_sharing: false,
       is_hand_raised: remoteHandRaises.get(id) || false,
       is_speaking: isRemoteSpeaking(id),
@@ -1197,7 +1205,7 @@ export function MeetingVideoCallInterface({
           onToggle={toggleE2EE}
         />
 
-        {isRecording && !isCompositorRecording && <RecordingIndicator />}
+        {isRecording && !isCompositorRecording && <RecordingIndicator />}  {/* Only show legacy indicator when compositor is NOT active */}
 
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
@@ -1249,15 +1257,15 @@ export function MeetingVideoCallInterface({
               is_video_off: !isVideoEnabled,
               is_screen_sharing: isScreenSharing,
               is_hand_raised: isHandRaised,
-              is_speaking: false,
+              is_speaking: isTranscribing || !!partialTranscript,
               stream: localStream
             } : undefined}
             participants={Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
               id,
               display_name: name,
               role: 'participant',
-              is_muted: false,
-              is_video_off: false,
+              is_muted: remoteMuteStates.get(id) || false,
+              is_video_off: remoteVideoOffStates.get(id) || false,
               is_screen_sharing: false,
               is_hand_raised: remoteHandRaises.get(id) || false,
               is_speaking: isRemoteSpeaking(id),
@@ -1660,21 +1668,20 @@ export function MeetingVideoCallInterface({
         onOpenChange={setShowQA}
       />
 
-      {/* Virtual Backgrounds */}
-      <VirtualBackgroundSelector
-        open={showBackgrounds}
-        onOpenChange={setShowBackgrounds}
-        onBackgroundSelect={(bg) => {
-          if (bg.type === 'blur' && localStream) {
-            // Apply CSS blur via canvas is complex — notify user of limitation
-            toast.info('Background blur selected. Full processing requires GPU support.');
-          } else if (bg.type === 'none' && localStream) {
-            toast.success('Background effect removed');
-          } else if (bg.type === 'image') {
-            toast.info('Virtual background applied');
-          }
-        }}
-      />
+      {/* Virtual Backgrounds — placeholder for future canvas-based implementation */}
+      {showBackgrounds && (
+        <Dialog open={showBackgrounds} onOpenChange={setShowBackgrounds}>
+          <DialogContent className="max-w-md z-[10200]">
+            <DialogHeader>
+              <DialogTitle>Virtual Backgrounds</DialogTitle>
+            </DialogHeader>
+            <div className="py-8 text-center text-muted-foreground">
+              <p className="text-sm">Virtual backgrounds require GPU-accelerated canvas processing.</p>
+              <p className="text-sm mt-2">This feature is coming soon.</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Interviewer Backchannel - Only for interviewers */}
       {showBackchannel && ['host', 'interviewer', 'observer'].includes(userRole) && (
