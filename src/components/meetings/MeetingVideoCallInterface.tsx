@@ -1009,41 +1009,18 @@ export function MeetingVideoCallInterface({
       stream: (isScreenSharing && screenStream) ? screenStream : (localStream || undefined)
     },
     // Remote participants
-    ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => {
-      console.log('[Meeting] 🎭 Mapping remote participant:', {
-        id,
-        name,
-        streamId: stream.id,
-        hasStream: !!stream,
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length
-      });
-      return {
-        id,
-        display_name: name,
-        role: 'participant' as 'host' | 'participant',
-        is_muted: false,
-        is_video_off: false,
-        is_screen_sharing: false,
-        is_hand_raised: false,
-        is_speaking: false,
-        stream
-      };
-    })
-  ];
-
-  // Log the constructed allParticipants array
-  console.log('[Meeting] 🎬 All participants constructed:', {
-    total: allParticipants.length,
-    local: allParticipants[0]?.display_name,
-    remoteCount: allParticipants.length - 1,
-    participants: allParticipants.map(p => ({
-      id: p.id,
-      name: p.display_name,
-      hasStream: !!p.stream,
-      streamId: p.stream?.id
+    ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
+      id,
+      display_name: name,
+      role: 'participant' as 'host' | 'participant',
+      is_muted: false,
+      is_video_off: false,
+      is_screen_sharing: false,
+      is_hand_raised: false,
+      is_speaking: false,
+      stream
     }))
-  });
+  ];
 
   const content = (
     <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-950 via-gray-900 to-black overflow-hidden"
