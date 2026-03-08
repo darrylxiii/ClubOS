@@ -346,11 +346,36 @@ export function MeetingVideoCallInterface({
     return map;
   }, [remoteStreams]);
 
-  const { isSpeaking: isRemoteSpeaking } = useAudioLevelMonitor({
+  const { isSpeaking: isRemoteSpeaking, levels: audioLevels } = useAudioLevelMonitor({
     streams: remoteStreamMap,
     speakingThreshold: 0.05,
     updateInterval: 150,
   });
+
+  // Accumulated speaking time per participant (Phase F: real engagement data)
+  const speakingTimeRef = useRef<Map<string, number>>(new Map());
+  const lastSpeakingCheckRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const delta = now - lastSpeakingCheckRef.current;
+      lastSpeakingCheckRef.current = now;
+
+      const updated = new Map(speakingTimeRef.current);
+      audioLevels.forEach((level, participantId) => {
+        if (level.isSpeaking) {
+          updated.set(participantId, (updated.get(participantId) || 0) + delta);
+        }
+      });
+      // Local speaking time
+      if (isTranscribing || !!partialTranscript) {
+        updated.set('__local__', (updated.get('__local__') || 0) + delta);
+      }
+      speakingTimeRef.current = updated;
+    }, 200);
+    return () => clearInterval(interval);
+  }, [audioLevels, isTranscribing, partialTranscript]);
 
   // Keyboard shortcuts (M=mute, V=video, S=screen, H=hand, F=fullscreen)
   const handleToggleFullscreen = useCallback(() => {
