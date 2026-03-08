@@ -518,6 +518,24 @@ export default function JobDashboard() {
     { name: "Offer", order: 3 },
   ];
 
+  const internalReviewPendingCount = applications.filter(
+    (app) =>
+      app.status !== 'rejected' &&
+      (app.internal_review_status === null ||
+        typeof app.internal_review_status === 'undefined' ||
+        app.internal_review_status === 'pending'),
+  ).length;
+
+  const partnerReviewPendingCount = applications.filter(
+    (app) =>
+      app.internal_review_status === 'approved' &&
+      (app.partner_review_status === null ||
+        typeof app.partner_review_status === 'undefined' ||
+        app.partner_review_status === 'pending'),
+  ).length;
+
+  const pendingReviewsCount = internalReviewPendingCount + partnerReviewPendingCount;
+
   return (
     <>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
