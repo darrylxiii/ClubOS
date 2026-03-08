@@ -441,7 +441,7 @@ export function MeetingVideoCallInterface({
     setShowDiagnostics(false);
 
     try {
-      console.log('[Meeting] 🎬 Initializing media for meeting:', meeting.title, '| Participant ID:', participantId, '| Is Guest:', isGuest);
+      log.debug('Meeting', `Initializing media for ${meeting.title} | ${participantId} | Guest: ${isGuest}`);
       await initializeMedia();
       toast.success('Joined meeting room');
 
