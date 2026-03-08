@@ -322,7 +322,7 @@ export function MeetingVideoCallInterface({
   // Adaptive Quality Director (Auto-Downgrade)
   useEffect(() => {
     if (suggestedAction === 'audio-only' && isVideoEnabled) {
-      console.warn('[Meeting] 📉 Critical network quality detected. Switching to Audio Only.');
+      log.warn('Meeting', 'Critical network quality detected. Switching to Audio Only.');
       toggleVideo();
       toast.warning('Poor connection detected', {
         description: 'Turning off video to preserve audio quality.'
