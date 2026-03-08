@@ -293,6 +293,16 @@ export function MeetingVideoCallInterface({
       } catch (err) {
         // LiveKit not available — stay on P2P
       }
+
+      // Check TURN availability
+      try {
+        const { data: turnData, error: turnError } = await supabase.functions.invoke('turn-credentials');
+        if (turnError || !turnData?.iceServers?.length) {
+          setTurnUnavailable(true);
+        }
+      } catch {
+        setTurnUnavailable(true);
+      }
     };
     
     const timer = setTimeout(checkInfrastructure, 2000);
