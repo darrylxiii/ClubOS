@@ -121,7 +121,7 @@ export function usePeerConnectionManager({
     // Add tracks
     stream.getTracks().filter(t => t.readyState === 'live').forEach(track => {
       pc.addTrack(track, stream);
-      track.onended = () => log.debug('[PC] Track ended:', track.kind);
+      track.onended = () => log.debug('PC', 'Track ended: ' + track.kind);
     });
 
     setVP9Preference(pc);
