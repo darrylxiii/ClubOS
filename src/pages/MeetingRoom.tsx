@@ -69,11 +69,11 @@ export default function MeetingRoom() {
       const isActive = data.last_seen && 
         (new Date().getTime() - new Date(data.last_seen).getTime()) < 60000; // Extended to 60s for reliability
       
-      console.log('[MeetingRoom] 🔍 Host presence check:', { 
+      log.debug('MeetingRoom', 'Host presence check: ' + JSON.stringify({ 
         hasActiveRecord: !!data, 
         lastSeen: data.last_seen, 
         isActive 
-      });
+      }));
       
       setHostIsPresent(isActive);
     };
