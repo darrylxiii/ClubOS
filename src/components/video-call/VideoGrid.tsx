@@ -7,6 +7,8 @@ import { meetingAnimations } from '@/config/meeting-design-tokens';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+import { TileConnectionQuality } from './ParticipantTile';
+
 interface Participant {
   id: string;
   display_name: string;
@@ -17,6 +19,7 @@ interface Participant {
   is_hand_raised: boolean;
   is_speaking: boolean;
   stream?: MediaStream;
+  connectionQuality?: TileConnectionQuality;
 }
 
 interface VideoGridProps {

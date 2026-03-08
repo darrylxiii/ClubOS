@@ -57,7 +57,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
+import { Video, Users, Brain, WifiOff, RefreshCw, AlertTriangle, X } from 'lucide-react';
 import { MeetingTimer } from '@/components/meetings/MeetingTimer';
 import { useMeetingTranscript } from '@/hooks/useMeetingTranscript';
 import { LiveInterviewAnalysis } from './analysis/LiveInterviewAnalysis';
@@ -110,10 +110,12 @@ export function MeetingVideoCallInterface({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [userRole, setUserRole] = useState<string>('participant');
-  const [isRecording, setIsRecording] = useState(false);
+  // REMOVED: isRecording local state — use isCompositorRecording exclusively
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hasGivenConsent, setHasGivenConsent] = useState(false);
+  const [turnUnavailable, setTurnUnavailable] = useState(false);
+  const [turnBannerDismissed, setTurnBannerDismissed] = useState(false);
 
   // All UI panel states extracted into a dedicated hook
   const {
@@ -291,6 +293,16 @@ export function MeetingVideoCallInterface({
       } catch (err) {
         // LiveKit not available — stay on P2P
       }
+
+      // Check TURN availability
+      try {
+        const { data: turnData, error: turnError } = await supabase.functions.invoke('turn-credentials');
+        if (turnError || !turnData?.iceServers?.length) {
+          setTurnUnavailable(true);
+        }
+      } catch {
+        setTurnUnavailable(true);
+      }
     };
     
     const timer = setTimeout(checkInfrastructure, 2000);
@@ -307,7 +319,7 @@ export function MeetingVideoCallInterface({
     }
   }, [remoteStreams.size, liveKitAvailable, useLiveKitMode]);
 
-  const { overallStats, worstQuality, suggestedAction } = useMeetingConnectionQuality({
+  const { overallStats, peerStats, worstQuality, suggestedAction } = useMeetingConnectionQuality({
     peerConnections: peerConnections || new Map(),
     meetingId: meeting.id,
     userId: participantId,
@@ -346,11 +358,36 @@ export function MeetingVideoCallInterface({
     return map;
   }, [remoteStreams]);
 
-  const { isSpeaking: isRemoteSpeaking } = useAudioLevelMonitor({
+  const { isSpeaking: isRemoteSpeaking, levels: audioLevels } = useAudioLevelMonitor({
     streams: remoteStreamMap,
     speakingThreshold: 0.05,
     updateInterval: 150,
   });
+
+  // Accumulated speaking time per participant (Phase F: real engagement data)
+  const speakingTimeRef = useRef<Map<string, number>>(new Map());
+  const lastSpeakingCheckRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const delta = now - lastSpeakingCheckRef.current;
+      lastSpeakingCheckRef.current = now;
+
+      const updated = new Map(speakingTimeRef.current);
+      audioLevels.forEach((level, participantId) => {
+        if (level.isSpeaking) {
+          updated.set(participantId, (updated.get(participantId) || 0) + delta);
+        }
+      });
+      // Local speaking time
+      if (isTranscribing || !!partialTranscript) {
+        updated.set('__local__', (updated.get('__local__') || 0) + delta);
+      }
+      speakingTimeRef.current = updated;
+    }, 200);
+    return () => clearInterval(interval);
+  }, [audioLevels, isTranscribing, partialTranscript]);
 
   // Keyboard shortcuts (M=mute, V=video, S=screen, H=hand, F=fullscreen)
   const handleToggleFullscreen = useCallback(() => {
@@ -642,15 +679,12 @@ export function MeetingVideoCallInterface({
     };
   }, []);
 
-  // Legacy recording functions removed - compositor recording is the sole path
-  // handleToggleRecording now controls compositor recording directly
+  // Recording toggle — compositor is the single source of truth
   const handleToggleRecording = async () => {
     if (isCompositorRecording) {
       await stopCompositorRecording();
-      setIsRecording(false);
     } else {
       await startCompositorRecording();
-      setIsRecording(true);
     }
   };
 
@@ -1110,6 +1144,27 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
+      {/* TURN Unavailable Banner — dismissible */}
+      {turnUnavailable && !turnBannerDismissed && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 max-w-md animate-in fade-in slide-in-from-top duration-300">
+          <div className="backdrop-blur-2xl bg-amber-500/15 border border-amber-500/30 px-4 py-3 rounded-lg shadow-xl">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white">STUN-only mode</p>
+                <p className="text-xs text-white/60">TURN relay unavailable. Connections behind strict firewalls may fail.</p>
+              </div>
+              <button
+                onClick={() => setTurnBannerDismissed(true)}
+                className="p-1 rounded hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Error Recovery Banner - compact top notification */}
       {error && !error.recoverable && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 max-w-md">
@@ -1209,7 +1264,7 @@ export function MeetingVideoCallInterface({
           onToggle={toggleE2EE}
         />
 
-        {isRecording && !isCompositorRecording && <RecordingIndicator />}  {/* Only show legacy indicator when compositor is NOT active */}
+        {/* Legacy RecordingIndicator removed — compositor is sole recording path */}
 
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
@@ -1273,7 +1328,8 @@ export function MeetingVideoCallInterface({
               is_screen_sharing: false,
               is_hand_raised: remoteHandRaises.get(id) || false,
               is_speaking: isRemoteSpeaking(id),
-              stream
+              stream,
+              connectionQuality: peerStats.get(id)?.quality || 'good'
             }))}
             layout={layout}
             focusedParticipantId={focusedParticipantId || undefined}
@@ -1390,7 +1446,7 @@ export function MeetingVideoCallInterface({
           isAudioEnabled={isAudioEnabled}
           isVideoEnabled={isVideoEnabled}
           isScreenSharing={!!screenStream}
-          isRecording={isRecording}
+          isRecording={isCompositorRecording}
           isHandRaised={isHandRaised}
           onToggleAudio={toggleAudio}
           onToggleVideo={toggleVideo}
@@ -1419,7 +1475,7 @@ export function MeetingVideoCallInterface({
           onOpenBreakoutRooms={handleOpenBreakoutRooms}
           onOpenPolls={handleOpenPolls}
           onOpenQA={handleOpenQA}
-          onOpenBackgrounds={handleOpenBackgrounds}
+          // Virtual Backgrounds hidden — feature not yet implemented (Phase F)
           layout={layout}
           onToggleLayout={handleToggleLayout}
           onToggleBackchannel={
@@ -1474,7 +1530,6 @@ export function MeetingVideoCallInterface({
           onOpenParticipants={handleOpenParticipants}
           onOpenSettings={handleOpenSettings}
           onOpenNotes={handleOpenNotes}
-          onOpenBackgrounds={handleOpenBackgrounds}
           onEndCall={handleEndCall}
         />
       )}
@@ -1673,20 +1728,7 @@ export function MeetingVideoCallInterface({
         onOpenChange={setShowQA}
       />
 
-      {/* Virtual Backgrounds — placeholder for future canvas-based implementation */}
-      {showBackgrounds && (
-        <Dialog open={showBackgrounds} onOpenChange={setShowBackgrounds}>
-          <DialogContent className="max-w-md z-[10200]">
-            <DialogHeader>
-              <DialogTitle>Virtual Backgrounds</DialogTitle>
-            </DialogHeader>
-            <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm">Virtual backgrounds require GPU-accelerated canvas processing.</p>
-              <p className="text-sm mt-2">This feature is coming soon.</p>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Virtual Backgrounds — removed from UI. Feature-flagged out until canvas segmentation model is available. */}
 
       {/* Interviewer Backchannel - Only for interviewers */}
       {showBackchannel && ['host', 'interviewer', 'observer'].includes(userRole) && (
@@ -1759,33 +1801,54 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Engagement Analytics Overlay — uses real audio level data */}
-      {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (
-        <EngagementAnalyticsOverlay
-          meetingId={meeting.id}
-          participants={Array.from(remoteStreams.entries()).map(([id, { name }]) => ({
+      {/* Engagement Analytics Overlay — uses real accumulated speaking time data */}
+      {showEngagementAnalytics && ['host', 'interviewer'].includes(userRole) && (() => {
+        const elapsedMs = meetingStarted ? Date.now() - (meeting.actual_start_time ? new Date(meeting.actual_start_time).getTime() : Date.now()) : 1;
+        const totalSpeakingTime = Array.from(speakingTimeRef.current.values()).reduce((a, b) => a + b, 0) || 1;
+
+        const remoteMetrics = Array.from(remoteStreams.entries()).map(([id, { name }]) => {
+          const speakingMs = speakingTimeRef.current.get(id) || 0;
+          const speakingPct = Math.round((speakingMs / Math.max(elapsedMs, 1)) * 100);
+          const speaking = isRemoteSpeaking(id);
+          // Engagement = speaking ratio weighted by recency (simple: speaking% clamped 0-100)
+          const engagement = Math.min(100, Math.round((speakingMs / totalSpeakingTime) * 100 * 1.2 + (speaking ? 20 : 0)));
+          return {
             id,
             name,
             role: 'participant' as 'host' | 'candidate' | 'interviewer' | 'participant',
-            speakingTimeMs: 0,
-            speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
-            isSpeaking: isRemoteSpeaking(id),
-            engagement: isRemoteSpeaking(id) ? 85 : 60,
-            sentimentTrend: 'neutral' as 'positive' | 'neutral' | 'negative'
-          })).concat([{
-            id: participantId,
-            name: participantName,
-            role: (userRole === 'host' || userRole === 'candidate' || userRole === 'interviewer' ? userRole : 'participant') as 'host' | 'candidate' | 'interviewer' | 'participant',
-            speakingTimeMs: committedTranscripts.length * 5000,
-            speakingPercentage: Math.floor(100 / Math.max(1, remoteStreams.size + 1)),
-            isSpeaking: isTranscribing || !!partialTranscript,
-            engagement: Math.min(100, 60 + committedTranscripts.length * 2),
-            sentimentTrend: 'positive' as 'positive' | 'neutral' | 'negative'
-          }])}
-          elapsedTimeMs={meetingStarted ? Date.now() - (meeting.actual_start_time ? new Date(meeting.actual_start_time).getTime() : Date.now()) : 0}
-          onClose={() => setShowEngagementAnalytics(false)}
-        />
-      )}
+            speakingTimeMs: speakingMs,
+            speakingPercentage: speakingPct,
+            isSpeaking: speaking,
+            engagement: Math.max(10, engagement),
+            sentimentTrend: (speaking ? 'positive' : speakingMs > 0 ? 'neutral' : 'negative') as 'positive' | 'neutral' | 'negative'
+          };
+        });
+
+        const localSpeakingMs = speakingTimeRef.current.get('__local__') || 0;
+        const localSpeakingPct = Math.round((localSpeakingMs / Math.max(elapsedMs, 1)) * 100);
+        const localSpeaking = isTranscribing || !!partialTranscript;
+        const localEngagement = Math.min(100, Math.round((localSpeakingMs / totalSpeakingTime) * 100 * 1.2 + (localSpeaking ? 20 : 0)));
+
+        const localMetrics = {
+          id: participantId,
+          name: participantName,
+          role: (userRole === 'host' || userRole === 'candidate' || userRole === 'interviewer' ? userRole : 'participant') as 'host' | 'candidate' | 'interviewer' | 'participant',
+          speakingTimeMs: localSpeakingMs,
+          speakingPercentage: localSpeakingPct,
+          isSpeaking: localSpeaking,
+          engagement: Math.max(10, localEngagement),
+          sentimentTrend: (localSpeaking ? 'positive' : localSpeakingMs > 0 ? 'neutral' : 'negative') as 'positive' | 'neutral' | 'negative'
+        };
+
+        return (
+          <EngagementAnalyticsOverlay
+            meetingId={meeting.id}
+            participants={[...remoteMetrics, localMetrics]}
+            elapsedTimeMs={elapsedMs}
+            onClose={() => setShowEngagementAnalytics(false)}
+          />
+        );
+      })()}
     </div>
   );
 
