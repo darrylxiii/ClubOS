@@ -95,44 +95,15 @@ export const getIceServers = (): RTCIceServer[] => {
     ];
   }
 
-  // 2. Fallback: Free OpenRelay Servers (Development / Low Scale)
-  logger.warn('[WebRTC Config] ⚠️ Using free community TURN servers (OpenRelay). Not recommended for production scaling.');
+  // 2. Fallback: Google STUN only (no hardcoded third-party credentials)
+  logger.warn('[WebRTC Config] ⚠️ No TURN servers configured. Set VITE_TURN_URLS, VITE_TURN_USERNAME, VITE_TURN_CREDENTIAL for relay support.');
 
   return [
-    // Google STUN servers
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:stun3.l.google.com:19302' },
     { urls: 'stun:stun4.l.google.com:19302' },
-
-    // OpenRelay TURN servers (free tier)
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    // Backup Metered TURN (free tier)
-    {
-      urls: 'turn:a.relay.metered.ca:80',
-      username: 'e2d1f0c6a4b2e8d9f3c5a7b0',
-      credential: 'wKTpIwxj7tRY+1aV'
-    },
-    {
-      urls: 'turn:a.relay.metered.ca:443',
-      username: 'e2d1f0c6a4b2e8d9f3c5a7b0',
-      credential: 'wKTpIwxj7tRY+1aV'
-    }
   ];
 };
 
