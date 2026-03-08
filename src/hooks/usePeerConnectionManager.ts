@@ -182,7 +182,7 @@ export function usePeerConnectionManager({
         const opt = optimizeSessionDescription(offer, { enableOpusFEC: true, enableOpusDTX: true, opusMaxAverageBitrate: 64000, preferredVideoCodec: 'VP9' });
         await pc.setLocalDescription(opt);
         await sendSignal({ type: 'offer', receiverId: targetId, data: opt });
-      } catch (e) { log.error('[PC] Renegotiation failed:', e); }
+      } catch (e) { log.error('PC', 'Renegotiation failed:', e); }
     };
 
     pc.onconnectionstatechange = () => {
