@@ -962,7 +962,7 @@ export function MeetingVideoCallInterface({
           filter: `meeting_id=eq.${meeting.id}`
         },
         (payload) => {
-          console.log('[Meeting] 🔔 Participant change detected:', payload.eventType, payload.new);
+          log.debug('Meeting', 'Participant change detected: ' + payload.eventType);
           fetchParticipants();
         }
       )
