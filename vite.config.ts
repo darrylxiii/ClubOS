@@ -29,7 +29,7 @@ export default defineConfig(({ mode, command }) => ({
       'use-sync-external-store/shim/with-selector',
       'sonner', 'next-themes', 'clsx', 'tailwind-merge',
       'class-variance-authority',
-      'lucide-react', 'date-fns',
+      'date-fns',
       'framer-motion',
       'react-helmet-async',
       'i18next', 'react-i18next', 'i18next-browser-languagedetector',
@@ -203,11 +203,11 @@ export default defineConfig(({ mode, command }) => ({
               }
             }
           },
-          // Hashed JS/CSS bundles use CacheFirst — hash changes on every build
-          // so stale content is never served (new hash = new URL = cache miss)
+          // Hashed JS/CSS bundles use NetworkFirst to prevent stale asset errors
+          // when service worker serves outdated chunks after a new deployment
           {
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'CacheFirst',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'static-resources',
               expiration: {

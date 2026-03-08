@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AppLayout } from '@/components/AppLayout';
+
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,7 +74,7 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
     }
   };
 
-  const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : AppLayout;
+  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   return (
     <Wrapper>
