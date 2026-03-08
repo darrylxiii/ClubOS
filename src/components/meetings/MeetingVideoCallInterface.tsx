@@ -1231,7 +1231,7 @@ export function MeetingVideoCallInterface({
           onToggle={toggleE2EE}
         />
 
-        {isRecording && !isCompositorRecording && <RecordingIndicator />}  {/* Only show legacy indicator when compositor is NOT active */}
+        {/* Legacy RecordingIndicator removed — compositor is sole recording path */}
 
         {/* Video Quality Indicator */}
         {videoStats && videoStats.qualityLimitationReason !== 'none' && (
