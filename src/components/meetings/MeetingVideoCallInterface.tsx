@@ -336,6 +336,47 @@ export function MeetingVideoCallInterface({
     }
   }, [suggestedAction, isVideoEnabled, toggleVideo]);
 
+  // Active speaker detection via audio levels on remote streams
+  const remoteStreamMap = useMemo(() => {
+    const map = new Map<string, MediaStream>();
+    remoteStreams.forEach(({ stream }, id) => map.set(id, stream));
+    return map;
+  }, [remoteStreams]);
+
+  const { isSpeaking: isRemoteSpeaking } = useAudioLevelMonitor({
+    streams: remoteStreamMap,
+    speakingThreshold: 0.05,
+    updateInterval: 150,
+  });
+
+  // Keyboard shortcuts (M=mute, V=video, S=screen, H=hand, F=fullscreen)
+  const handleToggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useMeetingKeyboardShortcuts({
+    onToggleAudio: toggleAudio,
+    onToggleVideo: toggleVideo,
+    onToggleScreenShare: handleToggleScreenShare ?? (() => {}),
+    onToggleHandRaise: handleToggleHandRaise ?? (() => {}),
+    onEndCall: handleEndCall ?? (() => {}),
+    onToggleFullscreen: handleToggleFullscreen,
+    enabled: meetingStarted && !showDiagnostics,
+  });
+
+  // "You are muted" detection
+  useMutedSpeakingDetector({
+    localStream,
+    isAudioEnabled,
+    enabled: meetingStarted && !showDiagnostics,
+  });
+
   // Compositor-based recording with consent (PRIMARY RECORDING SYSTEM)
   const {
     isRecording: isCompositorRecording,
