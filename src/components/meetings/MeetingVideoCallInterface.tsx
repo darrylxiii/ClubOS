@@ -99,6 +99,8 @@ export function MeetingVideoCallInterface({
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [remoteHandRaises, setRemoteHandRaises] = useState<Map<string, boolean>>(new Map());
+  const [remoteMuteStates, setRemoteMuteStates] = useState<Map<string, boolean>>(new Map());
+  const [remoteVideoOffStates, setRemoteVideoOffStates] = useState<Map<string, boolean>>(new Map());
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
