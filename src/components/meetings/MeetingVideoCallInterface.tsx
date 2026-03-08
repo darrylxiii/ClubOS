@@ -1337,7 +1337,7 @@ export function MeetingVideoCallInterface({
               is_video_off: remoteVideoOffStates.get(id) || false,
               is_screen_sharing: false,
               is_hand_raised: !!remoteHandRaises.get(id),
-              hand_raised_at: remoteHandRaises.get(id)?.timestamp,
+              is_speaking: isRemoteSpeaking(id),
               stream,
               connectionQuality: peerStats.get(id)?.quality || 'good'
             }))}
