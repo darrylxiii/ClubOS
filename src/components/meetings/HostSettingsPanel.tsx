@@ -29,6 +29,34 @@ interface HostSettingsPanelProps {
 export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: HostSettingsPanelProps) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [saving, setSaving] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+
+  // Fetch current lock state
+  useEffect(() => {
+    const fetchLockState = async () => {
+      const { data } = await supabase
+        .from('meetings')
+        .select('is_locked')
+        .eq('id', meetingId)
+        .single();
+      if (data) setIsLocked(data.is_locked ?? false);
+    };
+    if (open) fetchLockState();
+  }, [meetingId, open]);
+
+  const toggleMeetingLock = async (locked: boolean) => {
+    setIsLocked(locked);
+    const { error } = await supabase
+      .from('meetings')
+      .update({ is_locked: locked } as any)
+      .eq('id', meetingId);
+    if (error) {
+      toast.error('Failed to update meeting lock');
+      setIsLocked(!locked);
+    } else {
+      toast.success(locked ? 'Meeting locked — no new participants can join' : 'Meeting unlocked');
+    }
+  };
 
   const updateSetting = async (key: string, value: any) => {
     const newSettings = { ...localSettings, [key]: value };
