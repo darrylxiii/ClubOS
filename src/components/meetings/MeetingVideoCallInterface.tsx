@@ -1668,21 +1668,20 @@ export function MeetingVideoCallInterface({
         onOpenChange={setShowQA}
       />
 
-      {/* Virtual Backgrounds */}
-      <VirtualBackgroundSelector
-        open={showBackgrounds}
-        onOpenChange={setShowBackgrounds}
-        onBackgroundSelect={(bg) => {
-          if (bg.type === 'blur' && localStream) {
-            // Apply CSS blur via canvas is complex — notify user of limitation
-            toast.info('Background blur selected. Full processing requires GPU support.');
-          } else if (bg.type === 'none' && localStream) {
-            toast.success('Background effect removed');
-          } else if (bg.type === 'image') {
-            toast.info('Virtual background applied');
-          }
-        }}
-      />
+      {/* Virtual Backgrounds — placeholder for future canvas-based implementation */}
+      {showBackgrounds && (
+        <Dialog open={showBackgrounds} onOpenChange={setShowBackgrounds}>
+          <DialogContent className="max-w-md z-[10200]">
+            <DialogHeader>
+              <DialogTitle>Virtual Backgrounds</DialogTitle>
+            </DialogHeader>
+            <div className="py-8 text-center text-muted-foreground">
+              <p className="text-sm">Virtual backgrounds require GPU-accelerated canvas processing.</p>
+              <p className="text-sm mt-2">This feature is coming soon.</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Interviewer Backchannel - Only for interviewers */}
       {showBackchannel && ['host', 'interviewer', 'observer'].includes(userRole) && (
