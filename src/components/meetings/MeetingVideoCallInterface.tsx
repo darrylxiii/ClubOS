@@ -1496,7 +1496,6 @@ export function MeetingVideoCallInterface({
           onOpenParticipants={handleOpenParticipants}
           onOpenSettings={handleOpenSettings}
           onOpenNotes={handleOpenNotes}
-          onOpenBackgrounds={handleOpenBackgrounds}
           onEndCall={handleEndCall}
         />
       )}
