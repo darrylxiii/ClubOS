@@ -1270,14 +1270,6 @@ export function MeetingVideoCallInterface({
         />
       )}
 
-      {/* AI Interview Analysis Overlay (The Neural Link) */}
-      {!isMobile && meetingStarted && (
-        <LiveInterviewAnalysis
-          meetingId={meeting.id}
-          transcript={transcript}
-        />
-      )}
-
       {/* On-Screen Reactions */}
       <OnScreenReactions reactions={reactions.map(r => ({
         id: r.id,
