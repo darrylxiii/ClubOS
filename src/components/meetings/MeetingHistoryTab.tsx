@@ -321,40 +321,6 @@ export function MeetingHistoryTab() {
                     Upload
                   </Button>
                 </DialogTrigger>
-              </div>
-            </div>
-
-            {/* Date range filter row */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <div className="flex items-center gap-2">
-                <Label htmlFor="date-from" className="text-sm text-muted-foreground whitespace-nowrap">From</Label>
-                <Input
-                  id="date-from"
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-40 h-8 text-sm"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="date-to" className="text-sm text-muted-foreground whitespace-nowrap">To</Label>
-                <Input
-                  id="date-to"
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-40 h-8 text-sm"
-                />
-              </div>
-              {hasDateFilter && (
-                <Button variant="ghost" size="sm" onClick={clearDateFilter} className="h-8 px-2">
-                  <X className="h-3 w-3 mr-1" />
-                  Clear
-                </Button>
-              )}
-            </div>
-          </div>
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Upload Meeting Recording</DialogTitle>
@@ -431,6 +397,38 @@ export function MeetingHistoryTab() {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
+            </div>
+
+            {/* Date range filter row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <Label htmlFor="date-from" className="text-sm text-muted-foreground whitespace-nowrap">From</Label>
+                <Input
+                  id="date-from"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-40 h-8 text-sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="date-to" className="text-sm text-muted-foreground whitespace-nowrap">To</Label>
+                <Input
+                  id="date-to"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-40 h-8 text-sm"
+                />
+              </div>
+              {hasDateFilter && (
+                <Button variant="ghost" size="sm" onClick={clearDateFilter} className="h-8 px-2">
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
