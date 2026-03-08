@@ -1441,7 +1441,7 @@ export function MeetingVideoCallInterface({
           onOpenBreakoutRooms={handleOpenBreakoutRooms}
           onOpenPolls={handleOpenPolls}
           onOpenQA={handleOpenQA}
-          onOpenBackgrounds={handleOpenBackgrounds}
+          // Virtual Backgrounds hidden — feature not yet implemented (Phase F)
           layout={layout}
           onToggleLayout={handleToggleLayout}
           onToggleBackchannel={
