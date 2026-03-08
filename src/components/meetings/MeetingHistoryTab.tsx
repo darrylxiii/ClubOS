@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Search, Filter, Plus, AlertCircle, Settings, Loader2, Video, FolderOpen, RefreshCw } from "lucide-react";
+import { Search, Filter, Plus, AlertCircle, Settings, Loader2, Video, FolderOpen, RefreshCw, CalendarDays, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -15,12 +15,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useMeetingRecordings } from "@/hooks/useMeetingRecordings";
 import { MeetingRecordingCard } from "@/components/meetings/MeetingRecordingCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 
 export function MeetingHistoryTab() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
