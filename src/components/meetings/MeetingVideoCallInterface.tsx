@@ -110,7 +110,7 @@ export function MeetingVideoCallInterface({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [userRole, setUserRole] = useState<string>('participant');
-  const [isRecording, setIsRecording] = useState(false);
+  // REMOVED: isRecording local state — use isCompositorRecording exclusively
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hasGivenConsent, setHasGivenConsent] = useState(false);
