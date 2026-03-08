@@ -31397,6 +31397,7 @@ export type Database = {
           host_settings: Json | null
           id: string
           interview_stage: string | null
+          is_locked: boolean
           job_id: string | null
           location_type: string | null
           max_participants: number | null
@@ -31453,6 +31454,7 @@ export type Database = {
           host_settings?: Json | null
           id?: string
           interview_stage?: string | null
+          is_locked?: boolean
           job_id?: string | null
           location_type?: string | null
           max_participants?: number | null
@@ -31509,6 +31511,7 @@ export type Database = {
           host_settings?: Json | null
           id?: string
           interview_stage?: string | null
+          is_locked?: boolean
           job_id?: string | null
           location_type?: string | null
           max_participants?: number | null

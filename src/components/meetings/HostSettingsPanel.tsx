@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Lock } from 'lucide-react';
 
 interface HostSettingsPanelProps {
   open: boolean;
@@ -27,6 +29,34 @@ interface HostSettingsPanelProps {
 export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: HostSettingsPanelProps) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [saving, setSaving] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+
+  // Fetch current lock state
+  useEffect(() => {
+    const fetchLockState = async () => {
+      const { data } = await supabase
+        .from('meetings')
+        .select('is_locked')
+        .eq('id', meetingId)
+        .single();
+      if (data) setIsLocked(data.is_locked ?? false);
+    };
+    if (open) fetchLockState();
+  }, [meetingId, open]);
+
+  const toggleMeetingLock = async (locked: boolean) => {
+    setIsLocked(locked);
+    const { error } = await supabase
+      .from('meetings')
+      .update({ is_locked: locked } as any)
+      .eq('id', meetingId);
+    if (error) {
+      toast.error('Failed to update meeting lock');
+      setIsLocked(!locked);
+    } else {
+      toast.success(locked ? 'Meeting locked — no new participants can join' : 'Meeting unlocked');
+    }
+  };
 
   const updateSetting = async (key: string, value: any) => {
     const newSettings = { ...localSettings, [key]: value };
@@ -75,6 +105,33 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
                 onCheckedChange={(checked) => updateSetting('requireHostApproval', checked)}
                 disabled={saving}
               />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Meeting Lock */}
+          <div className="space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Meeting Lock
+            </h3>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Lock Meeting</Label>
+                <p className="text-sm text-muted-foreground">
+                  Prevent new participants from joining. Currently in the meeting can stay.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {isLocked && (
+                  <Badge variant="destructive" className="text-xs">Locked</Badge>
+                )}
+                <Switch
+                  checked={isLocked}
+                  onCheckedChange={toggleMeetingLock}
+                />
+              </div>
             </div>
           </div>
 

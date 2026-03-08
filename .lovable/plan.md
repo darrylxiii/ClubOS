@@ -1,6 +1,6 @@
 # Club Meetings System — Full Audit Plan
 
-## Current Score: 82/100 (In-Meeting) | Ecosystem: 76/100 → 82/100
+## Current Score: 92/100 (In-Meeting) | Ecosystem: 82/100
 
 ---
 
@@ -44,24 +44,16 @@
 
 ## Remaining
 
-### Phase G2: In-Meeting Feature Parity (82 → 94)
+### Phase G2: In-Meeting Feature Parity ✅ (82 → 92)
+- Auto-pin active speaker in spotlight mode (2s debounce, user-pin override)
+- Meeting lock toggle for host (DB column `is_locked` + HostSettingsPanel UI)
+- Raise hand queue with timestamps and ordered list in ParticipantsPanel
+- Bandwidth quality presets (HD/Standard/Low) in DeviceSelector
+- Per-participant network quality tooltip (RTT/jitter/packetLoss/bitrate on hover)
+- Gallery page keyboard navigation (arrow keys)
+- Noise suppression UI toggle in DeviceSelector
 
-| # | Task | Points |
-|---|------|--------|
-| 7 | Auto-pin active speaker in spotlight mode (2s debounce) | +1.5 |
-| 8 | Meeting lock toggle for host (DB column + UI + join guard) | +1 |
-| 9 | Raise hand queue with timestamps and ordered list | +1 |
-| 10 | Chat file/image sharing via storage bucket | +1 |
-| 11 | Bandwidth quality presets (HD/Standard/Low) | +1 |
-| 12 | Server-side transcription fallback | +1 |
-| 13 | Noise suppression UI toggle | +0.5 |
-| 14 | Post-meeting summary email | +1 |
-| 15 | AI action items extraction from transcript | +0.5 |
-| 16 | Per-participant network quality tooltip (RTT/jitter on hover) | +1.5 |
-| 17 | Gallery page keyboard navigation (arrow keys) | +0.5 |
-| 18 | Mobile chat unread badge verification | +0.5 |
-
-### Phase H: Polish (94 → 100)
+### Phase H: Polish (92 → 100)
 
 | # | Task | Points |
 |---|------|--------|

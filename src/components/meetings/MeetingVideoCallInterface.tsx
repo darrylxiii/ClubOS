@@ -99,7 +99,7 @@ export function MeetingVideoCallInterface({
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
   const [isHandRaised, setIsHandRaised] = useState(false);
-  const [remoteHandRaises, setRemoteHandRaises] = useState<Map<string, boolean>>(new Map());
+  const [remoteHandRaises, setRemoteHandRaises] = useState<Map<string, { raised: boolean; timestamp: number; name: string }>>(new Map());
   const [remoteMuteStates, setRemoteMuteStates] = useState<Map<string, boolean>>(new Map());
   const [remoteVideoOffStates, setRemoteVideoOffStates] = useState<Map<string, boolean>>(new Map());
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
@@ -107,6 +107,7 @@ export function MeetingVideoCallInterface({
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [focusedParticipantId, setFocusedParticipantId] = useState<string | null>(null);
+  const [userPinnedParticipant, setUserPinnedParticipant] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [userRole, setUserRole] = useState<string>('participant');
@@ -389,6 +390,31 @@ export function MeetingVideoCallInterface({
     return () => clearInterval(interval);
   }, [audioLevels, isTranscribing, partialTranscript]);
 
+  // Auto-pin active speaker in spotlight mode (2s debounce)
+  const activeSpeakerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (userPinnedParticipant || layout !== 'spotlight') return; // User manually pinned — don't override
+
+    // Find current active speaker from audioLevels
+    let currentSpeakerId: string | null = null;
+    audioLevels.forEach((level, id) => {
+      if (level.isSpeaking && id !== participantId) {
+        currentSpeakerId = id;
+      }
+    });
+
+    if (currentSpeakerId && currentSpeakerId !== focusedParticipantId) {
+      if (activeSpeakerTimerRef.current) clearTimeout(activeSpeakerTimerRef.current);
+      activeSpeakerTimerRef.current = setTimeout(() => {
+        setFocusedParticipantId(currentSpeakerId);
+      }, 2000);
+    }
+
+    return () => {
+      if (activeSpeakerTimerRef.current) clearTimeout(activeSpeakerTimerRef.current);
+    };
+  }, [audioLevels, layout, userPinnedParticipant, focusedParticipantId, participantId]);
+
   // Keyboard shortcuts (M=mute, V=video, S=screen, H=hand, F=fullscreen)
   const handleToggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -405,6 +431,11 @@ export function MeetingVideoCallInterface({
   const handleToggleHandRaiseRef = useRef<() => void>(() => {});
   const handleEndCallRef = useRef<() => void>(() => {});
 
+  // Gallery page navigation via keyboard (arrow keys)
+  const galleryPageRef = useRef(0);
+  const galleryTotalPagesRef = useRef(1);
+  const [, forceGalleryUpdate] = useState(0);
+
   useMeetingKeyboardShortcuts({
     onToggleAudio: toggleAudio,
     onToggleVideo: toggleVideo,
@@ -412,6 +443,8 @@ export function MeetingVideoCallInterface({
     onToggleHandRaise: () => handleToggleHandRaiseRef.current(),
     onEndCall: () => handleEndCallRef.current(),
     onToggleFullscreen: handleToggleFullscreen,
+    onNextPage: () => forceGalleryUpdate(v => v + 1), // VideoGrid handles internally via onPageChange
+    onPrevPage: () => forceGalleryUpdate(v => v - 1),
     enabled: meetingStarted && !showDiagnostics,
   });
 
@@ -906,7 +939,7 @@ export function MeetingVideoCallInterface({
             setRemoteHandRaises(prev => {
               const n = new Map(prev);
               if (data.raised) {
-                n.set(signal.sender_id, true);
+                n.set(signal.sender_id, { raised: true, timestamp: Date.now(), name: data.participantName });
                 toast(`${data.participantName} raised their hand`, { duration: 3000 });
               } else {
                 n.delete(signal.sender_id);
@@ -1128,7 +1161,8 @@ export function MeetingVideoCallInterface({
       is_muted: remoteMuteStates.get(id) || false,
       is_video_off: remoteVideoOffStates.get(id) || false,
       is_screen_sharing: false,
-      is_hand_raised: remoteHandRaises.get(id) || false,
+      is_hand_raised: !!remoteHandRaises.get(id),
+      hand_raised_at: remoteHandRaises.get(id)?.timestamp,
       is_speaking: isRemoteSpeaking(id),
       stream
     }))
@@ -1335,14 +1369,23 @@ export function MeetingVideoCallInterface({
               is_muted: remoteMuteStates.get(id) || false,
               is_video_off: remoteVideoOffStates.get(id) || false,
               is_screen_sharing: false,
-              is_hand_raised: remoteHandRaises.get(id) || false,
+              is_hand_raised: !!remoteHandRaises.get(id),
               is_speaking: isRemoteSpeaking(id),
               stream,
-              connectionQuality: peerStats.get(id)?.quality || 'good'
+              connectionQuality: peerStats.get(id)?.quality || 'good',
+              peerStats: peerStats.get(id) ? {
+                latency: peerStats.get(id)!.latency,
+                jitter: peerStats.get(id)!.jitter,
+                packetLoss: peerStats.get(id)!.packetLoss,
+                bitrate: peerStats.get(id)!.bitrate,
+              } : undefined
             }))}
             layout={layout}
             focusedParticipantId={focusedParticipantId || undefined}
-            onPinParticipant={(id) => setFocusedParticipantId(prev => prev === id ? null : id)}
+            onPinParticipant={(id) => {
+              setUserPinnedParticipant(prev => prev === id ? null : id);
+              setFocusedParticipantId(prev => prev === id ? null : id);
+            }}
           />
         )}
       </div>

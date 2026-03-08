@@ -20,6 +20,12 @@ interface Participant {
   is_speaking: boolean;
   stream?: MediaStream;
   connectionQuality?: TileConnectionQuality;
+  peerStats?: {
+    latency: number;
+    jitter: number;
+    packetLoss: number;
+    bitrate: number;
+  };
 }
 
 interface VideoGridProps {
@@ -29,12 +35,19 @@ interface VideoGridProps {
   layout?: 'grid' | 'spotlight' | 'sidebar';
   presenterId?: string;
   onPinParticipant?: (participantId: string) => void;
+  onPageChange?: (page: number) => void;
 }
 
 const PARTICIPANTS_PER_PAGE = 9;
 
-export function VideoGrid({ participants, localParticipant, focusedParticipantId, layout = 'grid', presenterId, onPinParticipant }: VideoGridProps) {
+export function VideoGrid({ participants, localParticipant, focusedParticipantId, layout = 'grid', presenterId, onPinParticipant, onPageChange }: VideoGridProps) {
   const [currentPage, setCurrentPage] = useState(0);
+
+  // Expose page changes for keyboard nav
+  const changePage = (page: number) => {
+    setCurrentPage(page);
+    onPageChange?.(page);
+  };
 
   const allParticipants = useMemo(() =>
     localParticipant ? [localParticipant, ...participants] : participants,
@@ -209,7 +222,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+            onClick={() => changePage(Math.max(0, safeCurrentPage - 1))}
             disabled={safeCurrentPage === 0}
             className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
           >
@@ -221,7 +234,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+            onClick={() => changePage(Math.min(totalPages - 1, safeCurrentPage + 1))}
             disabled={safeCurrentPage >= totalPages - 1}
             className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
           >
