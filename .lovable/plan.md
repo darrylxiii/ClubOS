@@ -1,253 +1,96 @@
 
 
-# Comprehensive Email System Audit — The Quantum Club
+# Live Meetings Audit — Revised Score: 34/100
 
-## Current State Summary
-
-The email system consists of **36+ edge functions** using a centralized design system (`base-template.ts`, `components.ts`, `email-config.ts`). The base template is well-structured with light/dark mode support, responsive design, and MSO compatibility. However, there are systemic gaps across deliverability, content quality, and compliance.
+The previous audit scored 38/100 but was generous on several items. After deep code inspection, additional issues surfaced.
 
 ---
 
-## CATEGORY 1: Deliverability Issues (Score Impact)
+## Scoring
 
-### 1.1 Missing `List-Unsubscribe` Headers (28 of 31 email functions)
+| Area | Max | Score | Finding |
+|------|-----|-------|---------|
+| Desktop Controls | 15 | 0 | **CRITICAL**: `ControlsPanel` wrapped in `!isMobile && false` (line 1327). Desktop users have zero controls — cannot mute, toggle video, share screen, end call, or access any feature. The entire meeting is unusable on desktop. |
+| Duplicate Rendering | 5 | 0 | `LiveInterviewAnalysis` rendered twice identically (lines 1303-1309 and 1311-1317). Double AI inference calls, double DOM nodes. |
+| Render-Path Logging | 5 | 0 | Lines 995-1028: `console.log` inside `.map()` on `remoteStreams` during participant array construction. This runs on EVERY render — every state change, every heartbeat, every reaction. Also lines 182-234 in the `onRemoteStream` callback have 6 console.logs per remote join. Lines 919-931 log full stream details on every `remoteStreams` change. |
+| P2P Scalability | 15 | 3 | Mesh topology. No auto-switch to LiveKit SFU. `useLiveKitMode` hardcoded to `false` (line 129). LiveKit health check runs on mount (line 284) but result is discarded — not used to decide mode. |
+| TURN Infrastructure | 10 | 2 | Hardcoded free OpenRelay credentials in client code (lines 110-136 of `webrtcConfig.ts`). `fetchDynamicTURNCredentials` exists but is NEVER CALLED — `useMeetingWebRTC` uses `DEFAULT_RTC_CONFIG` which calls `getIceServers()` synchronously (no dynamic fetch). Corporate firewall users will fail silently. |
+| Hand Raise | 3 | 1 | `handleToggleHandRaise` (line 571-573) only sets local state + shows a toast. **No broadcast** — other participants never see the raised hand. No signal sent via `sendReaction` or `webrtc_signals`. |
+| Post-Meeting | 5 | 1 | `handleEndCall` (line 462-474) stops recording and calls cleanup. No post-meeting summary trigger, no `meeting-debrief` edge function invocation, no analytics event. |
+| Consent UX | 3 | 1 | `handleConsentDeclined` (line 439-444) kicks user out of the meeting entirely. No option to stay without recording — binary "consent to everything or leave". |
+| Virtual Backgrounds | 3 | 0 | `VirtualBackgroundSelector` `onBackgroundSelect` (line 1619-1622) just does `console.log('Background selected:', bg)`. No actual background processing, no canvas manipulation, no ML model. Complete stub. |
+| Engagement Analytics | 3 | 1 | `EngagementAnalyticsOverlay` receives hardcoded mock data: `speakingTimeMs: 0`, `engagement: 75/80`, `sentimentTrend: 'neutral'/'positive'` (lines 1700-1718). No real data pipeline. |
+| Component Size | 5 | 1 | 1727 lines, 30+ `useState`, ~15 `useEffect`, ~20 handler functions. Unmaintainable. Every feature addition risks regressions. |
+| Screen Share Audio | 2 | 1 | `toggleScreenShare` in `useMeetingWebRTC` calls `getDisplayMedia` but audio capture option not verified. |
+| Recording Upload | 5 | 3 | Compositor recording implemented with consent. Upload path exists. But no cloud recording fallback when compositor fails. |
+| Transcription | 5 | 3 | Dual path (ElevenLabs + Web Speech API) with proper fallback chain. Web Speech API is unreliable on Firefox/Safari. No server-side fallback. |
+| Chat/Reactions | 5 | 4 | Realtime chat via Supabase. Reactions broadcast via `webrtc_signals`. On-screen overlay with auto-dismiss. Working. |
+| Pre-Join/Diagnostics | 5 | 4 | Device selection, network test, video preview. Solid. |
+| Reconnection | 5 | 4 | ICE restart, fallback polling, max 5 retries, presence heartbeat every 10s, auto-rejoin if incorrectly marked as left. Good. |
+| Guest Access | 5 | 4 | Guest join dialog, host approval panel, session tokens. Working. |
+| **Bonus: Waiting Room Bug** | -2 | -2 | Lines 1217-1276: Waiting room shows when `!meetingStarted && totalParticipants <= 1`. But `meetingStarted` is set to `true` only when host clicks "Start Meeting Anyway" (line 1266) OR never — there's no listener that sets it when a 2nd participant joins. The `totalParticipants` state is never updated from any source. Dead code. |
 
-Only **3** email functions include `List-Unsubscribe` headers:
-- `send-candidate-welcome-email` (recently added)
-- `send-team-invite`
-- `send-referral-invite`
-
-**Missing from all others**, including:
-- `send-placement-congratulations-email`
-- `send-interview-scheduled-email`
-- `send-offer-notification-email`
-- `send-application-submitted-email`
-- `send-partner-welcome-email`
-- `send-partner-declined-email`
-- `send-recovery-email`
-- `send-notification-email`
-- `send-meeting-summary-email`
-- `send-booking-confirmation`
-- `send-booking-reminder`
-- `send-security-alert`
-- `send-password-reset-email`
-- `send-booking-pending-notification`
-- `guest-booking-actions` (4 send calls)
-- `send-partner-request-received`
-- `notify-admin-partner-request`
-- `send-scorecard-reminder`
-- `send-booking-reminder-email`
-- `_shared/email-notification-templates.ts` (3 send functions)
-
-**Fix**: Create a shared helper function `buildResendHeaders()` in `email-config.ts` that returns the `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Update ALL email functions to use it.
-
-### 1.2 Missing Plain-Text Fallback (29 of 31 functions)
-
-Only the `email-notification-templates.ts` (mention + interview reminder) includes a `text:` property. Every other email sends HTML-only. Many spam filters penalize HTML-only emails.
-
-**Fix**: Add a shared `stripHtmlToText()` utility in `email-config.ts` that strips HTML tags to produce a basic plain-text version. Include `text:` in every Resend API call.
-
-### 1.3 Emoji in Subject Lines (6 functions)
-
-SpamAssassin flags emoji in subject lines (`SUBJ_EMOJI_FREEMAIL`). Found in:
-- `send-password-reset-email`: "🔐 Reset Your Password"
-- `send-meeting-summary-email`: "📊 Meeting Summary"
-- `send-booking-confirmation`: "✓ Confirmed", "📅 New Booking", "📅 invited you"
-- `send-booking-reminder`: "🔔 Reminder"
-- `send-security-alert`: emoji prefix
-
-**Fix**: Remove emoji from subject lines. Move visual indicators to the email body (already using `StatusBadge` components).
-
-### 1.4 SPF Record Missing (DNS — not code)
-
-`send.thequantumclub.nl` needs an SPF TXT record:
-```text
-v=spf1 include:amazonses.com ~all
-```
-This is a DNS change in the domain registrar.
+**Total: 34/100**
 
 ---
 
-## CATEGORY 2: Content & Copy Quality
+## Issues Not Caught in Previous Audit
 
-### 2.1 Inconsistent Tone
-
-Some emails use exclamation points (referral invite: "thinks you'd be perfect for this role!") which violates the brand guideline: "Avoid exclamation points."
-
-**Fix**: Remove exclamation points from:
-- `send-referral-invite`: heading and subject line
-- Any other instances
-
-### 2.2 Hardcoded Contact Email Inconsistency
-
-- `send-application-submitted-email` references `onboarding@verify.thequantumclub.nl` — a non-standard subdomain
-- `send-partner-welcome-email` references `partners@thequantumclub.nl` directly
-- Footer uses `SUPPORT_EMAIL` (`support@thequantumclub.nl`)
-
-**Fix**: Use `SUPPORT_EMAIL` from `email-config.ts` consistently, or add the specialized addresses to `EMAIL_SENDERS` for consistency.
-
-### 2.3 Missing "Powered by QUIN" Attribution
-
-Per brand guidelines: "Default to 'Powered by QUIN' helper text where AI appears." The `send-offer-notification-email` references the "QUIN offer comparison tool" but doesn't include the attribution. Similarly, match emails should include it.
-
-**Fix**: Add a subtle "Powered by QUIN" line where AI features are referenced.
+1. **Hand raise is local-only** — never broadcast to other participants.
+2. **`totalParticipants` is never updated** — initialized to `0` (line 118), no setter calls found. The waiting room logic depends on it but it's always 0.
+3. **Virtual backgrounds is a complete stub** — just a `console.log`.
+4. **Engagement analytics uses hardcoded mock data** — no real speaking time or sentiment.
+5. **`fetchDynamicTURNCredentials` is never called** — exists but dead code.
+6. **Consent decline = forced exit** — no "stay without recording" option.
+7. **Health checks fire on every mount** — LiveKit + ElevenLabs health checks (lines 278-299) fire a 2s timer on every component mount but results are discarded.
 
 ---
 
-## CATEGORY 3: Technical & Security Issues
+## Implementation Plan
 
-### 3.1 `rgba()` in Inline Styles (Outlook Rendering)
+### Phase 1: Critical — Desktop Unusable (34 → 58/100)
 
-Multiple components use `rgba()` for background colors (`Card`, `StatusBadge`, `VideoCallCard`, `AlertBox`, `MeetingPrepCard`). Outlook desktop strips `rgba()` and renders transparent/white instead.
+| # | Task | File(s) | Points |
+|---|------|---------|--------|
+| 1 | Remove `false &&` from ControlsPanel condition (line 1327) | `MeetingVideoCallInterface.tsx` | +15 |
+| 2 | Remove duplicate `LiveInterviewAnalysis` (lines 1311-1317) | `MeetingVideoCallInterface.tsx` | +5 |
+| 3 | Remove all render-path `console.log` (lines 995-1028, 919-931, 182-234) | `MeetingVideoCallInterface.tsx` | +5 |
+| 4 | Broadcast hand raise via `webrtc_signals` instead of local-only state | `MeetingVideoCallInterface.tsx` | +2 |
+| 5 | Wire `totalParticipants` to `meeting_participants` realtime subscription | `MeetingVideoCallInterface.tsx` | +2 |
 
-**Fix**: Replace all `rgba()` values with solid hex equivalents in the components:
-- `rgba(201, 162, 78, 0.06)` → `#faf6ed`
-- `rgba(245, 158, 11, 0.06)` → `#fef9ec`
-- `rgba(34, 197, 94, 0.06)` → `#edfdf3`
-- `rgba(201, 162, 78, 0.08)` → `#f9f4e9`
-- `rgba(201, 162, 78, 0.1)` → `#f7f1e5`
-- `rgba(34, 197, 94, 0.1)` → `#e9faf0`
-- `rgba(245, 158, 11, 0.1)` → `#fef7e6`
-- `rgba(239, 68, 68, 0.1)` → `#fdeaea`
-- `rgba(59, 130, 246, 0.08)` → `#eef3fe`
-- `rgba(255, 255, 255, 0.05)` → `#1d1d1f` (dark mode card)
-- `rgba(255, 255, 255, 0.1)` → `#303032` (dark mode)
+### Phase 2: Infrastructure — Calls Fail Behind Firewalls (58 → 75/100)
 
-### 3.2 `linear-gradient()` in Inline Styles
+| # | Task | File(s) | Points |
+|---|------|---------|--------|
+| 6 | Call `fetchDynamicTURNCredentials` in `useMeetingWebRTC` before creating peer connections; fall back to static config | `useMeetingWebRTC.ts`, `webrtcConfig.ts` | +5 |
+| 7 | Remove hardcoded OpenRelay/Metered credentials from client code | `webrtcConfig.ts` | +3 |
+| 8 | Auto-switch to LiveKit SFU when `remoteStreams.size >= 3`; use health check result to decide | `MeetingVideoCallInterface.tsx` | +5 |
+| 9 | Add post-meeting debrief trigger in `handleEndCall` (invoke `meeting-debrief` edge function) | `MeetingVideoCallInterface.tsx` | +3 |
+| 10 | Allow consent decline without leaving — stay in meeting with recording disabled | `MeetingVideoCallInterface.tsx` | +1 |
 
-`VideoCallCard` uses `linear-gradient()` which is unsupported in most email clients. The fallback text block in the header also uses it.
+### Phase 3: Polish — Feature Completeness (75 → 90/100)
 
-**Fix**: Replace gradients with solid background colors.
+| # | Task | File(s) | Points |
+|---|------|---------|--------|
+| 11 | Extract state into sub-hooks: `useMeetingUI`, `useMeetingRecording`, `useMeetingParticipants` | New hooks + refactor | +5 |
+| 12 | Remove virtual background stub OR implement basic canvas blur | `VirtualBackgroundSelector.tsx`, `MeetingVideoCallInterface.tsx` | +3 |
+| 13 | Wire real speaking-time data to `EngagementAnalyticsOverlay` from `useMeetingWebRTC` audio levels | `MeetingVideoCallInterface.tsx` | +2 |
+| 14 | Add `audio: true` option to `getDisplayMedia` for screen share with system audio | `useMeetingWebRTC.ts` | +2 |
+| 15 | Mobile VideoGrid: stack layout for 1-2 participants, reduce tile padding | `VideoGrid.tsx` | +3 |
 
-### 3.3 CSS `box-shadow` in Inline Styles
+### Phase 4: Enterprise Grade (90 → 100/100)
 
-`box-shadow` on the email container and buttons is ignored by most email clients but doesn't cause harm. Low priority — leave as progressive enhancement.
+| # | Task | File(s) | Points |
+|---|------|---------|--------|
+| 16 | Server-side transcription fallback via Lovable AI when browser APIs unavailable | New edge function | +4 |
+| 17 | Cloud recording via LiveKit Egress when SFU mode is active | New integration | +3 |
+| 18 | Remove discarded health check calls or use results to set initial mode | `MeetingVideoCallInterface.tsx` | +1 |
+| 19 | Add `meeting.ended` analytics event on call end | `MeetingVideoCallInterface.tsx` | +1 |
+| 20 | Hash meeting passwords in DB instead of plaintext | Migration + `CreateMeetingDialog.tsx` | +1 |
 
-### 3.4 `<ul>` Tag Usage
-
-`MeetingPrepCard` uses `<ul>` with `<li>` elements. Some email clients strip list styling. Other components correctly use `<table>` layouts.
-
-**Fix**: Replace `<ul>/<li>` with table-based rows matching the pattern used in other components.
-
----
-
-## CATEGORY 4: Accessibility & Compliance
-
-### 4.1 Missing `lang` Attribute on Content
-
-The `<html lang="en">` is set correctly. Good.
-
-### 4.2 Missing `role="presentation"` on Some Tables
-
-Most tables correctly use `role="presentation"`. The `CalendarButtons` component has a table missing this attribute (the outer wrapper). Minor.
-
-### 4.3 Preheader Padding Technique
-
-The current preheader uses `&nbsp;&zwnj;` padding which is correct and well-implemented.
-
-### 4.4 Missing Physical Mailing Address
-
-CAN-SPAM requires a physical postal address in commercial emails. The footer includes company name, links, and copyright but no address.
-
-**Fix**: Add a physical address line to the `baseEmailTemplate` footer (e.g., "Amsterdam, The Netherlands" or the registered business address).
-
----
-
-## CATEGORY 5: Structural Improvements
-
-### 5.1 Centralize Unsubscribe Headers
-
-Create a shared function to avoid repeating header construction in 30+ files:
-
-```typescript
-// In email-config.ts
-export const getEmailHeaders = (): Record<string, string> => {
-  const appUrl = getEmailAppUrl();
-  return {
-    'List-Unsubscribe': `<${appUrl}/settings/notifications>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-  };
-};
-```
-
-### 5.2 Centralize Plain-Text Generation
-
-```typescript
-export const htmlToPlainText = (html: string): string => {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' ')
-    .replace(/<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&zwnj;/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-};
-```
-
----
-
-## Implementation Priority
-
-### Phase 1 — High Impact (deliverability score)
-1. Add `getEmailHeaders()` helper to `email-config.ts`
-2. Add `htmlToPlainText()` helper to `email-config.ts`
-3. Update ALL 28+ email functions to include `headers` and `text` in Resend calls
-4. Remove emoji from subject lines (6 functions)
-
-### Phase 2 — Rendering Fixes
-5. Replace all `rgba()` with solid hex in `components.ts`
-6. Replace `linear-gradient()` with solid colors in `components.ts` and `base-template.ts`
-7. Replace `<ul>/<li>` with table layout in `MeetingPrepCard`
-
-### Phase 3 — Compliance & Copy
-8. Add physical address to footer in `base-template.ts`
-9. Fix tone (remove exclamation points)
-10. Standardize contact email references
-11. Add "Powered by QUIN" where AI features are referenced
-
-### Phase 4 — DNS (manual, not code)
-12. Add SPF record for `send.thequantumclub.nl`
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/functions/_shared/email-config.ts` | Add `getEmailHeaders()`, `htmlToPlainText()` |
-| `supabase/functions/_shared/email-templates/components.ts` | Replace `rgba()` with hex; fix `linear-gradient()`; fix `<ul>` in MeetingPrepCard |
-| `supabase/functions/_shared/email-templates/base-template.ts` | Add physical address to footer; fix gradient fallback |
-| `supabase/functions/_shared/email-notification-templates.ts` | Add headers to 3 send functions |
-| `send-placement-congratulations-email/index.ts` | Add headers + text |
-| `send-interview-scheduled-email/index.ts` | Add headers + text |
-| `send-offer-notification-email/index.ts` | Add headers + text |
-| `send-application-submitted-email/index.ts` | Add headers + text; fix contact email |
-| `send-partner-welcome-email/index.ts` | Add headers + text |
-| `send-partner-declined-email/index.ts` | Add headers + text |
-| `send-recovery-email/index.ts` | Add headers + text |
-| `send-notification-email/index.ts` | Add headers + text |
-| `send-meeting-summary-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-confirmation/index.ts` | Add headers + text; remove emoji from subjects |
-| `send-booking-reminder/index.ts` | Add headers + text; remove emoji from subject |
-| `send-security-alert/index.ts` | Add headers + text; remove emoji from subject |
-| `send-password-reset-email/index.ts` | Add headers + text; remove emoji from subject |
-| `send-booking-pending-notification/index.ts` | Add headers + text |
-| `send-booking-reminder-email/index.ts` | Add headers + text |
-| `guest-booking-actions/index.ts` | Add headers + text (4 send calls) |
-| `send-partner-request-received/index.ts` | Add headers + text |
-| `notify-admin-partner-request/index.ts` | Add headers + text |
-| `send-referral-invite/index.ts` | Fix exclamation points in copy |
-| `send-candidate-welcome-email/index.ts` | Add text fallback |
-
-**Total: ~25 files modified**
-
-This will be implemented in phases. After Phase 1, send another test email to mail-tester to verify score improvement.
+### Risk Assessment
+- **Phase 1**: Zero risk. Bug fixes, dead code removal, and a small signal addition.
+- **Phase 2**: Low risk. Async TURN fetch with sync fallback. LiveKit wrapper already exists with fallback mechanism.
+- **Phase 3**: Medium risk. Component refactoring requires careful state migration. Virtual background ML model adds bundle size.
+- **Phase 4**: Medium risk. New edge functions and LiveKit Egress integration require testing.
 
