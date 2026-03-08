@@ -257,20 +257,21 @@ export function MeetingHistoryTab() {
       {/* Filters and Search */}
       <Card className="border-0 bg-card/30 backdrop-blur-md">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search recordings by title, transcript, or summary..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search recordings by title, transcript, or summary..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Select value={filterType} onValueChange={setFilterType}>
+              <div className="flex gap-2">
+                <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger>
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Filter by source" />
