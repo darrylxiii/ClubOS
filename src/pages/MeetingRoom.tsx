@@ -255,7 +255,7 @@ export default function MeetingRoom() {
               .eq('meeting_id', meeting.id)
               .eq('user_id', user.id);
           } else {
-            console.error('[MeetingRoom] ❌ Error inserting participant:', insertError);
+            log.error('MeetingRoom', 'Error inserting participant:', insertError);
             throw insertError;
           }
         } else {
