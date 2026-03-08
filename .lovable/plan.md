@@ -59,14 +59,16 @@
 - **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
 - **Auto-advance pipeline on strong_yes**: `extract-candidate-performance` auto-advances `applications.pipeline_stage` when `hiring_recommendation === 'strong_yes'`, with audit log
 
-### Phase I: Remaining Ecosystem
+### Phase I1: Ecosystem Polish ✅
+- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
+- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
+- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
+- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+
+### Phase I2: Remaining Ecosystem
 
 | # | Task | Impact |
 |---|------|--------|
 | 19 | SFU-mode cloud recording via LiveKit Egress API | +2 |
-| 20 | E2E encryption safety number dialog | +1 |
-| 21 | Guest cleanup heartbeat timeout (server-side) | +0.5 |
-| 22 | Meeting summary card in history (duration, participants, topics) | +1 |
 | 23 | Interview Comparison Matrix page | Better hiring decisions |
-| 24 | Meeting cost calculator on meeting cards | ROI awareness |
 | 25 | Candidate meeting portal | Candidate experience |
