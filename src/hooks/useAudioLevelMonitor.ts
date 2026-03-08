@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
+import { meetingLogger as log } from '@/lib/meetingLogger';
 
 interface AudioLevel {
   participantId: string;
