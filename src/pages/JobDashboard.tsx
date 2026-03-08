@@ -852,7 +852,13 @@ export default function JobDashboard() {
                         const count = metrics?.stageBreakdown[stage.order] || 0;
                         const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
                         const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                        const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
+                        const stageApplications = applications.filter(
+                          (app) =>
+                            app.current_stage_index === stage.order &&
+                            (app.partner_review_status === null ||
+                              typeof app.partner_review_status === 'undefined' ||
+                              app.partner_review_status === 'approved'),
+                        );
 
                         // Stage health indicator
                         const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
