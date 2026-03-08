@@ -40,14 +40,32 @@ export function useMeetingWebRTC({
   const e2ee = useE2EEncryption(meetingId);
   const e2eeEnabledRef = useRef(enableE2EE);
 
-  // Get the appropriate RTC config based on E2EE setting
+  // Dynamic RTC config — fetched once, cached in ref
+  const dynamicRTCConfigRef = useRef<RTCConfiguration | null>(null);
+
+  // Get the appropriate RTC config, using cached dynamic config if available
   const getRTCConfig = useCallback(() => {
+    if (dynamicRTCConfigRef.current) {
+      return dynamicRTCConfigRef.current;
+    }
     if (e2eeEnabledRef.current && supportsE2EEncryption()) {
-      console.log('[WebRTC] 🔒 Using E2EE-enabled RTC configuration');
       return getE2EEConfig();
     }
     return DEFAULT_RTC_CONFIG;
   }, []);
+
+  // Fetch dynamic TURN credentials on mount (async, non-blocking)
+  useEffect(() => {
+    let cancelled = false;
+    getDynamicRTCConfig({ enableE2EE: enableE2EE }).then(config => {
+      if (!cancelled) {
+        dynamicRTCConfigRef.current = config;
+      }
+    }).catch(() => {
+      // Fallback is handled inside getDynamicRTCConfig
+    });
+    return () => { cancelled = true; };
+  }, [enableE2EE]);
 
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const signalChannel = useRef<RealtimeChannel | null>(null);
