@@ -302,7 +302,7 @@ export default function MeetingRoom() {
   };
 
   const handleGuestJoinApproved = (name: string, sessionToken: string) => {
-    console.log('[MeetingRoom] Guest approved with session token:', sessionToken);
+    log.debug('MeetingRoom', 'Guest approved with session token: ' + sessionToken);
     setGuestName(name);
     setGuestSessionToken(sessionToken);
     setShowGuestDialog(false);
