@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useMeetingWebRTC } from '@/hooks/useMeetingWebRTC';
+import { useMeetingUI } from '@/hooks/useMeetingUI';
 import { useMeetingConnectionQuality } from '@/hooks/useMeetingConnectionQuality';
 import { useMeetingQualityMonitor } from '@/hooks/useMeetingQualityMonitor';
 import { useIsMobile } from '@/hooks/use-mobile';
