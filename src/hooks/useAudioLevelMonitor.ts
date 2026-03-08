@@ -69,9 +69,9 @@ export function useAudioLevelMonitor({
       sourcesRef.current.set(participantId, source);
       analyzersRef.current.set(participantId, analyzer);
       
-      console.log('[AudioLevel] Created analyzer for:', participantId);
+      log.debug('AudioLevel', 'Created analyzer for: ' + participantId);
     } catch (error) {
-      console.error('[AudioLevel] Failed to create analyzer:', error);
+      log.error('AudioLevel', 'Failed to create analyzer:', error);
     }
   }, [getAudioContext, smoothingTimeConstant]);
   
