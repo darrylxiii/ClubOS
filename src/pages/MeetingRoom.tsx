@@ -228,7 +228,7 @@ export default function MeetingRoom() {
           .eq('id', existingParticipant.id);
 
         if (updateError) {
-          console.error('[MeetingRoom] ❌ Error updating participant:', updateError);
+          log.error('MeetingRoom', 'Error updating participant:', updateError);
           throw updateError;
         }
         console.log('[MeetingRoom] ✅ User rejoined meeting (updated existing record)');
