@@ -1073,7 +1073,7 @@ export function MeetingVideoCallInterface({
       is_video_off: !isVideoEnabled && !isScreenSharing,
       is_screen_sharing: isScreenSharing,
       is_hand_raised: isHandRaised,
-      is_speaking: false,
+      is_speaking: isTranscribing || !!partialTranscript,
       stream: (isScreenSharing && screenStream) ? screenStream : (localStream || undefined)
     },
     // Remote participants — with real hand-raise and active speaker data
