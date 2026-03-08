@@ -1,6 +1,6 @@
 # Club Meetings System — Full Audit Plan
 
-## Current Score: 82/100 (Phases A-F Complete)
+## Current Score: 82/100 (In-Meeting) | Ecosystem: 76/100 → 82/100
 
 ---
 
@@ -32,11 +32,19 @@
 - **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
 - **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
 
+### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
+- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
+- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
+- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
+- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
+- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
+- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+
 ---
 
-## Remaining (82 → 100)
+## Remaining
 
-### Phase G: Feature Parity (82 → 94)
+### Phase G2: In-Meeting Feature Parity (82 → 94)
 
 | # | Task | Points |
 |---|------|--------|
@@ -63,3 +71,16 @@
 | 22 | `beforeunload` → `sendBeacon` for mobile cleanup | +0.5 |
 | 23 | Guest cleanup heartbeat timeout (server-side) | +0.5 |
 | 24 | Meeting summary card in history (duration, participants, topics) | +1 |
+
+### Phase I: Ecosystem Completeness (77 → 100)
+
+| # | Task | Impact |
+|---|------|--------|
+| 25 | Auto-trigger post-meeting follow-up generation | No manual click |
+| 26 | Pre-meeting prep auto-push (30min before) | Interviewers prepared |
+| 27 | Auto-advance pipeline stage on strong_yes recommendation | Close recruitment loop |
+| 28 | Recording chapters from AI topic transitions | Smart playback navigation |
+| 29 | Interview Comparison Matrix page | Better hiring decisions |
+| 30 | Meeting cost calculator on meeting cards | ROI awareness |
+| 31 | Date range filter on MeetingHistoryTab | Basic UX |
+| 32 | Candidate meeting portal | Candidate experience |
