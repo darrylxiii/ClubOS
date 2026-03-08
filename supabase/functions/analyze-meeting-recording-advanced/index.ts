@@ -807,6 +807,28 @@ CRITICAL REQUIREMENTS:
       }
     }
 
+    // Chain: auto-generate follow-up (no manual click required)
+    if (recording.meeting_id) {
+      try {
+        const followUpResponse = await fetch(`${supabaseUrl}/functions/v1/auto-generate-follow-up`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ meeting_id: recording.meeting_id })
+        });
+
+        if (followUpResponse.ok) {
+          console.log('[Analysis] ✅ Auto follow-up generation triggered');
+        } else {
+          console.warn('[Analysis] ⚠️ Auto follow-up returned non-OK:', followUpResponse.status);
+        }
+      } catch (followUpErr) {
+        console.warn('[Analysis] ⚠️ Failed to trigger auto follow-up:', followUpErr);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 

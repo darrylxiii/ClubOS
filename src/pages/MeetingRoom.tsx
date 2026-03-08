@@ -104,39 +104,45 @@ export default function MeetingRoom() {
   useEffect(() => {
     if (!meeting?.id || !inCall) return;
 
-    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
-      // This only fires on actual browser close/refresh, not component unmount
-      log.debug('MeetingRoom', 'Cleaning up participant on page unload/close');
+    const cleanupPayload = JSON.stringify({
+      meeting_id: meeting.id,
+      user_id: user?.id || null,
+      session_token: guestSessionToken || null,
+      left_at: new Date().toISOString(),
+    });
+
+    const cleanupUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cleanup-stale-meeting-participants`;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Use sendBeacon for reliable delivery on mobile/tab close
+      log.debug('MeetingRoom', 'Cleaning up participant via sendBeacon on page unload');
       
-      // Mark participant as left
-      try {
-        if (user) {
-          await supabase
-            .from('meeting_participants')
-            .update({ left_at: new Date().toISOString(), status: 'left' })
-            .eq('meeting_id', meeting.id)
-            .eq('user_id', user.id)
-            .is('left_at', null);
-        } else if (guestSessionToken) {
-          await supabase
-            .from('meeting_participants')
-            .update({ left_at: new Date().toISOString(), status: 'left' })
-            .eq('meeting_id', meeting.id)
-            .eq('session_token', guestSessionToken)
-            .is('left_at', null);
-        }
-      } catch (error) {
-        log.error('MeetingRoom', 'Error marking participant as left:', error);
+      if (navigator.sendBeacon) {
+        const blob = new Blob([cleanupPayload], { type: 'application/json' });
+        navigator.sendBeacon(cleanupUrl, blob);
+      } else {
+        // Fallback: fetch with keepalive
+        fetch(cleanupUrl, {
+          method: 'POST',
+          body: cleanupPayload,
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+        }).catch(() => {});
       }
     };
 
-    // Register beforeunload handler
+    const handlePageHide = (e: PageTransitionEvent) => {
+      // pagehide is more reliable on iOS Safari
+      if (e.persisted) return; // bfcache — page is not being discarded
+      handleBeforeUnload(new BeforeUnloadEvent('beforeunload'));
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
     
     return () => {
-      // ONLY remove listener, DO NOT call cleanup on component unmount
-      // This prevents false "left" marks during UI transitions
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
     };
   }, [meeting?.id, inCall, user, guestSessionToken]);
 
