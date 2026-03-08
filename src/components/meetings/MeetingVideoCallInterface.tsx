@@ -766,7 +766,7 @@ export function MeetingVideoCallInterface({
           }
         }
       } catch (error) {
-        console.error('[Meeting] ❌ Heartbeat exception:', error);
+        log.error('Meeting', 'Heartbeat exception:', error);
       }
     };
 
