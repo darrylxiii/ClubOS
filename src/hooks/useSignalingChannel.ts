@@ -75,7 +75,7 @@ export function useSignalingChannel({
       });
       signalRetryQueue.current.delete(signalKey);
     } catch (error) {
-      log.error('[Signaling] Failed to send:', signal.type, error);
+      log.error('Signaling', 'Failed to send: ' + signal.type, error);
       if (['join', 'offer', 'answer'].includes(signal.type)) {
         const existing = signalRetryQueue.current.get(signalKey);
         const retries = existing ? existing.retries + 1 : 1;
