@@ -627,7 +627,7 @@ export function MeetingVideoCallInterface({
       toast.success('Picture-in-Picture enabled');
 
     } catch (error) {
-      console.error('[PiP] Failed to enable:', error);
+      log.error('Meeting', 'Failed to enable PiP:', error);
       toast.error('Failed to enable Picture-in-Picture');
     }
   };
