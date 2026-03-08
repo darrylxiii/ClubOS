@@ -96,25 +96,6 @@ export function MeetingVideoCallInterface({
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
-  const [showTranscription, setShowTranscription] = useState(false);
-  const [captionsEnabled, setCaptionsEnabled] = useState(false);
-  const [showHostSettings, setShowHostSettings] = useState(false);
-  const [showParticipants, setShowParticipants] = useState(false);
-  const [showMeetingDetails, setShowMeetingDetails] = useState(false);
-  const [showInterviewIntelligence, setShowInterviewIntelligence] = useState(false);
-  const [showBreakoutRooms, setShowBreakoutRooms] = useState(false);
-  const [showPolls, setShowPolls] = useState(false);
-  const [showQA, setShowQA] = useState(false);
-  const [showBackgrounds, setShowBackgrounds] = useState(false);
-  const [showBackchannel, setShowBackchannel] = useState(false);
-  const [showVoting, setShowVoting] = useState(false);
-  const [showClubAIVoice, setShowClubAIVoice] = useState(false);
-  const [showTranslation, setShowTranslation] = useState(false);
-  const [showPredictiveHiring, setShowPredictiveHiring] = useState(false);
-  const [showEngagementAnalytics, setShowEngagementAnalytics] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -123,8 +104,39 @@ export function MeetingVideoCallInterface({
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hasGivenConsent, setHasGivenConsent] = useState(false);
-  const [unreadChatMessages, setUnreadChatMessages] = useState(0);
-  const [layout, setLayout] = useState<'grid' | 'spotlight'>('grid');
+
+  // All UI panel states extracted into a dedicated hook
+  const {
+    showChat, setShowChat,
+    showSettings, setShowSettings,
+    showNotes, setShowNotes,
+    showTranscription, setShowTranscription,
+    captionsEnabled, setCaptionsEnabled,
+    showHostSettings, setShowHostSettings,
+    showParticipants, setShowParticipants,
+    showMeetingDetails, setShowMeetingDetails,
+    showInterviewIntelligence, setShowInterviewIntelligence,
+    showBreakoutRooms, setShowBreakoutRooms,
+    showPolls, setShowPolls,
+    showQA, setShowQA,
+    showBackgrounds, setShowBackgrounds,
+    showBackchannel, setShowBackchannel,
+    showVoting, setShowVoting,
+    showClubAIVoice, setShowClubAIVoice,
+    showTranslation, setShowTranslation,
+    showPredictiveHiring, setShowPredictiveHiring,
+    showEngagementAnalytics, setShowEngagementAnalytics,
+    layout, setLayout,
+    unreadChatMessages, setUnreadChatMessages,
+    handleOpenChat, handleOpenParticipants, handleOpenSettings,
+    handleOpenNotes, handleToggleCaptions, handleOpenTranscription,
+    handleOpenHostSettings, handleOpenMeetingInfo,
+    handleOpenInterviewIntelligence, handleOpenBreakoutRooms,
+    handleOpenPolls, handleOpenQA, handleOpenBackgrounds,
+    handleToggleLayout, handleToggleBackchannel, handleToggleVoting,
+    handleToggleClubAIVoice, handleToggleTranslation,
+    handleTogglePredictiveHiring, handleToggleEngagementAnalytics,
+  } = useMeetingUI();
   
   // LiveKit vs WebRTC P2P mode - default to P2P for reliability
   const [useLiveKitMode, setUseLiveKitMode] = useState(false);  // P2P WebRTC by default
