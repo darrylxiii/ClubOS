@@ -67,8 +67,8 @@
 
 ### Phase I2: Remaining Ecosystem
 
-| # | Task | Impact |
-|---|------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | +2 |
-| 23 | Interview Comparison Matrix page | Better hiring decisions |
-| 25 | Candidate meeting portal | Candidate experience |
+| # | Task | Status | Impact |
+|---|------|--------|--------|
+| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
+| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
+| 25 | Candidate meeting portal | Pending | Candidate experience |
