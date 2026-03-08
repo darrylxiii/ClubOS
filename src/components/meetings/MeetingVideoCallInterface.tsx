@@ -584,6 +584,15 @@ export function MeetingVideoCallInterface({
       }
     }
 
+    // Trigger transcript compilation so compile-meeting-transcript runs
+    try {
+      await supabase.functions.invoke('compile-meeting-transcript', {
+        body: { meeting_id: meeting.id }
+      });
+    } catch (err) {
+      // Non-blocking — transcript compilation is best-effort
+    }
+
     // Trigger post-meeting debrief analysis
     try {
       await supabase.functions.invoke('meeting-debrief', {
