@@ -346,7 +346,7 @@ export default function MeetingRoom() {
           .is('left_at', null);
       }
     } catch (error) {
-      console.error('[MeetingRoom] Error marking participant as left:', error);
+      log.error('MeetingRoom', 'Error marking participant as left:', error);
     }
     
     setInCall(false);
