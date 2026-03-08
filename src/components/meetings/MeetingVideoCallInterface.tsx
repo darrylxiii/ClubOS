@@ -543,7 +543,6 @@ export function MeetingVideoCallInterface({
         // Non-blocking analytics
       }
     }
-    }
 
     // Trigger post-meeting debrief analysis
     try {
