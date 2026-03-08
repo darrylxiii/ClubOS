@@ -564,6 +564,11 @@ export function MeetingVideoCallInterface({
     toast(sharing ? 'Screen sharing started' : 'Screen sharing stopped');
   };
 
+  // Wire handler refs for keyboard shortcuts
+  handleToggleScreenShareRef.current = handleToggleScreenShare;
+  handleToggleHandRaiseRef.current = handleToggleHandRaise;
+  handleEndCallRef.current = handleEndCall;
+
   const pipVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const handleEnablePiP = async () => {
