@@ -703,7 +703,7 @@ export function MeetingVideoCallInterface({
         }
       });
     } catch (error) {
-      console.error('[Meeting] Failed to send reaction:', error);
+      log.error('Meeting', 'Failed to send reaction:', error);
     }
   };
 
