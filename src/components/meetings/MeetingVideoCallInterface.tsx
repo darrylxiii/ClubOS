@@ -449,6 +449,16 @@ export function MeetingVideoCallInterface({
         console.error('[Meeting] Failed to save recording:', error);
       }
     }
+
+    // Trigger post-meeting debrief analysis
+    try {
+      await supabase.functions.invoke('meeting-debrief', {
+        body: { meeting_id: meeting.id }
+      });
+    } catch (err) {
+      // Non-blocking — debrief is best-effort
+    }
+
     cleanup();
     onEnd();
   };
