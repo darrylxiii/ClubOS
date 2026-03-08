@@ -62,6 +62,7 @@ import {
 } from "@/components/job-dashboard";
 import { motion } from "framer-motion";
 import { EmailDumpTab } from "@/components/jobs/email-dump";
+import { JobInterviewRecordingsPanel } from "@/components/partner/JobInterviewRecordingsPanel";
 import {
   DndContext,
   closestCenter,
