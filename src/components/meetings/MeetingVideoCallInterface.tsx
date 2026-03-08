@@ -1295,7 +1295,8 @@ export function MeetingVideoCallInterface({
               is_screen_sharing: false,
               is_hand_raised: remoteHandRaises.get(id) || false,
               is_speaking: isRemoteSpeaking(id),
-              stream
+              stream,
+              connectionQuality: peerStats.get(id)?.quality || 'good'
             }))}
             layout={layout}
             focusedParticipantId={focusedParticipantId || undefined}
