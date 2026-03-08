@@ -49,12 +49,12 @@ export function useSignalingChannel({
     return new Promise((resolve, reject) => {
       const ch = channelRef.current;
       if (ch?.state === 'joined') { resolve(); return; }
-      log.debug('[Signaling] Waiting for channel…');
+      log.debug('Signaling', 'Waiting for channel…');
       const timer = setTimeout(() => { reject(new Error('Channel timeout')); }, timeout);
       const check = setInterval(() => {
         if (channelRef.current?.state === 'joined') {
           clearTimeout(timer); clearInterval(check);
-          log.debug('[Signaling] Channel ready');
+          log.debug('Signaling', 'Channel ready');
           resolve();
         }
       }, 100);
