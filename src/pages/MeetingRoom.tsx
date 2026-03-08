@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Video, Lock, Users, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { logger } from '@/lib/logger';
+import { meetingLogger as log } from '@/lib/meetingLogger';
 
 export default function MeetingRoom() {
   const { meetingCode } = useParams();
