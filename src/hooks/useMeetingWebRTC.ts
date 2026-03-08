@@ -1361,7 +1361,7 @@ export function useMeetingWebRTC({
             cursor: 'always',
             displaySurface: 'monitor'
           } as any,
-          audio: false
+          audio: true  // Capture system audio when available
         });
 
         setScreenStream(stream);

@@ -56,17 +56,18 @@ export function VirtualBackgroundSelector({
 
   const selectBackground = (bg: any) => {
     setSelectedBg(bg.id);
-    
-    if (bg.type === 'none') {
-      onBackgroundSelect({ type: 'none' });
-      toast.success('Background removed');
-    } else if (bg.type === 'blur') {
-      onBackgroundSelect({ type: 'blur' });
-      toast.success('Background blur enabled');
-    } else {
-      onBackgroundSelect({ type: 'image', imageUrl: bg.preview || bg.image_url });
-      toast.success('Background applied');
-    }
+    onBackgroundSelect(
+      bg.type === 'none'
+        ? { type: 'none' }
+        : bg.type === 'blur'
+          ? { type: 'blur' }
+          : { type: 'image', imageUrl: bg.preview || bg.image_url }
+    );
+    toast.success(
+      bg.type === 'none' ? 'Background removed'
+        : bg.type === 'blur' ? 'Background blur enabled'
+          : 'Background applied'
+    );
   };
 
   const allBackgrounds = [...DEFAULT_BACKGROUNDS, ...customBackgrounds];
