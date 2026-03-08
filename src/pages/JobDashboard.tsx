@@ -1169,14 +1169,15 @@ export default function JobDashboard() {
             ) : null}
             <PartnerFirstReviewPanel jobId={job.id} />
           </TabsContent>
-              <EmailDumpTab
-                jobId={job.id}
-                jobTitle={job.title}
-                companyName={job.companies?.name || ''}
-                onCandidatesImported={fetchJobDetails}
-              />
-            </TabsContent>
-          )}
+
+          <TabsContent value="email-dump" className="space-y-4 mt-6">
+            <EmailDumpTab
+              jobId={job.id}
+              jobTitle={job.title}
+              companyName={job.companies?.name || ''}
+              onCandidatesImported={fetchJobDetails}
+            />
+          </TabsContent>
 
           <TabsContent value="rejected" className="space-y-4 mt-6">
             <RejectedCandidatesTab
