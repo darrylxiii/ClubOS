@@ -110,6 +110,33 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
           <Separator />
 
+          {/* Meeting Lock */}
+          <div className="space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Meeting Lock
+            </h3>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Lock Meeting</Label>
+                <p className="text-sm text-muted-foreground">
+                  Prevent new participants from joining. Currently in the meeting can stay.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {isLocked && (
+                  <Badge variant="destructive" className="text-xs">Locked</Badge>
+                )}
+                <Switch
+                  checked={isLocked}
+                  onCheckedChange={toggleMeetingLock}
+                />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Participant Permissions */}
           <div className="space-y-4">
             <h3 className="font-semibold">Allow Participants</h3>
