@@ -20,6 +20,12 @@ interface Participant {
   is_speaking: boolean;
   stream?: MediaStream;
   connectionQuality?: TileConnectionQuality;
+  peerStats?: {
+    latency: number;
+    jitter: number;
+    packetLoss: number;
+    bitrate: number;
+  };
 }
 
 interface VideoGridProps {
