@@ -216,7 +216,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+            onClick={() => changePage(Math.max(0, safeCurrentPage - 1))}
             disabled={safeCurrentPage === 0}
             className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
           >
@@ -228,7 +228,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+            onClick={() => changePage(Math.min(totalPages - 1, safeCurrentPage + 1))}
             disabled={safeCurrentPage >= totalPages - 1}
             className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
           >

@@ -7,6 +7,8 @@ interface MeetingShortcutHandlers {
   onToggleHandRaise: () => void;
   onEndCall: () => void;
   onToggleFullscreen: () => void;
+  onNextPage?: () => void;
+  onPrevPage?: () => void;
   enabled: boolean;
 }
 
@@ -17,6 +19,8 @@ export function useMeetingKeyboardShortcuts({
   onToggleHandRaise,
   onEndCall,
   onToggleFullscreen,
+  onNextPage,
+  onPrevPage,
   enabled,
 }: MeetingShortcutHandlers) {
   const handleKeyDown = useCallback(
@@ -55,6 +59,14 @@ export function useMeetingKeyboardShortcuts({
           e.preventDefault();
           onToggleFullscreen();
           break;
+        case 'arrowright':
+          e.preventDefault();
+          onNextPage?.();
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          onPrevPage?.();
+          break;
         case 'escape':
           // Only end call on Shift+Escape to avoid accidental exits
           if (e.shiftKey) {
@@ -64,7 +76,7 @@ export function useMeetingKeyboardShortcuts({
           break;
       }
     },
-    [enabled, onToggleAudio, onToggleVideo, onToggleScreenShare, onToggleHandRaise, onEndCall, onToggleFullscreen],
+    [enabled, onToggleAudio, onToggleVideo, onToggleScreenShare, onToggleHandRaise, onEndCall, onToggleFullscreen, onNextPage, onPrevPage],
   );
 
   useEffect(() => {

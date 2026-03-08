@@ -5,6 +5,12 @@ import { cn } from '@/lib/utils';
 import { ScreenShareOverlay } from './ScreenShareOverlay';
 import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
 import { meetingLogger as log } from '@/lib/meetingLogger';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export type TileConnectionQuality = 'excellent' | 'good' | 'fair' | 'poor' | 'disconnected';
 
@@ -21,6 +27,13 @@ interface ParticipantTileProps {
     stream?: MediaStream;
     audioLevel?: number;
     connectionQuality?: TileConnectionQuality;
+    /** Per-peer stats for tooltip */
+    peerStats?: {
+      latency: number;
+      jitter: number;
+      packetLoss: number;
+      bitrate: number;
+    };
   };
   isLocal?: boolean;
   isFocused?: boolean;
@@ -151,6 +164,18 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
     };
   }, [participant.stream, participant.is_video_off, participant.display_name]);
 
+  const q = participant.connectionQuality || 'good';
+  const bars = q === 'excellent' ? 3 : q === 'good' ? 3 : q === 'fair' ? 2 : q === 'poor' ? 1 : 0;
+  const color = q === 'excellent' || q === 'good'
+    ? 'from-emerald-500 to-emerald-400 shadow-emerald-500/50'
+    : q === 'fair'
+      ? 'from-amber-500 to-amber-400 shadow-amber-500/50'
+      : 'from-rose-500 to-rose-400 shadow-rose-500/50';
+  const dimColor = 'bg-white/20';
+
+  const stats = participant.peerStats;
+  const hasStats = stats && (stats.latency > 0 || stats.packetLoss > 0);
+
   return (
     <div
       className={cn(
@@ -275,34 +300,43 @@ const ParticipantTileComponent = memo(function ParticipantTile({ participant, is
         </div>
       )}
 
-      {/* Connection Quality — driven by real stats */}
+      {/* Connection Quality — with RTT/jitter tooltip */}
       <div className="absolute top-4 right-4">
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl rounded-full border border-white/10 shadow-lg">
-          <div className="flex items-end gap-0.5">
-            {(() => {
-              const q = participant.connectionQuality || 'good';
-              const bars = q === 'excellent' ? 3 : q === 'good' ? 3 : q === 'fair' ? 2 : q === 'poor' ? 1 : 0;
-              const color = q === 'excellent' || q === 'good'
-                ? 'from-emerald-500 to-emerald-400 shadow-emerald-500/50'
-                : q === 'fair'
-                  ? 'from-amber-500 to-amber-400 shadow-amber-500/50'
-                  : 'from-rose-500 to-rose-400 shadow-rose-500/50';
-              const dimColor = 'bg-white/20';
-              return [2.5, 3.5, 5].map((height, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "w-1 rounded-full transition-all duration-300",
-                    i < bars
-                      ? `bg-gradient-to-t ${color} shadow-sm`
-                      : dimColor
-                  )}
-                  style={{ height: `${height * 4}px` }}
-                />
-              ));
-            })()}
-          </div>
-        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl rounded-full border border-white/10 shadow-lg cursor-default">
+                <div className="flex items-end gap-0.5">
+                  {[2.5, 3.5, 5].map((height, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "w-1 rounded-full transition-all duration-300",
+                        i < bars
+                          ? `bg-gradient-to-t ${color} shadow-sm`
+                          : dimColor
+                      )}
+                      style={{ height: `${height * 4}px` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-black/90 border-white/10 text-white text-xs space-y-1 p-3">
+              <p className="font-semibold capitalize">{q} Connection</p>
+              {hasStats ? (
+                <>
+                  <p>RTT: {Math.round(stats.latency)}ms</p>
+                  <p>Jitter: {stats.jitter.toFixed(1)}ms</p>
+                  <p>Packet Loss: {stats.packetLoss.toFixed(1)}%</p>
+                  <p>Bitrate: {(stats.bitrate / 1000).toFixed(0)} kbps</p>
+                </>
+              ) : (
+                <p className="text-white/60">{isLocal ? 'Local participant' : 'Collecting stats…'}</p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );

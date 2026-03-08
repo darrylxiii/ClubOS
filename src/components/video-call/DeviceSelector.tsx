@@ -3,13 +3,26 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Video, Mic, Volume2, RefreshCw } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Video, Mic, Volume2, RefreshCw, Gauge } from 'lucide-react';
+
+export type BandwidthPreset = 'hd' | 'standard' | 'low';
 
 interface DeviceSelectorProps {
   onDeviceChange?: (type: 'video' | 'audio' | 'speaker', deviceId: string) => void;
+  bandwidthPreset?: BandwidthPreset;
+  onBandwidthPresetChange?: (preset: BandwidthPreset) => void;
+  noiseSuppression?: boolean;
+  onNoiseSuppressionChange?: (enabled: boolean) => void;
 }
 
-export function DeviceSelector({ onDeviceChange }: DeviceSelectorProps) {
+export function DeviceSelector({
+  onDeviceChange,
+  bandwidthPreset = 'standard',
+  onBandwidthPresetChange,
+  noiseSuppression = true,
+  onNoiseSuppressionChange,
+}: DeviceSelectorProps) {
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [speakerDevices, setSpeakerDevices] = useState<MediaDeviceInfo[]>([]);
@@ -42,6 +55,12 @@ export function DeviceSelector({ onDeviceChange }: DeviceSelectorProps) {
     navigator.mediaDevices.addEventListener('devicechange', loadDevices);
     return () => navigator.mediaDevices.removeEventListener('devicechange', loadDevices);
   }, []);
+
+  const BANDWIDTH_OPTIONS: { value: BandwidthPreset; label: string; description: string }[] = [
+    { value: 'hd', label: 'HD (720p)', description: '1280×720, best quality' },
+    { value: 'standard', label: 'Standard (480p)', description: '640×480, balanced' },
+    { value: 'low', label: 'Low (240p)', description: '320×240, saves bandwidth' },
+  ];
 
   return (
     <Card className="p-6 space-y-6 backdrop-blur-xl bg-black/60 border-white/10">
@@ -98,6 +117,18 @@ export function DeviceSelector({ onDeviceChange }: DeviceSelectorProps) {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Noise Suppression Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-sm">Noise Suppression</Label>
+            <p className="text-xs text-muted-foreground">Reduce background noise</p>
+          </div>
+          <Switch
+            checked={noiseSuppression}
+            onCheckedChange={(checked) => onNoiseSuppressionChange?.(checked)}
+          />
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -118,6 +149,31 @@ export function DeviceSelector({ onDeviceChange }: DeviceSelectorProps) {
               {speakerDevices.map(device => (
                 <SelectItem key={device.deviceId} value={device.deviceId}>
                   {device.label || `Speaker ${speakerDevices.indexOf(device) + 1}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Bandwidth Quality Preset */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Gauge className="h-5 w-5" /> Video Quality
+        </h3>
+        <div className="space-y-2">
+          <Label>Bandwidth Preset</Label>
+          <Select value={bandwidthPreset} onValueChange={(value) => onBandwidthPresetChange?.(value as BandwidthPreset)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {BANDWIDTH_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  <div className="flex flex-col">
+                    <span>{opt.label}</span>
+                    <span className="text-xs text-muted-foreground">{opt.description}</span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
