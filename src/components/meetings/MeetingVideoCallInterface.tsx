@@ -360,7 +360,27 @@ export function MeetingVideoCallInterface({
     }
   }, []);
 
-  // Keyboard shortcuts and muted detection are initialized after handler declarations below
+  // Refs for handlers to avoid hook-ordering issues
+  const handleToggleScreenShareRef = useRef<() => void>(() => {});
+  const handleToggleHandRaiseRef = useRef<() => void>(() => {});
+  const handleEndCallRef = useRef<() => void>(() => {});
+
+  useMeetingKeyboardShortcuts({
+    onToggleAudio: toggleAudio,
+    onToggleVideo: toggleVideo,
+    onToggleScreenShare: () => handleToggleScreenShareRef.current(),
+    onToggleHandRaise: () => handleToggleHandRaiseRef.current(),
+    onEndCall: () => handleEndCallRef.current(),
+    onToggleFullscreen: handleToggleFullscreen,
+    enabled: meetingStarted && !showDiagnostics,
+  });
+
+  // "You are muted" detection
+  useMutedSpeakingDetector({
+    localStream,
+    isAudioEnabled,
+    enabled: meetingStarted && !showDiagnostics,
+  });
 
   // Compositor-based recording with consent (PRIMARY RECORDING SYSTEM)
   const {
