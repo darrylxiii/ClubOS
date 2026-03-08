@@ -121,7 +121,7 @@ export function useSignalingChannel({
   // Start/stop fallback polling based on channel health
   useEffect(() => {
     if (channelStatus === 'disconnected' || channelStatus === 'error') {
-      log.debug('[Signaling] Starting fallback polling');
+      log.debug('Signaling', 'Starting fallback polling');
       pollingInterval.current = setInterval(pollSignals, 2000);
       return () => { if (pollingInterval.current) clearInterval(pollingInterval.current); };
     } else if (pollingInterval.current) {
