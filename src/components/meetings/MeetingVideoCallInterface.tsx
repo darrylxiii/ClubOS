@@ -1229,7 +1229,7 @@ export function MeetingVideoCallInterface({
               isHost={meeting.host_id === participantId}
               onEnd={onEnd}
               onFallbackToWebRTC={() => {
-                console.log('[Meeting] 🔄 Falling back to WebRTC P2P mode');
+                log.debug('Meeting', 'Falling back to WebRTC P2P mode');
                 setUseLiveKitMode(false);
                 toast.info('Switched to direct peer-to-peer mode', {
                   description: 'Using direct connection for this meeting'
