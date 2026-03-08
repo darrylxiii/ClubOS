@@ -3,6 +3,7 @@
  * Shows encryption status and allows toggling E2EE for meetings
  */
 
+import { useState } from 'react';
 import { Shield, ShieldCheck, ShieldOff, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { supportsE2EEncryption } from '@/utils/webrtcConfig';
+import { E2ESafetyNumberDialog } from './E2ESafetyNumberDialog';
 
 interface E2EEncryptionToggleProps {
   isEnabled: boolean;
@@ -23,6 +25,9 @@ interface E2EEncryptionToggleProps {
   error?: string | null;
   onToggle: () => void;
   disabled?: boolean;
+  meetingId?: string;
+  peerName?: string;
+  peerId?: string;
 }
 
 export function E2EEncryptionToggle({
@@ -33,8 +38,12 @@ export function E2EEncryptionToggle({
   totalPeers,
   error,
   onToggle,
-  disabled = false
+  disabled = false,
+  meetingId = '',
+  peerName = 'Peer',
+  peerId = '',
 }: E2EEncryptionToggleProps) {
+  const [safetyOpen, setSafetyOpen] = useState(false);
   const browserSupported = supportsE2EEncryption();
   
   // Determine status
