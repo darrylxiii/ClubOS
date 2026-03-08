@@ -167,7 +167,7 @@ export default function MeetingRoom() {
       log.debug('MeetingRoom', 'Meeting loaded successfully');
       setMeeting(data);
     } catch (error: unknown) {
-      console.error('Error loading meeting:', error);
+      log.error('MeetingRoom', 'Error loading meeting:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to load meeting. Please try again.');
     } finally {
       setLoading(false);
