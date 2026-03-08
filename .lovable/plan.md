@@ -53,26 +53,20 @@
 - Gallery page keyboard navigation (arrow keys)
 - Noise suppression UI toggle in DeviceSelector
 
-### Phase H: Polish (92 → 100)
+### Phase H: Polish & Automation ✅ (92 → 100)
+- **Date range filter on MeetingHistoryTab**: From/To date inputs with clear button, useMemo filtering
+- **sendBeacon mobile cleanup**: `beforeunload` + `pagehide` → `navigator.sendBeacon` for reliable participant cleanup on mobile/tab close
+- **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
+- **Auto-advance pipeline on strong_yes**: `extract-candidate-performance` auto-advances `applications.pipeline_stage` when `hiring_recommendation === 'strong_yes'`, with audit log
 
-| # | Task | Points |
-|---|------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | +2 |
-| 20 | Meeting history search and date filter | +1 |
-| 21 | E2E encryption safety number dialog | +1 |
-| 22 | `beforeunload` → `sendBeacon` for mobile cleanup | +0.5 |
-| 23 | Guest cleanup heartbeat timeout (server-side) | +0.5 |
-| 24 | Meeting summary card in history (duration, participants, topics) | +1 |
-
-### Phase I: Ecosystem Completeness (77 → 100)
+### Phase I: Remaining Ecosystem
 
 | # | Task | Impact |
 |---|------|--------|
-| 25 | Auto-trigger post-meeting follow-up generation | No manual click |
-| 26 | Pre-meeting prep auto-push (30min before) | Interviewers prepared |
-| 27 | Auto-advance pipeline stage on strong_yes recommendation | Close recruitment loop |
-| 28 | Recording chapters from AI topic transitions | Smart playback navigation |
-| 29 | Interview Comparison Matrix page | Better hiring decisions |
-| 30 | Meeting cost calculator on meeting cards | ROI awareness |
-| 31 | Date range filter on MeetingHistoryTab | Basic UX |
-| 32 | Candidate meeting portal | Candidate experience |
+| 19 | SFU-mode cloud recording via LiveKit Egress API | +2 |
+| 20 | E2E encryption safety number dialog | +1 |
+| 21 | Guest cleanup heartbeat timeout (server-side) | +0.5 |
+| 22 | Meeting summary card in history (duration, participants, topics) | +1 |
+| 23 | Interview Comparison Matrix page | Better hiring decisions |
+| 24 | Meeting cost calculator on meeting cards | ROI awareness |
+| 25 | Candidate meeting portal | Candidate experience |

@@ -162,6 +162,57 @@ ${fullTranscript}`
       .eq('meeting_id', meetingId)
       .eq('processing_type', 'candidate_performance');
 
+    // Auto-advance pipeline stage on strong_yes recommendation
+    if (
+      performance.hiring_recommendation === 'strong_yes' &&
+      meeting.application_id
+    ) {
+      console.log('[Extract Candidate Performance] strong_yes detected — advancing pipeline stage');
+      
+      // Get current application
+      const { data: application } = await supabase
+        .from('applications')
+        .select('id, status, pipeline_stage')
+        .eq('id', meeting.application_id)
+        .single();
+
+      if (application) {
+        const stageMap: Record<string, string> = {
+          'applied': 'screening',
+          'screening': 'interview',
+          'interview': 'final_interview',
+          'final_interview': 'offer',
+        };
+        const nextStage = stageMap[application.pipeline_stage || ''] || null;
+        
+        if (nextStage) {
+          await supabase
+            .from('applications')
+            .update({ 
+              pipeline_stage: nextStage,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', application.id);
+
+          console.log(`[Extract Candidate Performance] Pipeline advanced: ${application.pipeline_stage} → ${nextStage}`);
+
+          // Log activity for audit
+          await supabase.from('activity_feed').insert({
+            user_id: meeting.candidate_id,
+            event_type: 'pipeline_auto_advanced',
+            event_data: {
+              application_id: application.id,
+              meeting_id: meetingId,
+              from_stage: application.pipeline_stage,
+              to_stage: nextStage,
+              reason: 'strong_yes_hiring_recommendation',
+            },
+            visibility: 'internal',
+          });
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, performance }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

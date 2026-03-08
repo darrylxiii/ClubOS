@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Search, Filter, Plus, AlertCircle, Settings, Loader2, Video, FolderOpen, RefreshCw } from "lucide-react";
+import { Search, Filter, Plus, AlertCircle, Settings, Loader2, Video, FolderOpen, RefreshCw, CalendarDays, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -15,12 +15,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useMeetingRecordings } from "@/hooks/useMeetingRecordings";
 import { MeetingRecordingCard } from "@/components/meetings/MeetingRecordingCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 
 export function MeetingHistoryTab() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -43,17 +47,40 @@ export function MeetingHistoryTab() {
     meeting_type: "interview",
   });
 
-  // Filter recordings by search
-  const filteredRecordings = recordings.filter(r => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const title = r.title || r.meeting?.title || '';
-    return (
-      title.toLowerCase().includes(query) ||
-      r.executive_summary?.toLowerCase().includes(query) ||
-      r.transcript?.toLowerCase().includes(query)
-    );
-  });
+  // Filter recordings by search and date range
+  const filteredRecordings = useMemo(() => {
+    return recordings.filter(r => {
+      // Text search
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const title = r.title || r.meeting?.title || '';
+        const matchesText = (
+          title.toLowerCase().includes(query) ||
+          r.executive_summary?.toLowerCase().includes(query) ||
+          r.transcript?.toLowerCase().includes(query)
+        );
+        if (!matchesText) return false;
+      }
+
+      // Date range filter
+      const recordingDate = r.recorded_at || r.created_at;
+      if (recordingDate) {
+        if (dateFrom) {
+          const from = startOfDay(new Date(dateFrom));
+          if (isBefore(new Date(recordingDate), from)) return false;
+        }
+        if (dateTo) {
+          const to = endOfDay(new Date(dateTo));
+          if (isAfter(new Date(recordingDate), to)) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [recordings, searchQuery, dateFrom, dateTo]);
+
+  const hasDateFilter = dateFrom || dateTo;
+  const clearDateFilter = () => { setDateFrom(""); setDateTo(""); };
 
   const handleFileUpload = async () => {
     if (!user || !uploadFile) {
@@ -230,20 +257,21 @@ export function MeetingHistoryTab() {
       {/* Filters and Search */}
       <Card className="border-0 bg-card/30 backdrop-blur-md">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search recordings by title, transcript, or summary..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search recordings by title, transcript, or summary..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Select value={filterType} onValueChange={setFilterType}>
+              <div className="flex gap-2">
+                <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger>
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Filter by source" />
@@ -369,6 +397,38 @@ export function MeetingHistoryTab() {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
+            </div>
+
+            {/* Date range filter row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <Label htmlFor="date-from" className="text-sm text-muted-foreground whitespace-nowrap">From</Label>
+                <Input
+                  id="date-from"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-40 h-8 text-sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="date-to" className="text-sm text-muted-foreground whitespace-nowrap">To</Label>
+                <Input
+                  id="date-to"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-40 h-8 text-sm"
+                />
+              </div>
+              {hasDateFilter && (
+                <Button variant="ghost" size="sm" onClick={clearDateFilter} className="h-8 px-2">
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
