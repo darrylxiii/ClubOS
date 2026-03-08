@@ -943,7 +943,7 @@ export function MeetingVideoCallInterface({
       // CRITICAL FIX: Allow meeting to start with 1 participant (solo user)
       // This fixes the "waiting for more participants" deadlock
       if (activeParticipantCount >= 1 && !meetingStarted) {
-        console.log('[Meeting] ✅ Starting meeting with', activeParticipantCount, 'participant(s)');
+        log.debug('Meeting', 'Starting meeting with ' + activeParticipantCount + ' participant(s)');
         setMeetingStarted(true);
       }
     };
