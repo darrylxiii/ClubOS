@@ -212,7 +212,7 @@ export const ConnectionsSettings = ({
           }
 
           const userInfo = await userInfoResponse.json();
-          console.log('✅ Gmail user email:', userInfo.email);
+          
 
           // Calculate token expiry
           const expiresAt = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
