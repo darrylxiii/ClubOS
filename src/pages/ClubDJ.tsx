@@ -121,7 +121,6 @@ export default function ClubDJ() {
   useEffect(() => {
     // Only redirect if loading is complete AND user definitively doesn't have admin role
     if (!loading && availableRoles.length > 0 && !hasAdminAccess) {
-      console.log('[ClubDJ] Redirecting non-admin user. Available roles:', availableRoles);
       navigate('/home');
     }
   }, [availableRoles, loading, navigate, hasAdminAccess]);
