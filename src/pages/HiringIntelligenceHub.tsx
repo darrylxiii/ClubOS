@@ -257,7 +257,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
 
   // Empty state component for reusability
   const EmptyState = ({ icon: Icon, title, description, action }: { 
-    icon: any; 
+    icon: React.ElementType; 
     title: string; 
     description: string; 
     action?: { label: string; onClick: () => void } 
