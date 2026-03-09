@@ -66,7 +66,7 @@ export function LiveKitMeetingWrapper({
     // This prevents the timer from resetting when isConnecting/token changes
     useEffect(() => {
         const mountTime = Date.now();
-        console.log('[LiveKit] ⏱️ Starting connection timers at', new Date().toISOString());
+        
 
         // Soft timeout: Show fallback option at 15 seconds
         const softTimer = setTimeout(() => {
@@ -85,7 +85,7 @@ export function LiveKitMeetingWrapper({
         }, 30000);
 
         return () => {
-            console.log('[LiveKit] 🧹 Clearing connection timers');
+            
             clearTimeout(softTimer);
             clearTimeout(hardTimer);
         };
@@ -94,7 +94,7 @@ export function LiveKitMeetingWrapper({
     // Success detector: Clear fallback option when connected
     useEffect(() => {
         if (token && !isConnecting) {
-            console.log('[LiveKit] ✅ Connection successful - clearing fallback option');
+            
             setShowFallbackOption(false);
         }
     }, [token, isConnecting]);

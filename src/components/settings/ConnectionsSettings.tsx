@@ -86,13 +86,6 @@ export const ConnectionsSettings = ({
   }, [user]);
 
   const handleOAuthCallback = async (code: string | null, error: string | null, errorDescription: string | null) => {
-    console.log('🔍 OAuth callback triggered:', { 
-      hasCode: !!code, 
-      hasError: !!error,
-      userLoaded: !!user,
-      url: window.location.href
-    });
-    
     // Check which type of connection is pending
     const pendingCalendar = localStorage.getItem('pending_calendar_connection');
     const pendingEmail = localStorage.getItem('pending_email_connection');
@@ -134,12 +127,10 @@ export const ConnectionsSettings = ({
     
     // Process OAuth success
     if (!code || !user) {
-      console.log('⚠️ Skipping OAuth: missing code or user');
       return;
     }
 
     setOauthProcessing(true);
-    console.log('🔄 Starting OAuth processing...');
     
     try {
       const redirectUri = `${window.location.origin}/settings`;
@@ -147,10 +138,10 @@ export const ConnectionsSettings = ({
       // Handle Calendar OAuth
       if (pendingCalendar) {
         const { provider, label } = JSON.parse(pendingCalendar);
-        console.log('📋 Processing calendar connection:', { provider, label });
+        
         
         if (provider === 'google') {
-          console.log('🔵 Exchanging Google Calendar code...');
+          
           
           const { data, error: funcError } = await supabase.functions.invoke('google-calendar-auth', {
             body: { action: 'exchangeCode', code, redirectUri },
@@ -195,16 +186,16 @@ export const ConnectionsSettings = ({
       // Handle Email OAuth
       else if (pendingEmail) {
         const { provider, label } = JSON.parse(pendingEmail);
-        console.log('📧 Processing email connection:', { provider, label });
+        
         
         if (provider === 'gmail') {
-          console.log('📧 Exchanging Gmail code...');
+          
           
           const { data, error: funcError } = await supabase.functions.invoke('gmail-oauth', {
             body: { action: 'exchangeCode', code, redirectUri },
           });
 
-          console.log('📥 Gmail OAuth response:', { hasError: !!funcError, hasData: !!data });
+          
 
           if (funcError || !data?.access_token) {
             console.error('❌ Gmail OAuth error:', funcError);
@@ -221,7 +212,7 @@ export const ConnectionsSettings = ({
           }
 
           const userInfo = await userInfoResponse.json();
-          console.log('✅ Gmail user email:', userInfo.email);
+          
 
           // Calculate token expiry
           const expiresAt = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
@@ -251,13 +242,13 @@ export const ConnectionsSettings = ({
         }
         
         else if (provider === 'outlook') {
-          console.log('📧 Exchanging Outlook code...');
+          
           
           const { data, error: funcError } = await supabase.functions.invoke('outlook-oauth', {
             body: { action: 'exchangeCode', code, redirectUri },
           });
 
-          console.log('📥 Outlook OAuth response:', { hasError: !!funcError, hasData: !!data });
+          
 
           if (funcError || !data?.access_token) {
             console.error('❌ Outlook OAuth error:', funcError);
@@ -274,7 +265,7 @@ export const ConnectionsSettings = ({
           }
 
           const userInfo = await userInfoResponse.json();
-          console.log('✅ Outlook user email:', userInfo.mail || userInfo.userPrincipalName);
+          
 
           // Calculate token expiry
           const expiresAt = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
@@ -310,7 +301,7 @@ export const ConnectionsSettings = ({
       localStorage.removeItem('oauth_return_tab');
       window.history.replaceState({}, document.title, '/settings');
       
-      console.log('✅ OAuth complete!');
+      
     } catch (error) {
       console.error('❌ OAuth error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to complete connection');
@@ -610,7 +601,7 @@ export const ConnectionsSettings = ({
       setCalendarLoading(true);
       
       const redirectUri = `${window.location.origin}/settings`;
-      console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
+      
       
       // Store that we want to return to connections tab after OAuth
       localStorage.setItem('oauth_return_tab', 'connections');
@@ -637,7 +628,7 @@ export const ConnectionsSettings = ({
         throw new Error('No authentication URL received');
       }
 
-      console.log(`[Calendar] Redirecting to ${provider} OAuth...`);
+      
       // Redirect to OAuth
       window.location.href = data.authUrl;
     } catch (error) {
@@ -715,7 +706,7 @@ export const ConnectionsSettings = ({
         throw new Error('Failed to get authentication URL');
       }
 
-      console.log(`📧 Redirecting to ${pendingEmailProvider} OAuth...`);
+      
       window.location.href = data.authUrl;
     } catch (error) {
       console.error('Email connection error:', error);

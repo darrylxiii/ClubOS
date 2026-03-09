@@ -294,7 +294,7 @@ export default function JobDetail() {
           url,
         });
       } catch (error) {
-        console.log('Share cancelled');
+        // Share cancelled by user
       }
     } else {
       try {

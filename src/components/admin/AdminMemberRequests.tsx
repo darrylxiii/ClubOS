@@ -142,8 +142,7 @@ export const AdminMemberRequests = () => {
           filter: 'account_status=eq.pending'
         },
         () => {
-          console.log('[Admin] Candidate onboarding updated');
-          fetchRequests(); // Refresh to show new progress
+          fetchRequests();
         }
       )
       .subscribe();
@@ -307,13 +306,6 @@ export const AdminMemberRequests = () => {
 
   const handleReview = async () => {
     if (!selectedRequest || !reviewAction) return;
-
-    console.log('[AdminMemberRequests] Starting review process', {
-      request: selectedRequest.name,
-      action: reviewAction,
-      sendEmail,
-      sendSMS
-    });
 
     setSubmitting(true);
     try {

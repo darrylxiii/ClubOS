@@ -184,12 +184,6 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
       // Show all detected interviews, even without applications (so they can be linked)
       const validDetected = detected;
 
-      console.log('[UpcomingInterviews] Fetched data:', {
-        bookingsCount: bookings?.length || 0,
-        detectedCount: detected?.length || 0,
-        validDetectedCount: validDetected.length,
-        now,
-      });
 
       // Normalize bookings
       const normalizedBookings: NormalizedInterview[] = (bookings || []).map(b => {
@@ -301,20 +295,6 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
     isPast(new Date(i.scheduled_end)) && !i.feedback_submitted_at && i.source === 'booking'
   );
 
-  console.log('[UpcomingInterviews] Categories:', {
-    total: interviews.length,
-    today: todayInterviews.length,
-    thisWeek: thisWeekInterviews.length,
-    later: laterInterviews.length,
-    feedbackPending: feedbackPending.length,
-    interviews: interviews.map(i => ({
-      id: i.id,
-      candidate: i.candidate_name,
-      start: i.scheduled_start,
-      isToday: isToday(new Date(i.scheduled_start)),
-      isThisWeek: isThisWeek(new Date(i.scheduled_start)),
-    })),
-  });
 
   if (loading) {
     return (

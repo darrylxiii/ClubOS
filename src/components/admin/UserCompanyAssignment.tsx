@@ -36,16 +36,11 @@ export function UserCompanyAssignment() {
 
   const fetchData = async () => {
     try {
-      console.log('[UserCompanyAssignment] Fetching data...');
-      
       // Fetch users and companies first
       const [usersRes, companiesRes] = await Promise.all([
         supabase.from('profiles').select('id, email, full_name'),
         supabase.from('companies').select('id, name').order('name'),
       ]);
-
-      console.log('[UserCompanyAssignment] Users response:', usersRes);
-      console.log('[UserCompanyAssignment] Companies response:', companiesRes);
 
       if (usersRes.error) throw usersRes.error;
       if (companiesRes.error) throw companiesRes.error;
@@ -73,7 +68,6 @@ export function UserCompanyAssignment() {
           };
         });
         setMembers(enrichedMembers as any);
-        console.log('[UserCompanyAssignment] Enriched members:', enrichedMembers);
       }
 
     } catch (error) {

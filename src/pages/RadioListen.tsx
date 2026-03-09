@@ -81,8 +81,8 @@ export default function RadioListen() {
           table: 'live_sessions',
           filter: `id=eq.${sessionId}`
         },
-        (payload) => {
-          console.log('Session updated:', payload);
+        () => {
+          // Session updated via realtime
         }
       )
       .subscribe();
@@ -117,7 +117,6 @@ export default function RadioListen() {
           console.error('Failed to register as listener:', error);
         } else {
           setListenerId(data);
-          console.log('Registered as listener:', data);
         }
       } catch (err) {
         console.error('Error registering listener:', err);
@@ -149,7 +148,7 @@ export default function RadioListen() {
         .from('playlists')
         .update({ play_count: (session.data.play_count || 0) + 1 })
         .eq('id', sessionId)
-        .then(() => console.log('Play count incremented'));
+        .then(() => { /* play count incremented */ });
     }
   }, [session?.type, sessionId]);
 

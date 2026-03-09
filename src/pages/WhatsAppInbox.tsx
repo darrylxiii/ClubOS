@@ -48,7 +48,6 @@ export default function WhatsAppInbox() {
         return;
       }
 
-      console.log('Fetching relationship score for:', selectedConversation.candidate_id);
       const score = await getRelationshipScore('candidate', selectedConversation.candidate_id);
 
       if (score) {
