@@ -251,7 +251,7 @@ async function fetchApplicationsForMetrics(
       current_company: (profileData?.current_company as string) || null,
       linkedin_url: (profileData?.linkedin_url as string) || null,
       user_id: linkedUserId,
-      stages: app.stages || [],
+      stages: (Array.isArray(app.stages) ? app.stages : []) as unknown[],
       is_linked_user: !!(profileData as Record<string, unknown>)?.user_id,
     };
   });

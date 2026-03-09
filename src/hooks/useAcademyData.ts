@@ -82,7 +82,7 @@ export function useAcademyData(slug: string | undefined, userId: string | undefi
           });
 
           courses = courses.map(course => {
-            const totalModules = (course as Record<string, unknown>).modules?.[0]?.count || 1;
+            const totalModules = (course as unknown as Record<string, unknown>).modules?.[0]?.count || 1;
             const progressInfo = courseProgress[course.id];
             if (progressInfo) {
               const progress = Math.round(progressInfo.total / (totalModules as number));
