@@ -132,7 +132,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       candidateTitle: candidateProfile?.current_title || null,
       candidateAvatarUrl: candidateProfile?.avatar_url || linkedProfile?.avatar_url || null,
       candidateSkills: toStringArray(candidateProfile?.skills),
-      candidateSourceChannel: (app as any).source_channel || null,
+      candidateSourceChannel: null, // Not available on applications table
       candidateSourcedBy: sourcedByProfile?.full_name || null,
       internalReviewNotes: app.internal_review_notes || null,
       status: app.status,
