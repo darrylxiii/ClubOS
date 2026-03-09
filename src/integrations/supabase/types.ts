@@ -57963,6 +57963,14 @@ export type Database = {
         Args: { _password: string }
         Returns: string
       }
+      increment_dossier_share_view_count: {
+        Args: { share_id: string }
+        Returns: undefined
+      }
+      increment_dossier_view_count: {
+        Args: { dossier_id: string }
+        Returns: undefined
+      }
       increment_template_usage: {
         Args: { template_id: string }
         Returns: undefined
