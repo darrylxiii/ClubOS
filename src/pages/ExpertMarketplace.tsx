@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -63,11 +64,64 @@ interface ModuleExpert {
 }
 
 export default function ExpertMarketplace() {
-  const [user, setUser] = useState<any>(null);
-  const [experts, setExperts] = useState<ExpertProfile[]>([]);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [assignments, setAssignments] = useState<ModuleExpert[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: userData } = useQuery({
+    queryKey: ['expert-marketplace-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+  const user = userData ?? null;
+
+  const { data: experts = [], isLoading: expertsLoading } = useQuery({
+    queryKey: ['expert-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expert_profiles")
+        .select(`*, profiles (full_name, avatar_url, email)`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as ExpertProfile[];
+    },
+    enabled: !!user,
+  });
+
+  const { data: modules = [], isLoading: modulesLoading } = useQuery({
+    queryKey: ['expert-modules'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("modules")
+        .select(`*, courses (title)`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as Module[];
+    },
+    enabled: !!user,
+  });
+
+  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery({
+    queryKey: ['expert-assignments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("module_experts")
+        .select(`*, modules (id, title, description, course_id, courses (title)), expert_profiles (*, profiles (full_name, avatar_url, email))`)
+        .order("assigned_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as ModuleExpert[];
+    },
+    enabled: !!user,
+  });
+
+  const loading = expertsLoading || modulesLoading || assignmentsLoading;
+
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['expert-profiles'] });
+    queryClient.invalidateQueries({ queryKey: ['expert-modules'] });
+    queryClient.invalidateQueries({ queryKey: ['expert-assignments'] });
+  };
+
   const [searchTerm, setSearchTerm] = useState("");
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState("");
@@ -82,8 +136,6 @@ export default function ExpertMarketplace() {
     notes: "",
     session_type: "mentorship"
   });
-
-  // Expert profile form
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({
     bio: "",
@@ -92,101 +144,6 @@ export default function ExpertMarketplace() {
     years_experience: "",
     availability: "available"
   });
-
-  useEffect(() => {
-    loadUser();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      loadAllData();
-    }
-  }, [user]);
-
-  const loadUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
-
-  const loadAllData = async () => {
-    setLoading(true);
-    await Promise.all([
-      loadExperts(),
-      loadModules(),
-      loadAssignments()
-    ]);
-    setLoading(false);
-  };
-
-  const loadExperts = async () => {
-    const { data, error } = await supabase
-      .from("expert_profiles")
-      .select(`
-        *,
-        profiles (
-          full_name,
-          avatar_url,
-          email
-        )
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load experts");
-      return;
-    }
-    setExperts(data as any);
-  };
-
-  const loadModules = async () => {
-    const { data, error } = await supabase
-      .from("modules")
-      .select(`
-        *,
-        courses (
-          title
-        )
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load modules");
-      return;
-    }
-    setModules(data as any);
-  };
-
-  const loadAssignments = async () => {
-    const { data, error } = await supabase
-      .from("module_experts")
-      .select(`
-        *,
-        modules (
-          id,
-          title,
-          description,
-          course_id,
-          courses (
-            title
-          )
-        ),
-        expert_profiles (
-          *,
-          profiles (
-            full_name,
-            avatar_url,
-            email
-          )
-        )
-      `)
-      .order("assigned_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load assignments");
-      return;
-    }
-    setAssignments(data as any);
-  };
 
   const handleCreateProfile = async () => {
     const expertise = profileForm.expertise_areas.split(',').map(s => s.trim()).filter(Boolean);
@@ -211,7 +168,7 @@ export default function ExpertMarketplace() {
     toast.success("Expert profile created");
     setProfileDialogOpen(false);
     resetProfileForm();
-    loadExperts();
+    invalidateAll();
   };
 
   const handleAssignExpert = async () => {
@@ -236,7 +193,7 @@ export default function ExpertMarketplace() {
     setAssignDialogOpen(false);
     setSelectedModule("");
     setSelectedExpert("");
-    loadAssignments();
+    invalidateAll();
   };
 
   const openUnassignDialog = (assignmentId: string) => {
@@ -260,7 +217,7 @@ export default function ExpertMarketplace() {
 
     toast.success("Expert unassigned");
     setUnassignDialogOpen(false);
-    loadAssignments();
+    invalidateAll();
   };
 
   const handleBookSession = async () => {

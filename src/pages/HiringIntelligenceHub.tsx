@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,65 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Sparkles, TrendingUp, AlertCircle, Users, Calendar, Target, BarChart3, Briefcase, FileText, UserPlus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useHiringIntelligenceData } from "@/hooks/useHiringIntelligenceData";
+import type { JobWithHealth, CandidateApplication, UpcomingInterview } from "@/hooks/useHiringIntelligenceData";
 import { CandidateIntelligenceDossier } from "@/components/intelligence/CandidateIntelligenceDossier";
 import { AggregatedIntelligenceOverview } from "@/components/intelligence/AggregatedIntelligenceOverview";
 import { JobPredictionAccordion } from "@/components/intelligence/JobPredictionAccordion";
 import { useAggregatedHiringIntelligence, useRefreshAggregatedIntelligence } from "@/hooks/useAggregatedHiringIntelligence";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
-
-interface HiringStats {
-  activeJobs: number;
-  totalJobs?: number;
-  aiInsightsGenerated: number;
-  predictedHires: number;
-  avgMatchScore: number;
-  jobsWithCandidates?: number;
-  totalCandidates?: number;
-}
-
-interface JobWithHealth {
-  id: string;
-  title: string;
-  status: string;
-  created_at: string;
-  company_id: string | null;
-  companies: { name: string } | null;
-  candidatesInPipeline: number;
-  upcomingInterviews: number;
-  healthScore: number;
-  alerts: number;
-  [key: string]: unknown;
-}
-
-interface CandidateApplication {
-  id: string;
-  job_id: string;
-  candidate_id: string;
-  status: string;
-  match_score: number | null;
-  candidate_profiles: { full_name: string | null } | null;
-  jobs: { title: string; companies: { name: string } | null } | null;
-  [key: string]: unknown;
-}
-
-interface UpcomingInterview {
-  id: string;
-  scheduled_start: string;
-  scheduled_end: string | null;
-  meeting_type?: string;
-  candidate_profiles: { full_name: string | null } | null;
-  jobs: { title: string; companies: { name: string } | null } | null;
-  [key: string]: unknown;
-}
-
-interface InterviewStats {
-  thisWeek: number;
-  feedbackPending: number;
-  avgFeedbackTime: number;
-}
 
 // Predictions Tab Content Component
 function PredictionsTabContent({ 
@@ -97,15 +46,12 @@ function PredictionsTabContent({
 
   return (
     <div className="space-y-6">
-      {/* Aggregated Intelligence Overview - Primary View */}
       <AggregatedIntelligenceOverview
         insights={insights || null}
         isLoading={isLoading}
         onRefresh={() => refreshMutation.mutate(undefined)}
         isRefreshing={refreshMutation.isPending}
       />
-
-      {/* Individual Job Predictions - Expandable Accordion */}
       <JobPredictionAccordion
         jobs={jobs.filter(j => j.status === 'published')}
         jobHealthScores={insights?.jobHealthScores || []}
@@ -116,133 +62,14 @@ function PredictionsTabContent({
 
 export default function HiringIntelligenceHub({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<HiringStats>({ activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 });
-  const [jobs, setJobs] = useState<JobWithHealth[]>([]);
-  const [jobsNeedingAttention, setJobsNeedingAttention] = useState<JobWithHealth[]>([]);
-  const [topCandidatesAcrossJobs, setTopCandidatesAcrossJobs] = useState<CandidateApplication[]>([]);
-  const [upcomingInterviewsAllJobs, setUpcomingInterviewsAllJobs] = useState<UpcomingInterview[]>([]);
-  const [interviewStats, setInterviewStats] = useState<InterviewStats>({ thisWeek: 0, feedbackPending: 0, avgFeedbackTime: 0 });
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, error } = useHiringIntelligenceData();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-
-      // Load all jobs with published OR draft status (not 'open' which doesn't exist)
-      const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs')
-        .select('*, companies(name)')
-        .in('status', ['published', 'draft'])
-        .order('created_at', { ascending: false });
-
-      if (jobsError) throw jobsError;
-
-      // Load application counts per job separately (proper way to count)
-      const jobIds = jobsData?.map(j => j.id) || [];
-      let applicationCounts: Record<string, number> = {};
-      
-      if (jobIds.length > 0) {
-        const { data: appCountData } = await supabase
-          .from('applications')
-          .select('job_id')
-          .in('job_id', jobIds);
-        
-        // Aggregate counts client-side
-        appCountData?.forEach(app => {
-          applicationCounts[app.job_id] = (applicationCounts[app.job_id] || 0) + 1;
-        });
-      }
-
-      // Load applications for active candidates with match scores
-      const { data: applications } = await supabase
-        .from('applications')
-        .select('*, candidate_profiles(full_name), jobs(title, companies(name))')
-        .in('status', ['active', 'screening', 'interview', 'offer'])
-        .order('match_score', { ascending: false, nullsFirst: false })
-        .limit(20);
-
-      // Load upcoming interviews - enhanced detection:
-      // 1. Bookings marked as interview bookings
-      // 2. OR bookings with a job_id association (likely an interview)
-      const { data: interviews } = await supabase
-        .from('bookings')
-        .select('*, candidate_profiles(full_name), jobs(title, companies(name))')
-        .or('is_interview_booking.eq.true,job_id.not.is.null')
-        .gte('scheduled_start', new Date().toISOString())
-        .order('scheduled_start', { ascending: true })
-        .limit(10);
-
-      // Load ML predictions for stats
-      const { data: predictions } = await supabase
-        .from('ml_predictions')
-        .select('prediction_score')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      // Calculate average match score from applications (not predictions)
-      const applicationsWithScores = applications?.filter(a => a.match_score != null) || [];
-      const avgMatchFromApps = applicationsWithScores.length > 0
-        ? Math.round(applicationsWithScores.reduce((sum, a) => sum + (a.match_score || 0), 0) / applicationsWithScores.length)
-        : 0;
-
-      // Calculate stats
-      const activeJobs = jobsData?.filter(j => j.status === 'published').length || 0;
-      const totalJobs = jobsData?.length || 0;
-      const candidatesInPipeline = applications?.length || 0;
-
-      setStats({
-        activeJobs,
-        totalJobs,
-        aiInsightsGenerated: predictions?.length || 0,
-        predictedHires: candidatesInPipeline > 0 ? Math.ceil(candidatesInPipeline * 0.15) : 0,
-        avgMatchScore: avgMatchFromApps,
-        jobsWithCandidates: Object.keys(applicationCounts).length,
-        totalCandidates: candidatesInPipeline,
-      });
-
-      // Process jobs with health scores
-      const jobsWithHealth: JobWithHealth[] = jobsData?.map((job) => {
-        const appCount = applicationCounts[job.id] || 0;
-        let healthScore = 0;
-        if (job.status === 'published') {
-          healthScore = appCount > 10 ? 100 : appCount > 5 ? 80 : appCount > 2 ? 60 : appCount > 0 ? 40 : 20;
-        } else {
-          healthScore = 10;
-        }
-        
-        return {
-          ...job,
-          companies: job.companies as { name: string } | null,
-          candidatesInPipeline: appCount,
-          upcomingInterviews: 0,
-          healthScore,
-          alerts: healthScore < 50 ? 1 : 0,
-        };
-      }) || [];
-
-      setJobs(jobsWithHealth);
-      setJobsNeedingAttention(jobsWithHealth.filter((j) => j.healthScore < 60 && j.status === 'published'));
-      setTopCandidatesAcrossJobs((applications as unknown as CandidateApplication[])?.slice(0, 6) || []);
-      setUpcomingInterviewsAllJobs((interviews as unknown as UpcomingInterview[]) || []);
-
-      // Interview stats
-      setInterviewStats({
-        thisWeek: interviews?.length || 0,
-        feedbackPending: 0,
-        avgFeedbackTime: 12,
-      });
-
-    } catch (error) {
-      console.error('Error loading intelligence data:', error);
-      toast.error("Failed to load intelligence data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const stats = data?.stats ?? { activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 };
+  const jobs = data?.jobs ?? [];
+  const jobsNeedingAttention = data?.jobsNeedingAttention ?? [];
+  const topCandidatesAcrossJobs = data?.topCandidates ?? [];
+  const upcomingInterviewsAllJobs = data?.upcomingInterviews ?? [];
+  const interviewStats = data?.interviewStats ?? { thisWeek: 0, feedbackPending: 0, avgFeedbackTime: 0 };
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
