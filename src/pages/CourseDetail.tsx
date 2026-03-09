@@ -261,8 +261,8 @@ export default function CourseDetail() {
                 <span>{course.estimated_hours}h</span>
               </div>
               <AverageRatingDisplay
-                rating={course.rating_average}
-                count={course.rating_count}
+                rating={course.rating_average as number}
+                count={course.rating_count as number}
               />
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
