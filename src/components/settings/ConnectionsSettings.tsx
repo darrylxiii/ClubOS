@@ -265,7 +265,7 @@ export const ConnectionsSettings = ({
           }
 
           const userInfo = await userInfoResponse.json();
-          console.log('✅ Outlook user email:', userInfo.mail || userInfo.userPrincipalName);
+          
 
           // Calculate token expiry
           const expiresAt = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
