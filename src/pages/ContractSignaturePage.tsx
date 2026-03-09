@@ -26,7 +26,7 @@ export default function ContractSignaturePage() {
     queryKey: ['contract', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_contracts' as any)
+        .from('project_contracts')
         .select('*')
         .eq('id', contractId)
         .single();
