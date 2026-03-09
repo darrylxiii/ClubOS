@@ -170,7 +170,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       // 2. OR bookings with a job_id association (likely an interview)
       const { data: interviews } = await supabase
         .from('bookings')
-        .select('*, candidate_profiles(full_name, first_name, last_name), jobs(title, companies(name))')
+        .select('*, candidate_profiles(full_name), jobs(title, companies(name))')
         .or('is_interview_booking.eq.true,job_id.not.is.null')
         .gte('scheduled_start', new Date().toISOString())
         .order('scheduled_start', { ascending: true })
