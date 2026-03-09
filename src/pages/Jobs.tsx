@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
@@ -63,8 +64,7 @@ const Jobs = () => {
     title: string;
     company: string;
   } | null>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [userCurrency, setUserCurrency] = useState<Currency>('EUR');
   const [clubSyncDialogOpen, setClubSyncDialogOpen] = useState(false);
   const [matchFilterActive, setMatchFilterActive] = useState(false);
@@ -131,82 +131,55 @@ const Jobs = () => {
     fetchSavedJobs();
   }, [user]);
 
-  // Fetch jobs from database with match scores
-  useEffect(() => {
-    const fetchJobs = async () => {
-      setLoading(true);
-      try {
-        const jobsQuery = supabase.from('jobs').select(`
-          id,
-          title,
-          location,
-          employment_type,
-          salary_min,
-          salary_max,
-          currency,
-          created_at,
-          company_id,
-          tags,
-          is_continuous,
-          hired_count,
-          target_hire_count,
-          companies (
-            name,
-            slug,
-            logo_url
-          )
-        `).order('created_at', { ascending: false });
+  // Fetch jobs from database with match scores via useQuery
+  const { data: jobs = [], isLoading: loading } = useQuery({
+    queryKey: ['jobs-list', user?.id],
+    queryFn: async () => {
+      const { data: jobsData, error } = await supabase.from('jobs').select(`
+        id, title, location, employment_type, salary_min, salary_max, currency,
+        created_at, company_id, tags, is_continuous, hired_count, target_hire_count,
+        companies ( name, slug, logo_url )
+      `).order('created_at', { ascending: false });
 
-        const { data: jobsData, error } = await jobsQuery;
-        if (error) throw error;
+      if (error) throw error;
 
-        // Fetch match scores if user exists
-        let matchScoresMap: Record<string, number> = {};
-        if (user?.id) {
-          const { data: matchScores } = await supabase
-            .from('match_scores')
-            .select('job_id, overall_score')
-            .eq('user_id', user.id);
-          
-          if (matchScores) {
-            matchScoresMap = matchScores.reduce((acc, ms) => {
-              acc[ms.job_id] = ms.overall_score;
-              return acc;
-            }, {} as Record<string, number>);
-          }
+      let matchScoresMap: Record<string, number> = {};
+      if (user?.id) {
+        const { data: matchScores } = await supabase
+          .from('match_scores')
+          .select('job_id, overall_score')
+          .eq('user_id', user.id);
+        if (matchScores) {
+          matchScoresMap = matchScores.reduce((acc, ms) => {
+            acc[ms.job_id] = ms.overall_score;
+            return acc;
+          }, {} as Record<string, number>);
         }
-
-        // Transform data for display
-        const transformedJobs = jobsData?.map((job: any) => ({
-          id: job.id,
-          title: job.title,
-          company: job.companies?.name || 'Unknown Company',
-          companySlug: job.companies?.slug,
-          companyLogo: job.companies?.logo_url,
-          location: job.location || 'Remote',
-          type: job.employment_type || 'fulltime',
-          postedDate: new Date(job.created_at).toLocaleDateString(),
-          postedDaysAgo: Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)),
-          tags: Array.isArray(job.tags) ? job.tags : [],
-          matchScore: matchScoresMap[job.id] || null,
-          salary: job.salary_max || 0,
-          salaryMin: job.salary_min || 0,
-          salaryMax: job.salary_max || 0,
-          currency: job.currency as Currency,
-          isContinuous: job.is_continuous || false,
-          hiredCount: job.hired_count || 0,
-          targetHireCount: job.target_hire_count,
-        })) || [];
-        setJobs(transformedJobs);
-      } catch (error) {
-        logger.error('Failed to fetch jobs', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
-        toast.error('Failed to load jobs');
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchJobs();
-  }, [user]);
+
+      return (jobsData || []).map((job: any) => ({
+        id: job.id,
+        title: job.title,
+        company: job.companies?.name || 'Unknown Company',
+        companySlug: job.companies?.slug,
+        companyLogo: job.companies?.logo_url,
+        location: job.location || 'Remote',
+        type: job.employment_type || 'fulltime',
+        postedDate: new Date(job.created_at).toLocaleDateString(),
+        postedDaysAgo: Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)),
+        tags: Array.isArray(job.tags) ? job.tags : [],
+        matchScore: matchScoresMap[job.id] || null,
+        salary: job.salary_max || 0,
+        salaryMin: job.salary_min || 0,
+        salaryMax: job.salary_max || 0,
+        currency: job.currency as Currency,
+        isContinuous: job.is_continuous || false,
+        hiredCount: job.hired_count || 0,
+        targetHireCount: job.target_hire_count,
+      }));
+    },
+    staleTime: 2 * 60_000,
+  });
 
   // Trigger match calculation for jobs without scores
   useEffect(() => {
@@ -225,10 +198,8 @@ const Jobs = () => {
           if (error) continue;
 
           if (data?.score) {
-            setJobs(prevJobs =>
-              prevJobs.map(j =>
-                j.id === job.id ? { ...j, matchScore: data.score } : j
-              )
+            queryClient.setQueryData(['jobs-list', user.id], (prev: any[]) =>
+              prev?.map(j => j.id === job.id ? { ...j, matchScore: data.score } : j)
             );
           }
         } catch (error) {
@@ -239,7 +210,7 @@ const Jobs = () => {
 
     const timer = setTimeout(calculateMissingMatchScores, 1000);
     return () => clearTimeout(timer);
-  }, [jobs, user]);
+  }, [jobs, user, queryClient]);
 
   const sortedJobs = useMemo(() => {
     return [...jobs].sort((a, b) => {
