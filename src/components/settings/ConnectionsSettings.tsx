@@ -141,7 +141,7 @@ export const ConnectionsSettings = ({
         
         
         if (provider === 'google') {
-          console.log('🔵 Exchanging Google Calendar code...');
+          
           
           const { data, error: funcError } = await supabase.functions.invoke('google-calendar-auth', {
             body: { action: 'exchangeCode', code, redirectUri },
