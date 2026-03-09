@@ -50,7 +50,7 @@ export default function Messages() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showGroupInfo, setShowGroupInfo] = useState(false);
+  const [messageSearchResults, setMessageSearchResults] = useState<Map<string, string>>(new Map());
   const [showMobileSidebar, setShowMobileSidebar] = useState(true);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [threadParentMessageId, setThreadParentMessageId] = useState<string | null>(null);

@@ -166,56 +166,58 @@ export const PartnerHome = () => {
       )}
 
       {/* Quick Actions & Interview Success */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: staggerDelay * 8 }}
-      >
-        <DashboardSection columns={2}>
-          <div className="glass-subtle rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
-            <div>
-              <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
-                <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                <T k="common:dashboard.quickActions.title" fallback="Quick Actions" />
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                <T k="common:dashboard.quickActions.description" fallback="Common tasks and shortcuts" />
-              </p>
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 8 }}
+        >
+          <DashboardSection columns={2}>
+            <div className="glass-subtle rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
+              <div>
+                <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+                  <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  <T k="common:dashboard.quickActions.title" fallback="Quick Actions" />
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  <T k="common:dashboard.quickActions.description" fallback="Common tasks and shortcuts" />
+                </p>
+              </div>
+              <div className="space-y-2 sm:space-y-3">
+                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+                  <Link to="/company-jobs/new">
+                    <Plus className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Create New Role</span>
+                    <span className="sm:hidden">New Role</span>
+                  </Link>
+                </Button>
+                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+                  <Link to="/company-applications">
+                    <Users className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Review Shortlist</span>
+                    <span className="sm:hidden">Shortlist</span>
+                  </Link>
+                </Button>
+                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+                  <Link to="/meetings">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Schedule Interview</span>
+                    <span className="sm:hidden">Interview</span>
+                  </Link>
+                </Button>
+                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
+                  <Link to="/messages">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Message Candidates</span>
+                    <span className="sm:hidden">Messages</span>
+                  </Link>
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2 sm:space-y-3">
-              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                <Link to="/company-jobs/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Create New Role</span>
-                  <span className="sm:hidden">New Role</span>
-                </Link>
-              </Button>
-              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                <Link to="/company-applications">
-                  <Users className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Review Shortlist</span>
-                  <span className="sm:hidden">Shortlist</span>
-                </Link>
-              </Button>
-              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                <Link to="/meetings">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Schedule Interview</span>
-                  <span className="sm:hidden">Interview</span>
-                </Link>
-              </Button>
-              <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                <Link to="/messages">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Message Candidates</span>
-                  <span className="sm:hidden">Messages</span>
-                </Link>
-              </Button>
-            </div>
-          </div>
-          {companyId && <TeamOverviewWidget companyId={companyId} />}
-        </DashboardSection>
-      </motion.div>
+            <TeamOverviewWidget companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
 
       {/* Time Tracking & Dossier Activity */}
       {companyId && (
