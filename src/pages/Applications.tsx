@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { toast } from "sonner";
 import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download, Loader2 as DownloadLoader, BookOpen } from "lucide-react";
+import { formatLocation } from "@/lib/format-location";
 import { exportToCSV } from "@/utils/analyticsExport";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
