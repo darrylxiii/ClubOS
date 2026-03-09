@@ -138,7 +138,7 @@ export default function CourseDetail() {
               .maybeSingle();
             
             if (certData) {
-              setCertificate(certData);
+              setCertificate(certData as unknown as CertificateData);
             }
           }
         }
