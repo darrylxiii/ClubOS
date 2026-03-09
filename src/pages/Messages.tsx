@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +51,7 @@ export default function Messages() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [messageSearchResults, setMessageSearchResults] = useState<Map<string, string>>(new Map());
   const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(true);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -107,12 +109,45 @@ export default function Messages() {
     }
   }, [messages]);
 
+  // Search message content when query is 3+ characters
+  useEffect(() => {
+    if (searchQuery.length < 3) {
+      setMessageSearchResults(new Map());
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await supabase
+          .from('messages')
+          .select('conversation_id, content')
+          .ilike('content', `%${searchQuery}%`)
+          .limit(100);
+
+        const results = new Map<string, string>();
+        data?.forEach((msg) => {
+          if (!results.has(msg.conversation_id)) {
+            results.set(msg.conversation_id, msg.content);
+          }
+        });
+        setMessageSearchResults(results);
+      } catch {
+        // Silently fail — search is best-effort
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId);
   const isGroup = selectedConversation?.metadata?.is_group;
 
-  const filteredConversations = conversations.filter((conv) =>
-    !searchQuery || conv.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter((conv) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    // Search by conversation title OR message content match
+    return conv.title.toLowerCase().includes(query) || messageSearchResults.has(conv.id);
+  });
 
   const handleSendMessage = async (content: string, attachment?: File, metadata?: any) => {
     if (!selectedConversationId) return;
@@ -225,7 +260,7 @@ export default function Messages() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search conversations..."
+                placeholder="Search conversations and messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 bg-muted/30 border-border/30 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
