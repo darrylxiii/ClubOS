@@ -160,7 +160,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       // Load applications for active candidates with match scores
       const { data: applications } = await supabase
         .from('applications')
-        .select('*, candidate_profiles(full_name, first_name, last_name), jobs(title, companies(name))')
+        .select('*, candidate_profiles(full_name), jobs(title, companies(name))')
         .in('status', ['active', 'screening', 'interview', 'offer'])
         .order('match_score', { ascending: false, nullsFirst: false })
         .limit(20);
