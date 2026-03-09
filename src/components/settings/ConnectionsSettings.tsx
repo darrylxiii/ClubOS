@@ -301,7 +301,7 @@ export const ConnectionsSettings = ({
       localStorage.removeItem('oauth_return_tab');
       window.history.replaceState({}, document.title, '/settings');
       
-      console.log('✅ OAuth complete!');
+      
     } catch (error) {
       console.error('❌ OAuth error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to complete connection');
