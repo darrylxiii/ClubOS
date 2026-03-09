@@ -56,7 +56,7 @@ export default function OAuthOnboarding() {
     if (loading) return; // Wait for auth to finish loading
 
     if (!user) {
-      console.log('[OAuthOnboarding] No user found, redirecting to /auth');
+      
       navigate('/auth', { replace: true });
       return;
     }
@@ -73,7 +73,7 @@ export default function OAuthOnboarding() {
         if (error) throw error;
 
         if (data?.onboarding_completed_at) {
-          console.log('[OAuthOnboarding] Onboarding already completed, redirecting');
+          
           // Redirect based on account status
           if (data.account_status === 'approved') {
             navigate('/club-home', { replace: true });
@@ -375,7 +375,7 @@ export default function OAuthOnboarding() {
         })
         .eq('id', user.id);
 
-      console.log(`[OAuth Onboarding] Saved progress for step ${completedStep + 1}`);
+      
     } catch (err) {
       console.error('[OAuth Onboarding] Failed to save partial progress:', err);
     }
@@ -426,7 +426,7 @@ export default function OAuthOnboarding() {
 
     setIsLoading(true);
     try {
-      console.log('[OAuth Onboarding] Updating profile for user:', user.id);
+      
 
       const { error: profileError } = await supabase
         .from('profiles')
@@ -460,7 +460,7 @@ export default function OAuthOnboarding() {
         throw new Error(`Profile update failed: ${profileError.message}`);
       }
 
-      console.log('[OAuth Onboarding] Profile updated successfully');
+      
       toast.success("Profile completed! Welcome to The Quantum Club!");
 
       setTimeout(() => {

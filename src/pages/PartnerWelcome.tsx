@@ -45,7 +45,7 @@ const PartnerWelcome = () => {
         .from('profiles')
         .select('provisioned_by, provisioned_at, assigned_strategist_id, admin_verified_email, onboarding_completed_at')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       // If not provisioned or already completed onboarding, redirect
       if (!profile?.provisioned_by) {
@@ -69,7 +69,7 @@ const PartnerWelcome = () => {
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (membership) {
         const companies = membership.companies as { name: string } | null;
@@ -85,7 +85,7 @@ const PartnerWelcome = () => {
           .from('profiles')
           .select('full_name, email, avatar_url')
           .eq('id', profile.assigned_strategist_id)
-          .single();
+          .maybeSingle();
 
         if (strategistProfile) {
           setStrategist({

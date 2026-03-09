@@ -61,9 +61,13 @@ export default function MeetingInsights() {
         .from('meetings')
         .select('*')
         .eq('id', meetingId)
-        .single();
+        .maybeSingle();
 
       if (meetingError) throw meetingError;
+      if (!meetingData) {
+        toast.error('Meeting not found');
+        return;
+      }
       setMeeting(meetingData);
 
       // Load insights
@@ -71,14 +75,12 @@ export default function MeetingInsights() {
         .from('meeting_insights')
         .select('*')
         .eq('meeting_id', meetingId)
-        .single();
+        .maybeSingle();
 
       if (insightsError) {
-        if (insightsError.code === 'PGRST116') {
-          toast.info('Meeting analysis is still processing');
-        } else {
-          throw insightsError;
-        }
+        throw insightsError;
+      } else if (!insightsData) {
+        toast.info('Meeting analysis is still processing');
       } else {
         setInsights(insightsData as unknown as MeetingInsight);
       }
