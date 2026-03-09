@@ -56,7 +56,7 @@ export default function OAuthOnboarding() {
     if (loading) return; // Wait for auth to finish loading
 
     if (!user) {
-      console.log('[OAuthOnboarding] No user found, redirecting to /auth');
+      
       navigate('/auth', { replace: true });
       return;
     }
