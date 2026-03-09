@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { toast } from "sonner";
 import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download, Loader2 as DownloadLoader, BookOpen } from "lucide-react";
+import { formatLocation } from "@/lib/format-location";
 import { exportToCSV } from "@/utils/analyticsExport";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
@@ -58,6 +59,7 @@ interface Application {
 
 export default function Applications({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true);
   const isMobile = useIsMobile();
@@ -102,7 +104,12 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
 
   const activeApplications = applications.filter(app => app.status === "active");
   const rejectedApplications = applications.filter(app => app.status === "rejected");
-  const archivedApplications = applications.filter(app => app.status !== "active" && app.status !== "rejected");
+  const hiredApplications = applications.filter(app => app.status === "hired");
+  const withdrawnApplications = applications.filter(app => app.status === "withdrawn");
+  const closedApplications = applications.filter(app => 
+    app.status !== "active" && app.status !== "rejected" && app.status !== "hired" && app.status !== "withdrawn"
+  );
+  const archivedApplications = [...hiredApplications, ...withdrawnApplications, ...closedApplications];
 
   // Trigger achievement check when viewing applications
   useEffect(() => {
@@ -187,7 +194,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
             ) : isMobile ? (
               <MobileApplicationPipeline
                 applications={activeApplications}
-                onSelectApplication={(app) => window.location.href = `/applications/${app.id}`}
+                onSelectApplication={(app) => navigate(`/applications/${app.id}`)}
               />
             ) : (
               activeApplications.map((application) => (
@@ -208,9 +215,38 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
                 </CardContent>
               </Card>
             ) : (
-              archivedApplications.map((application) => (
-                <ApplicationCard key={application.id} application={application} />
-              ))
+              <div className="space-y-8">
+                {hiredApplications.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-success flex items-center gap-2">
+                      <Check className="h-4 w-4" /> Hired ({hiredApplications.length})
+                    </h3>
+                    {hiredApplications.map((app) => (
+                      <ApplicationCard key={app.id} application={app} />
+                    ))}
+                  </div>
+                )}
+                {withdrawnApplications.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                      Withdrawn ({withdrawnApplications.length})
+                    </h3>
+                    {withdrawnApplications.map((app) => (
+                      <ApplicationCard key={app.id} application={app} />
+                    ))}
+                  </div>
+                )}
+                {closedApplications.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                      Closed ({closedApplications.length})
+                    </h3>
+                    {closedApplications.map((app) => (
+                      <ApplicationCard key={app.id} application={app} />
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </TabsContent>
         </Tabs>
@@ -264,8 +300,8 @@ function ApplicationCard({ application }: { application: Application }) {
                 {application.job?.location && (
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-3 h-3" />
-                    <span className="hidden sm:inline">{application.job.location}</span>
-                    <span className="sm:hidden">{application.job.location.split(',')[0]}</span>
+                    <span className="hidden sm:inline">{formatLocation(application.job.location)}</span>
+                    <span className="sm:hidden">{formatLocation(application.job.location).split(',')[0]}</span>
                   </div>
                 )}
                 {formatSalaryRange() && (

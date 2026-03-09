@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -19,60 +20,53 @@ interface Interview {
 export function CompactInterviewCountdown() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [interview, setInterview] = useState<Interview | null>(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [isLive, setIsLive] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
+  const { data: interview } = useQuery({
+    queryKey: ['compact-interview', user?.id],
+    queryFn: async () => {
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('id, scheduled_start, scheduled_end, video_meeting_link, quantum_meeting_link, job_id')
+        .eq('user_id', user!.id)
+        .eq('is_interview_booking', true)
+        .in('status', ['confirmed', 'pending'])
+        .gte('scheduled_end', new Date().toISOString())
+        .order('scheduled_start', { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-    (async () => {
-      try {
-        const { data: booking } = await supabase
-          .from('bookings')
-          .select('id, scheduled_start, scheduled_end, video_meeting_link, quantum_meeting_link, job_id')
-          .eq('user_id', user.id)
-          .eq('is_interview_booking', true)
-          .in('status', ['confirmed', 'pending'])
-          .gte('scheduled_end', new Date().toISOString())
-          .order('scheduled_start', { ascending: true })
-          .limit(1)
-          .single();
+      if (!booking) return null;
 
-        if (!booking) { setLoading(false); return; }
+      let jobTitle = "Interview";
+      let companyName = "";
 
-        let jobTitle = "Interview";
-        let companyName = "";
-
-        if (booking.job_id) {
-          const { data: job } = await supabase
-            .from('jobs')
-            .select('title, companies:company_id(name)')
-            .eq('id', booking.job_id)
-            .single();
-          if (job) {
-            jobTitle = job.title || "Interview";
-            companyName = (job.companies as any)?.name || "";
-          }
+      if (booking.job_id) {
+        const { data: job } = await supabase
+          .from('jobs')
+          .select('title, companies:company_id(name)')
+          .eq('id', booking.job_id)
+          .maybeSingle();
+        if (job) {
+          jobTitle = job.title || "Interview";
+          companyName = (job.companies as any)?.name || "";
         }
-
-        // Only show if within 7 days
-        const daysUntil = differenceInDays(new Date(booking.scheduled_start), new Date());
-        if (daysUntil > 7) { setLoading(false); return; }
-
-        setInterview({
-          ...booking,
-          job_title: jobTitle,
-          company_name: companyName,
-        });
-      } catch {
-        // silently fail
-      } finally {
-        setLoading(false);
       }
-    })();
-  }, [user]);
+
+      // Only show if within 7 days
+      const daysUntil = differenceInDays(new Date(booking.scheduled_start), new Date());
+      if (daysUntil > 7) return null;
+
+      return {
+        ...booking,
+        job_title: jobTitle,
+        company_name: companyName,
+      } as Interview;
+    },
+    enabled: !!user,
+    staleTime: 2 * 60_000,
+  });
 
   useEffect(() => {
     if (!interview) return;
@@ -103,7 +97,7 @@ export function CompactInterviewCountdown() {
     return () => clearInterval(id);
   }, [interview]);
 
-  if (loading || !interview || !timeLeft) return null;
+  if (!interview || !timeLeft) return null;
 
   const meetingLink = interview.quantum_meeting_link || interview.video_meeting_link;
 

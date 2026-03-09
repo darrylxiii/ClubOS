@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
@@ -9,19 +9,17 @@ import { Button } from "@/components/ui/button";
 export function CompactProfileStrength() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [completion, setCompletion] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-
-    (async () => {
+  const { data: completion } = useQuery({
+    queryKey: ['profile-strength', user?.id],
+    queryFn: async () => {
       const { data } = await supabase
         .from('profiles')
         .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
-        .eq('id', user.id)
-        .single();
+        .eq('id', user!.id)
+        .maybeSingle();
 
-      if (!data) { setCompletion(0); return; }
+      if (!data) return 0;
 
       const fields = [
         data.full_name, data.current_title, data.bio, data.avatar_url,
@@ -29,11 +27,13 @@ export function CompactProfileStrength() {
         data.resume_url, data.current_salary_min,
       ];
       const filled = fields.filter(v => v !== null && v !== undefined && v !== '').length;
-      setCompletion(Math.round((filled / fields.length) * 100));
-    })();
-  }, [user]);
+      return Math.round((filled / fields.length) * 100);
+    },
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+  });
 
-  if (completion === null || completion === 100) return null;
+  if (completion === undefined || completion === 100) return null;
 
   return (
     <div className="glass-subtle rounded-2xl px-5 py-3.5 flex items-center gap-4">

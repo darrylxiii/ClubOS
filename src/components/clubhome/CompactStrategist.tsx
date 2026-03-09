@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,99 +23,87 @@ function formatSla(minutes: number): string {
 export function CompactStrategist() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [strategist, setStrategist] = useState<Strategist | null>(null);
-  const [avgResponseMin, setAvgResponseMin] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-
-    (async () => {
+  const { data } = useQuery({
+    queryKey: ['compact-strategist', user?.id],
+    queryFn: async () => {
       const { data: cp } = await supabase
         .from('candidate_profiles')
         .select('assigned_strategist_id')
-        .eq('id', user.id)
-        .single();
+        .eq('id', user!.id)
+        .maybeSingle();
 
-      if (!cp?.assigned_strategist_id) return;
+      if (!cp?.assigned_strategist_id) return null;
 
-      const { data } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, current_title')
         .eq('id', cp.assigned_strategist_id)
-        .single();
+        .maybeSingle();
 
-      if (data) {
-        setStrategist(data);
-        computeSla(data.id);
-      }
-    })();
-  }, [user]);
+      if (!profile) return null;
 
-  // Compute average response time from messages
-  const computeSla = async (strategistId: string) => {
-    if (!user) return;
-    try {
-      // Get conversations that include both the candidate and strategist
-      const { data: participants } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
+      // Compute SLA
+      let avgResponseMin: number | null = null;
+      try {
+        const { data: participants } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', user!.id);
 
-      if (!participants?.length) return;
+        if (participants?.length) {
+          const convIds = participants.map(p => p.conversation_id);
+          const { data: msgs } = await supabase
+            .from('messages')
+            .select('conversation_id, sender_id, created_at')
+            .in('conversation_id', convIds)
+            .order('created_at', { ascending: true })
+            .limit(500);
 
-      const convIds = participants.map(p => p.conversation_id);
+          if (msgs?.length) {
+            const byConv = new Map<string, typeof msgs>();
+            for (const m of msgs) {
+              const arr = byConv.get(m.conversation_id) || [];
+              arr.push(m);
+              byConv.set(m.conversation_id, arr);
+            }
 
-      // Get recent messages in those conversations from the strategist, ordered by time
-      const { data: msgs } = await supabase
-        .from('messages')
-        .select('conversation_id, sender_id, created_at')
-        .in('conversation_id', convIds)
-        .order('created_at', { ascending: true })
-        .limit(500);
-
-      if (!msgs?.length) return;
-
-      // Group messages by conversation
-      const byConv = new Map<string, typeof msgs>();
-      for (const m of msgs) {
-        const arr = byConv.get(m.conversation_id) || [];
-        arr.push(m);
-        byConv.set(m.conversation_id, arr);
-      }
-
-      // For each candidate message, find the next strategist reply and compute delta
-      const deltas: number[] = [];
-      for (const [, convMsgs] of byConv) {
-        for (let i = 0; i < convMsgs.length - 1; i++) {
-          if (convMsgs[i].sender_id === user.id) {
-            // find next reply from strategist
-            for (let j = i + 1; j < convMsgs.length; j++) {
-              if (convMsgs[j].sender_id === strategistId) {
-                const delta =
-                  (new Date(convMsgs[j].created_at).getTime() -
-                    new Date(convMsgs[i].created_at).getTime()) /
-                  60000;
-                if (delta > 0 && delta < 10080) {
-                  // ignore > 7 days
-                  deltas.push(delta);
+            const deltas: number[] = [];
+            for (const [, convMsgs] of byConv) {
+              for (let i = 0; i < convMsgs.length - 1; i++) {
+                if (convMsgs[i].sender_id === user!.id) {
+                  for (let j = i + 1; j < convMsgs.length; j++) {
+                    if (convMsgs[j].sender_id === profile.id) {
+                      const delta =
+                        (new Date(convMsgs[j].created_at).getTime() -
+                          new Date(convMsgs[i].created_at).getTime()) /
+                        60000;
+                      if (delta > 0 && delta < 10080) deltas.push(delta);
+                      break;
+                    }
+                  }
                 }
-                break;
               }
+            }
+
+            if (deltas.length >= 2) {
+              avgResponseMin = deltas.reduce((a, b) => a + b, 0) / deltas.length;
             }
           }
         }
+      } catch (e) {
+        console.error("SLA compute error:", e);
       }
 
-      if (deltas.length >= 2) {
-        const avg = deltas.reduce((a, b) => a + b, 0) / deltas.length;
-        setAvgResponseMin(avg);
-      }
-    } catch (e) {
-      console.error("SLA compute error:", e);
-    }
-  };
+      return { strategist: profile as Strategist, avgResponseMin };
+    },
+    enabled: !!user,
+    staleTime: 10 * 60_000,
+  });
 
-  if (!strategist) return null;
+  if (!data?.strategist) return null;
+
+  const { strategist, avgResponseMin } = data;
 
   const initials = strategist.full_name
     .split(' ')

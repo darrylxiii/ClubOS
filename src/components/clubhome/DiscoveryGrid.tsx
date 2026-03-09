@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 
 // ── For You column ──
 function ForYouColumn() {
@@ -55,7 +55,7 @@ function ForYouColumn() {
       seeAllPath="/jobs"
       loading={isLoading}
       empty={!jobs?.length}
-      emptyText="Complete your profile for matches"
+      emptyText={!user ? "Sign in for matches" : "No matches yet — we're working on it"}
     >
       {jobs?.map(job => (
         <button
@@ -141,29 +141,25 @@ function SavedColumn() {
 function MessagesColumn() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [msgs, setMsgs] = useState<any[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const fetchMsgs = useCallback(async () => {
-    if (!user) return;
-    try {
+  const { data: msgData, isLoading: loading } = useQuery({
+    queryKey: ['discovery-messages', user?.id],
+    queryFn: async () => {
       const { data: parts } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
-        .eq('user_id', user.id);
+        .eq('user_id', user!.id);
 
-      if (!parts?.length) { setLoading(false); return; }
+      if (!parts?.length) return { msgs: [], unread: 0 };
 
       const { data: recent } = await supabase
         .from('messages')
         .select('id, content, created_at, is_read, sender_id')
         .in('conversation_id', parts.map(p => p.conversation_id))
-        .neq('sender_id', user.id)
+        .neq('sender_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(2);
 
-      if (!recent?.length) { setLoading(false); return; }
+      if (!recent?.length) return { msgs: [], unread: 0 };
 
       const senderIds = [...new Set(recent.map(m => m.sender_id))];
       const { data: profiles } = await supabase
@@ -179,14 +175,27 @@ function MessagesColumn() {
         sender_avatar: pm.get(m.sender_id)?.avatar_url,
       }));
 
-      setMsgs(formatted);
-      setUnread(formatted.filter(m => !m.is_read).length);
-    } catch { /* silent */ } finally {
-      setLoading(false);
-    }
+      return { msgs: formatted, unread: formatted.filter(m => !m.is_read).length };
+    },
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  // Realtime subscription for new messages
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('discovery-messages-rt')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+        // Refetch on new message
+        window.dispatchEvent(new CustomEvent('invalidate-messages'));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  useEffect(() => { fetchMsgs(); }, [fetchMsgs]);
+  const msgs = msgData?.msgs || [];
+  const unread = msgData?.unread || 0;
 
   return (
     <Column
