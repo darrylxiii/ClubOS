@@ -242,7 +242,7 @@ export const ConnectionsSettings = ({
         }
         
         else if (provider === 'outlook') {
-          console.log('📧 Exchanging Outlook code...');
+          
           
           const { data, error: funcError } = await supabase.functions.invoke('outlook-oauth', {
             body: { action: 'exchangeCode', code, redirectUri },
