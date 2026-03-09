@@ -53,10 +53,9 @@ interface ModuleData {
   course_id: string;
   title: string;
   description: string | null;
-  content: string | null;
   display_order: number;
   module_type: string | null;
-  duration_minutes: number | null;
+  estimated_minutes: number | null;
   [key: string]: unknown;
 }
 
