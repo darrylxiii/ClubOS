@@ -80,7 +80,7 @@ export default function ContractDetailPage() {
   const handleStartMilestone = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .update({
           status: 'in_progress',
           started_at: new Date().toISOString()
