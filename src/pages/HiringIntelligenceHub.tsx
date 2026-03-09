@@ -16,15 +16,65 @@ import { useAggregatedHiringIntelligence, useRefreshAggregatedIntelligence } fro
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 
+interface HiringStats {
+  activeJobs: number;
+  totalJobs?: number;
+  aiInsightsGenerated: number;
+  predictedHires: number;
+  avgMatchScore: number | string;
+  jobsWithCandidates?: number;
+  totalCandidates?: number;
+}
+
+interface JobWithHealth {
+  id: string;
+  title: string;
+  status: string;
+  created_at: string;
+  company_id: string | null;
+  companies: { name: string } | null;
+  candidatesInPipeline: number;
+  upcomingInterviews: number;
+  healthScore: number;
+  alerts: number;
+  [key: string]: unknown;
+}
+
+interface CandidateApplication {
+  id: string;
+  job_id: string;
+  candidate_id: string;
+  status: string;
+  match_score: number | null;
+  candidate_profiles: { full_name: string | null; first_name: string | null; last_name: string | null } | null;
+  jobs: { title: string; companies: { name: string } | null } | null;
+  [key: string]: unknown;
+}
+
+interface UpcomingInterview {
+  id: string;
+  scheduled_start: string;
+  scheduled_end: string | null;
+  candidate_profiles: { full_name: string | null; first_name: string | null; last_name: string | null } | null;
+  jobs: { title: string; companies: { name: string } | null } | null;
+  [key: string]: unknown;
+}
+
+interface InterviewStats {
+  thisWeek: number;
+  feedbackPending: number;
+  avgFeedbackTime: number;
+}
+
 // Predictions Tab Content Component
 function PredictionsTabContent({ 
   jobs, 
   navigate, 
   EmptyState 
 }: { 
-  jobs: any[]; 
+  jobs: JobWithHealth[]; 
   navigate: (path: string) => void;
-  EmptyState: React.FC<{ icon: any; title: string; description: string; action?: { label: string; onClick: () => void } }>;
+  EmptyState: React.FC<{ icon: React.ElementType; title: string; description: string; action?: { label: string; onClick: () => void } }>;
 }) {
   const { data: insights, isLoading } = useAggregatedHiringIntelligence();
   const refreshMutation = useRefreshAggregatedIntelligence();
@@ -65,12 +115,12 @@ function PredictionsTabContent({
 
 export default function HiringIntelligenceHub({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<any>({ activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 });
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [jobsNeedingAttention, setJobsNeedingAttention] = useState<any[]>([]);
-  const [topCandidatesAcrossJobs, setTopCandidatesAcrossJobs] = useState<any[]>([]);
-  const [upcomingInterviewsAllJobs, setUpcomingInterviewsAllJobs] = useState<any[]>([]);
-  const [interviewStats, setInterviewStats] = useState<any>({ thisWeek: 0, feedbackPending: 0, avgFeedbackTime: 0 });
+  const [stats, setStats] = useState<HiringStats>({ activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 });
+  const [jobs, setJobs] = useState<JobWithHealth[]>([]);
+  const [jobsNeedingAttention, setJobsNeedingAttention] = useState<JobWithHealth[]>([]);
+  const [topCandidatesAcrossJobs, setTopCandidatesAcrossJobs] = useState<CandidateApplication[]>([]);
+  const [upcomingInterviewsAllJobs, setUpcomingInterviewsAllJobs] = useState<UpcomingInterview[]>([]);
+  const [interviewStats, setInterviewStats] = useState<InterviewStats>({ thisWeek: 0, feedbackPending: 0, avgFeedbackTime: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
