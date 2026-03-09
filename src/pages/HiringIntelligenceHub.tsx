@@ -55,7 +55,8 @@ interface UpcomingInterview {
   id: string;
   scheduled_start: string;
   scheduled_end: string | null;
-  candidate_profiles: { full_name: string | null; first_name: string | null; last_name: string | null } | null;
+  meeting_type?: string;
+  candidate_profiles: { full_name: string | null } | null;
   jobs: { title: string; companies: { name: string } | null } | null;
   [key: string]: unknown;
 }
