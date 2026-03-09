@@ -46,7 +46,7 @@ interface CandidateApplication {
   candidate_id: string;
   status: string;
   match_score: number | null;
-  candidate_profiles: { full_name: string | null; first_name: string | null; last_name: string | null } | null;
+  candidate_profiles: { full_name: string | null } | null;
   jobs: { title: string; companies: { name: string } | null } | null;
   [key: string]: unknown;
 }
