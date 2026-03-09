@@ -1,74 +1,84 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 92/100 (In-Meeting) | Ecosystem: 82/100
 
----
+# System Audit — Round 3
 
-## Completed
+## Completed So Far (Rounds 1-2)
+- Settings page: `useQuery`/`useMutation` hook extracted
+- Meetings page: `useMeetingsData` hook created
+- `.single()` → `.maybeSingle()` in 6 high-risk pages
+- Messages search, PartnerHome guard, DossierView security, Scheduling decomposition
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+## Current State: 72/100
 
 ---
 
-## Remaining
+## Remaining Issues by Priority
 
-### Phase G2: In-Meeting Feature Parity ✅ (82 → 92)
-- Auto-pin active speaker in spotlight mode (2s debounce, user-pin override)
-- Meeting lock toggle for host (DB column `is_locked` + HostSettingsPanel UI)
-- Raise hand queue with timestamps and ordered list in ParticipantsPanel
-- Bandwidth quality presets (HD/Standard/Low) in DeviceSelector
-- Per-participant network quality tooltip (RTT/jitter/packetLoss/bitrate on hover)
-- Gallery page keyboard navigation (arrow keys)
-- Noise suppression UI toggle in DeviceSelector
+### Priority 1: Meetings Page Still Has Debug Logs (Quick Win)
+`src/pages/Meetings.tsx` lines 51-59 still contain 3 `console.log` debug statements that were flagged in Round 2 but not removed.
 
-### Phase H: Polish & Automation ✅ (92 → 100)
-- **Date range filter on MeetingHistoryTab**: From/To date inputs with clear button, useMemo filtering
-- **sendBeacon mobile cleanup**: `beforeunload` + `pagehide` → `navigator.sendBeacon` for reliable participant cleanup on mobile/tab close
-- **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
-- **Auto-advance pipeline on strong_yes**: `extract-candidate-performance` auto-advances `applications.pipeline_stage` when `hiring_recommendation === 'strong_yes'`, with audit log
+### Priority 2: `useState<any>` Epidemic — 159 Files, ~995 Matches
+The worst offenders:
+- **HiringIntelligenceHub.tsx**: 6 `useState<any>` + manual fetch + `setLoading` pattern (549 lines)
+- **CourseDetail.tsx**: 4 `useState<any>` + manual fetch
+- **UnifiedTaskDetailDialog.tsx**: 6 `useState<any>`
+- **ExpertMarketplace.tsx**: 3 `useState<any>` + results cast `as any`
+- **MeetingRoom.tsx**: `useState<any>` + manual fetch
+- **InstantMeetingButton.tsx**: 2 `useState<any>`
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+### Priority 3: `as any` Table Casts — 53 Files, 527 Matches in Pages
+Key clusters:
+- **BlogEngine.tsx**: `'blog_analytics' as any`
+- **JobApprovals.tsx**: `(supabase as any).from('jobs')` + update cast
+- **ExpertMarketplace.tsx**: `setExperts(data as any)` / `setModules(data as any)`
+- **TargetCompaniesOverview.tsx**: 8+ `(tc.companies as any)` / `(tc.profiles as any)` casts on join results
+- **ClientAnalyticsPage.tsx**: `(supabase as any).from('marketplace_projects')`
 
-### Phase I2: Remaining Ecosystem
+### Priority 4: Console.log Cleanup — 55 Files, ~983 Matches
+Beyond Meetings, major offenders:
+- **ConnectionsSettings.tsx**: 20+ OAuth debug logs with emoji prefixes
+- **UserCompanyAssignment.tsx**: 4 debug logs
+- **RadioListen.tsx**: 4 debug logs
+- **OAuthOnboarding.tsx**: 5 debug logs
+- **Onboarding.tsx**: `console.log("Form submitted:", formData)` leaking PII
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+### Priority 5: Remaining `.single()` — 61 Files, 415 Matches in Pages
+Still risky filter-based `.single()` calls in:
+- **CourseDetail.tsx**: `.eq("slug", slug).single()` — slug lookup can fail
+- **MeetingInsights.tsx**: 2x `.single()` on meeting/insights lookup
+- **PartnerRejections.tsx**: membership lookup
+- **Post.tsx**: post + author lookups
+- **ContractDetailPage.tsx**: contract lookup by ID param
+- **ConnectsStorePage.tsx**: 2x `.single()` on balance/subscription
+- **PartnerWelcome.tsx**: 3x `.single()` on profile/membership/strategist
+
+### Priority 6: Technical Debt — 5 Remaining Items
+From `TECHNICAL_DEBT.md`: TD-008, TD-010, TD-011, TD-013/14/15 (Contract page modals)
+
+---
+
+## Fix Plan
+
+### Batch A: Quick Wins (72 → 78)
+1. Remove all `console.log` from `Meetings.tsx`, `Onboarding.tsx` (PII leak), `Settings.tsx`
+2. Remove debug logs from `ConnectionsSettings.tsx`, `UserCompanyAssignment.tsx`, `OAuthOnboarding.tsx` — keep only `console.error` for actual failures
+3. Convert `.single()` → `.maybeSingle()` in `CourseDetail`, `Post`, `MeetingInsights`, `PartnerWelcome`, `ContractDetailPage`, `ConnectsStorePage`, `PartnerRejections`
+
+### Batch B: Type Safety (78 → 86)
+4. Type `HiringIntelligenceHub` — define interfaces for stats, jobs, interviews; migrate to `useQuery`
+5. Type `CourseDetail` — define `Course`, `Module`, `Certificate` interfaces; migrate to `useQuery`
+6. Type `UnifiedTaskDetailDialog` — define interfaces for objective, project, subtasks
+7. Fix `TargetCompaniesOverview` join casts — type the `.select()` join response properly
+
+### Batch C: Remaining `as any` Table Casts (86 → 92)
+8. Audit which `as any` tables actually exist in the schema vs missing — tag missing ones with `// TODO: add migration`
+9. Remove casts for tables that exist (e.g., `jobs` in JobApprovals — no cast needed)
+10. Fix `ExpertMarketplace` result casts with proper typing
+
+### Batch D: Manual Fetch → useQuery (92 → 100)
+11. Migrate `HiringIntelligenceHub` to `useQuery` (largest remaining manual-fetch page)
+12. Migrate `CourseDetail` to `useQuery`
+13. Migrate `ExpertMarketplace` to `useQuery`
+
+**Recommendation**: Start with Batch A (quick wins — log cleanup + `.single()` safety) since it's high-impact, low-risk, and addresses a PII leak in Onboarding.
+
