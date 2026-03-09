@@ -1,74 +1,96 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 92/100 (In-Meeting) | Ecosystem: 82/100
 
----
+# System Audit — Round 2: Settings, Meetings, Type Safety & Data Fetching
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+## Overall Score: 64/100
 
 ---
 
-## Remaining
+## Area-by-Area Breakdown
 
-### Phase G2: In-Meeting Feature Parity ✅ (82 → 92)
-- Auto-pin active speaker in spotlight mode (2s debounce, user-pin override)
-- Meeting lock toggle for host (DB column `is_locked` + HostSettingsPanel UI)
-- Raise hand queue with timestamps and ordered list in ParticipantsPanel
-- Bandwidth quality presets (HD/Standard/Low) in DeviceSelector
-- Per-participant network quality tooltip (RTT/jitter/packetLoss/bitrate on hover)
-- Gallery page keyboard navigation (arrow keys)
-- Noise suppression UI toggle in DeviceSelector
+### 1. Settings Page — 45/100 (752 lines)
+**The largest remaining monolith.** 30+ individual `useState` calls managing profile, compensation, privacy, social, and preferences — all in one component. No `useQuery`, no `react-hook-form`. Manual `loadProfile()` via `useEffect`, debounced save via raw `setTimeout`.
 
-### Phase H: Polish & Automation ✅ (92 → 100)
-- **Date range filter on MeetingHistoryTab**: From/To date inputs with clear button, useMemo filtering
-- **sendBeacon mobile cleanup**: `beforeunload` + `pagehide` → `navigator.sendBeacon` for reliable participant cleanup on mobile/tab close
-- **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
-- **Auto-advance pipeline on strong_yes**: `extract-candidate-performance` auto-advances `applications.pipeline_stage` when `hiring_recommendation === 'strong_yes'`, with audit log
+**Issues:**
+- 30+ `useState` declarations for individual fields instead of a form library or reducer (-8)
+- No `useQuery` — manual fetch + `setLoading` pattern (-5)
+- `profile` typed as `any` (-2)
+- Debounced save via raw `useCallback` + `setTimeout` instead of `useMutation` with optimistic updates (-3)
+- 752 lines with all tab content inline — should delegate to existing sub-components more cleanly (-2)
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+### 2. Meetings Page — 55/100 (448 lines)
+Still uses `useState`/`useEffect` for all data. Manual `loadMeetings()` + `loadStats()` with `setLoading`. Debug `console.log` statements left in. Stats calculation uses hardcoded `hours: count * 0.5`.
 
-### Phase I2: Remaining Ecosystem
+**Issues:**
+- No `useQuery` — manual fetch with `setLoading(true)` pattern (-5)
+- Debug `console.log` statements still present (lines 53-54, 59) (-2)
+- `meetings` typed as `any[]` (-2)
+- `hours` stat hardcoded as `analyzedRes.count * 0.5` instead of real duration (-2)
+- Stats queries don't filter by user — counts all meetings globally (-3)
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+### 3. `.single()` Safety — Systemic (398 files, 3076 matches)
+The previous pass only fixed DossierView. The remaining files still have ~3000+ `.single()` calls. Key risky patterns:
+- Filter-based lookups (`.eq('slug', ...)`, `.eq('user_id', ...)`) that can return 0 rows
+- Key offenders: `CandidateProfile`, `AcademyCreatorHub`, `ApplicationDetail`, `Settings`, `CompanyJobsDashboard`, `BookingPage`
+
+### 4. `as any` on Table Names — Systemic (36+ admin files, 75+ page matches)
+Tables like `project_contracts`, `project_milestones`, `certificates`, `blog_analytics`, `meeting_recordings_extended`, `company_branding`, `comprehensive_audit_logs` are queried with `as any` casts. This means zero compile-time safety — if a table is renamed or removed, errors are silent until runtime.
+
+### 5. `useState<any>` Across Pages — 42 files, 305 matches
+Pages like `HiringIntelligenceHub` (6 `any` states), `AdminRejections`, `Academy`, `MeetingNotes`, `Settings` use untyped state throughout. This defeats TypeScript's purpose entirely.
+
+### 6. Manual Fetch Pages Without `useQuery` — 35+ pages
+35 pages still use the `setLoading(true) → fetch → setLoading(false)` pattern instead of React Query. This means no caching, no automatic refetch, no stale-while-revalidate, and duplicated loading/error state management.
+
+---
+
+## Summary Table
+
+| Area | Score | Top Issue |
+|------|-------|-----------|
+| Settings page | 45 | 752-line monolith, 30+ useState, no useQuery |
+| Meetings page | 55 | Manual fetch, debug logs, hardcoded stats |
+| `.single()` safety | — | 3076 occurrences across 398 files |
+| `as any` table names | — | 75+ in pages, 368 in admin components |
+| `useState<any>` | — | 305 occurrences across 42 files |
+| Manual fetch pages | — | 35+ pages without useQuery |
+| **Overall** | **64/100** | |
+
+---
+
+## Fix Plan
+
+### Priority 1: Settings Page Refactor (64 → 72)
+1. Replace 30+ `useState` fields with `react-hook-form` + `zod` schema for the profile form
+2. Migrate `loadProfile` to `useQuery` and `saveProfile` to `useMutation` with optimistic updates
+3. Type `profile` properly instead of `any`
+4. Remove raw debounce in favor of `useMutation` debounce pattern
+
+### Priority 2: Meetings Page Cleanup (72 → 78)
+5. Migrate `loadMeetings` and `loadStats` to `useQuery` hooks
+6. Remove debug `console.log` statements
+7. Type `meetings` array properly (replace `any[]`)
+8. Fix stats queries to filter by current user
+9. Calculate real meeting hours from duration data
+
+### Priority 3: `.single()` → `.maybeSingle()` Batch Pass (78 → 86)
+10. Convert filter-based `.single()` to `.maybeSingle()` in the top ~20 riskiest files:
+    - `CandidateProfile`, `ApplicationDetail`, `Settings`, `CompanyJobsDashboard`
+    - `BookingPage`, `AcademyCreatorHub`, `PersonalMeetingRoom`, `MeetingRoom`
+    - `CandidateOnboarding`, `PendingApproval`
+11. Keep `.single()` only after `.insert().select()` or guaranteed-unique ID lookups
+
+### Priority 4: Remove `as any` Table Casts (86 → 92)
+12. For tables that exist in the schema but are cast with `as any` — remove the cast
+13. For tables not yet in generated types — these are legitimate gaps; leave `as any` but add a `// TODO: add to schema` comment for tracking
+14. Focus on high-traffic pages: `ContractDetailPage`, `ContractListPage`, `ContractSignaturePage`, `CourseDetail`, `BlogEngine`
+
+### Priority 5: Type `useState<any>` States (92 → 96)
+15. Define interfaces for the top offending pages: `HiringIntelligenceHub`, `AdminRejections`, `Academy`, `MeetingNotes`, `MessagingAnalytics`
+16. Replace `useState<any>` with typed state
+
+### Priority 6: Migrate Remaining Manual Fetch Pages (96 → 100)
+17. Convert the highest-traffic manual fetch pages to `useQuery`: `Academy`, `CourseDetail`, `BookingManagement`, `AdminRejections`, `HiringIntelligenceHub`
+
+**Recommendation:** Start with Priority 1 (Settings) as it's the single worst-scoring page and touches every user. Then Priority 3 (`.single()` batch) for systemic safety.
+
