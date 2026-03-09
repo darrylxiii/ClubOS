@@ -521,9 +521,7 @@ export default function JobDashboard() {
   const internalReviewPendingCount = applications.filter(
     (app) =>
       app.status !== 'rejected' &&
-      (app.internal_review_status === null ||
-        typeof app.internal_review_status === 'undefined' ||
-        app.internal_review_status === 'pending'),
+      app.internal_review_status === 'pending',
   ).length;
 
   const partnerReviewPendingCount = applications.filter(

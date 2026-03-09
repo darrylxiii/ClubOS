@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Star } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Loader2, Star, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useReviewQueue } from '@/hooks/useReviewQueue';
+import { useSwipeable } from 'react-swipeable';
 
 interface PartnerFirstReviewPanelProps {
   jobId: string;
@@ -36,21 +38,21 @@ const REJECTION_REASONS = [
   { value: 'other', label: 'Other' },
 ] as const;
 
-const formatComp = (min: number | null, max: number | null, currency: string | null) => {
-  if (!min && !max) {
-    return 'Not disclosed';
-  }
+function formatTagLabel(tag: string): string {
+  return tag
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
+const formatComp = (min: number | null, max: number | null, currency: string | null) => {
+  if (!min && !max) return 'Not disclosed';
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency || 'EUR',
     maximumFractionDigits: 0,
   });
-
-  if (min && max) {
-    return `${formatter.format(min)} - ${formatter.format(max)}`;
-  }
-
+  if (min && max) return `${formatter.format(min)} – ${formatter.format(max)}`;
   return formatter.format(min || max || 0);
 };
 
@@ -67,9 +69,16 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState<number>(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [intent, setIntent] = useState<'none' | 'reject'>('none');
   const [rejectionReason, setRejectionReason] = useState<string>('');
   const [specificGapsText, setSpecificGapsText] = useState('');
   const [idealCandidate, setIdealCandidate] = useState('');
+
+  // Stable snapshot length to avoid off-by-one during refetch
+  const snapshotLengthRef = useRef(partnerPending.length);
+  useEffect(() => {
+    snapshotLengthRef.current = partnerPending.length;
+  }, [partnerPending.length]);
 
   const currentApplication = partnerPending[currentIndex] ?? null;
 
@@ -83,22 +92,21 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
     rejectPartnerMutation.isPending ||
     holdPartnerMutation.isPending;
 
-  const resetInputs = () => {
+  const resetInputs = useCallback(() => {
     setNotes('');
     setRating(0);
     setSelectedTags([]);
+    setIntent('none');
     setRejectionReason('');
     setSpecificGapsText('');
     setIdealCandidate('');
-  };
+  }, []);
 
-  const goNext = () => {
-    setCurrentIndex((prev) => {
-      if (partnerPending.length <= 1) return 0;
-      return Math.min(prev + 1, partnerPending.length - 1);
-    });
+  const goNext = useCallback(() => {
+    // Don't increment — the current item gets removed from partnerPending after mutation settles.
+    // The clamp effect below handles the edge case.
     resetInputs();
-  };
+  }, [resetInputs]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -112,32 +120,27 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
       .map((value) => value.trim())
       .filter(Boolean);
 
-  const handleApprove = async () => {
-    if (!currentApplication) return;
-
+  const handleApprove = useCallback(async () => {
+    if (!currentApplication || isSubmitting) return;
     await approvePartnerMutation.mutateAsync({
       application: currentApplication,
       notes: notes.trim() || undefined,
       rating: rating || undefined,
       tags: selectedTags,
     });
-
     goNext();
-  };
+  }, [currentApplication, isSubmitting, approvePartnerMutation, notes, rating, selectedTags, goNext]);
 
-  const handleReject = async () => {
-    if (!currentApplication) return;
-
+  const handleReject = useCallback(async () => {
+    if (!currentApplication || isSubmitting) return;
     if (!rejectionReason) {
       toast.error('Select a rejection reason.');
       return;
     }
-
     if (!notes.trim()) {
       toast.error('Rejection notes are required.');
       return;
     }
-
     await rejectPartnerMutation.mutateAsync({
       application: currentApplication,
       notes: notes.trim(),
@@ -147,51 +150,49 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
       tags: selectedTags,
       rating: rating || undefined,
     });
-
     goNext();
-  };
+  }, [currentApplication, isSubmitting, rejectPartnerMutation, notes, rejectionReason, specificGapsText, idealCandidate, selectedTags, rating, goNext]);
 
-  const handleHold = async () => {
-    if (!currentApplication) return;
-
+  const handleHold = useCallback(async () => {
+    if (!currentApplication || isSubmitting) return;
     await holdPartnerMutation.mutateAsync({
       application: currentApplication,
       notes: notes.trim() || undefined,
       rating: rating || undefined,
       tags: selectedTags,
     });
-
     goNext();
-  };
+  }, [currentApplication, isSubmitting, holdPartnerMutation, notes, rating, selectedTags, goNext]);
 
+  // Clamp index when list shrinks
   useEffect(() => {
-    if (currentIndex >= partnerPending.length) {
-      setCurrentIndex(Math.max(partnerPending.length - 1, 0));
+    if (partnerPending.length > 0 && currentIndex >= partnerPending.length) {
+      setCurrentIndex(partnerPending.length - 1);
     }
   }, [currentIndex, partnerPending.length]);
 
+  // Keyboard shortcuts with stable callbacks
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!currentApplication || isSubmitting) return;
-
       const target = event.target as HTMLElement | null;
       const isTyping =
         target?.tagName === 'INPUT' ||
         target?.tagName === 'TEXTAREA' ||
         target?.getAttribute('role') === 'combobox';
-
       if (isTyping) return;
 
       if (event.key === 'ArrowRight') {
         event.preventDefault();
         void handleApprove();
       }
-
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        void handleReject();
+        if (intent !== 'reject') {
+          setIntent('reject');
+        } else {
+          void handleReject();
+        }
       }
-
       if (event.key === 'ArrowDown') {
         event.preventDefault();
         void handleHold();
@@ -200,7 +201,22 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [currentApplication, isSubmitting, notes, rating, rejectionReason, selectedTags, specificGapsText, idealCandidate]);
+  }, [handleApprove, handleReject, handleHold, intent]);
+
+  // Swipe gesture support
+  const swipeHandlers = useSwipeable({
+    onSwipedRight: () => void handleApprove(),
+    onSwipedLeft: () => {
+      if (intent !== 'reject') {
+        setIntent('reject');
+      } else {
+        void handleReject();
+      }
+    },
+    onSwipedDown: () => void handleHold(),
+    trackMouse: false,
+    preventScrollOnSwipe: true,
+  });
 
   if (isLoading) {
     return (
@@ -234,11 +250,18 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
         </div>
         <Progress value={progressValue} className="h-2" />
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6" {...swipeHandlers}>
+        {/* Candidate card */}
         <div className="rounded-lg border border-border p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-lg font-semibold">{currentApplication.candidateName}</h3>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={currentApplication.candidateAvatarUrl || undefined} />
+              <AvatarFallback>
+                <User className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold truncate">{currentApplication.candidateName}</h3>
               <p className="text-sm text-muted-foreground">
                 {currentApplication.candidateTitle || 'Title not set'}
               </p>
@@ -254,6 +277,18 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
             Salary band: {formatComp(currentApplication.salaryMin, currentApplication.salaryMax, currentApplication.currency)}
           </p>
 
+          {/* Source info */}
+          {(currentApplication.candidateSourceChannel || currentApplication.candidateSourcedBy) && (
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {currentApplication.candidateSourceChannel && (
+                <span>Source: {formatTagLabel(currentApplication.candidateSourceChannel)}</span>
+              )}
+              {currentApplication.candidateSourcedBy && (
+                <span>· Sourced by {currentApplication.candidateSourcedBy}</span>
+              )}
+            </div>
+          )}
+
           {currentApplication.candidateSkills.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {currentApplication.candidateSkills.slice(0, 8).map((skill) => (
@@ -263,8 +298,17 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
               ))}
             </div>
           )}
+
+          {/* Internal review notes from strategist */}
+          {currentApplication.internalReviewNotes && (
+            <div className="rounded-md bg-muted/50 p-3 text-sm">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Internal review notes</p>
+              <p>{currentApplication.internalReviewNotes}</p>
+            </div>
+          )}
         </div>
 
+        {/* Quick feedback tags */}
         <div className="space-y-3">
           <Label>Quick feedback tags</Label>
           <div className="flex flex-wrap gap-2">
@@ -276,12 +320,13 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
                 variant={selectedTags.includes(tag) ? 'default' : 'outline'}
                 onClick={() => toggleTag(tag)}
               >
-                {tag.replace('_', ' ')}
+                {formatTagLabel(tag)}
               </Button>
             ))}
           </div>
         </div>
 
+        {/* Rating */}
         <div className="space-y-3">
           <Label>Rating</Label>
           <div className="flex items-center gap-1">
@@ -301,42 +346,7 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Label>Rejection reason</Label>
-          <Select value={rejectionReason} onValueChange={setRejectionReason}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select reason for rejection" />
-            </SelectTrigger>
-            <SelectContent>
-              {REJECTION_REASONS.map((reason) => (
-                <SelectItem key={reason.value} value={reason.value}>
-                  {reason.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-3">
-          <Label>Specific gaps (comma separated)</Label>
-          <Textarea
-            value={specificGapsText}
-            onChange={(event) => setSpecificGapsText(event.target.value)}
-            placeholder="e.g. stakeholder management, enterprise sales"
-            className="min-h-20"
-          />
-        </div>
-
-        <div className="space-y-3">
-          <Label>Ideal candidate profile (optional)</Label>
-          <Textarea
-            value={idealCandidate}
-            onChange={(event) => setIdealCandidate(event.target.value)}
-            placeholder="Describe what would make this profile stronger"
-            className="min-h-20"
-          />
-        </div>
-
+        {/* Review notes (always visible) */}
         <div className="space-y-3">
           <Label>Review notes</Label>
           <Textarea
@@ -347,13 +357,63 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
           />
         </div>
 
+        {/* Rejection fields — only shown when intent is reject */}
+        {intent === 'reject' && (
+          <div className="space-y-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 animate-fade-in">
+            <p className="text-sm font-medium text-destructive">Rejection details</p>
+
+            <div className="space-y-3">
+              <Label>Rejection reason</Label>
+              <Select value={rejectionReason} onValueChange={setRejectionReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select reason for rejection" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REJECTION_REASONS.map((reason) => (
+                    <SelectItem key={reason.value} value={reason.value}>
+                      {reason.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Specific gaps (comma separated)</Label>
+              <Textarea
+                value={specificGapsText}
+                onChange={(event) => setSpecificGapsText(event.target.value)}
+                placeholder="e.g. stakeholder management, enterprise sales"
+                className="min-h-20"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Ideal candidate profile (optional)</Label>
+              <Textarea
+                value={idealCandidate}
+                onChange={(event) => setIdealCandidate(event.target.value)}
+                placeholder="Describe what would make this profile stronger"
+                className="min-h-20"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons */}
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => void handleApprove()} disabled={isSubmitting}>
             Approve (→)
           </Button>
-          <Button variant="outline" onClick={() => void handleReject()} disabled={isSubmitting}>
-            Reject (←)
-          </Button>
+          {intent !== 'reject' ? (
+            <Button variant="outline" onClick={() => setIntent('reject')} disabled={isSubmitting}>
+              Reject (←)
+            </Button>
+          ) : (
+            <Button variant="destructive" onClick={() => void handleReject()} disabled={isSubmitting}>
+              Confirm Reject (←)
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => void handleHold()} disabled={isSubmitting}>
             Hold (↓)
           </Button>

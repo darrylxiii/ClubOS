@@ -13,8 +13,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { useReviewQueue } from '@/hooks/useReviewQueue';
+import { useReviewQueue, type ReviewQueueApplication } from '@/hooks/useReviewQueue';
 
 interface InternalReviewPanelProps {
   jobId: string;
@@ -30,6 +38,10 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkNotes, setBulkNotes] = useState('');
+
+  // Individual rejection dialog state
+  const [rejectTarget, setRejectTarget] = useState<ReviewQueueApplication | null>(null);
+  const [rejectNote, setRejectNote] = useState('');
 
   const selectedApplications = useMemo(
     () => internalPending.filter((application) => selectedIds.includes(application.id)),
@@ -56,7 +68,7 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
       return;
     }
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       selectedApplications.map((application) =>
         approveInternalMutation.mutateAsync({
           application,
@@ -64,6 +76,11 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
         }),
       ),
     );
+
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    if (failed > 0) {
+      toast.error(`${failed} of ${results.length} approvals failed.`);
+    }
 
     setSelectedIds([]);
     setBulkNotes('');
@@ -80,7 +97,7 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
       return;
     }
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       selectedApplications.map((application) =>
         rejectInternalMutation.mutateAsync({
           application,
@@ -89,8 +106,28 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
       ),
     );
 
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    if (failed > 0) {
+      toast.error(`${failed} of ${results.length} rejections failed.`);
+    }
+
     setSelectedIds([]);
     setBulkNotes('');
+  };
+
+  const handleIndividualReject = async () => {
+    if (!rejectTarget || !rejectNote.trim()) {
+      toast.error('Rejection note is required.');
+      return;
+    }
+
+    await rejectInternalMutation.mutateAsync({
+      application: rejectTarget,
+      notes: rejectNote.trim(),
+    });
+
+    setRejectTarget(null);
+    setRejectNote('');
   };
 
   if (isLoading) {
@@ -115,114 +152,137 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Internal Review Queue
-          <Badge variant="secondary">{internalPending.length} pending</Badge>
-        </CardTitle>
-        <CardDescription>Pre-screen candidates before partner visibility.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="rounded-lg border border-border p-3 space-y-3">
-          <Textarea
-            value={bulkNotes}
-            onChange={(event) => setBulkNotes(event.target.value)}
-            placeholder="Review notes (required for reject, optional for approve)"
-            className="min-h-20"
-          />
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={runBulkApprove} disabled={isSubmitting}>
-              <Check className="h-4 w-4 mr-1" />
-              Approve Selected
-            </Button>
-            <Button variant="outline" onClick={runBulkReject} disabled={isSubmitting}>
-              <X className="h-4 w-4 mr-1" />
-              Reject Selected
-            </Button>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Internal Review Queue
+            <Badge variant="secondary">{internalPending.length} pending</Badge>
+          </CardTitle>
+          <CardDescription>Pre-screen candidates before partner visibility.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-border p-3 space-y-3">
+            <Textarea
+              value={bulkNotes}
+              onChange={(event) => setBulkNotes(event.target.value)}
+              placeholder="Review notes (required for reject, optional for approve)"
+              className="min-h-20"
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={runBulkApprove} disabled={isSubmitting}>
+                <Check className="h-4 w-4 mr-1" />
+                Approve Selected
+              </Button>
+              <Button variant="outline" onClick={runBulkReject} disabled={isSubmitting}>
+                <X className="h-4 w-4 mr-1" />
+                Reject Selected
+              </Button>
+            </div>
           </div>
-        </div>
 
-        <div className="rounded-lg border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={allSelected}
-                    onCheckedChange={(checked) => toggleAll(Boolean(checked))}
-                    aria-label="Select all candidates"
-                  />
-                </TableHead>
-                <TableHead>Candidate</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Match</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {internalPending.map((application) => {
-                const checked = selectedIds.includes(application.id);
+          <div className="rounded-lg border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={(checked) => toggleAll(Boolean(checked))}
+                      aria-label="Select all candidates"
+                    />
+                  </TableHead>
+                  <TableHead>Candidate</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Match</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {internalPending.map((application) => {
+                  const checked = selectedIds.includes(application.id);
 
-                return (
-                  <TableRow key={application.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(value) => toggleOne(application.id, Boolean(value))}
-                        aria-label={`Select ${application.candidateName}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{application.candidateName}</div>
-                      <div className="text-xs text-muted-foreground">{application.companyName}</div>
-                    </TableCell>
-                    <TableCell>{application.candidateTitle || '—'}</TableCell>
-                    <TableCell>
-                      {application.matchScore !== null ? `${application.matchScore}%` : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            approveInternalMutation.mutate({
-                              application,
-                              notes: bulkNotes.trim() || undefined,
-                            })
-                          }
-                          disabled={isSubmitting}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const note = window.prompt('Rejection note');
-                            if (!note?.trim()) {
-                              toast.error('Rejection note is required.');
-                              return;
+                  return (
+                    <TableRow key={application.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(value) => toggleOne(application.id, Boolean(value))}
+                          aria-label={`Select ${application.candidateName}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{application.candidateName}</div>
+                        <div className="text-xs text-muted-foreground">{application.companyName}</div>
+                      </TableCell>
+                      <TableCell>{application.candidateTitle || '—'}</TableCell>
+                      <TableCell>
+                        {application.matchScore !== null ? `${application.matchScore}%` : '—'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              approveInternalMutation.mutate({
+                                application,
+                                notes: bulkNotes.trim() || undefined,
+                              })
                             }
+                            disabled={isSubmitting}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setRejectTarget(application);
+                              setRejectNote('');
+                            }}
+                            disabled={isSubmitting}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-                            rejectInternalMutation.mutate({
-                              application,
-                              notes: note.trim(),
-                            });
-                          }}
-                          disabled={isSubmitting}
-                        >
-                          Reject
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Rejection dialog — replaces window.prompt */}
+      <Dialog open={rejectTarget !== null} onOpenChange={(open) => !open && setRejectTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject {rejectTarget?.candidateName}</DialogTitle>
+            <DialogDescription>Provide a reason for rejecting this candidate.</DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={rejectNote}
+            onChange={(e) => setRejectNote(e.target.value)}
+            placeholder="Rejection reason..."
+            className="min-h-24"
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => void handleIndividualReject()}
+              disabled={!rejectNote.trim() || isSubmitting}
+            >
+              Reject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

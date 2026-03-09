@@ -480,12 +480,18 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                     <SelectValue placeholder="Select partner reviewer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {reviewerOptions.map((reviewer) => (
-                      <SelectItem key={reviewer.id} value={reviewer.id}>
-                        {reviewer.fullName}
-                        {reviewer.email ? ` (${reviewer.email})` : ''}
+                   {reviewerOptions.length === 0 ? (
+                      <SelectItem value="__empty" disabled>
+                        No partner reviewers available
                       </SelectItem>
-                    ))}
+                    ) : (
+                      reviewerOptions.map((reviewer) => (
+                        <SelectItem key={reviewer.id} value={reviewer.id}>
+                          {reviewer.fullName}
+                          {reviewer.email ? ` (${reviewer.email})` : ''}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
 
