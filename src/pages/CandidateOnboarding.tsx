@@ -40,7 +40,7 @@ export default function CandidateOnboarding() {
             .from('profiles')
             .select('account_status, onboarding_completed_at')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
           
           if (profile) {
             if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
@@ -70,7 +70,7 @@ export default function CandidateOnboarding() {
       const { data, error } = await supabase
         .from("funnel_config")
         .select("*")
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.warn('[Onboarding] funnel_config query error, defaulting to active:', error.message);

@@ -55,7 +55,7 @@ export default function AcademyCreatorHub() {
         .from("academies")
         .select("*")
         .eq("slug", "quantum-club-academy")
-        .single();
+        .maybeSingle();
 
       setAcademy(academyData);
 

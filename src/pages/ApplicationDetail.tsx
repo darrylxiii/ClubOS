@@ -99,9 +99,14 @@ export default function ApplicationDetail() {
         `)
         .eq("id", applicationId)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        toast.error("Application not found");
+        navigate("/applications");
+        return;
+      }
 
       // Get count of other candidates
       const { count } = await supabase
@@ -133,7 +138,7 @@ export default function ApplicationDetail() {
             .from("profiles")
             .select("id, full_name, avatar_url")
             .eq("id", member.user_id)
-            .single();
+            .maybeSingle();
 
           if (profileData) {
             strategist = {

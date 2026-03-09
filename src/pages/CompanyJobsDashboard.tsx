@@ -127,7 +127,7 @@ const CompanyJobsDashboard = () => {
         .from('companies')
         .select('name')
         .eq('id', companyId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setCompanyName(data?.name || '');
