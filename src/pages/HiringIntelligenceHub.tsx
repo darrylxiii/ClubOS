@@ -16,15 +16,66 @@ import { useAggregatedHiringIntelligence, useRefreshAggregatedIntelligence } fro
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 
+interface HiringStats {
+  activeJobs: number;
+  totalJobs?: number;
+  aiInsightsGenerated: number;
+  predictedHires: number;
+  avgMatchScore: number;
+  jobsWithCandidates?: number;
+  totalCandidates?: number;
+}
+
+interface JobWithHealth {
+  id: string;
+  title: string;
+  status: string;
+  created_at: string;
+  company_id: string | null;
+  companies: { name: string } | null;
+  candidatesInPipeline: number;
+  upcomingInterviews: number;
+  healthScore: number;
+  alerts: number;
+  [key: string]: unknown;
+}
+
+interface CandidateApplication {
+  id: string;
+  job_id: string;
+  candidate_id: string;
+  status: string;
+  match_score: number | null;
+  candidate_profiles: { full_name: string | null } | null;
+  jobs: { title: string; companies: { name: string } | null } | null;
+  [key: string]: unknown;
+}
+
+interface UpcomingInterview {
+  id: string;
+  scheduled_start: string;
+  scheduled_end: string | null;
+  meeting_type?: string;
+  candidate_profiles: { full_name: string | null } | null;
+  jobs: { title: string; companies: { name: string } | null } | null;
+  [key: string]: unknown;
+}
+
+interface InterviewStats {
+  thisWeek: number;
+  feedbackPending: number;
+  avgFeedbackTime: number;
+}
+
 // Predictions Tab Content Component
 function PredictionsTabContent({ 
   jobs, 
   navigate, 
   EmptyState 
 }: { 
-  jobs: any[]; 
+  jobs: JobWithHealth[]; 
   navigate: (path: string) => void;
-  EmptyState: React.FC<{ icon: any; title: string; description: string; action?: { label: string; onClick: () => void } }>;
+  EmptyState: React.FC<{ icon: React.ElementType; title: string; description: string; action?: { label: string; onClick: () => void } }>;
 }) {
   const { data: insights, isLoading } = useAggregatedHiringIntelligence();
   const refreshMutation = useRefreshAggregatedIntelligence();
@@ -65,12 +116,12 @@ function PredictionsTabContent({
 
 export default function HiringIntelligenceHub({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<any>({ activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 });
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [jobsNeedingAttention, setJobsNeedingAttention] = useState<any[]>([]);
-  const [topCandidatesAcrossJobs, setTopCandidatesAcrossJobs] = useState<any[]>([]);
-  const [upcomingInterviewsAllJobs, setUpcomingInterviewsAllJobs] = useState<any[]>([]);
-  const [interviewStats, setInterviewStats] = useState<any>({ thisWeek: 0, feedbackPending: 0, avgFeedbackTime: 0 });
+  const [stats, setStats] = useState<HiringStats>({ activeJobs: 0, aiInsightsGenerated: 0, predictedHires: 0, avgMatchScore: 0 });
+  const [jobs, setJobs] = useState<JobWithHealth[]>([]);
+  const [jobsNeedingAttention, setJobsNeedingAttention] = useState<JobWithHealth[]>([]);
+  const [topCandidatesAcrossJobs, setTopCandidatesAcrossJobs] = useState<CandidateApplication[]>([]);
+  const [upcomingInterviewsAllJobs, setUpcomingInterviewsAllJobs] = useState<UpcomingInterview[]>([]);
+  const [interviewStats, setInterviewStats] = useState<InterviewStats>({ thisWeek: 0, feedbackPending: 0, avgFeedbackTime: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -109,7 +160,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       // Load applications for active candidates with match scores
       const { data: applications } = await supabase
         .from('applications')
-        .select('*, candidate_profiles(full_name, first_name, last_name), jobs(title, companies(name))')
+        .select('*, candidate_profiles(full_name), jobs(title, companies(name))')
         .in('status', ['active', 'screening', 'interview', 'offer'])
         .order('match_score', { ascending: false, nullsFirst: false })
         .limit(20);
@@ -119,7 +170,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       // 2. OR bookings with a job_id association (likely an interview)
       const { data: interviews } = await supabase
         .from('bookings')
-        .select('*, candidate_profiles(full_name, first_name, last_name), jobs(title, companies(name))')
+        .select('*, candidate_profiles(full_name), jobs(title, companies(name))')
         .or('is_interview_booking.eq.true,job_id.not.is.null')
         .gte('scheduled_start', new Date().toISOString())
         .order('scheduled_start', { ascending: true })
@@ -135,7 +186,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       // Calculate average match score from applications (not predictions)
       const applicationsWithScores = applications?.filter(a => a.match_score != null) || [];
       const avgMatchFromApps = applicationsWithScores.length > 0
-        ? (applicationsWithScores.reduce((sum, a) => sum + (a.match_score || 0), 0) / applicationsWithScores.length).toFixed(1)
+        ? Math.round(applicationsWithScores.reduce((sum, a) => sum + (a.match_score || 0), 0) / applicationsWithScores.length)
         : 0;
 
       // Calculate stats
@@ -154,18 +205,18 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       });
 
       // Process jobs with health scores
-      const jobsWithHealth = jobsData?.map((job: any) => {
+      const jobsWithHealth: JobWithHealth[] = jobsData?.map((job) => {
         const appCount = applicationCounts[job.id] || 0;
-        // Health score based on application count and job status
         let healthScore = 0;
         if (job.status === 'published') {
           healthScore = appCount > 10 ? 100 : appCount > 5 ? 80 : appCount > 2 ? 60 : appCount > 0 ? 40 : 20;
         } else {
-          healthScore = 10; // Draft jobs have low health
+          healthScore = 10;
         }
         
         return {
           ...job,
+          companies: job.companies as { name: string } | null,
           candidatesInPipeline: appCount,
           upcomingInterviews: 0,
           healthScore,
@@ -174,9 +225,9 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       }) || [];
 
       setJobs(jobsWithHealth);
-      setJobsNeedingAttention(jobsWithHealth.filter((j: any) => j.healthScore < 60 && j.status === 'published'));
-      setTopCandidatesAcrossJobs(applications?.slice(0, 6) || []);
-      setUpcomingInterviewsAllJobs(interviews || []);
+      setJobsNeedingAttention(jobsWithHealth.filter((j) => j.healthScore < 60 && j.status === 'published'));
+      setTopCandidatesAcrossJobs((applications as unknown as CandidateApplication[])?.slice(0, 6) || []);
+      setUpcomingInterviewsAllJobs((interviews as unknown as UpcomingInterview[]) || []);
 
       // Interview stats
       setInterviewStats({
@@ -207,7 +258,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
 
   // Empty state component for reusability
   const EmptyState = ({ icon: Icon, title, description, action }: { 
-    icon: any; 
+    icon: React.ElementType; 
     title: string; 
     description: string; 
     action?: { label: string; onClick: () => void } 
@@ -457,15 +508,12 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                         <div className="flex items-center gap-4">
                           <Avatar>
                             <AvatarFallback>
-                              {interview.candidate_profiles?.first_name?.[0] || 
-                               interview.candidate_profiles?.full_name?.[0] || '?'}
+                              {interview.candidate_profiles?.full_name?.[0] || '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <h3 className="font-semibold">
-                              {interview.candidate_profiles?.first_name && interview.candidate_profiles?.last_name
-                                ? `${interview.candidate_profiles.first_name} ${interview.candidate_profiles.last_name}`
-                                : interview.candidate_profiles?.full_name || 'Candidate'}
+                              {interview.candidate_profiles?.full_name || 'Candidate'}
                             </h3>
                             <p className="text-sm text-muted-foreground">
                               {interview.jobs?.title || 'Interview'} • {interview.jobs?.companies?.name || 'Company'}

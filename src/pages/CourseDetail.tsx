@@ -32,20 +32,56 @@ import {
   Loader2
 } from "lucide-react";
 
+interface CourseData {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  category: string | null;
+  difficulty_level: string | null;
+  estimated_hours: number | null;
+  is_published: boolean;
+  created_by: string;
+  created_at: string;
+  cover_image_url: string | null;
+  profiles: { full_name: string | null; avatar_url: string | null } | null;
+  [key: string]: unknown;
+}
+
+interface ModuleData {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string | null;
+  display_order: number;
+  module_type: string | null;
+  estimated_minutes: number | null;
+  [key: string]: unknown;
+}
+
+interface CertificateData {
+  id: string;
+  user_id: string;
+  course_id: string;
+  issued_at: string;
+  certificate_url: string | null;
+  [key: string]: unknown;
+}
+
 export default function CourseDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const [course, setCourse] = useState<any>(null);
-  const [modules, setModules] = useState<any[]>([]);
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [modules, setModules] = useState<ModuleData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [certificate, setCertificate] = useState<any>(null);
-  const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [selectedModule, setSelectedModule] = useState<ModuleData | null>(null);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   useEffect(() => {
@@ -102,7 +138,7 @@ export default function CourseDetail() {
               .maybeSingle();
             
             if (certData) {
-              setCertificate(certData);
+              setCertificate(certData as unknown as CertificateData);
             }
           }
         }
@@ -225,8 +261,8 @@ export default function CourseDetail() {
                 <span>{course.estimated_hours}h</span>
               </div>
               <AverageRatingDisplay
-                rating={course.rating_average}
-                count={course.rating_count}
+                rating={course.rating_average as number}
+                count={course.rating_count as number}
               />
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
