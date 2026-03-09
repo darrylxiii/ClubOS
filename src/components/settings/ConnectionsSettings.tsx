@@ -248,7 +248,7 @@ export const ConnectionsSettings = ({
             body: { action: 'exchangeCode', code, redirectUri },
           });
 
-          console.log('📥 Outlook OAuth response:', { hasError: !!funcError, hasData: !!data });
+          
 
           if (funcError || !data?.access_token) {
             console.error('❌ Outlook OAuth error:', funcError);
