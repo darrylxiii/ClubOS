@@ -273,7 +273,7 @@ export default function JobDashboard() {
             open={showShareDialog}
             onOpenChange={(open) => {
               setShowShareDialog(open);
-              if (!open) fetchActiveShareCount();
+              if (!open) fetchJobDetails();
             }}
             jobId={job.id}
             jobTitle={job.title}
