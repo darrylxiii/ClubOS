@@ -115,9 +115,9 @@ function ViewerIdentityGate({ onSubmit }: { onSubmit: (name: string, email: stri
 function WatermarkOverlay({ text }: { text: string }) {
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden select-none" aria-hidden="true">
-      <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-32 -rotate-30 opacity-[0.06]">
+      <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-32 -rotate-[30deg] opacity-[0.06]">
         {Array.from({ length: 20 }).map((_, i) => (
-          <span key={i} className="text-2xl font-bold text-foreground whitespace-nowrap">
+          <span key={i} className="text-2xl font-bold text-muted-foreground whitespace-nowrap">
             {text}
           </span>
         ))}

@@ -125,7 +125,7 @@ export function useCreateBookingLink() {
     mutationFn: async (linkData: Record<string, unknown>) => {
       const { data, error } = await supabase
         .from('booking_links')
-        .insert({ ...linkData, user_id: user?.id })
+        .insert([{ ...linkData, user_id: user?.id }] as never)
         .select()
         .single();
 
