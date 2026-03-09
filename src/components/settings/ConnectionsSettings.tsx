@@ -127,7 +127,6 @@ export const ConnectionsSettings = ({
     
     // Process OAuth success
     if (!code || !user) {
-      console.log('⚠️ Skipping OAuth: missing code or user');
       return;
     }
 
