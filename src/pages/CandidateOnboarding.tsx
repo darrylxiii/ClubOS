@@ -94,6 +94,50 @@ export default function CandidateOnboarding() {
     return <PageLoader />;
   }
 
+  if (isAlreadyMember) {
+    return (
+      <>
+        <Helmet>
+          <title>Already a Member | The Quantum Club</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
+        <div className="min-h-screen bg-background">
+          <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
+              <img src={quantumLogoDark} alt="Quantum Club" className="h-20 w-auto dark:hidden" />
+              <img src={quantumLogoLight} alt="Quantum Club" className="h-20 w-auto hidden dark:block" />
+              <div className="absolute right-4 flex items-center gap-4">
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)]">
+            <Card className="max-w-lg w-full p-10 text-center glass-effect">
+              <Sparkles className="w-14 h-14 mx-auto mb-6 text-primary" />
+              <h1 className="text-3xl font-bold mb-3 text-foreground">
+                {t('candidate.alreadyMember.title', "You're already a member")}
+              </h1>
+              <p className="text-muted-foreground text-base mb-8">
+                {t('candidate.alreadyMember.message', "You've completed onboarding. Explore your dashboard or invite a friend to join The Quantum Club.")}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="primary" onClick={() => navigate('/home')}>
+                  <Home className="w-4 h-4" />
+                  {t('candidate.alreadyMember.dashboard', 'Go to Dashboard')}
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/invite')}>
+                  <UserPlus className="w-4 h-4" />
+                  {t('candidate.alreadyMember.invite', 'Invite a Friend')}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   if (!isActive) {
     return (
       <>
