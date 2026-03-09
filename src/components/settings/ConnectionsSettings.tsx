@@ -628,7 +628,7 @@ export const ConnectionsSettings = ({
         throw new Error('No authentication URL received');
       }
 
-      console.log(`[Calendar] Redirecting to ${provider} OAuth...`);
+      
       // Redirect to OAuth
       window.location.href = data.authUrl;
     } catch (error) {
