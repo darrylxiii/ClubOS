@@ -76,7 +76,7 @@ export default function OAuthOnboarding() {
           
           // Redirect based on account status
           if (data.account_status === 'approved') {
-            navigate('/club-home', { replace: true });
+            navigate('/home', { replace: true });
           } else {
             navigate('/pending-approval', { replace: true });
           }
