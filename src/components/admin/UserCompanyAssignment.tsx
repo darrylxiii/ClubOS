@@ -36,8 +36,6 @@ export function UserCompanyAssignment() {
 
   const fetchData = async () => {
     try {
-      console.log('[UserCompanyAssignment] Fetching data...');
-      
       // Fetch users and companies first
       const [usersRes, companiesRes] = await Promise.all([
         supabase.from('profiles').select('id, email, full_name'),
