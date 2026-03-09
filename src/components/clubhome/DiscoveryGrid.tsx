@@ -55,7 +55,7 @@ function ForYouColumn() {
       seeAllPath="/jobs"
       loading={isLoading}
       empty={!jobs?.length}
-      emptyText="Complete your profile for matches"
+      emptyText={!user ? "Sign in for matches" : "No matches yet — we're working on it"}
     >
       {jobs?.map(job => (
         <button
