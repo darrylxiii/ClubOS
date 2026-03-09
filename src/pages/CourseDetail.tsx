@@ -73,43 +73,26 @@ export default function CourseDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
-  const [course, setCourse] = useState<CourseData | null>(null);
-  const [modules, setModules] = useState<ModuleData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isOwner, setIsOwner] = useState(false);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [certificate, setCertificate] = useState<CertificateData | null>(null);
   const [selectedModule, setSelectedModule] = useState<ModuleData | null>(null);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
-  useEffect(() => {
-    loadCourseData();
-  }, [slug, user]);
-
-  const loadCourseData = async () => {
-    try {
-      setLoading(true);
-
+  const { data: courseQueryData, isLoading: loading } = useQuery({
+    queryKey: ['course-detail', slug, user?.id],
+    queryFn: async () => {
       const { data: courseData, error: courseError } = await supabase
         .from("courses")
-        .select(`
-          *,
-          profiles:created_by(full_name, avatar_url)
-        `)
+        .select(`*, profiles:created_by(full_name, avatar_url)`)
         .eq("slug", slug)
         .maybeSingle();
 
       if (courseError) throw courseError;
       if (!courseData) {
-        notify.error("Course not found");
-        navigate("/academy");
-        return;
+        return null;
       }
-      setCourse(courseData);
-      setIsOwner(user?.id === courseData.created_by);
 
       const { data: modulesData } = await supabase
         .from("modules")
@@ -117,7 +100,8 @@ export default function CourseDetail() {
         .eq("course_id", courseData.id)
         .order("display_order");
 
-      setModules(modulesData || []);
+      let progress = 0;
+      let certificate: CertificateData | null = null;
 
       if (user && courseData.id) {
         const { data: progressData } = await supabase
@@ -127,10 +111,9 @@ export default function CourseDetail() {
           .in('module_id', modulesData?.map(m => m.id) || []);
 
         if (progressData && progressData.length > 0) {
-          const avgProgress = progressData.reduce((sum, p) => sum + p.progress_percentage, 0) / progressData.length;
-          setProgress(avgProgress);
+          progress = progressData.reduce((sum, p) => sum + p.progress_percentage, 0) / progressData.length;
           
-          if (avgProgress >= 100) {
+          if (progress >= 100) {
             const { data: certData } = await supabase
               .from('certificates' as any) // TODO: add certificates table to schema migration
               .select('*')
@@ -139,16 +122,38 @@ export default function CourseDetail() {
               .maybeSingle();
             
             if (certData) {
-              setCertificate(certData as unknown as CertificateData);
+              certificate = certData as unknown as CertificateData;
             }
           }
         }
       }
-    } catch (error: unknown) {
-      notify.error("Error loading course", { description: error instanceof Error ? error.message : 'Unknown error' });
-    } finally {
-      setLoading(false);
-    }
+
+      return {
+        course: courseData as unknown as CourseData,
+        modules: (modulesData || []) as unknown as ModuleData[],
+        isOwner: user?.id === courseData.created_by,
+        progress,
+        certificate,
+      };
+    },
+    enabled: !!slug,
+  });
+
+  // Redirect if course not found (after loading)
+  if (!loading && courseQueryData === null) {
+    notify.error("Course not found");
+    navigate("/academy");
+    return null;
+  }
+
+  const course = courseQueryData?.course ?? null;
+  const modules = courseQueryData?.modules ?? [];
+  const isOwner = courseQueryData?.isOwner ?? false;
+  const progress = courseQueryData?.progress ?? 0;
+  const certificate = courseQueryData?.certificate ?? null;
+
+  const loadCourseData = () => {
+    queryClient.invalidateQueries({ queryKey: ['course-detail', slug, user?.id] });
   };
 
   const handlePublishToggle = async () => {
