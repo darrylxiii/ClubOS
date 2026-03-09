@@ -234,12 +234,6 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
       const appSourcedBy = selectedApp?.sourced_by || null;
       const candidateId = selectedApp?.candidate_id || null;
       
-      console.log("[JobClosureDialog] Using application from prop:", {
-        appId,
-        appSourcedBy,
-        candidateId,
-        foundInProp: !!selectedApp
-      });
 
       // Get creator ID from candidate_profiles if needed (separate query)
       let creatorId: string | null = null;
