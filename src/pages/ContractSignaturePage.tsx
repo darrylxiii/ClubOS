@@ -74,7 +74,7 @@ export default function ContractSignaturePage() {
 
       // Save signature
       const { error: sigError } = await supabase
-        .from('contract_signatures' as any)
+        .from('contract_signatures' as any) // TODO: add contract_signatures to schema migration
         .insert({
           contract_id: contract.id,
           signer_id: user!.id,
