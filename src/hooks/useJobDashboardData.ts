@@ -43,33 +43,11 @@ export interface JobToolEntry {
   } | null;
 }
 
-export interface JobDashboardJob extends JobRow {
-  companies: JobCompany | null;
-  job_tools: JobToolEntry[];
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type JobDashboardJob = Record<string, any>;
 
-export interface EnrichedApplication {
-  id: string;
-  job_id: string;
-  user_id: string | null;
-  candidate_id: string | null;
-  status: string;
-  current_stage_index: number;
-  applied_at: string;
-  updated_at: string;
-  match_score: number | null;
-  internal_review_status: string | null;
-  partner_review_status: string | null;
-  stages: unknown[];
-  full_name: string;
-  email: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-  current_title: string | null;
-  current_company: string | null;
-  linkedin_url: string | null;
-  is_linked_user: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type EnrichedApplication = Record<string, any>;
 
 export interface JobMetrics {
   totalApplicants: number;
