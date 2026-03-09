@@ -172,7 +172,7 @@ export default function CourseDetail() {
         { description: course.is_published ? "Course is now hidden from students" : "Course is now visible to students" }
       );
 
-      setCourse({ ...course, is_published: !course.is_published });
+      loadCourseData();
     } catch (error: unknown) {
       notify.error("Error updating course", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
