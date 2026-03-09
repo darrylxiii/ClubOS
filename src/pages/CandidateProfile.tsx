@@ -61,6 +61,8 @@ export default function CandidateProfile() {
   const noteId = searchParams.get('noteId');
   const { user } = useAuth();
   const { currentRole: role } = useRole();
+  const isTeamView = role === 'admin' || role === 'partner';
+
   const { candidate, userProfile, loading, refetch: loadCandidate } = useCandidateProfileData({
     candidateId: id,
     isTeamView,
@@ -70,30 +72,6 @@ export default function CandidateProfile() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
   const [enrichModal, setEnrichModal] = useState<{ open: boolean; mode: 'linkedin' | 'deep-enrich' }>({ open: false, mode: 'linkedin' });
-
-  const isTeamView = role === 'admin' || role === 'partner';
-
-  const calculateDuration = (startDate?: string, endDate?: string): string | null => {
-    if (!startDate) return null;
-    try {
-      const start = new Date(startDate);
-      const end = endDate ? new Date(endDate) : new Date();
-      let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-      if (months < 0) return null;
-      const years = Math.floor(months / 12);
-      months = months % 12;
-      const parts: string[] = [];
-      if (years > 0) parts.push(`${years} yr${years > 1 ? 's' : ''}`);
-      if (months > 0) parts.push(`${months} mo${months > 1 ? 's' : ''}`);
-      return parts.length > 0 ? parts.join(' ') : 'Less than a month';
-    } catch {
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    loadCandidate();
-  }, [id]);
 
   // Handle deep linking to specific sections/notes
   useEffect(() => {
