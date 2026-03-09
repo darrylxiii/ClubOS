@@ -168,7 +168,7 @@ export default function ExpertMarketplace() {
     toast.success("Expert profile created");
     setProfileDialogOpen(false);
     resetProfileForm();
-    loadExperts();
+    invalidateAll();
   };
 
   const handleAssignExpert = async () => {
