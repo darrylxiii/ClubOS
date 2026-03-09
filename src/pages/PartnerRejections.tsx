@@ -75,7 +75,7 @@ export default function PartnerRejections() {
         .select('company_id')
         .eq('user_id', user?.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (!membership) {
         toast.error("No company found for this user");

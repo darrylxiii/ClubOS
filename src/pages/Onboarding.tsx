@@ -143,10 +143,6 @@ const Onboarding = () => {
 
     setErrors({});
     
-    // Here you would typically send data to backend for processing
-    console.log("Form submitted:", formData);
-    console.log("Resume:", resume);
-    
     toast.success("Profile created successfully!");
     navigate("/");
   };

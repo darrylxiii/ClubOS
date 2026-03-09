@@ -85,7 +85,7 @@ const PartnerWelcome = () => {
           .from('profiles')
           .select('full_name, email, avatar_url')
           .eq('id', profile.assigned_strategist_id)
-          .single();
+          .maybeSingle();
 
         if (strategistProfile) {
           setStrategist({

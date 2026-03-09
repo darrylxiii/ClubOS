@@ -460,7 +460,7 @@ export default function OAuthOnboarding() {
         throw new Error(`Profile update failed: ${profileError.message}`);
       }
 
-      console.log('[OAuth Onboarding] Profile updated successfully');
+      
       toast.success("Profile completed! Welcome to The Quantum Club!");
 
       setTimeout(() => {

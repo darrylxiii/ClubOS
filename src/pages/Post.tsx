@@ -32,7 +32,7 @@ export default function Post() {
         .from('posts')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (postError || !postData) {
         setNotFound(true);

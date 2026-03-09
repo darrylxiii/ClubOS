@@ -70,8 +70,8 @@ export default function ConnectsStorePage() {
         .select("*")
         .eq("user_id", user.id)
         .eq("status", "active")
-        .single();
-      if (error && error.code !== "PGRST116") return null;
+        .maybeSingle();
+      if (error) return null;
       return data;
     },
     enabled: !!user?.id,

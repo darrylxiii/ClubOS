@@ -48,15 +48,8 @@ export default function Meetings() {
   // Auto-create Personal Meeting Room if user doesn't have one
   useAutoCreatePMR();
 
-  // Debug logging for component lifecycle
-  useEffect(() => {
-    console.log('[Meetings] Component mounted, tab:', activeTab, 'user:', user?.id);
-    return () => console.log('[Meetings] Component unmounted');
-  }, []);
-
   useEffect(() => {
     if (user) {
-      console.log('[Meetings] Loading data for user:', user.id);
       loadMeetings();
       loadStats();
 

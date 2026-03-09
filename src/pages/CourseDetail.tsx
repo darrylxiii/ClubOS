@@ -63,9 +63,14 @@ export default function CourseDetail() {
           profiles:created_by(full_name, avatar_url)
         `)
         .eq("slug", slug)
-        .single();
+        .maybeSingle();
 
       if (courseError) throw courseError;
+      if (!courseData) {
+        toast.error("Course not found");
+        navigate("/academy");
+        return;
+      }
       setCourse(courseData);
       setIsOwner(user?.id === courseData.created_by);
 
