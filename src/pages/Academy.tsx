@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
 import {
@@ -41,27 +40,19 @@ import { AcademySidebar } from "@/components/academy/AcademySidebar";
 import { CourseCarousel } from "@/components/academy/CourseCarousel";
 import { EnhancedCategoryGrid } from "@/components/academy/EnhancedCategoryGrid";
 import { CourseAppleCarousel } from "@/components/academy/CourseAppleCarousel";
+import { useAcademyData, type AcademyCourse } from "@/hooks/useAcademyData";
 
 export default function Academy() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [academy, setAcademy] = useState<any>(null);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
-  const [learningPaths, setLearningPaths] = useState<any[]>([]);
-  const [isExpert, setIsExpert] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { academy, courses, learningPaths, isExpert, loading, refetch: loadAcademyData } = useAcademyData(slug, user?.id);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
-
-  useEffect(() => {
-    loadAcademyData();
-  }, [slug, user]);
 
   useEffect(() => {
     applyFilters();
