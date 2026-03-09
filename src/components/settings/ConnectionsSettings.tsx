@@ -86,13 +86,6 @@ export const ConnectionsSettings = ({
   }, [user]);
 
   const handleOAuthCallback = async (code: string | null, error: string | null, errorDescription: string | null) => {
-    console.log('🔍 OAuth callback triggered:', { 
-      hasCode: !!code, 
-      hasError: !!error,
-      userLoaded: !!user,
-      url: window.location.href
-    });
-    
     // Check which type of connection is pending
     const pendingCalendar = localStorage.getItem('pending_calendar_connection');
     const pendingEmail = localStorage.getItem('pending_email_connection');
