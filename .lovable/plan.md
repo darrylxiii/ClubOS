@@ -1,74 +1,171 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 92/100 (In-Meeting) | Ecosystem: 82/100
 
----
+# Full Candidate System Audit
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+## Scoring: 71/100
 
 ---
 
-## Remaining
+## Area-by-Area Breakdown
 
-### Phase G2: In-Meeting Feature Parity ✅ (82 → 92)
-- Auto-pin active speaker in spotlight mode (2s debounce, user-pin override)
-- Meeting lock toggle for host (DB column `is_locked` + HostSettingsPanel UI)
-- Raise hand queue with timestamps and ordered list in ParticipantsPanel
-- Bandwidth quality presets (HD/Standard/Low) in DeviceSelector
-- Per-participant network quality tooltip (RTT/jitter/packetLoss/bitrate on hover)
-- Gallery page keyboard navigation (arrow keys)
-- Noise suppression UI toggle in DeviceSelector
+### 1. Club Home Dashboard (CandidateHome) — 82/100
+**What works:**
+- Clean 6-zone layout: NBA → Pipeline → Interview Countdown → AI Chat → Strategist → Discovery → Profile Strength
+- All zones conditionally hide when irrelevant (no interview, no strategist, 100% profile)
+- Real data from Supabase throughout — match_scores, bookings, messages, applications
+- Strategist SLA computation is genuinely clever (message response delta calculation)
+- Interview countdown with live tick, "Join" button when live
 
-### Phase H: Polish & Automation ✅ (92 → 100)
-- **Date range filter on MeetingHistoryTab**: From/To date inputs with clear button, useMemo filtering
-- **sendBeacon mobile cleanup**: `beforeunload` + `pagehide` → `navigator.sendBeacon` for reliable participant cleanup on mobile/tab close
-- **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
-- **Auto-advance pipeline on strong_yes**: `extract-candidate-performance` auto-advances `applications.pipeline_stage` when `hiring_recommendation === 'strong_yes'`, with audit log
+**Issues:**
+- **CompactProfileStrength** uses raw `useEffect` + `setState` instead of `useQuery` — no caching, refetches on every mount (-2)
+- **CompactStrategist** same pattern — raw async in useEffect, no error state (-2)
+- **CompactInterviewCountdown** same — no error boundary, `.single()` throws if 0 rows returned (should use `.maybeSingle()`) (-3)
+- **DiscoveryGrid ForYouColumn** uses `match_scores` but no fallback if matching hasn't run — just shows "Complete your profile" which is misleading if profile IS complete but no matches exist (-2)
+- **MessagesColumn** doesn't use realtime subscription — stale on mount only (-1)
+- No `formatLocation` usage anywhere in dashboard — raw location strings can leak JSON (-2)
+- ClubAIHomeChatWidget is 245 lines, well-structured with voice support — solid
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+### 2. Applications Page — 78/100
+**What works:**
+- Real-time subscription for application updates (both `user_id` and `candidate_id` filters)
+- Three tabs: Active / Rejected / Archived
+- Rich ApplicationCard with strategist, competition insight, progression heatmap, timeline
+- Mobile-specific pipeline component (`MobileApplicationPipeline`)
+- Export to CSV per application
+- Background refetch indicator (nice touch)
 
-### Phase I2: Remaining Ecosystem
+**Issues:**
+- **No withdraw action** — candidate cannot withdraw an application from the UI (-5)
+- `archivedApplications` filter is `status !== 'active' && status !== 'rejected'` — this catches `hired`, `withdrawn`, `closed` all in one bucket with no differentiation (-2)
+- Hardcoded `averageDays = stages.length * 5` — always 25 days for 5-stage pipeline, not real data (-2)
+- `window.location.href` used for mobile navigation instead of `navigate()` — causes full page reload (-2)
+- No empty state illustration for rejected tab (just a component) — minor (-1)
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+### 3. Application Detail Page — 72/100
+**What works:**
+- Full pipeline visualization with expandable stages
+- Strategist contact card, competition insight, timeline
+
+**Issues:**
+- **No withdraw button** on detail page either (-3)
+- Uses `useParams` with `applicationId` but the route param is `:id` — potential mismatch (-3)
+- No realtime subscription — relies on stale data from initial fetch (-2)
+- Location strings not formatted with `formatLocation` (-1)
+
+### 4. Jobs Page — 80/100
+**What works:**
+- Full-featured job search with filters, sorting, saved jobs, Club Sync
+- Role-aware (candidate vs partner vs admin tabs)
+- URL-based tab state for deep linking
+- "For You" section with match scores
+- Interview prep tab integrated
+- Map view available
+
+**Issues:**
+- 848 lines in one file — should be decomposed further (-3)
+- `jobs` state managed with `useState` + manual fetch instead of `useQuery` — no caching (-3)
+- ClubSync toggle state is local, not persisted (-2)
+- No pagination — loads all jobs at once (-2)
+
+### 5. Settings Page — 75/100
+**What works:**
+- Comprehensive tabs: Profile, Compensation, Privacy, Security, Notifications, Calendar, Connections, Freelance, API, Communication
+- Privacy settings with blocked companies and stealth mode
+- GDPR controls (export + delete) via edge functions
+- Resume upload modal
+- Currency conversion support
+
+**Issues:**
+- 752 lines — monolithic, all state at top level (-3)
+- No consent receipts viewer despite knowledge doc requiring it (-5)
+- No "visibility toggles" per field (e.g., hide salary from clients) — only bulk stealth mode (-3)
+
+### 6. Referrals Page — 77/100
+**What works:**
+- Full referral system: earnings, leaderboard, tiers, challenges, activity feed
+- Company and member referral cards
+- Share sheet and link generator
+- Analytics tab with charts
+- Revenue share info
+
+**Issues:**
+- No "projected vs realized rewards" distinction as specified in knowledge doc (-3)
+- Role-aware but `isPartner` doesn't seem to restrict any UI — both admin and partner see everything (-2)
+
+### 7. Onboarding (CandidateOnboarding + OAuthOnboarding) — 76/100
+**What works:**
+- OAuth onboarding redirects to `/club-home` on completion
+- Account status check (approved vs pending)
+
+**Issues:**
+- No progressive profiling — unclear which fields are required vs optional (-3)
+- No CV parse step in onboarding flow (knowledge doc says "CV parse" should be part of onboard) (-4)
+- No calendar connect step in onboarding (-3)
+
+### 8. Interview Prep — 74/100
+**Issues:**
+- Route redirects to `/jobs?tab=interview-prep` — tab inside Jobs page, not standalone (-2)
+- Chat session route exists but no clear entry point from application cards (-3)
+
+### 9. Data Integrity & Privacy — 65/100
+**Critical gaps:**
+- **No consent receipts viewer** in candidate UI (-8)
+- **`formatLocation` only used in 2 avatar components** — not in Jobs, Applications, Profile, or Dashboard (-5)
+- **No field-level visibility toggles** (share salary, share email, share phone individually) (-5)
+- **No employer shield UI** — blocked companies exist in settings but no indication of what it actually blocks (-3)
+- `candidate_profiles` queried with `.eq('id', user.id)` in CompactStrategist — but `id` might be different from `user_id` depending on schema (-2)
+
+### 10. Club Pilot — 70/100
+- Page exists and renders `PilotDashboard`
+- Not audited in detail but is a separate system
+
+---
+
+## Summary Table
+
+| Area | Score | Top Issue |
+|------|-------|-----------|
+| Club Home Dashboard | 82 | useEffect instead of useQuery, no formatLocation |
+| Applications Page | 78 | No withdraw action, hardcoded averages |
+| Application Detail | 72 | No withdraw, possible param mismatch |
+| Jobs Page | 80 | Monolithic, no pagination, no useQuery |
+| Settings | 75 | No consent receipts viewer, no field-level visibility |
+| Referrals | 77 | No projected vs realized rewards |
+| Onboarding | 76 | No CV parse or calendar connect steps |
+| Interview Prep | 74 | Hidden in Jobs tab, unclear entry point |
+| Data Integrity/Privacy | 65 | Missing consent viewer, formatLocation gaps |
+| **Overall** | **71/100** | |
+
+---
+
+## Fix Plan to 100/100
+
+### Priority 1: Security & Privacy (71 → 82)
+1. Add consent receipts viewer to Settings (new tab or section under Privacy)
+2. Add field-level visibility toggles (salary, email, phone) to Privacy settings
+3. Apply `formatLocation()` everywhere location strings are displayed (Dashboard, Jobs, Applications, ApplicationDetail)
+4. Fix `.single()` → `.maybeSingle()` in CompactInterviewCountdown to prevent throws on 0 rows
+5. Verify `candidate_profiles` ID vs user_id column usage in CompactStrategist
+
+### Priority 2: Core Candidate Actions (82 → 90)
+6. Add "Withdraw Application" action to ApplicationDetail and ApplicationCard
+7. Fix `useParams` — verify route param name matches (`:id` vs `applicationId`)
+8. Replace `window.location.href` with `navigate()` in MobileApplicationPipeline
+9. Add realtime subscription to ApplicationDetail page
+10. Split archived tab into Hired / Withdrawn / Closed sub-sections
+
+### Priority 3: Data Quality & Performance (90 → 95)
+11. Convert CompactProfileStrength, CompactStrategist, CompactInterviewCountdown to use `useQuery`
+12. Convert Jobs page from `useState`+fetch to `useQuery` with pagination
+13. Add realtime subscription to MessagesColumn in DiscoveryGrid
+14. Replace hardcoded `averageDays = stages * 5` with actual stage duration data
+
+### Priority 4: Feature Completeness (95 → 100)
+15. Add "projected vs realized" labels to Referrals earnings
+16. Add CV parse + calendar connect steps to onboarding flow
+17. Add clear interview prep entry point from ApplicationCard (link to session with job context)
+18. Add employer shield explanation UI in Privacy settings
+19. Fix ForYouColumn empty state to distinguish "no matches yet" from "profile incomplete"
+
+I recommend tackling Priority 1 and 2 together first — they address real user-facing bugs and privacy gaps.
+
