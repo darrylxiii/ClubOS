@@ -21,7 +21,7 @@ interface HiringStats {
   totalJobs?: number;
   aiInsightsGenerated: number;
   predictedHires: number;
-  avgMatchScore: number | string;
+  avgMatchScore: number;
   jobsWithCandidates?: number;
   totalCandidates?: number;
 }
