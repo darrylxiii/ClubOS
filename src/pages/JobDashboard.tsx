@@ -94,12 +94,20 @@ export default function JobDashboard() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { currentRole: role, loading: roleLoading } = useRole();
-  const [job, setJob] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+
+  const {
+    job,
+    applications,
+    metrics,
+    rejectedCount,
+    activeShareCount,
+    loading,
+    refetch: fetchJobDetails,
+  } = useJobDashboardData(jobId, role);
+
   const [showAddStage, setShowAddStage] = useState(false);
   const [showManualInterview, setShowManualInterview] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [activeShareCount, setActiveShareCount] = useState(0);
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
@@ -109,18 +117,15 @@ export default function JobDashboard() {
   const deleteJob = useDeleteJob();
   const [showBrainConfig, setShowBrainConfig] = useState(false);
   const [showCalendarLinker, setShowCalendarLinker] = useState(false);
-  const [editingStage, setEditingStage] = useState<any>(null);
+  const [editingStage, setEditingStage] = useState<PipelineStage | null>(null);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
-  const [metrics, setMetrics] = useState<JobMetrics | null>(null);
-  const [applications, setApplications] = useState<any[]>([]);
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
-  const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<any>(null);
+  const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<PipelineStage | null>(null);
   const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<{
-    candidate: any;
+    candidate: EnrichedApplication;
     action: 'advance' | 'decline' | 'move_back';
   } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [rejectedCount, setRejectedCount] = useState(0);
   const [expandedStageIndices, setExpandedStageIndices] = useState<Set<number>>(new Set());
   const { jobRole, permissions, loading: jobRoleLoading } = useJobTeamRole(jobId!);
 
