@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Brain, TrendingUp, Users, Target, Zap, Database, Building2, AlertTriangle, CheckCircle, BarChart3, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,155 +6,27 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/lib/notify';
-import { supabase } from '@/integrations/supabase/client';
 import { useMLMatching } from '@/hooks/useMLMatching';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type { MLModel, MLABTest, MLModelMetrics } from '@/types/ml';
 import { format } from 'date-fns';
+import { useState } from 'react';
+import { useMLDashboardData, useMLDashboardJobs } from '@/hooks/useMLDashboardData';
 
 export default function EnhancedMLDashboard() {
-  const [models, setModels] = useState<MLModel[]>([]);
-  const [abTests, setABTests] = useState<MLABTest[]>([]);
-  const [metrics, setMetrics] = useState<MLModelMetrics[]>([]);
-  const [companyIntelligence, setCompanyIntelligence] = useState<any[]>([]);
-  const [recentInsights, setRecentInsights] = useState<any[]>([]);
-  const [interactionStats, setInteractionStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [jobs, setJobs] = useState<any[]>([]);
   const [searchParams] = useSearchParams();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(searchParams.get('jobId'));
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadJobs();
-    loadData();
-  }, []);
+  const { data: jobs = [] } = useMLDashboardJobs();
+  const { data, isLoading: loading } = useMLDashboardData(selectedJobId);
 
-  useEffect(() => {
-    if (selectedJobId) {
-      loadData();
-    }
-  }, [selectedJobId]);
-
-  const loadJobs = async () => {
-    try {
-      const { data } = await supabase
-        .from('jobs')
-        .select('id, title, companies(name)')
-        .eq('status', 'open')
-        .order('created_at', { ascending: false });
-      
-      setJobs(data || []);
-    } catch (error) {
-      console.error('Error loading jobs:', error);
-    }
-  };
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-
-      const [modelsResult, abTestsResult, metricsResult] = await Promise.all([
-        supabase.from('ml_models').select('*').order('version', { ascending: false }),
-        supabase.from('ml_ab_tests').select('*').order('started_at', { ascending: false }).limit(5),
-        supabase.from('ml_model_metrics').select('*').order('metric_date', { ascending: false }).limit(100),
-      ]);
-
-      if (modelsResult.data) setModels(modelsResult.data as any);
-      if (abTestsResult.data) setABTests(abTestsResult.data as any);
-      if (metricsResult.data) setMetrics(metricsResult.data as any);
-
-      await loadIntelligenceData();
-    } catch (error) {
-      console.error('Error loading ML data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load ML dashboard data',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadIntelligenceData = async () => {
-    try {
-      const { data: reports } = await supabase
-        .from('interaction_ml_features')
-        .select('*')
-        .eq('entity_type', 'company')
-        .order('computed_at', { ascending: false });
-
-      if (reports && reports.length > 0) {
-        const companyIds = reports.map((r: any) => r.entity_id);
-        const { data: companies } = await supabase
-          .from('companies')
-          .select('id, name, slug')
-          .in('id', companyIds);
-
-        const companyMap = new Map(companies?.map(c => [c.id, c]) || []);
-
-        const intelligenceData = reports
-          .filter((r: any) => r.features?.ai_recommendations)
-          .map((r: any) => ({
-            company: companyMap.get(r.entity_id),
-            health_score: r.features.ai_recommendations.overall_health_score || 0,
-            relationship_status: r.features.ai_recommendations.relationship_status || 'unknown',
-            total_interactions: r.features.interaction_summary?.total || 0,
-            urgency_score: r.features.hiring_intelligence?.avg_urgency_score || 0,
-            sentiment: r.features.interaction_summary?.avg_sentiment || 0,
-            last_updated: r.computed_at,
-            ghost_risk: r.features.ai_recommendations.ghost_risk || 0,
-          }))
-          .filter((d: any) => d.company)
-          .sort((a: any, b: any) => b.health_score - a.health_score);
-
-        setCompanyIntelligence(intelligenceData);
-      }
-
-      const { data: insights } = await supabase
-        .from('interaction_insights')
-        .select(`
-          *,
-          interaction:company_interactions(
-            company:companies(name, slug),
-            interaction_type,
-            interaction_date
-          )
-        `)
-        .in('insight_type', ['hiring_urgency', 'positive_signal', 'red_flag', 'budget_signal'])
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (insights) {
-        setRecentInsights(insights);
-      }
-
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      const { data: interactions } = await supabase
-        .from('company_interactions')
-        .select('id, company_id, interaction_type, created_at')
-        .gte('interaction_date', thirtyDaysAgo.toISOString());
-
-      if (interactions) {
-        const stats = {
-          total: interactions.length,
-          byType: interactions.reduce((acc: any, int: any) => {
-            acc[int.interaction_type] = (acc[int.interaction_type] || 0) + 1;
-            return acc;
-          }, {}),
-          companiesWithData: new Set(interactions.map((i: any) => i.company_id)).size,
-        };
-        setInteractionStats(stats);
-      }
-
-    } catch (error) {
-      console.error('Error loading intelligence data:', error);
-    }
-  };
+  const models = data?.models ?? [];
+  const abTests = data?.abTests ?? [];
+  const metrics = data?.metrics ?? [];
+  const companyIntelligence = data?.companyIntelligence ?? [];
+  const recentInsights = data?.recentInsights ?? [];
+  const interactionStats = data?.interactionStats ?? null;
 
   const activeModel = models.find(m => m.status === 'active');
   const runningTests = abTests.filter(t => t.status === 'running');
