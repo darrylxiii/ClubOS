@@ -99,7 +99,7 @@ export default function ApplicationDetail() {
         `)
         .eq("id", applicationId)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
