@@ -73,10 +73,27 @@ export default function CandidateProfile() {
   const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
   const [enrichModal, setEnrichModal] = useState<{ open: boolean; mode: 'linkedin' | 'deep-enrich' }>({ open: false, mode: 'linkedin' });
 
+  const calculateDuration = (startDate?: string, endDate?: string): string | null => {
+    if (!startDate) return null;
+    try {
+      const start = new Date(startDate);
+      const end = endDate ? new Date(endDate) : new Date();
+      let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      if (months < 0) return null;
+      const years = Math.floor(months / 12);
+      months = months % 12;
+      const parts: string[] = [];
+      if (years > 0) parts.push(`${years} yr${years > 1 ? 's' : ''}`);
+      if (months > 0) parts.push(`${months} mo${months > 1 ? 's' : ''}`);
+      return parts.length > 0 ? parts.join(' ') : 'Less than a month';
+    } catch {
+      return null;
+    }
+  };
+
   // Handle deep linking to specific sections/notes
   useEffect(() => {
     if (section === 'notes' && noteId && activeTab === 'team-assessment') {
-      // Small delay to ensure DOM is rendered
       const timer = setTimeout(() => {
         const noteElement = document.getElementById(`note-${noteId}`);
         if (noteElement) {
@@ -90,50 +107,6 @@ export default function CandidateProfile() {
       return () => clearTimeout(timer);
     }
   }, [section, noteId, activeTab]);
-
-  const loadCandidate = async () => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // Load candidate profile
-      const { data: candidateData, error } = await supabase
-        .from("candidate_profiles")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setCandidate(candidateData);
-
-      // If candidate has a user_id, load their public profile data
-      if (candidateData.user_id) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", candidateData.user_id)
-          .maybeSingle();
-
-        setUserProfile(profileData);
-      }
-
-      // Track profile view for team members
-      if (isTeamView && user) {
-        await supabase.from("candidate_profile_views").insert({
-          candidate_id: id,
-          viewer_id: user.id,
-          view_context: "full_profile",
-          view_source: "candidate_profile_page",
-        });
-      }
-    } catch (error) {
-      console.error("Error loading candidate:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const openLinkedInSync = () => {
     setEnrichModal({ open: true, mode: 'linkedin' });
