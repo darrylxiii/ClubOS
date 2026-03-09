@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useJobDashboardData, type PipelineStage, type EnrichedApplication } from "@/hooks/useJobDashboardData";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,12 +94,20 @@ export default function JobDashboard() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { currentRole: role, loading: roleLoading } = useRole();
-  const [job, setJob] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+
+  const {
+    job,
+    applications,
+    metrics,
+    rejectedCount,
+    activeShareCount,
+    loading,
+    refetch: fetchJobDetails,
+  } = useJobDashboardData(jobId, role);
+
   const [showAddStage, setShowAddStage] = useState(false);
   const [showManualInterview, setShowManualInterview] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [activeShareCount, setActiveShareCount] = useState(0);
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
@@ -108,18 +117,15 @@ export default function JobDashboard() {
   const deleteJob = useDeleteJob();
   const [showBrainConfig, setShowBrainConfig] = useState(false);
   const [showCalendarLinker, setShowCalendarLinker] = useState(false);
-  const [editingStage, setEditingStage] = useState<any>(null);
+  const [editingStage, setEditingStage] = useState<PipelineStage | null>(null);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
-  const [metrics, setMetrics] = useState<JobMetrics | null>(null);
-  const [applications, setApplications] = useState<any[]>([]);
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
-  const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<any>(null);
+  const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<PipelineStage | null>(null);
   const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<{
-    candidate: any;
+    candidate: EnrichedApplication;
     action: 'advance' | 'decline' | 'move_back';
   } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [rejectedCount, setRejectedCount] = useState(0);
   const [expandedStageIndices, setExpandedStageIndices] = useState<Set<number>>(new Set());
   const { jobRole, permissions, loading: jobRoleLoading } = useJobTeamRole(jobId!);
 
@@ -211,282 +217,7 @@ export default function JobDashboard() {
     navigate('/jobs');
   };
 
-  // Fetch job details on mount (authorization already handled by JobDashboardRoute)
-  useEffect(() => {
-    if (jobId) {
-      fetchJobDetails();
-      fetchActiveShareCount();
-    }
-  }, [jobId]);
-
-  const fetchActiveShareCount = async () => {
-    if (!jobId) return;
-    const { count } = await (supabase as any)
-      .from('job_pipeline_shares')
-      .select('id', { count: 'exact', head: true })
-      .eq('job_id', jobId)
-      .eq('is_active', true)
-      .gt('expires_at', new Date().toISOString());
-    setActiveShareCount(count ?? 0);
-  };
-
-  const fetchJobDetails = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select(`
-          *,
-          companies (
-            id,
-            name,
-            logo_url,
-            placement_fee_percentage,
-            fee_type,
-            placement_fee_fixed
-          ),
-          job_tools (
-            id,
-            is_required,
-            proficiency_level,
-            tools_and_skills (
-              id,
-              name,
-              slug,
-              logo_url,
-              category
-            )
-          )
-        `)
-        .eq('id', jobId)
-        .single();
-
-      if (error) throw error;
-      setJob(data);
-
-      // Log job view (once per session to avoid spam)
-      const sessionKey = `job_view_logged_${jobId}`;
-      if (!sessionStorage.getItem(sessionKey)) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          // Fetch profile for audit metadata
-          const { data: viewerProfile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          await supabase.from('pipeline_audit_logs').insert({
-            job_id: jobId,
-            user_id: user.id,
-            action: 'job_viewed',
-            stage_data: {
-              page: 'dashboard',
-              view_timestamp: new Date().toISOString()
-            },
-            metadata: {
-              referrer: document.referrer || 'direct',
-              user_agent: navigator.userAgent.substring(0, 200),
-              viewer_role: role,
-              viewer_name: viewerProfile?.full_name || 'Unknown',
-            }
-          });
-          sessionStorage.setItem(sessionKey, 'true');
-        }
-      }
-
-      // Fetch applications for metrics
-      const stages = Array.isArray(data.pipeline_stages) ? data.pipeline_stages : [];
-      await fetchApplicationsForMetrics(stages);
-
-      // Fetch rejected count
-      const { count } = await supabase
-        .from('applications')
-        .select('*', { count: 'exact', head: true })
-        .eq('job_id', jobId)
-        .eq('status', 'rejected');
-
-      setRejectedCount(count || 0);
-    } catch (error) {
-      console.error('Error fetching job:', error);
-      toast.error("Failed to load job details");
-      navigate('/jobs');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchApplicationsForMetrics = async (stages: any[]) => {
-    try {
-      // Step 1: Fetch all applications (single query)
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('job_id', jobId)
-        .neq('status', 'rejected');
-
-      if (error) throw error;
-
-      const apps = data || [];
-
-      // Step 2: Collect unique IDs for batch fetching
-      const candidateIds = [...new Set(apps.map(a => a.candidate_id).filter(Boolean))] as string[];
-      const userIds = [...new Set(apps.map(a => a.user_id).filter(Boolean))] as string[];
-
-      // Step 3 & 4: Batch-fetch candidate_profiles and profiles in parallel (2 queries)
-      const [candidateProfilesResult, profilesResult] = await Promise.all([
-        candidateIds.length > 0
-          ? supabase
-              .from('candidate_profiles')
-              .select('id, user_id, full_name, email, phone, avatar_url, current_title, current_company, linkedin_url')
-              .in('id', candidateIds)
-          : Promise.resolve({ data: [], error: null }),
-        userIds.length > 0
-          ? supabase
-              .from('profiles')
-              .select('id, full_name, email, phone, avatar_url')
-              .in('id', userIds)
-          : Promise.resolve({ data: [], error: null }),
-      ]);
-
-      // Step 5: Build lookup maps
-      const candidateProfilesMap = new Map<string, any>();
-      (candidateProfilesResult.data || []).forEach((cp: any) => {
-        candidateProfilesMap.set(cp.id, cp);
-      });
-
-      const profilesMap = new Map<string, any>();
-      (profilesResult.data || []).forEach((p: any) => {
-        profilesMap.set(p.id, p);
-      });
-
-      // Also collect user_ids from candidate_profiles that we haven't fetched yet
-      const additionalUserIds = (candidateProfilesResult.data || [])
-        .map((cp: any) => cp.user_id)
-        .filter((uid: string | null) => uid && !profilesMap.has(uid)) as string[];
-
-      if (additionalUserIds.length > 0) {
-        const { data: additionalProfiles } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, phone, avatar_url')
-          .in('id', additionalUserIds);
-
-        (additionalProfiles || []).forEach((p: any) => {
-          profilesMap.set(p.id, p);
-        });
-      }
-
-      // Step 6: Enrich applications using maps (no per-row DB calls)
-      const enrichedApps = apps.map((app) => {
-        let profileData: any = null;
-        let linkedUserId = app.user_id;
-        let candidateIdToUse = app.candidate_id;
-
-        // PRIORITY 1: Direct lookup via candidate_id
-        if (app.candidate_id && candidateProfilesMap.has(app.candidate_id)) {
-          const cp = candidateProfilesMap.get(app.candidate_id);
-          profileData = { ...cp };
-
-          if (cp.user_id) {
-            linkedUserId = cp.user_id;
-            // Merge avatar from user profile if available
-            const userProfile = profilesMap.get(cp.user_id);
-            if (userProfile?.avatar_url) {
-              profileData.avatar_url = userProfile.avatar_url;
-            }
-          }
-        }
-
-        // PRIORITY 2: Fallback to user profile
-        if (!profileData && app.user_id) {
-          const userProfile = profilesMap.get(app.user_id);
-          if (userProfile) {
-            profileData = userProfile;
-          }
-        }
-
-        return {
-          ...app,
-          candidate_id: candidateIdToUse,
-          full_name: profileData?.full_name || 'Candidate',
-          email: profileData?.email,
-          phone: profileData?.phone,
-          avatar_url: profileData?.avatar_url,
-          current_title: profileData?.current_title,
-          current_company: profileData?.current_company,
-          linkedin_url: profileData?.linkedin_url,
-          user_id: linkedUserId,
-          stages: app.stages || [],
-          is_linked_user: !!profileData?.user_id,
-        };
-      });
-
-      setApplications(enrichedApps);
-
-      // Calculate metrics
-      const stageBreakdown: { [key: number]: number } = {};
-      const stageDurations: { [key: number]: number[] } = {};
-
-      stages.forEach(stage => {
-        stageBreakdown[stage.order] = 0;
-        stageDurations[stage.order] = [];
-      });
-
-      enrichedApps.forEach(app => {
-        if (app.current_stage_index !== undefined) {
-          stageBreakdown[app.current_stage_index]++;
-
-          // Calculate days in current stage
-          const appliedDate = new Date(app.updated_at || app.applied_at);
-          const daysSince = Math.floor((Date.now() - appliedDate.getTime()) / (1000 * 60 * 60 * 24));
-          stageDurations[app.current_stage_index].push(daysSince);
-        }
-      });
-
-      // Calculate average days per stage
-      const avgDaysInStage: { [key: number]: number } = {};
-      Object.keys(stageDurations).forEach(key => {
-        const durations = stageDurations[Number(key)];
-        avgDaysInStage[Number(key)] = durations.length > 0
-          ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
-          : 0;
-      });
-
-      // Calculate conversion rates — ratio of candidates who passed stage i vs all who reached it
-      const conversionRates: { [key: string]: number } = {};
-      for (let i = 0; i < stages.length - 1; i++) {
-        const reachedStage = enrichedApps.filter(app => app.current_stage_index >= i).length;
-        const passedStage = enrichedApps.filter(app => app.current_stage_index > i).length;
-        conversionRates[`${i}-${i + 1}`] = reachedStage > 0
-          ? Math.round((passedStage / reachedStage) * 100)
-          : 0;
-      }
-
-      // Find last activity
-      const lastApp = enrichedApps.sort((a, b) =>
-        new Date(b.updated_at || b.applied_at).getTime() - new Date(a.updated_at || a.applied_at).getTime()
-      )[0];
-
-      const lastActivity = lastApp
-        ? `${Math.floor((Date.now() - new Date(lastApp.updated_at || lastApp.applied_at).getTime()) / (1000 * 60 * 60))}h ago`
-        : 'No activity yet';
-
-      // Candidates in stage 0 still awaiting initial screening
-      const needsClubCheck = enrichedApps.filter(
-        app => app.current_stage_index === 0 && app.status === 'applied'
-      ).length;
-
-      setMetrics({
-        totalApplicants: enrichedApps.length,
-        stageBreakdown,
-        avgDaysInStage,
-        conversionRates,
-        needsClubCheck,
-        lastActivity,
-      });
-    } catch (error) {
-      console.error('Error fetching applications for metrics:', error);
-    }
-  };
+  // Data is now fetched by useJobDashboardData hook
 
   if (roleLoading || jobRoleLoading || loading) {
     return (
@@ -542,7 +273,7 @@ export default function JobDashboard() {
             open={showShareDialog}
             onOpenChange={(open) => {
               setShowShareDialog(open);
-              if (!open) fetchActiveShareCount();
+              if (!open) fetchJobDetails();
             }}
             jobId={job.id}
             jobTitle={job.title}
@@ -714,7 +445,7 @@ export default function JobDashboard() {
                 transition={{ duration: 0.4 }}
               >
                 <CandidatesAtRiskPanel
-                  applications={applications}
+                  applications={applications as any[]}
                   stages={stages}
                   avgDaysInStage={metrics.avgDaysInStage}
                   jobId={jobId!}
@@ -740,7 +471,7 @@ export default function JobDashboard() {
             {/* Top Candidates Leaderboard */}
             {applications.length > 0 && (
               <CandidateLeaderboard
-                applications={applications}
+                applications={applications as any[]}
                 stages={stages}
                 jobId={jobId!}
               />
@@ -869,7 +600,7 @@ export default function JobDashboard() {
                             candidateCount={count}
                             avgDays={avgDays}
                             conversionRate={nextConversion}
-                            applications={stageApplications}
+                            applications={stageApplications as any[]}
                             jobId={jobId!}
                             isExpanded={expandedStageIndices.has(stage.order)}
                             onToggleExpand={() => toggleStageExpansion(stage.order)}

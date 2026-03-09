@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
 import {
@@ -41,175 +40,55 @@ import { AcademySidebar } from "@/components/academy/AcademySidebar";
 import { CourseCarousel } from "@/components/academy/CourseCarousel";
 import { EnhancedCategoryGrid } from "@/components/academy/EnhancedCategoryGrid";
 import { CourseAppleCarousel } from "@/components/academy/CourseAppleCarousel";
+import { useAcademyData, type AcademyCourse } from "@/hooks/useAcademyData";
 
 export default function Academy() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [academy, setAcademy] = useState<any>(null);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
-  const [learningPaths, setLearningPaths] = useState<any[]>([]);
-  const [isExpert, setIsExpert] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { academy, courses, learningPaths, isExpert, loading, refetch: loadAcademyData } = useAcademyData(slug, user?.id);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
 
-  useEffect(() => {
-    loadAcademyData();
-  }, [slug, user]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [courses, searchQuery, selectedCategory, selectedDifficulty, sortBy]);
-
-  const applyFilters = () => {
+  const filteredCourses = useMemo(() => {
     let filtered = [...courses];
 
     if (searchQuery) {
-      filtered = filtered.filter(course =>
+      filtered = filtered.filter((course: AcademyCourse) =>
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     if (selectedCategory) {
-      filtered = filtered.filter(course => course.category === selectedCategory);
+      filtered = filtered.filter((course: AcademyCourse) => course.category === selectedCategory);
     }
 
     if (selectedDifficulty) {
-      filtered = filtered.filter(course => course.difficulty_level === selectedDifficulty);
+      filtered = filtered.filter((course: AcademyCourse) => course.difficulty_level === selectedDifficulty);
     }
 
-    // Sort
     switch (sortBy) {
       case "newest":
-        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        filtered.sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
         break;
       case "popular":
         filtered.sort((a, b) => (b.enrolled_count || 0) - (a.enrolled_count || 0));
         break;
       case "rating":
-        filtered.sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0));
+        filtered.sort((a, b) => ((b as Record<string, any>).rating_average || 0) - ((a as Record<string, any>).rating_average || 0));
         break;
       case "shortest":
-        filtered.sort((a, b) => (a.estimated_duration || 999) - (b.estimated_duration || 999));
+        filtered.sort((a, b) => ((a as Record<string, any>).estimated_duration || 999) - ((b as Record<string, any>).estimated_duration || 999));
         break;
     }
 
-    setFilteredCourses(filtered);
-  };
-
-  const loadAcademyData = async () => {
-    try {
-      setLoading(true);
-
-      // Load academy
-      const { data: academyData, error: academyError } = await supabase
-        .from("academies")
-        .select("*")
-        .eq("slug", slug || "quantum-club-academy")
-        .single();
-
-      if (academyError) throw academyError;
-      setAcademy(academyData);
-
-      // Load courses - show published courses + user's own unpublished courses
-      const coursesQuery = supabase
-        .from("courses")
-        .select(`
-          *,
-          profiles:created_by(full_name, avatar_url)
-        `)
-        .eq("academy_id", academyData.id)
-        .order("display_order");
-
-      // If user is logged in, also show their unpublished courses
-      if (user) {
-        const { data: coursesData } = await coursesQuery.or(`is_published.eq.true,created_by.eq.${user.id}`);
-        setCourses(coursesData || []);
-      } else {
-        const { data: coursesData } = await coursesQuery.eq("is_published", true);
-        setCourses(coursesData || []);
-      }
-
-      // Load learning paths
-      const { data: pathsData } = await supabase
-        .from("learning_paths")
-        .select("*")
-        .eq("academy_id", academyData.id)
-        .eq("is_active", true)
-        .order("display_order");
-
-      setLearningPaths(pathsData || []);
-
-      // Check if user is an expert
-      if (user) {
-        const { data: expertData } = await supabase
-          .from("expert_profiles")
-          .select("id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        setIsExpert(!!expertData);
-
-        // Fetch progress for all courses
-        const { data: progressData } = await supabase
-          .from('learner_progress')
-          .select(`
-            progress_percentage,
-            modules (
-              course_id
-            )
-          `)
-          .eq('user_id', user.id);
-
-        if (progressData) {
-          // Group by course_id
-          const courseProgress: Record<string, { total: number; count: number }> = {};
-
-          progressData.forEach((p: any) => {
-            const courseId = p.modules?.course_id;
-            if (courseId) {
-              if (!courseProgress[courseId]) {
-                courseProgress[courseId] = { total: 0, count: 0 };
-              }
-              courseProgress[courseId].total += p.progress_percentage;
-              courseProgress[courseId].count += 1;
-            }
-          });
-
-          // Update courses with progress
-          setCourses(prevCourses => prevCourses.map(course => {
-            // We need to know total modules to calculate accurate percentage
-            // But for now, let's use the average of *started* modules, 
-            // or better: we need total modules count for the course.
-            // The course query already fetches modules(count).
-            const totalModules = course.modules?.[0]?.count || 1;
-            const progressInfo = courseProgress[course.id];
-
-            if (progressInfo) {
-              // This is an approximation if we don't have progress rows for unstarted modules.
-              // Assuming learner_progress exists for all modules or we only count started ones?
-              // Actually, typically we want (sum of progress) / (total modules * 100) * 100
-              // = (sum of progress) / total modules
-              const progress = Math.round(progressInfo.total / totalModules);
-              return { ...course, progress, enrolled_count: course.enrolled_count || 1 }; // Mark as enrolled if progress exists
-            }
-            return course;
-          }));
-        }
-      }
-    } catch (error: unknown) {
-      notify.error("Error loading academy", { description: error instanceof Error ? error.message : 'Unknown error' });
-    } finally {
-      setLoading(false);
-    }
-  };
+    return filtered;
+  }, [courses, searchQuery, selectedCategory, selectedDifficulty, sortBy]);
 
   if (loading) {
     return (
