@@ -108,12 +108,45 @@ export default function Messages() {
     }
   }, [messages]);
 
+  // Search message content when query is 3+ characters
+  useEffect(() => {
+    if (searchQuery.length < 3) {
+      setMessageSearchResults(new Map());
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await supabase
+          .from('messages')
+          .select('conversation_id, content')
+          .ilike('content', `%${searchQuery}%`)
+          .limit(100);
+
+        const results = new Map<string, string>();
+        data?.forEach((msg) => {
+          if (!results.has(msg.conversation_id)) {
+            results.set(msg.conversation_id, msg.content);
+          }
+        });
+        setMessageSearchResults(results);
+      } catch {
+        // Silently fail — search is best-effort
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId);
   const isGroup = selectedConversation?.metadata?.is_group;
 
-  const filteredConversations = conversations.filter((conv) =>
-    !searchQuery || conv.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter((conv) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    // Search by conversation title OR message content match
+    return conv.title.toLowerCase().includes(query) || messageSearchResults.has(conv.id);
+  });
 
   const handleSendMessage = async (content: string, attachment?: File, metadata?: any) => {
     if (!selectedConversationId) return;
