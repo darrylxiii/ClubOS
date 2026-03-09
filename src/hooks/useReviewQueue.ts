@@ -55,7 +55,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
   const { data: applications, error: applicationsError } = await supabase
     .from('applications')
     .select(
-      'id, job_id, candidate_id, user_id, current_stage_index, status, match_score, created_at, internal_review_status, partner_review_status, internal_review_notes, source_channel, sourced_by',
+      'id, job_id, candidate_id, user_id, current_stage_index, status, match_score, created_at, internal_review_status, partner_review_status, internal_review_notes, sourced_by',
     )
     .eq('job_id', jobId)
     .neq('status', 'rejected')
