@@ -64,8 +64,7 @@ const Jobs = () => {
     title: string;
     company: string;
   } | null>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [userCurrency, setUserCurrency] = useState<Currency>('EUR');
   const [clubSyncDialogOpen, setClubSyncDialogOpen] = useState(false);
   const [matchFilterActive, setMatchFilterActive] = useState(false);
