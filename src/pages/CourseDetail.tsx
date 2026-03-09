@@ -67,7 +67,7 @@ export default function CourseDetail() {
 
       if (courseError) throw courseError;
       if (!courseData) {
-        toast.error("Course not found");
+        notify.error("Course not found");
         navigate("/academy");
         return;
       }

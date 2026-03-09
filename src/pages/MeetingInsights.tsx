@@ -66,7 +66,6 @@ export default function MeetingInsights() {
       if (meetingError) throw meetingError;
       if (!meetingData) {
         toast.error('Meeting not found');
-        navigate('/meetings');
         return;
       }
       setMeeting(meetingData);
