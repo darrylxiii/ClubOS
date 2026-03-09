@@ -198,10 +198,8 @@ const Jobs = () => {
           if (error) continue;
 
           if (data?.score) {
-            setJobs(prevJobs =>
-              prevJobs.map(j =>
-                j.id === job.id ? { ...j, matchScore: data.score } : j
-              )
+            queryClient.setQueryData(['jobs-list', user.id], (prev: any[]) =>
+              prev?.map(j => j.id === job.id ? { ...j, matchScore: data.score } : j)
             );
           }
         } catch (error) {
@@ -212,7 +210,7 @@ const Jobs = () => {
 
     const timer = setTimeout(calculateMissingMatchScores, 1000);
     return () => clearTimeout(timer);
-  }, [jobs, user]);
+  }, [jobs, user, queryClient]);
 
   const sortedJobs = useMemo(() => {
     return [...jobs].sort((a, b) => {
