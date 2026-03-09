@@ -108,9 +108,9 @@ export default function ContractSignaturePage() {
         .single();
 
       // If both signed, activate contract
-      if (updatedContract?.signed_by_freelancer && updatedContract?.signed_by_client) {
+      if ((updatedContract as any)?.signed_by_freelancer && (updatedContract as any)?.signed_by_client) {
         await supabase
-          .from('project_contracts')
+          .from('project_contracts' as any) // TODO: contract_status column missing from types
           .update({ contract_status: 'active' })
           .eq('id', contract.id);
       }
