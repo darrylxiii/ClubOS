@@ -40,7 +40,7 @@ export default function CandidateOnboarding() {
             .from('profiles')
             .select('account_status, onboarding_completed_at')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
           
           if (profile) {
             if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
