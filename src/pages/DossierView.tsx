@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   User, Calendar, Clock, Star, CheckCircle2, 
-  AlertTriangle, TrendingUp, FileText, Video, Sparkles
+  AlertTriangle, TrendingUp, FileText, Video, Sparkles, ShieldAlert
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -41,7 +43,87 @@ interface Dossier {
   share_token: string;
   expires_at: string;
   view_count: number;
+  watermark_text: string | null;
   created_at: string;
+}
+
+// Viewer identity gate — must provide name/email before viewing
+function ViewerIdentityGate({ onSubmit }: { onSubmit: (name: string, email: string, company: string) => void }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [company, setCompany] = useState('');
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-8">
+      <Card className="max-w-md w-full">
+        <CardHeader className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <span className="text-sm font-medium text-primary">The Quantum Club</span>
+          </div>
+          <CardTitle>Identify yourself to view this dossier</CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            For security and compliance, we require your details before granting access.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="viewer-name">Full name *</Label>
+            <Input
+              id="viewer-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Jane Doe"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="viewer-email">Work email *</Label>
+            <Input
+              id="viewer-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="jane@company.com"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="viewer-company">Company</Label>
+            <Input
+              id="viewer-company"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="Acme Corp"
+            />
+          </div>
+          <Button
+            className="w-full"
+            variant="glass"
+            disabled={!name.trim() || !email.trim() || !email.includes('@')}
+            onClick={() => onSubmit(name.trim(), email.trim(), company.trim())}
+          >
+            View Dossier
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Watermark overlay rendered on top of dossier content
+function WatermarkOverlay({ text }: { text: string }) {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden select-none" aria-hidden="true">
+      <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-32 -rotate-30 opacity-[0.06]">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <span key={i} className="text-2xl font-bold text-foreground whitespace-nowrap">
+            {text}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function DossierView() {
@@ -49,7 +131,10 @@ export default function DossierView() {
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewerIdentity, setViewerIdentity] = useState<{ name: string; email: string; company: string } | null>(null);
+  const [domainBlocked, setDomainBlocked] = useState(false);
 
+  // Load dossier metadata (without full content) to check domain restrictions
   useEffect(() => {
     if (shareToken) {
       loadDossier();
@@ -62,7 +147,7 @@ export default function DossierView() {
         .from('meeting_dossiers')
         .select('*')
         .eq('share_token', shareToken)
-        .single();
+        .maybeSingle();
 
       if (dbError) throw dbError;
 
@@ -77,19 +162,65 @@ export default function DossierView() {
         return;
       }
 
-      setDossier(data as unknown as Dossier);
+      // Check revocation
+      if (data.is_revoked) {
+        setError('This dossier link has been revoked.');
+        return;
+      }
 
-      // Increment view count
-      await supabase
-        .from('meeting_dossiers')
-        .update({ view_count: (data.view_count || 0) + 1 })
-        .eq('id', data.id);
+      setDossier(data as unknown as Dossier);
     } catch (err) {
       console.error('Error loading dossier:', err);
       setError('Failed to load dossier.');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Validate viewer email domain against allowed_domains from dossier_shares
+  const handleViewerIdentity = async (name: string, email: string, company: string) => {
+    // Check domain restriction from dossier_shares if this share has allowed_domains
+    try {
+      const { data: shareData } = await supabase
+        .from('dossier_shares')
+        .select('id, allowed_domains')
+        .eq('token', shareToken)
+        .maybeSingle();
+
+      if (shareData?.allowed_domains && shareData.allowed_domains.length > 0) {
+        const viewerDomain = email.split('@')[1]?.toLowerCase();
+        const allowed = shareData.allowed_domains.map((d: string) => d.toLowerCase());
+        if (!allowed.includes(viewerDomain)) {
+          setDomainBlocked(true);
+          return;
+        }
+      }
+
+      // Record viewer identity in dossier_views
+      if (shareData?.id) {
+        await supabase
+          .from('dossier_views')
+          .insert({
+            dossier_share_id: shareData.id,
+            viewer_name: name,
+            viewer_email: email,
+            viewer_company: company || null,
+            user_agent: navigator.userAgent,
+          });
+
+        // Atomic server-side view count increment
+        await supabase.rpc('increment_dossier_share_view_count' as never, { share_id: shareData.id } as never);
+      }
+
+      // Also increment meeting_dossiers view count atomically
+      if (dossier?.id) {
+        await supabase.rpc('increment_dossier_view_count' as never, { dossier_id: dossier.id } as never);
+      }
+    } catch (err) {
+      console.error('Error validating viewer:', err);
+    }
+
+    setViewerIdentity({ name, email, company });
   };
 
   const getRecommendationBadge = (recommendation?: string) => {
@@ -131,11 +262,34 @@ export default function DossierView() {
     );
   }
 
+  if (domainBlocked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-8">
+        <Card className="max-w-md w-full text-center p-8">
+          <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Domain Not Authorized</h2>
+          <p className="text-muted-foreground">
+            Your email domain is not on the allowed list for this dossier. Please contact the sender for access.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show identity gate before revealing content
+  if (!viewerIdentity) {
+    return <ViewerIdentityGate onSubmit={handleViewerIdentity} />;
+  }
+
   const content = dossier.content;
+  const watermarkText = dossier.watermark_text || `Confidential — ${viewerIdentity.email} — ${format(new Date(), 'yyyy-MM-dd HH:mm')}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-8 relative">
+      {/* Watermark overlay */}
+      <WatermarkOverlay text={watermarkText} />
+
+      <div className="max-w-4xl mx-auto space-y-6 relative z-10">
         {/* Header */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader>
@@ -319,6 +473,7 @@ export default function DossierView() {
         <div className="text-center text-xs text-muted-foreground py-4">
           <p>Generated by The Quantum Club • Confidential</p>
           <p className="mt-1">This link expires {dossier.expires_at ? format(new Date(dossier.expires_at), 'MMM d, yyyy') : 'never'}</p>
+          <p className="mt-1">Viewed by {viewerIdentity.name} ({viewerIdentity.email})</p>
         </div>
       </div>
     </div>
