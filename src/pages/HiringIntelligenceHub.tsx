@@ -508,15 +508,12 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                         <div className="flex items-center gap-4">
                           <Avatar>
                             <AvatarFallback>
-                              {interview.candidate_profiles?.first_name?.[0] || 
-                               interview.candidate_profiles?.full_name?.[0] || '?'}
+                              {interview.candidate_profiles?.full_name?.[0] || '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <h3 className="font-semibold">
-                              {interview.candidate_profiles?.first_name && interview.candidate_profiles?.last_name
-                                ? `${interview.candidate_profiles.first_name} ${interview.candidate_profiles.last_name}`
-                                : interview.candidate_profiles?.full_name || 'Candidate'}
+                              {interview.candidate_profiles?.full_name || 'Candidate'}
                             </h3>
                             <p className="text-sm text-muted-foreground">
                               {interview.jobs?.title || 'Interview'} • {interview.jobs?.companies?.name || 'Company'}
