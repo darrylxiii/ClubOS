@@ -130,7 +130,7 @@ export function useJobDashboardData(jobId: string | undefined, role: string | nu
       }
 
       // Fetch applications
-      const stages: PipelineStage[] = Array.isArray(job.pipeline_stages) ? (job.pipeline_stages as PipelineStage[]) : [];
+      const stages: PipelineStage[] = Array.isArray(job.pipeline_stages) ? (job.pipeline_stages as unknown as PipelineStage[]) : [];
       const { applications, metrics } = await fetchApplicationsForMetrics(jobId, stages);
 
       // Fetch rejected count
