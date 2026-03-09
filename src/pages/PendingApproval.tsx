@@ -51,6 +51,7 @@ export default function PendingApproval() {
         .maybeSingle();
 
       if (error) throw error;
+      if (!data) return;
 
       setStatus(data as ProfileStatus);
 

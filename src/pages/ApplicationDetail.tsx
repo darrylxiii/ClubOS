@@ -102,6 +102,11 @@ export default function ApplicationDetail() {
         .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        toast.error("Application not found");
+        navigate("/applications");
+        return;
+      }
 
       // Get count of other candidates
       const { count } = await supabase
