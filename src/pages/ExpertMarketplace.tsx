@@ -64,59 +64,62 @@ interface ModuleExpert {
 }
 
 export default function ExpertMarketplace() {
-  const [user, setUser] = useState<any>(null);
-  const [experts, setExperts] = useState<ExpertProfile[]>([]);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [assignments, setAssignments] = useState<ModuleExpert[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedModule, setSelectedModule] = useState("");
-  const [selectedExpert, setSelectedExpert] = useState("");
-  const [unassignDialogOpen, setUnassignDialogOpen] = useState(false);
-  const [assignmentToRemove, setAssignmentToRemove] = useState<string | null>(null);
-  const [bookDialogOpen, setBookDialogOpen] = useState(false);
-  const [bookingExpert, setBookingExpert] = useState<ExpertProfile | null>(null);
-  const [bookingForm, setBookingForm] = useState({
-    scheduled_at: "",
-    duration_minutes: "60",
-    notes: "",
-    session_type: "mentorship"
+  const queryClient = useQueryClient();
+
+  const { data: userData } = useQuery({
+    queryKey: ['expert-marketplace-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+  const user = userData ?? null;
+
+  const { data: experts = [], isLoading: expertsLoading } = useQuery({
+    queryKey: ['expert-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expert_profiles")
+        .select(`*, profiles (full_name, avatar_url, email)`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as ExpertProfile[];
+    },
+    enabled: !!user,
   });
 
-  // Expert profile form
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [profileForm, setProfileForm] = useState({
-    bio: "",
-    expertise_areas: "",
-    hourly_rate: "",
-    years_experience: "",
-    availability: "available"
+  const { data: modules = [], isLoading: modulesLoading } = useQuery({
+    queryKey: ['expert-modules'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("modules")
+        .select(`*, courses (title)`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as Module[];
+    },
+    enabled: !!user,
   });
 
-  useEffect(() => {
-    loadUser();
-  }, []);
+  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery({
+    queryKey: ['expert-assignments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("module_experts")
+        .select(`*, modules (id, title, description, course_id, courses (title)), expert_profiles (*, profiles (full_name, avatar_url, email))`)
+        .order("assigned_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as ModuleExpert[];
+    },
+    enabled: !!user,
+  });
 
-  useEffect(() => {
-    if (user) {
-      loadAllData();
-    }
-  }, [user]);
+  const loading = expertsLoading || modulesLoading || assignmentsLoading;
 
-  const loadUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
-
-  const loadAllData = async () => {
-    setLoading(true);
-    await Promise.all([
-      loadExperts(),
-      loadModules(),
-      loadAssignments()
-    ]);
-    setLoading(false);
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['expert-profiles'] });
+    queryClient.invalidateQueries({ queryKey: ['expert-modules'] });
+    queryClient.invalidateQueries({ queryKey: ['expert-assignments'] });
   };
 
   const loadExperts = async () => {
