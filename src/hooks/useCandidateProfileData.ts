@@ -1,27 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// Use Record<string, unknown> to avoid strict Json type issues with dynamic candidate fields
-export type CandidateProfileData = Record<string, unknown> & {
-  id: string;
-  user_id: string | null;
-  full_name: string | null;
-  email: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-  current_title: string | null;
-  current_company: string | null;
-  linkedin_url: string | null;
-  github_url: string | null;
-  portfolio_url: string | null;
-};
-
-export type UserProfileData = Record<string, unknown> & {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  email: string | null;
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CandidateProfileData = Record<string, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UserProfileData = Record<string, any>;
 
 interface UseCandidateProfileDataOptions {
   candidateId: string | undefined;
