@@ -601,7 +601,7 @@ export const ConnectionsSettings = ({
       setCalendarLoading(true);
       
       const redirectUri = `${window.location.origin}/settings`;
-      console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
+      
       
       // Store that we want to return to connections tab after OAuth
       localStorage.setItem('oauth_return_tab', 'connections');
