@@ -63,7 +63,7 @@ export default function ContractDetailPage() {
     queryKey: ['milestones', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .select('*')
         .eq('contract_id', contractId)
         .order('milestone_number', { ascending: true });
