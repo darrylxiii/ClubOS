@@ -102,7 +102,7 @@ export default function ContractSignaturePage() {
 
       // Check if both parties have signed
       const { data: updatedContract } = await supabase
-        .from('project_contracts')
+        .from('project_contracts' as any) // TODO: signed_by_freelancer column missing from types
         .select('signed_by_freelancer, signed_by_client')
         .eq('id', contract.id)
         .single();
