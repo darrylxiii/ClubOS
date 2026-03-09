@@ -1,74 +1,84 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 92/100 (In-Meeting) | Ecosystem: 82/100
 
----
+# System Audit — Round 4
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+## Current State: 78/100 (after Round 3 Batches A-D)
 
 ---
 
-## Remaining
+## Remaining Issues by Severity
 
-### Phase G2: In-Meeting Feature Parity ✅ (82 → 92)
-- Auto-pin active speaker in spotlight mode (2s debounce, user-pin override)
-- Meeting lock toggle for host (DB column `is_locked` + HostSettingsPanel UI)
-- Raise hand queue with timestamps and ordered list in ParticipantsPanel
-- Bandwidth quality presets (HD/Standard/Low) in DeviceSelector
-- Per-participant network quality tooltip (RTT/jitter/packetLoss/bitrate on hover)
-- Gallery page keyboard navigation (arrow keys)
-- Noise suppression UI toggle in DeviceSelector
+### 1. `useState<any>` — Still 171 matches in 29 page files, 322 in 61 component files (~493 total)
+The biggest systemic issue. Top offenders by impact:
 
-### Phase H: Polish & Automation ✅ (92 → 100)
-- **Date range filter on MeetingHistoryTab**: From/To date inputs with clear button, useMemo filtering
-- **sendBeacon mobile cleanup**: `beforeunload` + `pagehide` → `navigator.sendBeacon` for reliable participant cleanup on mobile/tab close
-- **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
-- **Auto-advance pipeline on strong_yes**: `extract-candidate-performance` auto-advances `applications.pipeline_stage` when `hiring_recommendation === 'strong_yes'`, with audit log
+| File | Lines | `any` states | Also manual fetch? |
+|------|-------|-------------|-------------------|
+| **JobDashboard.tsx** | 1306 | 7 (`job`, `editingStage`, `applications[]`, `selectedStage`, `candidate`) | Yes |
+| **Academy.tsx** | 512 | 5+ (`academy`, `courses`, etc.) | Yes |
+| **CandidateProfile.tsx** | — | 2 (`candidate`, `userProfile`) | Yes |
+| **EnhancedMLDashboard.tsx** | — | 4 (`companyIntelligence[]`, `recentInsights[]`, `interactionStats`, `jobs[]`) | Yes |
+| **MeetingRoom.tsx** | — | 1 (`meeting`) | Yes |
+| **CourseEdit.tsx** | — | 2 (`course`, `modules[]`) | Yes |
+| **AcademyCreatorHub.tsx** | — | 2 (`courses[]`, `academy`) | Yes |
+| **Auth.tsx** | — | 1 (`inviteInfo`) | — |
+| **BookingManagement.tsx** | — | — | Yes (manual fetch) |
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+Components: `ApplicantPipeline`, `CompanyProfile`, `CreateInterviewDialog`, `MeetingPollPanel`, `UpcomingInterviewsWidget` are worst.
 
-### Phase I2: Remaining Ecosystem
+### 2. `as any` Table Casts — Still 589 in pages, ~2994 in components
+Key remaining clusters:
+- **`(supabase as any).from(...)`** pattern: `AdminCandidates` (`candidate_tag_assignments`), `InteractionsFeed`, `ClientAnalyticsPage` (`marketplace_projects`), `FreelancerAnalyticsPage` (`freelance_profiles`)
+- **Result casts**: `UpcomingInterviewsWidget` (8+ join casts), `MultiYearPLTable` (financial field casts), `EscrowManager`
+- **Table name casts**: `MeetingPollPanel` (6x `as any` on `meeting_polls`/`meeting_poll_responses`)
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+### 3. Console.log Pollution — 40 in pages, 901 in components
+Worst offenders:
+- **Components**: `UserCompanyAssignment` (4), `UpcomingInterviewsWidget` (2), `AdminMemberRequests` (2), `JobClosureDialog` (2), `AvatarUpload` (1), `LiveKitMeetingWrapper` (3), `ai-prompt-box` (4)
+- **Pages**: `RadioListen` (4), `WhatsAppInbox` (1), `Settings` (1), `ClubDJ` (2), `JobDetail` (1)
+
+### 4. Manual Fetch Pages Without `useQuery` — 32 pages remain
+Including: `Academy`, `JobDashboard`, `BookingManagement`, `MeetingRoom`, `CourseEdit`, `AcademyCreatorHub`, `EnhancedMLDashboard`, `SchedulingSettings`, `UnifiedTasks`, `CompanyIntelligence`, `AdminCandidates`, `PersonalMeetingRoom`, `Post`, `ObjectiveWorkspace`
+
+### 5. Remaining `.single()` — 360 matches in 55 page files
+Notable risky ones not yet converted:
+- `ProjectApplyPage.tsx`, `GigDetailPage.tsx`, `FunnelAnalytics.tsx`, `JoinMeeting.tsx`, `Jobs.tsx`, `GuestBookingPortal.tsx`, `ProjectDetailPage.tsx`, `InviteAcceptance.tsx`, `ClubAI.tsx`, `ModuleEdit.tsx`
+
+### 6. File Size / Monoliths
+- **JobDashboard.tsx**: 1306 lines — largest page, needs decomposition
+- **Academy.tsx**: 512 lines
+- **Auth.tsx**: complex multi-effect auth flow
+
+---
+
+## Fix Plan
+
+### Batch A: Console.log Cleanup (78 → 82)
+Remove all debug `console.log` from:
+- **Pages**: `RadioListen`, `WhatsAppInbox`, `Settings`, `ClubDJ`, `JobDetail`
+- **Components**: `UserCompanyAssignment`, `UpcomingInterviewsWidget`, `AdminMemberRequests`, `JobClosureDialog`, `AvatarUpload`, `LiveKitMeetingWrapper`, `ai-prompt-box`, `ConnectionsSettings`
+- Keep only `console.error` for actual error paths and `logger.*` calls
+
+### Batch B: Top Page Type Safety + useQuery (82 → 90)
+1. **JobDashboard.tsx**: Define `Job`, `Application`, `Stage` interfaces; extract `useJobDashboardData` hook with `useQuery`; reduce 7 `any` states
+2. **Academy.tsx**: Define interfaces; extract `useAcademyData` hook; eliminate 5+ `any` states
+3. **CandidateProfile.tsx**: Type `candidate` and `userProfile` properly; migrate to `useQuery`
+4. **EnhancedMLDashboard.tsx**: Type all 4 `any` states; migrate to `useQuery`
+
+### Batch C: `.single()` Safety Pass 2 (90 → 94)
+Convert filter-based `.single()` → `.maybeSingle()` in remaining risky files:
+- `ProjectApplyPage`, `GigDetailPage`, `JoinMeeting`, `GuestBookingPortal`, `ProjectDetailPage`, `InviteAcceptance`, `ClubAI`, `ModuleEdit`, `FunnelAnalytics`, `Jobs`
+
+### Batch D: Component `as any` + Type Safety (94 → 98)
+1. Remove `(supabase as any).from(...)` for tables that exist in schema
+2. Type join results in `UpcomingInterviewsWidget`, `MultiYearPLTable`
+3. Type `MeetingPollPanel` queries (or tag missing tables)
+4. Fix component `useState<any>` in `ApplicantPipeline`, `CompanyProfile`, `CreateInterviewDialog`
+
+### Batch E: Remaining Manual Fetch → useQuery (98 → 100)
+Convert: `BookingManagement`, `MeetingRoom`, `CourseEdit`, `AcademyCreatorHub`, `SchedulingSettings`, `UnifiedTasks`, `PersonalMeetingRoom`
+
+---
+
+## Recommendation
+Start with **Batch A** (console.log cleanup) — zero-risk, immediate code hygiene improvement, and addresses the 900+ log pollution across components. Then **Batch B** for the highest-impact type safety wins.
+
