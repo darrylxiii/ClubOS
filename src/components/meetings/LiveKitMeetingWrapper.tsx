@@ -66,7 +66,7 @@ export function LiveKitMeetingWrapper({
     // This prevents the timer from resetting when isConnecting/token changes
     useEffect(() => {
         const mountTime = Date.now();
-        console.log('[LiveKit] ⏱️ Starting connection timers at', new Date().toISOString());
+        
 
         // Soft timeout: Show fallback option at 15 seconds
         const softTimer = setTimeout(() => {
