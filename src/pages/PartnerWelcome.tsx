@@ -69,7 +69,7 @@ const PartnerWelcome = () => {
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (membership) {
         const companies = membership.companies as { name: string } | null;
