@@ -97,7 +97,7 @@ export default function ContractDetailPage() {
   const handleSubmitForReview = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .update({
           status: 'submitted',
           submitted_at: new Date().toISOString()
