@@ -38,8 +38,8 @@ export default function ConnectsStorePage() {
         .from("freelance_profiles")
         .select("connects_balance, connects_last_refreshed_at")
         .eq("id", user.id)
-        .single();
-      if (error && error.code !== "PGRST116") throw error;
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
