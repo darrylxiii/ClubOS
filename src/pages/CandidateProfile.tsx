@@ -121,7 +121,7 @@ export default function CandidateProfile() {
         .from("candidate_profiles")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setCandidate(candidateData);
