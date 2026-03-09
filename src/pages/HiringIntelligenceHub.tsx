@@ -186,7 +186,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       // Calculate average match score from applications (not predictions)
       const applicationsWithScores = applications?.filter(a => a.match_score != null) || [];
       const avgMatchFromApps = applicationsWithScores.length > 0
-        ? (applicationsWithScores.reduce((sum, a) => sum + (a.match_score || 0), 0) / applicationsWithScores.length).toFixed(1)
+        ? Math.round(applicationsWithScores.reduce((sum, a) => sum + (a.match_score || 0), 0) / applicationsWithScores.length)
         : 0;
 
       // Calculate stats
