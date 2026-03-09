@@ -73,7 +73,7 @@ export default function OAuthOnboarding() {
         if (error) throw error;
 
         if (data?.onboarding_completed_at) {
-          console.log('[OAuthOnboarding] Onboarding already completed, redirecting');
+          
           // Redirect based on account status
           if (data.account_status === 'approved') {
             navigate('/club-home', { replace: true });
