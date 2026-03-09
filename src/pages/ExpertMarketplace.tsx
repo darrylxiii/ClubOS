@@ -122,75 +122,28 @@ export default function ExpertMarketplace() {
     queryClient.invalidateQueries({ queryKey: ['expert-assignments'] });
   };
 
-  const loadExperts = async () => {
-    const { data, error } = await supabase
-      .from("expert_profiles")
-      .select(`
-        *,
-        profiles (
-          full_name,
-          avatar_url,
-          email
-        )
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load experts");
-      return;
-    }
-    setExperts(data as any);
-  };
-
-  const loadModules = async () => {
-    const { data, error } = await supabase
-      .from("modules")
-      .select(`
-        *,
-        courses (
-          title
-        )
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load modules");
-      return;
-    }
-    setModules(data as any);
-  };
-
-  const loadAssignments = async () => {
-    const { data, error } = await supabase
-      .from("module_experts")
-      .select(`
-        *,
-        modules (
-          id,
-          title,
-          description,
-          course_id,
-          courses (
-            title
-          )
-        ),
-        expert_profiles (
-          *,
-          profiles (
-            full_name,
-            avatar_url,
-            email
-          )
-        )
-      `)
-      .order("assigned_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load assignments");
-      return;
-    }
-    setAssignments(data as any);
-  };
+  const [searchTerm, setSearchTerm] = useState("");
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedModule, setSelectedModule] = useState("");
+  const [selectedExpert, setSelectedExpert] = useState("");
+  const [unassignDialogOpen, setUnassignDialogOpen] = useState(false);
+  const [assignmentToRemove, setAssignmentToRemove] = useState<string | null>(null);
+  const [bookDialogOpen, setBookDialogOpen] = useState(false);
+  const [bookingExpert, setBookingExpert] = useState<ExpertProfile | null>(null);
+  const [bookingForm, setBookingForm] = useState({
+    scheduled_at: "",
+    duration_minutes: "60",
+    notes: "",
+    session_type: "mentorship"
+  });
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    bio: "",
+    expertise_areas: "",
+    hourly_rate: "",
+    years_experience: "",
+    availability: "available"
+  });
 
   const handleCreateProfile = async () => {
     const expertise = profileForm.expertise_areas.split(',').map(s => s.trim()).filter(Boolean);
