@@ -117,7 +117,6 @@ export default function RadioListen() {
           console.error('Failed to register as listener:', error);
         } else {
           setListenerId(data);
-          console.log('Registered as listener:', data);
         }
       } catch (err) {
         console.error('Error registering listener:', err);
