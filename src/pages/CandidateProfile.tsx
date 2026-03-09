@@ -61,9 +61,12 @@ export default function CandidateProfile() {
   const noteId = searchParams.get('noteId');
   const { user } = useAuth();
   const { currentRole: role } = useRole();
-  const [candidate, setCandidate] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const { candidate, userProfile, loading, refetch: loadCandidate } = useCandidateProfileData({
+    candidateId: id,
+    isTeamView,
+    userId: user?.id,
+    role,
+  });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
   const [enrichModal, setEnrichModal] = useState<{ open: boolean; mode: 'linkedin' | 'deep-enrich' }>({ open: false, mode: 'linkedin' });
