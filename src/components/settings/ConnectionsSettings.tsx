@@ -189,7 +189,7 @@ export const ConnectionsSettings = ({
         
         
         if (provider === 'gmail') {
-          console.log('📧 Exchanging Gmail code...');
+          
           
           const { data, error: funcError } = await supabase.functions.invoke('gmail-oauth', {
             body: { action: 'exchangeCode', code, redirectUri },
