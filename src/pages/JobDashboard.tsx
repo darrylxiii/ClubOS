@@ -445,7 +445,7 @@ export default function JobDashboard() {
                 transition={{ duration: 0.4 }}
               >
                 <CandidatesAtRiskPanel
-                  applications={applications}
+                  applications={applications as any[]}
                   stages={stages}
                   avgDaysInStage={metrics.avgDaysInStage}
                   jobId={jobId!}
