@@ -30,6 +30,7 @@ export default function CandidateOnboarding() {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState(true);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAlreadyMember, setIsAlreadyMember] = useState(false);
 
   // Check if user is already logged in and redirect appropriately
   useEffect(() => {
