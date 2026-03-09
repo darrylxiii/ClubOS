@@ -226,8 +226,8 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
 
       setJobs(jobsWithHealth);
       setJobsNeedingAttention(jobsWithHealth.filter((j) => j.healthScore < 60 && j.status === 'published'));
-      setTopCandidatesAcrossJobs((applications as CandidateApplication[])?.slice(0, 6) || []);
-      setUpcomingInterviewsAllJobs((interviews as UpcomingInterview[]) || []);
+      setTopCandidatesAcrossJobs((applications as unknown as CandidateApplication[])?.slice(0, 6) || []);
+      setUpcomingInterviewsAllJobs((interviews as unknown as UpcomingInterview[]) || []);
 
       // Interview stats
       setInterviewStats({
