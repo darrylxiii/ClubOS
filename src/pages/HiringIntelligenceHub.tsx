@@ -204,18 +204,18 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       });
 
       // Process jobs with health scores
-      const jobsWithHealth = jobsData?.map((job: any) => {
+      const jobsWithHealth: JobWithHealth[] = jobsData?.map((job) => {
         const appCount = applicationCounts[job.id] || 0;
-        // Health score based on application count and job status
         let healthScore = 0;
         if (job.status === 'published') {
           healthScore = appCount > 10 ? 100 : appCount > 5 ? 80 : appCount > 2 ? 60 : appCount > 0 ? 40 : 20;
         } else {
-          healthScore = 10; // Draft jobs have low health
+          healthScore = 10;
         }
         
         return {
           ...job,
+          companies: job.companies as { name: string } | null,
           candidatesInPipeline: appCount,
           upcomingInterviews: 0,
           healthScore,
@@ -224,9 +224,9 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
       }) || [];
 
       setJobs(jobsWithHealth);
-      setJobsNeedingAttention(jobsWithHealth.filter((j: any) => j.healthScore < 60 && j.status === 'published'));
-      setTopCandidatesAcrossJobs(applications?.slice(0, 6) || []);
-      setUpcomingInterviewsAllJobs(interviews || []);
+      setJobsNeedingAttention(jobsWithHealth.filter((j) => j.healthScore < 60 && j.status === 'published'));
+      setTopCandidatesAcrossJobs((applications as CandidateApplication[])?.slice(0, 6) || []);
+      setUpcomingInterviewsAllJobs((interviews as UpcomingInterview[]) || []);
 
       // Interview stats
       setInterviewStats({
