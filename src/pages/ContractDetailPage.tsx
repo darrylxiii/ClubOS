@@ -46,7 +46,7 @@ export default function ContractDetailPage() {
     queryKey: ['contract', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_contracts' as any)
+        .from('project_contracts')
         .select('*')
         .eq('id', contractId)
         .maybeSingle();
@@ -63,7 +63,7 @@ export default function ContractDetailPage() {
     queryKey: ['milestones', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .select('*')
         .eq('contract_id', contractId)
         .order('milestone_number', { ascending: true });
@@ -80,7 +80,7 @@ export default function ContractDetailPage() {
   const handleStartMilestone = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .update({
           status: 'in_progress',
           started_at: new Date().toISOString()
@@ -97,7 +97,7 @@ export default function ContractDetailPage() {
   const handleSubmitForReview = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .update({
           status: 'submitted',
           submitted_at: new Date().toISOString()
@@ -114,7 +114,7 @@ export default function ContractDetailPage() {
   const handleApproveMilestone = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .update({
           status: 'approved',
           approved_at: new Date().toISOString()

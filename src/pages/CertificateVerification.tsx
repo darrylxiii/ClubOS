@@ -24,7 +24,7 @@ export default function CertificateVerification() {
 
       try {
         const { data, error: fetchError } = await supabase
-          .from('certificates' as any)
+          .from('certificates' as any) // TODO: add certificates table to schema migration
           .select(`
             *,
             courses (

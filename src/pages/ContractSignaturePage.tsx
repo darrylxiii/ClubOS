@@ -26,7 +26,7 @@ export default function ContractSignaturePage() {
     queryKey: ['contract', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_contracts' as any)
+        .from('project_contracts')
         .select('*')
         .eq('id', contractId)
         .single();
@@ -74,7 +74,7 @@ export default function ContractSignaturePage() {
 
       // Save signature
       const { error: sigError } = await supabase
-        .from('contract_signatures' as any)
+        .from('contract_signatures' as any) // TODO: add contract_signatures to schema migration
         .insert({
           contract_id: contract.id,
           signer_id: user!.id,
@@ -94,7 +94,7 @@ export default function ContractSignaturePage() {
         : { signed_by_client: true, client_signed_at: new Date().toISOString() };
 
       const { error: updateError } = await supabase
-        .from('project_contracts' as any)
+        .from('project_contracts' as any) // TODO: add signed_by_freelancer, signed_by_client, contract_status columns
         .update(updateData)
         .eq('id', contract.id);
 
@@ -102,7 +102,7 @@ export default function ContractSignaturePage() {
 
       // Check if both parties have signed
       const { data: updatedContract } = await supabase
-        .from('project_contracts' as any)
+        .from('project_contracts' as any) // TODO: signed_by_freelancer column missing from types
         .select('signed_by_freelancer, signed_by_client')
         .eq('id', contract.id)
         .single();
@@ -110,7 +110,7 @@ export default function ContractSignaturePage() {
       // If both signed, activate contract
       if ((updatedContract as any)?.signed_by_freelancer && (updatedContract as any)?.signed_by_client) {
         await supabase
-          .from('project_contracts' as any)
+          .from('project_contracts' as any) // TODO: contract_status column missing from types
           .update({ contract_status: 'active' })
           .eq('id', contract.id);
       }

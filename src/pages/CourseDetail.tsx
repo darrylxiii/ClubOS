@@ -131,7 +131,7 @@ export default function CourseDetail() {
           
           if (avgProgress >= 100) {
             const { data: certData } = await supabase
-              .from('certificates' as any)
+              .from('certificates' as any) // TODO: add certificates table to schema migration
               .select('*')
               .eq('user_id', user.id)
               .eq('course_id', courseData.id)

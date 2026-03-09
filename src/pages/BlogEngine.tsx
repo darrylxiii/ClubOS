@@ -37,7 +37,7 @@ const BlogEngine: React.FC = () => {
 
       const [postsRes, analyticsRes, queueRes] = await Promise.all([
         supabase.from('blog_posts').select('id, status, performance_score, title, slug', { count: 'exact' }),
-        supabase.from('blog_analytics' as any).select('*').gte('date', thirtyDaysAgo),
+        supabase.from('blog_analytics').select('*').gte('date', thirtyDaysAgo),
         supabase.from('blog_generation_queue').select('id, status', { count: 'exact' }),
       ]);
 

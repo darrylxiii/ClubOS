@@ -31,8 +31,8 @@ export default function ContractListPage() {
       if (!user?.id) return [];
 
       let query = supabase
-        .from('project_contracts' as any)
-        .select('*') as any;
+        .from('project_contracts')
+        .select('*');
 
       if (userView === 'freelancer') {
         query = query.eq('freelancer_id', user.id);
