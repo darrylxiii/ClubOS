@@ -471,7 +471,7 @@ export default function JobDashboard() {
             {/* Top Candidates Leaderboard */}
             {applications.length > 0 && (
               <CandidateLeaderboard
-                applications={applications}
+                applications={applications as any[]}
                 stages={stages}
                 jobId={jobId!}
               />
