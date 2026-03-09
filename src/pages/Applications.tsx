@@ -59,6 +59,7 @@ interface Application {
 
 export default function Applications({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true);
   const isMobile = useIsMobile();
