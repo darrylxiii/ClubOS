@@ -142,8 +142,7 @@ export const AdminMemberRequests = () => {
           filter: 'account_status=eq.pending'
         },
         () => {
-          console.log('[Admin] Candidate onboarding updated');
-          fetchRequests(); // Refresh to show new progress
+          fetchRequests();
         }
       )
       .subscribe();
