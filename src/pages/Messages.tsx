@@ -260,7 +260,7 @@ export default function Messages() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search conversations..."
+                placeholder="Search conversations and messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 bg-muted/30 border-border/30 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
