@@ -44,16 +44,11 @@
 
 ## Remaining
 
-### Phase G2: In-Meeting Feature Parity ✅ (82 → 92)
-- Auto-pin active speaker in spotlight mode (2s debounce, user-pin override)
-- Meeting lock toggle for host (DB column `is_locked` + HostSettingsPanel UI)
-- Raise hand queue with timestamps and ordered list in ParticipantsPanel
-- Bandwidth quality presets (HD/Standard/Low) in DeviceSelector
-- Per-participant network quality tooltip (RTT/jitter/packetLoss/bitrate on hover)
-- Gallery page keyboard navigation (arrow keys)
-- Noise suppression UI toggle in DeviceSelector
+### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
+- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
+- Kept console.error for actual failures
 
-### Phase H: Polish & Automation ✅ (92 → 100)
+### Phase R4-B: Top Page Type Safety + useQuery (82 → 90)
 - **Date range filter on MeetingHistoryTab**: From/To date inputs with clear button, useMemo filtering
 - **sendBeacon mobile cleanup**: `beforeunload` + `pagehide` → `navigator.sendBeacon` for reliable participant cleanup on mobile/tab close
 - **Auto-trigger follow-up generation**: `auto-generate-follow-up` chained after `analyze-meeting-recording-advanced` completes (no manual click)
