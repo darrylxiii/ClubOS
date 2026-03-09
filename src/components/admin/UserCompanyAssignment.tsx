@@ -68,7 +68,6 @@ export function UserCompanyAssignment() {
           };
         });
         setMembers(enrichedMembers as any);
-        console.log('[UserCompanyAssignment] Enriched members:', enrichedMembers);
       }
 
     } catch (error) {

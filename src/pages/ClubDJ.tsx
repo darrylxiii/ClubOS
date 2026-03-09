@@ -134,7 +134,6 @@ export default function ClubDJ() {
   }
 
   if (!hasAdminAccess) {
-    console.log('[ClubDJ] User does not have admin access. Available roles:', availableRoles);
     return null;
   }
 

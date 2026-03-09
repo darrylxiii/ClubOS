@@ -37,7 +37,6 @@ const Settings = () => {
   useEffect(() => {
     const handleLanguageChange = (event: CustomEvent<string>) => {
       const newLang = event.detail;
-      console.log('[Settings] Language changed via event to:', newLang);
       setPreferredLanguage(newLang);
     };
 

@@ -706,7 +706,7 @@ export const ConnectionsSettings = ({
         throw new Error('Failed to get authentication URL');
       }
 
-      console.log(`📧 Redirecting to ${pendingEmailProvider} OAuth...`);
+      
       window.location.href = data.authUrl;
     } catch (error) {
       console.error('Email connection error:', error);

@@ -307,13 +307,6 @@ export const AdminMemberRequests = () => {
   const handleReview = async () => {
     if (!selectedRequest || !reviewAction) return;
 
-    console.log('[AdminMemberRequests] Starting review process', {
-      request: selectedRequest.name,
-      action: reviewAction,
-      sendEmail,
-      sendSMS
-    });
-
     setSubmitting(true);
     try {
       // CRITICAL: Validate onboarding completion before approval (only for pure candidates)

@@ -256,14 +256,6 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
       // 3. Current logged-in user (fallback)
       const finalSourcerId = appSourcedBy || creatorId || user?.id || "";
       
-      console.log("[JobClosureDialog] Sourcer resolution:", {
-        appId,
-        appSourcedBy,
-        creatorId,
-        currentUserId: user?.id,
-        finalSourcerId,
-        teamMembersCount: members.length
-      });
 
       setAddedBy(creatorId || "");
       setSourcedBy(finalSourcerId);

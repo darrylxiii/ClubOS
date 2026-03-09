@@ -23,7 +23,6 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
 
   // Sync previewUrl with avatarUrl prop changes
   useEffect(() => {
-    console.log('[AvatarUpload] Avatar URL changed:', avatarUrl);
     setPreviewUrl(avatarUrl);
   }, [avatarUrl]);
 

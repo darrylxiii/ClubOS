@@ -94,7 +94,7 @@ export function LiveKitMeetingWrapper({
     // Success detector: Clear fallback option when connected
     useEffect(() => {
         if (token && !isConnecting) {
-            console.log('[LiveKit] ✅ Connection successful - clearing fallback option');
+            
             setShowFallbackOption(false);
         }
     }, [token, isConnecting]);

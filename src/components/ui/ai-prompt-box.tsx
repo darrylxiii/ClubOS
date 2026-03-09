@@ -580,10 +580,9 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
     }
   };
 
-  const handleStartRecording = () => console.log("Started recording");
+  const handleStartRecording = () => { /* recording started */ };
 
   const handleStopRecording = (duration: number) => {
-    console.log(`Stopped recording after ${duration} seconds`);
     setIsRecording(false);
     onSend(`[Voice message - ${duration} seconds]`, []);
   };
