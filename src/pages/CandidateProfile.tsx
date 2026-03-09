@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCandidateProfileData } from "@/hooks/useCandidateProfileData";
 import { SectionLoader } from "@/components/ui/unified-loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
