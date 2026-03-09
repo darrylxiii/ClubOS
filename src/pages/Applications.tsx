@@ -213,9 +213,38 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
                 </CardContent>
               </Card>
             ) : (
-              archivedApplications.map((application) => (
-                <ApplicationCard key={application.id} application={application} />
-              ))
+              <div className="space-y-8">
+                {hiredApplications.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-success flex items-center gap-2">
+                      <Check className="h-4 w-4" /> Hired ({hiredApplications.length})
+                    </h3>
+                    {hiredApplications.map((app) => (
+                      <ApplicationCard key={app.id} application={app} />
+                    ))}
+                  </div>
+                )}
+                {withdrawnApplications.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                      Withdrawn ({withdrawnApplications.length})
+                    </h3>
+                    {withdrawnApplications.map((app) => (
+                      <ApplicationCard key={app.id} application={app} />
+                    ))}
+                  </div>
+                )}
+                {closedApplications.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                      Closed ({closedApplications.length})
+                    </h3>
+                    {closedApplications.map((app) => (
+                      <ApplicationCard key={app.id} application={app} />
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </TabsContent>
         </Tabs>
