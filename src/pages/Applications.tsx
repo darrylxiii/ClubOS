@@ -299,8 +299,8 @@ function ApplicationCard({ application }: { application: Application }) {
                 {application.job?.location && (
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-3 h-3" />
-                    <span className="hidden sm:inline">{application.job.location}</span>
-                    <span className="sm:hidden">{application.job.location.split(',')[0]}</span>
+                    <span className="hidden sm:inline">{formatLocation(application.job.location)}</span>
+                    <span className="sm:hidden">{formatLocation(application.job.location).split(',')[0]}</span>
                   </div>
                 )}
                 {formatSalaryRange() && (

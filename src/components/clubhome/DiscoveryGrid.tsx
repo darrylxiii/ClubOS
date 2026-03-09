@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 
 // ── For You column ──
 function ForYouColumn() {
