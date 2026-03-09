@@ -193,7 +193,7 @@ export default function ExpertMarketplace() {
     setAssignDialogOpen(false);
     setSelectedModule("");
     setSelectedExpert("");
-    loadAssignments();
+    invalidateAll();
   };
 
   const openUnassignDialog = (assignmentId: string) => {
