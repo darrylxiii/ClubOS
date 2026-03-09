@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,9 @@ export interface ReviewQueueApplication {
   candidateTitle: string | null;
   candidateAvatarUrl: string | null;
   candidateSkills: string[];
+  candidateSourceChannel: string | null;
+  candidateSourcedBy: string | null;
+  internalReviewNotes: string | null;
   status: string;
   matchScore: number | null;
   currentStageIndex: number;
@@ -45,7 +48,6 @@ function toStringArray(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === 'string' && item.length > 0);
   }
-
   return [];
 }
 
@@ -53,23 +55,20 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
   const { data: applications, error: applicationsError } = await supabase
     .from('applications')
     .select(
-      'id, job_id, candidate_id, user_id, current_stage_index, status, match_score, created_at, internal_review_status, partner_review_status',
+      'id, job_id, candidate_id, user_id, current_stage_index, status, match_score, created_at, internal_review_status, partner_review_status, internal_review_notes, sourced_by',
     )
     .eq('job_id', jobId)
     .neq('status', 'rejected')
     .order('created_at', { ascending: false });
 
-  if (applicationsError) {
-    throw applicationsError;
-  }
+  if (applicationsError) throw applicationsError;
 
   const applicationRows = applications ?? [];
-  if (applicationRows.length === 0) {
-    return [];
-  }
+  if (applicationRows.length === 0) return [];
 
   const candidateIds = [...new Set(applicationRows.map((app) => app.candidate_id).filter(Boolean))] as string[];
   const applicationUserIds = [...new Set(applicationRows.map((app) => app.user_id).filter(Boolean))] as string[];
+  const sourcedByIds = [...new Set(applicationRows.map((app) => app.sourced_by).filter(Boolean))] as string[];
 
   const [candidateProfilesResult, jobResult] = await Promise.all([
     candidateIds.length > 0
@@ -85,20 +84,13 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       .maybeSingle(),
   ]);
 
-  if (candidateProfilesResult.error) {
-    throw candidateProfilesResult.error;
-  }
-
-  if (jobResult.error) {
-    throw jobResult.error;
-  }
+  if (candidateProfilesResult.error) throw candidateProfilesResult.error;
+  if (jobResult.error) throw jobResult.error;
 
   const candidateProfiles = candidateProfilesResult.data ?? [];
-  const profileIdsToFetch = new Set(applicationUserIds);
+  const profileIdsToFetch = new Set([...applicationUserIds, ...sourcedByIds]);
   candidateProfiles.forEach((profile) => {
-    if (profile.user_id) {
-      profileIdsToFetch.add(profile.user_id);
-    }
+    if (profile.user_id) profileIdsToFetch.add(profile.user_id);
   });
 
   const profileIds = Array.from(profileIdsToFetch);
@@ -106,9 +98,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
     ? await supabase.from('profiles').select('id, full_name, avatar_url').in('id', profileIds)
     : { data: [], error: null };
 
-  if (profilesError) {
-    throw profilesError;
-  }
+  if (profilesError) throw profilesError;
 
   const job = jobResult.data;
   let companyName = 'Company';
@@ -118,7 +108,6 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       .select('name')
       .eq('id', job.company_id)
       .maybeSingle();
-
     companyName = companyData?.name || companyName;
   }
 
@@ -129,6 +118,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
     const candidateProfile = app.candidate_id ? candidateProfileById.get(app.candidate_id) : undefined;
     const linkedProfileId = candidateProfile?.user_id || app.user_id || '';
     const linkedProfile = linkedProfileId ? profileById.get(linkedProfileId) : undefined;
+    const sourcedByProfile = app.sourced_by ? profileById.get(app.sourced_by) : undefined;
 
     return {
       id: app.id,
@@ -142,6 +132,9 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       candidateTitle: candidateProfile?.current_title || null,
       candidateAvatarUrl: candidateProfile?.avatar_url || linkedProfile?.avatar_url || null,
       candidateSkills: toStringArray(candidateProfile?.skills),
+      candidateSourceChannel: null, // Not available on applications table
+      candidateSourcedBy: sourcedByProfile?.full_name || null,
+      internalReviewNotes: app.internal_review_notes || null,
       status: app.status,
       matchScore: app.match_score,
       currentStageIndex: app.current_stage_index,
@@ -153,6 +146,22 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       createdAt: app.created_at,
     };
   });
+}
+
+async function writeAuditLog(action: string, applicationId: string, jobId: string, metadata?: Record<string, unknown>) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await (supabase as any).from('candidate_application_logs').insert({
+      application_id: applicationId,
+      action,
+      performed_by: user.id,
+      metadata: { job_id: jobId, ...metadata },
+    });
+  } catch {
+    // Audit log failures should not block the main flow
+  }
 }
 
 export function useReviewQueue(jobId?: string) {
@@ -188,28 +197,18 @@ export function useReviewQueue(jobId?: string) {
   );
 
   const getCurrentUserId = async (): Promise<string> => {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!user?.id) {
-      throw new Error('You need to be signed in to review candidates.');
-    }
-
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    if (!user?.id) throw new Error('You need to be signed in to review candidates.');
     return user.id;
   };
 
-  const invalidateReviewQueries = async () => {
+  const invalidateReviewQueries = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['review-queue', jobId] }),
       queryClient.invalidateQueries({ queryKey: ['applications'] }),
     ]);
-  };
+  }, [queryClient, jobId]);
 
   const writePartnerReviewFeedback = async ({
     application,
@@ -279,9 +278,9 @@ export function useReviewQueue(jobId?: string) {
         })
         .eq('id', application.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+
+      await writeAuditLog('internal_review_approved', application.id, application.jobId, { notes });
     },
     onSuccess: async () => {
       toast.success('Candidate approved for partner review.');
@@ -308,9 +307,7 @@ export function useReviewQueue(jobId?: string) {
         })
         .eq('id', application.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       await writePartnerReviewFeedback({
         application,
@@ -318,6 +315,8 @@ export function useReviewQueue(jobId?: string) {
         notes,
         rejectionReason: 'internal_screening',
       });
+
+      await writeAuditLog('internal_review_rejected', application.id, application.jobId, { notes });
     },
     onSuccess: async () => {
       toast.success('Candidate rejected during internal review.');
@@ -330,10 +329,7 @@ export function useReviewQueue(jobId?: string) {
 
   const approvePartnerMutation = useMutation({
     mutationFn: async ({
-      application,
-      notes,
-      rating,
-      tags,
+      application, notes, rating, tags,
     }: {
       application: ReviewQueueApplication;
       notes?: string;
@@ -354,17 +350,10 @@ export function useReviewQueue(jobId?: string) {
         })
         .eq('id', application.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      await writePartnerReviewFeedback({
-        application,
-        feedbackType: 'approval',
-        notes,
-        rating,
-        tags,
-      });
+      await writePartnerReviewFeedback({ application, feedbackType: 'approval', notes, rating, tags });
+      await writeAuditLog('partner_review_approved', application.id, application.jobId, { rating, tags });
     },
     onSuccess: async () => {
       toast.success('Candidate approved for the live pipeline.');
@@ -377,13 +366,7 @@ export function useReviewQueue(jobId?: string) {
 
   const rejectPartnerMutation = useMutation({
     mutationFn: async ({
-      application,
-      notes,
-      rejectionReason,
-      specificGaps,
-      idealCandidate,
-      tags,
-      rating,
+      application, notes, rejectionReason, specificGaps, idealCandidate, tags, rating,
     }: {
       application: ReviewQueueApplication;
       notes: string;
@@ -408,20 +391,12 @@ export function useReviewQueue(jobId?: string) {
         })
         .eq('id', application.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       await writePartnerReviewFeedback({
-        application,
-        feedbackType: 'rejection',
-        notes,
-        rating,
-        rejectionReason,
-        specificGaps,
-        tags,
-        idealCandidate,
+        application, feedbackType: 'rejection', notes, rating, rejectionReason, specificGaps, tags, idealCandidate,
       });
+      await writeAuditLog('partner_review_rejected', application.id, application.jobId, { rejectionReason, specificGaps });
     },
     onSuccess: async () => {
       toast.success('Candidate rejected by partner review.');
@@ -434,10 +409,7 @@ export function useReviewQueue(jobId?: string) {
 
   const holdPartnerMutation = useMutation({
     mutationFn: async ({
-      application,
-      notes,
-      rating,
-      tags,
+      application, notes, rating, tags,
     }: {
       application: ReviewQueueApplication;
       notes?: string;
@@ -458,17 +430,10 @@ export function useReviewQueue(jobId?: string) {
         })
         .eq('id', application.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      await writePartnerReviewFeedback({
-        application,
-        feedbackType: 'hold',
-        notes,
-        rating,
-        tags,
-      });
+      await writePartnerReviewFeedback({ application, feedbackType: 'hold', notes, rating, tags });
+      await writeAuditLog('partner_review_hold', application.id, application.jobId, { notes });
     },
     onSuccess: async () => {
       toast.success('Candidate moved to hold.');
