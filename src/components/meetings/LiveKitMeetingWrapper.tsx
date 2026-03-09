@@ -85,7 +85,7 @@ export function LiveKitMeetingWrapper({
         }, 30000);
 
         return () => {
-            console.log('[LiveKit] 🧹 Clearing connection timers');
+            
             clearTimeout(softTimer);
             clearTimeout(hardTimer);
         };
