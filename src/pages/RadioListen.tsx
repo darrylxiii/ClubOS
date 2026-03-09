@@ -81,8 +81,8 @@ export default function RadioListen() {
           table: 'live_sessions',
           filter: `id=eq.${sessionId}`
         },
-        (payload) => {
-          console.log('Session updated:', payload);
+        () => {
+          // Session updated via realtime
         }
       )
       .subscribe();
