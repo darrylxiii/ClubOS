@@ -102,7 +102,12 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
 
   const activeApplications = applications.filter(app => app.status === "active");
   const rejectedApplications = applications.filter(app => app.status === "rejected");
-  const archivedApplications = applications.filter(app => app.status !== "active" && app.status !== "rejected");
+  const hiredApplications = applications.filter(app => app.status === "hired");
+  const withdrawnApplications = applications.filter(app => app.status === "withdrawn");
+  const closedApplications = applications.filter(app => 
+    app.status !== "active" && app.status !== "rejected" && app.status !== "hired" && app.status !== "withdrawn"
+  );
+  const archivedApplications = [...hiredApplications, ...withdrawnApplications, ...closedApplications];
 
   // Trigger achievement check when viewing applications
   useEffect(() => {
