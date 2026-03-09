@@ -48,7 +48,7 @@ export default function PendingApproval() {
         .from('profiles')
         .select('account_status, account_decline_reason, full_name')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

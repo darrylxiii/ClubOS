@@ -132,7 +132,7 @@ export default function CandidateProfile() {
           .from("profiles")
           .select("*")
           .eq("id", candidateData.user_id)
-          .single();
+          .maybeSingle();
 
         setUserProfile(profileData);
       }

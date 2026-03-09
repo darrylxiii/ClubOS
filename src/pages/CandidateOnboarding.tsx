@@ -70,7 +70,7 @@ export default function CandidateOnboarding() {
       const { data, error } = await supabase
         .from("funnel_config")
         .select("*")
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.warn('[Onboarding] funnel_config query error, defaulting to active:', error.message);

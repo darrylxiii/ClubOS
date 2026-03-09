@@ -133,7 +133,7 @@ export default function ApplicationDetail() {
             .from("profiles")
             .select("id, full_name, avatar_url")
             .eq("id", member.user_id)
-            .single();
+            .maybeSingle();
 
           if (profileData) {
             strategist = {
