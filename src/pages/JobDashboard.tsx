@@ -600,7 +600,7 @@ export default function JobDashboard() {
                             candidateCount={count}
                             avgDays={avgDays}
                             conversionRate={nextConversion}
-                            applications={stageApplications}
+                            applications={stageApplications as any[]}
                             jobId={jobId!}
                             isExpanded={expandedStageIndices.has(stage.order)}
                             onToggleExpand={() => toggleStageExpansion(stage.order)}
