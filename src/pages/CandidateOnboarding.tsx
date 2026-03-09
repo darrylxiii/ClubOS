@@ -45,8 +45,8 @@ export default function CandidateOnboarding() {
             .maybeSingle();
           
           if (profile) {
-            if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
-              navigate('/club-home');
+           if (profile.account_status === 'approved' && profile.onboarding_completed_at) {
+              setIsAlreadyMember(true);
               return;
             } else {
               navigate('/pending-approval');
