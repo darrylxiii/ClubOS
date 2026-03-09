@@ -186,7 +186,7 @@ export const ConnectionsSettings = ({
       // Handle Email OAuth
       else if (pendingEmail) {
         const { provider, label } = JSON.parse(pendingEmail);
-        console.log('📧 Processing email connection:', { provider, label });
+        
         
         if (provider === 'gmail') {
           console.log('📧 Exchanging Gmail code...');
