@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
