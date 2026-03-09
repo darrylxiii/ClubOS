@@ -138,7 +138,7 @@ export const ConnectionsSettings = ({
       // Handle Calendar OAuth
       if (pendingCalendar) {
         const { provider, label } = JSON.parse(pendingCalendar);
-        console.log('📋 Processing calendar connection:', { provider, label });
+        
         
         if (provider === 'google') {
           console.log('🔵 Exchanging Google Calendar code...');
