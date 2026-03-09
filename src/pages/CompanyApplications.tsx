@@ -1,291 +1,209 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRole } from '@/contexts/RoleContext';
+import { useAuth } from '@/contexts/AuthContext';
 import {
-  Search,
-  Filter,
-  Download,
-  UserPlus,
-  TrendingUp,
-  AlertCircle,
-  Users,
-  Briefcase
-} from "lucide-react";
-import { ApplicationsTable } from "@/components/partner/ApplicationsTable";
-import { ApplicationsFilters } from "@/components/partner/ApplicationsFilters";
-import { ApplicationsAnalytics } from "@/components/partner/ApplicationsAnalytics";
+  Search, Filter, Download, TrendingUp, AlertCircle, Users, Briefcase,
+} from 'lucide-react';
+import { ApplicationsTable } from '@/components/partner/ApplicationsTable';
+import { ApplicationsFilters } from '@/components/partner/ApplicationsFilters';
+import { ApplicationsAnalytics } from '@/components/partner/ApplicationsAnalytics';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+async function fetchApplicationsData(userId: string, currentRole: string | null, companyId: string | null) {
+  const isAdmin = currentRole === 'admin';
+  const isPartner = currentRole === 'partner';
+
+  // Get company memberships for partners
+  let companyIds: string[] = [];
+  if (isPartner && !isAdmin) {
+    if (companyId) {
+      companyIds = [companyId];
+    } else {
+      const { data: memberships } = await supabase
+        .from('company_members')
+        .select('company_id')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+      companyIds = memberships?.map((m) => m.company_id) || [];
+    }
+  }
+
+  // Build jobs query
+  let jobsQuery = supabase
+    .from('jobs')
+    .select(`id, title, company_id, status, created_at, companies:company_id (id, name, logo_url)`);
+
+  if (isPartner && !isAdmin && companyIds.length > 0) {
+    jobsQuery = jobsQuery.in('company_id', companyIds);
+  }
+
+  const { data: jobsData, error: jobsError } = await jobsQuery.order('created_at', { ascending: false });
+  if (jobsError) throw jobsError;
+
+  const jobIds = jobsData?.map((j) => j.id) || [];
+  if (jobIds.length === 0) return { applications: [], jobs: jobsData || [], companies: [] };
+
+  const { data: appsData, error: appsError } = await supabase
+    .from('applications')
+    .select(`*, jobs!applications_job_id_fkey (id, title, company_id, companies!jobs_company_id_fkey (id, name, logo_url))`)
+    .in('job_id', jobIds)
+    .order('applied_at', { ascending: false });
+
+  if (appsError) throw appsError;
+
+  // Enrich with candidate profiles
+  const enrichedApps = await Promise.all(
+    (appsData || []).map(async (app) => {
+      let candidateData = null;
+      let profileData = null;
+
+      if (app.user_id) {
+        const [{ data: userProfile }, { data: candProfile }] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', app.user_id).maybeSingle(),
+          supabase.from('candidate_profiles').select('*').eq('user_id', app.user_id).maybeSingle(),
+        ]);
+        profileData = userProfile;
+        candidateData = candProfile;
+      }
+
+      if (!candidateData && profileData?.email) {
+        const { data: candProfile } = await supabase
+          .from('candidate_profiles')
+          .select('*')
+          .eq('email', profileData.email)
+          .maybeSingle();
+        if (candProfile) candidateData = candProfile;
+      }
+
+      let interactions: any[] = [];
+      if (candidateData?.id) {
+        const { data } = await supabase
+          .from('candidate_interactions')
+          .select('id, interaction_type, created_at')
+          .eq('candidate_id', candidateData.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        interactions = data || [];
+      }
+
+      const candidateInfo = candidateData
+        ? {
+            ...candidateData,
+            full_name: candidateData.full_name || profileData?.full_name || app.candidate_full_name || 'Unknown Candidate',
+            email: candidateData.email || profileData?.email || app.candidate_email || '',
+            avatar_url: candidateData.avatar_url || profileData?.avatar_url,
+            current_title: candidateData.current_title || app.candidate_title,
+            current_company: candidateData.current_company || app.candidate_company,
+            linkedin_url: candidateData.linkedin_url || profileData?.linkedin_url || app.candidate_linkedin_url,
+            phone: profileData?.phone || app.candidate_phone,
+            has_account: true,
+          }
+        : profileData
+        ? {
+            id: null,
+            full_name: profileData.full_name || app.candidate_full_name || 'Unknown Candidate',
+            email: profileData.email || app.candidate_email || '',
+            avatar_url: profileData.avatar_url,
+            current_title: app.candidate_title,
+            current_company: app.candidate_company,
+            linkedin_url: profileData.linkedin_url || app.candidate_linkedin_url,
+            phone: profileData.phone || app.candidate_phone,
+            user_id: app.user_id,
+            has_account: true,
+          }
+        : {
+            id: null,
+            full_name: app.candidate_full_name || 'Unknown Candidate',
+            email: app.candidate_email || '',
+            avatar_url: null,
+            current_title: app.candidate_title,
+            current_company: app.candidate_company,
+            linkedin_url: app.candidate_linkedin_url,
+            phone: app.candidate_phone,
+            user_id: null,
+            has_account: false,
+          };
+
+      return { ...app, candidate_profiles: candidateInfo, candidate_interactions: interactions };
+    })
+  );
+
+  const uniqueCompanies = Array.from(
+    new Map(
+      jobsData?.filter((j) => j.companies).map((j) => [(j.companies as any).id, j.companies]) || []
+    ).values()
+  );
+
+  return { applications: enrichedApps, jobs: jobsData || [], companies: uniqueCompanies };
+}
 
 export default function CompanyApplications({ embedded = false }: { embedded?: boolean }) {
-  const [applications, setApplications] = useState<any[]>([]);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStage, setSelectedStage] = useState<string>("all");
-  const [selectedJob, setSelectedJob] = useState<string>("all");
-  const [selectedCompany, setSelectedCompany] = useState<string>("all");
-  const [selectedSource, setSelectedSource] = useState<string>("all");
-  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const { user } = useAuth();
+  const { currentRole, companyId } = useRole();
+  const queryClient = useQueryClient();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStage, setSelectedStage] = useState('all');
+  const [selectedJob, setSelectedJob] = useState('all');
+  const [selectedCompany, setSelectedCompany] = useState('all');
+  const [selectedSource, setSelectedSource] = useState('all');
+  const [urgencyFilter, setUrgencyFilter] = useState('all');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const { data, isLoading } = useQuery({
+    queryKey: ['company-applications', user?.id, currentRole, companyId],
+    queryFn: () => fetchApplicationsData(user!.id, currentRole, companyId),
+    enabled: !!user?.id,
+  });
 
-  const loadData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const applications = data?.applications || [];
+  const jobs = data?.jobs || [];
+  const companies = data?.companies || [];
 
-      // Check user roles
-      const { data: rolesData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
-
-      const isAdmin = rolesData?.some(r => r.role === 'admin');
-      const isPartner = rolesData?.some(r => r.role === 'partner');
-
-      // Get company memberships for partners
-      let companyIds: string[] = [];
-      if (isPartner && !isAdmin) {
-        const { data: memberships } = await supabase
-          .from("company_members")
-          .select("company_id")
-          .eq("user_id", user.id)
-          .eq("is_active", true);
-
-        companyIds = memberships?.map(m => m.company_id) || [];
-      }
-
-      // Build jobs query based on role
-      let jobsQuery = supabase
-        .from("jobs")
-        .select(`
-          id,
-          title,
-          company_id,
-          status,
-          created_at,
-          companies:company_id (
-            id,
-            name,
-            logo_url
-          )
-        `);
-
-      // Filter jobs by company for partners
-      if (isPartner && !isAdmin && companyIds.length > 0) {
-        jobsQuery = jobsQuery.in("company_id", companyIds);
-      }
-
-      const { data: jobsData, error: jobsError } = await jobsQuery.order("created_at", { ascending: false });
-
-      if (jobsError) throw jobsError;
-      setJobs(jobsData || []);
-
-      // Get job IDs for filtering applications
-      const jobIds = jobsData?.map(j => j.id) || [];
-
-      if (jobIds.length === 0) {
-        setApplications([]);
-        setLoading(false);
-        return;
-      }
-
-      // Build applications query
-      const { data: appsData, error: appsError } = await supabase
-        .from("applications")
-        .select(`
-          *,
-          jobs!applications_job_id_fkey (
-            id,
-            title,
-            company_id,
-            companies!jobs_company_id_fkey (
-              id,
-              name,
-              logo_url
-            )
-          )
-        `)
-        .in("job_id", jobIds)
-        .order("applied_at", { ascending: false });
-
-      if (appsError) throw appsError;
-
-      // Now get candidate profiles and profiles for these applications
-      // Use fallback hierarchy: candidate_profiles -> profiles -> embedded fields
-      const candidateProfilePromises = (appsData || []).map(async (app) => {
-        let candidateData = null;
-        let profileData = null;
-
-        // 1. Get user profile if user_id exists
-        if (app.user_id) {
-          const { data: userProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", app.user_id)
-            .maybeSingle();
-          profileData = userProfile;
-        }
-
-        // 2. Try to find candidate_profile by user_id first
-        if (app.user_id) {
-          const { data: candProfile } = await supabase
-            .from("candidate_profiles")
-            .select("*")
-            .eq("user_id", app.user_id)
-            .maybeSingle();
-          if (candProfile) candidateData = candProfile;
-        }
-
-        // 3. If not found and we have email, try by email
-        if (!candidateData && profileData?.email) {
-          const { data: candProfile } = await supabase
-            .from("candidate_profiles")
-            .select("*")
-            .eq("email", profileData.email)
-            .maybeSingle();
-          if (candProfile) candidateData = candProfile;
-        }
-
-        // Get recent interactions if we found candidate
-        let interactions = [];
-        if (candidateData?.id) {
-          const { data: interactionsData } = await supabase
-            .from("candidate_interactions")
-            .select("id, interaction_type, created_at")
-            .eq("candidate_id", candidateData.id)
-            .order("created_at", { ascending: false })
-            .limit(5);
-          interactions = interactionsData || [];
-        }
-
-        // Build candidate object with fallback hierarchy
-        // Priority: 1. candidate_profiles, 2. profiles, 3. embedded fields, 4. defaults
-        const candidateInfo = candidateData ? {
-          ...candidateData,
-          full_name: candidateData.full_name || profileData?.full_name || app.candidate_full_name || 'Unknown Candidate',
-          email: candidateData.email || profileData?.email || app.candidate_email || '',
-          avatar_url: candidateData.avatar_url || profileData?.avatar_url,
-          current_title: candidateData.current_title || app.candidate_title,
-          current_company: candidateData.current_company || app.candidate_company,
-          linkedin_url: candidateData.linkedin_url || profileData?.linkedin_url || app.candidate_linkedin_url,
-          phone: profileData?.phone || app.candidate_phone,
-          has_account: true,
-        } : (profileData ? {
-          id: null,
-          full_name: profileData.full_name || app.candidate_full_name || 'Unknown Candidate',
-          email: profileData.email || app.candidate_email || '',
-          avatar_url: profileData.avatar_url,
-          current_title: app.candidate_title,
-          current_company: app.candidate_company,
-          linkedin_url: profileData.linkedin_url || app.candidate_linkedin_url,
-          phone: profileData.phone || app.candidate_phone,
-          user_id: app.user_id,
-          has_account: true,
-        } : {
-          // No user account - use embedded fields
-          id: null,
-          full_name: app.candidate_full_name || 'Unknown Candidate',
-          email: app.candidate_email || '',
-          avatar_url: null,
-          current_title: app.candidate_title,
-          current_company: app.candidate_company,
-          linkedin_url: app.candidate_linkedin_url,
-          phone: app.candidate_phone,
-          user_id: null,
-          has_account: false,
-        });
-
-        return {
-          ...app,
-          candidate_profiles: candidateInfo,
-          candidate_interactions: interactions
-        };
-      });
-
-      const enrichedApps = await Promise.all(candidateProfilePromises);
-      setApplications(enrichedApps);
-
-      // Extract unique companies
-      const uniqueCompanies = Array.from(
-        new Map(
-          jobsData
-            ?.filter(j => j.companies)
-            .map(j => [j.companies.id, j.companies]) || []
-        ).values()
-      );
-      setCompanies(uniqueCompanies);
-
-    } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Failed to load applications");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Filter applications
-  const filteredApplications = applications.filter(app => {
+  // Filter
+  const filteredApplications = applications.filter((app: any) => {
     const candidate = app.candidate_profiles;
-
     const matchesSearch =
       candidate?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       candidate?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStage = selectedStage === "all" || app.status === selectedStage;
-    const matchesJob = selectedJob === "all" || app.job_id === selectedJob;
-    const matchesCompany = selectedCompany === "all" || app.jobs?.company_id === selectedCompany;
-    const matchesSource = selectedSource === "all" || candidate?.source_channel === selectedSource;
-
-    // Urgency filter
+    const matchesStage = selectedStage === 'all' || app.status === selectedStage;
+    const matchesJob = selectedJob === 'all' || app.job_id === selectedJob;
+    const matchesCompany = selectedCompany === 'all' || app.jobs?.company_id === selectedCompany;
+    const matchesSource = selectedSource === 'all' || candidate?.source_channel === selectedSource;
     let matchesUrgency = true;
-    if (urgencyFilter !== "all") {
+    if (urgencyFilter !== 'all') {
       const lastActivity = candidate?.last_activity_at;
-      const daysSince = lastActivity
-        ? Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24))
-        : 999;
-
-      if (urgencyFilter === "urgent") {
-        matchesUrgency = daysSince > 14;
-      } else if (urgencyFilter === "needs-followup") {
-        matchesUrgency = daysSince > 7 && daysSince <= 14;
-      } else if (urgencyFilter === "recent") {
-        matchesUrgency = daysSince <= 7;
-      }
+      const daysSince = lastActivity ? Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+      if (urgencyFilter === 'urgent') matchesUrgency = daysSince > 14;
+      else if (urgencyFilter === 'needs-followup') matchesUrgency = daysSince > 7 && daysSince <= 14;
+      else if (urgencyFilter === 'recent') matchesUrgency = daysSince <= 7;
     }
-
     return matchesSearch && matchesStage && matchesJob && matchesCompany && matchesSource && matchesUrgency;
   });
 
-  // Calculate stats
   const stats = {
     total: applications.length,
-    active: applications.filter(a => a.status === "active").length,
-    hired: applications.filter(a => a.status === "hired").length,
-    rejected: applications.filter(a => a.status === "rejected").length,
-    needsAction: applications.filter(a => {
+    active: applications.filter((a: any) => a.status === 'active').length,
+    hired: applications.filter((a: any) => a.status === 'hired').length,
+    rejected: applications.filter((a: any) => a.status === 'rejected').length,
+    needsAction: applications.filter((a: any) => {
       const lastActivity = a.candidate_interactions?.[0]?.created_at;
       if (!lastActivity) return true;
-      const daysSinceActivity = Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24));
-      return daysSinceActivity > 7;
-    }).length
+      return Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24)) > 7;
+    }).length,
   };
 
   const handleExport = () => {
     const csv = [
       ['Name', 'Email', 'Job', 'Stage', 'Applied Date', 'Last Activity', 'Source', 'Account Status'],
-      ...filteredApplications.map(app => {
+      ...filteredApplications.map((app: any) => {
         const candidate = app.candidate_profiles;
         return [
           candidate?.full_name || '',
@@ -293,14 +211,12 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
           app.jobs?.title || '',
           app.status || '',
           new Date(app.applied_at).toLocaleDateString(),
-          candidate?.last_activity_at
-            ? new Date(candidate.last_activity_at).toLocaleDateString()
-            : 'N/A',
+          candidate?.last_activity_at ? new Date(candidate.last_activity_at).toLocaleDateString() : 'N/A',
           candidate?.source_channel || 'N/A',
-          candidate?.has_account ? 'Active' : 'Pending Signup'
+          candidate?.has_account ? 'Active' : 'Pending Signup',
         ];
-      })
-    ].map(row => row.join(',')).join('\n');
+      }),
+    ].map((row) => row.join(',')).join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -308,157 +224,93 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
     a.href = url;
     a.download = `applications-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success("Applications exported");
+    toast.success('Applications exported');
   };
 
-  const Wrapper = ({ children }: { children: React.ReactNode }) => <>{children}</>;
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <Wrapper>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-muted-foreground">Loading applications...</p>
-        </div>
-      </Wrapper>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <p className="text-center text-muted-foreground">Loading applications...</p>
+      </div>
     );
   }
 
   return (
-    <Wrapper>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-              Applications Hub
-            </h1>
-            <p className="text-muted-foreground">
-              Manage all candidates across your company jobs
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleExport} variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">Applications Hub</h1>
+          <p className="text-muted-foreground">Manage all candidates across your company jobs</p>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-3xl font-bold">{stats.total}</p>
-                </div>
-                <Users className="w-8 h-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Active</p>
-                  <p className="text-3xl font-bold">{stats.active}</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Needs Action</p>
-                  <p className="text-3xl font-bold">{stats.needsAction}</p>
-                </div>
-                <AlertCircle className="w-8 h-8 text-amber-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Hired</p>
-                  <p className="text-3xl font-bold">{stats.hired}</p>
-                </div>
-                <Briefcase className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Rejected</p>
-                  <p className="text-3xl font-bold">{stats.rejected}</p>
-                </div>
-                <Users className="w-8 h-8 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex gap-2">
+          <Button onClick={handleExport} variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
         </div>
-
-        {/* Search and Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filters & Search
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search by name, email, or job..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-            <ApplicationsFilters
-              selectedStage={selectedStage}
-              setSelectedStage={setSelectedStage}
-              selectedJob={selectedJob}
-              setSelectedJob={setSelectedJob}
-              selectedCompany={selectedCompany}
-              setSelectedCompany={setSelectedCompany}
-              selectedSource={selectedSource}
-              setSelectedSource={setSelectedSource}
-              urgencyFilter={urgencyFilter}
-              setUrgencyFilter={setUrgencyFilter}
-              jobs={jobs}
-              companies={companies}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Tabs */}
-        <Tabs defaultValue="table" className="w-full">
-          <TabsList>
-            <TabsTrigger value="table">Candidates Table</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="table" className="mt-6">
-            <ApplicationsTable
-              applications={filteredApplications}
-              onUpdate={loadData}
-            />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="mt-6">
-            <ApplicationsAnalytics applications={applications} jobs={jobs} />
-          </TabsContent>
-        </Tabs>
       </div>
 
-    </Wrapper>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {[
+          { label: 'Total', value: stats.total, icon: Users, color: 'text-primary' },
+          { label: 'Active', value: stats.active, icon: TrendingUp, color: 'text-blue-500' },
+          { label: 'Needs Action', value: stats.needsAction, icon: AlertCircle, color: 'text-amber-500' },
+          { label: 'Hired', value: stats.hired, icon: Briefcase, color: 'text-green-500' },
+          { label: 'Rejected', value: stats.rejected, icon: Users, color: 'text-red-500' },
+        ].map((stat) => (
+          <Card key={stat.label}>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-3xl font-bold">{stat.value}</p>
+                </div>
+                <stat.icon className={`w-8 h-8 ${stat.color}`} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filters & Search
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Input placeholder="Search by name, email, or job..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full" />
+            </div>
+          </div>
+          <ApplicationsFilters
+            selectedStage={selectedStage} setSelectedStage={setSelectedStage}
+            selectedJob={selectedJob} setSelectedJob={setSelectedJob}
+            selectedCompany={selectedCompany} setSelectedCompany={setSelectedCompany}
+            selectedSource={selectedSource} setSelectedSource={setSelectedSource}
+            urgencyFilter={urgencyFilter} setUrgencyFilter={setUrgencyFilter}
+            jobs={jobs} companies={companies}
+          />
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="table" className="w-full">
+        <TabsList>
+          <TabsTrigger value="table">Candidates Table</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+        <TabsContent value="table" className="mt-6">
+          <ApplicationsTable
+            applications={filteredApplications}
+            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['company-applications'] })}
+          />
+        </TabsContent>
+        <TabsContent value="analytics" className="mt-6">
+          <ApplicationsAnalytics applications={applications} jobs={jobs} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

@@ -1,340 +1,116 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat, CheckCircle, Brain, UsersRound, Code, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { BookingAvailabilitySettings } from "@/components/scheduling/BookingAvailabilitySettings";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BookingAnalyticsDashboard } from "@/components/booking/BookingAnalyticsDashboard";
-import { CalendarConnectionStatus } from "@/components/scheduling/CalendarConnectionStatus";
-import { VideoPlatformSelector } from "@/components/booking/VideoPlatformSelector";
-import { BarChart3 } from "lucide-react";
-import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
-import { BookingApprovalList } from "@/components/booking/BookingApprovalList";
-import { AvailabilityOnboardingWizard } from "@/components/scheduling/AvailabilityOnboardingWizard";
-import { useAvailabilityOnboarding } from "@/hooks/useAvailabilityOnboarding";
-import { SchedulingSkeleton } from "@/components/LoadingSkeletons";
-import { SchedulingAITab } from "@/components/scheduling/SchedulingAITab";
-import { TeamLoadDashboard } from "@/components/scheduling/TeamLoadDashboard";
-import { EmbedCodeGenerator } from "@/components/booking/EmbedCodeGenerator";
-import { BookingWorkflowBuilder } from "@/components/booking/BookingWorkflowBuilder";
-import { BookingLinkBrandingSettings } from "@/components/booking/BookingLinkBrandingSettings";
-import { CreditCard } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
-interface BookingLink {
-  id: string;
-  slug: string;
-  title: string;
-  description: string | null;
-  duration_minutes: number;
-  buffer_before_minutes: number;
-  buffer_after_minutes: number;
-  advance_booking_days: number;
-  min_notice_hours: number;
-  is_active: boolean;
-  color: string;
-  created_at: string;
-  scheduling_type: string;
-  video_conferencing_provider: string | null;
-  auto_generate_meeting_link: boolean;
-  allow_waitlist: boolean;
-  single_use: boolean;
-  max_uses: number | null;
-  requires_approval: boolean;
-  max_bookings_per_day: number | null;
-}
+import { Calendar, Clock, Plus, Settings, Brain, UsersRound, Code, Zap, BarChart3, CheckCircle, Link as LinkIcon, CreditCard } from 'lucide-react';
 
-interface Booking {
-  id: string;
-  guest_name: string;
-  guest_email: string;
-  scheduled_start: string;
-  scheduled_end: string;
-  status: string;
-  created_at: string;
+import { useBookingLinks, useUpcomingBookings, usePendingBookingsCount, useConnectedCalendars, useCreateBookingLink } from '@/hooks/useBookingLinks';
+import { BookingLinksTab } from '@/components/scheduling/BookingLinksTab';
+import { UpcomingBookingsTab } from '@/components/scheduling/UpcomingBookingsTab';
+import { BookingAvailabilitySettings } from '@/components/scheduling/BookingAvailabilitySettings';
+import { BookingAnalyticsDashboard } from '@/components/booking/BookingAnalyticsDashboard';
+import { CalendarConnectionStatus } from '@/components/scheduling/CalendarConnectionStatus';
+import { VideoPlatformSelector } from '@/components/booking/VideoPlatformSelector';
+import { AIPageCopilot } from '@/components/ai/AIPageCopilot';
+import { BookingApprovalList } from '@/components/booking/BookingApprovalList';
+import { AvailabilityOnboardingWizard } from '@/components/scheduling/AvailabilityOnboardingWizard';
+import { useAvailabilityOnboarding } from '@/hooks/useAvailabilityOnboarding';
+import { SchedulingSkeleton } from '@/components/LoadingSkeletons';
+import { SchedulingAITab } from '@/components/scheduling/SchedulingAITab';
+import { TeamLoadDashboard } from '@/components/scheduling/TeamLoadDashboard';
+import { EmbedCodeGenerator } from '@/components/booking/EmbedCodeGenerator';
+import { BookingWorkflowBuilder } from '@/components/booking/BookingWorkflowBuilder';
+import { BookingLinkBrandingSettings } from '@/components/booking/BookingLinkBrandingSettings';
+import { useQueryClient } from '@tanstack/react-query';
+
+const INITIAL_LINK_STATE = {
+  title: '',
+  description: '',
+  slug: '',
+  duration_minutes: 30,
+  buffer_before_minutes: 0,
+  buffer_after_minutes: 0,
+  advance_booking_days: 60,
+  min_notice_hours: 2,
+  color: '#6366f1',
+  scheduling_type: 'individual',
+  video_conferencing_provider: null as string | null,
+  auto_generate_meeting_link: false,
+  allow_waitlist: true,
+  single_use: false,
+  max_uses: null as number | null,
+  requires_approval: false,
+  max_bookings_per_day: null as number | null,
+  primary_calendar_id: null as string | null,
+  create_quantum_meeting: true,
+  enable_club_ai: false,
+  video_platform: 'quantum_club' as string,
+  allow_guest_platform_choice: false,
+  available_platforms: ['quantum_club'] as string[],
+  guest_permissions: {
+    allow_guest_cancel: false,
+    allow_guest_reschedule: false,
+    allow_guest_propose_times: true,
+    allow_guest_add_attendees: false,
+    booker_can_delegate: true,
+  },
+  confirmation_message: '',
+  redirect_url: '',
+  custom_logo_url: null as string | null,
+  payment_required: false,
+  payment_amount: null as number | null,
+  payment_currency: 'eur',
+};
+
+function generateSlug(title: string) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 export default function Scheduling() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') || 'links';
-  const [bookingLinks, setBookingLinks] = useState<BookingLink[]>([]);
-  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
-  const [connectedCalendars, setConnectedCalendars] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isCreatingLink, setIsCreatingLink] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
+  const [newLink, setNewLink] = useState(INITIAL_LINK_STATE);
+  const queryClient = useQueryClient();
+
+  const { data: bookingLinks = [], isLoading: linksLoading } = useBookingLinks();
+  const { data: upcomingBookings = [] } = useUpcomingBookings();
+  const { data: pendingCount = 0 } = usePendingBookingsCount();
+  const { data: connectedCalendars = [] } = useConnectedCalendars();
+  const createLink = useCreateBookingLink();
   const { needsOnboarding, loading: onboardingLoading, markComplete } = useAvailabilityOnboarding();
-  
-  const [newLink, setNewLink] = useState({
-    title: "",
-    description: "",
-    slug: "",
-    duration_minutes: 30,
-    buffer_before_minutes: 0,
-    buffer_after_minutes: 0,
-    advance_booking_days: 60,
-    min_notice_hours: 2,
-    color: "#6366f1",
-    scheduling_type: "individual",
-    video_conferencing_provider: null as string | null,
-    auto_generate_meeting_link: false,
-    allow_waitlist: true,
-    single_use: false,
-    max_uses: null as number | null,
-    requires_approval: false,
-    max_bookings_per_day: null as number | null,
-    primary_calendar_id: null as string | null,
-    create_quantum_meeting: true,
-    enable_club_ai: false,
-    video_platform: 'quantum_club' as string,
-    allow_guest_platform_choice: false,
-    available_platforms: ['quantum_club'] as string[],
-    guest_permissions: {
-      allow_guest_cancel: false,
-      allow_guest_reschedule: false,
-      allow_guest_propose_times: true,
-      allow_guest_add_attendees: false,
-      booker_can_delegate: true,
-    },
-    confirmation_message: "",
-    redirect_url: "",
-    custom_logo_url: null as string | null,
-    payment_required: false,
-    payment_amount: null as number | null,
-    payment_currency: "eur",
-  });
 
-  useEffect(() => {
-    if (user) {
-      loadBookingLinks();
-      loadUpcomingBookings();
-      loadConnectedCalendars();
-      loadPendingCount();
-    }
-  }, [user]);
-
-  const loadPendingCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user?.id)
-        .eq("status", "pending_approval");
-
-      if (!error) {
-        setPendingCount(count || 0);
-      }
-    } catch (error) {
-      console.error("[Scheduling] Error loading pending count:", error);
-    }
-  };
-
-  const loadConnectedCalendars = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('calendar_connections')
-        .select('*')
-        .eq('user_id', user?.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setConnectedCalendars(data || []);
-    } catch (error) {
-      console.error('[Scheduling] Error loading calendars:', error);
-    }
-  };
-
-  const loadBookingLinks = async () => {
-    try {
-      console.log("[Scheduling] Loading booking links for user:", user?.id);
-      const { data, error } = await supabase
-        .from("booking_links")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("[Scheduling] Error loading booking links:", error);
-        throw error;
-      }
-      console.log("[Scheduling] Loaded booking links:", data);
-      setBookingLinks(data || []);
-    } catch (error: unknown) {
-      console.error("[Scheduling] Failed to load booking links:", error);
-      toast.error("Failed to load booking links");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadUpcomingBookings = async () => {
-    try {
-      const now = new Date().toISOString();
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("user_id", user?.id)
-        .gte("scheduled_start", now)
-        .eq("status", "confirmed")
-        .order("scheduled_start", { ascending: true })
-        .limit(10);
-
-      if (error) throw error;
-      setUpcomingBookings(data || []);
-    } catch (error: unknown) {
-      toast.error("Failed to load bookings");
-    }
-  };
-
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  };
-
-  const createBookingLink = async () => {
+  const handleCreateLink = async () => {
     if (!newLink.title || !newLink.slug) {
-      toast.error("Please provide a title and URL slug");
+      toast.error('Please provide a title and URL slug');
       return;
     }
-
-    setIsCreatingLink(true);
-    try {
-      console.log("[Scheduling] Creating booking link with data:", newLink);
-      const { data, error } = await supabase
-        .from("booking_links")
-        .insert({
-          ...newLink,
-          user_id: user?.id,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("[Scheduling] Error creating booking link:", error);
-        throw error;
-      }
-
-      console.log("[Scheduling] Created booking link:", data);
-      toast.success("Booking link created!");
-      setBookingLinks([data, ...bookingLinks]);
-      setNewLink({
-        title: "",
-        description: "",
-        slug: "",
-        duration_minutes: 30,
-        buffer_before_minutes: 0,
-        buffer_after_minutes: 0,
-        advance_booking_days: 60,
-        min_notice_hours: 2,
-        color: "#6366f1",
-        scheduling_type: "individual",
-        video_conferencing_provider: null,
-        auto_generate_meeting_link: false,
-        allow_waitlist: true,
-        single_use: false,
-        max_uses: null,
-        requires_approval: false,
-        max_bookings_per_day: null,
-        primary_calendar_id: null,
-        create_quantum_meeting: true,
-        enable_club_ai: false,
-        video_platform: 'quantum_club',
-        allow_guest_platform_choice: false,
-        available_platforms: ['quantum_club'],
-        guest_permissions: {
-          allow_guest_cancel: false,
-          allow_guest_reschedule: false,
-          allow_guest_propose_times: true,
-          allow_guest_add_attendees: false,
-          booker_can_delegate: true,
-        },
-        confirmation_message: "",
-        redirect_url: "",
-        custom_logo_url: null,
-        payment_required: false,
-        payment_amount: null,
-        payment_currency: "eur",
-      });
-      setDialogOpen(false);
-    } catch (error: unknown) {
-      const err = error as { code?: string };
-      if (err.code === "23505") {
-        toast.error("This URL is already taken");
-      } else {
-        toast.error("Failed to create booking link");
-      }
-    } finally {
-      setIsCreatingLink(false);
-    }
+    createLink.mutate(newLink, {
+      onSuccess: () => {
+        setNewLink(INITIAL_LINK_STATE);
+        setDialogOpen(false);
+      },
+    });
   };
 
-  const toggleLinkStatus = async (id: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from("booking_links")
-        .update({ is_active: !currentStatus })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setBookingLinks(
-        bookingLinks.map((link) =>
-          link.id === id ? { ...link, is_active: !currentStatus } : link
-        )
-      );
-      toast.success(currentStatus ? "Link deactivated" : "Link activated");
-    } catch (error) {
-      toast.error("Failed to update link");
-    }
-  };
-
-  const deleteBookingLink = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this booking link?")) return;
-
-    try {
-      const { error } = await supabase
-        .from("booking_links")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setBookingLinks(bookingLinks.filter((link) => link.id !== id));
-      toast.success("Booking link deleted");
-    } catch (error) {
-      toast.error("Failed to delete booking link");
-    }
-  };
-
-  const copyBookingUrl = (slug: string) => {
-    const url = `${window.location.origin}/book/${slug}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Booking URL copied to clipboard!");
-  };
-
-  if (loading) {
+  if (linksLoading) {
     return (
-      <>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <SchedulingSkeleton />
-        </div>
-      </>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <SchedulingSkeleton />
+      </div>
     );
   }
 
@@ -348,7 +124,7 @@ export default function Scheduling() {
               Share your availability and let people book time with you
             </p>
           </div>
-          
+
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="glass">
@@ -363,30 +139,26 @@ export default function Scheduling() {
                   Set up a new booking link for people to schedule time with you
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
+                {/* Basic fields */}
                 <div>
                   <Label htmlFor="title">Event Title *</Label>
                   <Input
                     id="title"
                     value={newLink.title}
-                    onChange={(e) => {
-                      setNewLink({
-                        ...newLink,
-                        title: e.target.value,
-                        slug: newLink.slug || generateSlug(e.target.value),
-                      });
-                    }}
+                    onChange={(e) => setNewLink({
+                      ...newLink,
+                      title: e.target.value,
+                      slug: newLink.slug || generateSlug(e.target.value),
+                    })}
                     placeholder="e.g., 30 Minute Meeting"
                   />
                 </div>
-
                 <div>
                   <Label htmlFor="slug">URL Slug *</Label>
                   <div className="flex gap-2">
-                    <span className="flex items-center text-sm text-muted-foreground">
-                      /book/
-                    </span>
+                    <span className="flex items-center text-sm text-muted-foreground">/book/</span>
                     <Input
                       id="slug"
                       value={newLink.slug}
@@ -395,7 +167,6 @@ export default function Scheduling() {
                     />
                   </div>
                 </div>
-
                 <div>
                   <Label htmlFor="description">Description</Label>
                   <Textarea
@@ -406,91 +177,44 @@ export default function Scheduling() {
                   />
                 </div>
 
+                {/* Timing */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="duration">Duration (minutes)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min="15"
-                      step="15"
-                      value={newLink.duration_minutes}
-                      onChange={(e) => setNewLink({ ...newLink, duration_minutes: parseInt(e.target.value) })}
-                    />
+                    <Label>Duration (minutes)</Label>
+                    <Input type="number" min="15" step="15" value={newLink.duration_minutes} onChange={(e) => setNewLink({ ...newLink, duration_minutes: parseInt(e.target.value) })} />
                   </div>
-
                   <div>
-                    <Label htmlFor="min_notice">Minimum notice (hours)</Label>
-                    <Input
-                      id="min_notice"
-                      type="number"
-                      min="0"
-                      value={newLink.min_notice_hours}
-                      onChange={(e) => setNewLink({ ...newLink, min_notice_hours: parseInt(e.target.value) })}
-                    />
+                    <Label>Minimum notice (hours)</Label>
+                    <Input type="number" min="0" value={newLink.min_notice_hours} onChange={(e) => setNewLink({ ...newLink, min_notice_hours: parseInt(e.target.value) })} />
                   </div>
-
                   <div>
-                    <Label htmlFor="buffer_before">Buffer before (minutes)</Label>
-                    <Input
-                      id="buffer_before"
-                      type="number"
-                      min="0"
-                      step="5"
-                      value={newLink.buffer_before_minutes}
-                      onChange={(e) => setNewLink({ ...newLink, buffer_before_minutes: parseInt(e.target.value) })}
-                    />
+                    <Label>Buffer before (minutes)</Label>
+                    <Input type="number" min="0" step="5" value={newLink.buffer_before_minutes} onChange={(e) => setNewLink({ ...newLink, buffer_before_minutes: parseInt(e.target.value) })} />
                   </div>
-
                   <div>
-                    <Label htmlFor="buffer_after">Buffer after (minutes)</Label>
-                    <Input
-                      id="buffer_after"
-                      type="number"
-                      min="0"
-                      step="5"
-                      value={newLink.buffer_after_minutes}
-                      onChange={(e) => setNewLink({ ...newLink, buffer_after_minutes: parseInt(e.target.value) })}
-                    />
+                    <Label>Buffer after (minutes)</Label>
+                    <Input type="number" min="0" step="5" value={newLink.buffer_after_minutes} onChange={(e) => setNewLink({ ...newLink, buffer_after_minutes: parseInt(e.target.value) })} />
                   </div>
                 </div>
-
                 <div>
-                  <Label htmlFor="advance_booking">Advance booking (days)</Label>
-                  <Input
-                    id="advance_booking"
-                    type="number"
-                    min="1"
-                    value={newLink.advance_booking_days}
-                    onChange={(e) => setNewLink({ ...newLink, advance_booking_days: parseInt(e.target.value) })}
-                  />
+                  <Label>Advance booking (days)</Label>
+                  <Input type="number" min="1" value={newLink.advance_booking_days} onChange={(e) => setNewLink({ ...newLink, advance_booking_days: parseInt(e.target.value) })} />
                 </div>
-
                 <div>
-                  <Label htmlFor="color">Theme Color</Label>
-                  <Input
-                    id="color"
-                    type="color"
-                    value={newLink.color}
-                    onChange={(e) => setNewLink({ ...newLink, color: e.target.value })}
-                  />
+                  <Label>Theme Color</Label>
+                  <Input type="color" value={newLink.color} onChange={(e) => setNewLink({ ...newLink, color: e.target.value })} />
                 </div>
 
+                {/* Advanced Options */}
                 <div className="space-y-4 pt-4 border-t">
                   <h3 className="font-semibold flex items-center gap-2">
                     <Settings className="h-4 w-4" />
                     Advanced Options
                   </h3>
-
                   <div>
-                    <Label htmlFor="scheduling_type">Scheduling Type</Label>
-                    <Select
-                      value={newLink.scheduling_type}
-                      onValueChange={(value) => setNewLink({ ...newLink, scheduling_type: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                    <Label>Scheduling Type</Label>
+                    <Select value={newLink.scheduling_type} onValueChange={(value) => setNewLink({ ...newLink, scheduling_type: value })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="individual">Individual (1-on-1)</SelectItem>
                         <SelectItem value="round_robin">Round Robin (Team)</SelectItem>
@@ -498,20 +222,13 @@ export default function Scheduling() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div>
-                    <Label htmlFor="video_provider">Video Conferencing</Label>
+                    <Label>Video Conferencing</Label>
                     <Select
-                      value={newLink.video_conferencing_provider || "none"}
-                      onValueChange={(value) => setNewLink({ 
-                        ...newLink, 
-                        video_conferencing_provider: value === "none" ? null : value,
-                        auto_generate_meeting_link: value !== "none"
-                      })}
+                      value={newLink.video_conferencing_provider || 'none'}
+                      onValueChange={(value) => setNewLink({ ...newLink, video_conferencing_provider: value === 'none' ? null : value, auto_generate_meeting_link: value !== 'none' })}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">None</SelectItem>
                         <SelectItem value="google_meet">Google Meet</SelectItem>
@@ -521,111 +238,56 @@ export default function Scheduling() {
                     </Select>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="waitlist">Enable Waitlist</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Let people join waitlist when fully booked
-                      </p>
+                  {[
+                    { id: 'waitlist', label: 'Enable Waitlist', desc: 'Let people join waitlist when fully booked', key: 'allow_waitlist' as const },
+                    { id: 'single_use', label: 'Single-Use Link', desc: 'Link expires after first booking', key: 'single_use' as const },
+                    { id: 'requires_approval', label: 'Require Approval', desc: 'Manually approve bookings before confirming', key: 'requires_approval' as const },
+                  ].map((opt) => (
+                    <div key={opt.id} className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor={opt.id}>{opt.label}</Label>
+                        <p className="text-sm text-muted-foreground">{opt.desc}</p>
+                      </div>
+                      <Switch id={opt.id} checked={newLink[opt.key] as boolean} onCheckedChange={(checked) => setNewLink({ ...newLink, [opt.key]: checked })} />
                     </div>
-                    <Switch
-                      id="waitlist"
-                      checked={newLink.allow_waitlist}
-                      onCheckedChange={(checked) => setNewLink({ ...newLink, allow_waitlist: checked })}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="single_use">Single-Use Link</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Link expires after first booking
-                      </p>
-                    </div>
-                    <Switch
-                      id="single_use"
-                      checked={newLink.single_use}
-                      onCheckedChange={(checked) => setNewLink({ ...newLink, single_use: checked })}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="requires_approval">Require Approval</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Manually approve bookings before confirming
-                      </p>
-                    </div>
-                    <Switch
-                      id="requires_approval"
-                      checked={newLink.requires_approval}
-                      onCheckedChange={(checked) => setNewLink({ ...newLink, requires_approval: checked })}
-                    />
-                  </div>
+                  ))}
 
                   <div>
-                    <Label htmlFor="max_bookings">Max Bookings Per Day (optional)</Label>
-                    <Input
-                      id="max_bookings"
-                      type="number"
-                      min="1"
-                      placeholder="Unlimited"
-                      value={newLink.max_bookings_per_day || ""}
-                      onChange={(e) => setNewLink({ 
-                        ...newLink, 
-                        max_bookings_per_day: e.target.value ? parseInt(e.target.value) : null 
-                      })}
-                    />
+                    <Label>Max Bookings Per Day (optional)</Label>
+                    <Input type="number" min="1" placeholder="Unlimited" value={newLink.max_bookings_per_day || ''} onChange={(e) => setNewLink({ ...newLink, max_bookings_per_day: e.target.value ? parseInt(e.target.value) : null })} />
                   </div>
                 </div>
 
+                {/* Calendar Integration */}
                 <div className="space-y-4 pt-4 border-t">
                   <h3 className="font-semibold flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     Calendar Integration
                   </h3>
-
                   <div>
-                    <Label htmlFor="primary_calendar">Primary Calendar (Auto-sync)</Label>
-                    <Select
-                      value={newLink.primary_calendar_id || "none"}
-                      onValueChange={(value) => setNewLink({ 
-                        ...newLink, 
-                        primary_calendar_id: value === "none" ? null : value
-                      })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a calendar" />
-                      </SelectTrigger>
+                    <Label>Primary Calendar (Auto-sync)</Label>
+                    <Select value={newLink.primary_calendar_id || 'none'} onValueChange={(value) => setNewLink({ ...newLink, primary_calendar_id: value === 'none' ? null : value })}>
+                      <SelectTrigger><SelectValue placeholder="Select a calendar" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">None (No auto-sync)</SelectItem>
-                        {connectedCalendars.map((cal) => (
+                        {connectedCalendars.map((cal: any) => (
                           <SelectItem key={cal.id} value={cal.id}>
                             {cal.provider === 'google' ? '📅 Google' : '📆 Microsoft'} - {cal.calendar_label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Bookings will automatically create events in this calendar
-                    </p>
                   </div>
-
                   <VideoPlatformSelector
-                    value={(newLink as any).video_platform || 'quantum_club'}
-                    onChange={(platform) => setNewLink({ 
-                      ...newLink, 
+                    value={newLink.video_platform || 'quantum_club'}
+                    onChange={(platform) => setNewLink({
+                      ...newLink,
                       video_platform: platform,
                       create_quantum_meeting: platform === 'quantum_club',
-                      // Auto-add selected platform to available platforms if not already there
-                      available_platforms: newLink.available_platforms.includes(platform)
-                        ? newLink.available_platforms
-                        : [...newLink.available_platforms, platform]
-                    } as any)}
-                    hasGoogleCalendar={connectedCalendars.some(cal => cal.provider === 'google')}
-                    onConnectGoogle={() => {
-                      toast.info("Please connect your Google Calendar in Settings → Connections");
-                    }}
+                      available_platforms: newLink.available_platforms.includes(platform) ? newLink.available_platforms : [...newLink.available_platforms, platform],
+                    })}
+                    hasGoogleCalendar={connectedCalendars.some((cal: any) => cal.provider === 'google')}
+                    onConnectGoogle={() => toast.info('Please connect your Google Calendar in Settings → Connections')}
                     enableClubAI={newLink.enable_club_ai}
                     onEnableClubAIChange={(checked) => setNewLink({ ...newLink, enable_club_ai: checked })}
                     allowGuestChoice={newLink.allow_guest_platform_choice}
@@ -635,105 +297,35 @@ export default function Scheduling() {
                   />
                 </div>
 
-                {/* Guest Permissions Section */}
+                {/* Guest Permissions */}
                 <div className="space-y-4 pt-4 border-t">
                   <h3 className="font-semibold flex items-center gap-2">
-                    <Users className="h-4 w-4" />
+                    <Settings className="h-4 w-4" />
                     Guest Permissions
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Control what guests and attendees can do with bookings
-                  </p>
-                  
-                  <div className="space-y-3">
+                  {[
+                    { id: 'allow_propose_times', label: 'Allow guests to propose alternative times', key: 'allow_guest_propose_times' as const },
+                    { id: 'allow_cancel', label: 'Allow guests to cancel the meeting', key: 'allow_guest_cancel' as const },
+                    { id: 'allow_reschedule', label: 'Allow guests to reschedule', key: 'allow_guest_reschedule' as const },
+                    { id: 'allow_add_attendees', label: 'Allow guests to add more attendees', key: 'allow_guest_add_attendees' as const },
+                  ].map((perm) => (
+                    <div key={perm.id} className="flex items-center justify-between">
+                      <Label htmlFor={perm.id} className="text-sm font-normal">{perm.label}</Label>
+                      <Switch id={perm.id} checked={newLink.guest_permissions[perm.key]} onCheckedChange={(checked) => setNewLink({ ...newLink, guest_permissions: { ...newLink.guest_permissions, [perm.key]: checked } })} />
+                    </div>
+                  ))}
+                  <div className="pt-2 border-t border-border/50">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label htmlFor="allow_propose_times" className="text-sm font-normal">
-                          Allow guests to propose alternative times
-                        </Label>
+                        <Label className="text-sm font-normal">Allow booker to delegate permissions</Label>
+                        <p className="text-xs text-muted-foreground">Let the person booking decide what their guests can do</p>
                       </div>
-                      <Switch
-                        id="allow_propose_times"
-                        checked={newLink.guest_permissions.allow_guest_propose_times}
-                        onCheckedChange={(checked) => setNewLink({
-                          ...newLink,
-                          guest_permissions: { ...newLink.guest_permissions, allow_guest_propose_times: checked }
-                        })}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="allow_cancel" className="text-sm font-normal">
-                          Allow guests to cancel the meeting
-                        </Label>
-                      </div>
-                      <Switch
-                        id="allow_cancel"
-                        checked={newLink.guest_permissions.allow_guest_cancel}
-                        onCheckedChange={(checked) => setNewLink({
-                          ...newLink,
-                          guest_permissions: { ...newLink.guest_permissions, allow_guest_cancel: checked }
-                        })}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="allow_reschedule" className="text-sm font-normal">
-                          Allow guests to reschedule
-                        </Label>
-                      </div>
-                      <Switch
-                        id="allow_reschedule"
-                        checked={newLink.guest_permissions.allow_guest_reschedule}
-                        onCheckedChange={(checked) => setNewLink({
-                          ...newLink,
-                          guest_permissions: { ...newLink.guest_permissions, allow_guest_reschedule: checked }
-                        })}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="allow_add_attendees" className="text-sm font-normal">
-                          Allow guests to add more attendees
-                        </Label>
-                      </div>
-                      <Switch
-                        id="allow_add_attendees"
-                        checked={newLink.guest_permissions.allow_guest_add_attendees}
-                        onCheckedChange={(checked) => setNewLink({
-                          ...newLink,
-                          guest_permissions: { ...newLink.guest_permissions, allow_guest_add_attendees: checked }
-                        })}
-                      />
-                    </div>
-                    
-                    <div className="pt-2 border-t border-border/50">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="booker_delegate" className="text-sm font-normal">
-                            Allow booker to delegate permissions
-                          </Label>
-                          <p className="text-xs text-muted-foreground">
-                            Let the person booking decide what their guests can do
-                          </p>
-                        </div>
-                        <Switch
-                          id="booker_delegate"
-                          checked={newLink.guest_permissions.booker_can_delegate}
-                          onCheckedChange={(checked) => setNewLink({
-                            ...newLink,
-                            guest_permissions: { ...newLink.guest_permissions, booker_can_delegate: checked }
-                          })}
-                        />
-                      </div>
+                      <Switch checked={newLink.guest_permissions.booker_can_delegate} onCheckedChange={(checked) => setNewLink({ ...newLink, guest_permissions: { ...newLink.guest_permissions, booker_can_delegate: checked } })} />
                     </div>
                   </div>
                 </div>
 
-                {/* Payment Settings */}
+                {/* Payment */}
                 <div className="space-y-4 pt-4 border-t">
                   <h3 className="font-semibold flex items-center gap-2">
                     <CreditCard className="h-4 w-4" />
@@ -741,40 +333,21 @@ export default function Scheduling() {
                   </h3>
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="payment_required">Require payment</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Guests must pay before confirming their booking
-                      </p>
+                      <Label>Require payment</Label>
+                      <p className="text-sm text-muted-foreground">Guests must pay before confirming their booking</p>
                     </div>
-                    <Switch
-                      id="payment_required"
-                      checked={newLink.payment_required}
-                      onCheckedChange={(checked) => setNewLink({ ...newLink, payment_required: checked })}
-                    />
+                    <Switch checked={newLink.payment_required} onCheckedChange={(checked) => setNewLink({ ...newLink, payment_required: checked })} />
                   </div>
                   {newLink.payment_required && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="payment_amount">Amount</Label>
-                        <Input
-                          id="payment_amount"
-                          type="number"
-                          min="0.50"
-                          step="0.50"
-                          placeholder="25.00"
-                          value={newLink.payment_amount || ""}
-                          onChange={(e) => setNewLink({ ...newLink, payment_amount: e.target.value ? parseFloat(e.target.value) : null })}
-                        />
+                        <Label>Amount</Label>
+                        <Input type="number" min="0.50" step="0.50" placeholder="25.00" value={newLink.payment_amount || ''} onChange={(e) => setNewLink({ ...newLink, payment_amount: e.target.value ? parseFloat(e.target.value) : null })} />
                       </div>
                       <div>
-                        <Label htmlFor="payment_currency">Currency</Label>
-                        <Select
-                          value={newLink.payment_currency}
-                          onValueChange={(value) => setNewLink({ ...newLink, payment_currency: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
+                        <Label>Currency</Label>
+                        <Select value={newLink.payment_currency} onValueChange={(value) => setNewLink({ ...newLink, payment_currency: value })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="eur">EUR (€)</SelectItem>
                             <SelectItem value="usd">USD ($)</SelectItem>
@@ -786,262 +359,57 @@ export default function Scheduling() {
                   )}
                 </div>
 
-                {/* Branding & Customization */}
+                {/* Branding */}
                 <BookingLinkBrandingSettings
-                  value={{
-                    custom_logo_url: newLink.custom_logo_url,
-                    confirmation_message: newLink.confirmation_message,
-                    redirect_url: newLink.redirect_url,
-                  }}
-                  onChange={(branding) => setNewLink({
-                    ...newLink,
-                    custom_logo_url: branding.custom_logo_url,
-                    confirmation_message: branding.confirmation_message,
-                    redirect_url: branding.redirect_url,
-                  })}
+                  value={{ custom_logo_url: newLink.custom_logo_url, confirmation_message: newLink.confirmation_message, redirect_url: newLink.redirect_url }}
+                  onChange={(branding) => setNewLink({ ...newLink, custom_logo_url: branding.custom_logo_url, confirmation_message: branding.confirmation_message, redirect_url: branding.redirect_url })}
                 />
 
-                <Button
-                  onClick={createBookingLink}
-                  disabled={isCreatingLink}
-                  className="w-full"
-                  variant="glass"
-                >
-                  {isCreatingLink ? "Creating..." : "Create Booking Link"}
+                <Button onClick={handleCreateLink} disabled={createLink.isPending} className="w-full" variant="glass">
+                  {createLink.isPending ? 'Creating...' : 'Create Booking Link'}
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Calendar Connection Status */}
         <CalendarConnectionStatus />
 
-        {/* Availability Onboarding Wizard */}
         {!onboardingLoading && needsOnboarding && (
-          <AvailabilityOnboardingWizard 
-            onComplete={markComplete}
-            onSkip={markComplete}
-          />
+          <AvailabilityOnboardingWizard onComplete={markComplete} onSkip={markComplete} />
         )}
 
         <Tabs value={currentTab} onValueChange={(val) => setSearchParams({ tab: val }, { replace: true })} className="w-full">
           <TabsList className="flex-wrap h-auto gap-1 py-1">
-            <TabsTrigger value="links">
-              <LinkIcon className="h-4 w-4 mr-2" />
-              Booking Links
-            </TabsTrigger>
+            <TabsTrigger value="links"><LinkIcon className="h-4 w-4 mr-2" />Booking Links</TabsTrigger>
             <TabsTrigger value="pending" className="relative">
               <CheckCircle className="h-4 w-4 mr-2" />
               Pending Approvals
-              {pendingCount > 0 && (
-                <Badge variant="destructive" className="ml-2 h-5 min-w-5 text-xs">
-                  {pendingCount}
-                </Badge>
-              )}
+              {pendingCount > 0 && <Badge variant="destructive" className="ml-2 h-5 min-w-5 text-xs">{pendingCount}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="bookings">
-              <Calendar className="h-4 w-4 mr-2" />
-              Upcoming Bookings
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="availability">
-              <Clock className="h-4 w-4 mr-2" />
-              Availability
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="gap-2">
-              <Brain className="h-4 w-4" />
-              AI Intelligence
-            </TabsTrigger>
-            <TabsTrigger value="team" className="gap-2">
-              <UsersRound className="h-4 w-4" />
-              Team
-            </TabsTrigger>
-            <TabsTrigger value="embed" className="gap-2">
-              <Code className="h-4 w-4" />
-              Embed
-            </TabsTrigger>
-            <TabsTrigger value="workflows" className="gap-2">
-              <Zap className="h-4 w-4" />
-              Workflows
-            </TabsTrigger>
+            <TabsTrigger value="bookings"><Calendar className="h-4 w-4 mr-2" />Upcoming Bookings</TabsTrigger>
+            <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-2" />Analytics</TabsTrigger>
+            <TabsTrigger value="availability"><Clock className="h-4 w-4 mr-2" />Availability</TabsTrigger>
+            <TabsTrigger value="ai" className="gap-2"><Brain className="h-4 w-4" />AI Intelligence</TabsTrigger>
+            <TabsTrigger value="team" className="gap-2"><UsersRound className="h-4 w-4" />Team</TabsTrigger>
+            <TabsTrigger value="embed" className="gap-2"><Code className="h-4 w-4" />Embed</TabsTrigger>
+            <TabsTrigger value="workflows" className="gap-2"><Zap className="h-4 w-4" />Workflows</TabsTrigger>
           </TabsList>
 
           <TabsContent value="links" className="space-y-4 mt-6">
-            {bookingLinks.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">No booking links yet</p>
-                  <p className="text-muted-foreground">Create your first link to start accepting bookings</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {bookingLinks.map((link) => (
-                  <Card key={link.id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <CardTitle>{link.title}</CardTitle>
-                            <Badge variant={link.is_active ? "default" : "secondary"}>
-                              {link.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                          </div>
-                          {link.description && (
-                            <CardDescription className="mt-2">{link.description}</CardDescription>
-                          )}
-                          <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {link.duration_minutes} min
-                            </span>
-                            {link.scheduling_type !== "individual" && (
-                              <span className="flex items-center gap-1">
-                                <Users className="h-4 w-4" />
-                                {link.scheduling_type === "round_robin" ? "Round Robin" : "Group"}
-                              </span>
-                            )}
-                            {link.video_conferencing_provider && (
-                              <span className="flex items-center gap-1">
-                                <Video className="h-4 w-4" />
-                                {link.video_conferencing_provider === "google_meet" ? "Google Meet" : 
-                                 link.video_conferencing_provider === "zoom" ? "Zoom" : "Teams"}
-                              </span>
-                            )}
-                            {link.requires_approval && (
-                              <span className="flex items-center gap-1">
-                                <Shield className="h-4 w-4" />
-                                Approval Required
-                              </span>
-                            )}
-                            {link.single_use && (
-                              <span className="flex items-center gap-1">
-                                <Repeat className="h-4 w-4" />
-                                Single Use
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => copyBookingUrl(link.slug)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => window.open(`/book/${link.slug}`, "_blank")}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => toggleLinkStatus(link.id, link.is_active)}
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => deleteBookingLink(link.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                        <code className="flex-1 text-sm">
-                          {window.location.origin}/book/{link.slug}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyBookingUrl(link.slug)}
-                        >
-                          Copy Link
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <BookingLinksTab bookingLinks={bookingLinks} />
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-4 mt-6">
-            {upcomingBookings.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">No upcoming bookings</p>
-                  <p className="text-muted-foreground">Your confirmed meetings will appear here</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {upcomingBookings.map((booking) => {
-                  const startDate = new Date(booking.scheduled_start);
-                  const endDate = new Date(booking.scheduled_end);
-                  
-                  return (
-                    <Card key={booking.id}>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle>{booking.guest_name}</CardTitle>
-                            <CardDescription>{booking.guest_email}</CardDescription>
-                          </div>
-                          <Badge>{booking.status}</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            {startDate.toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            {startDate.toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            {" - "}
-                            {endDate.toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+            <UpcomingBookingsTab bookings={upcomingBookings} />
           </TabsContent>
 
           <TabsContent value="pending" className="mt-6">
-            <BookingApprovalList onApprovalChange={loadPendingCount} />
+            <BookingApprovalList onApprovalChange={() => queryClient.invalidateQueries({ queryKey: ['pending-bookings-count'] })} />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
-            <BookingAnalyticsDashboard userId={user?.id || ""} />
+            <BookingAnalyticsDashboard userId={user?.id || ''} />
           </TabsContent>
 
           <TabsContent value="availability" className="mt-6">
@@ -1049,18 +417,12 @@ export default function Scheduling() {
           </TabsContent>
 
           <TabsContent value="ai" className="mt-6">
-            <SchedulingAITab 
-              bookingIds={upcomingBookings.map(b => b.id)}
-            />
+            <SchedulingAITab bookingIds={upcomingBookings.map((b) => b.id)} />
           </TabsContent>
 
           <TabsContent value="team" className="mt-6">
-            {bookingLinks.some(l => l.scheduling_type === 'round_robin' || l.scheduling_type === 'collective') ? (
-              <TeamLoadDashboard 
-                bookingLinkId={bookingLinks.find(l => 
-                  l.scheduling_type === 'round_robin' || l.scheduling_type === 'collective'
-                )?.id || ''}
-              />
+            {bookingLinks.some((l) => l.scheduling_type === 'round_robin' || l.scheduling_type === 'collective') ? (
+              <TeamLoadDashboard bookingLinkId={bookingLinks.find((l) => l.scheduling_type === 'round_robin' || l.scheduling_type === 'collective')?.id || ''} />
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -1075,24 +437,16 @@ export default function Scheduling() {
           </TabsContent>
 
           <TabsContent value="embed" className="mt-6">
-            <EmbedCodeGenerator
-              bookingLinks={bookingLinks.map((l) => ({ id: l.id, slug: l.slug, title: l.title }))}
-            />
+            <EmbedCodeGenerator bookingLinks={bookingLinks.map((l) => ({ id: l.id, slug: l.slug, title: l.title }))} />
           </TabsContent>
 
           <TabsContent value="workflows" className="mt-6">
-            <BookingWorkflowBuilder
-              bookingLinks={bookingLinks.map((l) => ({ id: l.id, title: l.title }))}
-              userId={user?.id || ""}
-            />
+            <BookingWorkflowBuilder bookingLinks={bookingLinks.map((l) => ({ id: l.id, title: l.title }))} userId={user?.id || ''} />
           </TabsContent>
         </Tabs>
       </div>
-      
-      <AIPageCopilot 
-        currentPage="/scheduling" 
-        contextData={{ bookingLinksCount: bookingLinks.length }}
-      />
+
+      <AIPageCopilot currentPage="/scheduling" contextData={{ bookingLinksCount: bookingLinks.length }} />
     </>
   );
 }
