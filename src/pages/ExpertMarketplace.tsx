@@ -217,7 +217,7 @@ export default function ExpertMarketplace() {
 
     toast.success("Expert unassigned");
     setUnassignDialogOpen(false);
-    loadAssignments();
+    invalidateAll();
   };
 
   const handleBookSession = async () => {
