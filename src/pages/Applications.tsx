@@ -192,7 +192,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
             ) : isMobile ? (
               <MobileApplicationPipeline
                 applications={activeApplications}
-                onSelectApplication={(app) => window.location.href = `/applications/${app.id}`}
+                onSelectApplication={(app) => navigate(`/applications/${app.id}`)}
               />
             ) : (
               activeApplications.map((application) => (
