@@ -184,12 +184,6 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
       // Show all detected interviews, even without applications (so they can be linked)
       const validDetected = detected;
 
-      console.log('[UpcomingInterviews] Fetched data:', {
-        bookingsCount: bookings?.length || 0,
-        detectedCount: detected?.length || 0,
-        validDetectedCount: validDetected.length,
-        now,
-      });
 
       // Normalize bookings
       const normalizedBookings: NormalizedInterview[] = (bookings || []).map(b => {
