@@ -8,8 +8,9 @@ import { NetworkStatusIndicator } from "@/components/partner-funnel/NetworkStatu
 import { SocialProofCarousel } from "@/components/partner-funnel/SocialProofCarousel";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Home, UserPlus } from "lucide-react";
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
 import { PageLoader } from "@/components/PageLoader";
