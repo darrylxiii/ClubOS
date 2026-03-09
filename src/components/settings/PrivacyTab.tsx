@@ -56,13 +56,16 @@ export function PrivacyTab({
             Prevent your current employer from seeing your profile
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Block specific companies from viewing your profile in the Privacy settings below
+              When enabled, blocked companies cannot find you in search results, view your dossier, or receive your profile in shortlists. Add companies below to activate.
             </AlertDescription>
           </Alert>
+          <p className="text-xs text-muted-foreground">
+            Manage blocked companies in the "Blocked Companies" section below. Your profile will be completely hidden from recruiters at those organisations.
+          </p>
         </CardContent>
       </Card>
 
