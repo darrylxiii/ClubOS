@@ -322,7 +322,7 @@ function ApplicationCard({ application }: { application: Application }) {
               title="Interview Prep"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate('/interview-prep');
+                navigate(`/interview-prep/session?jobId=${application.job_id}&title=${encodeURIComponent(application.job?.title || application.position)}`);
               }}
             >
               <BookOpen className="w-4 h-4" />
