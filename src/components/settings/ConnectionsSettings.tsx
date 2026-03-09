@@ -131,7 +131,6 @@ export const ConnectionsSettings = ({
     }
 
     setOauthProcessing(true);
-    console.log('🔄 Starting OAuth processing...');
     
     try {
       const redirectUri = `${window.location.origin}/settings`;
