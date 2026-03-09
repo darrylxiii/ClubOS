@@ -114,7 +114,7 @@ export default function ContractDetailPage() {
   const handleApproveMilestone = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones' as any)
+        .from('project_milestones')
         .update({
           status: 'approved',
           approved_at: new Date().toISOString()

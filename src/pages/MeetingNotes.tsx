@@ -38,7 +38,7 @@ export default function MeetingNotes() {
   const loadRecording = async () => {
     try {
       const { data: recordingData, error } = await supabase
-        .from('meeting_recordings_extended' as any)
+        .from('meeting_recordings_extended')
         .select(`
           *,
           meetings!inner(
