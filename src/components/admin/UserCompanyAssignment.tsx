@@ -42,9 +42,6 @@ export function UserCompanyAssignment() {
         supabase.from('companies').select('id, name').order('name'),
       ]);
 
-      console.log('[UserCompanyAssignment] Users response:', usersRes);
-      console.log('[UserCompanyAssignment] Companies response:', companiesRes);
-
       if (usersRes.error) throw usersRes.error;
       if (companiesRes.error) throw companiesRes.error;
 
