@@ -426,7 +426,7 @@ export default function OAuthOnboarding() {
 
     setIsLoading(true);
     try {
-      console.log('[OAuth Onboarding] Updating profile for user:', user.id);
+      
 
       const { error: profileError } = await supabase
         .from('profiles')
