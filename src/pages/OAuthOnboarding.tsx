@@ -375,7 +375,7 @@ export default function OAuthOnboarding() {
         })
         .eq('id', user.id);
 
-      console.log(`[OAuth Onboarding] Saved progress for step ${completedStep + 1}`);
+      
     } catch (err) {
       console.error('[OAuth Onboarding] Failed to save partial progress:', err);
     }
