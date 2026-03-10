@@ -40,7 +40,7 @@ export const MilestonesGamification = () => {
         .eq("user_id", user?.id)
         .order("date", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       const { data: engagement } = await supabase
         .from("user_engagement")
