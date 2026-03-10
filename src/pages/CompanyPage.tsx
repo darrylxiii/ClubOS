@@ -14,6 +14,7 @@ import {
 import { SectionLoader } from "@/components/ui/unified-loader";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ErrorState } from "@/components/ui/error-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { CompanySocialActivity } from "@/components/companies/CompanySocialActivity";
