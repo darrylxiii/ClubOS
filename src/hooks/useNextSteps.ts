@@ -71,7 +71,7 @@ export const useNextSteps = () => {
           .from('profiles')
           .select('created_at, updated_at')
           .eq('id', user.id)
-          .single(),
+          .maybeSingle(),
         (supabase as any)
           .from('detected_interviews')
           .select('id', { count: 'exact', head: true })
