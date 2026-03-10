@@ -67,10 +67,13 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [addStageOpen, setAddStageOpen] = useState(false);
   const [reviewerOptions, setReviewerOptions] = useState<ReviewerOption[]>([]);
+  const [internalReviewerOptions, setInternalReviewerOptions] = useState<ReviewerOption[]>([]);
   const [reviewerAssignments, setReviewerAssignments] = useState<ReviewerAssignment[]>([]);
+  const [internalReviewerAssignments, setInternalReviewerAssignments] = useState<ReviewerAssignment[]>([]);
   const [selectedReviewerId, setSelectedReviewerId] = useState('');
   const [selectedIsPrimary, setSelectedIsPrimary] = useState(false);
   const [savingReviewer, setSavingReviewer] = useState(false);
+  const [reviewLayerTab, setReviewLayerTab] = useState<ReviewLayerTab>('partner');
 
   const { currentRole: role } = useRole();
   const { saving, savePipeline, addStage, removeStage } = usePipelineManagement(jobId);
