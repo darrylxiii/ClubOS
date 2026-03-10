@@ -130,7 +130,7 @@ const Auth = () => {
                 if (userEmail) {
                   const {
                     data: profile
-                  } = await supabase.from('profiles').select('id, preferred_auth_method').eq('email', userEmail).single();
+                  } = await supabase.from('profiles').select('id, preferred_auth_method').eq('email', userEmail).maybeSingle();
                   if (profile?.preferred_auth_method === 'oauth_only') {
                     // Link Google identity for seamless OAuth login
                     const googleIdentities = currentSession.user.identities?.filter(i => i.provider === 'google') || [];
