@@ -41,7 +41,7 @@ export function useCallSignaling(conversationId?: string) {
           .from('profiles')
           .select('full_name, avatar_url, email')
           .eq('id', inv.caller_id)
-          .single();
+          .maybeSingle();
 
         return {
           ...inv,
