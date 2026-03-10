@@ -27,7 +27,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
 
   const loadInteractions = async () => {
     setLoading(true);
-    try {
+    setFetchError(null);
       const query = (supabase as any)
         .from('company_interactions')
         .select(`
