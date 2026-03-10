@@ -24,6 +24,9 @@ const AdminHomeContent = () => {
       {/* Zone 3: Attention Required — merged urgency + signals */}
       <AttentionRequiredStrip />
 
+      {/* Zone 3b: Internal Review Queue */}
+      <AdminPendingReviewsWidget />
+
       {/* Zone 4: Daily Briefing */}
       <DailyBriefingBanner />
 

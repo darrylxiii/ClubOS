@@ -81,6 +81,19 @@ export const PartnerHome = () => {
         </motion.div>
       )}
 
+      {/* Candidate Review Queue — above offers */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 1.5 }}
+        >
+          <DashboardSection>
+            <PendingReviewsWidget />
+          </DashboardSection>
+        </motion.div>
+      )}
+
       {/* Offers & Messages - High Priority Business Metrics */}
       {companyId && (
         <motion.div
