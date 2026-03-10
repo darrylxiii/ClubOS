@@ -33,6 +33,7 @@ export default function AcademyCreatorHub() {
   const [courses, setCourses] = useState<any[]>([]);
   const [academy, setAcademy] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [stats, setStats] = useState({
