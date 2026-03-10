@@ -178,7 +178,8 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           stages, 
           updated_at,
           user_id,
-          profiles (
+          candidate_id,
+          candidate_profiles (
             full_name,
             avatar_url
           )
