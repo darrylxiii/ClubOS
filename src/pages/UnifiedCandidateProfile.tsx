@@ -206,7 +206,7 @@ export default function UnifiedCandidateProfile() {
           variant="page"
           title="Failed to load candidate"
           message="We couldn't load this candidate's profile. Please try again."
-          onRetry={() => { setFetchError(false); setLoading(true); loadCandidate(); }}
+          onRetry={() => { setFetchError(false); setLoading(true); loadCandidateData(); }}
         />
       </div>
     );
