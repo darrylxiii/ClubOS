@@ -242,6 +242,7 @@ export default function Companies() {
       setCompanyMetrics(metrics);
     } catch (error) {
       console.error('Error loading company metrics:', error);
+      toast.error('Failed to load company metrics');
     }
   };
 
