@@ -82,7 +82,7 @@ export default function MeetingIntelligence() {
     
     try {
       setIsLoading(true);
-      
+      setFetchError(null);
       // Get meetings with bot sessions and insights
       const { data: meetingsData, error } = await supabase
         .from('meetings')
