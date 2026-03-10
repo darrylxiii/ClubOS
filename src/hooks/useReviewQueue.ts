@@ -31,6 +31,28 @@ export interface ReviewQueueApplication {
   internalReviewStatus: InternalReviewStatus;
   partnerReviewStatus: PartnerReviewStatus;
   createdAt: string;
+  // Enriched candidate profile fields
+  candidateLinkedinUrl: string | null;
+  candidateResumeUrl: string | null;
+  candidateYearsOfExperience: number | null;
+  candidateLocation: string | null;
+  candidateCurrentCompany: string | null;
+  candidateEducation: unknown[] | null;
+  candidateWorkHistory: unknown[] | null;
+  candidateNoticePeriod: string | null;
+  candidateRemotePreference: string | null;
+  candidateSeniorityLevel: string | null;
+  candidateAiSummary: string | null;
+  candidateAiRecommendation: string | null;
+  candidateDesiredSalaryMin: number | null;
+  candidateDesiredSalaryMax: number | null;
+  // Enriched job fields
+  jobRequirements: unknown[] | null;
+  jobNiceToHave: unknown[] | null;
+  jobDescription: string | null;
+  jobLocation: string | null;
+  jobExperienceLevel: string | null;
+  jobSeniorityLevel: string | null;
 }
 
 interface PartnerReviewFeedbackInput {
@@ -49,6 +71,19 @@ function toStringArray(value: unknown): string[] {
     return value.filter((item): item is string => typeof item === 'string' && item.length > 0);
   }
   return [];
+}
+
+function toJsonArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) return value;
+  return null;
+}
+
+function toLocationString(value: unknown): string | null {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.filter((v) => typeof v === 'string').join(', ');
+  }
+  if (typeof value === 'string') return value;
+  return null;
 }
 
 async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]> {
@@ -74,12 +109,12 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
     candidateIds.length > 0
       ? supabase
           .from('candidate_profiles')
-          .select('id, user_id, full_name, current_title, avatar_url, skills')
+          .select('id, user_id, full_name, current_title, avatar_url, skills, linkedin_url, resume_url, years_of_experience, desired_locations, current_company, education, work_history, notice_period, remote_preference, seniority_level, ai_summary, ai_recommendation, desired_salary_min, desired_salary_max, source_channel')
           .in('id', candidateIds)
       : Promise.resolve({ data: [], error: null }),
     supabase
       .from('jobs')
-      .select('id, title, salary_min, salary_max, currency, company_id')
+      .select('id, title, salary_min, salary_max, currency, company_id, requirements, nice_to_have, description, location, experience_level, seniority_level')
       .eq('id', jobId)
       .maybeSingle(),
   ]);
@@ -132,7 +167,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       candidateTitle: candidateProfile?.current_title || null,
       candidateAvatarUrl: candidateProfile?.avatar_url || linkedProfile?.avatar_url || null,
       candidateSkills: toStringArray(candidateProfile?.skills),
-      candidateSourceChannel: null, // Not available on applications table
+      candidateSourceChannel: candidateProfile?.source_channel || null,
       candidateSourcedBy: sourcedByProfile?.full_name || null,
       internalReviewNotes: app.internal_review_notes || null,
       status: app.status,
@@ -144,6 +179,28 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       internalReviewStatus: app.internal_review_status,
       partnerReviewStatus: app.partner_review_status,
       createdAt: app.created_at,
+      // Enriched candidate fields
+      candidateLinkedinUrl: candidateProfile?.linkedin_url || null,
+      candidateResumeUrl: candidateProfile?.resume_url || null,
+      candidateYearsOfExperience: candidateProfile?.years_of_experience ?? null,
+      candidateLocation: toLocationString(candidateProfile?.desired_locations),
+      candidateCurrentCompany: candidateProfile?.current_company || null,
+      candidateEducation: toJsonArray(candidateProfile?.education),
+      candidateWorkHistory: toJsonArray(candidateProfile?.work_history),
+      candidateNoticePeriod: candidateProfile?.notice_period || null,
+      candidateRemotePreference: candidateProfile?.remote_preference || null,
+      candidateSeniorityLevel: candidateProfile?.seniority_level || null,
+      candidateAiSummary: candidateProfile?.ai_summary || null,
+      candidateAiRecommendation: candidateProfile?.ai_recommendation || null,
+      candidateDesiredSalaryMin: candidateProfile?.desired_salary_min ?? null,
+      candidateDesiredSalaryMax: candidateProfile?.desired_salary_max ?? null,
+      // Enriched job fields
+      jobRequirements: toJsonArray(job?.requirements),
+      jobNiceToHave: toJsonArray(job?.nice_to_have),
+      jobDescription: job?.description || null,
+      jobLocation: job?.location || null,
+      jobExperienceLevel: job?.experience_level || null,
+      jobSeniorityLevel: job?.seniority_level || null,
     };
   });
 }

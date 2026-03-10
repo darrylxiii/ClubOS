@@ -1,12 +1,22 @@
-import { useState } from 'react';
-import { ShieldCheck, AlertTriangle, CheckCircle2, ChevronRight, Eye } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ShieldCheck, AlertTriangle, ChevronRight, Eye, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAggregatedReviewQueue, type ReviewJobSummary } from '@/hooks/useAggregatedReviewQueue';
 import { ReviewHubDialog } from '@/components/partner/ReviewHubDialog';
-import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+
+function formatSlaCountdown(oldestAt: string | null, slaHours: number): string | null {
+  if (!oldestAt) return null;
+  const deadlineMs = new Date(oldestAt).getTime() + slaHours * 60 * 60 * 1000;
+  const remainingMs = deadlineMs - Date.now();
+  if (remainingMs <= 0) return 'Overdue';
+  const hours = Math.floor(remainingMs / (60 * 60 * 1000));
+  const minutes = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
 
 export const AdminPendingReviewsWidget = () => {
   const { jobs, totalPending, overdueCount, isLoading } = useAggregatedReviewQueue();
@@ -36,7 +46,6 @@ export const AdminPendingReviewsWidget = () => {
     );
   }
 
-  // Don't render if nothing to show
   if (totalPending === 0 && !isLoading) {
     return null;
   }
@@ -51,8 +60,10 @@ export const AdminPendingReviewsWidget = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-primary/15 text-primary">
+              <div className="relative p-2 rounded-xl bg-primary/15 text-primary">
                 <ShieldCheck className="h-4 w-4" />
+                {/* Unread pulse */}
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
               </div>
               <div>
                 <CardTitle className="text-base">Internal Review Queue</CardTitle>
@@ -77,43 +88,47 @@ export const AdminPendingReviewsWidget = () => {
         </CardHeader>
 
         <CardContent className="space-y-2">
-          {jobs.slice(0, 4).map((job) => (
-            <button
-              key={job.jobId}
-              onClick={() => handleOpenJob(job.jobId)}
-              className={cn(
-                'w-full flex items-center justify-between rounded-xl px-3 py-2.5 transition-all duration-200',
-                'hover:bg-card/60 border border-transparent',
-                job.isOverdue
-                  ? 'bg-destructive/5 border-destructive/20 hover:bg-destructive/10'
-                  : 'hover:border-border/30',
-              )}
-            >
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium truncate">{job.jobTitle}</p>
-                <p className="text-xs text-muted-foreground truncate">{job.companyName}</p>
-              </div>
-              <div className="flex items-center gap-2 ml-3 shrink-0">
-                {job.oldestPendingAt && (
-                  <span className={cn(
-                    'text-[10px]',
-                    job.isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground',
-                  )}>
-                    {formatDistanceToNow(new Date(job.oldestPendingAt), { addSuffix: false })}
-                  </span>
-                )}
-                <Badge className={cn(
-                  'text-xs min-w-[24px] justify-center',
+          {jobs.slice(0, 4).map((job) => {
+            const sla = formatSlaCountdown(job.oldestPendingAt, 24);
+            return (
+              <button
+                key={job.jobId}
+                onClick={() => handleOpenJob(job.jobId)}
+                className={cn(
+                  'w-full flex items-center justify-between rounded-xl px-3 py-2.5 transition-all duration-200',
+                  'hover:bg-card/60 border border-transparent',
                   job.isOverdue
-                    ? 'bg-destructive/20 text-destructive border-destructive/30'
-                    : 'bg-primary/20 text-primary border-primary/30',
-                )}>
-                  {job.pendingCount}
-                </Badge>
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
-            </button>
-          ))}
+                    ? 'bg-destructive/5 border-destructive/20 hover:bg-destructive/10'
+                    : 'hover:border-border/30',
+                )}
+              >
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-sm font-medium truncate">{job.jobTitle}</p>
+                  <p className="text-xs text-muted-foreground truncate">{job.companyName}</p>
+                </div>
+                <div className="flex items-center gap-2 ml-3 shrink-0">
+                  {sla && (
+                    <span className={cn(
+                      'text-[10px] flex items-center gap-0.5',
+                      job.isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground',
+                    )}>
+                      <Clock className="h-2.5 w-2.5" />
+                      {sla}
+                    </span>
+                  )}
+                  <Badge className={cn(
+                    'text-xs min-w-[24px] justify-center',
+                    job.isOverdue
+                      ? 'bg-destructive/20 text-destructive border-destructive/30'
+                      : 'bg-primary/20 text-primary border-primary/30',
+                  )}>
+                    {job.pendingCount}
+                  </Badge>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              </button>
+            );
+          })}
 
           {jobs.length > 4 && (
             <p className="text-xs text-muted-foreground text-center pt-1">
