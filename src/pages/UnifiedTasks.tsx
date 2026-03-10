@@ -103,7 +103,7 @@ const UnifiedTasks = () => {
         if (insertError) throw insertError;
         setPreferences(newPrefs);
       }
-    } catch (error) { console.error("Error loading preferences:", error); }
+    } catch (error) { console.error("Error loading preferences:", error); toast.error("Failed to load task preferences"); }
   };
 
   const loadObjectives = async () => {
