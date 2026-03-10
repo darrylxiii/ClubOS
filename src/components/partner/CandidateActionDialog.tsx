@@ -64,8 +64,8 @@ export const CandidateActionDialog = ({
         if (updateError) throw updateError;
 
         // Add comment if feedback provided
+        const { data: userData } = await supabase.auth.getUser();
         if (feedback.trim()) {
-          const { data: userData } = await supabase.auth.getUser();
           const { error: commentError } = await supabase
             .from('candidate_comments')
             .insert({
@@ -75,7 +75,9 @@ export const CandidateActionDialog = ({
               is_internal: true,
             });
 
-          if (commentError) throw commentError;
+          if (commentError) {
+            console.warn('[Pipeline] Failed to save comment:', commentError);
+          }
         }
 
         // Celebration effect for advancement
@@ -90,9 +92,6 @@ export const CandidateActionDialog = ({
           description: "Club Check completed successfully",
           duration: 4000
         });
-
-        // Track advancement
-        const { data: userData } = await supabase.auth.getUser();
         if (userData.user?.id) {
           trackCandidateInteraction(userData.user.id, application.candidate_id || application.id, 'advance');
         }
