@@ -159,7 +159,14 @@ export const JobsAIInsightsWidget = memo(({ companyId }: JobsAIInsightsWidgetPro
   const refreshMutation = useRefreshAggregatedIntelligence();
 
   if (error) {
-    return null; // Silently fail if no insights available
+    return (
+      <Card className="bg-card/10 backdrop-blur-xl border-border/20 p-4">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <Brain className="h-4 w-4" />
+          <span>QUIN Insights temporarily unavailable</span>
+        </div>
+      </Card>
+    );
   }
 
   return (
