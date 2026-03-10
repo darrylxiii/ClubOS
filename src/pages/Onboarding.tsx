@@ -61,7 +61,7 @@ const Onboarding = () => {
             referral_metadata (*)
           `)
           .eq('code', inviteCode)
-          .single();
+          .maybeSingle();
 
         if (inviteData?.referral_metadata?.[0]) {
           const metadata = inviteData.referral_metadata[0];
