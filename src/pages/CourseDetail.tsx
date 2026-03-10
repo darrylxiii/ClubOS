@@ -80,7 +80,7 @@ export default function CourseDetail() {
   const [selectedModule, setSelectedModule] = useState<ModuleData | null>(null);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
-  const { data: courseQueryData, isLoading: loading } = useQuery({
+  const { data: courseQueryData, isLoading: loading, isError: fetchError, refetch } = useQuery({
     queryKey: ['course-detail', slug, user?.id],
     queryFn: async () => {
       const { data: courseData, error: courseError } = await supabase
