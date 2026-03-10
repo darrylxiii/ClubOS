@@ -46,6 +46,8 @@ export const CandidateActionDialog = ({
   const handleConfirm = async () => {
     setLoading(true);
     try {
+      const { data: userData } = await supabase.auth.getUser();
+
       if (action === 'advance') {
         if (!nextStage) {
           toast.error("No next stage available");
@@ -64,7 +66,6 @@ export const CandidateActionDialog = ({
         if (updateError) throw updateError;
 
         // Add comment if feedback provided
-        const { data: userData } = await supabase.auth.getUser();
         if (feedback.trim()) {
           const { error: commentError } = await supabase
             .from('candidate_comments')
