@@ -63,7 +63,7 @@ const ObjectiveWorkspace = () => {
           tasks:unified_tasks(*)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setObjective({

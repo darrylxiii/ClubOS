@@ -107,6 +107,14 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
 
   const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
+  if (fetchError && interactions.length === 0) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Interactions Unavailable" message={fetchError} onRetry={loadInteractions} />
+      </div>
+    );
+  }
+
   return (
     <Wrapper>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
