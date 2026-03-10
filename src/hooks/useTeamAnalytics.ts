@@ -99,7 +99,7 @@ export function useHistoricalTrends(userId: string, months = 6) {
           .from('employee_profiles')
           .select('id')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         let revenue = 0;
         if (employeeProfile) {
