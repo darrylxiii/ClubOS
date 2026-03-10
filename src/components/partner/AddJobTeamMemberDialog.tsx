@@ -76,6 +76,7 @@ export const AddJobTeamMemberDialog = ({
         .maybeSingle();
 
       if (jobError) throw jobError;
+      if (!job) return;
 
       // Get company members not already assigned to this job
       const { data: members, error: membersError } = await supabase
