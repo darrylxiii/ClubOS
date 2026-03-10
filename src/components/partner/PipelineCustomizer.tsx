@@ -52,6 +52,8 @@ interface ReviewerAssignment {
   assignedAt: string;
 }
 
+type ReviewLayerTab = 'internal' | 'partner';
+
 interface PipelineCustomizerProps {
   jobId: string;
   companyId: string;
