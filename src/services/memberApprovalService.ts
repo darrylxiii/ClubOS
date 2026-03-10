@@ -286,7 +286,7 @@ export const memberApprovalService = {
         .select('id')
         .eq('user_id', userId)
         .eq('role', role)
-        .single();
+        .maybeSingle();
 
       if (existingRole) {
         console.log('[MemberApproval] Role already assigned:', role);
