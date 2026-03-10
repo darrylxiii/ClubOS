@@ -31,6 +31,28 @@ export interface ReviewQueueApplication {
   internalReviewStatus: InternalReviewStatus;
   partnerReviewStatus: PartnerReviewStatus;
   createdAt: string;
+  // Enriched candidate profile fields
+  candidateLinkedinUrl: string | null;
+  candidateResumeUrl: string | null;
+  candidateYearsOfExperience: number | null;
+  candidateLocation: string | null;
+  candidateCurrentCompany: string | null;
+  candidateEducation: unknown[] | null;
+  candidateWorkHistory: unknown[] | null;
+  candidateNoticePeriod: string | null;
+  candidateRemotePreference: string | null;
+  candidateSeniorityLevel: string | null;
+  candidateAiSummary: string | null;
+  candidateAiRecommendation: string | null;
+  candidateDesiredSalaryMin: number | null;
+  candidateDesiredSalaryMax: number | null;
+  // Enriched job fields
+  jobRequirements: unknown[] | null;
+  jobNiceToHave: unknown[] | null;
+  jobDescription: string | null;
+  jobLocation: string | null;
+  jobExperienceLevel: string | null;
+  jobSeniorityLevel: string | null;
 }
 
 interface PartnerReviewFeedbackInput {
