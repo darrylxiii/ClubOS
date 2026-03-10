@@ -1,92 +1,136 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Partner & Admin Review Command Center — Complete Plan
 
-## Completed
+## What Exists Today
+- **Internal Review Panel** (`InternalReviewPanel.tsx`): Table-based bulk approve/reject for admins/strategists — works but only inside individual JobDashboard → Reviews tab
+- **Partner First Review Panel** (`PartnerFirstReviewPanel.tsx`): Card-based swipe UI for partners — also buried inside individual JobDashboard
+- **`pipeline_reviewers` table**: Supports assigning specific reviewers per job with `review_type` column and `is_primary` flag — already in the database
+- **`PipelineCustomizer.tsx`**: Has reviewer assignment UI but only for `review_type = 'partner'`
+- **No aggregated view** on any home page — partners and admins must click into each job individually
+- **No notifications** when reviews are pending or overdue
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
+## What We'll Build
 
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
+### 1. Aggregated Review Queue Hook (`useAggregatedReviewQueue.ts`)
+Single hook that fetches pending review counts across ALL jobs:
+- For **admins/strategists**: counts where `internal_review_status = 'pending'` or NULL
+- For **partners**: counts where `internal_review_status = 'approved'` AND `partner_review_status` is pending/NULL
+- Groups by job with title, company name, oldest pending date (for SLA tracking)
+- Returns `{ jobs: Array<{jobId, jobTitle, companyName, pendingCount, oldestPendingAt}>, totalPending, overdueCount }`
 
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
+### 2. Pending Reviews Widget — Partner Home (`PendingReviewsWidget.tsx`)
+A prominent glass card placed **above the Offers row** on `PartnerHome.tsx`:
+- Pulsing amber badge when reviews exist, calm green when all clear
+- Each job row: title, pending count, oldest review age, "Review" button
+- SLA indicator: highlight in red if any review is older than 48h
+- "Review All" button opens the full hub dialog
+- Empty state: "All caught up — no candidates awaiting your review"
 
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
+### 3. Pending Reviews Widget — Admin Home (`AdminPendingReviewsWidget.tsx`)
+Similar card for `AdminHome.tsx` placed after `AttentionRequiredStrip`:
+- Shows internal review queue counts (pre-vet layer)
+- Also shows partner review queues that are overdue (admin oversight)
+- "Triage" button opens the admin review hub
 
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
+### 4. Review Hub Dialog (`ReviewHubDialog.tsx`)
+Full-screen dialog (`max-w-7xl`, `h-[90vh]`) that works for BOTH admin and partner flows:
+- **Left sidebar**: Scrollable job list with pending counts per job, click to select
+- **Right panel**: Renders `InternalReviewPanel` (for admins) or `PartnerFirstReviewPanel` (for partners) based on role
+- Auto-advances to next job when current queue empties
+- Header shows total progress: "4 of 12 reviewed today"
+- Keyboard shortcut `Ctrl+R` to open from home page
 
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
+### 5. Reviewer Assignment — Both Layers (`PipelineCustomizer.tsx` enhancement)
+Extend the existing reviewer assignment UI to support **both** review types:
+- Add a toggle/tab for `review_type = 'internal'` vs `review_type = 'partner'`
+- Admins can assign specific recruiters/strategists to the internal review layer
+- Partners (or admins) can assign specific partner contacts to the partner review layer
+- Show assigned reviewers with primary badge
 
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
+### 6. Review Notification System
+When `internal_review_status` changes to `'approved'` (candidate passes internal review), notify assigned partner reviewers:
+- Insert into `notification_preferences`-compatible system
+- Create a database trigger or edge function `notify-review-ready` that:
+  - Looks up `pipeline_reviewers` for the job where `review_type = 'partner'`
+  - Creates an in-app notification for each assigned reviewer
+  - Optionally sends email via existing email infrastructure
+- Similarly, when a new application arrives, notify assigned internal reviewers
+- SLA alerts: a scheduled check (or on-load) flags reviews older than 24h (internal) or 48h (partner) as overdue
 
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
-
----
-
-## Remaining
-
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
-
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
-
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
-
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
-
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
-
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+### 7. Review SLA Badge on Job Cards
+On `CompanyJobsDashboard.tsx` and any job list, show a small badge:
+- "3 awaiting review" with amber/red color based on SLA status
+- Clickable → opens ReviewHubDialog filtered to that job
 
 ---
 
-### Remaining: Phase H4–H6
+## Database Changes
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+**New table: `review_notifications`**
+```sql
+CREATE TABLE public.review_notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reviewer_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  job_id UUID NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE,
+  application_id UUID NOT NULL REFERENCES public.applications(id) ON DELETE CASCADE,
+  review_type TEXT NOT NULL DEFAULT 'partner',
+  notification_type TEXT NOT NULL DEFAULT 'review_ready',
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
-### Phase I2: Remaining Ecosystem
+ALTER TABLE public.review_notifications ENABLE ROW LEVEL SECURITY;
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+CREATE POLICY "Users can read own notifications"
+ON public.review_notifications FOR SELECT TO authenticated
+USING (reviewer_id = auth.uid());
+
+CREATE POLICY "Users can update own notifications"
+ON public.review_notifications FOR UPDATE TO authenticated
+USING (reviewer_id = auth.uid());
+
+CREATE POLICY "System can insert notifications"
+ON public.review_notifications FOR INSERT TO authenticated
+WITH CHECK (
+  public.has_role(auth.uid(), 'admin'::app_role) OR
+  public.has_role(auth.uid(), 'strategist'::app_role) OR
+  public.has_role(auth.uid(), 'recruiter'::app_role)
+);
+```
+
+**No schema changes to `pipeline_reviewers`** — it already supports `review_type` as a text column.
+
+---
+
+## Files to Create
+1. `src/hooks/useAggregatedReviewQueue.ts` — cross-job review counts
+2. `src/components/partner/PendingReviewsWidget.tsx` — partner home widget
+3. `src/components/clubhome/AdminPendingReviewsWidget.tsx` — admin home widget
+4. `src/components/partner/ReviewHubDialog.tsx` — full-screen review modal
+
+## Files to Edit
+1. `src/components/clubhome/PartnerHome.tsx` — insert PendingReviewsWidget after stats bar
+2. `src/components/clubhome/AdminHome.tsx` — insert AdminPendingReviewsWidget after AttentionRequiredStrip
+3. `src/components/partner/PipelineCustomizer.tsx` — add internal reviewer assignment tab
+4. `src/hooks/useReviewQueue.ts` — add notification insert after internal approve (to alert partner reviewers)
+
+## Component Architecture
+
+```text
+PartnerHome / AdminHome
+  └─ PendingReviewsWidget / AdminPendingReviewsWidget
+       ├─ useAggregatedReviewQueue (shared hook)
+       ├─ Job rows with SLA indicators
+       └─ onClick → ReviewHubDialog
+             ├─ Left: Job selector sidebar with counts
+             └─ Right: PartnerFirstReviewPanel OR InternalReviewPanel (role-based)
+
+PipelineCustomizer (existing, enhanced)
+  └─ Tabs: "Internal Reviewers" | "Partner Reviewers"
+       └─ Assign reviewers with is_primary flag
+
+useReviewQueue.approveInternalMutation (enhanced)
+  └─ After status update → insert review_notifications for assigned partner reviewers
+```
+
