@@ -1,92 +1,103 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# MFA Setup Audit & Fix
 
-## Completed
+## Current Score: 25/100
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
+| Area | Score | Issue |
+|------|-------|-------|
+| **Error recovery** | 0/10 | If `mfa.enroll()` fails, step is set to `'enroll'` (loading spinner) with NO way back. User stuck forever. |
+| **Stale factor cleanup** | 0/10 | Previous failed attempts leave unverified TOTP factors. Re-enrollment fails with "factor already exists" — no cleanup, no UI to retry. |
+| **Session validation** | 2/10 | Page calls `useAuth()` but doesn't verify session is alive before calling MFA APIs. If session expired, enroll silently fails. |
+| **Initial loading state** | 3/10 | `checkExisting` runs async but page renders 'intro' immediately — race condition where user can click "Setup" before check completes. |
+| **User feedback** | 4/10 | Toast errors exist but are swallowed by the stuck loading spinner. User sees "nothing happens." |
+| **Consistency** | 2/10 | `TwoFactorSettings.tsx` (settings page) has better error handling, factor removal, and duplicate detection. `MfaSetup.tsx` (enforcement page) is far weaker. |
 
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
+## Root Cause of "Button Does Nothing"
 
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
+1. User clicks "Continue Setup" → `setStep('enroll')` (shows spinner) + `handleEnroll()` runs
+2. `handleEnroll` calls `supabase.auth.mfa.enroll()` which **fails** (likely due to existing unverified factor from previous attempt, OR expired session)
+3. Error handler shows a toast and returns — but **step stays at `'enroll'`** which renders `<PageLoader />`
+4. User sees infinite loading spinner. The toast error may flash behind it or be missed entirely.
 
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
+## Fixes
 
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
+### File: `src/pages/MfaSetup.tsx` — Full rewrite of the logic
 
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
+1. **Add proper loading state for initial check** — show PageLoader until `checkExisting` completes, not 'intro'
+2. **Clean up stale unverified factors before enrolling** — unenroll any existing unverified TOTP factors before calling `enroll()`
+3. **Fix step state on error** — revert `step` back to `'intro'` in all error paths so user can retry
+4. **Validate session before enrollment** — call `supabase.auth.getUser()` to confirm session is alive; if not, redirect to `/auth`
+5. **Don't set step to 'enroll' before the call** — call `handleEnroll` first, only advance step on success
+6. **Add retry button** on error states instead of infinite spinner
 
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
+### Specific code changes:
 
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+```typescript
+// 1. Initial check with proper loading gate
+const [initialCheckDone, setInitialCheckDone] = useState(false);
 
----
+useEffect(() => {
+  const checkExisting = async () => {
+    // Also clean up stale unverified factors
+    const { data } = await supabase.auth.mfa.listFactors();
+    const verified = data?.totp?.filter(f => f.status === 'verified') || [];
+    if (verified.length > 0) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    // Unenroll any stale unverified factors
+    const unverified = data?.totp?.filter(f => f.status === 'unverified') || [];
+    for (const f of unverified) {
+      await supabase.auth.mfa.unenroll({ factorId: f.id });
+    }
+    setInitialCheckDone(true);
+  };
+  if (user) checkExisting();
+}, [user, navigate]);
 
-## Remaining
+// 2. Session validation + error recovery in handleEnroll
+const handleEnroll = async () => {
+  setIsLoading(true);
+  try {
+    // Validate session is alive
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      toast.error('Session expired. Please sign in again.');
+      navigate('/auth', { replace: true });
+      return;
+    }
+    
+    // Clean up any stale factors first
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const stale = factors?.totp?.filter(f => f.status === 'unverified') || [];
+    for (const f of stale) {
+      await supabase.auth.mfa.unenroll({ factorId: f.id });
+    }
+    
+    const { data, error } = await supabase.auth.mfa.enroll({...});
+    if (error) {
+      toast.error('Failed to set up MFA. Please try again.');
+      setStep('intro'); // ← CRITICAL: revert on error
+      return;
+    }
+    // Only advance step on success
+    setQrCode(data.totp.qr_code);
+    setSecret(data.totp.secret);
+    setFactorId(data.id);
+    setStep('verify');
+  } catch (err) {
+    toast.error('Something went wrong');
+    setStep('intro'); // ← CRITICAL: revert on error
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+// 3. Don't render UI until initial check is done
+if (!user || !initialCheckDone) return <PageLoader />;
+```
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+### No database changes needed.
+### 1 file to edit: `src/pages/MfaSetup.tsx`
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
-
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
-
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
-
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
-
----
-
-### Remaining: Phase H4–H6
-
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
-
-### Phase I2: Remaining Ecosystem
-
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
