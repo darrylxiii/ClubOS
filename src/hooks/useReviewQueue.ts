@@ -109,7 +109,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
     candidateIds.length > 0
       ? supabase
           .from('candidate_profiles')
-          .select('id, user_id, full_name, current_title, avatar_url, skills')
+          .select('id, user_id, full_name, current_title, avatar_url, skills, linkedin_url, resume_url, years_of_experience, desired_locations, current_company, education, work_history, notice_period, remote_preference, seniority_level, ai_summary, ai_recommendation, desired_salary_min, desired_salary_max, source_channel')
           .in('id', candidateIds)
       : Promise.resolve({ data: [], error: null }),
     supabase
