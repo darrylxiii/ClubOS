@@ -140,21 +140,40 @@ export function EnhancedCandidateActionDialog({
         .from('jobs')
         .select('company_id')
         .eq('id', jobId)
-        .single();
+        .maybeSingle();
 
-      const { data: candidateData } = await supabase
+      if (!jobData) {
+        toast.error("Job not found. It may have been deleted.");
+        setSubmitting(false);
+        return;
+      }
+
+      // Try lookup by id first (candidateId is usually candidate_profiles.id), then fall back to user_id
+      let candidateProfileId: string | null = null;
+      const { data: candidateById } = await supabase
         .from('candidate_profiles')
         .select('id')
-        .eq('user_id', candidateId)
-        .single();
+        .eq('id', candidateId)
+        .maybeSingle();
 
-      const companyId = jobData?.company_id;
-      const candidateProfileId = candidateData?.id;
+      if (candidateById) {
+        candidateProfileId = candidateById.id;
+      } else {
+        const { data: candidateByUserId } = await supabase
+          .from('candidate_profiles')
+          .select('id')
+          .eq('user_id', candidateId)
+          .maybeSingle();
+        candidateProfileId = candidateByUserId?.id || null;
+      }
+
+      const companyId = jobData.company_id;
 
       if ((actionType === 'advance' || actionType === 'move_back') && targetStageIndex !== null) {
         // Validate target stage
         if (targetStageIndex < 0 || targetStageIndex >= stages.length) {
           toast.error("Invalid target stage");
+          setSubmitting(false);
           return;
         }
 
