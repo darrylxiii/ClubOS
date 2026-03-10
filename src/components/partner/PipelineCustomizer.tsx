@@ -86,55 +86,65 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
 
   useEffect(() => {
     const loadReviewers = async () => {
-      const { data: members, error: membersError } = await supabase
+      // Load partner reviewers
+      const { data: members } = await supabase
         .from('company_members')
         .select('user_id, role')
         .eq('company_id', companyId)
         .eq('is_active', true)
         .eq('role', 'partner');
 
-      if (membersError) {
-        toast.error('Failed to load partner reviewers');
-        return;
-      }
-
-      const userIds = [...new Set((members || []).map((member) => member.user_id).filter(Boolean))] as string[];
-
-      const { data: profiles, error: profilesError } = userIds.length
-        ? await supabase.from('profiles').select('id, full_name, email').in('id', userIds)
-        : { data: [], error: null };
-
-      if (profilesError) {
-        toast.error('Failed to load reviewer profiles');
-        return;
-      }
+      const partnerUserIds = [...new Set((members || []).map((m) => m.user_id).filter(Boolean))] as string[];
+      const { data: partnerProfiles } = partnerUserIds.length
+        ? await supabase.from('profiles').select('id, full_name, email').in('id', partnerUserIds)
+        : { data: [] };
 
       setReviewerOptions(
-        (profiles || []).map((profile) => ({
-          id: profile.id,
-          fullName: profile.full_name || 'Partner Reviewer',
-          email: profile.email || '',
-        })),
+        (partnerProfiles || []).map((p) => ({ id: p.id, fullName: p.full_name || 'Partner', email: p.email || '' })),
       );
 
-      const { data: assignments, error: assignmentsError } = await supabase
+      // Load internal reviewers (admins, strategists, recruiters)
+      const { data: internalMembers } = await supabase
+        .from('company_members')
+        .select('user_id, role')
+        .eq('company_id', companyId)
+        .eq('is_active', true)
+        .in('role', ['admin', 'strategist', 'recruiter']);
+
+      const internalUserIds = [...new Set((internalMembers || []).map((m) => m.user_id).filter(Boolean))] as string[];
+      const { data: internalProfiles } = internalUserIds.length
+        ? await supabase.from('profiles').select('id, full_name, email').in('id', internalUserIds)
+        : { data: [] };
+
+      setInternalReviewerOptions(
+        (internalProfiles || []).map((p) => ({ id: p.id, fullName: p.full_name || 'Reviewer', email: p.email || '' })),
+      );
+
+      // Load partner assignments
+      const { data: partnerAssignments } = await supabase
         .from('pipeline_reviewers')
         .select('id, reviewer_id, is_primary, assigned_at')
         .eq('job_id', jobId)
         .eq('review_type', 'partner')
         .order('assigned_at', { ascending: true });
 
-      if (assignmentsError) {
-        toast.error('Failed to load reviewer assignments');
-        return;
-      }
-
       setReviewerAssignments(
-        (assignments || []).map((assignment) => ({
-          id: assignment.id,
-          reviewerId: assignment.reviewer_id,
-          isPrimary: assignment.is_primary || false,
-          assignedAt: assignment.assigned_at || new Date().toISOString(),
+        (partnerAssignments || []).map((a) => ({
+          id: a.id, reviewerId: a.reviewer_id, isPrimary: a.is_primary || false, assignedAt: a.assigned_at || new Date().toISOString(),
+        })),
+      );
+
+      // Load internal assignments
+      const { data: internalAssignments } = await supabase
+        .from('pipeline_reviewers')
+        .select('id, reviewer_id, is_primary, assigned_at')
+        .eq('job_id', jobId)
+        .eq('review_type', 'internal')
+        .order('assigned_at', { ascending: true });
+
+      setInternalReviewerAssignments(
+        (internalAssignments || []).map((a) => ({
+          id: a.id, reviewerId: a.reviewer_id, isPrimary: a.is_primary || false, assignedAt: a.assigned_at || new Date().toISOString(),
         })),
       );
     };
