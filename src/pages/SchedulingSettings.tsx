@@ -47,6 +47,7 @@ export default function SchedulingSettings() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [weekSchedule, setWeekSchedule] = useState<WeekSchedule | undefined>(undefined);
   const [dateOverrides, setDateOverrides] = useState<DateOverride[]>([]);
   const [settings, setSettings] = useState<AvailabilitySettings>({
