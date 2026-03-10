@@ -51,7 +51,17 @@ export default function CandidateAnalytics() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+          <Eye className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">No Analytics Data Yet</h2>
+          <p className="text-muted-foreground max-w-md">Analytics data will appear once your profile starts receiving views and applications.</p>
+        </div>
+      </div>
+    );
+  }
 
   const interviewRadarData = [
     { category: 'Rating', value: data.interviewPerformance.avgRating * 20 },

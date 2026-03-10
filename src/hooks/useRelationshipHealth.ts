@@ -173,7 +173,7 @@ export function useRelationshipHealth(entityType?: string, riskFilter?: RiskFilt
         .select('*')
         .eq('entity_type', type as any)
         .eq('entity_id', id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
       return data;

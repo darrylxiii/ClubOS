@@ -78,6 +78,7 @@ export default function PersonalMeetingRoom() {
       setQrCodeUrl(qrCodeDataUrl);
     } catch (error) {
       console.error('Error generating QR code:', error);
+      toast.error('Failed to generate QR code');
     }
   }, [pmr]);
 

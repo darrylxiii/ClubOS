@@ -96,7 +96,7 @@ export function useDepreciationLedger(options?: UseDepreciationLedgerOptions) {
           .eq('asset_id', asset.id)
           .eq('period_year', year)
           .eq('period_month', month)
-          .single();
+          .maybeSingle();
 
         if (!existing) {
           const bookValueStart = asset.current_book_value || asset.total_purchase_value || 0;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
@@ -101,6 +102,7 @@ export default function MessagingAnalytics() {
       }
     } catch (error) {
       console.error('Error calculating response time:', error);
+      toast.error('Something went wrong loading analytics.');
     }
 
     setStats({

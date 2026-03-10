@@ -38,7 +38,7 @@ export function useMeetingIntelligence(meetingId: string | null) {
         .from('meeting_intelligence')
         .select('*')
         .eq('meeting_id', meetingId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Failed to fetch intelligence:', error);

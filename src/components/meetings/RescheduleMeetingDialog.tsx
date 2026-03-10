@@ -45,7 +45,7 @@ export function RescheduleMeetingDialog({
         .from('bookings')
         .select('scheduled_start, scheduled_end, booking_links(duration_minutes)')
         .eq('id', bookingId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

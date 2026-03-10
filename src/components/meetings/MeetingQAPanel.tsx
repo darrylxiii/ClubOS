@@ -79,7 +79,7 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
           .select('id')
           .eq('question_id', q.id)
           .eq('participant_id', user?.id || '')
-          .single();
+          .maybeSingle();
 
         return {
           ...q,

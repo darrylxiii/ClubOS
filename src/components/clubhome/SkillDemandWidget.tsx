@@ -37,7 +37,7 @@ export function SkillDemandWidget() {
         .from('profiles')
         .select('skills')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       const userSkillNames = new Set(
         ((profile?.skills as string[] | null) || []).map(s => s.toLowerCase())
