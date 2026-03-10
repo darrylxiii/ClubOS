@@ -61,7 +61,7 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
         .from('profiles')
         .select('company_id')
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
+        .maybeSingle();
 
       if (profile?.company_id) {
         const { count: companyMembers } = await supabase

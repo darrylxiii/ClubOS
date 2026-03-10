@@ -51,7 +51,7 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
           .from('profiles')
           .select('id')
           .ilike('full_name', `%${filters.sender}%`)
-          .single();
+          .maybeSingle();
         
         if (senderProfile) {
           query = query.eq('sender_id', senderProfile.id);

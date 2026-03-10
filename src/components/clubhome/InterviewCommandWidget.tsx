@@ -145,7 +145,7 @@ export const InterviewCommandWidget = () => {
               .from('candidate_profiles')
               .select('full_name, avatar_url')
               .eq('id', meeting.candidate_id)
-              .single();
+              .maybeSingle();
             if (data) {
               candidateName = data.full_name;
               candidateAvatar = data.avatar_url;

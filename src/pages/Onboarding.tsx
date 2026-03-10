@@ -72,7 +72,7 @@ const Onboarding = () => {
             .from('profiles')
             .select('full_name, email')
             .eq('id', inviteData.created_by)
-            .single();
+            .maybeSingle();
           
           setReferrerName(referrerData?.full_name || referrerData?.email || 'Your friend');
 

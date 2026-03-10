@@ -36,7 +36,7 @@ export function LiveDJs() {
             .from('profiles')
             .select('id, full_name, avatar_url')
             .eq('id', session.dj_id)
-            .single();
+            .maybeSingle();
           
           return { ...session, profile };
         })

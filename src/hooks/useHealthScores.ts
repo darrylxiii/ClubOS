@@ -83,7 +83,7 @@ export function useDealHealth(jobId: string | undefined) {
         .from('jobs')
         .select('deal_health_score')
         .eq('id', jobId)
-        .single();
+        .maybeSingle();
       
       if (job?.deal_health_score) {
         const score = job.deal_health_score;

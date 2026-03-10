@@ -337,7 +337,7 @@ export function useMoveProbability(candidateId: string) {
         .from('candidate_profiles')
         .select('move_probability, move_probability_factors, move_probability_updated_at')
         .eq('id', candidateId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
