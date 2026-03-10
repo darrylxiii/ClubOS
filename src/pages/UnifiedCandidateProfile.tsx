@@ -49,6 +49,7 @@ export default function UnifiedCandidateProfile() {
   const isAdmin = role === 'admin' || role === 'strategist';
   const isPartner = role === 'partner';
 
+  const [fetchError, setFetchError] = useState(false);
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- candidate_profiles has 200+ fields with JSONB
   const [candidate, setCandidate] = useState<any>(null);
