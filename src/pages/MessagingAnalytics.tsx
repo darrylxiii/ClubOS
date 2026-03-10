@@ -11,6 +11,8 @@ import { format, subDays } from 'date-fns';
 
 export default function MessagingAnalytics() {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [stats, setStats] = useState({
     totalSent: 0,
     totalReceived: 0,
