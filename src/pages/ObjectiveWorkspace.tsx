@@ -185,6 +185,7 @@ const ObjectiveWorkspace = () => {
       setBlockedByTasks(blockedBy?.map(b => b.blocker).filter(Boolean) || []);
     } catch (error) {
       console.error("Error loading dependencies:", error);
+      toast.error("Failed to load task dependencies");
     }
   }, [id]);
 
