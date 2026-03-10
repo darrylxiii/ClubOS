@@ -94,6 +94,7 @@ const MeetingHistory = () => {
 
     try {
       setIsLoading(true);
+      setFetchError(null);
       const { data, error } = await supabase
         .from('meeting_recordings')
         .select('*')
@@ -104,6 +105,7 @@ const MeetingHistory = () => {
       setRecordings(data || []);
     } catch (error) {
       console.error('Error loading recordings:', error);
+      setFetchError('Failed to load meeting recordings');
       toast.error('Failed to load meeting recordings');
     } finally {
       setIsLoading(false);
