@@ -56,9 +56,34 @@ export default function CompanyIntelligence() {
         .eq('company_id', id)
         .order('engagement_score', { ascending: false });
       setStakeholders(stakeholdersData || []);
+    try {
+      // Load company
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      setCompany(companyData);
+
+      // Load interactions
+      const { data: interactionsData } = await (supabase as any)
+        .from('company_interactions')
+        .select('*')
+        .eq('company_id', id)
+        .order('interaction_date', { ascending: false });
+      setInteractions(interactionsData || []);
+
+      // Load stakeholders
+      const { data: stakeholdersData } = await (supabase as any)
+        .from('company_stakeholders')
+        .select('*')
+        .eq('company_id', id)
+        .order('engagement_score', { ascending: false });
+      setStakeholders(stakeholdersData || []);
     } catch (error) {
       console.error('Error loading data:', error);
-    } finally {
+      setFetchError('Failed to load company intelligence data');
+      toast.error('Failed to load company data');
       setLoading(false);
     }
   };
