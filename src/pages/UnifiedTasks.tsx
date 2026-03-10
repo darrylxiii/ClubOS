@@ -43,6 +43,7 @@ const UnifiedTasks = () => {
   const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
