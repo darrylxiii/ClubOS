@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ErrorState } from '@/components/ui/error-state';
 // AppLayout removed - rendered within ProtectedLayout
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +43,7 @@ export default function MeetingTemplates() {
   const { user } = useAuth();
   const [templates, setTemplates] = useState<MeetingTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MeetingTemplate | null>(null);
   const [formData, setFormData] = useState({
@@ -62,6 +64,7 @@ export default function MeetingTemplates() {
   const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
+      setFetchError(null);
       const { data, error } = await supabase
         .from('meeting_templates')
         .select('*')
@@ -77,6 +80,7 @@ export default function MeetingTemplates() {
       })));
     } catch (error) {
       console.error('Error loading templates:', error);
+      setFetchError('Failed to load meeting templates');
       toast.error('Failed to load templates');
       setTemplates([]);
     } finally {
@@ -205,6 +209,14 @@ export default function MeetingTemplates() {
   };
 
   const templateIcons = ['📅', '💼', '👥', '🎯', '🚀', '⚡', '🎓', '🎤', '📊', '💡'];
+
+  if (fetchError && templates.length === 0) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Templates Unavailable" message={fetchError} onRetry={loadTemplates} />
+      </div>
+    );
+  }
 
   return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ErrorState } from "@/components/ui/error-state";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,7 @@ const MeetingHistory = () => {
   const [analyzingRecording, setAnalyzingRecording] = useState<string | null>(null);
   const [selectedRecordingAnalysis, setSelectedRecordingAnalysis] = useState<MeetingRecording | null>(null);
   const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
-
+  const [fetchError, setFetchError] = useState<string | null>(null);
   // Upload form state
   const [uploadForm, setUploadForm] = useState({
     title: "",
@@ -93,6 +94,7 @@ const MeetingHistory = () => {
 
     try {
       setIsLoading(true);
+      setFetchError(null);
       const { data, error } = await supabase
         .from('meeting_recordings')
         .select('*')
@@ -103,6 +105,7 @@ const MeetingHistory = () => {
       setRecordings(data || []);
     } catch (error) {
       console.error('Error loading recordings:', error);
+      setFetchError('Failed to load meeting recordings');
       toast.error('Failed to load meeting recordings');
     } finally {
       setIsLoading(false);
@@ -279,6 +282,14 @@ const MeetingHistory = () => {
       default: return 'bg-gray-500';
     }
   };
+
+  if (fetchError && recordings.length === 0) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Recordings Unavailable" message={fetchError} onRetry={loadRecordings} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">

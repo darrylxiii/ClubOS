@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ErrorState } from "@/components/ui/error-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +62,7 @@ export default function InterviewPrep() {
   });
   const [loading, setLoading] = useState(true);
   const [aiPrep, setAiPrep] = useState<PrepData | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
@@ -137,6 +139,8 @@ export default function InterviewPrep() {
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
+      setFetchError("Failed to load your applications");
+      toast.error("Failed to load interview prep data");
     } finally {
       setLoading(false);
     }
@@ -196,6 +200,14 @@ export default function InterviewPrep() {
     'Culture Fit': 'bg-green-500/10 text-green-400 border-green-500/20',
     'Role-Specific': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   };
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 p-6">
+        <ErrorState variant="page" title="Interview Prep Unavailable" message={fetchError} onRetry={fetchApplications} />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -25,7 +25,7 @@ export const HeroBanner = () => {
         .gte('featured_until', new Date().toISOString())
         .order('featured_until', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         setFeaturedCourse(data as any);
@@ -36,7 +36,7 @@ export const HeroBanner = () => {
           .select('id, title, description, course_image_url, enrolled_count')
           .order('enrolled_count', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (popular) setFeaturedCourse(popular as any);
       }

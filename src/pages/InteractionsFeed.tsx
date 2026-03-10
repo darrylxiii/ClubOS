@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ErrorState } from '@/components/ui/error-state';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sentimentFilter, setSentimentFilter] = useState('all');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     loadInteractions();
@@ -25,6 +27,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
 
   const loadInteractions = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const query = (supabase as any)
         .from('company_interactions')
@@ -44,6 +47,9 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
       setInteractions(data || []);
     } catch (error) {
       console.error('Error loading interactions:', error);
+      setFetchError('Failed to load interactions');
+      const { toast } = await import('sonner');
+      toast.error('Failed to load interactions');
     } finally {
       setLoading(false);
     }
@@ -100,6 +106,14 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
   };
 
   const Wrapper = embedded ? ({ children }: { children: React.ReactNode }) => <>{children}</> : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
+  if (fetchError && interactions.length === 0) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Interactions Unavailable" message={fetchError} onRetry={loadInteractions} />
+      </div>
+    );
+  }
 
   return (
     <Wrapper>

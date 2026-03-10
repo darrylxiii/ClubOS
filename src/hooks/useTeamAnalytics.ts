@@ -99,7 +99,7 @@ export function useHistoricalTrends(userId: string, months = 6) {
           .from('employee_profiles')
           .select('id')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         let revenue = 0;
         if (employeeProfile) {
@@ -149,7 +149,7 @@ export function useBenchmarks(userId: string, period: Period = 'monthly') {
         .from('employee_profiles')
         .select('id')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       // Group by employee
       const employeeStats = new Map<string, { sourced: number; placed: number; revenue: number }>();

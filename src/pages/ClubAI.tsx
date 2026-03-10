@@ -113,7 +113,7 @@ const ClubAI = () => {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProfile(data);
@@ -141,6 +141,7 @@ const ClubAI = () => {
       })));
     } catch (error) {
       console.error("Error loading conversations:", error);
+      toast({ title: "Failed to load conversations", variant: "destructive" });
     }
   };
   
@@ -150,7 +151,7 @@ const ClubAI = () => {
         .from("ai_conversations")
         .select("*")
         .eq("id", conversationId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       
@@ -159,6 +160,7 @@ const ClubAI = () => {
       }
     } catch (error) {
       console.error("Error loading conversation:", error);
+      toast({ title: "Failed to load conversation", variant: "destructive" });
     }
   };
   
@@ -245,6 +247,7 @@ const ClubAI = () => {
       if (error) throw error;
     } catch (error) {
       console.error("Error saving conversation:", error);
+      toast({ title: "Failed to save conversation", variant: "destructive" });
     }
   };
 

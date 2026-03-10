@@ -94,7 +94,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
         .from("freelance_contracts")
         .select("*")
         .eq("id", contractId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;

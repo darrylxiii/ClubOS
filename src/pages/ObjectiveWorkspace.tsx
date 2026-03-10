@@ -63,7 +63,7 @@ const ObjectiveWorkspace = () => {
           tasks:unified_tasks(*)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setObjective({
@@ -108,6 +108,7 @@ const ObjectiveWorkspace = () => {
       setComments(data || []);
     } catch (error) {
       console.error("Error loading comments:", error);
+      toast.error("Failed to load comments");
     }
   }, [id]);
 
@@ -129,6 +130,7 @@ const ObjectiveWorkspace = () => {
       setActivities(data || []);
     } catch (error) {
       console.error("Error loading activities:", error);
+      toast.error("Failed to load activities");
     }
   }, [id]);
 
@@ -183,6 +185,7 @@ const ObjectiveWorkspace = () => {
       setBlockedByTasks(blockedBy?.map(b => b.blocker).filter(Boolean) || []);
     } catch (error) {
       console.error("Error loading dependencies:", error);
+      toast.error("Failed to load task dependencies");
     }
   }, [id]);
 

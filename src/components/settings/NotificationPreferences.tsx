@@ -69,7 +69,7 @@ export const NotificationPreferences = () => {
         .from('notification_preferences' as any)
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
 

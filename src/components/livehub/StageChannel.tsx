@@ -55,7 +55,7 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
       .from('live_channels')
       .select('*')
       .eq('id', channelId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error loading channel:', error);

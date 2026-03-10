@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { ErrorState } from "@/components/ui/error-state";
 import { useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ const UnifiedTasks = () => {
   const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -65,7 +67,12 @@ const UnifiedTasks = () => {
     const init = async () => {
       if (!user) return;
       setLoading(true);
-      await Promise.all([loadPreferences(), loadObjectives(), loadAllTasks()]);
+      setFetchError(null);
+      try {
+        await Promise.all([loadPreferences(), loadObjectives(), loadAllTasks()]);
+      } catch {
+        setFetchError("Failed to load tasks. Please try again.");
+      }
       setLoading(false);
     };
     init();
@@ -96,7 +103,7 @@ const UnifiedTasks = () => {
         if (insertError) throw insertError;
         setPreferences(newPrefs);
       }
-    } catch (error) { console.error("Error loading preferences:", error); }
+    } catch (error) { console.error("Error loading preferences:", error); toast.error("Failed to load task preferences"); }
   };
 
   const loadObjectives = async () => {
@@ -106,7 +113,7 @@ const UnifiedTasks = () => {
       if (error) throw error;
       setObjectives(data || []);
       if (data && data.length > 0 && !selectedObjective) setSelectedObjective(data[0].id);
-    } catch (error) { console.error("Error loading objectives:", error); }
+    } catch (error) { console.error("Error loading objectives:", error); toast.error("Failed to load objectives"); }
   };
 
   const loadAllTasks = async () => {
@@ -145,6 +152,14 @@ const UnifiedTasks = () => {
     } catch { toast.error("Failed to schedule tasks"); }
     finally { setScheduling(false); }
   };
+
+  if (fetchError) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Tasks Unavailable" message={fetchError} onRetry={() => setRefreshKey(p => p + 1)} />
+      </div>
+    );
+  }
 
   if (loading || !preferences) {
     return (

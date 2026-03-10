@@ -46,7 +46,7 @@ export function useSmartReplyIntelligence(replyId?: string) {
         .from('crm_reply_intelligence')
         .select('*')
         .eq('reply_id', replyId)
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') throw error;
       return data as unknown as ReplyIntelligence | null;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ErrorState } from '@/components/ui/error-state';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ export default function MeetingIntelligence() {
   const [filteredMeetings, setFilteredMeetings] = useState<MeetingWithInsights[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'analyzed' | 'pending'>('all');
   
   // Settings
@@ -80,7 +82,7 @@ export default function MeetingIntelligence() {
     
     try {
       setIsLoading(true);
-      
+      setFetchError(null);
       // Get meetings with bot sessions and insights
       const { data: meetingsData, error } = await supabase
         .from('meetings')
@@ -137,6 +139,7 @@ export default function MeetingIntelligence() {
       setMeetings(formattedMeetings);
     } catch (error) {
       console.error('Error loading meetings:', error);
+      setFetchError('Failed to load meeting intelligence data');
       toast.error('Failed to load meetings');
     } finally {
       setIsLoading(false);
@@ -237,6 +240,14 @@ export default function MeetingIntelligence() {
       default: return 'text-yellow-500 bg-yellow-500/10';
     }
   };
+
+  if (fetchError && meetings.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <ErrorState variant="page" title="Meeting Intelligence Unavailable" message={fetchError} onRetry={loadMeetings} />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ErrorState } from '@/components/ui/error-state';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,7 @@ export default function CompanyIntelligence() {
   const [stakeholders, setStakeholders] = useState<CompanyStakeholder[]>([]);
   const [insights, setInsights] = useState<any>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -29,13 +31,14 @@ export default function CompanyIntelligence() {
 
   const loadData = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       // Load company
       const { data: companyData } = await supabase
         .from('companies')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
       setCompany(companyData);
 
       // Load interactions
@@ -56,6 +59,8 @@ export default function CompanyIntelligence() {
       setStakeholders(stakeholdersData || []);
     } catch (error) {
       console.error('Error loading data:', error);
+      setFetchError('Failed to load company intelligence data');
+      toast.error('Failed to load company data');
     } finally {
       setLoading(false);
     }
@@ -93,13 +98,11 @@ export default function CompanyIntelligence() {
     );
   }
 
-  if (!company) {
+  if (fetchError || !company) {
     return (
-      <>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-muted-foreground">Company not found</p>
-        </div>
-      </>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Company Intelligence Unavailable" message={fetchError || 'Company not found'} onRetry={loadData} />
+      </div>
     );
   }
 

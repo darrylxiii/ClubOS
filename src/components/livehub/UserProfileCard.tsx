@@ -42,14 +42,14 @@ export function UserProfileCard({ userId, open, onOpenChange }: UserProfileCardP
         .from('profiles')
         .select('id, full_name, avatar_url')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       // Load extended profile
       const { data: extendedProfile } = await supabase
         .from('user_profiles_extended')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       setProfile({
         ...basicProfile,

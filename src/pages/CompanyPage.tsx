@@ -225,6 +225,7 @@ export default function CompanyPage() {
       setTargetCompaniesCount(targetsRes.count || 0);
     } catch (error) {
       console.error("Error loading stats:", error);
+      toast.error("Failed to load company stats");
     }
   };
 

@@ -29,7 +29,7 @@ export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
         .from('companies')
         .select('name')
         .eq('id', companyId)
-        .single();
+        .maybeSingle();
 
       if (!company) return;
 

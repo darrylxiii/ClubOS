@@ -78,8 +78,8 @@ export function SmartOfferBuilder({
   const fetchCandidateInfo = async () => {
     try {
       const [candidateRes, jobRes] = await Promise.all([
-        supabase.from('candidate_profiles').select('full_name').eq('id', candidateId).single(),
-        supabase.from('jobs').select('title, company_id, companies(name)').eq('id', jobId).single()
+        supabase.from('candidate_profiles').select('full_name').eq('id', candidateId).maybeSingle(),
+        supabase.from('jobs').select('title, company_id, companies(name)').eq('id', jobId).maybeSingle()
       ]);
 
       if (candidateRes.data && jobRes.data) {

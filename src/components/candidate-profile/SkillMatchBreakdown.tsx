@@ -41,7 +41,7 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
     refreshSkills();
 
     if (jobId) {
-      supabase.from('jobs').select('requirements, nice_to_have').eq('id', jobId).single()
+      supabase.from('jobs').select('requirements, nice_to_have').eq('id', jobId).maybeSingle()
         .then(({ data }) => {
           if (data?.requirements && Array.isArray(data.requirements)) {
             setJobRequirements(data.requirements.map((r: any) =>
