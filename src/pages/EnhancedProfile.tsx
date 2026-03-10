@@ -43,6 +43,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
   const { user } = useAuth();
   const { currentRole } = useRole();
   const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- profile has 40+ fields
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);

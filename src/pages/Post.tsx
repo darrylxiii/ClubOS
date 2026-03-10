@@ -13,6 +13,7 @@ export default function Post() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- post with joined likes/comments/profiles
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);

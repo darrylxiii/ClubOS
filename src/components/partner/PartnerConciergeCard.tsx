@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -98,6 +99,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
       }
     } catch (error) {
       console.error('Error fetching strategist:', error);
+      toast.error('Failed to load your strategist info');
     } finally {
       setLoading(false);
     }

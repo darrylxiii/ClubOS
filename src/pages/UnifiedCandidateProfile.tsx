@@ -50,15 +50,24 @@ export default function UnifiedCandidateProfile() {
   const isPartner = role === 'partner';
 
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- candidate_profiles has 200+ fields with JSONB
   const [candidate, setCandidate] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [application, setApplication] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [experiences, setExperiences] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [education, setEducation] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [certifications, setCertifications] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [skills, setSkills] = useState<any[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [relationship, setRelationship] = useState<any>(null);
 
   useEffect(() => {

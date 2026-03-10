@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 
 export default function CertificateVerification() {
   const { code } = useParams<{ code: string }>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- certificate table not in generated types
   const [certificate, setCertificate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -35,6 +35,7 @@ export default function JobDetail() {
   const { user } = useAuth();
   const { currentRole: role } = useRole();
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- complex joined query result
   const [job, setJob] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
