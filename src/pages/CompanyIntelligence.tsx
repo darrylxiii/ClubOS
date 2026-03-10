@@ -31,7 +31,7 @@ export default function CompanyIntelligence() {
 
   const loadData = async () => {
     setLoading(true);
-    try {
+    setFetchError(null);
       // Load company
       const { data: companyData } = await supabase
         .from('companies')
