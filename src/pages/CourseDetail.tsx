@@ -139,6 +139,19 @@ export default function CourseDetail() {
     enabled: !!slug,
   });
 
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load course"
+          message="We couldn't load this course. Please try again."
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
+
   // Redirect if course not found (after loading)
   if (!loading && courseQueryData === null) {
     notify.error("Course not found");
