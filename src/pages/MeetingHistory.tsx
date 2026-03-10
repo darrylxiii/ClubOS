@@ -283,6 +283,14 @@ const MeetingHistory = () => {
     }
   };
 
+  if (fetchError && recordings.length === 0) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Recordings Unavailable" message={fetchError} onRetry={loadRecordings} />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">

@@ -139,6 +139,7 @@ export default function MeetingIntelligence() {
       setMeetings(formattedMeetings);
     } catch (error) {
       console.error('Error loading meetings:', error);
+      setFetchError('Failed to load meeting intelligence data');
       toast.error('Failed to load meetings');
     } finally {
       setIsLoading(false);

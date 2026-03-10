@@ -153,6 +153,14 @@ const UnifiedTasks = () => {
     finally { setScheduling(false); }
   };
 
+  if (fetchError) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Tasks Unavailable" message={fetchError} onRetry={() => setRefreshKey(p => p + 1)} />
+      </div>
+    );
+  }
+
   if (loading || !preferences) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-4 space-y-3">

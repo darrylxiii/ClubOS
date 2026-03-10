@@ -201,6 +201,14 @@ export default function InterviewPrep() {
     'Role-Specific': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   };
 
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 p-6">
+        <ErrorState variant="page" title="Interview Prep Unavailable" message={fetchError} onRetry={fetchApplications} />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 p-6">
