@@ -198,6 +198,19 @@ export default function UnifiedCandidateProfile() {
     }
   };
 
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load candidate"
+          message="We couldn't load this candidate's profile. Please try again."
+          onRetry={() => { setFetchError(false); setLoading(true); loadCandidate(); }}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <>
