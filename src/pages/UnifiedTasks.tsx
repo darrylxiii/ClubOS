@@ -113,7 +113,7 @@ const UnifiedTasks = () => {
       if (error) throw error;
       setObjectives(data || []);
       if (data && data.length > 0 && !selectedObjective) setSelectedObjective(data[0].id);
-    } catch (error) { console.error("Error loading objectives:", error); }
+    } catch (error) { console.error("Error loading objectives:", error); toast.error("Failed to load objectives"); }
   };
 
   const loadAllTasks = async () => {
