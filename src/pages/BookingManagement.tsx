@@ -65,6 +65,7 @@ export default function BookingManagement() {
   const [calendars, setCalendars] = useState<CalendarConnection[]>([]);
   const [stats, setStats] = useState<BookingStats>({ total: 0, confirmed: 0, cancelled: 0, no_shows: 0 });
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<BookingLink | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
