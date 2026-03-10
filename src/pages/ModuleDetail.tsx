@@ -72,7 +72,7 @@ export default function ModuleDetail() {
           course:courses(id, title, slug)
         `)
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
 
       if (moduleError) throw moduleError;
       setModule(moduleData as Module);

@@ -139,7 +139,7 @@ export function useChurnPrevention() {
         .from('profiles')
         .select('email, full_name')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (!profile?.email) {
         throw new Error('User email not found');

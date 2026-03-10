@@ -42,7 +42,7 @@ export default function ProjectsPage() {
         .from("profiles")
         .select("open_to_freelance_work, freelance_availability_status, freelance_categories")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;

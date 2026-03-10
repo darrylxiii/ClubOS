@@ -90,7 +90,7 @@ export const useNextSteps = () => {
           .from('profiles')
           .select('club_sync_enabled')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
       ]);
 
       const profile = profileRes.data;

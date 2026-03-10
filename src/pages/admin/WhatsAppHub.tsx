@@ -104,7 +104,7 @@ export default function WhatsAppHub() {
         .from('whatsapp_business_accounts')
         .select('id, verified_name, is_active')
         .limit(1)
-        .single();
+        .maybeSingle();
       return data;
     },
   });

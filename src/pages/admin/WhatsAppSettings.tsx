@@ -23,7 +23,7 @@ export default function WhatsAppSettings() {
         .from('whatsapp_business_accounts')
         .select('*')
         .limit(1)
-        .single();
+        .maybeSingle();
       return data;
     },
   });
