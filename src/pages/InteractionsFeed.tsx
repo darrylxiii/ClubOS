@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ErrorState } from '@/components/ui/error-state';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
