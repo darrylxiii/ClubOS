@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { ErrorState } from "@/components/ui/error-state";
 import { useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
