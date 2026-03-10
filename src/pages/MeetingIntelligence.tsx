@@ -241,6 +241,14 @@ export default function MeetingIntelligence() {
     }
   };
 
+  if (fetchError && meetings.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <ErrorState variant="page" title="Meeting Intelligence Unavailable" message={fetchError} onRetry={loadMeetings} />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="container mx-auto px-4 py-8 space-y-8">
