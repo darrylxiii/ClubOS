@@ -102,7 +102,7 @@ export default function RecordingPlaybackPage() {
             .from('meetings')
             .select('title, meeting_type, scheduled_start, host_id')
             .eq('id', rec.meeting_id as string)
-            .single();
+            .maybeSingle();
           
           setRecording({ ...rec, meeting: meetingData });
         } else if (rec.live_channel_id) {
