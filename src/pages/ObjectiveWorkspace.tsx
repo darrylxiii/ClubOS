@@ -108,6 +108,7 @@ const ObjectiveWorkspace = () => {
       setComments(data || []);
     } catch (error) {
       console.error("Error loading comments:", error);
+      toast.error("Failed to load comments");
     }
   }, [id]);
 
