@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { MessageSquare, Send, Download, Clock, TrendingUp, Users } from 'lucide-react';
+import { ErrorState } from '@/components/ui/error-state';
 import { format, subDays } from 'date-fns';
 
 
