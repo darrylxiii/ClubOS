@@ -31,6 +31,9 @@ export default function MessagingAnalytics() {
 
   const loadAnalytics = async () => {
     if (!user) return;
+    setLoading(true);
+    setFetchError(false);
+    try {
 
     const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
