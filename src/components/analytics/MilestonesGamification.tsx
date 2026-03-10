@@ -46,7 +46,7 @@ export const MilestonesGamification = () => {
         .from("user_engagement")
         .select("*")
         .eq("user_id", user?.id)
-        .single();
+        .maybeSingle();
 
       const stats = {
         followers: profileData?.followers_count || 0,

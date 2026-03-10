@@ -35,7 +35,7 @@ export const NoteEditor = memo<NoteEditorProps>(({
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setContent((data as any).content);

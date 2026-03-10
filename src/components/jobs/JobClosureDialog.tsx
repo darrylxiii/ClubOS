@@ -485,7 +485,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             .eq('application_id', selectedApplicationId)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           if (newFee?.id) {
             // Fire-and-forget: create partner invoice + Moneybird draft
