@@ -149,6 +149,14 @@ export default function SchedulingSettings() {
     );
   }
 
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState variant="page" title="Failed to load settings" message="We couldn't load your scheduling settings. Please try again." onRetry={() => { setFetchError(false); loadSettings(); }} />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <Breadcrumb />
