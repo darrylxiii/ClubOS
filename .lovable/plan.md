@@ -60,6 +60,29 @@
 - **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
 - **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
 
+### Phase H1: .single() Crash Prevention ✅ (62 → 68)
+- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
+- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+
+### Phase H2: ErrorState Integration ✅ (68 → 75)
+- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
+  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
+- Added `fetchError` state + error render before loading checks
+- Each page shows a branded error card with "Try again" retry action
+
+### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
+- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+
+---
+
+### Remaining: Phase H4–H6
+
+| Phase | Task | Files | Status | Impact |
+|-------|------|-------|--------|--------|
+| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
+| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
+| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+
 ### Phase I2: Remaining Ecosystem
 
 | # | Task | Status | Impact |
