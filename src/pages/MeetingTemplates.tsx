@@ -65,18 +65,6 @@ export default function MeetingTemplates() {
     try {
       setLoading(true);
       setFetchError(null);
-        .from('meeting_templates')
-        .select('*')
-        .or(`user_id.eq.${user?.id},is_public.eq.true`)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setTemplates((data || []).map((template: any) => ({
-        ...template,
-        default_duration: template.default_duration || template.duration_minutes || 60,
-        usage_count: template.usage_count || 0,
-        icon: template.icon || '📅'
-      })));
       const { data, error } = await supabase
         .from('meeting_templates')
         .select('*')
