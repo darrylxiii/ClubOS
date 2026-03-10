@@ -288,7 +288,7 @@ export function useTimesheets(userId?: string) {
       .eq('user_id', currentUserId)
       .eq('start_date', weekStart)
       .eq('end_date', weekEnd)
-      .single();
+      .maybeSingle();
     
     if (existing) return existing as TimesheetPeriod;
     

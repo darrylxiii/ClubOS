@@ -21,7 +21,7 @@ export function usePlatformMetrics() {
         .select('*')
         .order('metric_date', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) {
         // Fallback to reasonable defaults if no metrics exist yet

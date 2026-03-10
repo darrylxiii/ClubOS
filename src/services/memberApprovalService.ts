@@ -286,7 +286,7 @@ export const memberApprovalService = {
         .select('id')
         .eq('user_id', userId)
         .eq('role', role)
-        .single();
+        .maybeSingle();
 
       if (existingRole) {
         console.log('[MemberApproval] Role already assigned:', role);
@@ -341,7 +341,7 @@ export const memberApprovalService = {
         .select('id')
         .eq('user_id', userId)
         .eq('company_id', companyId)
-        .single();
+        .maybeSingle();
 
       if (existingMember) {
         console.log('[MemberApproval] Already a company member');

@@ -31,7 +31,7 @@ const Incubator20 = memo(() => {
           .from('profiles')
           .select('current_title, career_preferences, location, years_of_experience')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         // Generate personalized scenario with profile data
         const generatedScenario = generatePersonalizedScenario(profile);

@@ -32,7 +32,7 @@ export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogPro
       .eq("contact_email", email)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     setLoading(false);
 

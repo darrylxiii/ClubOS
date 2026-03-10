@@ -57,7 +57,7 @@ export const useNextSteps = () => {
           .from('profiles')
           .select('resume_url, email_verified, phone_verified, linkedin_url, career_preferences, avatar_url, created_at')
           .eq('id', user.id)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('calendar_connections')
           .select('id', { count: 'exact', head: true })
@@ -71,7 +71,7 @@ export const useNextSteps = () => {
           .from('profiles')
           .select('created_at, updated_at')
           .eq('id', user.id)
-          .single(),
+          .maybeSingle(),
         (supabase as any)
           .from('detected_interviews')
           .select('id', { count: 'exact', head: true })
@@ -90,7 +90,7 @@ export const useNextSteps = () => {
           .from('profiles')
           .select('club_sync_enabled')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
       ]);
 
       const profile = profileRes.data;

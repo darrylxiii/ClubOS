@@ -59,7 +59,7 @@ export async function sendInvitations(
       .from('profiles')
       .select('full_name, email')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     const inviterName = inviterProfile?.full_name || user.email || 'Someone';
 
@@ -76,7 +76,7 @@ export async function sendInvitations(
             .from('profiles')
             .select('id')
             .eq('email', participant.email)
-            .single();
+            .maybeSingle();
           
           if (profile) {
             inviteeUserId = profile.id;
@@ -200,7 +200,7 @@ export async function resendInvitation(invitationId: string): Promise<boolean> {
       .from('profiles')
       .select('full_name')
       .eq('id', user?.id)
-      .single();
+      .maybeSingle();
 
     const inviterName = inviterProfile?.full_name || user?.email || 'Someone';
 

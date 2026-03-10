@@ -222,7 +222,7 @@ export async function trackOfferResponse(
       .from('offer_analytics')
       .select('offered_at')
       .eq('id', offerId)
-      .single();
+      .maybeSingle();
 
     const timeToDecisionHours = offer?.offered_at 
       ? Math.round((respondedAt.getTime() - new Date(offer.offered_at).getTime()) / (1000 * 60 * 60))

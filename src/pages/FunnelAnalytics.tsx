@@ -32,7 +32,7 @@ export default function FunnelAnalytics() {
     const { data } = await supabase
       .from("funnel_config")
       .select("is_active")
-      .single();
+      .maybeSingle();
     if (data) setIsActive(data.is_active);
   };
 

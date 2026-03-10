@@ -127,7 +127,7 @@ export const useDynamicBlogPost = (categorySlug: string, postSlug: string) => {
         .eq('slug', postSlug)
         .eq('category', categorySlug)
         .eq('status', 'published')
-        .single();
+        .maybeSingle();
 
       if (dbPost && !error) {
         return transformDBPost(dbPost);

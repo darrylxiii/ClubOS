@@ -47,7 +47,7 @@ export function EmailSidebar({
         .eq("is_active", true)
         .order("last_sync_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (data?.last_sync_at) {
         setLastSync(data.last_sync_at);

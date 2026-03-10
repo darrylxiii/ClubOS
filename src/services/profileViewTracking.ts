@@ -45,7 +45,7 @@ export async function trackProfileView({
       .from('profiles')
       .select('company_id')
       .eq('id', viewerId)
-      .single();
+      .maybeSingle();
 
     if (!viewerProfile) {
       logger.warn('Viewer profile not found', { componentName: 'ProfileViewTracking', viewerId });
@@ -57,7 +57,7 @@ export async function trackProfileView({
       .from('profiles')
       .select('stealth_mode_enabled, company_id, blocked_companies')
       .eq('id', profileId)
-      .single();
+      .maybeSingle();
 
     // Respect stealth mode: don't track if viewer is from candidate's current company
     if (viewedProfile?.stealth_mode_enabled && 
