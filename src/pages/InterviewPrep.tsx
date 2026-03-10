@@ -62,6 +62,7 @@ export default function InterviewPrep() {
   });
   const [loading, setLoading] = useState(true);
   const [aiPrep, setAiPrep] = useState<PrepData | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
