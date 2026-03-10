@@ -1,92 +1,136 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Full Codebase Audit Report — Current State
 
-## Completed
+## Score: ~85/100
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+The `/login` redirect is fully fixed (0 matches). Previous batch work resolved the most critical crashes. Here is what remains.
 
 ---
 
-## Remaining
+## Category 1: `.single()` Crash Risk — 2,565 matches in 337 files
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+Many are safe (insert/select/single, PK lookups), but a significant number are filter-based and will crash on empty results. The highest-risk remaining files not yet fixed:
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+| File | Dangerous pattern |
+|------|------------------|
+| `RecommendationsPanel.tsx` | `.eq('id', rec.recommended_id).single()` — rec may reference deleted content |
+| `InterviewCommandWidget.tsx` | `.eq('id', meeting.candidate_id).single()` (x3) — candidate may be deleted |
+| `AudiencePickerModal.tsx` | `.eq('id', userId).single()` — profile lookup |
+| `MessageSearch.tsx` | `.ilike('full_name', ...).single()` — may match 0 or multiple |
+| `Onboarding.tsx` | `.eq('code', inviteCode).single()` — code may not exist |
+| `LiveDJs.tsx` | `.eq('id', session.dj_id).single()` — DJ profile may not exist |
+| `AddJobTeamMemberDialog.tsx` | `.eq('id', jobId).single()` — job lookup |
+| `useHealthScores.ts` | `.eq('id', jobId).single()` — job may be deleted |
+| `useMLMatching.ts` | `.eq('id', options.jobId).single()` |
+| `useTalentPool.ts` | `.eq('id', candidateId).single()` |
+| `useSecurityConfig.ts` | `.eq('config_key', 'ip_whitelist').single()` (x2) — config may not exist |
+| `SSOManagement.tsx` | filter-based lookups |
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
-
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
-
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
-
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+**Estimate: ~20 more files need `.maybeSingle()` conversion**
 
 ---
 
-### Remaining: Phase H4–H6
+## Category 2: `useState<any>` — 453 matches in 84 files
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+Top offenders in pages (23 files, 131 matches):
+- `MeetingRoom.tsx`, `MeetingNotes.tsx`, `MeetingInsights.tsx`
+- `AcademyCreatorHub.tsx`, `CourseEdit.tsx`, `ModuleEdit.tsx`
+- `InterviewPrepChat.tsx`, `AdminRejections.tsx`, `AdminUserProfile.tsx`
+- `CompanyIntelligence.tsx`
 
-### Phase I2: Remaining Ecosystem
+Top offenders in components (61 files, 322 matches):
+- `JobDashboardCandidates.tsx`, `EmailInbox.tsx`, `CompanyProfile.tsx`
+- `UserProfilePreview.tsx`, `ModuleQuiz.tsx`, `UnifiedTaskDetailDialog.tsx`
+- `MeetingIntelligenceHub.tsx`, `CompanyMLInsights.tsx`
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+**Impact: Developer quality, potential runtime bugs from untyped data access. Not user-facing crashes.**
+
+---
+
+## Category 3: `as any` casts — 592 matches in 63 page files
+
+Most are casting Supabase queries for tables not in generated types (e.g., `(supabase as any).from('career_insights_cache')`). These are structural — fixing requires adding tables to the type system or creating typed wrappers.
+
+**Impact: Medium. Masks type errors but works at runtime.**
+
+---
+
+## Category 4: Silent `catch` blocks — 831 matches in 107 files
+
+Most `catch {}` blocks are now acceptable:
+- JSON parse fallbacks, localStorage reads, Battery API, audio play, fullscreen — all fine
+- Sentry import failures — acceptable
+
+**Remaining problematic ones** (catch with only `console.error`, no toast):
+- `Companies.tsx` lines 191, 243, 288 — member/metrics loads fail silently
+- `UnifiedCandidateProfile.tsx` line 193 — candidate load error, no user feedback
+- `JobDetail.tsx` lines 143, 185 — status checks fail silently (minor)
+
+**Estimate: ~5 files need toast.error additions**
+
+---
+
+## Category 5: ErrorState adoption — only 8 pages use it
+
+Pages that fetch data but have no ErrorState:
+- `AcademyCreatorHub.tsx`, `PersonalMeetingRoom.tsx`, `BookingManagement.tsx`
+- `MessagingAnalytics.tsx`, `Post.tsx`, `CompanyPage.tsx`, `ClubAI.tsx`
+- `MeetingRoom.tsx`, `Settings.tsx`, `CourseDetail.tsx`
+
+**Estimate: ~7 more pages should wire ErrorState**
+
+---
+
+## Category 6: `.catch(() => {})` swallowed promises — 168 matches in 23 files
+
+Most are acceptable (media autoplay, fullscreen, Sentry lazy-load). Problematic ones:
+- `MeetingRoom.tsx` lines 130, 146 — analytics POST silently swallowed
+- `BatchProcessingPanel.tsx` line 55 — batch processing errors swallowed
+- `FunnelAIAssistant.tsx` line 110 — AI response error, but does show error message in chat
+
+**Impact: Low. Most are fire-and-forget or have fallbacks.**
+
+---
+
+## Implementation Plan (85 → 92)
+
+### Wave 1: `.single()` → `.maybeSingle()` (20 files)
+Convert the remaining filter-based lookups listed in Category 1. Keep `.single()` for insert+select and PK-by-id patterns.
+
+### Wave 2: Silent catches → toast (5 files)
+Add `toast.error()` to:
+- `Companies.tsx` (3 silent catches for members/metrics)
+- `UnifiedCandidateProfile.tsx` (candidate load)
+- `JobDetail.tsx` (2 silent status checks)
+
+### Wave 3: ErrorState wiring (7 pages)
+Add `fetchError` state + `<ErrorState>` to:
+- `AcademyCreatorHub.tsx`
+- `PersonalMeetingRoom.tsx`
+- `BookingManagement.tsx`
+- `MessagingAnalytics.tsx`
+- `CompanyPage.tsx`
+- `ClubAI.tsx`
+- `CourseDetail.tsx`
+
+### Deferred (requires dedicated effort)
+- `useState<any>` elimination (84 files) — needs interface definitions for each entity
+- `as any` Supabase casts (63 files) — needs type generation for missing tables
+- useQuery migration for remaining manual-fetch pages
+
+---
+
+## Summary
+
+| Issue | Count | Severity | Fix effort |
+|-------|-------|----------|-----------|
+| Dangerous `.single()` | ~20 files remaining | HIGH — runtime crashes | 2h |
+| Silent catches without toast | ~5 files | MEDIUM — invisible failures | 30m |
+| Missing ErrorState | ~7 pages | MEDIUM — infinite loaders | 1h |
+| `useState<any>` | 84 files, 453 instances | LOW — developer quality | 8h+ |
+| `as any` casts | 63 files, 592 instances | LOW — type masking | 8h+ |
+| Swallowed `.catch(() => {})` | ~3 actionable | LOW | 15m |
+
+**Recommended: Implement Waves 1-3 (~32 files, ~3.5h) to reach 92/100.**
+
