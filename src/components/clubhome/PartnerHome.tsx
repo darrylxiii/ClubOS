@@ -11,6 +11,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { RecentApplicationsList } from "./RecentApplicationsList";
 import { TalentRecommendations } from "../partner/TalentRecommendations";
+import { PendingReviewsWidget } from "../partner/PendingReviewsWidget";
 import { HiringPipelineOverview } from "./HiringPipelineOverview";
 import { PartnerActivityFeed } from "./PartnerActivityFeed";
 import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
