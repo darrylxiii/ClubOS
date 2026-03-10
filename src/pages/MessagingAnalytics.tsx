@@ -183,6 +183,13 @@ export default function MessagingAnalytics() {
     }));
 
     setMediaBreakdown(mediaData);
+    } catch (error) {
+      console.error('Error loading messaging analytics:', error);
+      toast.error('Failed to load messaging analytics');
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondary))', 'hsl(var(--muted))'];
