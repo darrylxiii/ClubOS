@@ -479,10 +479,40 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
         </div>
 
         <div className="rounded-lg border border-border p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-primary" />
-            <p className="text-sm font-semibold">First Review Reviewer</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-primary" />
+              <p className="text-sm font-semibold">Review Gate Assignments</p>
+            </div>
           </div>
+
+          {/* Layer tabs */}
+          {canManageReviewers && (
+            <div className="flex gap-1 p-1 rounded-lg bg-muted/30">
+              <button
+                onClick={() => { setReviewLayerTab('internal'); setSelectedReviewerId(''); }}
+                className={cn(
+                  'flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
+                  reviewLayerTab === 'internal'
+                    ? 'bg-card shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                Internal Reviewers
+              </button>
+              <button
+                onClick={() => { setReviewLayerTab('partner'); setSelectedReviewerId(''); }}
+                className={cn(
+                  'flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
+                  reviewLayerTab === 'partner'
+                    ? 'bg-card shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                Partner Reviewers
+              </button>
+            </div>
+          )}
 
           {!canManageReviewers ? (
             <p className="text-sm text-muted-foreground">
@@ -493,15 +523,15 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
               <div className="grid md:grid-cols-[1fr_auto_auto] gap-2 items-center">
                 <Select value={selectedReviewerId} onValueChange={setSelectedReviewerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select partner reviewer" />
+                    <SelectValue placeholder={reviewLayerTab === 'partner' ? 'Select partner reviewer' : 'Select internal reviewer'} />
                   </SelectTrigger>
                   <SelectContent>
-                   {reviewerOptions.length === 0 ? (
+                    {(reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions).length === 0 ? (
                       <SelectItem value="__empty" disabled>
-                        No partner reviewers available
+                        No reviewers available
                       </SelectItem>
                     ) : (
-                      reviewerOptions.map((reviewer) => (
+                      (reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions).map((reviewer) => (
                         <SelectItem key={reviewer.id} value={reviewer.id}>
                           {reviewer.fullName}
                           {reviewer.email ? ` (${reviewer.email})` : ''}
@@ -527,30 +557,41 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                 </Button>
               </div>
 
-              {reviewerAssignments.length > 0 && (
-                <div className="space-y-2">
-                  {reviewerAssignments.map((assignment) => (
-                    <div
-                      key={assignment.id}
-                      className="flex items-center justify-between rounded-md border border-border px-3 py-2"
-                    >
-                      <div className="text-sm">
-                        <span className="font-medium">{getReviewerName(assignment.reviewerId)}</span>
-                        {assignment.isPrimary && (
-                          <span className="ml-2 text-xs text-primary">Primary</span>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveReviewer(assignment.id)}
+              {/* Current assignments for selected layer */}
+              {(() => {
+                const assignments = reviewLayerTab === 'partner' ? reviewerAssignments : internalReviewerAssignments;
+                const options = reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions;
+                const getName = (id: string) => options.find((o) => o.id === id)?.fullName || 'Reviewer';
+
+                return assignments.length > 0 ? (
+                  <div className="space-y-2">
+                    {assignments.map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        className="flex items-center justify-between rounded-md border border-border px-3 py-2"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <div className="text-sm">
+                          <span className="font-medium">{getName(assignment.reviewerId)}</span>
+                          {assignment.isPrimary && (
+                            <span className="ml-2 text-xs text-primary">Primary</span>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveReviewer(assignment.id, reviewLayerTab)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground py-2">
+                    No {reviewLayerTab === 'partner' ? 'partner' : 'internal'} reviewers assigned yet.
+                  </p>
+                );
+              })()}
             </>
           )}
         </div>
