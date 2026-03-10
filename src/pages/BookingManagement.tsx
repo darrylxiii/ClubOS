@@ -288,6 +288,19 @@ export default function BookingManagement() {
     });
   };
 
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load bookings"
+          message="We couldn't load your booking data. Please try again."
+          onRetry={loadAllData}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
