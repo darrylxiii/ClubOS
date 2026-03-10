@@ -59,7 +59,7 @@ export async function sendInvitations(
       .from('profiles')
       .select('full_name, email')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     const inviterName = inviterProfile?.full_name || user.email || 'Someone';
 
