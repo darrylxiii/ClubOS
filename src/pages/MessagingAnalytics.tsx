@@ -101,6 +101,7 @@ export default function MessagingAnalytics() {
       }
     } catch (error) {
       console.error('Error calculating response time:', error);
+      toast.error('Something went wrong loading analytics.');
     }
 
     setStats({
