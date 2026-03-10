@@ -19,6 +19,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sentimentFilter, setSentimentFilter] = useState('all');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     loadInteractions();
