@@ -114,7 +114,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       : Promise.resolve({ data: [], error: null }),
     supabase
       .from('jobs')
-      .select('id, title, salary_min, salary_max, currency, company_id')
+      .select('id, title, salary_min, salary_max, currency, company_id, requirements, nice_to_have, description, location, experience_level, seniority_level')
       .eq('id', jobId)
       .maybeSingle(),
   ]);
