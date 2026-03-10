@@ -48,6 +48,7 @@ export default function MeetingIntelligence() {
   const [filteredMeetings, setFilteredMeetings] = useState<MeetingWithInsights[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'analyzed' | 'pending'>('all');
   
   // Settings
