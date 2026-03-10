@@ -45,7 +45,7 @@ export const NextBestActionCard = () => {
         .from('profiles')
         .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       const profileFields = profile ? Object.values(profile).filter(v => v !== null && v !== undefined && v !== '').length : 0;
       const profileComplete = profileFields >= 8; // 80% of 10 fields
