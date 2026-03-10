@@ -158,6 +158,7 @@ export default function CompanyPage() {
     } catch (error) {
       console.error("Error loading company:", error);
       toast.error("Failed to load company information");
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
