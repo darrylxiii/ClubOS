@@ -57,7 +57,7 @@ const MeetingHistory = () => {
   const [analyzingRecording, setAnalyzingRecording] = useState<string | null>(null);
   const [selectedRecordingAnalysis, setSelectedRecordingAnalysis] = useState<MeetingRecording | null>(null);
   const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
-
+  const [fetchError, setFetchError] = useState<string | null>(null);
   // Upload form state
   const [uploadForm, setUploadForm] = useState({
     title: "",
