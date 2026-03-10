@@ -97,8 +97,8 @@ export const ReferralPipelineTracker = () => {
               .select('*')
               .eq('user_id', networkEntry.user_id)
               .order('created_at', { ascending: false })
-              .limit(1)
-              .single();
+               .limit(1)
+               .maybeSingle();
 
             if (applications) {
               const stages = applications.stages as any[];

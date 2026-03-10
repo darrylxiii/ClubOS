@@ -38,7 +38,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
         .from('meetings')
         .select('is_locked')
         .eq('id', meetingId)
-        .single();
+        .maybeSingle();
       if (data) setIsLocked(data.is_locked ?? false);
     };
     if (open) fetchLockState();

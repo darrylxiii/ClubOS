@@ -116,7 +116,7 @@ export function useCallSignaling(conversationId?: string) {
       .from('profiles')
       .select('full_name, avatar_url, email')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     const { data, error } = await supabase
       .from('call_invitations')

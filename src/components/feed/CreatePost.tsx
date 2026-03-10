@@ -78,7 +78,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               .from('companies')
               .select('name')
               .eq('id', profileData.company_id)
-              .single();
+              .maybeSingle();
             
             if (companyData) {
               setCompanyName(companyData.name);

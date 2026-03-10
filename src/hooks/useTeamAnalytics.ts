@@ -149,7 +149,7 @@ export function useBenchmarks(userId: string, period: Period = 'monthly') {
         .from('employee_profiles')
         .select('id')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       // Group by employee
       const employeeStats = new Map<string, { sourced: number; placed: number; revenue: number }>();
