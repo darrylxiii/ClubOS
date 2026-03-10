@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
+import { ErrorState } from "@/components/ui/error-state";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import { CourseAIChat } from "@/components/academy/CourseAIChat";
 import { CourseProgressRing } from "@/components/academy/CourseProgressRing";
