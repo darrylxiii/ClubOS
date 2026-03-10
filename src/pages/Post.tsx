@@ -13,7 +13,7 @@ export default function Post() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 

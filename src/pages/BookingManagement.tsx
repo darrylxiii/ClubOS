@@ -60,7 +60,7 @@ interface BookingStats {
 }
 
 export default function BookingManagement() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [bookingLinks, setBookingLinks] = useState<BookingLink[]>([]);
   const [calendars, setCalendars] = useState<CalendarConnection[]>([]);
   const [stats, setStats] = useState<BookingStats>({ total: 0, confirmed: 0, cancelled: 0, no_shows: 0 });

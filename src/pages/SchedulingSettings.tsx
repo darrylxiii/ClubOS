@@ -44,7 +44,7 @@ const TIMEZONES = [
 
 export default function SchedulingSettings() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [weekSchedule, setWeekSchedule] = useState<WeekSchedule | undefined>(undefined);

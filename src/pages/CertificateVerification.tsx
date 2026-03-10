@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 
 export default function CertificateVerification() {
   const { code } = useParams<{ code: string }>();
-  const [certificate, setCertificate] = useState<any>(null);
+  const [certificate, setCertificate] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
