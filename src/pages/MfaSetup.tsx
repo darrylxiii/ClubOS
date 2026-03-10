@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { ShieldCheck, Smartphone, CheckCircle2, Copy } from "lucide-react";
 import { PageLoader } from "@/components/PageLoader";
 
-type MfaStep = 'intro' | 'enroll' | 'verify' | 'complete';
+type MfaStep = 'intro' | 'verify' | 'complete';
 
 export default function MfaSetup() {
   const { user } = useAuth();
@@ -22,22 +22,54 @@ export default function MfaSetup() {
   const [verifyCode, setVerifyCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
 
-  // Check if already enrolled
+  // Check if already enrolled + clean up stale unverified factors
   useEffect(() => {
+    if (!user) return;
+
     const checkExisting = async () => {
-      const { data } = await supabase.auth.mfa.listFactors();
-      const verified = data?.totp?.filter(f => f.status === 'verified') || [];
-      if (verified.length > 0) {
-        navigate('/dashboard', { replace: true });
+      try {
+        const { data } = await supabase.auth.mfa.listFactors();
+        const verified = data?.totp?.filter(f => f.status === 'verified') || [];
+        if (verified.length > 0) {
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
+        // Clean up stale unverified factors from previous failed attempts
+        const unverified = data?.totp?.filter(f => f.status === 'unverified') || [];
+        for (const f of unverified) {
+          await supabase.auth.mfa.unenroll({ factorId: f.id });
+        }
+      } catch (err) {
+        console.error('[MfaSetup] Error checking existing factors:', err);
+      } finally {
+        setInitialCheckDone(true);
       }
     };
+
     checkExisting();
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleEnroll = async () => {
     setIsLoading(true);
     try {
+      // Validate session is still alive
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        toast.error('Session expired. Please sign in again.');
+        navigate('/auth', { replace: true });
+        return;
+      }
+
+      // Clean up any stale unverified factors before enrolling
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const stale = factors?.totp?.filter(f => f.status === 'unverified') || [];
+      for (const f of stale) {
+        await supabase.auth.mfa.unenroll({ factorId: f.id });
+      }
+
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: 'The Quantum Club TOTP',
@@ -46,6 +78,7 @@ export default function MfaSetup() {
       if (error) {
         toast.error('Failed to set up MFA. Please try again.');
         console.error('[MfaSetup] Enroll error:', error);
+        setStep('intro'); // Revert so user can retry
         return;
       }
 
@@ -55,7 +88,8 @@ export default function MfaSetup() {
       setStep('verify');
     } catch (err) {
       console.error('[MfaSetup] Error:', err);
-      toast.error('Something went wrong');
+      toast.error('Something went wrong. Please try again.');
+      setStep('intro'); // Revert so user can retry
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +140,8 @@ export default function MfaSetup() {
     toast.success('Secret copied to clipboard');
   };
 
-  if (!user) return <PageLoader />;
+  // Gate: wait for user + initial factor check before showing UI
+  if (!user || !initialCheckDone) return <PageLoader />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-background/95 p-4">
@@ -126,17 +161,11 @@ export default function MfaSetup() {
               </div>
             </CardHeader>
             <CardContent className="pb-8 space-y-4">
-              <RainbowButton onClick={() => { setStep('enroll'); handleEnroll(); }} className="w-full" disabled={isLoading}>
+              <RainbowButton onClick={handleEnroll} className="w-full" disabled={isLoading}>
                 {isLoading ? 'Setting up...' : 'Continue Setup'}
               </RainbowButton>
             </CardContent>
           </>
-        )}
-
-        {step === 'enroll' && (
-          <CardContent className="py-8 text-center">
-            <PageLoader />
-          </CardContent>
         )}
 
         {step === 'verify' && (
