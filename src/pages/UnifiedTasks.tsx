@@ -67,7 +67,12 @@ const UnifiedTasks = () => {
     const init = async () => {
       if (!user) return;
       setLoading(true);
-      await Promise.all([loadPreferences(), loadObjectives(), loadAllTasks()]);
+      setFetchError(null);
+      try {
+        await Promise.all([loadPreferences(), loadObjectives(), loadAllTasks()]);
+      } catch {
+        setFetchError("Failed to load tasks. Please try again.");
+      }
       setLoading(false);
     };
     init();
