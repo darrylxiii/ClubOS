@@ -45,6 +45,7 @@ export default function CareerInsightsDashboard() {
       }
     } catch (error) {
       logger.error('Error loading insights', error as Error, { componentName: 'CareerInsightsDashboard' });
+      toast.error('Failed to load career insights');
     } finally {
       setLoading(false);
     }

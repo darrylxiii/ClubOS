@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 import { Clock, Calendar, Globe, Bell, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WeeklyAvailabilityGrid, type WeekSchedule } from "@/components/scheduling/WeeklyAvailabilityGrid";
@@ -47,6 +48,7 @@ export default function SchedulingSettings() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [weekSchedule, setWeekSchedule] = useState<WeekSchedule | undefined>(undefined);
   const [dateOverrides, setDateOverrides] = useState<DateOverride[]>([]);
   const [settings, setSettings] = useState<AvailabilitySettings>({
@@ -86,6 +88,13 @@ export default function SchedulingSettings() {
       .select("*")
       .eq("user_id", user?.id)
       .maybeSingle();
+
+    if (error) {
+      toast.error("Failed to load scheduling settings");
+      setLoading(false);
+      setFetchError(true);
+      return;
+    }
 
     if (data) {
       setSettings({
@@ -136,6 +145,14 @@ export default function SchedulingSettings() {
           <Skeleton className="h-64 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState variant="page" title="Failed to load settings" message="We couldn't load your scheduling settings. Please try again." onRetry={() => { setFetchError(false); loadSettings(); }} />
       </div>
     );
   }
