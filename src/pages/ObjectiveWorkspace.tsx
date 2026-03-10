@@ -130,6 +130,7 @@ const ObjectiveWorkspace = () => {
       setActivities(data || []);
     } catch (error) {
       console.error("Error loading activities:", error);
+      toast.error("Failed to load activities");
     }
   }, [id]);
 

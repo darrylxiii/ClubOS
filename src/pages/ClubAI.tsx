@@ -247,6 +247,7 @@ const ClubAI = () => {
       if (error) throw error;
     } catch (error) {
       console.error("Error saving conversation:", error);
+      toast({ title: "Failed to save conversation", variant: "destructive" });
     }
   };
 
