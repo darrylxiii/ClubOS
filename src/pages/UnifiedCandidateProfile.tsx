@@ -1,6 +1,7 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ErrorState } from "@/components/ui/error-state";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
@@ -49,6 +50,7 @@ export default function UnifiedCandidateProfile() {
   const isAdmin = role === 'admin' || role === 'strategist';
   const isPartner = role === 'partner';
 
+  const [fetchError, setFetchError] = useState(false);
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- candidate_profiles has 200+ fields with JSONB
   const [candidate, setCandidate] = useState<any>(null);
@@ -191,10 +193,24 @@ export default function UnifiedCandidateProfile() {
       setApplication(applicationData);
     } catch (error) {
       console.error('Error loading candidate data:', error);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
   };
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load candidate"
+          message="We couldn't load this candidate's profile. Please try again."
+          onRetry={() => { setFetchError(false); setLoading(true); loadCandidateData(); }}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

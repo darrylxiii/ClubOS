@@ -52,14 +52,14 @@ export function RecommendationsPanel() {
               .from('courses')
               .select('title, description, difficulty')
               .eq('id', rec.recommended_id)
-              .single();
+              .maybeSingle();
             content = course;
           } else if (rec.recommended_type === 'learning_path') {
             const { data: path } = await supabase
               .from('learning_paths')
               .select('name as title, description, difficulty')
               .eq('id', rec.recommended_id)
-              .single();
+              .maybeSingle();
             content = path;
           }
           return { ...rec, content };

@@ -31,7 +31,7 @@ export function useMLMatching() {
           .from('jobs')
           .select('title, description, requirements')
           .eq('id', options.jobId)
-          .single();
+          .maybeSingle();
 
         if (job) {
           // Use semantic search to find relevant candidates

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
+import { ErrorState } from "@/components/ui/error-state";
 import {
   GraduationCap,
   BookOpen,
@@ -33,6 +34,7 @@ export default function AcademyCreatorHub() {
   const [courses, setCourses] = useState<any[]>([]);
   const [academy, setAcademy] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [stats, setStats] = useState({
@@ -85,6 +87,7 @@ export default function AcademyCreatorHub() {
 
     } catch (error: unknown) {
       notify.error("Error loading creator data", { description: error instanceof Error ? error.message : 'Unknown error' });
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -109,6 +112,19 @@ export default function AcademyCreatorHub() {
       notify.error("Error updating course", { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load Creator Hub"
+          message="We couldn't load your course data. Please try again."
+          onRetry={() => { setFetchError(false); loadCreatorData(); }}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

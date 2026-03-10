@@ -189,6 +189,7 @@ export default function Companies() {
       setCompanyMembers(memberCounts);
     } catch (error) {
       console.error('Error loading company members:', error);
+      toast.error('Failed to load company member counts');
     }
   };
 
@@ -241,6 +242,7 @@ export default function Companies() {
       setCompanyMetrics(metrics);
     } catch (error) {
       console.error('Error loading company metrics:', error);
+      toast.error('Failed to load company metrics');
     }
   };
 
@@ -286,6 +288,7 @@ export default function Companies() {
       });
     } catch (error) {
       console.error('Error loading overall metrics:', error);
+      toast.error('Failed to load overall metrics');
     }
   };
 

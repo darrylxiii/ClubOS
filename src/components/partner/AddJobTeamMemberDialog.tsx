@@ -73,7 +73,7 @@ export const AddJobTeamMemberDialog = ({
         .from('jobs')
         .select('company_id')
         .eq('id', jobId)
-        .single();
+        .maybeSingle();
 
       if (jobError) throw jobError;
 

@@ -103,7 +103,7 @@ export function useAddToWhitelist() {
         .from('security_config')
         .select('config_value')
         .eq('config_key', 'ip_whitelist')
-        .single();
+        .maybeSingle();
 
       const currentList = Array.isArray(existing?.config_value) 
         ? (existing.config_value as unknown as WhitelistedIP[])
@@ -157,7 +157,7 @@ export function useRemoveFromWhitelist() {
         .from('security_config')
         .select('config_value')
         .eq('config_key', 'ip_whitelist')
-        .single();
+        .maybeSingle();
 
       const currentList = Array.isArray(existing?.config_value)
         ? (existing.config_value as unknown as WhitelistedIP[])

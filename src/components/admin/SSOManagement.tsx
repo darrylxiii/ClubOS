@@ -81,7 +81,7 @@ export const SSOManagement = () => {
         .select('company_id')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (!member) throw new Error('No company association found');
 

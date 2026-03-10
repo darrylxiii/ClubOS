@@ -14,6 +14,7 @@ import {
 import { SectionLoader } from "@/components/ui/unified-loader";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ErrorState } from "@/components/ui/error-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { CompanySocialActivity } from "@/components/companies/CompanySocialActivity";
@@ -80,6 +81,7 @@ export default function CompanyPage() {
   const { currentRole } = useRole();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [jobCount, setJobCount] = useState(0);
@@ -157,6 +159,7 @@ export default function CompanyPage() {
     } catch (error) {
       console.error("Error loading company:", error);
       toast.error("Failed to load company information");
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -314,6 +317,19 @@ export default function CompanyPage() {
       toast.error(error instanceof Error ? error.message : "Failed to upload cover image");
     }
   };
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load company"
+          message="We couldn't load this company's information. Please try again."
+          onRetry={() => { setFetchError(false); setLoading(true); loadCompany(); }}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
