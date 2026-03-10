@@ -189,6 +189,7 @@ export default function Companies() {
       setCompanyMembers(memberCounts);
     } catch (error) {
       console.error('Error loading company members:', error);
+      toast.error('Failed to load company member counts');
     }
   };
 
