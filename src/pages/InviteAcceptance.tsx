@@ -27,7 +27,7 @@ export default function InviteAcceptance() {
         .from('candidate_invitations')
         .select('*, candidate_profiles(*)')
         .eq('invitation_token', token)
-        .single();
+        .maybeSingle();
 
       if (inviteError || !inviteData) {
         setError('Invalid or expired invitation link');

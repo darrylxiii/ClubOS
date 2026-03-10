@@ -110,7 +110,7 @@ export default function RecordingPlaybackPage() {
             .from('live_channels')
             .select('name, channel_type')
             .eq('id', rec.live_channel_id as string)
-            .single();
+            .maybeSingle();
           
           setRecording({ 
             ...rec, 

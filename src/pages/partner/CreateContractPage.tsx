@@ -65,7 +65,7 @@ export default function CreateContractPage() {
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       return data;
     },
     enabled: !!user?.id

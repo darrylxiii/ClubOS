@@ -43,7 +43,7 @@ export function useNoShowPrediction(bookingId?: string) {
         .from('booking_no_show_predictions')
         .select('*')
         .eq('booking_id', bookingId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;

@@ -64,7 +64,7 @@ export function InstantMeetingButton({
       .select('*')
       .eq('user_id', user?.id)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
     
     if (data) setPmr(data);
   };

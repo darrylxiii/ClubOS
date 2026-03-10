@@ -141,7 +141,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
         .from('candidate_profiles')
         .select('full_name')
         .eq('id', candidateId)
-        .single();
+        .maybeSingle();
 
       if (user) {
         await supabase.from('pipeline_audit_logs').insert({
