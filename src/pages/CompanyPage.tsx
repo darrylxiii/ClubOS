@@ -317,6 +317,19 @@ export default function CompanyPage() {
     }
   };
 
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load company"
+          message="We couldn't load this company's information. Please try again."
+          onRetry={() => { setFetchError(false); setLoading(true); loadCompany(); }}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <>
