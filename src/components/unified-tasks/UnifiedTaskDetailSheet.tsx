@@ -70,11 +70,11 @@ export const UnifiedTaskDetailSheet = ({
     if (!task) return;
     try {
       if (task.objective_id) {
-        supabase.from("club_objectives").select("id, title, status").eq("id", task.objective_id).single().then(({ data }) => setObjective(data));
+        supabase.from("club_objectives").select("id, title, status").eq("id", task.objective_id).maybeSingle().then(({ data }) => setObjective(data));
       } else { setObjective(null); }
 
       if (task.project_id) {
-        supabase.from("marketplace_projects").select("id, title, status").eq("id", task.project_id).single().then(({ data }) => setProject(data));
+        supabase.from("marketplace_projects").select("id, title, status").eq("id", task.project_id).maybeSingle().then(({ data }) => setProject(data));
       } else { setProject(null); }
 
       supabase.from("task_dependencies")

@@ -220,7 +220,7 @@ const Auth = () => {
           const {
             data: profile,
             error
-          } = await supabase.from('profiles').select('onboarding_completed_at').eq('id', user.id).single();
+          } = await supabase.from('profiles').select('onboarding_completed_at').eq('id', user.id).maybeSingle();
           if (error) {
             logger.warn('Failed to fetch profile for onboarding check', {
               componentName: 'Auth',

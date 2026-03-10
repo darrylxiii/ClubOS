@@ -67,7 +67,7 @@ export function CompanyLatestActivity({ companyId, isCompanyMember }: CompanyLat
           const [likesCount, commentsCount, userLiked] = await Promise.all([
             supabase.from('company_post_likes').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
             supabase.from('company_post_comments').select('*', { count: 'exact', head: true }).eq('post_id', post.id),
-            user ? supabase.from('company_post_likes').select('id').eq('post_id', post.id).eq('user_id', user.id).single() : null,
+            user ? supabase.from('company_post_likes').select('id').eq('post_id', post.id).eq('user_id', user.id).maybeSingle() : null,
           ]);
 
           const author = authorsMap.get(post.author_id) || { full_name: 'Unknown', avatar_url: null };

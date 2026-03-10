@@ -69,8 +69,8 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
           const [viewsCount, likesCount, userViewed, userLiked] = await Promise.all([
             supabase.from('company_story_views').select('*', { count: 'exact', head: true }).eq('story_id', story.id),
             supabase.from('company_story_likes').select('*', { count: 'exact', head: true }).eq('story_id', story.id),
-            user ? supabase.from('company_story_views').select('id').eq('story_id', story.id).eq('user_id', user.id).single() : null,
-            user ? supabase.from('company_story_likes').select('id').eq('story_id', story.id).eq('user_id', user.id).single() : null,
+            user ? supabase.from('company_story_views').select('id').eq('story_id', story.id).eq('user_id', user.id).maybeSingle() : null,
+            user ? supabase.from('company_story_likes').select('id').eq('story_id', story.id).eq('user_id', user.id).maybeSingle() : null,
           ]);
 
           const creator = creatorsMap.get(story.created_by) || { full_name: 'Unknown', avatar_url: null };

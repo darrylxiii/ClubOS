@@ -11,7 +11,7 @@ const LiveHub = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate('/auth');
     }
   }, [user, navigate]);
 

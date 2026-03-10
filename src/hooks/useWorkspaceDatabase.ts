@@ -68,7 +68,7 @@ export function useWorkspaceDatabase(databaseId?: string | null) {
     setIsLoading(true);
     try {
       const [dbRes, colRes, rowRes, viewRes] = await Promise.all([
-        supabase.from('workspace_databases').select('*').eq('id', databaseId).single(),
+        supabase.from('workspace_databases').select('*').eq('id', databaseId).maybeSingle(),
         supabase.from('workspace_database_columns').select('*').eq('database_id', databaseId).order('position'),
         supabase.from('workspace_database_rows').select('*').eq('database_id', databaseId).order('position'),
         supabase.from('workspace_database_views').select('*').eq('database_id', databaseId).order('position'),

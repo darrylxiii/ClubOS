@@ -40,7 +40,7 @@ export default function FunnelAnalytics() {
     const { error } = await supabase
       .from("funnel_config")
       .update({ is_active: !isActive })
-      .eq("id", (await supabase.from("funnel_config").select("id").single()).data?.id);
+      .eq("id", (await supabase.from("funnel_config").select("id").maybeSingle()).data?.id);
 
     if (!error) {
       setIsActive(!isActive);

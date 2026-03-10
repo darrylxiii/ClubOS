@@ -108,7 +108,7 @@ export const NextBestActionCard = () => {
         .from('candidate_profiles')
         .select('resume_url')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!candidateProfile?.resume_url) {
         return {

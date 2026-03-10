@@ -27,7 +27,7 @@ export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) =>
       .from('companies')
       .select('name')
       .eq('id', companyId)
-      .single();
+      .maybeSingle();
     if (data) setCompanyName(data.name);
   };
 
