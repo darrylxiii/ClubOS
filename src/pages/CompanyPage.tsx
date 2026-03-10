@@ -80,6 +80,7 @@ export default function CompanyPage() {
   const { currentRole } = useRole();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [jobCount, setJobCount] = useState(0);
