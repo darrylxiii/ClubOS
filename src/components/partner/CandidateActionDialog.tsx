@@ -123,10 +123,12 @@ export const CandidateActionDialog = ({
             application_id: application.id,
             user_id: userData.user?.id,
             comment: rejectionComment,
-            is_internal: false, // Make visible to candidate
+            is_internal: false,
           });
 
-        if (commentError) throw commentError;
+        if (commentError) {
+          console.warn('[Pipeline] Failed to save rejection comment:', commentError);
+        }
 
         toast.success(`${candidateName} has been rejected`, {
           description: "Feedback recorded and candidate notified",
