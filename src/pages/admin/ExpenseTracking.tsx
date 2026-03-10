@@ -153,7 +153,7 @@ export default function ExpenseTracking() {
   const deleteExpense = useMutation({
     mutationFn: async (id: string) => {
       // Fetch old value for audit
-      const { data: old } = await supabase.from("operating_expenses").select("*").eq("id", id).single();
+      const { data: old } = await supabase.from("operating_expenses").select("*").eq("id", id).maybeSingle();
       const { error } = await supabase.from("operating_expenses").delete().eq("id", id);
       if (error) throw error;
       return old;
