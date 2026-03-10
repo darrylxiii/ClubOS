@@ -154,7 +154,7 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       candidateTitle: candidateProfile?.current_title || null,
       candidateAvatarUrl: candidateProfile?.avatar_url || linkedProfile?.avatar_url || null,
       candidateSkills: toStringArray(candidateProfile?.skills),
-      candidateSourceChannel: null, // Not available on applications table
+      candidateSourceChannel: candidateProfile?.source_channel || null,
       candidateSourcedBy: sourcedByProfile?.full_name || null,
       internalReviewNotes: app.internal_review_notes || null,
       status: app.status,
@@ -166,6 +166,28 @@ async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]
       internalReviewStatus: app.internal_review_status,
       partnerReviewStatus: app.partner_review_status,
       createdAt: app.created_at,
+      // Enriched candidate fields
+      candidateLinkedinUrl: candidateProfile?.linkedin_url || null,
+      candidateResumeUrl: candidateProfile?.resume_url || null,
+      candidateYearsOfExperience: candidateProfile?.years_of_experience ?? null,
+      candidateLocation: toLocationString(candidateProfile?.desired_locations),
+      candidateCurrentCompany: candidateProfile?.current_company || null,
+      candidateEducation: toJsonArray(candidateProfile?.education),
+      candidateWorkHistory: toJsonArray(candidateProfile?.work_history),
+      candidateNoticePeriod: candidateProfile?.notice_period || null,
+      candidateRemotePreference: candidateProfile?.remote_preference || null,
+      candidateSeniorityLevel: candidateProfile?.seniority_level || null,
+      candidateAiSummary: candidateProfile?.ai_summary || null,
+      candidateAiRecommendation: candidateProfile?.ai_recommendation || null,
+      candidateDesiredSalaryMin: candidateProfile?.desired_salary_min ?? null,
+      candidateDesiredSalaryMax: candidateProfile?.desired_salary_max ?? null,
+      // Enriched job fields
+      jobRequirements: toJsonArray(job?.requirements),
+      jobNiceToHave: toJsonArray(job?.nice_to_have),
+      jobDescription: job?.description || null,
+      jobLocation: job?.location || null,
+      jobExperienceLevel: job?.experience_level || null,
+      jobSeniorityLevel: job?.seniority_level || null,
     };
   });
 }
