@@ -44,9 +44,28 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
       
       if (error) throw error;
       setInteractions(data || []);
+    try {
+      const query = (supabase as any)
+        .from('company_interactions')
+        .select(`
+          *,
+          companies (
+            id,
+            name
+          )
+        `)
+        .order('interaction_date', { ascending: false })
+        .limit(100);
+
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      setInteractions(data || []);
     } catch (error) {
       console.error('Error loading interactions:', error);
-    } finally {
+      setFetchError('Failed to load interactions');
+      const { toast } = await import('sonner');
+      toast.error('Failed to load interactions');
       setLoading(false);
     }
   };

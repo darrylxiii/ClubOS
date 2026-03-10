@@ -120,13 +120,11 @@ export default function CompanyIntelligence() {
     );
   }
 
-  if (!company) {
+  if (fetchError || !company) {
     return (
-      <>
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-muted-foreground">Company not found</p>
-        </div>
-      </>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Company Intelligence Unavailable" message={fetchError || 'Company not found'} onRetry={loadData} />
+      </div>
     );
   }
 
