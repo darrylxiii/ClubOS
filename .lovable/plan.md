@@ -1,6 +1,6 @@
 # Club Meetings System — Full Audit Plan
 
-## Current Score: 92/100 (In-Meeting) | Ecosystem: 82/100
+## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
 ---
 
