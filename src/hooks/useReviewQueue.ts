@@ -281,6 +281,29 @@ export function useReviewQueue(jobId?: string) {
       if (error) throw error;
 
       await writeAuditLog('internal_review_approved', application.id, application.jobId, { notes });
+
+      // Notify assigned partner reviewers
+      try {
+        const { data: partnerReviewers } = await supabase
+          .from('pipeline_reviewers')
+          .select('reviewer_id')
+          .eq('job_id', application.jobId)
+          .eq('review_type', 'partner');
+
+        if (partnerReviewers && partnerReviewers.length > 0) {
+          const notifications = partnerReviewers.map((r) => ({
+            reviewer_id: r.reviewer_id,
+            job_id: application.jobId,
+            application_id: application.id,
+            review_type: 'partner',
+            notification_type: 'review_ready',
+          }));
+
+          await supabase.from('review_notifications').insert(notifications);
+        }
+      } catch {
+        // Notification failures should not block the main flow
+      }
     },
     onSuccess: async () => {
       toast.success('Candidate approved for partner review.');
