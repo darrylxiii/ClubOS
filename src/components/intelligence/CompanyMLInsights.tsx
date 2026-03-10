@@ -32,13 +32,14 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
         .eq('entity_id', companyId)
         .order('computed_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (data?.features) {
         setMlFeatures(data.features);
       }
     } catch (error) {
       console.error('Error loading ML features:', error);
+      toast({ title: 'Error', description: 'Failed to load ML features', variant: 'destructive' });
     } finally {
       setLoading(false);
     }

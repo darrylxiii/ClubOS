@@ -87,6 +87,13 @@ export default function SchedulingSettings() {
       .eq("user_id", user?.id)
       .maybeSingle();
 
+    if (error) {
+      toast.error("Failed to load scheduling settings");
+      setLoading(false);
+      setFetchError(true);
+      return;
+    }
+
     if (data) {
       setSettings({
         default_start_time: data.default_start_time || "09:00",

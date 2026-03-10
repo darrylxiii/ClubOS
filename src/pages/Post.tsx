@@ -90,6 +90,7 @@ export default function Post() {
       });
     } catch (error) {
       console.error('Error fetching post:', error);
+      notify.error('Failed to load post');
       setNotFound(true);
     } finally {
       setLoading(false);
