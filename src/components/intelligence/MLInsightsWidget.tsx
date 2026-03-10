@@ -38,6 +38,7 @@ export function MLInsightsWidget({ jobId }: MLInsightsWidgetProps) {
         }
       } catch (error) {
         console.error('Error fetching ML metrics:', error);
+        setMlMetrics(null);
       } finally {
         setLoading(false);
       }

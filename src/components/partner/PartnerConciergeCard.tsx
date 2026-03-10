@@ -98,6 +98,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
       }
     } catch (error) {
       console.error('Error fetching strategist:', error);
+      toast.error('Failed to load your strategist info');
     } finally {
       setLoading(false);
     }
