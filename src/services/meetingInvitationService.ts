@@ -200,7 +200,7 @@ export async function resendInvitation(invitationId: string): Promise<boolean> {
       .from('profiles')
       .select('full_name')
       .eq('id', user?.id)
-      .single();
+      .maybeSingle();
 
     const inviterName = inviterProfile?.full_name || user?.email || 'Someone';
 

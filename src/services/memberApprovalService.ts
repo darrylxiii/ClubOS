@@ -341,7 +341,7 @@ export const memberApprovalService = {
         .select('id')
         .eq('user_id', userId)
         .eq('company_id', companyId)
-        .single();
+        .maybeSingle();
 
       if (existingMember) {
         console.log('[MemberApproval] Already a company member');
