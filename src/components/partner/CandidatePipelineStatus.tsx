@@ -36,7 +36,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
         .from('candidate_profiles')
         .select('full_name')
         .eq('id', candidateId)
-        .single();
+        .maybeSingle();
       
       if (candidate) {
         setCandidateName(candidate.full_name || 'Unknown');
