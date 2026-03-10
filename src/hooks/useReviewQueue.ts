@@ -73,6 +73,19 @@ function toStringArray(value: unknown): string[] {
   return [];
 }
 
+function toJsonArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) return value;
+  return null;
+}
+
+function toLocationString(value: unknown): string | null {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.filter((v) => typeof v === 'string').join(', ');
+  }
+  if (typeof value === 'string') return value;
+  return null;
+}
+
 async function fetchReviewQueue(jobId: string): Promise<ReviewQueueApplication[]> {
   const { data: applications, error: applicationsError } = await supabase
     .from('applications')
