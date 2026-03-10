@@ -139,6 +139,8 @@ export default function InterviewPrep() {
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
+      setFetchError("Failed to load your applications");
+      toast.error("Failed to load interview prep data");
     } finally {
       setLoading(false);
     }
