@@ -2,6 +2,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { RevenueTickerStrip } from "./RevenueTickerStrip";
 import { RevenueGrowthWidget } from "./RevenueGrowthWidget";
 import { AttentionRequiredStrip } from "./AttentionRequiredStrip";
+import { AdminPendingReviewsWidget } from "./AdminPendingReviewsWidget";
 import { DailyBriefingBanner } from "./DailyBriefingBanner";
 import { TeamCapacityWidget } from "./TeamCapacityWidget";
 import { PartnerEngagementWidget } from "./PartnerEngagementWidget";
@@ -22,6 +23,9 @@ const AdminHomeContent = () => {
 
       {/* Zone 3: Attention Required — merged urgency + signals */}
       <AttentionRequiredStrip />
+
+      {/* Zone 3b: Internal Review Queue */}
+      <AdminPendingReviewsWidget />
 
       {/* Zone 4: Daily Briefing */}
       <DailyBriefingBanner />

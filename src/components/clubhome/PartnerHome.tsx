@@ -11,6 +11,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { RecentApplicationsList } from "./RecentApplicationsList";
 import { TalentRecommendations } from "../partner/TalentRecommendations";
+import { PendingReviewsWidget } from "../partner/PendingReviewsWidget";
 import { HiringPipelineOverview } from "./HiringPipelineOverview";
 import { PartnerActivityFeed } from "./PartnerActivityFeed";
 import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
@@ -76,6 +77,19 @@ export const PartnerHome = () => {
         >
           <DashboardSection>
             <PartnerConciergeCard companyId={companyId} />
+          </DashboardSection>
+        </motion.div>
+      )}
+
+      {/* Candidate Review Queue — above offers */}
+      {companyId && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: staggerDelay * 1.5 }}
+        >
+          <DashboardSection>
+            <PendingReviewsWidget />
           </DashboardSection>
         </motion.div>
       )}

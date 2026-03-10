@@ -43948,6 +43948,75 @@ export type Database = {
         }
         Relationships: []
       }
+      review_notifications: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          id: string
+          job_id: string
+          notification_type: string
+          read_at: string | null
+          review_type: string
+          reviewer_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          id?: string
+          job_id: string
+          notification_type?: string
+          read_at?: string | null
+          review_type?: string
+          reviewer_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          notification_type?: string
+          read_at?: string | null
+          review_type?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_notifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "application_status_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_notifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_notifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_notifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "employee_pipeline_value"
+            referencedColumns: ["application_id"]
+          },
+          {
+            foreignKeyName: "review_notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reward_decisions: {
         Row: {
           approved_amount: number | null

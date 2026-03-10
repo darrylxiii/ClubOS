@@ -52,6 +52,8 @@ interface ReviewerAssignment {
   assignedAt: string;
 }
 
+type ReviewLayerTab = 'internal' | 'partner';
+
 interface PipelineCustomizerProps {
   jobId: string;
   companyId: string;
@@ -65,10 +67,13 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [addStageOpen, setAddStageOpen] = useState(false);
   const [reviewerOptions, setReviewerOptions] = useState<ReviewerOption[]>([]);
+  const [internalReviewerOptions, setInternalReviewerOptions] = useState<ReviewerOption[]>([]);
   const [reviewerAssignments, setReviewerAssignments] = useState<ReviewerAssignment[]>([]);
+  const [internalReviewerAssignments, setInternalReviewerAssignments] = useState<ReviewerAssignment[]>([]);
   const [selectedReviewerId, setSelectedReviewerId] = useState('');
   const [selectedIsPrimary, setSelectedIsPrimary] = useState(false);
   const [savingReviewer, setSavingReviewer] = useState(false);
+  const [reviewLayerTab, setReviewLayerTab] = useState<ReviewLayerTab>('partner');
 
   const { currentRole: role } = useRole();
   const { saving, savePipeline, addStage, removeStage } = usePipelineManagement(jobId);
@@ -81,55 +86,65 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
 
   useEffect(() => {
     const loadReviewers = async () => {
-      const { data: members, error: membersError } = await supabase
+      // Load partner reviewers
+      const { data: members } = await supabase
         .from('company_members')
         .select('user_id, role')
         .eq('company_id', companyId)
         .eq('is_active', true)
         .eq('role', 'partner');
 
-      if (membersError) {
-        toast.error('Failed to load partner reviewers');
-        return;
-      }
-
-      const userIds = [...new Set((members || []).map((member) => member.user_id).filter(Boolean))] as string[];
-
-      const { data: profiles, error: profilesError } = userIds.length
-        ? await supabase.from('profiles').select('id, full_name, email').in('id', userIds)
-        : { data: [], error: null };
-
-      if (profilesError) {
-        toast.error('Failed to load reviewer profiles');
-        return;
-      }
+      const partnerUserIds = [...new Set((members || []).map((m) => m.user_id).filter(Boolean))] as string[];
+      const { data: partnerProfiles } = partnerUserIds.length
+        ? await supabase.from('profiles').select('id, full_name, email').in('id', partnerUserIds)
+        : { data: [] };
 
       setReviewerOptions(
-        (profiles || []).map((profile) => ({
-          id: profile.id,
-          fullName: profile.full_name || 'Partner Reviewer',
-          email: profile.email || '',
-        })),
+        (partnerProfiles || []).map((p) => ({ id: p.id, fullName: p.full_name || 'Partner', email: p.email || '' })),
       );
 
-      const { data: assignments, error: assignmentsError } = await supabase
+      // Load internal reviewers (admins, strategists, recruiters)
+      const { data: internalMembers } = await supabase
+        .from('company_members')
+        .select('user_id, role')
+        .eq('company_id', companyId)
+        .eq('is_active', true)
+        .in('role', ['admin', 'strategist', 'recruiter']);
+
+      const internalUserIds = [...new Set((internalMembers || []).map((m) => m.user_id).filter(Boolean))] as string[];
+      const { data: internalProfiles } = internalUserIds.length
+        ? await supabase.from('profiles').select('id, full_name, email').in('id', internalUserIds)
+        : { data: [] };
+
+      setInternalReviewerOptions(
+        (internalProfiles || []).map((p) => ({ id: p.id, fullName: p.full_name || 'Reviewer', email: p.email || '' })),
+      );
+
+      // Load partner assignments
+      const { data: partnerAssignments } = await supabase
         .from('pipeline_reviewers')
         .select('id, reviewer_id, is_primary, assigned_at')
         .eq('job_id', jobId)
         .eq('review_type', 'partner')
         .order('assigned_at', { ascending: true });
 
-      if (assignmentsError) {
-        toast.error('Failed to load reviewer assignments');
-        return;
-      }
-
       setReviewerAssignments(
-        (assignments || []).map((assignment) => ({
-          id: assignment.id,
-          reviewerId: assignment.reviewer_id,
-          isPrimary: assignment.is_primary || false,
-          assignedAt: assignment.assigned_at || new Date().toISOString(),
+        (partnerAssignments || []).map((a) => ({
+          id: a.id, reviewerId: a.reviewer_id, isPrimary: a.is_primary || false, assignedAt: a.assigned_at || new Date().toISOString(),
+        })),
+      );
+
+      // Load internal assignments
+      const { data: internalAssignments } = await supabase
+        .from('pipeline_reviewers')
+        .select('id, reviewer_id, is_primary, assigned_at')
+        .eq('job_id', jobId)
+        .eq('review_type', 'internal')
+        .order('assigned_at', { ascending: true });
+
+      setInternalReviewerAssignments(
+        (internalAssignments || []).map((a) => ({
+          id: a.id, reviewerId: a.reviewer_id, isPrimary: a.is_primary || false, assignedAt: a.assigned_at || new Date().toISOString(),
         })),
       );
     };
@@ -196,52 +211,49 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
     }
 
     setSavingReviewer(true);
+    const currentReviewType = reviewLayerTab;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (selectedIsPrimary) {
         await supabase
           .from('pipeline_reviewers')
           .update({ is_primary: false })
           .eq('job_id', jobId)
-          .eq('review_type', 'partner');
+          .eq('review_type', currentReviewType);
       }
 
       const { error } = await supabase.from('pipeline_reviewers').upsert(
         {
           job_id: jobId,
           reviewer_id: selectedReviewerId,
-          review_type: 'partner',
+          review_type: currentReviewType,
           is_primary: selectedIsPrimary,
           assigned_by: user?.id || null,
         },
-        {
-          onConflict: 'job_id,reviewer_id,review_type',
-        },
+        { onConflict: 'job_id,reviewer_id,review_type' },
       );
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
+      // Refresh the correct assignment list
       const { data: assignments } = await supabase
         .from('pipeline_reviewers')
         .select('id, reviewer_id, is_primary, assigned_at')
         .eq('job_id', jobId)
-        .eq('review_type', 'partner')
+        .eq('review_type', currentReviewType)
         .order('assigned_at', { ascending: true });
 
-      setReviewerAssignments(
-        (assignments || []).map((assignment) => ({
-          id: assignment.id,
-          reviewerId: assignment.reviewer_id,
-          isPrimary: assignment.is_primary || false,
-          assignedAt: assignment.assigned_at || new Date().toISOString(),
-        })),
-      );
+      const mapped = (assignments || []).map((a) => ({
+        id: a.id, reviewerId: a.reviewer_id, isPrimary: a.is_primary || false, assignedAt: a.assigned_at || new Date().toISOString(),
+      }));
+
+      if (currentReviewType === 'partner') {
+        setReviewerAssignments(mapped);
+      } else {
+        setInternalReviewerAssignments(mapped);
+      }
 
       setSelectedReviewerId('');
       setSelectedIsPrimary(false);
@@ -254,7 +266,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
     }
   };
 
-  const handleRemoveReviewer = async (assignmentId: string) => {
+  const handleRemoveReviewer = async (assignmentId: string, layer: ReviewLayerTab) => {
     const { error } = await supabase.from('pipeline_reviewers').delete().eq('id', assignmentId);
 
     if (error) {
@@ -262,7 +274,11 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
       return;
     }
 
-    setReviewerAssignments((prev) => prev.filter((assignment) => assignment.id !== assignmentId));
+    if (layer === 'partner') {
+      setReviewerAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+    } else {
+      setInternalReviewerAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+    }
     toast.success('Reviewer removed');
   };
 
@@ -463,10 +479,40 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
         </div>
 
         <div className="rounded-lg border border-border p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-primary" />
-            <p className="text-sm font-semibold">First Review Reviewer</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-primary" />
+              <p className="text-sm font-semibold">Review Gate Assignments</p>
+            </div>
           </div>
+
+          {/* Layer tabs */}
+          {canManageReviewers && (
+            <div className="flex gap-1 p-1 rounded-lg bg-muted/30">
+              <button
+                onClick={() => { setReviewLayerTab('internal'); setSelectedReviewerId(''); }}
+                className={cn(
+                  'flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
+                  reviewLayerTab === 'internal'
+                    ? 'bg-card shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                Internal Reviewers
+              </button>
+              <button
+                onClick={() => { setReviewLayerTab('partner'); setSelectedReviewerId(''); }}
+                className={cn(
+                  'flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
+                  reviewLayerTab === 'partner'
+                    ? 'bg-card shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                Partner Reviewers
+              </button>
+            </div>
+          )}
 
           {!canManageReviewers ? (
             <p className="text-sm text-muted-foreground">
@@ -477,15 +523,15 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
               <div className="grid md:grid-cols-[1fr_auto_auto] gap-2 items-center">
                 <Select value={selectedReviewerId} onValueChange={setSelectedReviewerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select partner reviewer" />
+                    <SelectValue placeholder={reviewLayerTab === 'partner' ? 'Select partner reviewer' : 'Select internal reviewer'} />
                   </SelectTrigger>
                   <SelectContent>
-                   {reviewerOptions.length === 0 ? (
+                    {(reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions).length === 0 ? (
                       <SelectItem value="__empty" disabled>
-                        No partner reviewers available
+                        No reviewers available
                       </SelectItem>
                     ) : (
-                      reviewerOptions.map((reviewer) => (
+                      (reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions).map((reviewer) => (
                         <SelectItem key={reviewer.id} value={reviewer.id}>
                           {reviewer.fullName}
                           {reviewer.email ? ` (${reviewer.email})` : ''}
@@ -511,30 +557,41 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                 </Button>
               </div>
 
-              {reviewerAssignments.length > 0 && (
-                <div className="space-y-2">
-                  {reviewerAssignments.map((assignment) => (
-                    <div
-                      key={assignment.id}
-                      className="flex items-center justify-between rounded-md border border-border px-3 py-2"
-                    >
-                      <div className="text-sm">
-                        <span className="font-medium">{getReviewerName(assignment.reviewerId)}</span>
-                        {assignment.isPrimary && (
-                          <span className="ml-2 text-xs text-primary">Primary</span>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveReviewer(assignment.id)}
+              {/* Current assignments for selected layer */}
+              {(() => {
+                const assignments = reviewLayerTab === 'partner' ? reviewerAssignments : internalReviewerAssignments;
+                const options = reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions;
+                const getName = (id: string) => options.find((o) => o.id === id)?.fullName || 'Reviewer';
+
+                return assignments.length > 0 ? (
+                  <div className="space-y-2">
+                    {assignments.map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        className="flex items-center justify-between rounded-md border border-border px-3 py-2"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <div className="text-sm">
+                          <span className="font-medium">{getName(assignment.reviewerId)}</span>
+                          {assignment.isPrimary && (
+                            <span className="ml-2 text-xs text-primary">Primary</span>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveReviewer(assignment.id, reviewLayerTab)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground py-2">
+                    No {reviewLayerTab === 'partner' ? 'partner' : 'internal'} reviewers assigned yet.
+                  </p>
+                );
+              })()}
             </>
           )}
         </div>
