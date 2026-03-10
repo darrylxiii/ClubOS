@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ErrorState } from '@/components/ui/error-state';
 // AppLayout removed - rendered within ProtectedLayout
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
