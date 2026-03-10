@@ -1,31 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, Star, User } from 'lucide-react';
+import { Loader2, Star, User, Pause, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { useReviewQueue } from '@/hooks/useReviewQueue';
 import { useSwipeable } from 'react-swipeable';
+import { CandidateReviewCard } from './CandidateReviewCard';
+import { ReviewSessionStats } from './ReviewSessionStats';
+import { ReviewShortcutOverlay } from './ReviewShortcutOverlay';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PartnerFirstReviewPanelProps {
   jobId: string;
 }
 
 const QUICK_TAGS = [
-  'skills_gap',
-  'too_junior',
-  'too_senior',
-  'salary',
-  'location',
-  'culture',
-  'great_fit',
-  'strong_technical',
-  'leadership_potential',
+  'skills_gap', 'too_junior', 'too_senior', 'salary',
+  'location', 'culture', 'great_fit', 'strong_technical', 'leadership_potential',
 ] as const;
 
 const REJECTION_REASONS = [
@@ -39,26 +37,13 @@ const REJECTION_REASONS = [
 ] as const;
 
 function formatTagLabel(tag: string): string {
-  return tag
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  return tag.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
-
-const formatComp = (min: number | null, max: number | null, currency: string | null) => {
-  if (!min && !max) return 'Not disclosed';
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency || 'EUR',
-    maximumFractionDigits: 0,
-  });
-  if (min && max) return `${formatter.format(min)} – ${formatter.format(max)}`;
-  return formatter.format(min || max || 0);
-};
 
 export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps) => {
   const {
     partnerPending,
+    reviewQueue,
     isLoading,
     approvePartnerMutation,
     rejectPartnerMutation,
@@ -73,8 +58,21 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
   const [rejectionReason, setRejectionReason] = useState<string>('');
   const [specificGapsText, setSpecificGapsText] = useState('');
   const [idealCandidate, setIdealCandidate] = useState('');
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | 'down' | null>(null);
+  const [activeTab, setActiveTab] = useState<'review' | 'held'>('review');
 
-  // Stable snapshot length to avoid off-by-one during refetch
+  // Session stats
+  const [sessionStart] = useState(Date.now());
+  const [sessionApproved, setSessionApproved] = useState(0);
+  const [sessionRejected, setSessionRejected] = useState(0);
+  const [sessionHeld, setSessionHeld] = useState(0);
+
+  // Held candidates (partner_review_status = 'hold')
+  const heldCandidates = useMemo(
+    () => reviewQueue.filter((a) => a.partnerReviewStatus === 'hold'),
+    [reviewQueue],
+  );
+
   const snapshotLengthRef = useRef(partnerPending.length);
   useEffect(() => {
     snapshotLengthRef.current = partnerPending.length;
@@ -100,11 +98,10 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
     setRejectionReason('');
     setSpecificGapsText('');
     setIdealCandidate('');
+    setSwipeDirection(null);
   }, []);
 
   const goNext = useCallback(() => {
-    // Don't increment — the current item gets removed from partnerPending after mutation settles.
-    // The clamp effect below handles the edge case.
     resetInputs();
   }, [resetInputs]);
 
@@ -115,19 +112,29 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
   };
 
   const parseGaps = () =>
-    specificGapsText
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean);
+    specificGapsText.split(',').map((v) => v.trim()).filter(Boolean);
+
+  // Auto-select tag for high/low match
+  useEffect(() => {
+    if (currentApplication) {
+      const score = currentApplication.matchScore;
+      if (score !== null && score >= 85 && !selectedTags.includes('great_fit')) {
+        setSelectedTags((prev) => [...prev, 'great_fit']);
+      }
+    }
+  }, [currentApplication?.id]);
 
   const handleApprove = useCallback(async () => {
     if (!currentApplication || isSubmitting) return;
+    setSwipeDirection('right');
+    await new Promise((r) => setTimeout(r, 250));
     await approvePartnerMutation.mutateAsync({
       application: currentApplication,
       notes: notes.trim() || undefined,
       rating: rating || undefined,
       tags: selectedTags,
     });
+    setSessionApproved((n) => n + 1);
     goNext();
   }, [currentApplication, isSubmitting, approvePartnerMutation, notes, rating, selectedTags, goNext]);
 
@@ -141,6 +148,8 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
       toast.error('Rejection notes are required.');
       return;
     }
+    setSwipeDirection('left');
+    await new Promise((r) => setTimeout(r, 250));
     await rejectPartnerMutation.mutateAsync({
       application: currentApplication,
       notes: notes.trim(),
@@ -150,68 +159,56 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
       tags: selectedTags,
       rating: rating || undefined,
     });
+    setSessionRejected((n) => n + 1);
     goNext();
   }, [currentApplication, isSubmitting, rejectPartnerMutation, notes, rejectionReason, specificGapsText, idealCandidate, selectedTags, rating, goNext]);
 
   const handleHold = useCallback(async () => {
     if (!currentApplication || isSubmitting) return;
+    setSwipeDirection('down');
+    await new Promise((r) => setTimeout(r, 250));
     await holdPartnerMutation.mutateAsync({
       application: currentApplication,
       notes: notes.trim() || undefined,
       rating: rating || undefined,
       tags: selectedTags,
     });
+    setSessionHeld((n) => n + 1);
     goNext();
   }, [currentApplication, isSubmitting, holdPartnerMutation, notes, rating, selectedTags, goNext]);
 
-  // Clamp index when list shrinks
+  // Clamp index
   useEffect(() => {
     if (partnerPending.length > 0 && currentIndex >= partnerPending.length) {
       setCurrentIndex(partnerPending.length - 1);
     }
   }, [currentIndex, partnerPending.length]);
 
-  // Keyboard shortcuts with stable callbacks
+  // Keyboard shortcuts
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const isTyping =
-        target?.tagName === 'INPUT' ||
-        target?.tagName === 'TEXTAREA' ||
-        target?.getAttribute('role') === 'combobox';
+        target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.getAttribute('role') === 'combobox';
       if (isTyping) return;
 
-      if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        void handleApprove();
-      }
+      if (event.key === 'ArrowRight') { event.preventDefault(); void handleApprove(); }
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        if (intent !== 'reject') {
-          setIntent('reject');
-        } else {
-          void handleReject();
-        }
+        if (intent !== 'reject') setIntent('reject');
+        else void handleReject();
       }
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        void handleHold();
-      }
+      if (event.key === 'ArrowDown') { event.preventDefault(); void handleHold(); }
     };
-
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [handleApprove, handleReject, handleHold, intent]);
 
-  // Swipe gesture support
   const swipeHandlers = useSwipeable({
     onSwipedRight: () => void handleApprove(),
     onSwipedLeft: () => {
-      if (intent !== 'reject') {
-        setIntent('reject');
-      } else {
-        void handleReject();
-      }
+      if (intent !== 'reject') setIntent('reject');
+      else void handleReject();
     },
     onSwipedDown: () => void handleHold(),
     trackMouse: false,
@@ -228,197 +225,273 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
     );
   }
 
-  if (!currentApplication) {
+  if (!currentApplication && heldCandidates.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Partner Review Queue</CardTitle>
-          <CardDescription>No candidates are waiting for partner review.</CardDescription>
-        </CardHeader>
+      <Card className="border-success/20">
+        <CardContent className="py-10 flex flex-col items-center gap-3 text-center">
+          <div className="h-12 w-12 rounded-full bg-success/15 flex items-center justify-center">
+            <Star className="h-6 w-6 text-success" />
+          </div>
+          <div>
+            <p className="font-semibold">All reviews complete</p>
+            <p className="text-sm text-muted-foreground">No candidates are waiting for your review.</p>
+          </div>
+        </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle>Partner First Review</CardTitle>
-          <Badge variant="secondary">
-            {currentIndex + 1} of {partnerPending.length}
-          </Badge>
-        </div>
-        <Progress value={progressValue} className="h-2" />
-      </CardHeader>
-      <CardContent className="space-y-6" {...swipeHandlers}>
-        {/* Candidate card */}
-        <div className="rounded-lg border border-border p-4 space-y-3">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={currentApplication.candidateAvatarUrl || undefined} />
-              <AvatarFallback>
-                <User className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold truncate">{currentApplication.candidateName}</h3>
-              <p className="text-sm text-muted-foreground">
-                {currentApplication.candidateTitle || 'Title not set'}
-              </p>
-            </div>
-            <Badge variant="outline">Match {currentApplication.matchScore ?? '—'}%</Badge>
-          </div>
+    <div className="space-y-4">
+      {/* Session stats */}
+      <ReviewSessionStats
+        totalInQueue={partnerPending.length + sessionApproved + sessionRejected + sessionHeld}
+        currentIndex={currentIndex}
+        approvedCount={sessionApproved}
+        rejectedCount={sessionRejected}
+        heldCount={sessionHeld}
+        sessionStartTime={sessionStart}
+      />
 
-          <p className="text-sm text-muted-foreground">
-            {currentApplication.jobTitle} · {currentApplication.companyName}
-          </p>
+      {/* Tabs for pending vs held */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'review' | 'held')}>
+        <TabsList className="grid grid-cols-2 w-64">
+          <TabsTrigger value="review" className="gap-1.5">
+            Queue
+            {partnerPending.length > 0 && (
+              <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px]">
+                {partnerPending.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="held" className="gap-1.5">
+            <Pause className="h-3 w-3" />
+            Held
+            {heldCandidates.length > 0 && (
+              <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] bg-warning/20 text-warning">
+                {heldCandidates.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-          <p className="text-sm">
-            Salary band: {formatComp(currentApplication.salaryMin, currentApplication.salaryMax, currentApplication.currency)}
-          </p>
-
-          {/* Source info */}
-          {(currentApplication.candidateSourceChannel || currentApplication.candidateSourcedBy) && (
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              {currentApplication.candidateSourceChannel && (
-                <span>Source: {formatTagLabel(currentApplication.candidateSourceChannel)}</span>
-              )}
-              {currentApplication.candidateSourcedBy && (
-                <span>· Sourced by {currentApplication.candidateSourcedBy}</span>
-              )}
-            </div>
-          )}
-
-          {currentApplication.candidateSkills.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {currentApplication.candidateSkills.slice(0, 8).map((skill) => (
-                <Badge key={skill} variant="secondary">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Internal review notes from strategist */}
-          {currentApplication.internalReviewNotes && (
-            <div className="rounded-md bg-muted/50 p-3 text-sm">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Internal review notes</p>
-              <p>{currentApplication.internalReviewNotes}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Quick feedback tags */}
-        <div className="space-y-3">
-          <Label>Quick feedback tags</Label>
-          <div className="flex flex-wrap gap-2">
-            {QUICK_TAGS.map((tag) => (
-              <Button
-                key={tag}
-                type="button"
-                size="sm"
-                variant={selectedTags.includes(tag) ? 'default' : 'outline'}
-                onClick={() => toggleTag(tag)}
-              >
-                {formatTagLabel(tag)}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Rating */}
-        <div className="space-y-3">
-          <Label>Rating</Label>
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                onClick={() => setRating(star)}
-                className="rounded p-1 transition-colors hover:bg-muted"
-                aria-label={`Rate ${star} stars`}
-              >
-                <Star
-                  className={`h-5 w-5 ${star <= rating ? 'text-primary fill-current' : 'text-muted-foreground'}`}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Review notes (always visible) */}
-        <div className="space-y-3">
-          <Label>Review notes</Label>
-          <Textarea
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            placeholder="Context for strategist and hiring team"
-            className="min-h-24"
-          />
-        </div>
-
-        {/* Rejection fields — only shown when intent is reject */}
-        {intent === 'reject' && (
-          <div className="space-y-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 animate-fade-in">
-            <p className="text-sm font-medium text-destructive">Rejection details</p>
-
-            <div className="space-y-3">
-              <Label>Rejection reason</Label>
-              <Select value={rejectionReason} onValueChange={setRejectionReason}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select reason for rejection" />
-                </SelectTrigger>
-                <SelectContent>
-                  {REJECTION_REASONS.map((reason) => (
-                    <SelectItem key={reason.value} value={reason.value}>
-                      {reason.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-3">
-              <Label>Specific gaps (comma separated)</Label>
-              <Textarea
-                value={specificGapsText}
-                onChange={(event) => setSpecificGapsText(event.target.value)}
-                placeholder="e.g. stakeholder management, enterprise sales"
-                className="min-h-20"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label>Ideal candidate profile (optional)</Label>
-              <Textarea
-                value={idealCandidate}
-                onChange={(event) => setIdealCandidate(event.target.value)}
-                placeholder="Describe what would make this profile stronger"
-                className="min-h-20"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => void handleApprove()} disabled={isSubmitting}>
-            Approve (→)
-          </Button>
-          {intent !== 'reject' ? (
-            <Button variant="outline" onClick={() => setIntent('reject')} disabled={isSubmitting}>
-              Reject (←)
-            </Button>
+        <TabsContent value="review" className="mt-4 space-y-5">
+          {!currentApplication ? (
+            <Card className="border-success/20">
+              <CardContent className="py-8 flex flex-col items-center gap-2 text-center">
+                <p className="text-sm text-muted-foreground">Queue is clear. Check the Held tab for parked candidates.</p>
+              </CardContent>
+            </Card>
           ) : (
-            <Button variant="destructive" onClick={() => void handleReject()} disabled={isSubmitting}>
-              Confirm Reject (←)
-            </Button>
+            <>
+              {/* Progress bar */}
+              <div className="flex items-center gap-3">
+                <Progress value={progressValue} className="h-1.5 flex-1" />
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {currentIndex + 1} of {partnerPending.length}
+                </span>
+              </div>
+
+              {/* Low match warning */}
+              {currentApplication.matchScore !== null && currentApplication.matchScore < 40 && (
+                <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  <span>Low match score — review carefully before advancing.</span>
+                </div>
+              )}
+
+              {/* Candidate card with swipe animation */}
+              <div {...swipeHandlers}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentApplication.id}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{
+                      opacity: 1,
+                      x: swipeDirection === 'right' ? 100 : swipeDirection === 'left' ? -100 : 0,
+                      y: swipeDirection === 'down' ? 50 : 0,
+                      scale: swipeDirection ? 0.95 : 1,
+                      rotate: swipeDirection === 'right' ? 3 : swipeDirection === 'left' ? -3 : 0,
+                    }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.25 }}
+                    className={cn(
+                      'transition-shadow',
+                      swipeDirection === 'right' && 'shadow-[0_0_30px_-5px_hsl(var(--success)/0.4)]',
+                      swipeDirection === 'left' && 'shadow-[0_0_30px_-5px_hsl(var(--destructive)/0.4)]',
+                    )}
+                  >
+                    <CandidateReviewCard application={currentApplication} selected />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Quick feedback tags */}
+              <div className="space-y-2">
+                <Label className="text-xs">Quick feedback</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_TAGS.map((tag) => (
+                    <Button
+                      key={tag}
+                      type="button"
+                      size="sm"
+                      variant={selectedTags.includes(tag) ? 'default' : 'outline'}
+                      className="h-7 text-xs"
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {formatTagLabel(tag)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rating */}
+              <div className="flex items-center gap-3">
+                <Label className="text-xs">Rating</Label>
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className="rounded p-0.5 transition-colors hover:bg-muted"
+                    >
+                      <Star
+                        className={cn('h-5 w-5', star <= rating ? 'text-primary fill-current' : 'text-muted-foreground/30')}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Review notes</Label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Context for strategist and hiring team"
+                  className="min-h-20"
+                />
+              </div>
+
+              {/* Rejection details */}
+              {intent === 'reject' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4"
+                >
+                  <p className="text-sm font-medium text-destructive">Rejection details</p>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Reason</Label>
+                    <Select value={rejectionReason} onValueChange={setRejectionReason}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select reason" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REJECTION_REASONS.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Specific gaps (comma separated)</Label>
+                    <Textarea
+                      value={specificGapsText}
+                      onChange={(e) => setSpecificGapsText(e.target.value)}
+                      placeholder="e.g. stakeholder management, enterprise sales"
+                      className="min-h-16"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Ideal candidate profile (optional)</Label>
+                    <Textarea
+                      value={idealCandidate}
+                      onChange={(e) => setIdealCandidate(e.target.value)}
+                      placeholder="What would make this profile stronger"
+                      className="min-h-16"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => void handleApprove()}
+                  disabled={isSubmitting}
+                  className="gap-1.5 bg-success hover:bg-success/90 text-success-foreground"
+                >
+                  Approve →
+                </Button>
+                {intent !== 'reject' ? (
+                  <Button variant="outline" onClick={() => setIntent('reject')} disabled={isSubmitting} className="gap-1.5">
+                    Reject ←
+                  </Button>
+                ) : (
+                  <Button variant="destructive" onClick={() => void handleReject()} disabled={isSubmitting} className="gap-1.5">
+                    Confirm Reject ←
+                  </Button>
+                )}
+                <Button variant="secondary" onClick={() => void handleHold()} disabled={isSubmitting} className="gap-1.5">
+                  <Pause className="h-3.5 w-3.5" />
+                  Hold ↓
+                </Button>
+              </div>
+            </>
           )}
-          <Button variant="secondary" onClick={() => void handleHold()} disabled={isSubmitting}>
-            Hold (↓)
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </TabsContent>
+
+        <TabsContent value="held" className="mt-4 space-y-3">
+          {heldCandidates.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                No held candidates. Candidates you park will appear here.
+              </CardContent>
+            </Card>
+          ) : (
+            heldCandidates.map((app) => (
+              <div key={app.id} className="space-y-2">
+                <CandidateReviewCard application={app} compact />
+                <div className="flex gap-2 pl-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs h-7"
+                    onClick={() => void approvePartnerMutation.mutateAsync({
+                      application: app,
+                      notes: 'Approved from hold queue',
+                    })}
+                    disabled={isSubmitting}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs h-7 text-destructive"
+                    onClick={() => void rejectPartnerMutation.mutateAsync({
+                      application: app,
+                      notes: 'Rejected from hold queue',
+                      rejectionReason: 'other',
+                    })}
+                    disabled={isSubmitting}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </TabsContent>
+      </Tabs>
+
+      <ReviewShortcutOverlay mode="partner" />
+    </div>
   );
 };
