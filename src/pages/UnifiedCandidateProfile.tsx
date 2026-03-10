@@ -34,54 +34,6 @@ import { ExternalLink } from "lucide-react";
 import { CandidateTagManager } from "@/components/candidates/CandidateTagManager";
 import { Progress } from "@/components/ui/progress";
 
-interface CandidateData {
-  id: string;
-  full_name?: string;
-  current_title?: string;
-  avatar_url?: string;
-  work_history?: Record<string, unknown>[];
-  education?: Record<string, unknown>[];
-  certifications?: Record<string, unknown>[];
-  [key: string]: unknown;
-}
-
-interface ExperienceItem {
-  id: string;
-  title: string;
-  company: string;
-  company_logo: string | null;
-  location: string | null;
-  start_date: string;
-  end_date?: string;
-  current: boolean;
-  description: string | null;
-  skills: string[];
-}
-
-interface EducationItem {
-  id: string;
-  degree: string;
-  institution: string;
-  field: string | null;
-  school_logo: string | null;
-  start_date: string;
-  end_date?: string;
-}
-
-interface CertificationItem {
-  id: string;
-  name: string;
-  issuer: string;
-  issued_date?: string;
-}
-
-interface SkillItem {
-  id: string;
-  skill_name: string;
-  proficiency_level?: string;
-  [key: string]: unknown;
-}
-
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const [searchParams] = useSearchParams();
@@ -98,16 +50,25 @@ export default function UnifiedCandidateProfile() {
   const isPartner = role === 'partner';
 
   const [loading, setLoading] = useState(true);
-  const [candidate, setCandidate] = useState<CandidateData | null>(null);
-  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
-  const [application, setApplication] = useState<Record<string, unknown> | null>(null);
-  const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
-  const [education, setEducation] = useState<EducationItem[]>([]);
-  const [certifications, setCertifications] = useState<CertificationItem[]>([]);
-  const [portfolioItems, setPortfolioItems] = useState<Record<string, unknown>[]>([]);
-  const [skills, setSkills] = useState<SkillItem[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- candidate_profiles has 200+ fields with JSONB
+  const [candidate, setCandidate] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [profile, setProfile] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [application, setApplication] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [experiences, setExperiences] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [education, setEducation] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [certifications, setCertifications] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [skills, setSkills] = useState<any[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [relationship, setRelationship] = useState<Record<string, unknown> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [relationship, setRelationship] = useState<any>(null);
 
   useEffect(() => {
     if (candidateId) {
