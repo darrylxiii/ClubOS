@@ -211,9 +211,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           }, null);
           
           lastActivity = mostRecentApp.updated_at;
-          lastActivityUser = mostRecentApp.profiles ? {
-            name: mostRecentApp.profiles.full_name || 'Unknown User',
-            avatar: mostRecentApp.profiles.avatar_url || null
+          lastActivityUser = mostRecentApp.candidate_profiles ? {
+            name: mostRecentApp.candidate_profiles.full_name || 'Unknown User',
+            avatar: mostRecentApp.candidate_profiles.avatar_url || null
           } : null;
         }
 
