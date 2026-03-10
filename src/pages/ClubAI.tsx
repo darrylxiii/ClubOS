@@ -141,6 +141,7 @@ const ClubAI = () => {
       })));
     } catch (error) {
       console.error("Error loading conversations:", error);
+      toast({ title: "Failed to load conversations", variant: "destructive" });
     }
   };
   
