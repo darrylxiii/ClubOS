@@ -96,7 +96,7 @@ export const InterviewCommandWidget = () => {
               .from('candidate_profiles')
               .select('id, full_name, avatar_url, current_title')
               .eq('id', meeting.candidate_id)
-              .single();
+              .maybeSingle();
             candidate = data;
           }
 
@@ -105,7 +105,7 @@ export const InterviewCommandWidget = () => {
               .from('jobs')
               .select('id, title')
               .eq('id', meeting.job_id)
-              .single();
+              .maybeSingle();
             job = data;
           }
 
