@@ -76,7 +76,7 @@ export async function sendInvitations(
             .from('profiles')
             .select('id')
             .eq('email', participant.email)
-            .single();
+            .maybeSingle();
           
           if (profile) {
             inviteeUserId = profile.id;
