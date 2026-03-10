@@ -64,7 +64,7 @@ export default function MeetingTemplates() {
   const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      setFetchError(null);
         .from('meeting_templates')
         .select('*')
         .or(`user_id.eq.${user?.id},is_public.eq.true`)
