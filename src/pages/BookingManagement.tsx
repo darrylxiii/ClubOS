@@ -102,12 +102,20 @@ export default function BookingManagement() {
 
   const loadAllData = async () => {
     setLoading(true);
-    await Promise.all([
-      loadBookingLinks(),
-      loadCalendars(),
-      loadStats()
-    ]);
-    setLoading(false);
+    setFetchError(false);
+    try {
+      await Promise.all([
+        loadBookingLinks(),
+        loadCalendars(),
+        loadStats()
+      ]);
+    } catch (error) {
+      console.error('Error loading booking data:', error);
+      toast.error('Failed to load booking data');
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadBookingLinks = async () => {
