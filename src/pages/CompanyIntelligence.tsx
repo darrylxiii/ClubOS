@@ -37,7 +37,7 @@ export default function CompanyIntelligence() {
         .from('companies')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
       setCompany(companyData);
 
       // Load interactions
