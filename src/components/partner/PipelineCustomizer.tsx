@@ -211,52 +211,49 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
     }
 
     setSavingReviewer(true);
+    const currentReviewType = reviewLayerTab;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (selectedIsPrimary) {
         await supabase
           .from('pipeline_reviewers')
           .update({ is_primary: false })
           .eq('job_id', jobId)
-          .eq('review_type', 'partner');
+          .eq('review_type', currentReviewType);
       }
 
       const { error } = await supabase.from('pipeline_reviewers').upsert(
         {
           job_id: jobId,
           reviewer_id: selectedReviewerId,
-          review_type: 'partner',
+          review_type: currentReviewType,
           is_primary: selectedIsPrimary,
           assigned_by: user?.id || null,
         },
-        {
-          onConflict: 'job_id,reviewer_id,review_type',
-        },
+        { onConflict: 'job_id,reviewer_id,review_type' },
       );
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
+      // Refresh the correct assignment list
       const { data: assignments } = await supabase
         .from('pipeline_reviewers')
         .select('id, reviewer_id, is_primary, assigned_at')
         .eq('job_id', jobId)
-        .eq('review_type', 'partner')
+        .eq('review_type', currentReviewType)
         .order('assigned_at', { ascending: true });
 
-      setReviewerAssignments(
-        (assignments || []).map((assignment) => ({
-          id: assignment.id,
-          reviewerId: assignment.reviewer_id,
-          isPrimary: assignment.is_primary || false,
-          assignedAt: assignment.assigned_at || new Date().toISOString(),
-        })),
-      );
+      const mapped = (assignments || []).map((a) => ({
+        id: a.id, reviewerId: a.reviewer_id, isPrimary: a.is_primary || false, assignedAt: a.assigned_at || new Date().toISOString(),
+      }));
+
+      if (currentReviewType === 'partner') {
+        setReviewerAssignments(mapped);
+      } else {
+        setInternalReviewerAssignments(mapped);
+      }
 
       setSelectedReviewerId('');
       setSelectedIsPrimary(false);
@@ -269,7 +266,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
     }
   };
 
-  const handleRemoveReviewer = async (assignmentId: string) => {
+  const handleRemoveReviewer = async (assignmentId: string, layer: ReviewLayerTab) => {
     const { error } = await supabase.from('pipeline_reviewers').delete().eq('id', assignmentId);
 
     if (error) {
@@ -277,7 +274,11 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
       return;
     }
 
-    setReviewerAssignments((prev) => prev.filter((assignment) => assignment.id !== assignmentId));
+    if (layer === 'partner') {
+      setReviewerAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+    } else {
+      setInternalReviewerAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+    }
     toast.success('Reviewer removed');
   };
 
