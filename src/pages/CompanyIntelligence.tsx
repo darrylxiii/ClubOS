@@ -21,6 +21,7 @@ export default function CompanyIntelligence() {
   const [stakeholders, setStakeholders] = useState<CompanyStakeholder[]>([]);
   const [insights, setInsights] = useState<any>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
