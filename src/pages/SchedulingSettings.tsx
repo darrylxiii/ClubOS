@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/error-state";
 import { Clock, Calendar, Globe, Bell, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WeeklyAvailabilityGrid, type WeekSchedule } from "@/components/scheduling/WeeklyAvailabilityGrid";
