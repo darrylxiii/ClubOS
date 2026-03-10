@@ -112,6 +112,19 @@ export default function AcademyCreatorHub() {
     }
   };
 
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load Creator Hub"
+          message="We couldn't load your course data. Please try again."
+          onRetry={() => { setFetchError(false); loadCreatorData(); }}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
