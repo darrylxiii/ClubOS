@@ -86,6 +86,7 @@ export default function AcademyCreatorHub() {
 
     } catch (error: unknown) {
       notify.error("Error loading creator data", { description: error instanceof Error ? error.message : 'Unknown error' });
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
