@@ -45,7 +45,7 @@ export async function trackProfileView({
       .from('profiles')
       .select('company_id')
       .eq('id', viewerId)
-      .single();
+      .maybeSingle();
 
     if (!viewerProfile) {
       logger.warn('Viewer profile not found', { componentName: 'ProfileViewTracking', viewerId });
