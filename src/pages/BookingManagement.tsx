@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, Link2, Plus, Settings, Trash2, Copy, ExternalLink, BarChart3, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ErrorState } from "@/components/ui/error-state";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
