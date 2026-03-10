@@ -288,6 +288,7 @@ export default function Companies() {
       });
     } catch (error) {
       console.error('Error loading overall metrics:', error);
+      toast.error('Failed to load overall metrics');
     }
   };
 

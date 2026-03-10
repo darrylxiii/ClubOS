@@ -191,6 +191,7 @@ export default function UnifiedCandidateProfile() {
       setApplication(applicationData);
     } catch (error) {
       console.error('Error loading candidate data:', error);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
