@@ -1,6 +1,7 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ErrorState } from "@/components/ui/error-state";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
