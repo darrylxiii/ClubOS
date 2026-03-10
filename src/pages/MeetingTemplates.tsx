@@ -43,6 +43,7 @@ export default function MeetingTemplates() {
   const { user } = useAuth();
   const [templates, setTemplates] = useState<MeetingTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MeetingTemplate | null>(null);
   const [formData, setFormData] = useState({
