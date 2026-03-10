@@ -151,7 +151,7 @@ const ClubAI = () => {
         .from("ai_conversations")
         .select("*")
         .eq("id", conversationId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       
