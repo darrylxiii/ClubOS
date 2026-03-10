@@ -113,7 +113,6 @@ export const CandidateActionDialog = ({
         if (updateError) throw updateError;
 
         // Add rejection feedback
-        const { data: userData } = await supabase.auth.getUser();
         const rejectionComment = rejectionReason
           ? `Rejected - ${rejectionReason}${feedback.trim() ? `: ${feedback}` : ''}`
           : `Rejected: ${feedback}`;

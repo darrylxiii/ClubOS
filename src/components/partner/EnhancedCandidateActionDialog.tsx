@@ -173,6 +173,7 @@ export function EnhancedCandidateActionDialog({
         // Validate target stage
         if (targetStageIndex < 0 || targetStageIndex >= stages.length) {
           toast.error("Invalid target stage");
+          setSubmitting(false);
           return;
         }
 
