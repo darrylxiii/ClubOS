@@ -6,11 +6,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { MessageSquare, Send, Download, Clock, TrendingUp, Users } from 'lucide-react';
+import { ErrorState } from '@/components/ui/error-state';
 import { format, subDays } from 'date-fns';
 
 
 export default function MessagingAnalytics() {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [stats, setStats] = useState({
     totalSent: 0,
     totalReceived: 0,
@@ -29,6 +32,9 @@ export default function MessagingAnalytics() {
 
   const loadAnalytics = async () => {
     if (!user) return;
+    setLoading(true);
+    setFetchError(false);
+    try {
 
     const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
@@ -178,9 +184,37 @@ export default function MessagingAnalytics() {
     }));
 
     setMediaBreakdown(mediaData);
+    } catch (error) {
+      console.error('Error loading messaging analytics:', error);
+      toast.error('Failed to load messaging analytics');
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--secondary))', 'hsl(var(--muted))'];
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load analytics"
+          message="We couldn't load your messaging analytics. Please try again."
+          onRetry={loadAnalytics}
+        />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
       <div className="space-y-6">

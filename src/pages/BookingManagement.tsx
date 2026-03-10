@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, Link2, Plus, Settings, Trash2, Copy, ExternalLink, BarChart3, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ErrorState } from "@/components/ui/error-state";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
@@ -65,6 +66,7 @@ export default function BookingManagement() {
   const [calendars, setCalendars] = useState<CalendarConnection[]>([]);
   const [stats, setStats] = useState<BookingStats>({ total: 0, confirmed: 0, cancelled: 0, no_shows: 0 });
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<BookingLink | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -101,12 +103,20 @@ export default function BookingManagement() {
 
   const loadAllData = async () => {
     setLoading(true);
-    await Promise.all([
-      loadBookingLinks(),
-      loadCalendars(),
-      loadStats()
-    ]);
-    setLoading(false);
+    setFetchError(false);
+    try {
+      await Promise.all([
+        loadBookingLinks(),
+        loadCalendars(),
+        loadStats()
+      ]);
+    } catch (error) {
+      console.error('Error loading booking data:', error);
+      toast.error('Failed to load booking data');
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadBookingLinks = async () => {
@@ -277,6 +287,19 @@ export default function BookingManagement() {
       primary_calendar_id: link.primary_calendar_id || ""
     });
   };
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load bookings"
+          message="We couldn't load your booking data. Please try again."
+          onRetry={loadAllData}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

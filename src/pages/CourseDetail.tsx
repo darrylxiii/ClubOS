@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
+import { ErrorState } from "@/components/ui/error-state";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import { CourseAIChat } from "@/components/academy/CourseAIChat";
 import { CourseProgressRing } from "@/components/academy/CourseProgressRing";
@@ -80,7 +81,7 @@ export default function CourseDetail() {
   const [selectedModule, setSelectedModule] = useState<ModuleData | null>(null);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
-  const { data: courseQueryData, isLoading: loading } = useQuery({
+  const { data: courseQueryData, isLoading: loading, isError: fetchError, refetch } = useQuery({
     queryKey: ['course-detail', slug, user?.id],
     queryFn: async () => {
       const { data: courseData, error: courseError } = await supabase
@@ -138,6 +139,19 @@ export default function CourseDetail() {
     },
     enabled: !!slug,
   });
+
+  if (fetchError) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <ErrorState
+          variant="page"
+          title="Failed to load course"
+          message="We couldn't load this course. Please try again."
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
 
   // Redirect if course not found (after loading)
   if (!loading && courseQueryData === null) {
