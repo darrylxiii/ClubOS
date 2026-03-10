@@ -210,6 +210,14 @@ export default function MeetingTemplates() {
 
   const templateIcons = ['📅', '💼', '👥', '🎯', '🚀', '⚡', '🎓', '🎤', '📊', '💡'];
 
+  if (fetchError && templates.length === 0) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorState variant="page" title="Templates Unavailable" message={fetchError} onRetry={loadTemplates} />
+      </div>
+    );
+  }
+
   return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex items-center justify-between">
