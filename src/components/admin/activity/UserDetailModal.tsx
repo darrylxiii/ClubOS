@@ -36,13 +36,13 @@ interface ActivityTracking {
 }
 
 interface RecruiterMetrics {
-  calls_made: number | null;
+  candidate_calls: number | null;
   emails_sent: number | null;
   candidates_added: number | null;
   candidates_placed: number | null;
   candidates_screened: number | null;
-  outreach_count: number | null;
-  interviews_scheduled: number | null;
+  candidates_outreached: number | null;
+  candidates_interviewed: number | null;
   placement_revenue: number | null;
 }
 
