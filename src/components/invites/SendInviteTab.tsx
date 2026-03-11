@@ -11,6 +11,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useQueryClient } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const emailSchema = z.string().trim().email().max(254);
 
@@ -160,7 +161,7 @@ export function SendInviteTab() {
       setMessage("");
       setRole("member");
     } catch (error) {
-      console.error('Send invite error:', error);
+      logger.error('Send invite error', error instanceof Error ? error : new Error(String(error)), { componentName: 'SendInviteTab' });
       toast.error('Failed to send invitation');
     } finally {
       setSending(false);

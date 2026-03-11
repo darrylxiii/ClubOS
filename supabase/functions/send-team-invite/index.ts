@@ -12,7 +12,7 @@ const corsHeaders = {
 interface TeamInviteRequest {
   email: string;
   inviteCode: string;
-  companyId: string;
+  companyId?: string;
   companyName: string;
   inviterName?: string;
   role: string;
@@ -215,21 +215,22 @@ serve(async (req) => {
       .insert({
         actor_id: user.id,
         actor_role: 'user',
-        action_type: 'team_invite_sent',
-        action_category: 'communication',
+        event_type: 'team_invite_sent',
+        action: 'send',
+        event_category: 'communication',
         resource_type: 'invite',
         description: `Team invite sent to ${body.email} for ${body.companyName}`,
-        new_value: {
+        after_value: {
           email: body.email,
-          company_id: body.companyId,
+          company_id: body.companyId || null,
           company_name: body.companyName,
           role: body.role,
           invite_code: body.inviteCode,
           recipient_name: body.recipientName || null,
           is_partner_invite: isPartner,
         },
-        ip_address: req.headers.get('x-forwarded-for') || 'unknown',
-        user_agent: req.headers.get('user-agent') || 'unknown'
+        actor_ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+        actor_user_agent: req.headers.get('user-agent') || 'unknown'
       });
 
     return new Response(JSON.stringify({ 

@@ -37,6 +37,16 @@ import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
 const emailSchema = z.string().email();
 const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
+interface InviteInfo {
+  valid: boolean;
+  message?: string;
+  referrerName?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  companyName?: string;
+  targetRole?: string;
+}
+
 const Auth = () => {
   const {
     user,
@@ -63,8 +73,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [inviteValidating, setInviteValidating] = useState(false);
   const [inviteValid, setInviteValid] = useState<boolean | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- invite data shape varies by type
-  const [inviteInfo, setInviteInfo] = useState<any>(null);
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
   const [emailVerificationCode, setEmailVerificationCode] = useState("");
   const [verificationLoading, setVerificationLoading] = useState(false);
@@ -217,6 +226,14 @@ const Auth = () => {
       // Don't navigate while OAuth is still processing
       if (oauthProcessing) return;
       if (!loading && user && session && !mfaRequired) {
+        // Partners with force_password_change are routed by ProtectedRoute → /partner-setup
+        if (user.user_metadata?.force_password_change === true) {
+          logger.debug('Partner with force_password_change, skipping onboarding redirect', {
+            componentName: 'Auth',
+          });
+          navigate('/partner-setup');
+          return;
+        }
         try {
           // Check if user has completed onboarding
           const {
@@ -281,6 +298,7 @@ const Auth = () => {
       if (data?.valid) {
         setInviteValid(true);
         setInviteInfo({
+          valid: true,
           referrerName: data.referrerName,
           recipientName: data.recipientName,
           recipientEmail: data.recipientEmail,

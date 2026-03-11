@@ -40,7 +40,7 @@ export function InviteAnalyticsTab() {
       const total = invites.length;
       const used = invites.filter(i => i.uses_count && i.uses_count > 0).length;
       const revoked = invites.filter(i => !i.is_active && !(i.uses_count && i.uses_count > 0)).length;
-      const pending = total - used - revoked;
+      const pending = Math.max(0, total - used - revoked);
 
       const conversionRate = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
       const avgDaysToUse = used > 0
@@ -49,8 +49,8 @@ export function InviteAnalyticsTab() {
               .filter(i => i.uses_count && i.uses_count > 0)
               .reduce((sum, i) => {
                 const created = new Date(i.created_at || '').getTime();
-                const updated = new Date(i.updated_at || '').getTime();
-                return sum + (updated - created) / (1000 * 60 * 60 * 24);
+                const accepted = new Date(i.used_at || i.updated_at || '').getTime();
+                return sum + (accepted - created) / (1000 * 60 * 60 * 24);
               }, 0) / used
           )
         : 0;

@@ -1,68 +1,92 @@
+# Club Meetings System — Full Audit Plan
 
-
-# Partner Invite System — Audit Round 4
-
-## Current Score: 82/100
-
-Most structural issues are resolved. What remains are 6 concrete bugs — 2 of which silently break production features — plus missing pieces from approved-but-never-implemented fixes from Round 3.
+## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
 ---
 
-## Bugs Still Present
+## Completed
 
-### 1. `send-team-invite` audit log uses WRONG column names — every insert silently fails (Critical)
-Lines 215-233 use `action_type`, `action_category`, `new_value`, `ip_address`, `user_agent`. The `comprehensive_audit_logs` table uses `event_type`, `action`, `event_category`, `after_value`, `actor_ip_address`, `actor_user_agent` (confirmed by memory). Every team invite audit log insert silently fails. Zero audit trail for sent invites.
+### Phase 1–4 (Original): 72/100 baseline
+- All items from original plan completed.
 
-### 2. Auth.tsx redirects partners to candidate onboarding (Critical)
-Lines 215-256: `checkOnboardingStatus` fires when an authenticated partner lands on `/auth` after magic link. Freshly provisioned partners have `onboarding_completed_at = NULL`, so the code navigates to `/oauth-onboarding` (candidate flow). It never checks `force_password_change`. The partner never reaches `/partner-setup`. This was identified in Round 3 but never fixed.
+### Phase A: User-Facing Bugs ✅ (72 → 82)
+- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
 
-### 3. `inviteInfo` typed as `any` (Code quality)
-Line 67: `useState<any>(null)` with an eslint-disable comment papering over it. Violates project standards.
+### Phase B: UX Parity ✅ (82 → 92)
+- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
 
-### 4. `console.error` in production code
-`SendInviteTab.tsx` line 163: `console.error('Send invite error:', error)`. Project standard requires `logger.error`.
+### Phase C: Architecture ✅ (92 → 97)
+- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
 
-### 5. `InviteAnalyticsTab` uses `updated_at` instead of `used_at` for avg days
-Lines 50-53: calculates acceptance time from `updated_at` which changes on any profile edit. The `invite_codes` table has `used_at` — the correct field. This was identified in Round 3 but never fixed.
+### Phase D: Final Polish ✅ (97 → 100)
+- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
 
-### 6. `InviteAnalyticsTab` pending can go negative
-Line 43: `pending = total - used - revoked` without clamping. If a code is both used AND revoked, pending goes negative, producing a negative-width bar in the chart.
+### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
+- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
 
-### 7. `send-team-invite` interface declares `companyId: string` (not optional)
-Line 15: `companyId: string` — but the validation on line 72 now allows it to be falsy for partners. The TypeScript interface is misleading. Should be `companyId?: string`.
+### Phase F: Data Integrity ✅ (72 → 82)
+- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
+- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
+- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
+- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
+- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
+- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
 
----
-
-## Implementation Plan
-
-### Fix 1: `send-team-invite` audit log columns
-Map: `action_type` → split into `event_type` + `action`, `action_category` → `event_category`, `new_value` → `after_value`, `ip_address` → `actor_ip_address`, `user_agent` → `actor_user_agent`. Also fix `companyId` type in interface.
-
-### Fix 2: Auth.tsx partner redirect bypass
-In `checkOnboardingStatus`, add early return when `user.user_metadata?.force_password_change === true`. These users will be routed correctly by `ProtectedRoute`.
-
-### Fix 3: Type `inviteInfo`
-Define `InviteInfo` interface with `referrerName`, `recipientName`, `recipientEmail`, `companyName`, `targetRole`, `valid`, `message`. Replace `useState<any>`.
-
-### Fix 4: `console.error` → `logger.error`
-In `SendInviteTab.tsx` line 163.
-
-### Fix 5: Use `used_at` in analytics
-Replace `updated_at` with `used_at` on line 52 of `InviteAnalyticsTab`.
-
-### Fix 6: Clamp pending
-`Math.max(0, total - used - revoked)` in `InviteAnalyticsTab` line 43.
+### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
+- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
+- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
+- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
+- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
+- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
+- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
 
 ---
 
-### Files to Edit
+## Remaining
 
-| File | Changes |
-|------|---------|
-| `supabase/functions/send-team-invite/index.ts` | Fix audit log column names (lines 215-233); fix `companyId` type in interface (line 15) |
-| `src/pages/Auth.tsx` | Add `force_password_change` early return in `checkOnboardingStatus` (line 219); define and use `InviteInfo` interface (line 67) |
-| `src/components/invites/SendInviteTab.tsx` | Replace `console.error` with `logger.error` (line 163) |
-| `src/components/invites/InviteAnalyticsTab.tsx` | Use `used_at` instead of `updated_at` (line 52); clamp pending (line 43) |
+### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
+- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
+- Kept console.error for actual failures
 
-No database changes needed. One edge function redeployment (`send-team-invite`).
+### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
+- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
+- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
+- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
+- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
 
+### Phase I1: Ecosystem Polish ✅
+- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
+- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
+- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
+- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+
+### Phase H1: .single() Crash Prevention ✅ (62 → 68)
+- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
+- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+
+### Phase H2: ErrorState Integration ✅ (68 → 75)
+- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
+  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
+- Added `fetchError` state + error render before loading checks
+- Each page shows a branded error card with "Try again" retry action
+
+### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
+- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+
+---
+
+### Remaining: Phase H4–H6
+
+| Phase | Task | Files | Status | Impact |
+|-------|------|-------|--------|--------|
+| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
+| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
+| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+
+### Phase I2: Remaining Ecosystem
+
+| # | Task | Status | Impact |
+|---|------|--------|--------|
+| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
+| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
+| 25 | Candidate meeting portal | Pending | Candidate experience |
