@@ -77,7 +77,7 @@ export function useDealPipeline() {
   return useQuery({
     queryKey: ['deal-pipeline'],
     queryFn: async () => {
-      console.log('[DealPipeline] Fetching jobs...');
+      
       
       // WS-4: Optimized query with specific fields instead of select('*')
       const { data, error } = await supabase
