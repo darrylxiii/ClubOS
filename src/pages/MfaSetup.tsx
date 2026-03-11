@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,8 +7,9 @@ import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
-import { ShieldCheck, Smartphone, CheckCircle2, Copy, KeyRound } from "lucide-react";
+import { ShieldCheck, Smartphone, CheckCircle2, Copy, KeyRound, LogOut } from "lucide-react";
 import { PageLoader } from "@/components/PageLoader";
+import { logger } from "@/lib/logger";
 
 type MfaStep = 'intro' | 'elevate' | 'verify' | 'complete';
 
@@ -49,7 +50,7 @@ export default function MfaSetup() {
           });
 
           if (challengeError) {
-            console.error('[MfaSetup] Challenge error during elevation setup:', challengeError);
+            logger.error('[MfaSetup] Challenge error during elevation setup:', challengeError);
             toast.error('Could not initiate verification. Please sign in again.');
             navigate('/auth', { replace: true });
             return;
@@ -61,9 +62,9 @@ export default function MfaSetup() {
           return;
         }
 
-        // Already at AAL2 with verified factors → redirect to dashboard
+        // Already at AAL2 with verified factors → redirect to home
         if (aalData?.currentLevel === 'aal2' && verified.length > 0) {
-          navigate('/dashboard', { replace: true });
+          navigate('/home', { replace: true });
           return;
         }
 
@@ -77,7 +78,7 @@ export default function MfaSetup() {
           }
         }
       } catch (err) {
-        console.error('[MfaSetup] Error checking existing factors:', err);
+        logger.error('[MfaSetup] Error checking existing factors:', err);
       } finally {
         setInitialCheckDone(true);
       }
@@ -87,8 +88,8 @@ export default function MfaSetup() {
   }, [user, navigate]);
 
   // Elevate session from AAL1 → AAL2 by verifying existing TOTP factor
-  const handleElevate = async () => {
-    if (elevateCode.length !== 6) return;
+  const handleElevate = useCallback(async () => {
+    if (elevateCode.length !== 6 || isElevating) return;
 
     setIsElevating(true);
     try {
@@ -130,19 +131,19 @@ export default function MfaSetup() {
       // Now proceed to enrollment
       setStep('intro');
     } catch (err) {
-      console.error('[MfaSetup] Elevation error:', err);
+      logger.error('[MfaSetup] Elevation error:', err);
       toast.error('Verification failed. Please try again.');
     } finally {
       setIsElevating(false);
     }
-  };
+  }, [elevateCode, isElevating, elevateFactorId, elevateChallengeId]);
 
   // Auto-submit elevate code on 6 digits
   useEffect(() => {
     if (elevateCode.length === 6 && !isElevating && step === 'elevate') {
       handleElevate();
     }
-  }, [elevateCode]);
+  }, [elevateCode, isElevating, step, handleElevate]);
 
   const handleEnroll = async () => {
     setIsLoading(true);
@@ -179,7 +180,7 @@ export default function MfaSetup() {
           const verified = factorsData?.totp?.filter(f => f.status === 'verified') || [];
           if (verified.length > 0) {
             setElevateFactorId(verified[0].id);
-            const { data: challengeData } = await supabase.auth.mfa.challenge({
+            const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
               factorId: verified[0].id,
             });
             if (challengeData) {
@@ -188,11 +189,14 @@ export default function MfaSetup() {
               toast.info('Please verify your existing authenticator first.');
               return;
             }
+            if (challengeErr) {
+              logger.error('[MfaSetup] Challenge creation failed during fallback:', challengeErr);
+            }
           }
         }
 
         toast.error('Failed to set up MFA. Please try again.');
-        console.error('[MfaSetup] Enroll error:', error);
+        logger.error('[MfaSetup] Enroll error:', error);
         setStep('intro');
         return;
       }
@@ -202,7 +206,7 @@ export default function MfaSetup() {
       setFactorId(data.id);
       setStep('verify');
     } catch (err) {
-      console.error('[MfaSetup] Error:', err);
+      logger.error('[MfaSetup] Error:', err);
       toast.error('Something went wrong. Please try again.');
       setStep('intro');
     } finally {
@@ -210,8 +214,8 @@ export default function MfaSetup() {
     }
   };
 
-  const handleVerify = async () => {
-    if (verifyCode.length !== 6) return;
+  const handleVerify = useCallback(async () => {
+    if (verifyCode.length !== 6 || isVerifying) return;
 
     setIsVerifying(true);
     try {
@@ -236,23 +240,32 @@ export default function MfaSetup() {
       setStep('complete');
       toast.success('MFA enabled successfully');
     } catch (err) {
-      console.error('[MfaSetup] Verify error:', err);
+      logger.error('[MfaSetup] Verify error:', err);
       toast.error('Verification failed');
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [verifyCode, isVerifying, factorId]);
 
   // Auto-submit verify code on 6 digits
   useEffect(() => {
     if (verifyCode.length === 6 && !isVerifying && step === 'verify') {
       handleVerify();
     }
-  }, [verifyCode]);
+  }, [verifyCode, isVerifying, step, handleVerify]);
 
   const copySecret = () => {
     navigator.clipboard.writeText(secret);
     toast.success('Secret copied to clipboard');
+  };
+
+  const handleLostAccess = async () => {
+    await supabase.auth.signOut();
+    toast.info('Please contact your administrator to reset your MFA.', {
+      duration: 8000,
+      description: 'An admin can remove your existing authenticator so you can set up a new one.',
+    });
+    navigate('/auth', { replace: true });
   };
 
   if (!user || !initialCheckDone) return <PageLoader />;
@@ -288,6 +301,16 @@ export default function MfaSetup() {
               <RainbowButton onClick={handleElevate} disabled={elevateCode.length !== 6 || isElevating} className="w-full">
                 {isElevating ? 'Verifying...' : 'Verify & Continue'}
               </RainbowButton>
+
+              <div className="text-center pt-2 border-t border-border/30">
+                <button
+                  onClick={handleLostAccess}
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Lost access to your authenticator?
+                </button>
+              </div>
             </CardContent>
           </>
         )}
@@ -374,8 +397,8 @@ export default function MfaSetup() {
               </div>
             </CardHeader>
             <CardContent className="pb-8">
-              <RainbowButton onClick={() => navigate('/dashboard', { replace: true })} className="w-full">
-                Continue to Dashboard
+              <RainbowButton onClick={() => navigate('/home', { replace: true })} className="w-full">
+                Continue
               </RainbowButton>
             </CardContent>
           </>
