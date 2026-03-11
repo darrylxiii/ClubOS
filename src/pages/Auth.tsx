@@ -279,8 +279,15 @@ const Auth = () => {
       if (data?.valid) {
         setInviteValid(true);
         setInviteInfo({
-          referrerName: data.referrerName
+          referrerName: data.referrerName,
+          recipientName: data.recipientName,
+          recipientEmail: data.recipientEmail,
+          companyName: data.companyName,
+          targetRole: data.targetRole,
         });
+        // Pre-fill form fields from invite metadata
+        if (data.recipientName && !fullName) setFullName(data.recipientName);
+        if (data.recipientEmail && !email) setEmail(data.recipientEmail);
         toast.success(data.message || t('invite.validMessage'));
       } else {
         setInviteValid(false);
