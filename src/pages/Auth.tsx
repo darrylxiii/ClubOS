@@ -37,6 +37,16 @@ import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
 const emailSchema = z.string().email();
 const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
+interface InviteInfo {
+  valid: boolean;
+  message?: string;
+  referrerName?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  companyName?: string;
+  targetRole?: string;
+}
+
 const Auth = () => {
   const {
     user,
