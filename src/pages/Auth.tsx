@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, AlertTriangle, RefreshCw, Users, Building2 } from "lucide-react";
+import { Lock, CheckCircle2, AlertTriangle, RefreshCw, Users, Building2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
