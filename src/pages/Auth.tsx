@@ -267,6 +267,7 @@ const Auth = () => {
     }
   }, [prefillEmail, t]);
   const validateInviteCode = async (code: string) => {
+    setInviteValidating(true);
     try {
       const {
         data,
@@ -298,6 +299,8 @@ const Auth = () => {
       logger.error("Invite validation failed", error instanceof Error ? error : new Error(String(error)), { componentName: 'Auth' });
       setInviteValid(false);
       toast.error(t('invite.errorValidating'));
+    } finally {
+      setInviteValidating(false);
     }
   };
   const handleEmailAuth = async (e: React.FormEvent) => {
