@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,20 +13,33 @@ import {
   ArrowLeft,
   Mail,
   Phone,
-  Building
+  Building,
+  Wallet,
+  LogIn,
+  Timer,
 } from "lucide-react";
 import { RecruiterKPIDashboard } from "./RecruiterKPIDashboard";
 import { EmployeeTargetsTab } from "./EmployeeTargetsTab";
 import { EmployeeTimeTab } from "./EmployeeTimeTab";
 import { EmployeeCommissionsTab } from "./EmployeeCommissionsTab";
+import { EmployeeEarningsTab } from "./EmployeeEarningsTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 interface EmployeeDetailViewProps {
   employeeId?: string;
-  employee?: any; // When passed directly
+  employee?: any;
   onBack?: () => void;
   onClose?: () => void;
+}
+
+function formatDuration(minutes: number): string {
+  if (!minutes || minutes <= 0) return '0m';
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h === 0) return `${m}m`;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBack, onClose }: EmployeeDetailViewProps) => {
@@ -35,7 +48,6 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
   const { data: fetchedEmployee, isLoading } = useQuery({
     queryKey: ['employee-detail', employeeId],
     queryFn: async () => {
-      // Get employee profile
       const { data: emp, error } = await supabase
         .from('employee_profiles')
         .select('*')
@@ -44,7 +56,6 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
       
       if (error) throw error;
       
-      // Fetch profile separately
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, email, avatar_url, phone')
@@ -57,6 +68,25 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
   });
 
   const employee = passedEmployee || fetchedEmployee;
+  const userId = employee?.user_id;
+
+  // Fetch activity stats for overview
+  const { data: activityStats } = useQuery({
+    queryKey: ['employee-activity-stats', userId],
+    queryFn: async () => {
+      const [activityRes, meetingsRes] = await Promise.all([
+        supabase.from('user_activity_tracking').select('session_count, total_session_duration_minutes, last_login_at').eq('user_id', userId!).maybeSingle(),
+        supabase.from('meeting_participants').select('id', { count: 'exact', head: true }).eq('user_id', userId!),
+      ]);
+      return {
+        sessionCount: activityRes.data?.session_count || 0,
+        totalMinutes: activityRes.data?.total_session_duration_minutes || 0,
+        lastLogin: activityRes.data?.last_login_at || null,
+        meetingsAttended: meetingsRes.count || 0,
+      };
+    },
+    enabled: !!userId,
+  });
 
   if ((isLoading && !passedEmployee) || !employee) {
     return (
@@ -123,7 +153,7 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Overview
@@ -143,6 +173,10 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
           <TabsTrigger value="commissions" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             Commissions
+          </TabsTrigger>
+          <TabsTrigger value="earnings" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            Earnings
           </TabsTrigger>
         </TabsList>
 
@@ -197,6 +231,51 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
                 </div>
               </CardContent>
             </Card>
+
+            {/* Activity Stats */}
+            {activityStats && (
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Activity Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="flex items-center gap-3">
+                      <LogIn className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <div className="text-xs text-muted-foreground">Total Logins</div>
+                        <div className="text-lg font-bold">{activityStats.sessionCount}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Timer className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <div className="text-xs text-muted-foreground">Time Online</div>
+                        <div className="text-lg font-bold">{formatDuration(activityStats.totalMinutes)}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <div className="text-xs text-muted-foreground">Last Login</div>
+                        <div className="text-sm font-medium">
+                          {activityStats.lastLogin
+                            ? formatDistanceToNow(new Date(activityStats.lastLogin), { addSuffix: true })
+                            : 'Never'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <div className="text-xs text-muted-foreground">Meetings</div>
+                        <div className="text-lg font-bold">{activityStats.meetingsAttended}</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -214,6 +293,10 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
 
         <TabsContent value="commissions" className="mt-6">
           <EmployeeCommissionsTab employeeId={employee.id} />
+        </TabsContent>
+
+        <TabsContent value="earnings" className="mt-6">
+          <EmployeeEarningsTab employeeId={employee.id} userId={employee.user_id} />
         </TabsContent>
       </Tabs>
     </div>
