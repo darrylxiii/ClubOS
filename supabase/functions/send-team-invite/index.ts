@@ -12,7 +12,7 @@ const corsHeaders = {
 interface TeamInviteRequest {
   email: string;
   inviteCode: string;
-  companyId: string;
+  companyId?: string;
   companyName: string;
   inviterName?: string;
   role: string;
