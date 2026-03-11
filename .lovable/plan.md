@@ -1,101 +1,92 @@
+# Club Meetings System — Full Audit Plan
 
-
-# Employee Dashboard — Full Audit
-
-## Score: 30/100
-
-The existing "employee" intelligence tabs (Admins, Strategists, Recruiters) are near-identical copy-paste components showing only 4 shallow metrics: online status, total actions, activity level, and last activity. They ignore the rich data already in the database. The `UserDetailModal` similarly shows only surface-level stats. None of them answer the questions you care about: candidates added, login count, time online, placements, or productivity.
+## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
 ---
 
-## Bug-by-Bug Breakdown
+## Completed
 
-### 1. Three role tabs are copy-paste with zero role-specific metrics (Critical)
-`AdminIntelligenceTab`, `StrategistIntelligenceTab`, and `RecruiterIntelligenceTab` are ~220 lines each with identical logic — only the role string and icon differ. None of them show:
-- **Login count** (`session_count` exists in `user_activity_tracking` but is never displayed)
-- **Total time online** (`total_session_duration_minutes` exists but is never displayed)
-- **Last login** (`last_login_at` exists but is never displayed)
-- **Candidates added** (available in `recruiter_activity_metrics.candidates_added` and countable from `applications.sourced_by`)
-- **Candidates placed** (available in `recruiter_activity_metrics.candidates_placed` and `placement_fees`)
-- **Placement revenue** (available in `recruiter_activity_metrics.placement_revenue` and `placement_fees.fee_amount`)
+### Phase 1–4 (Original): 72/100 baseline
+- All items from original plan completed.
 
-### 2. `UserDetailModal` missing critical KPIs (Major)
-The modal shows total actions, activity score, session count, and last active. It's missing:
-- Login count and login history
-- Total time online (formatted as hours/days)
-- Candidates sourced by this user
-- Placements made
-- Revenue generated
-- `recruiter_activity_metrics` data (calls, emails, interviews, etc.)
+### Phase A: User-Facing Bugs ✅ (72 → 82)
+- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
 
-### 3. `ActivityMonitoringDashboard` shows `total_actions` but hides session/login data (Major)
-Lines 219-226 pull `session_count`, `total_session_duration_minutes`, `last_login_at` from `user_activity_tracking` but only show them in a tooltip on hover. These are primary KPIs that should be visible columns.
+### Phase B: UX Parity ✅ (82 → 92)
+- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
 
-### 4. Hardcoded engagement score (Bug)
-`UserActivityDashboard` line 74: `avgEngagementScore: 72` is hardcoded. The comment says "Calculated via function" but no function is called.
+### Phase C: Architecture ✅ (92 → 97)
+- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
 
-### 5. No `useQuery` in `ActivityMonitoringDashboard` (Architecture violation)
-Uses raw `useEffect` + `useState` instead of `useQuery`, violating the project's data fetching standards. This means no caching, no deduplication, and no stale-time optimization.
+### Phase D: Final Polish ✅ (97 → 100)
+- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
 
-### 6. All three role tabs are 95% duplicate code (DRY violation)
-The only differences between `AdminIntelligenceTab`, `StrategistIntelligenceTab`, and `RecruiterIntelligenceTab` are the role string and one icon.
+### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
+- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
+
+### Phase F: Data Integrity ✅ (72 → 82)
+- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
+- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
+- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
+- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
+- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
+- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
+
+### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
+- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
+- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
+- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
+- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
+- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
+- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
 
 ---
 
-## Implementation Plan
+## Remaining
 
-### Approach
+### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
+- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
+- Kept console.error for actual failures
 
-Replace the three copy-paste role tabs with one unified component that accepts a role prop and shows **real KPIs** from the data already in the database. Upgrade the `UserDetailModal` with a comprehensive stats view. No database changes needed — all the data already exists.
+### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
+- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
+- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
+- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
+- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
 
-### Files
+### Phase I1: Ecosystem Polish ✅
+- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
+- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
+- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
+- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
 
-| File | Action |
-|------|--------|
-| `src/components/admin/activity/RoleIntelligenceTab.tsx` | **New** — Unified component replacing all 3 role tabs. Accepts `role` prop. Shows: online status, login count, session count, total time online (formatted as Xh Ym), candidates sourced (from `applications.sourced_by`), placements (from `placement_fees`), revenue generated, last login, activity level. Fetches `user_activity_tracking` + `recruiter_activity_metrics` + `applications` count + `placement_fees` sum per user. |
-| `src/components/admin/activity/UserDetailModal.tsx` | **Edit** — Add tabs for: (a) KPI metrics — login count, total online hours, candidates sourced, placements, revenue; (b) Recruiter activity — from `recruiter_activity_metrics` (calls, emails, interviews, outreach); (c) keep existing events tab. Format `total_session_duration_minutes` as readable hours. |
-| `src/components/admin/activity/AdminIntelligenceTab.tsx` | **Edit** — Replace body with `<RoleIntelligenceTab role="admin" />` |
-| `src/components/admin/activity/StrategistIntelligenceTab.tsx` | **Edit** — Replace body with `<RoleIntelligenceTab role="strategist" />` |
-| `src/components/admin/activity/RecruiterIntelligenceTab.tsx` | **Edit** — Replace body with `<RoleIntelligenceTab role="recruiter" />` |
+### Phase H1: .single() Crash Prevention ✅ (62 → 68)
+- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
+- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
 
-### `RoleIntelligenceTab` Design
+### Phase H2: ErrorState Integration ✅ (68 → 75)
+- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
+  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
+- Added `fetchError` state + error render before loading checks
+- Each page shows a branded error card with "Try again" retry action
 
-```text
-Props: { role: 'admin' | 'strategist' | 'recruiter' }
+### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
+- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
 
-Query 1: user_roles WHERE role = {role} → get user IDs
-Query 2: profiles WHERE id IN (user IDs)
-Query 3: user_activity_tracking WHERE user_id IN (user IDs)
-Query 4: applications COUNT grouped by sourced_by WHERE sourced_by IN (user IDs)
-Query 5: placement_fees SUM(fee_amount) + COUNT grouped by sourced_by WHERE sourced_by IN (user IDs) AND status != 'cancelled'
+---
 
-All 5 queries run in parallel via Promise.all.
+### Remaining: Phase H4–H6
 
-Summary cards:
-- Total {Role}s | Online Now | Total Logins | Total Hours Online | Candidates Sourced | Placements
+| Phase | Task | Files | Status | Impact |
+|-------|------|-------|--------|--------|
+| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
+| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
+| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
 
-Per-user row shows:
-- Avatar + name + email
-- Online status dot
-- Login count
-- Time online (formatted)
-- Candidates sourced
-- Placements
-- Revenue
-- Last login
-- Activity badge
-```
+### Phase I2: Remaining Ecosystem
 
-### `UserDetailModal` Enhancements
-
-Add a "Performance" tab with:
-- Total logins (`session_count`)
-- Total time online (formatted from `total_session_duration_minutes`)
-- Candidates sourced (`applications` count where `sourced_by = user_id`)
-- Placements made (`placement_fees` count)
-- Revenue generated (`placement_fees` sum of `fee_amount`)
-- Recruiter metrics from `recruiter_activity_metrics` (if data exists): calls, emails sent, candidates screened, outreached, interviewed
-
-### No database changes needed.
-All required data exists in `user_activity_tracking`, `applications.sourced_by`, `placement_fees`, and `recruiter_activity_metrics`.
-
+| # | Task | Status | Impact |
+|---|------|--------|--------|
+| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
+| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
+| 25 | Candidate meeting portal | Pending | Candidate experience |
