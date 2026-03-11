@@ -60,10 +60,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Check if code exists
+    // Check if code exists (include target_role + metadata in single query)
     const { data: codeData, error } = await supabase
       .from('invite_codes')
-      .select('code, is_active, expires_at, used_by, used_at, created_by')
+      .select('code, is_active, expires_at, used_by, used_at, created_by, target_role, metadata')
       .eq('code', code.toUpperCase())
       .single();
     
