@@ -571,14 +571,23 @@ const Auth = () => {
             </div>
           </div>
 
-          {inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 space-y-2">
+          {inviteValidating && (
+            <div className="p-4 rounded-2xl bg-muted/30 border border-border/30 animate-pulse space-y-2">
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Validating invite code…</p>
+              </div>
+            </div>
+          )}
+
+          {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
               </div>
               <p className="text-xs text-foreground/80">
                 {inviteInfo.targetRole === 'partner' && inviteInfo.recipientName
-                  ? `Welcome, ${inviteInfo.recipientName}. ${inviteInfo.referrerName ? `${inviteInfo.referrerName} has` : 'You have been'} invited you to join as a partner.`
+                  ? `Welcome, ${inviteInfo.recipientName}. ${inviteInfo.referrerName ? `${inviteInfo.referrerName} has` : 'You have been'} invited to join as a partner.`
                   : inviteInfo.referrerName ? t('invite.invitedBy', {
                 name: inviteInfo.referrerName
               }) : t('invite.invitedByMember')}
@@ -590,7 +599,7 @@ const Auth = () => {
               )}
             </div>}
 
-          {inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+          {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
                 {t('invite.invalidOrExpired')}
               </AlertDescription>
