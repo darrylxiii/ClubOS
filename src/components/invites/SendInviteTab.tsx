@@ -11,6 +11,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useQueryClient } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const emailSchema = z.string().trim().email().max(254);
 

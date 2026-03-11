@@ -226,6 +226,14 @@ const Auth = () => {
       // Don't navigate while OAuth is still processing
       if (oauthProcessing) return;
       if (!loading && user && session && !mfaRequired) {
+        // Partners with force_password_change are routed by ProtectedRoute → /partner-setup
+        if (user.user_metadata?.force_password_change === true) {
+          logger.debug('Partner with force_password_change, skipping onboarding redirect', {
+            componentName: 'Auth',
+          });
+          navigate('/partner-setup');
+          return;
+        }
         try {
           // Check if user has completed onboarding
           const {

@@ -49,8 +49,8 @@ export function InviteAnalyticsTab() {
               .filter(i => i.uses_count && i.uses_count > 0)
               .reduce((sum, i) => {
                 const created = new Date(i.created_at || '').getTime();
-                const updated = new Date(i.updated_at || '').getTime();
-                return sum + (updated - created) / (1000 * 60 * 60 * 24);
+                const accepted = new Date(i.used_at || i.updated_at || '').getTime();
+                return sum + (accepted - created) / (1000 * 60 * 60 * 24);
               }, 0) / used
           )
         : 0;
