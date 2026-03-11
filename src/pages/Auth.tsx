@@ -298,6 +298,7 @@ const Auth = () => {
       if (data?.valid) {
         setInviteValid(true);
         setInviteInfo({
+          valid: true,
           referrerName: data.referrerName,
           recipientName: data.recipientName,
           recipientEmail: data.recipientEmail,
