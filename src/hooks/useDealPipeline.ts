@@ -150,7 +150,7 @@ export function useDealPipeline() {
         })
       ) as Deal[];
       
-      console.log('[DealPipeline] Processed', dealsWithRevenue.length, 'deals');
+      
       return dealsWithRevenue;
     },
   });
