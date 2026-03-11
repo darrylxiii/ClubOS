@@ -104,6 +104,7 @@ const ClubAI = lazy(() => import("./pages/ClubAI"));
 // SocialManagement is now redirected to /partner/hub?tab=social (handled in partner.routes.tsx)
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
 const PartnerWelcome = lazy(() => import("./pages/PartnerWelcome"));
+const PartnerSetup = lazy(() => import("./pages/PartnerSetup"));
 const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
 // SalaryInsights redirects to /analytics?tab=salary (handled in analytics.routes.tsx)
 // CareerPath redirects to /analytics?tab=career-path (handled in analytics.routes.tsx)
