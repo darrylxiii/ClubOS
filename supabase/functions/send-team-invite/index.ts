@@ -137,7 +137,7 @@ serve(async (req) => {
       : `You're invited to join ${body.companyName} on The Quantum Club`;
 
     const partnerValueProp = isPartner
-      ? `${Spacer(16)}${Paragraph('As a partner, you'll get access to curated shortlists, candidate dossiers, and a dedicated strategist to streamline your hiring process.', 'muted')}`
+      ? `${Spacer(16)}${Paragraph("As a partner, you will get access to curated shortlists, candidate dossiers, and a dedicated strategist to streamline your hiring process.", 'muted')}`
       : '';
 
     const emailContent = `
