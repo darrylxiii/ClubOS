@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calculator, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
+import { calculateShareEarnings, type RevenueShareConfig, type InvoiceForShare } from "@/lib/employeeEarnings";
 
 interface RevenueShare {
   id: string;
@@ -15,6 +16,9 @@ interface RevenueShare {
   share_fixed_amount: number | null;
   applies_to: string;
   is_active: boolean;
+  effective_from?: string | null;
+  effective_to?: string | null;
+  min_deal_value?: number | null;
   user_profile?: {
     full_name: string | null;
     email: string | null;
@@ -28,7 +32,7 @@ interface RevenueShareEarningsTableProps {
 export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarningsTableProps) {
   const activeShares = revenueShares.filter(s => s.is_active);
 
-  // Fetch Moneybird invoices for calculation
+  // Fetch Moneybird invoices for calculation — include net_amount
   const { data: invoiceData, isLoading } = useQuery({
     queryKey: ['revenue-share-earnings-calculation'],
     queryFn: async () => {
@@ -37,12 +41,12 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
       
       const { data: invoices, error } = await supabase
         .from('moneybird_sales_invoices')
-        .select('id, total_amount, state_normalized, invoice_date, contact_name')
+        .select('id, total_amount, net_amount, state_normalized, invoice_date, contact_name, contact_id')
         .gte('invoice_date', startOfYear)
         .order('invoice_date', { ascending: false });
 
       if (error) throw error;
-      return invoices || [];
+      return (invoices || []) as InvoiceForShare[];
     },
     enabled: activeShares.length > 0,
   });
@@ -51,29 +55,31 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
     return null;
   }
 
-  const calculateEarnings = (share: RevenueShare) => {
-    if (!invoiceData) return { projected: 0, realized: 0 };
+  const getEarnings = (share: RevenueShare) => {
+    if (!invoiceData) return { projected: 0, realized: 0, pending: 0 };
+    const shareConfig: RevenueShareConfig = {
+      id: share.id,
+      user_id: share.user_id,
+      share_type: share.share_type,
+      share_percentage: share.share_percentage,
+      share_fixed_amount: share.share_fixed_amount,
+      applies_to: share.applies_to,
+      is_active: share.is_active,
+      effective_from: share.effective_from || null,
+      effective_to: share.effective_to || null,
+      min_deal_value: share.min_deal_value || null,
+    };
+    return calculateShareEarnings(shareConfig, invoiceData);
+  };
 
-    let projected = 0;
-    let realized = 0;
-
-    invoiceData.forEach(invoice => {
-      const amount = Number(invoice.total_amount) || 0;
-      let shareAmount = 0;
-
-      if (share.share_type === 'fixed_percentage' && share.share_percentage) {
-        shareAmount = amount * (share.share_percentage / 100);
-      } else if (share.share_type === 'per_placement' && share.share_fixed_amount) {
-        shareAmount = share.share_fixed_amount;
-      }
-
-      projected += shareAmount;
-      if (invoice.state_normalized === 'paid') {
-        realized += shareAmount;
-      }
-    });
-
-    return { projected, realized };
+  const getScopeLabel = (appliesTo: string) => {
+    switch (appliesTo) {
+      case 'all_revenue': return 'All Revenue';
+      case 'all': return 'All Revenue';
+      case 'specific_clients': return 'Specific Clients';
+      case 'new_clients': return 'New Clients';
+      default: return appliesTo;
+    }
   };
 
   if (isLoading) {
@@ -104,7 +110,7 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
           YTD Earnings by Revenue Share
         </CardTitle>
         <CardDescription>
-          Calculated from {invoiceData?.length || 0} Moneybird invoices this year
+          Calculated from {invoiceData?.length || 0} Moneybird invoices this year (net amounts, excl. VAT)
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -114,6 +120,7 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
               <TableHead>User</TableHead>
               <TableHead>Share Type</TableHead>
               <TableHead>Rate</TableHead>
+              <TableHead>Scope</TableHead>
               <TableHead className="text-right">Projected</TableHead>
               <TableHead className="text-right">Realized</TableHead>
               <TableHead className="text-right">Pending</TableHead>
@@ -121,8 +128,7 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
           </TableHeader>
           <TableBody>
             {activeShares.map((share) => {
-              const earnings = calculateEarnings(share);
-              const pending = earnings.projected - earnings.realized;
+              const earnings = getEarnings(share);
 
               return (
                 <TableRow key={share.id}>
@@ -147,6 +153,11 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
                       : formatCurrency(share.share_fixed_amount || 0)
                     }
                   </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="text-xs">
+                      {getScopeLabel(share.applies_to)}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right font-medium">
                     {formatCurrency(earnings.projected)}
                   </TableCell>
@@ -154,8 +165,8 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
                     {formatCurrency(earnings.realized)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className={pending > 0 ? 'text-warning' : 'text-muted-foreground'}>
-                      {formatCurrency(pending)}
+                    <span className={earnings.pending > 0 ? 'text-warning' : 'text-muted-foreground'}>
+                      {formatCurrency(earnings.pending)}
                     </span>
                   </TableCell>
                 </TableRow>
@@ -174,12 +185,12 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
             <div className="flex gap-6 text-sm">
               <span>
                 Projected: <strong>{formatCurrency(
-                  activeShares.reduce((sum, s) => sum + calculateEarnings(s).projected, 0)
+                  activeShares.reduce((sum, s) => sum + getEarnings(s).projected, 0)
                 )}</strong>
               </span>
               <span className="text-success">
                 Realized: <strong>{formatCurrency(
-                  activeShares.reduce((sum, s) => sum + calculateEarnings(s).realized, 0)
+                  activeShares.reduce((sum, s) => sum + getEarnings(s).realized, 0)
                 )}</strong>
               </span>
             </div>
