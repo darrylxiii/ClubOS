@@ -6,18 +6,43 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Send, Loader2, CheckCircle } from "lucide-react";
+import { Send, Loader2, CheckCircle, Copy, MessageCircle, Sparkles } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
+import { useQueryClient } from "@tanstack/react-query";
+import confetti from "canvas-confetti";
+import { z } from "zod";
+
+const emailSchema = z.string().trim().email().max(254);
+
+interface InviteSuccess {
+  email: string;
+  recipientName: string;
+  code: string;
+  role: string;
+}
 
 export function SendInviteTab() {
+  const [recipientName, setRecipientName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
+  const [companyName, setCompanyName] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const [lastSent, setLastSent] = useState<string | null>(null);
+  const [success, setSuccess] = useState<InviteSuccess | null>(null);
+  const { currentRole } = useRole();
+  const queryClient = useQueryClient();
 
   const handleSend = async () => {
-    if (!email.trim()) {
-      toast.error("Please enter an email address");
+    // Validate email
+    try {
+      emailSchema.parse(email.trim());
+    } catch {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    if (!recipientName.trim()) {
+      toast.error("Please enter the recipient's name.");
       return;
     }
 
@@ -26,9 +51,27 @@ export function SendInviteTab() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Duplicate invite detection
+      const { data: existing } = await supabase
+        .from('invite_codes')
+        .select('id, code, expires_at')
+        .eq('is_active', true)
+        .filter('metadata->>email', 'eq', email.trim().toLowerCase())
+        .gt('expires_at', new Date().toISOString())
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        toast.warning(`An active invite already exists for ${email.trim()}. Check your history.`);
+        setSending(false);
+        return;
+      }
+
       // Generate invite code
       const code = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      // Determine created_by_type based on actual role
+      const createdByType = currentRole === 'admin' ? 'admin' : currentRole === 'strategist' ? 'strategist' : 'member';
 
       // Insert invite code
       const { error: insertError } = await supabase
@@ -36,16 +79,18 @@ export function SendInviteTab() {
         .insert({
           code,
           created_by: user.id,
-          created_by_type: 'member',
+          created_by_type: createdByType,
           expires_at: expiresAt,
           is_active: true,
-          invite_type: 'team',
+          invite_type: role === 'partner' ? 'partner' : 'team',
           target_role: role,
           max_uses: 1,
           uses_count: 0,
-          metadata: { 
-            email: email.trim(),
-            custom_message: message || null
+          metadata: {
+            email: email.trim().toLowerCase(),
+            recipient_name: recipientName.trim(),
+            company_name: companyName.trim() || null,
+            custom_message: message.trim() || null
           }
         });
 
@@ -64,9 +109,9 @@ export function SendInviteTab() {
         .select('company_id, companies(id, name)')
         .eq('user_id', user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      const companyName = (membership?.companies as any)?.name || 'The Quantum Club';
+      const memberCompanyName = (membership?.companies as { name?: string })?.name || 'The Quantum Club';
       const companyId = membership?.company_id || '';
 
       // Send email via edge function
@@ -75,22 +120,45 @@ export function SendInviteTab() {
           email: email.trim(),
           inviteCode: code,
           companyId,
-          companyName,
+          companyName: companyName.trim() || memberCompanyName,
           inviterName: profile?.full_name || 'A team member',
           role,
+          recipientName: recipientName.trim(),
+          customMessage: message.trim() || undefined,
         }
       });
 
       if (sendError) {
-        // Code was created but email failed — still useful
         toast.warning('Invite created but email delivery failed. Share the code manually.');
       } else {
-        toast.success(`Invitation sent to ${email.trim()}`);
+        toast.success(`Invitation sent to ${recipientName.trim()}`);
       }
 
-      setLastSent(email.trim());
+      // Fire confetti
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ['#C9A24E', '#F5F4EF', '#0E0E10'],
+      });
+
+      setSuccess({
+        email: email.trim(),
+        recipientName: recipientName.trim(),
+        code,
+        role,
+      });
+
+      // Invalidate stats
+      queryClient.invalidateQueries({ queryKey: ['invite-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['invite-analytics'] });
+
+      // Reset form
+      setRecipientName("");
       setEmail("");
+      setCompanyName("");
       setMessage("");
+      setRole("member");
     } catch (error) {
       console.error('Send invite error:', error);
       toast.error('Failed to send invitation');
@@ -99,18 +167,66 @@ export function SendInviteTab() {
     }
   };
 
+  const copyInviteLink = (code: string) => {
+    const siteUrl = window.location.origin;
+    navigator.clipboard.writeText(`${siteUrl}/auth?invite=${code}`);
+    toast.success('Invite link copied to clipboard');
+  };
+
+  const shareWhatsApp = (inv: InviteSuccess) => {
+    const siteUrl = window.location.origin;
+    const text = encodeURIComponent(
+      `Hi ${inv.recipientName}, you've been invited to join The Quantum Club as a ${inv.role}. Use this link to get started: ${siteUrl}/auth?invite=${inv.code}`
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
   return (
     <div className="space-y-6">
-      {lastSent && (
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm">
-          <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-          <span>Invitation sent to <strong>{lastSent}</strong></span>
+      {success && (
+        <div className="p-5 rounded-xl bg-primary/5 border border-primary/20 space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <span className="font-semibold">Invitation sent to {success.recipientName}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">{success.email} · {success.role}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => copyInviteLink(success.code)}
+              className="gap-2"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Copy Invite Link
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => shareWhatsApp(success)}
+              className="gap-2"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              Share via WhatsApp
+            </Button>
+          </div>
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="invite-email">Email Address</Label>
+          <Label htmlFor="invite-name">Full Name *</Label>
+          <Input
+            id="invite-name"
+            type="text"
+            placeholder="Jane Smith"
+            value={recipientName}
+            onChange={(e) => setRecipientName(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="invite-email">Email Address *</Label>
           <Input
             id="invite-email"
             type="email"
@@ -119,7 +235,9 @@ export function SendInviteTab() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
+      </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="invite-role">Role</Label>
           <Select value={role} onValueChange={setRole}>
@@ -129,9 +247,23 @@ export function SendInviteTab() {
             <SelectContent>
               <SelectItem value="member">Member</SelectItem>
               <SelectItem value="recruiter">Recruiter</SelectItem>
+              <SelectItem value="partner">Partner</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
+        {role === 'partner' && (
+          <div className="space-y-2">
+            <Label htmlFor="invite-company">Company Name</Label>
+            <Input
+              id="invite-company"
+              type="text"
+              placeholder="Acme Corp"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -142,12 +274,13 @@ export function SendInviteTab() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={3}
+          maxLength={500}
         />
       </div>
 
       <Button
         onClick={handleSend}
-        disabled={!email.trim() || sending}
+        disabled={!email.trim() || !recipientName.trim() || sending}
         className="w-full sm:w-auto"
       >
         {sending ? (

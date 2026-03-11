@@ -202,7 +202,8 @@ Deno.serve(async (req) => {
       user_metadata: {
         full_name: body.fullName,
         provisioned_by_admin: true,
-        provisioned_at: new Date().toISOString()
+        provisioned_at: new Date().toISOString(),
+        force_password_change: true
       }
     });
 
@@ -310,7 +311,8 @@ Deno.serve(async (req) => {
         admin_verified_email: body.markEmailVerified,
         admin_verified_phone: body.markPhoneVerified,
         preferred_auth_method: body.provisionMethod === 'oauth_only' ? 'google' : body.provisionMethod,
-        assigned_strategist_id: body.assignedStrategistId || null
+        assigned_strategist_id: body.assignedStrategistId || null,
+        account_status: 'active'
       })
       .eq('id', newUserId);
     if (profileError) {
@@ -415,7 +417,7 @@ Deno.serve(async (req) => {
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: body.email,
-        options: { redirectTo: `${siteUrl}/partner-welcome` }
+        options: { redirectTo: `${siteUrl}/partner-setup` }
       });
 
       if (!linkError && linkData?.properties?.action_link) {

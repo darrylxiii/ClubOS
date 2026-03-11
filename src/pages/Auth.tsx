@@ -279,8 +279,15 @@ const Auth = () => {
       if (data?.valid) {
         setInviteValid(true);
         setInviteInfo({
-          referrerName: data.referrerName
+          referrerName: data.referrerName,
+          recipientName: data.recipientName,
+          recipientEmail: data.recipientEmail,
+          companyName: data.companyName,
+          targetRole: data.targetRole,
         });
+        // Pre-fill form fields from invite metadata
+        if (data.recipientName && !fullName) setFullName(data.recipientName);
+        if (data.recipientEmail && !email) setEmail(data.recipientEmail);
         toast.success(data.message || t('invite.validMessage'));
       } else {
         setInviteValid(false);
@@ -566,10 +573,17 @@ const Auth = () => {
                 <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
               </div>
               <p className="text-xs text-foreground/80">
-                {inviteInfo.referrerName ? t('invite.invitedBy', {
-              name: inviteInfo.referrerName
-            }) : t('invite.invitedByMember')}
+                {inviteInfo.targetRole === 'partner' && inviteInfo.recipientName
+                  ? `Welcome, ${inviteInfo.recipientName}. ${inviteInfo.referrerName ? `${inviteInfo.referrerName} has` : 'You have been'} invited you to join as a partner.`
+                  : inviteInfo.referrerName ? t('invite.invitedBy', {
+                name: inviteInfo.referrerName
+              }) : t('invite.invitedByMember')}
               </p>
+              {inviteInfo.companyName && (
+                <p className="text-xs text-foreground/60 flex items-center justify-center gap-1">
+                  <Building2 className="h-3 w-3" /> {inviteInfo.companyName}
+                </p>
+              )}
             </div>}
 
           {inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">

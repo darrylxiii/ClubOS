@@ -66,9 +66,10 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       return <Navigate to="/mfa-setup" replace />;
     }
 
-    // Force password change check
+    // Force password change check — route partners to partner-setup, others to reset-password
     if (user.user_metadata?.force_password_change === true) {
-      return <Navigate to="/reset-password/new" replace />;
+      const isPartnerForceSetup = isPartner || user.user_metadata?.provisioned_by_admin === true;
+      return <Navigate to={isPartnerForceSetup ? "/partner-setup" : "/reset-password/new"} replace />;
     }
   }
 

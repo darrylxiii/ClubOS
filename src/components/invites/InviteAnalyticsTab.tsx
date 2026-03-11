@@ -1,72 +1,77 @@
-import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { TrendingUp, Users, Clock, Target, Loader2 } from 'lucide-react';
 import { useRecharts } from '@/hooks/useRecharts';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+
+interface InviteAnalytics {
+  total: number;
+  used: number;
+  pending: number;
+  revoked: number;
+  conversionRate: string | number;
+  avgDaysToUse: number;
+  trendData: Array<{ name: string; value: number; color: string }>;
+}
 
 export function InviteAnalyticsTab() {
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
-  useEffect(() => {
-    loadAnalytics();
-  }, []);
+  const { data: analytics, isLoading } = useQuery<InviteAnalytics | null>({
+    queryKey: ['invite-analytics', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error('Not authenticated');
 
-  const loadAnalytics = async () => {
-    try {
-      const { data: invites } = await supabase
+      const { data: invites, error } = await supabase
         .from('invite_codes')
         .select('*')
-        .eq('created_by_type', 'member');
+        .eq('created_by', user.id);
 
-      if (invites) {
-        const total = invites.length;
-        const used = invites.filter(i => i.uses_count && i.uses_count > 0).length;
-        const revoked = invites.filter(i => !i.is_active).length;
-        const pending = total - used - revoked;
-        
-        const conversionRate = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
-        const avgDaysToUse = used > 0
-          ? Math.round(
-              invites
-                .filter(i => i.uses_count && i.uses_count > 0)
-                .reduce((sum, i) => {
-                  const created = new Date(i.created_at || '').getTime();
-                  const updated = new Date(i.updated_at || '').getTime();
-                  return sum + (updated - created) / (1000 * 60 * 60 * 24);
-                }, 0) / used
-            )
-          : 0;
-
-        const trendData = [
-          { name: 'Used', value: used, color: '#22c55e' },
-          { name: 'Pending', value: pending, color: '#f59e0b' },
-          { name: 'Revoked', value: revoked, color: '#ef4444' },
-        ];
-
-        setAnalytics({
-          total,
-          used,
-          pending,
-          revoked,
-          conversionRate,
-          avgDaysToUse,
-          trendData,
-          invites,
-        });
+      if (error) {
+        toast.error('Failed to load analytics');
+        throw error;
       }
-    } catch (error) {
-      console.error('Failed to load analytics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  if (loading) {
+      if (!invites || invites.length === 0) return null;
+
+      const total = invites.length;
+      const used = invites.filter(i => i.uses_count && i.uses_count > 0).length;
+      const revoked = invites.filter(i => !i.is_active && !(i.uses_count && i.uses_count > 0)).length;
+      const pending = total - used - revoked;
+
+      const conversionRate = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
+      const avgDaysToUse = used > 0
+        ? Math.round(
+            invites
+              .filter(i => i.uses_count && i.uses_count > 0)
+              .reduce((sum, i) => {
+                const created = new Date(i.created_at || '').getTime();
+                const updated = new Date(i.updated_at || '').getTime();
+                return sum + (updated - created) / (1000 * 60 * 60 * 24);
+              }, 0) / used
+          )
+        : 0;
+
+      const trendData = [
+        { name: 'Used', value: used, color: '#22c55e' },
+        { name: 'Pending', value: pending, color: '#f59e0b' },
+        { name: 'Revoked', value: revoked, color: '#ef4444' },
+      ];
+
+      return { total, used, pending, revoked, conversionRate, avgDaysToUse, trendData };
+    },
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  if (isLoading) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Loading analytics...</p>
+        <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+        <p className="text-muted-foreground mt-2">Loading analytics…</p>
       </div>
     );
   }
@@ -126,7 +131,6 @@ export function InviteAnalyticsTab() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Status Distribution */}
         <Card className="p-6">
           <h3 className="font-semibold mb-4">Invitation Status</h3>
           {rechartsLoading || !recharts ? (
@@ -143,12 +147,12 @@ export function InviteAnalyticsTab() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }: any) => `${name}: ${value}`}
+                    label={({ name, value }: { name: string; value: number }) => `${name}: ${value}`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {analytics.trendData.map((entry: any, index: number) => (
+                    {analytics.trendData.map((entry, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -159,7 +163,6 @@ export function InviteAnalyticsTab() {
           })()}
         </Card>
 
-        {/* Summary */}
         <Card className="p-6">
           <h3 className="font-semibold mb-4">Summary Metrics</h3>
           <div className="space-y-3">
@@ -170,9 +173,7 @@ export function InviteAnalyticsTab() {
             <div className="w-full bg-secondary rounded-full h-2">
               <div
                 className="bg-success h-2 rounded-full transition-all"
-                style={{
-                  width: `${analytics.total > 0 ? (analytics.used / analytics.total) * 100 : 0}%`,
-                }}
+                style={{ width: `${analytics.total > 0 ? (analytics.used / analytics.total) * 100 : 0}%` }}
               />
             </div>
 
@@ -183,9 +184,7 @@ export function InviteAnalyticsTab() {
             <div className="w-full bg-secondary rounded-full h-2">
               <div
                 className="bg-warning h-2 rounded-full transition-all"
-                style={{
-                  width: `${analytics.total > 0 ? (analytics.pending / analytics.total) * 100 : 0}%`,
-                }}
+                style={{ width: `${analytics.total > 0 ? (analytics.pending / analytics.total) * 100 : 0}%` }}
               />
             </div>
 
@@ -196,9 +195,7 @@ export function InviteAnalyticsTab() {
             <div className="w-full bg-secondary rounded-full h-2">
               <div
                 className="bg-error h-2 rounded-full transition-all"
-                style={{
-                  width: `${analytics.total > 0 ? (analytics.revoked / analytics.total) * 100 : 0}%`,
-                }}
+                style={{ width: `${analytics.total > 0 ? (analytics.revoked / analytics.total) * 100 : 0}%` }}
               />
             </div>
           </div>
@@ -209,9 +206,9 @@ export function InviteAnalyticsTab() {
       <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
         <h3 className="font-semibold mb-2">Key Insights</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
-          {analytics.conversionRate >= 70 ? (
-            <li>✓ Strong conversion rate. Keep leveraging team invites!</li>
-          ) : analytics.conversionRate >= 50 ? (
+          {Number(analytics.conversionRate) >= 70 ? (
+            <li>✓ Strong conversion rate. Keep leveraging team invites.</li>
+          ) : Number(analytics.conversionRate) >= 50 ? (
             <li>→ Moderate conversion. Consider follow-up on pending invites.</li>
           ) : (
             <li>⚠ Low conversion. Review invite messaging or timing.</li>
