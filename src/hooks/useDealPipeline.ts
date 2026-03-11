@@ -170,7 +170,7 @@ export function usePipelineMetrics() {
         throw error;
       }
       
-      console.log('[PipelineMetrics] Result:', data);
+      
       
       // Handle empty result
       if (!data || data.length === 0) {
