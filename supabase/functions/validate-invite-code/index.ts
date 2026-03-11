@@ -137,18 +137,11 @@ serve(async (req) => {
       );
     }
 
-    // Extract metadata for pre-fill
+    // Extract metadata for pre-fill (already fetched in single query above)
     const metadata = codeData.metadata as Record<string, unknown> | null;
     const recipientName = (metadata?.recipient_name as string) || null;
     const recipientEmail = (metadata?.email as string) || null;
     const companyNameFromMeta = (metadata?.company_name as string) || null;
-
-    // Fetch target_role from invite
-    const { data: inviteFull } = await supabase
-      .from('invite_codes')
-      .select('target_role')
-      .eq('code', code.toUpperCase())
-      .single();
 
     // Valid code
     return new Response(
@@ -159,7 +152,7 @@ serve(async (req) => {
         recipientName,
         recipientEmail,
         companyName: companyNameFromMeta,
-        targetRole: inviteFull?.target_role || null,
+        targetRole: codeData.target_role || null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -112,7 +112,7 @@ export function SendInviteTab() {
         .maybeSingle();
 
       const memberCompanyName = (membership?.companies as { name?: string })?.name || 'The Quantum Club';
-      const companyId = membership?.company_id || '';
+      const companyId = membership?.company_id || undefined;
 
       // Send email via edge function
       const { error: sendError } = await supabase.functions.invoke('send-team-invite', {

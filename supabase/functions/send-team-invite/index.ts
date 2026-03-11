@@ -67,7 +67,9 @@ serve(async (req) => {
 
     const body: TeamInviteRequest = await req.json();
     
-    if (!body.email || !body.inviteCode || !body.companyName || !body.companyId) {
+    // companyId is optional for partner invites (partners are external)
+    const isPartnerRole = body.role === 'partner';
+    if (!body.email || !body.inviteCode || !body.companyName || (!body.companyId && !isPartnerRole)) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
