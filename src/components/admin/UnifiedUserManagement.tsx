@@ -848,6 +848,42 @@ export function UnifiedUserManagement() {
                   </div>
                 )}
               </div>
+
+              {/* MFA Reset Section */}
+              <div className="space-y-3 pt-4 border-t">
+                <Label className="text-base font-semibold">Security</Label>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Reset MFA</p>
+                    <p className="text-xs text-muted-foreground">Remove all authenticator factors so the user can set up MFA again.</p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={async () => {
+                      if (!editingUser) return;
+                      const confirmed = window.confirm(`Reset MFA for ${editingUser.full_name || editingUser.email}? They will need to set up a new authenticator.`);
+                      if (!confirmed) return;
+                      try {
+                        const { data, error } = await supabase.functions.invoke('admin-reset-mfa', {
+                          body: {
+                            target_user_id: editingUser.id,
+                            reason: `Admin MFA reset via user management for ${editingUser.email}`,
+                          },
+                        });
+                        if (error) throw error;
+                        toast.success(`MFA reset for ${editingUser.full_name || editingUser.email}`);
+                      } catch (err) {
+                        console.error('[UnifiedUserManagement] MFA reset error:', err);
+                        toast.error('Failed to reset MFA');
+                      }
+                    }}
+                  >
+                    <ShieldOff className="w-4 h-4 mr-1.5" />
+                    Reset MFA
+                  </Button>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button onClick={handleUpdateUser} disabled={saving}>
