@@ -311,7 +311,8 @@ Deno.serve(async (req) => {
         admin_verified_email: body.markEmailVerified,
         admin_verified_phone: body.markPhoneVerified,
         preferred_auth_method: body.provisionMethod === 'oauth_only' ? 'google' : body.provisionMethod,
-        assigned_strategist_id: body.assignedStrategistId || null
+        assigned_strategist_id: body.assignedStrategistId || null,
+        account_status: 'active'
       })
       .eq('id', newUserId);
     if (profileError) {
