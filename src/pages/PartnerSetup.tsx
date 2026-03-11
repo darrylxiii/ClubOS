@@ -192,18 +192,18 @@ const PartnerSetup = () => {
 
       // Step 3: Audit log
       await supabase.from('comprehensive_audit_logs').insert({
+        event_type: 'partner_setup_completed',
+        action: 'partner_setup_completed',
+        event_category: 'account',
         actor_id: user.id,
         actor_role: 'user',
-        action_type: 'partner_setup_completed',
-        action_category: 'account',
         resource_type: 'profile',
         description: 'Partner completed initial account setup (password + profile)',
-        new_value: {
+        after_value: {
           has_avatar: !!avatarUrl,
           has_linkedin: !!linkedinUrl.trim(),
         },
-        ip_address: 'client',
-        user_agent: navigator.userAgent,
+        actor_user_agent: navigator.userAgent,
       });
 
       setStep('complete');
