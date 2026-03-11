@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Clock, TrendingUp, Calendar, MousePointerClick, FileText, Mail, Building2 } from 'lucide-react';
+import {
+  Activity, Clock, TrendingUp, Calendar, MousePointerClick, Mail, Building2,
+  LogIn, Timer, UserPlus, Award, DollarSign, Phone, BarChart3,
+} from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 
 interface UserDetailModalProps {
@@ -15,61 +18,62 @@ interface UserDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function formatDuration(minutes: number): string {
+  if (!minutes || minutes <= 0) return '0m';
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h === 0) return `${m}m`;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+function formatRevenue(amount: number): string {
+  if (!amount) return '€0';
+  if (amount >= 1000) return `€${(amount / 1000).toFixed(1)}k`;
+  return `€${amount.toLocaleString()}`;
+}
+
 export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalProps) {
   const { data: userData, isLoading } = useQuery({
-    queryKey: ['user-detail', userId],
+    queryKey: ['user-detail-v2', userId],
     queryFn: async () => {
       if (!userId) return null;
 
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const [profileRes, rolesRes, activityRes, eventsRes, sourcedRes, placementsRes, recruiterMetricsRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).single(),
+        supabase.from('user_roles').select('role').eq('user_id', userId),
+        supabase.from('user_activity_tracking').select('*').eq('user_id', userId).maybeSingle(),
+        supabase.from('user_session_events').select('*').eq('user_id', userId).order('event_timestamp', { ascending: false }).limit(50),
+        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('sourced_by', userId),
+        supabase.from('placement_fees').select('fee_amount, status').eq('sourced_by', userId).neq('status', 'cancelled'),
+        supabase.from('recruiter_activity_metrics').select('*').eq('user_id', userId).maybeSingle(),
+      ]);
 
-      if (profileError) throw profileError;
+      if (profileRes.error) throw profileRes.error;
 
-      // Fetch user roles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-
-      if (rolesError) throw rolesError;
-
-      // Fetch activity tracking
-      const { data: activity, error: activityError } = await supabase
-        .from('user_activity_tracking')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      // Fetch recent session events (last 50)
-      const { data: sessionEvents, error: eventsError } = await supabase
-        .from('user_session_events')
-        .select('*')
-        .eq('user_id', userId)
-        .order('event_timestamp', { ascending: false })
-        .limit(50);
-
-      // Fetch company if applicable
+      // Company lookup
       let company = null;
-      if (profile?.company_id) {
+      if (profileRes.data?.company_id) {
         const { data: companyData } = await supabase
           .from('companies')
           .select('name')
-          .eq('id', profile.company_id)
+          .eq('id', profileRes.data.company_id)
           .single();
         company = companyData;
       }
 
+      const placementCount = placementsRes.data?.length || 0;
+      const totalRevenue = (placementsRes.data || []).reduce((s: number, f: any) => s + (Number(f.fee_amount) || 0), 0);
+
       return {
-        profile,
-        roles: roles?.map(r => r.role) || [],
-        activity: activity || null,
-        sessionEvents: sessionEvents || [],
+        profile: profileRes.data,
+        roles: rolesRes.data?.map(r => r.role) || [],
+        activity: activityRes.data || null,
+        sessionEvents: eventsRes.data || [],
         company,
+        candidatesSourced: sourcedRes.count || 0,
+        placements: placementCount,
+        revenue: totalRevenue,
+        recruiterMetrics: recruiterMetricsRes.data || null,
       };
     },
     enabled: !!userId && open,
@@ -98,7 +102,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
       <DialogContent className="max-w-3xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>User Details</DialogTitle>
-          <DialogDescription>Comprehensive activity history for this user</DialogDescription>
+          <DialogDescription>Comprehensive activity and performance data</DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -139,64 +143,143 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
               </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-3">
-              <Card className="bg-muted/10">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <Activity className="w-3 h-3" />
-                    Total Actions
-                  </div>
-                  <div className="text-xl font-bold">
-                    {userData.activity?.total_actions?.toLocaleString() || 0}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-muted/10">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <TrendingUp className="w-3 h-3" />
-                    Score (24h)
-                  </div>
-                  <div className="text-xl font-bold">
-                    {userData.activity?.activity_score || 0}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-muted/10">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <Calendar className="w-3 h-3" />
-                    Sessions
-                  </div>
-                  <div className="text-xl font-bold">
-                    {(userData.activity as any)?.session_count || 0}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-muted/10">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <Clock className="w-3 h-3" />
-                    Last Active
-                  </div>
-                  <div className="text-sm font-medium">
-                    {userData.activity?.last_activity_at
-                      ? formatDistanceToNow(new Date(userData.activity.last_activity_at), { addSuffix: true })
-                      : 'Never'
-                    }
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Activity Timeline */}
-            <Tabs defaultValue="events" className="w-full">
+            {/* Tabs */}
+            <Tabs defaultValue="performance" className="w-full">
               <TabsList>
-                <TabsTrigger value="events">Recent Events</TabsTrigger>
-                <TabsTrigger value="info">Profile Info</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
+                <TabsTrigger value="events">Events</TabsTrigger>
+                <TabsTrigger value="info">Profile</TabsTrigger>
               </TabsList>
-              
+
+              {/* Performance Tab */}
+              <TabsContent value="performance">
+                <div className="space-y-4">
+                  {/* Primary KPI Cards */}
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <LogIn className="w-3 h-3" />
+                          Logins
+                        </div>
+                        <div className="text-xl font-bold">
+                          {(userData.activity as any)?.session_count || 0}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <Timer className="w-3 h-3" />
+                          Time Online
+                        </div>
+                        <div className="text-xl font-bold">
+                          {formatDuration((userData.activity as any)?.total_session_duration_minutes || 0)}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <Activity className="w-3 h-3" />
+                          Actions
+                        </div>
+                        <div className="text-xl font-bold">
+                          {userData.activity?.total_actions?.toLocaleString() || 0}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <UserPlus className="w-3 h-3" />
+                          Sourced
+                        </div>
+                        <div className="text-xl font-bold">{userData.candidatesSourced}</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <Award className="w-3 h-3" />
+                          Placements
+                        </div>
+                        <div className="text-xl font-bold">{userData.placements}</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <DollarSign className="w-3 h-3" />
+                          Revenue
+                        </div>
+                        <div className="text-xl font-bold">{formatRevenue(userData.revenue)}</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Timestamps */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <Clock className="w-3 h-3" />
+                          Last Login
+                        </div>
+                        <div className="text-sm font-medium">
+                          {(userData.activity as any)?.last_login_at
+                            ? formatDistanceToNow(new Date((userData.activity as any).last_login_at), { addSuffix: true })
+                            : 'Never'
+                          }
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted/10">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                          <TrendingUp className="w-3 h-3" />
+                          Activity Score
+                        </div>
+                        <div className="text-sm font-medium">
+                          {userData.activity?.activity_score || 0}/100
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Recruiter Metrics (if available) */}
+                  {userData.recruiterMetrics && (
+                    <Card className="bg-muted/10">
+                      <CardHeader className="py-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          Recruiter Activity Metrics
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {[
+                            { label: 'Calls Made', value: (userData.recruiterMetrics as any)?.calls_made || 0, icon: Phone },
+                            { label: 'Emails Sent', value: (userData.recruiterMetrics as any)?.emails_sent || 0, icon: Mail },
+                            { label: 'Candidates Added', value: (userData.recruiterMetrics as any)?.candidates_added || 0, icon: UserPlus },
+                            { label: 'Candidates Placed', value: (userData.recruiterMetrics as any)?.candidates_placed || 0, icon: Award },
+                          ].map(({ label, value, icon: Icon }) => (
+                            <div key={label} className="flex items-center gap-2">
+                              <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                              <div>
+                                <div className="text-xs text-muted-foreground">{label}</div>
+                                <div className="text-sm font-bold">{value}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Events Tab */}
               <TabsContent value="events">
                 <Card>
                   <CardHeader className="py-3">
@@ -206,8 +289,8 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                     <ScrollArea className="h-[300px]">
                       <div className="p-4 space-y-2">
                         {userData.sessionEvents.map((event: any) => (
-                          <div 
-                            key={event.id} 
+                          <div
+                            key={event.id}
                             className="flex items-start gap-3 p-2 rounded hover:bg-muted/10"
                           >
                             <MousePointerClick className="w-4 h-4 text-muted-foreground mt-0.5" />
@@ -235,6 +318,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                 </Card>
               </TabsContent>
 
+              {/* Profile Info Tab */}
               <TabsContent value="info">
                 <Card>
                   <CardContent className="p-4 space-y-3">
@@ -258,7 +342,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                       <div>
                         <div className="text-xs text-muted-foreground">Member Since</div>
                         <div className="text-sm">
-                          {userData.profile.created_at 
+                          {userData.profile.created_at
                             ? format(new Date(userData.profile.created_at), 'MMM dd, yyyy')
                             : 'Unknown'
                           }
