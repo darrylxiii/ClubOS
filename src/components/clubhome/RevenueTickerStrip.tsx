@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { useRevenueAnalytics } from "@/hooks/useRevenueAnalytics";
-import { useAdminKPIScorecard } from "@/hooks/useAdminKPIScorecard";
-import { usePlatformSettings } from "@/hooks/usePlatformSettings";
+import { useRevenueTickerData } from "@/hooks/useRevenueTickerData";
+import { usePipelineMetrics } from "@/hooks/useDealPipeline";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,15 +38,15 @@ function DeltaBadge({ delta }: { delta: number | null }) {
 }
 
 export function RevenueTickerStrip() {
-  const { data: revenue, isLoading: revLoading } = useRevenueAnalytics("thisMonth");
-  const { data: kpi, isLoading: kpiLoading } = useAdminKPIScorecard("30d");
+  const { data: ticker, isLoading: tickerLoading } = useRevenueTickerData();
+  const { data: pipeline, isLoading: pipelineLoading } = usePipelineMetrics();
 
-  const isLoading = revLoading || kpiLoading;
+  const isLoading = tickerLoading || pipelineLoading;
 
   if (isLoading) {
     return (
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
+        {[1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="h-[72px] min-w-[140px] flex-1 rounded-xl" />
         ))}
       </div>
@@ -57,39 +56,27 @@ export function RevenueTickerStrip() {
   const pills: TickerPill[] = [
     {
       label: "MRR",
-      value: formatCompact(revenue?.totalRevenue ?? 0),
-      delta: revenue?.revenueDelta ?? null,
+      value: formatCompact(ticker?.mrr ?? 0),
+      delta: ticker?.mrrDelta ?? null,
       href: "/admin/finance",
     },
     {
       label: "Pipeline",
-      value: formatCompact(revenue?.totalPipelineValue ?? 0),
+      value: formatCompact(pipeline?.weighted_pipeline ?? 0),
       delta: null,
       href: "/admin/global-analytics",
     },
     {
       label: "Placements",
-      value: `${revenue?.totalHires ?? 0}`,
-      delta: revenue?.hiresDelta ?? null,
+      value: `${ticker?.placements ?? 0}`,
+      delta: ticker?.placementsDelta ?? null,
       href: "/admin/global-analytics",
     },
     {
       label: "Active Jobs",
-      value: `${Object.values(kpi?.pipeline?.stageCounts ?? {}).reduce((a, b) => a + b, 0) || 0}`,
+      value: `${ticker?.activeJobs ?? 0}`,
       delta: null,
       href: "/jobs",
-    },
-    {
-      label: "Avg Days to Hire",
-      value: kpi?.efficiency?.timeToHire?.value != null ? `${kpi.efficiency.timeToHire.value}d` : "—",
-      delta: null,
-      href: "/admin/kpi-command-center",
-    },
-    {
-      label: "NPS",
-      value: kpi?.nps?.candidateNPS?.value != null ? `${kpi.nps.candidateNPS.value}` : "—",
-      delta: null,
-      href: "/admin/kpi-command-center",
     },
   ];
 

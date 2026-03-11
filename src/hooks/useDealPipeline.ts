@@ -77,7 +77,7 @@ export function useDealPipeline() {
   return useQuery({
     queryKey: ['deal-pipeline'],
     queryFn: async () => {
-      console.log('[DealPipeline] Fetching jobs...');
+      
       
       // WS-4: Optimized query with specific fields instead of select('*')
       const { data, error } = await supabase
@@ -95,11 +95,11 @@ export function useDealPipeline() {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('[DealPipeline] Error fetching jobs:', error);
+        logger.error('Error fetching deal pipeline', { componentName: 'DealPipeline', error });
         throw error;
       }
       
-      console.log('[DealPipeline] Found', data?.length || 0, 'jobs');
+      
       
       if (!data || data.length === 0) {
         return [];
@@ -150,7 +150,7 @@ export function useDealPipeline() {
         })
       ) as Deal[];
       
-      console.log('[DealPipeline] Processed', dealsWithRevenue.length, 'deals');
+      
       return dealsWithRevenue;
     },
   });
@@ -160,17 +160,17 @@ export function usePipelineMetrics() {
   return useQuery({
     queryKey: ['pipeline-metrics'],
     queryFn: async () => {
-      console.log('[PipelineMetrics] Fetching metrics...');
+      
       
       const { data, error } = await (supabase as any)
         .rpc('calculate_weighted_pipeline');
       
       if (error) {
-        console.error('[PipelineMetrics] Error:', error);
+        logger.error('Error fetching pipeline metrics', { componentName: 'PipelineMetrics', error });
         throw error;
       }
       
-      console.log('[PipelineMetrics] Result:', data);
+      
       
       // Handle empty result
       if (!data || data.length === 0) {
