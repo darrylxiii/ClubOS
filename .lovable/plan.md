@@ -1,92 +1,140 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Employee Dashboard + Finance Hub — Critical Audit
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+## Score: 52/100 | Target: 100/100
 
 ---
 
-## Remaining
+## What's Wrong
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+### A. Employee Intelligence Tabs (RoleIntelligenceTab + UserDetailModal)
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+**1. Zero earnings data (Critical — 0 of 3 financial sources used)**
+The `RoleIntelligenceTab` and `UserDetailModal` show "Revenue" (placement fees generated for the company) but never show what the employee actually **earned**:
+- `employee_commissions` — never queried (commissions from placements)
+- `referral_revenue_shares` — never queried (% of all revenue)
+- `referral_payouts` — never queried (referral bonuses)
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+An employee who generated €100k in placement fees but earned €15k in commissions sees "€100k Revenue" with no indication of their take-home.
 
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+**2. No meetings/interviews tracked per employee (Missing)**
+`meeting_participants` links users to meetings. Number of meetings attended, interview recordings analyzed, total meeting hours — all missing from the employee view. For a recruitment firm, interview volume is a core productivity metric.
 
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
+**3. No `activity_feed` event counts per employee (Missing)**
+The `activity_feed` table logs business events (candidate added, status changed, note written). Counting these per user gives a real "actions that matter" metric vs the generic `total_actions` from `user_activity_tracking` which includes page views.
 
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+**4. `as any` type casts throughout UserDetailModal (Code quality)**
+Lines 166, 177, 230-231, 262-265 — six `as any` casts on `userData.activity` and `userData.recruiterMetrics`. These fields should be properly typed.
+
+**5. No click-through from RoleIntelligenceTab rows to UserDetailModal (UX gap)**
+Employee rows are not clickable. The `UserDetailModal` exists but the `RoleIntelligenceTab` has no `onUserClick` handler wired.
+
+**6. No sorting or filtering on the employee table (UX gap)**
+Cannot sort by revenue, placements, time online, or filter by activity level. For 10+ employees this is essential.
+
+### B. Revenue Share Earnings (RevenueShareEarningsTable)
+
+**7. Uses `total_amount` (gross) instead of `net_amount` (Bug)**
+Line 61: `const amount = Number(invoice.total_amount) || 0` — contradicts `RevenueDistributionSummary` which correctly uses `net_amount` with `grossToNet` fallback. Overstates share obligations by ~21% (NL VAT).
+
+**8. Ignores `applies_to` scope (Bug)**
+The `referral_revenue_shares` table has an `applies_to` field (e.g. `"all_revenue"`, `"specific_clients"`) and `min_deal_value`. The calculation applies the percentage to ALL invoices regardless, overstating obligations for scoped shares.
+
+**9. Ignores `effective_from` / `effective_to` date bounds (Bug)**
+Shares have date-range fields but the calculation includes all YTD invoices even if the share only became active mid-year.
+
+**10. No connection between revenue shares and employee dashboard (Architecture gap)**
+Revenue share beneficiaries who are also employees never see their share earnings in the employee detail view (`EmployeeDetailView`). The `EmployeeCommissionsTab` shows `employee_commissions` but not revenue share earnings or referral payouts.
+
+### C. Employee Detail View (EmployeeDetailView)
+
+**11. No revenue share or referral payout tab (Missing)**
+The detail view has Overview, KPIs, Targets, Time, Commissions — but no "Earnings" tab that consolidates all income streams (commissions + share earnings + referral payouts).
+
+**12. No activity/login history (Missing)**
+No `user_activity_tracking` data shown. The admin intelligence tabs show logins and time online, but the individual employee detail page does not.
 
 ---
 
-### Remaining: Phase H4–H6
+## Implementation Plan
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+### Phase 1: Fix Revenue Share Calculation Bugs (52 → 62)
 
-### Phase I2: Remaining Ecosystem
+**File: `src/components/admin/RevenueShareEarningsTable.tsx`**
+- Line 61: Change `total_amount` → `net_amount` with `grossToNet` fallback (matching `RevenueDistributionSummary`)
+- Add `applies_to` filtering: only apply share to matching invoices
+- Add `effective_from`/`effective_to` date bounds: skip invoices outside the share's active period
+- Respect `min_deal_value`: skip invoices below the threshold
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+### Phase 2: Wire Earnings into RoleIntelligenceTab (62 → 75)
+
+**File: `src/components/admin/activity/RoleIntelligenceTab.tsx`**
+- Add 3 parallel queries to existing `Promise.all`:
+  - `employee_commissions` via `employee_profiles` (match `user_id` to `employee_profiles.user_id` → `employee_commissions.employee_id`)
+  - `referral_payouts` where `referrer_user_id` IN user IDs
+  - `referral_revenue_shares` where `user_id` IN user IDs + Moneybird invoices (reuse corrected calculation from Phase 1)
+- Add `EmployeeRow` fields: `commissions_earned`, `commissions_paid`, `referral_earnings`, `share_earnings`, `total_earnings`
+- Add summary card: **"Total Earnings"** (all 3 income streams combined)
+- Add columns: **Commissions** | **Earnings** (total take-home)
+- Add `onUserClick` prop, make rows clickable → opens `UserDetailModal`
+- Add sort toggle on column headers (by revenue, earnings, placements, time online)
+
+### Phase 3: Upgrade UserDetailModal with Earnings Tab (75 → 85)
+
+**File: `src/components/admin/activity/UserDetailModal.tsx`**
+- Add **"Earnings"** tab alongside Performance/Events/Profile
+- Fetch in parallel (add to existing `Promise.all`):
+  - `employee_commissions` (via `employee_profiles` lookup)
+  - `referral_payouts` where `referrer_user_id = userId`
+  - `referral_revenue_shares` where `user_id = userId` + Moneybird invoices for calculation
+  - `meeting_participants` count where `user_id = userId` (meetings attended)
+- Earnings tab shows:
+  - 4 KPI cards: Total Commissions (paid/pending), Revenue Share Earnings (realized/projected), Referral Payouts, Total Take-Home
+  - Commission history list (reuse existing pattern from `EmployeeCommissionsTab`)
+  - Revenue share breakdown if active shares exist
+- Performance tab additions:
+  - Meetings attended count
+- Remove all `as any` casts — type the activity and recruiterMetrics interfaces properly
+
+### Phase 4: Add Earnings to EmployeeDetailView (85 → 92)
+
+**File: `src/components/employees/EmployeeDetailView.tsx`**
+- Add 6th tab: **"Earnings"** (Wallet icon)
+- New component: `src/components/employees/EmployeeEarningsTab.tsx`
+  - Fetches all 3 income streams for this employee
+  - Shows consolidated view: Commissions + Revenue Share Earnings + Referral Payouts
+  - Total YTD earnings with paid vs pending breakdown
+  - Monthly earnings chart (simple bar chart using recharts, already installed)
+- Add activity stats to the Overview tab:
+  - Login count, total time online, last login (from `user_activity_tracking`)
+  - Meetings attended (from `meeting_participants`)
+
+### Phase 5: Shared Earnings Calculation Utility (92 → 97)
+
+**New file: `src/lib/employeeEarnings.ts`**
+- Extract the revenue share calculation logic into a shared utility so `RevenueShareEarningsTable`, `RoleIntelligenceTab`, `UserDetailModal`, and `EmployeeEarningsTab` all use the same corrected calculation
+- Function: `calculateShareEarnings(share, invoices)` — handles `applies_to`, `effective_from/to`, `min_deal_value`, and uses `net_amount`
+- Function: `aggregateEmployeeEarnings(userId, commissions, payouts, shareEarnings)` — returns total/paid/pending breakdown
+
+### Phase 6: Polish (97 → 100)
+
+- `RoleIntelligenceTab`: Add loading skeleton for new columns
+- `UserDetailModal`: Remove remaining `as any` casts (define proper interfaces for activity tracking and recruiter metrics)
+- `RevenueShareEarningsTable`: Add "Scope" column showing `applies_to` value so admins understand what each share covers
+
+---
+
+## Files Summary
+
+| File | Action |
+|------|--------|
+| `src/lib/employeeEarnings.ts` | **New** — Shared earnings calculation utility |
+| `src/components/employees/EmployeeEarningsTab.tsx` | **New** — Consolidated earnings tab for employee detail |
+| `src/components/admin/RevenueShareEarningsTable.tsx` | Fix gross→net, add `applies_to`/date/min_deal filtering |
+| `src/components/admin/activity/RoleIntelligenceTab.tsx` | Add earnings queries, clickable rows, sort, earnings columns |
+| `src/components/admin/activity/UserDetailModal.tsx` | Add Earnings tab, meetings count, remove `as any` casts |
+| `src/components/employees/EmployeeDetailView.tsx` | Add Earnings tab, activity stats on Overview |
+
+No database changes needed.
+
