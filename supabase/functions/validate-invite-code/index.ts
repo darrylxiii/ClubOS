@@ -60,10 +60,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Check if code exists
+    // Check if code exists (include target_role + metadata in single query)
     const { data: codeData, error } = await supabase
       .from('invite_codes')
-      .select('code, is_active, expires_at, used_by, used_at, created_by')
+      .select('code, is_active, expires_at, used_by, used_at, created_by, target_role, metadata')
       .eq('code', code.toUpperCase())
       .single();
     
@@ -137,18 +137,11 @@ serve(async (req) => {
       );
     }
 
-    // Extract metadata for pre-fill
+    // Extract metadata for pre-fill (already fetched in single query above)
     const metadata = codeData.metadata as Record<string, unknown> | null;
     const recipientName = (metadata?.recipient_name as string) || null;
     const recipientEmail = (metadata?.email as string) || null;
     const companyNameFromMeta = (metadata?.company_name as string) || null;
-
-    // Fetch target_role from invite
-    const { data: inviteFull } = await supabase
-      .from('invite_codes')
-      .select('target_role')
-      .eq('code', code.toUpperCase())
-      .single();
 
     // Valid code
     return new Response(
@@ -159,7 +152,7 @@ serve(async (req) => {
         recipientName,
         recipientEmail,
         companyName: companyNameFromMeta,
-        targetRole: inviteFull?.target_role || null,
+        targetRole: codeData.target_role || null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

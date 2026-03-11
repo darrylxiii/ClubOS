@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AssistedPasswordConfirmation } from '@/components/ui/assisted-password-confirmation';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
 import { toast } from 'sonner';
-import { Lock, Linkedin, Camera, ArrowRight, CheckCircle, Loader2, Sparkles } from 'lucide-react';
+import { Lock, Linkedin, Camera, ArrowRight, ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
@@ -41,13 +41,11 @@ const PartnerSetup = () => {
       return;
     }
     if (user) {
-      // If user doesn't need force_password_change, redirect away
       if (user.user_metadata?.force_password_change !== true) {
         navigate('/home');
         return;
       }
       setProfileName(user.user_metadata?.full_name || '');
-      // Load existing avatar
       loadExistingAvatar();
     }
   }, [user, loading, navigate]);
@@ -77,8 +75,24 @@ const PartnerSetup = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      // Route through password-reset-set-password edge function for HIBP + history checks
+      const { data, error } = await supabase.functions.invoke('password-reset-set-password', {
+        body: { password }
+      });
+
       if (error) throw error;
+      if (data?.error) {
+        // Handle specific error codes from the edge function
+        if (data.code === 'weak_password' || data.code === 'pwned') {
+          toast.error('This password has appeared in a data breach. Please choose a different one.');
+        } else if (data.code === 'password_reused') {
+          toast.error('You have used this password recently. Please choose a new one.');
+        } else {
+          toast.error(data.error || 'Failed to set password.');
+        }
+        return;
+      }
+
       toast.success('Password set successfully.');
       setStep('profile');
     } catch (error) {
@@ -94,7 +108,6 @@ const PartnerSetup = () => {
       toast.error('Please enter your LinkedIn URL first.');
       return;
     }
-    // Basic LinkedIn URL validation
     if (!linkedinUrl.includes('linkedin.com/in/')) {
       toast.error('Please enter a valid LinkedIn profile URL.');
       return;
@@ -102,6 +115,11 @@ const PartnerSetup = () => {
 
     setFetchingAvatar(true);
     try {
+      // Persist LinkedIn URL immediately so it survives a refresh
+      if (user) {
+        await supabase.from('profiles').update({ linkedin_url: linkedinUrl.trim() }).eq('id', user.id);
+      }
+
       const { data, error } = await supabase.functions.invoke('fetch-linkedin-avatar', {
         body: { linkedinUrl: linkedinUrl.trim() }
       });
@@ -157,7 +175,13 @@ const PartnerSetup = () => {
     if (!user) return;
     setIsSubmitting(true);
     try {
-      // Save LinkedIn URL if provided
+      // Step 1: Clear force_password_change FIRST — if this fails, don't mark onboarding complete
+      const { error: metaError } = await supabase.auth.updateUser({
+        data: { force_password_change: false }
+      });
+      if (metaError) throw metaError;
+
+      // Step 2: Now safe to mark onboarding complete + save LinkedIn
       const updates: Record<string, unknown> = {
         onboarding_completed_at: new Date().toISOString(),
       };
@@ -166,16 +190,27 @@ const PartnerSetup = () => {
       }
       await supabase.from('profiles').update(updates).eq('id', user.id);
 
-      // Clear force_password_change flag
-      await supabase.auth.updateUser({
-        data: { force_password_change: false }
+      // Step 3: Audit log
+      await supabase.from('comprehensive_audit_logs').insert({
+        event_type: 'partner_setup_completed',
+        action: 'partner_setup_completed',
+        event_category: 'account',
+        actor_id: user.id,
+        actor_role: 'user',
+        resource_type: 'profile',
+        description: 'Partner completed initial account setup (password + profile)',
+        after_value: {
+          has_avatar: !!avatarUrl,
+          has_linkedin: !!linkedinUrl.trim(),
+        },
+        actor_user_agent: navigator.userAgent,
       });
 
       setStep('complete');
-      // Brief delay for the success animation, then redirect
       setTimeout(() => navigate('/partner-welcome'), 2000);
     } catch (error) {
       toast.error('Something went wrong. Please try again.');
+      logger.error('Partner setup completion failed', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerSetup' });
     } finally {
       setIsSubmitting(false);
     }
@@ -328,12 +363,25 @@ const PartnerSetup = () => {
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    We can import your profile photo from LinkedIn automatically.
-                  </p>
+                  {fetchingAvatar ? (
+                    <p className="text-xs text-primary font-medium animate-pulse">
+                      Fetching your photo from LinkedIn — this may take a moment…
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      We can import your profile photo from LinkedIn automatically.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setStep('password')}
+                    className="h-12 px-4 rounded-xl"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" /> Back
+                  </Button>
                   <Button
                     variant="ghost"
                     onClick={handleCompleteSetup}

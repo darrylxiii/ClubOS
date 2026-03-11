@@ -27,7 +27,7 @@ function deriveStats(invites: Array<{
     !i.used_at && i.is_active && new Date(i.expires_at) < new Date()
   ).length;
   const revoked = invites.filter(i => !i.is_active && !i.used_at).length;
-  const pending = totalSent - accepted - expired - revoked;
+  const pending = Math.max(0, totalSent - accepted - expired - revoked);
   const conversionRate = totalSent > 0 ? (accepted / totalSent) * 100 : 0;
 
   return { totalSent, pending, accepted, conversionRate };

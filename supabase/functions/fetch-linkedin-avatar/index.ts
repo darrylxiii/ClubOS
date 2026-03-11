@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Download the image and upload to storage
+    // Download the image and upload to storage — NO fallback to external URLs
     try {
       const imgResponse = await fetch(profilePicUrl);
       if (!imgResponse.ok) throw new Error('Failed to download image');
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Update profile
+      // Update profile with storage URL only
       await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
 
       return new Response(JSON.stringify({ avatarUrl: publicUrl }), {
@@ -137,9 +137,8 @@ Deno.serve(async (req) => {
       });
     } catch (e) {
       console.error('Image upload failed:', e);
-      // Return the original URL as fallback
-      await supabase.from('profiles').update({ avatar_url: profilePicUrl }).eq('id', user.id);
-      return new Response(JSON.stringify({ avatarUrl: profilePicUrl }), {
+      // Do NOT fall back to external URL — return null instead
+      return new Response(JSON.stringify({ avatarUrl: null, message: 'Found photo but failed to store it. Please upload manually.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }

@@ -8,6 +8,16 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface InviteRecord {
   id: string;
@@ -27,6 +37,7 @@ export function InviteHistoryTab() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
 
   const { data: invites = [], isLoading } = useQuery<InviteRecord[]>({
     queryKey: ['invite-history', user?.id],
@@ -60,6 +71,8 @@ export function InviteHistoryTab() {
       queryClient.invalidateQueries({ queryKey: ['invite-stats'] });
     } catch {
       toast.error('Failed to revoke invitation');
+    } finally {
+      setRevokeTarget(null);
     }
   };
 
@@ -80,6 +93,13 @@ export function InviteHistoryTab() {
         return;
       }
 
+      // Extend expiry by 7 days from now
+      const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      await supabase
+        .from('invite_codes')
+        .update({ expires_at: newExpiry })
+        .eq('id', invite.id);
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name')
@@ -99,7 +119,7 @@ export function InviteHistoryTab() {
         body: {
           email: recipientEmail,
           inviteCode: invite.code,
-          companyId: membership?.company_id || '',
+          companyId: membership?.company_id || undefined,
           companyName,
           inviterName: profile?.full_name || 'A team member',
           role: invite.target_role || 'member',
@@ -110,6 +130,7 @@ export function InviteHistoryTab() {
 
       if (error) throw error;
       toast.success(`Invitation resent to ${recipientEmail}`);
+      queryClient.invalidateQueries({ queryKey: ['invite-history'] });
     } catch {
       toast.error('Failed to resend invitation');
     } finally {
@@ -153,77 +174,99 @@ export function InviteHistoryTab() {
   }
 
   return (
-    <div className="space-y-3">
-      {invites.map((invite) => {
-        const status = getStatus(invite);
-        const StatusIcon = status.icon;
-        const metadata = invite.metadata || {};
-        const recipientName = (metadata.recipient_name as string) || null;
-        const email = (metadata.email as string) || (metadata.invited_email as string) || '—';
-        const isPending = status.label === 'Pending';
+    <>
+      <div className="space-y-3">
+        {invites.map((invite) => {
+          const status = getStatus(invite);
+          const StatusIcon = status.icon;
+          const metadata = invite.metadata || {};
+          const recipientName = (metadata.recipient_name as string) || null;
+          const email = (metadata.email as string) || (metadata.invited_email as string) || '—';
+          const isPending = status.label === 'Pending';
 
-        return (
-          <div
-            key={invite.id}
-            className="flex items-center justify-between p-4 rounded-lg border bg-card/50 hover:bg-card/80 transition-colors"
-          >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <StatusIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {recipientName ? `${recipientName} · ${email}` : email}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {invite.target_role && (
-                    <span className="capitalize">{invite.target_role} · </span>
-                  )}
-                  {formatDistanceToNow(new Date(invite.created_at), { addSuffix: true })}
-                </p>
+          return (
+            <div
+              key={invite.id}
+              className="flex items-center justify-between p-4 rounded-lg border bg-card/50 hover:bg-card/80 transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <StatusIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {recipientName ? `${recipientName} · ${email}` : email}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {invite.target_role && (
+                      <span className="capitalize">{invite.target_role} · </span>
+                    )}
+                    {formatDistanceToNow(new Date(invite.created_at), { addSuffix: true })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Badge variant={status.variant}>{status.label}</Badge>
+                {isPending && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyInviteLink(invite.code)}
+                      className="h-7 px-2 text-muted-foreground"
+                      title="Copy invite link"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => resendInvite(invite)}
+                      disabled={resendingId === invite.id}
+                      className="h-7 px-2 text-muted-foreground"
+                      title="Resend invitation"
+                    >
+                      {resendingId === invite.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setRevokeTarget(invite.id)}
+                      className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                      title="Revoke invitation"
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
+          );
+        })}
+      </div>
 
-            <div className="flex items-center gap-1.5">
-              <Badge variant={status.variant}>{status.label}</Badge>
-              {isPending && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyInviteLink(invite.code)}
-                    className="h-7 px-2 text-muted-foreground"
-                    title="Copy invite link"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resendInvite(invite)}
-                    disabled={resendingId === invite.id}
-                    className="h-7 px-2 text-muted-foreground"
-                    title="Resend invitation"
-                  >
-                    {resendingId === invite.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <RotateCcw className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => revokeInvite(invite.id)}
-                    className="h-7 px-2 text-muted-foreground hover:text-destructive"
-                    title="Revoke invitation"
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+      <AlertDialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke this invitation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently deactivate the invite code. The recipient will no longer be able to use it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => revokeTarget && revokeInvite(revokeTarget)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Revoke
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
