@@ -95,7 +95,7 @@ export function useDealPipeline() {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('[DealPipeline] Error fetching jobs:', error);
+        logger.error('Error fetching deal pipeline', { componentName: 'DealPipeline', error });
         throw error;
       }
       
