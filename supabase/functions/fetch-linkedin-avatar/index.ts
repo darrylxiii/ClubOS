@@ -25,8 +25,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.50.0");
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
