@@ -323,7 +323,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                       <CardContent className="pt-0">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           {[
-                            { label: 'Calls Made', value: userData.recruiterMetrics.calls_made || 0, icon: Phone },
+                            { label: 'Calls Made', value: userData.recruiterMetrics.candidate_calls || 0, icon: Phone },
                             { label: 'Emails Sent', value: userData.recruiterMetrics.emails_sent || 0, icon: Mail },
                             { label: 'Candidates Added', value: userData.recruiterMetrics.candidates_added || 0, icon: UserPlus },
                             { label: 'Candidates Placed', value: userData.recruiterMetrics.candidates_placed || 0, icon: Award },
