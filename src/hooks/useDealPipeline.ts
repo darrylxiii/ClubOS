@@ -99,7 +99,7 @@ export function useDealPipeline() {
         throw error;
       }
       
-      console.log('[DealPipeline] Found', data?.length || 0, 'jobs');
+      
       
       if (!data || data.length === 0) {
         return [];
