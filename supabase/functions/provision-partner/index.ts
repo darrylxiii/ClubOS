@@ -417,7 +417,7 @@ Deno.serve(async (req) => {
       const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: 'magiclink',
         email: body.email,
-        options: { redirectTo: `${siteUrl}/partner-welcome` }
+        options: { redirectTo: `${siteUrl}/partner-setup` }
       });
 
       if (!linkError && linkData?.properties?.action_link) {

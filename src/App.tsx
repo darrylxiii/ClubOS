@@ -281,6 +281,13 @@ const App = () => {
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
+                <Route path="/partner-setup" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><PartnerSetup /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
                 <Route path="/privacy" element={
                   <PublicProviders>
                     <RouteErrorBoundary>

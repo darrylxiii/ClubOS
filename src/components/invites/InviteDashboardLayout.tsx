@@ -1,14 +1,19 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InviteStatsCards } from "./InviteStatsCards";
 import { SendInviteTab } from "./SendInviteTab";
 import { InviteHistoryTab } from "./InviteHistoryTab";
 import { InviteAnalyticsTab } from "./InviteAnalyticsTab";
-import { Mail, History, BarChart3, Send, Upload } from "lucide-react";
+import { Mail, History, BarChart3, Send, ShieldCheck } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
 
 export function InviteDashboardLayout() {
   const [activeTab, setActiveTab] = useState("send");
+  const { currentRole } = useRole();
+  const navigate = useNavigate();
+  const isElevated = currentRole === 'admin' || currentRole === 'strategist';
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -26,14 +31,20 @@ export function InviteDashboardLayout() {
           <Send className="h-4 w-4" />
           Send Invite
         </Button>
-        <Button variant="outline" className="gap-2">
-          <Upload className="h-4 w-4" />
-          Import Contacts
-        </Button>
         <Button variant="outline" onClick={() => setActiveTab("history")} className="gap-2">
           <History className="h-4 w-4" />
           View History
         </Button>
+        {isElevated && (
+          <Button
+            variant="outline"
+            onClick={() => navigate("/admin/companies")}
+            className="gap-2"
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Full Provisioning
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}

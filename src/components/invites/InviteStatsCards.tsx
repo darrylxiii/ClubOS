@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, CheckCircle, Clock, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface InviteStats {
   totalSent: number;
@@ -11,46 +12,48 @@ interface InviteStats {
   conversionRate: number;
 }
 
+function deriveStats(invites: Array<{
+  is_active: boolean | null;
+  uses_count: number | null;
+  max_uses: number | null;
+  used_at: string | null;
+  expires_at: string;
+}>): InviteStats {
+  const totalSent = invites.length;
+  const accepted = invites.filter(i =>
+    i.used_at || (i.uses_count && i.max_uses && i.uses_count >= i.max_uses)
+  ).length;
+  const expired = invites.filter(i =>
+    !i.used_at && i.is_active && new Date(i.expires_at) < new Date()
+  ).length;
+  const revoked = invites.filter(i => !i.is_active && !i.used_at).length;
+  const pending = totalSent - accepted - expired - revoked;
+  const conversionRate = totalSent > 0 ? (accepted / totalSent) * 100 : 0;
+
+  return { totalSent, pending, accepted, conversionRate };
+}
+
 export function InviteStatsCards() {
-  const [stats, setStats] = useState<InviteStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['invite-stats', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error('Not authenticated');
 
-  const loadStats = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Fetch invitation statistics
-      const { data: invitations, error } = await supabase
-        .from('candidate_invitations')
-        .select('status, created_at')
-        .eq('invited_by', user.id);
+      const { data, error } = await supabase
+        .from('invite_codes')
+        .select('is_active, uses_count, max_uses, used_at, expires_at')
+        .eq('created_by', user.id);
 
       if (error) throw error;
+      return deriveStats(data || []);
+    },
+    enabled: !!user,
+    staleTime: 30000,
+  });
 
-      const totalSent = invitations?.length || 0;
-      const accepted = invitations?.filter(inv => inv.status === 'accepted').length || 0;
-      const pending = invitations?.filter(inv => inv.status === 'pending').length || 0;
-      const conversionRate = totalSent > 0 ? (accepted / totalSent) * 100 : 0;
-
-      setStats({
-        totalSent,
-        pending,
-        accepted,
-        conversionRate,
-      });
-    } catch (error) {
-      console.error('Error loading invite stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
@@ -88,7 +91,7 @@ export function InviteStatsCards() {
     },
     {
       title: "Conversion Rate",
-      value: `${stats?.conversionRate.toFixed(1)}%`,
+      value: `${(stats?.conversionRate ?? 0).toFixed(1)}%`,
       icon: TrendingUp,
       color: "text-purple-600",
       bgColor: "bg-purple-600/10",

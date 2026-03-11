@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Mail, Clock, CheckCircle, XCircle, RotateCcw } from "lucide-react";
+import { Mail, Clock, CheckCircle, XCircle, Copy, RotateCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface InviteRecord {
   id: string;
@@ -18,21 +20,18 @@ interface InviteRecord {
   created_at: string;
   expires_at: string;
   used_at: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
 }
 
 export function InviteHistoryTab() {
-  const [invites, setInvites] = useState<InviteRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadInvites();
-  }, []);
-
-  const loadInvites = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const { data: invites = [], isLoading } = useQuery<InviteRecord[]>({
+    queryKey: ['invite-history', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
         .from('invite_codes')
@@ -42,14 +41,11 @@ export function InviteHistoryTab() {
         .limit(50);
 
       if (error) throw error;
-      setInvites(data || []);
-    } catch (error) {
-      console.error('Error loading invites:', error);
-      toast.error('Failed to load invitation history');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return (data || []) as InviteRecord[];
+    },
+    enabled: !!user,
+    staleTime: 30000,
+  });
 
   const revokeInvite = async (id: string) => {
     try {
@@ -60,9 +56,64 @@ export function InviteHistoryTab() {
 
       if (error) throw error;
       toast.success('Invitation revoked');
-      loadInvites();
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['invite-history'] });
+      queryClient.invalidateQueries({ queryKey: ['invite-stats'] });
+    } catch {
       toast.error('Failed to revoke invitation');
+    }
+  };
+
+  const copyInviteLink = (code: string) => {
+    const siteUrl = window.location.origin;
+    navigator.clipboard.writeText(`${siteUrl}/auth?invite=${code}`);
+    toast.success('Invite link copied to clipboard');
+  };
+
+  const resendInvite = async (invite: InviteRecord) => {
+    if (!user) return;
+    setResendingId(invite.id);
+    try {
+      const metadata = invite.metadata || {};
+      const recipientEmail = (metadata.email as string) || (metadata.invited_email as string);
+      if (!recipientEmail) {
+        toast.error('No email found for this invite');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      const { data: membership } = await supabase
+        .from('company_members')
+        .select('company_id, companies(id, name)')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle();
+
+      const companyName = (membership?.companies as { name?: string })?.name || 'The Quantum Club';
+
+      const { error } = await supabase.functions.invoke('send-team-invite', {
+        body: {
+          email: recipientEmail,
+          inviteCode: invite.code,
+          companyId: membership?.company_id || '',
+          companyName,
+          inviterName: profile?.full_name || 'A team member',
+          role: invite.target_role || 'member',
+          recipientName: (metadata.recipient_name as string) || undefined,
+          customMessage: (metadata.custom_message as string) || undefined,
+        }
+      });
+
+      if (error) throw error;
+      toast.success(`Invitation resent to ${recipientEmail}`);
+    } catch {
+      toast.error('Failed to resend invitation');
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -79,7 +130,7 @@ export function InviteHistoryTab() {
     return { label: 'Pending', variant: 'outline' as const, icon: Clock };
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map(i => (
@@ -106,7 +157,10 @@ export function InviteHistoryTab() {
       {invites.map((invite) => {
         const status = getStatus(invite);
         const StatusIcon = status.icon;
-        const email = (invite.metadata as any)?.email || (invite.metadata as any)?.invited_email || '—';
+        const metadata = invite.metadata || {};
+        const recipientName = (metadata.recipient_name as string) || null;
+        const email = (metadata.email as string) || (metadata.invited_email as string) || '—';
+        const isPending = status.label === 'Pending';
 
         return (
           <div
@@ -116,7 +170,9 @@ export function InviteHistoryTab() {
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <StatusIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{email}</p>
+                <p className="text-sm font-medium truncate">
+                  {recipientName ? `${recipientName} · ${email}` : email}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {invite.target_role && (
                     <span className="capitalize">{invite.target_role} · </span>
@@ -126,17 +182,43 @@ export function InviteHistoryTab() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Badge variant={status.variant}>{status.label}</Badge>
-              {status.label === 'Pending' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => revokeInvite(invite.id)}
-                  className="h-7 px-2 text-muted-foreground hover:text-destructive"
-                >
-                  <XCircle className="h-3.5 w-3.5" />
-                </Button>
+              {isPending && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyInviteLink(invite.code)}
+                    className="h-7 px-2 text-muted-foreground"
+                    title="Copy invite link"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resendInvite(invite)}
+                    disabled={resendingId === invite.id}
+                    className="h-7 px-2 text-muted-foreground"
+                    title="Resend invitation"
+                  >
+                    {resendingId === invite.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => revokeInvite(invite.id)}
+                    className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                    title="Revoke invitation"
+                  >
+                    <XCircle className="h-3.5 w-3.5" />
+                  </Button>
+                </>
               )}
             </div>
           </div>

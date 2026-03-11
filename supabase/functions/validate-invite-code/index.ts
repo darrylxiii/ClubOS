@@ -137,12 +137,29 @@ serve(async (req) => {
       );
     }
 
+    // Extract metadata for pre-fill
+    const metadata = codeData.metadata as Record<string, unknown> | null;
+    const recipientName = (metadata?.recipient_name as string) || null;
+    const recipientEmail = (metadata?.email as string) || null;
+    const companyNameFromMeta = (metadata?.company_name as string) || null;
+
+    // Fetch target_role from invite
+    const { data: inviteFull } = await supabase
+      .from('invite_codes')
+      .select('target_role')
+      .eq('code', code.toUpperCase())
+      .single();
+
     // Valid code
     return new Response(
       JSON.stringify({ 
         valid: true,
-        message: 'Valid invite code! Please create your account.',
-        referrerName
+        message: 'Valid invite code. Please create your account.',
+        referrerName,
+        recipientName,
+        recipientEmail,
+        companyName: companyNameFromMeta,
+        targetRole: inviteFull?.target_role || null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
