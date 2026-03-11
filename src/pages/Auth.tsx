@@ -61,6 +61,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [inviteValidating, setInviteValidating] = useState(false);
   const [inviteValid, setInviteValid] = useState<boolean | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- invite data shape varies by type
   const [inviteInfo, setInviteInfo] = useState<any>(null);
