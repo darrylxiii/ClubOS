@@ -202,7 +202,8 @@ Deno.serve(async (req) => {
       user_metadata: {
         full_name: body.fullName,
         provisioned_by_admin: true,
-        provisioned_at: new Date().toISOString()
+        provisioned_at: new Date().toISOString(),
+        force_password_change: true
       }
     });
 
