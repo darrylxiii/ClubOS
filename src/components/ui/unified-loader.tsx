@@ -24,7 +24,7 @@ export function UnifiedLoader({
   size = 'md'
 }: UnifiedLoaderProps) {
 
-  const logoSrc = "/quantum-logo.svg";
+  const logoSrc = "/quantum-logo.png";
 
   // Logo dimensions per variant
   const getLogoDims = () => {
