@@ -160,7 +160,7 @@ export function usePipelineMetrics() {
   return useQuery({
     queryKey: ['pipeline-metrics'],
     queryFn: async () => {
-      console.log('[PipelineMetrics] Fetching metrics...');
+      
       
       const { data, error } = await (supabase as any)
         .rpc('calculate_weighted_pipeline');
