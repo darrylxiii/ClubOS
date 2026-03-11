@@ -166,7 +166,7 @@ export function usePipelineMetrics() {
         .rpc('calculate_weighted_pipeline');
       
       if (error) {
-        console.error('[PipelineMetrics] Error:', error);
+        logger.error('Error fetching pipeline metrics', { componentName: 'PipelineMetrics', error });
         throw error;
       }
       
