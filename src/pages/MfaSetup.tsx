@@ -7,10 +7,10 @@ import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
-import { ShieldCheck, Smartphone, CheckCircle2, Copy } from "lucide-react";
+import { ShieldCheck, Smartphone, CheckCircle2, Copy, KeyRound } from "lucide-react";
 import { PageLoader } from "@/components/PageLoader";
 
-type MfaStep = 'intro' | 'verify' | 'complete';
+type MfaStep = 'intro' | 'elevate' | 'verify' | 'complete';
 
 export default function MfaSetup() {
   const { user } = useAuth();
@@ -19,28 +19,62 @@ export default function MfaSetup() {
   const [qrCode, setQrCode] = useState<string>('');
   const [secret, setSecret] = useState<string>('');
   const [factorId, setFactorId] = useState<string>('');
+  const [elevateFactorId, setElevateFactorId] = useState<string>('');
+  const [elevateChallengeId, setElevateChallengeId] = useState<string>('');
   const [verifyCode, setVerifyCode] = useState('');
+  const [elevateCode, setElevateCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isElevating, setIsElevating] = useState(false);
   const [initialCheckDone, setInitialCheckDone] = useState(false);
 
-  // Check if already enrolled + clean up stale unverified factors
+  // Check AAL level and existing factors on mount
   useEffect(() => {
     if (!user) return;
 
     const checkExisting = async () => {
       try {
-        const { data } = await supabase.auth.mfa.listFactors();
-        const verified = data?.totp?.filter(f => f.status === 'verified') || [];
-        if (verified.length > 0) {
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        const { data: factorsData } = await supabase.auth.mfa.listFactors();
+        const verified = factorsData?.totp?.filter(f => f.status === 'verified') || [];
+
+        // Session is AAL1 but a verified factor exists → need to elevate first
+        if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2' && verified.length > 0) {
+          const existingFactor = verified[0];
+          setElevateFactorId(existingFactor.id);
+
+          // Create a challenge for the existing factor
+          const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+            factorId: existingFactor.id,
+          });
+
+          if (challengeError) {
+            console.error('[MfaSetup] Challenge error during elevation setup:', challengeError);
+            toast.error('Could not initiate verification. Please sign in again.');
+            navigate('/auth', { replace: true });
+            return;
+          }
+
+          setElevateChallengeId(challengeData.id);
+          setStep('elevate');
+          setInitialCheckDone(true);
+          return;
+        }
+
+        // Already at AAL2 with verified factors → redirect to dashboard
+        if (aalData?.currentLevel === 'aal2' && verified.length > 0) {
           navigate('/dashboard', { replace: true });
           return;
         }
 
         // Clean up stale unverified factors from previous failed attempts
-        const unverified = data?.totp?.filter(f => f.status === 'unverified') || [];
+        const unverified = factorsData?.totp?.filter(f => f.status === 'unverified') || [];
         for (const f of unverified) {
-          await supabase.auth.mfa.unenroll({ factorId: f.id });
+          try {
+            await supabase.auth.mfa.unenroll({ factorId: f.id });
+          } catch {
+            // Ignore unenroll errors for stale factors
+          }
         }
       } catch (err) {
         console.error('[MfaSetup] Error checking existing factors:', err);
@@ -52,10 +86,67 @@ export default function MfaSetup() {
     checkExisting();
   }, [user, navigate]);
 
+  // Elevate session from AAL1 → AAL2 by verifying existing TOTP factor
+  const handleElevate = async () => {
+    if (elevateCode.length !== 6) return;
+
+    setIsElevating(true);
+    try {
+      const { error } = await supabase.auth.mfa.verify({
+        factorId: elevateFactorId,
+        challengeId: elevateChallengeId,
+        code: elevateCode,
+      });
+
+      if (error) {
+        toast.error('Invalid code. Please check your authenticator app.');
+        setElevateCode('');
+        setIsElevating(false);
+        // Re-create challenge for retry
+        const { data: newChallenge } = await supabase.auth.mfa.challenge({
+          factorId: elevateFactorId,
+        });
+        if (newChallenge) setElevateChallengeId(newChallenge.id);
+        return;
+      }
+
+      // Session is now AAL2 — unenroll old factor, then proceed to enroll
+      toast.success('Identity verified. Setting up new authenticator.');
+
+      // Unenroll the old factor now that we're AAL2
+      await supabase.auth.mfa.unenroll({ factorId: elevateFactorId });
+
+      // Clean up any other stale factors
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const stale = factors?.totp?.filter(f => f.status === 'unverified') || [];
+      for (const f of stale) {
+        try {
+          await supabase.auth.mfa.unenroll({ factorId: f.id });
+        } catch {
+          // Ignore
+        }
+      }
+
+      // Now proceed to enrollment
+      setStep('intro');
+    } catch (err) {
+      console.error('[MfaSetup] Elevation error:', err);
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setIsElevating(false);
+    }
+  };
+
+  // Auto-submit elevate code on 6 digits
+  useEffect(() => {
+    if (elevateCode.length === 6 && !isElevating && step === 'elevate') {
+      handleElevate();
+    }
+  }, [elevateCode]);
+
   const handleEnroll = async () => {
     setIsLoading(true);
     try {
-      // Validate session is still alive
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         toast.error('Session expired. Please sign in again.');
@@ -67,7 +158,11 @@ export default function MfaSetup() {
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const stale = factors?.totp?.filter(f => f.status === 'unverified') || [];
       for (const f of stale) {
-        await supabase.auth.mfa.unenroll({ factorId: f.id });
+        try {
+          await supabase.auth.mfa.unenroll({ factorId: f.id });
+        } catch {
+          // Ignore
+        }
       }
 
       const { data, error } = await supabase.auth.mfa.enroll({
@@ -76,9 +171,29 @@ export default function MfaSetup() {
       });
 
       if (error) {
+        // Handle insufficient_aal gracefully — transition to elevate step
+        const errorMsg = error.message?.toLowerCase() || '';
+        if (errorMsg.includes('aal2') || errorMsg.includes('insufficient_aal')) {
+          // There must be an existing verified factor we missed — try to elevate
+          const { data: factorsData } = await supabase.auth.mfa.listFactors();
+          const verified = factorsData?.totp?.filter(f => f.status === 'verified') || [];
+          if (verified.length > 0) {
+            setElevateFactorId(verified[0].id);
+            const { data: challengeData } = await supabase.auth.mfa.challenge({
+              factorId: verified[0].id,
+            });
+            if (challengeData) {
+              setElevateChallengeId(challengeData.id);
+              setStep('elevate');
+              toast.info('Please verify your existing authenticator first.');
+              return;
+            }
+          }
+        }
+
         toast.error('Failed to set up MFA. Please try again.');
         console.error('[MfaSetup] Enroll error:', error);
-        setStep('intro'); // Revert so user can retry
+        setStep('intro');
         return;
       }
 
@@ -89,7 +204,7 @@ export default function MfaSetup() {
     } catch (err) {
       console.error('[MfaSetup] Error:', err);
       toast.error('Something went wrong. Please try again.');
-      setStep('intro'); // Revert so user can retry
+      setStep('intro');
     } finally {
       setIsLoading(false);
     }
@@ -128,9 +243,9 @@ export default function MfaSetup() {
     }
   };
 
-  // Auto-submit on 6 digits
+  // Auto-submit verify code on 6 digits
   useEffect(() => {
-    if (verifyCode.length === 6 && !isVerifying) {
+    if (verifyCode.length === 6 && !isVerifying && step === 'verify') {
       handleVerify();
     }
   }, [verifyCode]);
@@ -140,12 +255,43 @@ export default function MfaSetup() {
     toast.success('Secret copied to clipboard');
   };
 
-  // Gate: wait for user + initial factor check before showing UI
   if (!user || !initialCheckDone) return <PageLoader />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-background/95 p-4">
       <Card className="w-full max-w-md backdrop-blur-xl bg-card/80 border-border/50 shadow-2xl">
+        {step === 'elevate' && (
+          <>
+            <CardHeader className="space-y-4 text-center pt-8">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center">
+                <KeyRound className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Verify Your Identity</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Enter the 6-digit code from your current authenticator app to continue.
+                  This verifies your identity before updating your MFA settings.
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent className="pb-8 space-y-6">
+              <div className="flex justify-center">
+                <InputOTP value={elevateCode} onChange={setElevateCode} maxLength={6} disabled={isElevating}>
+                  <InputOTPGroup>
+                    {[0, 1, 2, 3, 4, 5].map(i => (
+                      <InputOTPSlot key={i} index={i} />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <RainbowButton onClick={handleElevate} disabled={elevateCode.length !== 6 || isElevating} className="w-full">
+                {isElevating ? 'Verifying...' : 'Verify & Continue'}
+              </RainbowButton>
+            </CardContent>
+          </>
+        )}
+
         {step === 'intro' && (
           <>
             <CardHeader className="space-y-4 text-center pt-8">
