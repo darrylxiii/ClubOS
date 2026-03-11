@@ -40,7 +40,7 @@ export function InviteAnalyticsTab() {
       const total = invites.length;
       const used = invites.filter(i => i.uses_count && i.uses_count > 0).length;
       const revoked = invites.filter(i => !i.is_active && !(i.uses_count && i.uses_count > 0)).length;
-      const pending = total - used - revoked;
+      const pending = Math.max(0, total - used - revoked);
 
       const conversionRate = total > 0 ? ((used / total) * 100).toFixed(1) : 0;
       const avgDaysToUse = used > 0
