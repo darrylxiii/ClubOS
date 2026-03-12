@@ -1,92 +1,127 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Partner Home Audit: From 24 Widgets to 6 Zones
 
-## Completed
+## The Problem
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+The current PartnerHome renders **24 separate components** across 11 scroll sections. For comparison, AdminHome has **9 components** across 7 zones. The partner home is more than 2.5x denser — and most of the extra density comes from widgets that query phantom tables (`as any` casts), show duplicate data, or belong in dedicated tabs rather than a homepage.
 
 ---
 
-## Remaining
+## Current Component Inventory (24 widgets)
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+```text
+#   COMPONENT                    DATA SOURCE              VERDICT
+──────────────────────────────────────────────────────────────────────
+1   UnifiedStatsBar              Real (jobs, apps)        KEEP
+2   ClubAIHomeChatWidget         AI chat                  REMOVE (global FAB exists)
+3   PartnerConciergeCard         Real (strategist)        KEEP (compact)
+4   PendingReviewsWidget         Real (applications)      KEEP
+5   OfferPipelineWidget          Real (applications)      MERGE → into pipeline
+6   UnreadMessagesWidget         Phantom (messages)       REMOVE (link in nav)
+7   DailyBriefing                Phantom (partner_ai_*)   REMOVE
+8   SmartAlertsPanel             Phantom (partner_smart_*) REMOVE
+9   HealthScoreDashboard         Phantom (partner_health*) REMOVE
+10  SLATracker                   Phantom (partner_sla_*)  REMOVE (in Partner Hub)
+11  InterviewTodayWidget         Real (meetings)          KEEP → merge with deadlines
+12  UpcomingDeadlinesWidget       Real (meetings+SLA)      MERGE → with interviews
+13  HiringPipelineOverview       Real (applications)      KEEP
+14  TalentRecommendations        Phantom (talent_matches)  REMOVE
+15  PositionFillCountdown        Real (jobs)              REMOVE (duplicate of pipeline)
+16  CandidateShortlistWidget     Phantom (shortlists)     REMOVE
+17  BenchmarkComparison          Phantom (partner_bench*)  REMOVE
+18  Quick Actions (inline)       Static links             MERGE → into header
+19  TeamOverviewWidget           Real (company_members)   REMOVE (322 lines, belongs in settings)
+20  TimeTrackingWidget           Real (time_entries)      REMOVE (not partner-relevant)
+21  DossierActivityWidget        Phantom (dossier_views)  REMOVE
+22  InterviewSuccessWidget       Real (applications)      REMOVE (duplicate of pipeline)
+23  RecentApplicationsList       Real (applications)      KEEP → merge with activity
+24  PartnerActivityFeed          Real (applications)      MERGE → with recent apps
+```
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
-
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
-
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
-
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
-
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+**Summary:** 12 widgets query phantom/empty tables. 4 are duplicates. 2 exist elsewhere. 2 are irrelevant to partners.
 
 ---
 
-### Remaining: Phase H4–H6
+## Proposed New Layout: 6 Focused Zones
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+```text
+┌─────────────────────────────────────────────────┐
+│ ZONE 0: Stats Bar (existing UnifiedStatsBar)    │
+│ Active Roles · Pipeline · Pending Reviews · TTH │
+├─────────────────────────────────────────────────┤
+│ ZONE 1: Action Required Strip                   │
+│ Pending Reviews (count) + Today's Interviews    │
+│ + Quick Actions (New Role, Review, Schedule)    │
+├─────────────────────────────────────────────────┤
+│ ZONE 2: Your Strategist (compact concierge)     │
+│ Avatar · Name · Last contact · Message button   │
+├──────────────────────┬──────────────────────────┤
+│ ZONE 3: Pipeline     │ ZONE 3: Open Roles       │
+│ Overview (stages,    │ Summary (each role with   │
+│ funnel, conversion)  │ candidate count + stage)  │
+├──────────────────────┴──────────────────────────┤
+│ ZONE 4: Recent Activity (unified feed)          │
+│ New applications, stage changes, interviews     │
+├─────────────────────────────────────────────────┤
+│ ZONE 5: Upcoming (interviews + deadlines)       │
+│ Next 7 days, compact timeline                   │
+└─────────────────────────────────────────────────┘
+```
 
-### Phase I2: Remaining Ecosystem
+**Result:** 24 widgets → ~8 components. Zero phantom data. Every widget shows real, actionable information.
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+---
+
+## Detailed Changes
+
+### REMOVE (14 components)
+| Component | Reason |
+|-----------|--------|
+| `ClubAIHomeChatWidget` | Global ClubAI FAB already exists in AppLayout |
+| `UnreadMessagesWidget` | Messages accessible from nav; phantom table |
+| `DailyBriefing` | Queries `partner_ai_insights` (phantom) |
+| `SmartAlertsPanel` | Queries `partner_smart_alerts` (phantom) |
+| `HealthScoreDashboard` | Queries `partner_health_scores` (phantom) |
+| `SLATracker` | Duplicate of Partner Hub SLA tab |
+| `TalentRecommendations` | Queries `talent_matches` (phantom) |
+| `PositionFillCountdown` | Duplicate info — jobs+days open already in pipeline |
+| `CandidateShortlistWidget` | Queries phantom shortlist table |
+| `BenchmarkComparison` | Queries `partner_benchmarks` (phantom) |
+| `TeamOverviewWidget` | 322-line component with invite dialog — belongs in Company Settings |
+| `TimeTrackingWidget` | Freelancer/candidate concept, not partner-relevant |
+| `DossierActivityWidget` | Queries `dossier_views` (phantom) |
+| `InterviewSuccessWidget` | Duplicate of HiringPipelineOverview data |
+
+### KEEP (4 components, minor adjustments)
+| Component | Adjustment |
+|-----------|-----------|
+| `UnifiedStatsBar` | Keep as-is |
+| `PendingReviewsWidget` | Keep as-is (real data, actionable) |
+| `HiringPipelineOverview` | Keep as-is (real pipeline data) |
+| `PartnerConciergeCard` | Slim down — remove the 320-line card, create a compact 1-row strategist strip |
+
+### MERGE (3 merges)
+| New Component | Sources | What it shows |
+|---------------|---------|---------------|
+| `PartnerActionStrip` | Quick Actions + PendingReviews badge + InterviewToday count | Single-row action bar: "3 reviews pending · 1 interview today · [New Role] [Review Candidates]" |
+| `PartnerActivityFeedUnified` | RecentApplicationsList + PartnerActivityFeed | Single chronological feed: new apps, stage moves, meetings — no duplicates |
+| `UpcomingScheduleWidget` | InterviewTodayWidget + UpcomingDeadlinesWidget | Combined "Today & This Week" timeline for interviews and deadlines |
+
+### CREATE (1 new component)
+| Component | Purpose |
+|-----------|---------|
+| `OpenRolesSummary` | Compact card per open role: title, candidate count, furthest stage, days open. Links to job dashboard. Replaces PositionFillCountdown + OfferPipelineWidget with real data. |
+
+---
+
+## Implementation Steps
+
+1. **Rebuild `PartnerHome.tsx`** — new 6-zone layout with only the kept/merged components
+2. **Create `PartnerActionStrip`** — compact action bar combining quick actions with pending counts
+3. **Create `PartnerStrategistStrip`** — slim 1-row version of PartnerConciergeCard (avatar, name, message button)
+4. **Create `OpenRolesSummary`** — compact role cards from real `jobs` + `applications` data
+5. **Create `PartnerActivityFeedUnified`** — merge RecentApplicationsList + PartnerActivityFeed into one feed
+6. **Create `UpcomingScheduleWidget`** — merge InterviewTodayWidget + UpcomingDeadlinesWidget
+7. **Keep existing widget files** — they may be used in other views (Partner Hub tabs). Only remove imports from PartnerHome.
+
