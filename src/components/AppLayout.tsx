@@ -198,6 +198,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 : undefined
             }}
           >
+            <AmbientInsightBar />
             {children}
           </div>
         </main>
@@ -205,7 +206,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Navigation Tools */}
       
-      <CommandPalette />
+      <GlobalSpotlightSearch />
       <ErrorBoundary>
         <Suspense fallback={null}>
           <ClubAIVoice />
