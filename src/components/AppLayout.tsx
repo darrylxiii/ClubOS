@@ -19,7 +19,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MusicPlayer } from "@/components/MusicPlayer";
-import { CommandPalette } from "@/components/CommandPalette";
+import { GlobalSpotlightSearch } from "@/components/GlobalSpotlightSearch";
+import { PagePresenceAvatars } from "@/components/shared/PagePresenceAvatars";
+import { AmbientInsightBar } from "@/components/shared/AmbientInsightBar";
+import { VoiceCommandButton } from "@/components/admin/VoiceCommandButton";
+import { RoleGate } from "@/components/RoleGate";
 // Lazy load ClubAIVoice to prevent livekit-client module resolution at startup
 const ClubAIVoice = lazy(() => 
   import("@/components/voice/ClubAIVoice").then(m => ({ default: m.ClubAIVoice }))
@@ -131,7 +135,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
         {/* Right: Desktop buttons (hidden on mobile) + Notification Bell */}
         <div className="flex items-center gap-1 sm:gap-2 min-w-[44px] justify-end ml-auto">
+          <PagePresenceAvatars />
           <div className="hidden md:flex items-center gap-1 sm:gap-2">
+            <RoleGate allowedRoles={['admin']}>
+              <VoiceCommandButton />
+            </RoleGate>
             <LanguageSwitcher />
             <ThemeToggle />
             <GlobalRoleSwitcher />
@@ -195,6 +203,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 : undefined
             }}
           >
+            <AmbientInsightBar />
             {children}
           </div>
         </main>
@@ -202,7 +211,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Navigation Tools */}
       
-      <CommandPalette />
+      <GlobalSpotlightSearch />
       <ErrorBoundary>
         <Suspense fallback={null}>
           <ClubAIVoice />

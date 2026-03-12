@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TimelineSkeleton } from "@/components/LoadingSkeletons";
 import { 
   FileText, 
   Eye, 
@@ -186,11 +187,14 @@ export function ActivityTimeline({ userId }: { userId: string }) {
   if (loading) {
     return (
       <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
+            <div className="w-1 h-6 bg-foreground"></div>
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TimelineSkeleton count={3} />
         </CardContent>
       </Card>
     );
