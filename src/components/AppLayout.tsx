@@ -132,6 +132,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
         {/* Right: Desktop buttons (hidden on mobile) + Notification Bell */}
         <div className="flex items-center gap-1 sm:gap-2 min-w-[44px] justify-end ml-auto">
+          <PagePresenceAvatars />
           <div className="hidden md:flex items-center gap-1 sm:gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
