@@ -387,7 +387,7 @@ const App = () => {
                   <Route path="/my-communications" element={<Navigate to="/profile?tab=communications" replace />} />
                   <Route path="/communication-analytics" element={<Navigate to="/admin/communication-hub?tab=analytics" replace />} />
                   <Route path="/social-management" element={<Navigate to="/partner/hub?tab=social" replace />} />
-                  <Route path="/partner-onboarding" element={<PartnerOnboarding />} />
+                  <Route path="/partner-onboarding" element={<Navigate to="/partner-setup" replace />} />
                   <Route path="/whatsapp-import" element={<Navigate to="/admin/whatsapp?tab=import" replace />} />
                   <Route path="/salary-insights" element={<Navigate to="/analytics?tab=salary" replace />} />
                   <Route path="/career-path" element={<Navigate to="/analytics?tab=career-path" replace />} />
