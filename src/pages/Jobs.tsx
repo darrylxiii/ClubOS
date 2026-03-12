@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useRole } from "@/contexts/RoleContext";
+import { EmptyState } from "@/components/EmptyState";
 // OceanBackgroundVideo removed — global DynamicBackground handles this
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
@@ -73,6 +74,7 @@ const Jobs = () => {
   // URL-based tab state
   const urlTab = searchParams.get('tab');
   const isAdminOrPartner = (role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin');
+  const isPartnerWithoutCompany = role === 'partner' && !userCompanyId;
   
   // Default tabs per role
   const defaultCandidateTab = "opportunities";
@@ -443,6 +445,19 @@ const Jobs = () => {
   // ═══════════════════════════════════════════════
   // ADMIN / PARTNER: Jobs Command Center
   // ═══════════════════════════════════════════════
+  // Partner without a company: block access to all jobs
+  if (isPartnerWithoutCompany) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-16 pb-8 flex items-center justify-center">
+        <EmptyState
+          icon={Briefcase}
+          title="No company assigned"
+          description="Your account is not linked to a company yet. Please contact your strategist or our team to get set up."
+        />
+      </div>
+    );
+  }
+
   if (isAdminOrPartner) {
     return (
       <>

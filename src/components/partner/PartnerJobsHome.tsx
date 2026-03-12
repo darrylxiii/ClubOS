@@ -138,6 +138,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   }, [companyId, role]);
 
   const fetchJobsWithMetrics = useCallback(async () => {
+    // Defensive guard: partners without a company must not fetch all jobs
+    if (role !== 'admin' && !companyId) {
+      setJobs([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       let query = supabase
         .from('jobs')

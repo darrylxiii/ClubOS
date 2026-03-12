@@ -30,7 +30,9 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
     const roles = prefetch.roles;
     setAvailableRoles(roles);
-    setCompanyId(prefetch.profile?.company_id || null);
+    // Prefer company_members (authoritative) over legacy profiles.company_id
+    const resolvedCompanyId = prefetch.companyMembership?.company_id || prefetch.profile?.company_id || null;
+    setCompanyId(resolvedCompanyId);
 
     // Determine current role from preferences
     const preferredRole = prefetch.preferences?.preferred_role_view as UserRole;
