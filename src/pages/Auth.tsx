@@ -576,12 +576,12 @@ const Auth = () => {
   return <div className="min-h-screen flex items-center justify-center px-4 py-12 relative">
       <ShaderAnimation />
       <motion.div
-        className="relative z-10"
+        className="relative z-10 w-full max-w-2xl"
         initial={{ opacity: 0, scale: 0.96, filter: 'blur(8px)' }}
         animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
       >
-      <Card className="w-full max-w-2xl bg-card/85 backdrop-blur-[16px] border-border/50 shadow-glass-md shadow-inner rounded-2xl">
+      <Card className="w-full bg-card/85 backdrop-blur-[16px] border-border/50 shadow-glass-md shadow-inner rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2 drop-shadow-lg">
             <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" fetchPriority="high" />
