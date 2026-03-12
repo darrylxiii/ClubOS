@@ -607,7 +607,7 @@ const Auth = () => {
             </div>
           )}
 
-          {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 space-y-2">
+          {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
