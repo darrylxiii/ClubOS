@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, AlertBox, StatusBadge, InfoRow,
@@ -11,7 +11,7 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface NotificationRequest {
@@ -122,7 +122,7 @@ serve(async (req) => {
 
     // ── Candidate emails (original flow) ──
     const subject = status === 'approved'
-      ? '🎉 Welcome to The Quantum Club!'
+      ? 'Welcome to The Quantum Club'
       : 'Update on Your Application';
 
     let emailContent: string;
@@ -221,6 +221,8 @@ serve(async (req) => {
           to: [email],
           subject: subject,
           html: htmlContent,
+          text: htmlToPlainText(htmlContent),
+          headers: getEmailHeaders(),
         }),
       });
 
