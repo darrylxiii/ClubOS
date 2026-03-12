@@ -137,6 +137,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="flex items-center gap-1 sm:gap-2 min-w-[44px] justify-end ml-auto">
           <PagePresenceAvatars />
           <div className="hidden md:flex items-center gap-1 sm:gap-2">
+            <RoleGate allowedRoles={['admin']}>
+              <VoiceCommandButton />
+            </RoleGate>
             <LanguageSwitcher />
             <ThemeToggle />
             <GlobalRoleSwitcher />
