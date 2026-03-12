@@ -1,92 +1,164 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Audit of the Fix Plan — Score: 58/100
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+The previous "Plan to Reach 100/100" correctly identified the bugs but is itself deeply flawed as an implementation plan. Here is my critique, followed by the real 100/100 plan.
 
 ---
 
-## Remaining
+## What the Fix Plan Gets Wrong
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+### 1. Presence: Proposes the Wrong Architecture (Again)
+The fix plan says "use `supabase.channel().track()` Realtime Presence." This sounds correct in theory, but **Supabase Realtime Presence is ephemeral and per-channel** — it requires every user on the same page to join the same channel name. The plan never addresses:
+- How to derive a stable, unique channel name from `location.pathname` (some paths contain UUIDs — `/profile/abc-123` — two users on the same profile must join the same channel)
+- What happens when a user navigates away — Realtime Presence auto-cleans, but the plan says nothing about unsubscribing from the old channel
+- The `page_presence` DB table already exists with a UUID FK to `workspace_pages`. The plan says "remove all upserts" but doesn't say whether to drop the table or repurpose it
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+**Verdict**: The fix plan would produce a second broken implementation because it doesn't think through channel naming, cleanup, or the existing table.
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+### 2. "Wrap Everything in useQuery" is Cargo-Culting
+The plan says to wrap every feature in `useQuery` without thinking about *what that means* per feature:
+- **Ambient Insights**: `useQuery` makes sense — cache for 5 min, stale-while-revalidate. Good.
+- **Timeline**: `useQuery` + realtime subscription = you need `queryClient.invalidateQueries` on realtime events. The plan never mentions this.
+- **Spotlight Search**: The plan says `queryKey: ['spotlight', debouncedQuery]`. This means every unique search query gets cached. A user searching "j", "jo", "joh", "john" creates 4 cache entries that are never reused. This is *worse* than the current raw fetch. The correct pattern is `enabled: query.length >= 2` with `gcTime: 0` (no caching) or just keep the manual fetch with debounce, which is perfectly fine for search-as-you-type.
+- **Presence**: `useQuery` for an ephemeral Realtime Presence channel makes zero sense. You subscribe, you get state updates. There's nothing to "query."
 
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+**Verdict**: Blindly applying one pattern everywhere shows a lack of understanding of each feature's data lifecycle.
 
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
+### 3. Voice-to-Search: "Zustand Atom or Event Bus" is Overengineered
+The plan proposes adding Zustand or an event bus just to pass a search term from voice to spotlight. This is a React app — a simple `window.dispatchEvent(new CustomEvent('spotlight-search', { detail: term }))` + `useEffect` listener in `GlobalSpotlightSearch` is 5 lines of code. Or even simpler: export `setOpen` and `setQuery` via a ref/callback on the `GlobalSpotlightSearch` component. No new dependencies needed.
 
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+### 4. "Levenshtein Distance for Fuzzy Matching" is Academic Overkill
+Voice recognition already does fuzzy matching — the Speech API returns the best-guess transcript. The real problem is that `key.includes(normalized)` matches "a" to "admin". The fix is **scored matching with minimum threshold**, not Levenshtein. Sort by match quality, require >60% of the key to be matched. 3 lines of code, not a string distance algorithm.
+
+### 5. Missing Concrete Details Throughout
+- "Add meetings data via `meeting_participants` join" — what's the join? What columns? What filter? This is hand-waving.
+- "Add `message_threads` search" — the `message_threads` table may not have a simple `title` column. Nobody checked.
+- "Fix dismiss keys to use content hash" — content hash of what? The insight message changes every time the count changes. A hash of the type + date range is what you want.
+- "Make bar sticky" — the bar is inside a scrollable `main` with `overflow-y-auto`. Making it `sticky top-0` inside a flex child with overflow doesn't work without restructuring the DOM.
+
+### 6. No Integration Testing or Verification Strategy
+The plan lists 7 fixes but says nothing about how to verify they work. No mention of checking RLS policies on the tables being queried, no mention of verifying the `activity_feed.company_id` column exists, no mention of testing with actual data.
+
+### 7. Critical Omission: UnifiedEntityTimeline Is Not Used Anywhere
+The plan focuses on fixing the component's internals but never addresses that **it's not imported or rendered by any page**. It's dead code. The plan should specify exactly which pages mount it and how.
 
 ---
 
-### Remaining: Phase H4–H6
+## The Real 100/100 Plan
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+### Fix 1: Presence — Rebuild with Realtime Presence Channels
 
-### Phase I2: Remaining Ecosystem
+**Delete** `usePagePresence.ts` entirely. Rewrite from scratch:
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+```text
+Channel name strategy:
+  - Normalize pathname: strip trailing slash, lowercase
+  - Channel: `presence:${normalizedPath}`
+  - Two users on /profile/abc-123 join the same channel
+
+Hook: usePagePresence(options?: { enabled: boolean })
+  - Gets pathname from useLocation()
+  - Gets user profile (id, full_name, avatar_url) from useAuth + profiles cache
+  - On mount: join channel, track({ userId, fullName, avatarUrl })
+  - On pathname change: unsubscribe old channel, subscribe new one
+  - On presence sync/join/leave: update local state
+  - On unmount: unsubscribe
+  - Returns: { viewers: PresenceUser[], count: number }
+  - NO database reads or writes
+  - NO useQuery (this is a subscription, not a query)
+```
+
+**Do NOT** drop the `page_presence` table — it may be used by workspace pages. Just stop using it for route-level presence.
+
+Update `PagePresenceAvatars.tsx`:
+- Remove `pageId` prop — hook reads pathname internally
+- Keep the avatar UI as-is (it's fine)
+
+### Fix 2: GlobalSpotlightSearch — Targeted Fixes Only
+
+Do NOT wrap in `useQuery`. Search-as-you-type with debounce is the correct pattern here.
+
+Specific fixes:
+1. Remove the fake `AbortController` (lines 93, 125-127, 161, 223) — it does nothing
+2. Type `icon` as `LucideIcon` on both interfaces
+3. Add `workspace_pages` search: query `.select("id, title").ilike("title", term).limit(5)` → path `/workspace/pages/${id}`
+4. Add voice-search integration: listen for `CustomEvent('spotlight-search')`, set query + open dialog
+5. Add error toast on search failure instead of silent `console.error`
+6. Fix navigation commands visibility: show them always (cmdk handles filtering), remove the broken `!hasQuery || !hasResults` condition — just always render the Navigate group and let cmdk's built-in fuzzy filter handle it
+
+### Fix 3: Ambient Insights — useQuery + Parallel Queries
+
+Rewrite `useAmbientInsights`:
+1. Use `useQuery` with `queryKey: ['ambient-insights', currentRole]`, `staleTime: 5 * 60 * 1000`, `refetchInterval: 10 * 60 * 1000`
+2. Move all Supabase calls into the `queryFn`, wrap in `Promise.all` (3 parallel queries instead of 3 sequential)
+3. Remove `as any` on CRM prospects query — use two `.neq()` calls directly or use `.not('status', 'in', '("lost","won")')`
+4. Fix dismiss key: use `${type}-${countBucket}` where countBucket = Math.floor(count/5)*5 — so the key stays stable unless the count changes significantly
+5. Surface `isLoading` from useQuery
+
+Update `AmbientInsightBar`:
+1. Accept `loading` state, show a slim skeleton bar while loading
+2. Make the bar `sticky top-0 z-10` — but first check the parent DOM structure to ensure this works (if parent has `overflow: hidden`, use a portal or restructure)
+3. Add mobile swipe via `react-swipeable` (already installed) for cycling insights
+4. Clamp `currentIndex` with `useMemo` derived from `insights.length`
+
+### Fix 4: UnifiedEntityTimeline — Complete Data + useQuery + Integration
+
+Rewrite data fetching:
+1. Use `useQuery` with `queryKey: ['entity-timeline', entityType, entityId]`
+2. In `queryFn`, use `Promise.all` for parallel fetches
+3. Add meetings data for candidate entities: query `meeting_participants` where `user_id = entityId`, join with `meetings` via `.select("meeting_id, meetings(id, title, scheduled_start, status)")`
+4. Remove all `as any` casts — type `activity_data` and `event_data` as `Record<string, unknown>` and use proper narrowing
+5. Filter realtime subscriptions: add `filter: user_id=eq.${entityId}` for candidate, `filter: company_id=eq.${entityId}` for company
+6. On realtime event: call `queryClient.invalidateQueries(['entity-timeline', entityType, entityId])`
+7. Implement real cursor pagination: pass `created_at` of last item as cursor, fetch next page on "Load more"
+8. Add `<ErrorState />` component for query errors
+
+**Integration — mount the component**:
+- In the candidate profile detail page (wherever `candidate/ActivityTimeline` is used), add a tab or section with `<UnifiedEntityTimeline entityType="candidate" entityId={userId} />`
+- In CRM prospect/company detail views, add `<UnifiedEntityTimeline entityType="company" entityId={companyId} />`
+- This is the most important missing piece — without mounting it, it's dead code
+
+### Fix 5: Voice Commands — Simple Event Bridge + Better Matching
+
+1. **Voice-to-Search bridge**: In `useVoiceCommands`, when action is "search":
+   ```
+   window.dispatchEvent(new CustomEvent('spotlight-search', { detail: searchTerm }))
+   ```
+   In `GlobalSpotlightSearch`, add a `useEffect` that listens for this event, calls `setQuery(detail)` and `setOpen(true)`
+
+2. **Better fuzzy matching**: Replace `includes` with scored matching:
+   - Require the spoken phrase to match at least 60% of the route key length
+   - Score by: exact match (100) > starts-with (80) > contains (50)
+   - Return highest-scoring match above threshold
+   - This is 10 lines, not a Levenshtein library
+
+3. **Microphone permission check**: Before showing the button, check `navigator.permissions.query({ name: 'microphone' })` — if denied, hide the button or show a disabled state with tooltip
+
+4. **Create VoiceCommandIndicator**: A small floating overlay that appears when listening, shows the transcript, and the matched command. Auto-dismisses 2s after command execution. Mount it inside `VoiceCommandButton` (not a separate mount point in AppLayout).
+
+5. **Type `recognitionRef`** as `React.MutableRefObject<SpeechRecognition | null>`
+
+### Fix 6: Skeletons — Actually Use the New Ones
+
+The new skeletons (`PipelineSkeleton`, `ChartSkeleton`, `VideoCallSkeleton`) exist but are **never imported by any page**. Search the codebase for pipeline/kanban loading states and chart loading states and replace generic `Skeleton` or spinner usage with these new variants. Without this, the skeletons are dead code.
+
+### Fix 7: Cross-Cutting
+
+1. Remove all `as any` — there are 6 instances across these files
+2. Replace `console.error` with `toast.error` for user-visible failures in Timeline and Search
+3. Verify RLS: confirm `activity_feed`, `activity_timeline`, `crm_touchpoints`, `applications` have SELECT policies for authenticated users — if not, queries silently return empty
+
+---
+
+## Implementation Order
+
+1. **Presence rebuild** (standalone, no dependencies)
+2. **Spotlight fixes + voice event bridge** (coupled — do together)
+3. **Ambient insights useQuery + bar fixes** (standalone)
+4. **Timeline useQuery + missing sources + mount in pages** (largest change)
+5. **Skeleton integration into actual pages** (sweep)
+6. **Cross-cutting cleanup** (final pass)
+
+Each batch should be verified against actual data before proceeding to the next.
+
