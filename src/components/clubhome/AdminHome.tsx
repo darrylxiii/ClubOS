@@ -11,41 +11,52 @@ import { ActiveMeetingsWidget } from "./ActiveMeetingsWidget";
 import { QuickLaunchGrid } from "./QuickLaunchGrid";
 import { OperationsMonitor } from "./OperationsMonitor";
 import { DashboardSection } from "./DashboardSection";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 const AdminHomeContent = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Zone 1: Revenue Ticker — the numbers a CEO checks first */}
-      <RevenueTickerStrip />
+      <ScrollReveal variant="fade-up">
+        <RevenueTickerStrip />
+      </ScrollReveal>
 
-      {/* Zone 2: Revenue & Growth deep-dive */}
-      <RevenueGrowthWidget />
+      <ScrollReveal variant="fade-up" delay={0.05}>
+        <RevenueGrowthWidget />
+      </ScrollReveal>
 
-      {/* Zone 3: Attention Required — merged urgency + signals */}
-      <AttentionRequiredStrip />
+      <ScrollReveal variant="fade-up" delay={0.08}>
+        <AttentionRequiredStrip />
+      </ScrollReveal>
 
-      {/* Zone 3b: Internal Review Queue */}
-      <AdminPendingReviewsWidget />
+      <ScrollReveal variant="fade-scale" delay={0.1}>
+        <AdminPendingReviewsWidget />
+      </ScrollReveal>
 
-      {/* Zone 4: Daily Briefing */}
-      <DailyBriefingBanner />
+      <ScrollReveal variant="fade-up" delay={0.12}>
+        <DailyBriefingBanner />
+      </ScrollReveal>
 
-      {/* Zone 5: Two-column operations */}
-      <DashboardSection columns={2} mobileColumns={1}>
-        <TeamCapacityWidget />
-        <PartnerEngagementWidget />
-      </DashboardSection>
+      <ScrollReveal variant="fade-up" delay={0.14}>
+        <DashboardSection columns={2} mobileColumns={1}>
+          <TeamCapacityWidget />
+          <PartnerEngagementWidget />
+        </DashboardSection>
+      </ScrollReveal>
 
-      <DashboardSection columns={2} mobileColumns={1}>
-        <AdminTasksWidget />
-        <ActiveMeetingsWidget />
-      </DashboardSection>
+      <ScrollReveal variant="fade-up" delay={0.16}>
+        <DashboardSection columns={2} mobileColumns={1}>
+          <AdminTasksWidget />
+          <ActiveMeetingsWidget />
+        </DashboardSection>
+      </ScrollReveal>
 
-      {/* Zone 6: Quick Launch */}
-      <QuickLaunchGrid />
+      <ScrollReveal variant="fade-scale" delay={0.18}>
+        <QuickLaunchGrid />
+      </ScrollReveal>
 
-      {/* Zone 7: Operations Monitor (collapsed) */}
-      <OperationsMonitor />
+      <ScrollReveal variant="fade-up" delay={0.2}>
+        <OperationsMonitor />
+      </ScrollReveal>
     </div>
   );
 };

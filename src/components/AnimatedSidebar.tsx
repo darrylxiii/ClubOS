@@ -413,10 +413,13 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
   const { open } = useSidebar();
   const location = useLocation();
   const isActive = location.pathname === item.path;
+  const haptics = useHaptics();
 
   return (
     <Link
       to={item.path}
+      onMouseEnter={() => prefetchRoute(item.path)}
+      onTouchStart={() => { haptics.impact('light'); prefetchRoute(item.path); }}
       className={cn(
         "flex items-center rounded-xl",
         open ? "gap-3 px-4" : "justify-center px-0",

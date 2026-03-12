@@ -7,11 +7,12 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { motion, AnimatePresence } from "@/lib/motion";
+import { supportsViewTransitions } from "@/hooks/useViewTransition";
 
 /**
  * Unified Layout for all authenticated pages.
- * MFA enforcement is now handled inside ProtectedRoute
- * to eliminate the second sequential loading gate.
+ * Uses native View Transitions API when supported for cinematic route changes.
+ * Falls back to framer-motion fade when unsupported.
  */
 export const ProtectedLayout = () => {
   const location = useLocation();
@@ -21,19 +22,27 @@ export const ProtectedLayout = () => {
       <ProtectedRoute>
         <AppLayout>
           <RouteErrorBoundary>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-              >
-                <Suspense fallback={<PageLoader />}>
-                  <Outlet />
-                </Suspense>
-              </motion.div>
-            </AnimatePresence>
+            {supportsViewTransitions ? (
+              /* Browser handles cross-fade natively via ::view-transition-* */
+              <Suspense fallback={<PageLoader />}>
+                <Outlet />
+              </Suspense>
+            ) : (
+              /* Fallback: framer-motion fade */
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={location.pathname}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                >
+                  <Suspense fallback={<PageLoader />}>
+                    <Outlet />
+                  </Suspense>
+                </motion.div>
+              </AnimatePresence>
+            )}
           </RouteErrorBoundary>
         </AppLayout>
         <MobileBottomNav />

@@ -899,3 +899,79 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     @apply skeleton h-48 w-full;
   }
 }
+
+/* ========================================
+ * View Transitions API — Cinematic route changes
+ * ======================================== */
+::view-transition-old(root) {
+  animation: 200ms ease-out both vt-fade-out, 200ms ease-out both vt-scale-out;
+}
+::view-transition-new(root) {
+  animation: 300ms ease-out both vt-fade-in, 300ms ease-out both vt-scale-in;
+}
+
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes vt-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes vt-scale-in {
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
+}
+@keyframes vt-scale-out {
+  from { transform: scale(1); }
+  to { transform: scale(0.98); }
+}
+
+/* Shared element morph targets */
+[data-vt-name="page-header"] {
+  view-transition-name: page-header;
+}
+[data-vt-name="stat-card"] {
+  view-transition-name: stat-card;
+}
+
+/* ========================================
+ * Cinematic Auth — Animated mesh gradient
+ * ======================================== */
+@property --mesh-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes mesh-rotate {
+  to { --mesh-angle: 360deg; }
+}
+
+.auth-mesh-bg {
+  background:
+    conic-gradient(from var(--mesh-angle) at 30% 40%, hsl(var(--background)) 0%, hsl(var(--muted)) 25%, hsl(var(--background)) 50%),
+    conic-gradient(from calc(var(--mesh-angle) + 120deg) at 70% 60%, hsl(var(--background)) 0%, hsl(var(--accent) / 0.15) 25%, hsl(var(--background)) 50%);
+  animation: mesh-rotate 20s linear infinite;
+}
+
+.auth-input-glow:focus-within {
+  box-shadow:
+    0 0 0 2px hsl(var(--ring) / 0.3),
+    0 0 12px hsl(var(--ring) / 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.auth-btn-sweep {
+  background-size: 200% 100%;
+  background-image: linear-gradient(
+    90deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--accent)) 50%,
+    hsl(var(--primary)) 100%
+  );
+  transition: background-position 0.6s ease;
+}
+.auth-btn-sweep:hover {
+  background-position: -100% 0;
+}

@@ -231,6 +231,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           <FloatingClubAI />
         </Suspense>
       </ErrorBoundary>
+
+      {/* Cursor trail — desktop only, respects motion preference */}
+      <CursorTrail />
     </div>
   );
 };

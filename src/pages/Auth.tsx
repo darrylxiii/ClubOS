@@ -783,6 +783,7 @@ const Auth = () => {
         </CardContent>
       </Card>
 
+      </motion.div>
       {resolvedTheme === 'dark' && <OAuthDiagnostics />}
       <SetPasswordModal open={setPasswordOpen} onOpenChange={setSetPasswordOpen} />
     </div>;

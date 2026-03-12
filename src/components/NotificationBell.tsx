@@ -59,7 +59,7 @@ export const NotificationBell = () => {
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={(v) => { if (v) haptics.impact('light'); setOpen(v); }}>
       <SheetTrigger asChild>
         <motion.div
           whileHover={{ scale: 1.05 }}

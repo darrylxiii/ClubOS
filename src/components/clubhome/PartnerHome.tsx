@@ -188,36 +188,28 @@ export const PartnerHome = () => {
             </div>
             <TeamOverviewWidget companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Time Tracking & Dossier Activity */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 9 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.24}>
           <DashboardSection columns={3}>
             <TimeTrackingWidget role="partner" companyId={companyId} />
             <DossierActivityWidget companyId={companyId} />
             <InterviewSuccessWidget companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Recent Applications & Activity Feed */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 10 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.26}>
           <DashboardSection columns={2}>
             <RecentApplicationsList companyId={companyId} />
             <PartnerActivityFeed companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
     </div>
   );

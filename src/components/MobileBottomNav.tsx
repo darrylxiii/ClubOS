@@ -50,7 +50,7 @@ export const MobileBottomNav = () => {
           return (
             <button
               key={path}
-              onClick={() => navigate(path)}
+              onClick={() => { haptics.impact('light'); navigate(path); }}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 w-16 h-full",
                 "text-[10px] font-medium transition-colors",
