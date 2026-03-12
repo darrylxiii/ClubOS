@@ -73,6 +73,7 @@ const Jobs = () => {
   // URL-based tab state
   const urlTab = searchParams.get('tab');
   const isAdminOrPartner = (role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin');
+  const isPartnerWithoutCompany = role === 'partner' && !userCompanyId;
   
   // Default tabs per role
   const defaultCandidateTab = "opportunities";
