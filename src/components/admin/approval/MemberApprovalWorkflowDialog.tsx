@@ -209,7 +209,7 @@ export const MemberApprovalWorkflowDialog = ({
   };
 
   // Extract partner additional data
-  const partnerAdditionalData = request.additional_data as { industry?: string; company_size?: string; website?: string } | null;
+  const partnerAdditionalData = (request as any).additional_data as { industry?: string; company_size?: string; website?: string } | null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

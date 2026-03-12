@@ -126,8 +126,27 @@ export const ApprovalConfirmationStep = ({
                 </div>
               )}
 
+              {/* Partner company assignment */}
+              {(summary.action === 'assign_company' || summary.action === 'create_company') && summary.companyAssignment && (
+                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                  <Building2 className="w-4 h-4 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {summary.action === 'create_company' ? 'Create company' : 'Assign to company'}: {summary.companyAssignment.companyName}
+                      </span>
+                      <Badge variant="default">{summary.action === 'create_company' ? 'New' : 'Existing'}</Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      Role: <strong>{summary.companyAssignment.companyRole}</strong>
+                      {summary.companyAssignment.industry && ` · ${summary.companyAssignment.industry}`}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Skip assignment info */}
-              {summary.assignmentType === 'skip' && (
+              {!summary.companyAssignment && summary.assignmentType === 'skip' && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>No role or pipeline assignment</span>

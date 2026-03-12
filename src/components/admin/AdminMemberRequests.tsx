@@ -500,15 +500,14 @@ export const AdminMemberRequests = () => {
   };
 
   const openReviewDialog = (request: MemberRequest, action: 'approve' | 'decline') => {
-    if (action === 'approve' && request.request_type === 'candidate') {
-      // Use enhanced workflow for candidate approvals
+    if (action === 'approve') {
+      // Use enhanced workflow for both candidate AND partner approvals
       setWorkflowRequest(request);
       setShowWorkflowDialog(true);
     } else {
-      // Use simple dialog for partner approvals and all declines
+      // Use simple dialog for all declines
       setSelectedRequest(request);
       setReviewAction(action);
-      // Reset notification preferences
       setSendEmail(true);
       setSendSMS(true);
     }
