@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
         phone: request.contact_phone,
         provisioned_by_admin: true,
         provisioned_at: new Date().toISOString(),
+        force_password_change: true,
       },
     });
 
