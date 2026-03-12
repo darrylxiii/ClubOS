@@ -102,7 +102,7 @@ const DataProcessingAgreement = lazy(() => import("./pages/legal/DataProcessingA
 // Misc Protected Pages
 const ClubAI = lazy(() => import("./pages/ClubAI"));
 // SocialManagement is now redirected to /partner/hub?tab=social (handled in partner.routes.tsx)
-const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
+
 const PartnerWelcome = lazy(() => import("./pages/PartnerWelcome"));
 const PartnerSetup = lazy(() => import("./pages/PartnerSetup"));
 const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
