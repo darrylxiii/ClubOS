@@ -227,7 +227,7 @@ export function useUpdateDealStage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
-      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity-metrics'] });
     },
   });
 }
