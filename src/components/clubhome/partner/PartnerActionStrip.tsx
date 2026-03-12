@@ -1,13 +1,12 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, Calendar, MessageSquare, ChevronRight } from "lucide-react";
+import { Plus, Users, Calendar, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAggregatedReviewQueue } from "@/hooks/useAggregatedReviewQueue";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { isToday, parseISO } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 
 export function PartnerActionStrip() {
   const { totalPending, overdueCount, isLoading: reviewsLoading } = useAggregatedReviewQueue();
@@ -32,12 +31,26 @@ export function PartnerActionStrip() {
     staleTime: 2 * 60 * 1000,
   });
 
+  // Check active jobs count for micro-copy
+  const { data: activeJobsCount = -1 } = useQuery({
+    queryKey: ['active-jobs-count-cro', user?.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('jobs')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['published', 'active', 'open']);
+      return count || 0;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const isLoading = reviewsLoading || interviewsLoading;
 
   if (isLoading) {
     return (
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-xl border border-border/50 bg-card/50">
-        <Skeleton className="h-10 w-full sm:w-48" />
+        <Skeleton className="h-11 w-full sm:w-48" />
         <Skeleton className="h-10 w-full sm:w-48" />
         <div className="flex-1" />
         <Skeleton className="h-10 w-full sm:w-32" />
@@ -47,6 +60,21 @@ export function PartnerActionStrip() {
 
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
+      {/* Primary CTA — New Role (left-aligned, dominant) */}
+      <div className="flex flex-col items-start gap-1">
+        <Link to="/company-jobs/new">
+          <RainbowButton className="h-10 px-5 text-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Post a New Role
+          </RainbowButton>
+        </Link>
+        {activeJobsCount === 0 && (
+          <span className="text-[11px] text-muted-foreground ml-1">
+            Get candidates in 48h
+          </span>
+        )}
+      </div>
+
       {/* Pending reviews indicator */}
       {totalPending > 0 ? (
         <Link
@@ -85,22 +113,6 @@ export function PartnerActionStrip() {
       )}
 
       <div className="flex-1" />
-
-      {/* Quick actions */}
-      <div className="flex items-center gap-2">
-        <Button size="sm" asChild>
-          <Link to="/company-jobs/new">
-            <Plus className="h-4 w-4 mr-1.5" />
-            New Role
-          </Link>
-        </Button>
-        <Button size="sm" variant="outline" asChild>
-          <Link to="/messages">
-            <MessageSquare className="h-4 w-4 mr-1.5" />
-            Messages
-          </Link>
-        </Button>
-      </div>
     </div>
   );
 }

@@ -2,8 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Video, User, CheckCircle, ArrowRight } from "lucide-react";
+import { Calendar, Clock, Video, User, CheckCircle, ArrowRight, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, isToday, isTomorrow, addDays, parseISO } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,7 +28,6 @@ export function UpcomingScheduleWidget() {
       const now = new Date();
       const weekFromNow = addDays(now, 7);
 
-      // Fetch bookings for next 7 days
       const { data: bookings } = await supabase
         .from('bookings')
         .select('id, scheduled_start, video_meeting_link, guest_name, guest_email')
@@ -141,11 +139,19 @@ export function UpcomingScheduleWidget() {
       </CardHeader>
       <CardContent>
         {!items || items.length === 0 ? (
-          <div className="flex items-center gap-3 p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
-            <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Clear schedule</p>
-              <p className="text-xs text-muted-foreground">No upcoming interviews this week</p>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
+              <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Clear schedule</p>
+                <p className="text-xs text-muted-foreground">No upcoming interviews this week</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-muted/30">
+              <Info className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                Interviews are automatically scheduled once candidates are shortlisted for your roles
+              </p>
             </div>
           </div>
         ) : (

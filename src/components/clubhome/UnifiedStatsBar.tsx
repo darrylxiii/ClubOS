@@ -1,6 +1,6 @@
 import { MetricCard } from "@/components/admin/shared/MetricCard";
 import { MetricCardSkeleton } from "@/components/admin/shared/MetricCardSkeleton";
-import { Users, Briefcase, Calendar, MessageSquare, Target, TrendingUp, Building2, AlertCircle } from "lucide-react";
+import { Users, Briefcase, Calendar, MessageSquare, Target, TrendingUp, Building2, AlertCircle, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -15,6 +15,7 @@ interface StatConfig {
   secondaryFallback: string;
   link?: string;
   ariaLabel?: string;
+  isCTA?: boolean;
 }
 
 interface UnifiedStatsBarProps {
@@ -120,30 +121,58 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
           },
         ];
 
-      case 'partner':
+      case 'partner': {
+        const activeJobs = stats.activeJobs || 0;
+        const totalApps = stats.totalApplications || 0;
+
         return [
-          {
-            icon: Briefcase,
-            iconColor: 'info',
-            titleKey: 'common:home.stats.activeJobs',
-            titleFallback: 'Active Jobs',
-            value: stats.activeJobs || 0,
-            secondaryKey: 'common:jobs.posted',
-            secondaryFallback: 'Posted',
-            link: '/jobs?filter=company',
-            ariaLabel: `${stats.activeJobs || 0} active jobs. Click to view your jobs.`,
-          },
-          {
-            icon: Users,
-            iconColor: 'success',
-            titleKey: 'common:home.stats.applications',
-            titleFallback: 'Applications',
-            value: stats.totalApplications || 0,
-            secondaryKey: 'common:applications.status.applied',
-            secondaryFallback: 'Applied',
-            link: '/applications',
-            ariaLabel: `${stats.totalApplications || 0} applications received. Click to view all applications.`,
-          },
+          activeJobs === 0
+            ? {
+                icon: Plus,
+                iconColor: 'warning' as const,
+                titleKey: 'common:home.stats.activeJobs',
+                titleFallback: 'Post your first role',
+                value: 0,
+                secondaryKey: 'common:jobs.posted',
+                secondaryFallback: 'Get started',
+                link: '/company-jobs/new',
+                ariaLabel: 'No active jobs. Click to post your first role.',
+                isCTA: true,
+              }
+            : {
+                icon: Briefcase,
+                iconColor: 'info' as const,
+                titleKey: 'common:home.stats.activeJobs',
+                titleFallback: 'Active Jobs',
+                value: activeJobs,
+                secondaryKey: 'common:jobs.posted',
+                secondaryFallback: 'Posted',
+                link: '/company-jobs',
+                ariaLabel: `${activeJobs} active jobs. Click to view your jobs.`,
+              },
+          activeJobs === 0 && totalApps === 0
+            ? {
+                icon: Users,
+                iconColor: 'neutral' as const,
+                titleKey: 'common:home.stats.applications',
+                titleFallback: 'Applications',
+                value: 0,
+                secondaryKey: 'common:applications.status.applied',
+                secondaryFallback: 'Post a role first',
+                link: '/company-jobs/new',
+                ariaLabel: 'No applications yet. Post a role to start receiving them.',
+              }
+            : {
+                icon: Users,
+                iconColor: 'success' as const,
+                titleKey: 'common:home.stats.applications',
+                titleFallback: 'Applications',
+                value: totalApps,
+                secondaryKey: 'common:applications.status.applied',
+                secondaryFallback: 'Applied',
+                link: '/applications',
+                ariaLabel: `${totalApps} applications received. Click to view all applications.`,
+              },
           {
             icon: Calendar,
             iconColor: 'info',
@@ -167,6 +196,7 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
             ariaLabel: `${stats.followers || 0} followers. Click to view company followers.`,
           },
         ];
+      }
 
       case 'user':
       case 'strategist':
@@ -272,11 +302,15 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
           >
             <MetricCard
               icon={stat.icon}
-              iconColor={stat.iconColor}
+              iconColor={stat.isCTA ? 'warning' : stat.iconColor}
               title={stat.titleFallback}
               primaryMetric={stat.value}
               secondaryText={stat.secondaryFallback}
-              className="glass-subtle hover:glass transition-all duration-300 border-border/50 hover:border-primary/30 cursor-pointer"
+              className={
+                stat.isCTA
+                  ? "border-primary/40 bg-primary/5 hover:border-primary/60 hover:bg-primary/10 transition-all duration-300 cursor-pointer animate-pulse-subtle"
+                  : "glass-subtle hover:glass transition-all duration-300 border-border/50 hover:border-primary/30 cursor-pointer"
+              }
             />
           </Link>
         </motion.div>
