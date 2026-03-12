@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+import { useHaptics } from '@/hooks/useHaptics';
 
 export const NotificationBell = () => {
   const { user } = useAuth();
