@@ -38,8 +38,8 @@ import { usePartnerDataPopulation } from "@/hooks/usePartnerDataPopulation";
 import { usePartnerRealtime } from "@/hooks/usePartnerRealtime";
 import { TeamOverviewWidget } from "../partner/TeamOverviewWidget";
 import { T } from "@/components/T";
-import { motion } from "framer-motion";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export const PartnerHome = () => {
   const { companyId } = useRole();
@@ -52,29 +52,19 @@ export const PartnerHome = () => {
   // Enable real-time updates for dashboard
   usePartnerRealtime(companyId || undefined);
 
-  const staggerDelay = 0.1;
-
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Stats at top with animated entrance */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      <ScrollReveal variant="fade-up">
         <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
-      </motion.div>
+      </ScrollReveal>
 
       {/* Club AI Intelligence Hub */}
       <ClubAIHomeChatWidget />
 
       {/* Hero Concierge Card - Premium white-glove service */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.05}>
           <DashboardSection>
             <PartnerConciergeCard companyId={companyId} />
           </DashboardSection>
