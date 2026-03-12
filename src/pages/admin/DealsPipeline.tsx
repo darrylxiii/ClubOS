@@ -11,8 +11,6 @@ import { StrategistLeaderboard } from "@/components/leaderboard/StrategistLeader
 import { ClientHealthDashboard } from "@/components/client-health/ClientHealthDashboard";
 import { PipelineConversionFunnel } from "@/components/deals/PipelineConversionFunnel";
 import { PipelineVelocityMetrics } from "@/components/deals/PipelineVelocityMetrics";
-import { StrategistLeaderboard } from "@/components/leaderboard/StrategistLeaderboard";
-import { ClientHealthDashboard } from "@/components/client-health/ClientHealthDashboard";
 import { Button } from "@/components/ui/button";
 import { Target, TrendingUp, BarChart3, Lightbulb, Settings, Building2, Shield, Users, Heart } from "lucide-react";
 import { useDealPipeline, useDealStages } from "@/hooks/useDealPipeline";
