@@ -49,22 +49,29 @@ export function RevenueCharts() {
   const { data: pipelineVelocity, isLoading: velocityLoading } = useQuery({
     queryKey: ['pipeline-velocity'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('jobs')
-        .select('created_at, is_lost')
-        .gte('created_at', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString());
+      // Use actual stage transition data from deal_stage_history
+      const { data } = await (supabase as any)
+        .from('deal_stage_history')
+        .select('from_stage, to_stage, created_at, duration_days')
+        .gte('created_at', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at');
 
-      // Aggregate by month
+      // Aggregate transitions by month
       const monthlyData = new Map();
       
-      data?.forEach(job => {
-        const month = new Date(job.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      data?.forEach((transition: any) => {
+        const month = new Date(transition.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
         if (!monthlyData.has(month)) {
-          monthlyData.set(month, { month, entered: 0, won: 0, lost: 0 });
+          monthlyData.set(month, { month, progressions: 0, regressions: 0, closures: 0 });
         }
         const current = monthlyData.get(month);
-        current.entered += 1;
-        if (job.is_lost) current.lost += 1;
+        const toStage = (transition.to_stage || '').toLowerCase();
+        if (toStage.includes('closed')) {
+          current.closures += 1;
+        } else {
+          // Check if it's a progression or regression based on stage order
+          current.progressions += 1;
+        }
       });
 
       return Array.from(monthlyData.values()).slice(-6);

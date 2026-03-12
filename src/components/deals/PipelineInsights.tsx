@@ -41,7 +41,7 @@ export function PipelineInsights() {
       const { data: atRiskDeals } = await supabase
         .from('jobs')
         .select('id, title, deal_health_score')
-        .eq('status', 'open')
+        .eq('status', 'published')
         .eq('is_lost', false)
         .lt('deal_health_score', 50);
 
