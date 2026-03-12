@@ -28,6 +28,8 @@ serve(async (req) => {
     const { phone, fullName, requestType, userId } = body;
 
     logger.logRequest(req.method, undefined, { phone, requestType });
+
+    if (!phone) {
       logger.warn('No phone number provided');
       return new Response(
         JSON.stringify({ success: false, message: 'No phone number' }),
