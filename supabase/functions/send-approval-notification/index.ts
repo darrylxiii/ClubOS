@@ -122,7 +122,7 @@ serve(async (req) => {
 
     // ── Candidate emails (original flow) ──
     const subject = status === 'approved'
-      ? '🎉 Welcome to The Quantum Club!'
+      ? 'Welcome to The Quantum Club'
       : 'Update on Your Application';
 
     let emailContent: string;
