@@ -581,7 +581,7 @@ const Auth = () => {
         animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
       >
-      <Card className="w-full max-w-xl glass shadow-glass-md rounded-2xl">
+      <Card className="w-full max-w-2xl bg-card/85 backdrop-blur-[16px] border-border/50 shadow-glass-md shadow-inner rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2">
             <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" fetchPriority="high" />
