@@ -152,8 +152,9 @@ Deno.serve(async (req) => {
         .insert({
           name: request.company_name,
           slug: `${slug}-${Date.now().toString(36)}`,
-          domain,
-          status: "active",
+          industry: request.industry || null,
+          company_size: request.company_size || null,
+          is_active: true,
         })
         .select()
         .single();
