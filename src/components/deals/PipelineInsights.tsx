@@ -23,7 +23,7 @@ export function PipelineInsights() {
       const { data: staleDeals } = await supabase
         .from('jobs')
         .select('id, title, last_activity_date')
-        .eq('status', 'open')
+        .eq('status', 'published')
         .eq('is_lost', false)
         .lt('last_activity_date', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());
 
