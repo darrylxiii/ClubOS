@@ -319,3 +319,130 @@ export const ActivityFeedSkeleton = () => (
     ))}
   </div>
 );
+
+// Pipeline/Kanban skeleton with stage columns
+export const PipelineSkeleton = ({ columns = 5 }: { columns?: number }) => (
+  <div className="flex gap-4 overflow-hidden">
+    {[...Array(columns)].map((_, i) => (
+      <div key={i} className="flex-shrink-0 w-72 space-y-3">
+        <div className="flex items-center justify-between p-3 rounded-lg border border-border/30">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-5 w-8 rounded-full" />
+        </div>
+        {[...Array(3 - Math.min(i, 2))].map((_, j) => (
+          <Card key={j}>
+            <CardContent className="p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <Skeleton className="h-3 w-full" />
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-5 w-12 rounded-full" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    ))}
+  </div>
+);
+
+// Chart skeleton with fake axis lines and bars
+export const ChartSkeleton = ({ variant = "bar" }: { variant?: "bar" | "line" | "pie" }) => (
+  <Card>
+    <CardHeader className="pb-2">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-8 w-24 rounded" />
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="relative h-[280px] flex items-end gap-2 pt-4">
+        {/* Y-axis labels */}
+        <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between w-8">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-3 w-8" />
+          ))}
+        </div>
+        {/* Chart area */}
+        <div className="flex-1 ml-10 flex items-end gap-2 h-full pb-8">
+          {variant === "bar" ? (
+            [...Array(8)].map((_, i) => (
+              <div key={i} className="flex-1 flex flex-col justify-end h-full">
+                <Skeleton
+                  className="w-full rounded-t"
+                  style={{ height: `${30 + Math.random() * 60}%` }}
+                />
+              </div>
+            ))
+          ) : variant === "line" ? (
+            <div className="w-full h-full relative">
+              <Skeleton className="absolute bottom-[20%] left-0 right-0 h-[2px]" />
+              <Skeleton className="absolute bottom-[45%] left-[10%] right-[20%] h-[2px]" />
+              <Skeleton className="absolute bottom-[60%] left-[25%] right-[40%] h-[2px]" />
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Skeleton className="h-48 w-48 rounded-full" />
+            </div>
+          )}
+        </div>
+        {/* X-axis labels */}
+        <div className="absolute bottom-0 left-10 right-0 flex justify-between">
+          {[...Array(8)].map((_, i) => (
+            <Skeleton key={i} className="h-3 w-8" />
+          ))}
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Timeline skeleton with vertical connector line
+export const TimelineSkeleton = ({ count = 5 }: { count?: number }) => (
+  <div className="space-y-1">
+    {[...Array(count)].map((_, i) => (
+      <div key={i} className="flex gap-3">
+        <div className="flex flex-col items-center">
+          <Skeleton className="h-4 w-4 rounded-full shrink-0" />
+          {i < count - 1 && (
+            <Skeleton className="w-[2px] h-16 mt-1" />
+          )}
+        </div>
+        <div className="flex-1 pb-4">
+          <div className="border border-border/30 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-5 w-12 rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+// Video call / meeting room skeleton
+export const VideoCallSkeleton = () => (
+  <div className="space-y-4">
+    <div className="grid grid-cols-2 gap-4">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="aspect-video rounded-xl overflow-hidden">
+          <Skeleton className="h-full w-full" />
+        </div>
+      ))}
+    </div>
+    <div className="flex items-center justify-center gap-3 py-4">
+      {[...Array(5)].map((_, i) => (
+        <Skeleton key={i} className="h-12 w-12 rounded-full" />
+      ))}
+    </div>
+  </div>
+);
