@@ -24,9 +24,8 @@ serve(async (req) => {
   }
 
   try {
-    const { phone, fullName, requestType }: SMSRequest = await req.json();
-
-    logger.logRequest(req.method, undefined, { phone, requestType });
+    const body: SMSRequest & { userId?: string } = await req.json();
+    const { phone, fullName, requestType, userId } = body;
 
     if (!phone) {
       logger.warn('No phone number provided');
