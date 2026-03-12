@@ -19,8 +19,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MusicPlayer } from "@/components/MusicPlayer";
-import { CommandPalette } from "@/components/CommandPalette";
+import { GlobalSpotlightSearch } from "@/components/GlobalSpotlightSearch";
 import { PagePresenceAvatars } from "@/components/shared/PagePresenceAvatars";
+import { AmbientInsightBar } from "@/components/shared/AmbientInsightBar";
 // Lazy load ClubAIVoice to prevent livekit-client module resolution at startup
 const ClubAIVoice = lazy(() => 
   import("@/components/voice/ClubAIVoice").then(m => ({ default: m.ClubAIVoice }))
