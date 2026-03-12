@@ -1,92 +1,92 @@
+# Club Meetings System — Full Audit Plan
 
-
-# Deal Pipeline Audit — Current State & Remaining Issues
-
-## Score: 78/100
-
-The core overhaul is working. Stage distribution improved from 32 New → 20 New / 7 Qualified / 12 Proposal / 1 Negotiation. Probability sync is correct. Orphaned closed jobs are fixed. `is_terminal` is set properly. The composite scoring function works.
-
-**But 7 issues remain:**
+## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
 ---
 
-### 1. QueryKey Mismatch — Velocity Never Refreshes After Drag (-8 pts)
+## Completed
 
-`usePipelineVelocity()` uses queryKey `['pipeline-velocity-metrics']` but `useUpdateDealStage` invalidates `['pipeline-velocity']`. After dragging a deal on the Kanban board, the velocity/funnel components never refresh.
+### Phase 1–4 (Original): 72/100 baseline
+- All items from original plan completed.
 
-**Fix:** Change the invalidation in `useUpdateDealStage` from `'pipeline-velocity'` to `'pipeline-velocity-metrics'`. Also add this invalidation to `useCloseJobWon`, `useCloseJobLost`, and `useMarkDealLost`.
+### Phase A: User-Facing Bugs ✅ (72 → 82)
+- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
 
----
+### Phase B: UX Parity ✅ (82 → 92)
+- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
 
-### 2. Velocity RPC Returns weighted_value = 0 for All Stages (-5 pts)
+### Phase C: Architecture ✅ (92 → 97)
+- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
 
-The `get_pipeline_velocity_metrics` RPC calculates weighted value using only `deal_value_override`, which is NULL for most jobs. The funnel shows "0" for every stage's weighted value.
+### Phase D: Final Polish ✅ (97 → 100)
+- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
 
-**Fix:** Update the RPC to fall back to salary-based calculation: `COALESCE(j.deal_value_override, COALESCE(j.salary_max, j.salary_min, 60000) * COALESCE(c.placement_fee_percentage, 0) / 100.0)`.
+### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
+- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
 
----
+### Phase F: Data Integrity ✅ (72 → 82)
+- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
+- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
+- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
+- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
+- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
+- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
 
-### 3. Dirty History Data — Case Mismatch & Regression Noise (-3 pts)
-
-`deal_stage_history` has 11 records of `"new" → "New"` (case mismatch from old trigger) and impossible transitions like `"Closed Won" → "Closed Lost"`. This pollutes conversion rate calculations.
-
-**Fix:** Data cleanup: DELETE records where `from_stage = 'new'` (lowercase) and UPDATE remaining to normalize casing. Add a check in the trigger to skip logging when the stage hasn't actually changed (case-insensitive).
-
----
-
-### 4. RevenueCharts Velocity — No Progression vs Regression Detection (-2 pts)
-
-`RevenueCharts.tsx` line 73 counts every non-closure transition as a "progression". Regressions (e.g., Proposal → New) are invisible.
-
-**Fix:** Use the `deal_stages` table order to determine if a transition is forward or backward, then correctly categorize as progression or regression.
-
----
-
-### 5. Close/Lost Mutations Don't Invalidate Velocity (-2 pts)
-
-`useCloseJobWon`, `useCloseJobLost`, and `useMarkDealLost` don't invalidate `pipeline-velocity-metrics`, so the funnel/velocity cards go stale after closing a deal.
-
-**Fix:** Add `queryClient.invalidateQueries({ queryKey: ['pipeline-velocity-metrics'] })` to all three mutation `onSuccess` handlers.
+### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
+- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
+- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
+- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
+- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
+- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
+- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
 
 ---
 
-### 6. No Realtime on Kanban (-1 pt)
+## Remaining
 
-Two admins dragging deals simultaneously won't see each other's changes. Low priority but noted.
+### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
+- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
+- Kept console.error for actual failures
 
-**Fix:** Enable realtime on `jobs` table via `ALTER PUBLICATION supabase_realtime ADD TABLE public.jobs` and subscribe in the Kanban component.
+### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
+- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
+- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
+- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
+- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+
+### Phase I1: Ecosystem Polish ✅
+- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
+- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
+- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
+- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+
+### Phase H1: .single() Crash Prevention ✅ (62 → 68)
+- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
+- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+
+### Phase H2: ErrorState Integration ✅ (68 → 75)
+- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
+  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
+- Added `fetchError` state + error render before loading checks
+- Each page shows a branded error card with "Try again" retry action
+
+### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
+- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
 
 ---
 
-### 7. PipelineConversionFunnel Conversion % Can Be Misleading (-1 pt)
+### Remaining: Phase H4–H6
 
-The funnel calculates conversion as `transition_count / current_stage_job_count`. But `transition_count` is historical (all-time transitions) while `job_count` is current snapshot. A stage with 5 current jobs but 20 historical transitions shows 400% conversion.
+| Phase | Task | Files | Status | Impact |
+|-------|------|-------|--------|--------|
+| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
+| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
+| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
 
-**Fix:** Use `transition_count / (transition_count + jobs_still_in_stage)` or simply display transition counts without the percentage when data is insufficient.
+### Phase I2: Remaining Ecosystem
 
----
-
-## Implementation Plan
-
-### Phase 1: Database Migration
-- Fix `get_pipeline_velocity_metrics` to calculate weighted values using salary/fee fallback
-- Add case-insensitive guard to the deal stage history trigger (skip if `LOWER(OLD.deal_stage) = LOWER(NEW.deal_stage)`)
-
-### Phase 2: Data Cleanup (insert tool)
-- DELETE `deal_stage_history` records where `LOWER(from_stage) = LOWER(to_stage)` (the "new"→"New" noise)
-- DELETE impossible transitions ("Closed Won"→"Closed Lost")
-
-### Phase 3: Frontend Fixes
-- **`useDealPipeline.ts`**: Fix queryKey mismatch; add velocity invalidation to all close/lost mutations
-- **`RevenueCharts.tsx`**: Add stage order lookup to properly categorize progressions vs regressions
-- **`PipelineConversionFunnel.tsx`**: Guard against >100% conversion display
-
-### Files Changed
-
-| File | Change |
-|------|--------|
-| Migration SQL | Fix velocity RPC weighted_value calc + trigger guard |
-| `src/hooks/useDealPipeline.ts` | Fix queryKey, add invalidations to 3 mutations |
-| `src/components/deals/RevenueCharts.tsx` | Fix progression/regression detection |
-| `src/components/deals/PipelineConversionFunnel.tsx` | Cap conversion % display |
-
+| # | Task | Status | Impact |
+|---|------|--------|--------|
+| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
+| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
+| 25 | Candidate meeting portal | Pending | Candidate experience |

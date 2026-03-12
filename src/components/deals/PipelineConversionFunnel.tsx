@@ -91,7 +91,7 @@ export function PipelineConversionFunnel() {
                 <div className="flex items-center gap-3 py-0.5">
                   <span className="w-24" />
                   <span className="text-[10px] text-muted-foreground/70 pl-2">
-                    ↓ {convRate}% conversion
+                    ↓ {Math.min(convRate, 100)}% conversion
                   </span>
                 </div>
               )}

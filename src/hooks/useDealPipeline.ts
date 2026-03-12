@@ -227,7 +227,7 @@ export function useUpdateDealStage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
-      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity-metrics'] });
     },
   });
 }
@@ -354,6 +354,7 @@ export function useMarkDealLost() {
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       queryClient.invalidateQueries({ queryKey: ['lost-deals'] });
       queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity-metrics'] });
     },
   });
 }
@@ -415,6 +416,7 @@ export function useCloseJobWon() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity-metrics'] });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
     }
@@ -474,6 +476,7 @@ export function useCloseJobLost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity-metrics'] });
       queryClient.invalidateQueries({ queryKey: ['lost-deals'] });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
