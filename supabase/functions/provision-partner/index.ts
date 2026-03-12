@@ -312,11 +312,18 @@ Deno.serve(async (req) => {
         admin_verified_phone: body.markPhoneVerified,
         preferred_auth_method: body.provisionMethod === 'oauth_only' ? 'google' : body.provisionMethod,
         assigned_strategist_id: body.assignedStrategistId || null,
-        account_status: 'active'
+        account_status: 'approved',
+        account_reviewed_at: new Date().toISOString(),
+        account_approved_by: adminUser.id,
       })
       .eq('id', newUserId);
     if (profileError) {
-      console.error('Profile update error:', profileError);
+      console.error('Profile update error (FATAL):', profileError);
+      await rollbackUser('Profile update failed');
+      return new Response(JSON.stringify({ error: `Profile update failed: ${profileError.message}` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     // ──────────────────────────────────────────────────────────
