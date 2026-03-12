@@ -236,13 +236,14 @@ Deno.serve(async (req) => {
     }
 
     // ── Step 5: Add to company_members ──────────────────────
+    const memberRole = providedCompanyRole || "owner";
     if (companyId) {
       const { error: memberError } = await supabase
         .from("company_members")
         .insert({
           user_id: user.id,
           company_id: companyId,
-          role: "owner",
+          role: memberRole,
           is_active: true,
         });
       if (memberError) {
