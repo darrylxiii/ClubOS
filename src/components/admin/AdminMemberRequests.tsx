@@ -82,12 +82,20 @@ interface MemberRequest {
   };
 }
 
+// All elevated roles that should NOT appear as candidate requests
+const ELEVATED_ROLES = ['admin', 'super_admin', 'partner', 'strategist', 'recruiter', 'hiring_manager', 'company_admin', 'moderator'];
+
 // Helper function to check if a request is from a pure candidate (no elevated roles)
 const isPureCandidate = (request: MemberRequest): boolean => {
   const roles = (request.profiles?.user_roles as any[])?.map((r: any) => r.role) || [];
-  return !roles.includes('admin') && 
-         !roles.includes('partner') && 
-         !roles.includes('strategist');
+  return !roles.some(r => ELEVATED_ROLES.includes(r));
+};
+
+// Helper: check if a candidate-type request is actually an elevated-role user (should be hidden)
+const isElevatedRoleCandidate = (request: MemberRequest): boolean => {
+  if (request.request_type !== 'candidate') return false;
+  const roles = (request.profiles?.user_roles as any[])?.map((r: any) => r.role) || [];
+  return roles.some(r => ELEVATED_ROLES.includes(r));
 };
 
 export const AdminMemberRequests = () => {
@@ -616,7 +624,7 @@ export const AdminMemberRequests = () => {
         </TabsList>
       </Tabs>
 
-      {requests.filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).length === 0 ? (
+      {requests.filter(r => !isElevatedRoleCandidate(r)).filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -625,7 +633,7 @@ export const AdminMemberRequests = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {requests.filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).map(request => {
+          {requests.filter(r => !isElevatedRoleCandidate(r)).filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).map(request => {
             const emailSent = request.notifications?.some(n => n.notification_type === 'email' && n.status === 'sent');
             const smsSent = request.notifications?.some(n => n.notification_type === 'sms' && n.status === 'sent');
             const hasLoggedInAfterApproval = request.activity?.last_login_at && request.reviewed_at 

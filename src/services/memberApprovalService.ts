@@ -568,6 +568,20 @@ export const memberApprovalService = {
     try {
       console.log('[MemberApproval] Starting approval workflow for:', workflowData.requestId);
 
+      // Guard: Check if user has elevated roles — block candidate profile creation
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', workflowData.requestId);
+
+      const elevatedRoles = ['admin', 'super_admin', 'partner', 'strategist', 'recruiter', 'hiring_manager', 'company_admin', 'moderator'];
+      const roles = userRoles?.map(r => r.role) || [];
+      const hasElevatedRole = roles.some(r => elevatedRoles.includes(r));
+
+      if (hasElevatedRole) {
+        console.warn('[MemberApproval] User has elevated role(s):', roles, '— skipping candidate profile creation paths');
+      }
+
       // Step 1: Handle merges if any
       if (workflowData.mergeActions.length > 0) {
         for (const mergeAction of workflowData.mergeActions) {
@@ -607,8 +621,8 @@ export const memberApprovalService = {
         }
       }
 
-      // Step 2: Create candidate profile if needed
-      if (workflowData.createProfile && !candidateId) {
+      // Step 2: Create candidate profile if needed (skip for elevated-role users)
+      if (workflowData.createProfile && !candidateId && !hasElevatedRole) {
         try {
           candidateId = await this.createCandidateFromRequest(
             workflowData.createProfile,
@@ -686,8 +700,9 @@ export const memberApprovalService = {
       }
 
       // Step 4: Handle pipeline assignment (auto-create candidate profile + add to job)
+      // Block pipeline assignment for elevated-role users
       const pipelineAssignment = workflowData.pipelineAssignment || workflowData.assignToJob;
-      if (workflowData.assignmentType === 'candidate' && pipelineAssignment) {
+      if (workflowData.assignmentType === 'candidate' && pipelineAssignment && !hasElevatedRole) {
         try {
           // Auto-create candidate profile if not already created
           if (!candidateId) {

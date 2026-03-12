@@ -1,104 +1,92 @@
+# Club Meetings System — Full Audit Plan
 
-
-# Critical Audit of the Partner Approval Plan
-
-## Verdict: The plan has the right diagnoses but several gaps that would leave you crashing again. Here's every issue.
+## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
 ---
 
-## BUG 1 (SHOWSTOPPER): `account_status: 'active'` — Still in deployed code
+## Completed
 
-**Status in plan:** Identified correctly.
-**Status in reality:** STILL LIVE. Both edge functions (`approve-partner-request` line 230, `provision-partner` line 315) set `account_status: 'active'`.
+### Phase 1–4 (Original): 72/100 baseline
+- All items from original plan completed.
 
-The constraint `profiles_account_status_check` only allows: `pending`, `approved`, `declined`. Setting `'active'` crashes every single partner approval silently. The plan says to fix this — good — but it's marked as a non-fatal error in the current code (line 234-236 of `approve-partner-request`), meaning the flow continues with a broken profile. **This must become fatal or the rest of the provisioning chain runs on a half-baked state.**
+### Phase A: User-Facing Bugs ✅ (72 → 82)
+- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
 
-**What the plan misses:** The `provision-partner` function has the exact same bug (line 315) AND also treats the profile update as non-fatal (lines 318-320). The plan mentions it but doesn't emphasize that BOTH functions need identical treatment.
+### Phase B: UX Parity ✅ (82 → 92)
+- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
 
----
+### Phase C: Architecture ✅ (92 → 97)
+- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
 
-## BUG 2 (SHOWSTOPPER): `member_requests_unified` view has NO role filter on candidates
+### Phase D: Final Polish ✅ (97 → 100)
+- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
 
-The view (migration `20251115`) selects ALL profiles where `created_at > '2025-01-01'` as candidates:
+### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
+- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
 
-```sql
-SELECT p.id, 'candidate' as request_type, ...
-FROM profiles p
-WHERE p.created_at > '2025-01-01'
-```
+### Phase F: Data Integrity ✅ (72 → 82)
+- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
+- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
+- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
+- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
+- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
+- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
 
-Every partner, admin, and strategist shows up as a "candidate request." This is the direct cause of Timo/Zakaria reappearing. The plan correctly identifies this, but the proposed fix has a performance concern:
-
-**Problem with plan's approach:** Calling `is_pure_candidate(id)` per row in a view is expensive — it does a subquery into `user_roles` for every profile row. The current `is_pure_candidate` function only excludes `admin`, `partner`, `strategist` — it does NOT exclude `recruiter`, `hiring_manager`, `company_admin`, `moderator`. So a recruiter would still appear as a candidate request.
-
-**What should happen:** The `is_pure_candidate` function needs to exclude ALL elevated roles, and the view needs an index-friendly filter or materialized approach for performance.
-
----
-
-## BUG 3 (MODERATE): `check_approval_requires_onboarding_for_candidates` constraint
-
-This CHECK constraint calls `is_pure_candidate(id)` which is a SQL function. CHECK constraints must be IMMUTABLE, but `is_pure_candidate` is `STABLE` (it reads from `user_roles` table). This is technically a Postgres violation — it works today but will fail on `pg_dump`/restore and can cause unpredictable behavior during bulk updates.
-
-**The plan ignores this entirely.** Per the project's own guidelines, validation triggers should be used instead of CHECK constraints for mutable checks.
-
----
-
-## BUG 4 (MODERATE): No client-side guard against re-approving partners as candidates
-
-The plan mentions adding a defensive filter in `AdminMemberRequests.tsx`, which is correct. But the current `executeApprovalWorkflow` in `memberApprovalService.ts` has NO guard. If a partner row somehow appears in the candidate list (which it does today), clicking "Approve" runs the full candidate workflow — creating a `candidate_profiles` record for a partner user. This is exactly what happened to Timo.
-
-**The plan identifies this but groups it as "defense in depth."** It should be treated as mandatory, not optional.
+### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
+- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
+- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
+- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
+- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
+- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
+- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
 
 ---
 
-## BUG 5 (DATA INTEGRITY): Timo approved twice — cleanup required
+## Remaining
 
-The plan says to run a one-time data repair:
-- Set `profiles.account_status='approved'` for partners stuck in `pending`
-- Remove accidental `candidate_profiles` for partner users
+### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
+- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
+- Kept console.error for actual failures
 
-**What the plan misses:** It doesn't specify how to identify ALL affected users — just Timo and Zakaria. There could be more. The cleanup query should be: any user with `role='partner'` in `user_roles` who also has a `candidate_profiles` entry with `source_channel='admin_approval'` or `source_channel='member_approval'`.
+### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
+- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
+- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
+- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
+- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
 
----
+### Phase I1: Ecosystem Polish ✅
+- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
+- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
+- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
+- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
 
-## BUG 6 (EDGE CASE): Partner approval creates user even if company step fails
+### Phase H1: .single() Crash Prevention ✅ (62 → 68)
+- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
+- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
 
-In `approve-partner-request`, if Step 2 (company creation) fails, the user is rolled back. But if Step 5 (company_members insert) fails, it's marked non-fatal (line 249-251). This means a partner can be provisioned without actually being linked to their company — breaking the entire company-based permission model.
+### Phase H2: ErrorState Integration ✅ (68 → 75)
+- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
+  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
+- Added `fetchError` state + error render before loading checks
+- Each page shows a branded error card with "Try again" retry action
 
-**The plan doesn't address this.** Company member insertion should be fatal for partner provisioning.
-
----
-
-## BUG 7 (MISSING): `is_pure_candidate` doesn't cover enough roles
-
-Current function:
-```sql
-role IN ('admin', 'partner', 'strategist')
-```
-
-Missing: `recruiter`, `hiring_manager`, `company_admin`, `moderator`, `user` (if `user` means staff-level). Any recruiter who signs up would show as a candidate request.
-
----
-
-## BUG 8 (MISSING): No idempotency on candidate workflow
-
-`executeApprovalWorkflow` in `memberApprovalService.ts` has no idempotency check. If an admin double-clicks "Confirm," the workflow runs twice. The partner path has this check server-side (line 101: `if (request.status !== 'pending')`), but the candidate path updates `profiles.account_status` directly with no guard.
-
-The `submissionInProgress` ref in the dialog is client-side only and doesn't survive a page refresh mid-submission.
+### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
+- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
 
 ---
 
-## Revised Implementation Order (priority-ranked)
+### Remaining: Phase H4–H6
 
-| # | Fix | Severity | Files |
-|---|-----|----------|-------|
-| 1 | Change `account_status: 'active'` → `'approved'` in BOTH edge functions; make profile update FATAL | Showstopper | `approve-partner-request/index.ts`, `provision-partner/index.ts` |
-| 2 | Update `member_requests_unified` view: add `AND is_pure_candidate(p.id)` filter to candidate branch | Showstopper | DB migration |
-| 3 | Update `is_pure_candidate` to exclude ALL elevated roles | Showstopper | DB migration |
-| 4 | Replace `check_approval_requires_onboarding_for_candidates` CHECK with a validation trigger | Moderate | DB migration |
-| 5 | Add server-side guard in `executeApprovalWorkflow`: skip candidate profile creation if user has elevated role | Moderate | `memberApprovalService.ts` |
-| 6 | Add client-side filter in `AdminMemberRequests.tsx` to hide elevated-role users from candidate tab | Moderate | `AdminMemberRequests.tsx` |
-| 7 | Make `company_members` insert fatal in `approve-partner-request` | Moderate | `approve-partner-request/index.ts` |
-| 8 | Run data cleanup: fix stuck statuses, remove accidental candidate profiles for partner users | Data | DB migration or one-time query |
-| 9 | Redeploy both edge functions after changes | Required | Deploy step |
+| Phase | Task | Files | Status | Impact |
+|-------|------|-------|--------|--------|
+| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
+| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
+| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
 
+### Phase I2: Remaining Ecosystem
+
+| # | Task | Status | Impact |
+|---|------|--------|--------|
+| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
+| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
+| 25 | Candidate meeting portal | Pending | Candidate experience |

@@ -227,12 +227,19 @@ Deno.serve(async (req) => {
         phone: request.contact_phone,
         provisioned_by: adminUser.id,
         provisioned_at: new Date().toISOString(),
-        account_status: 'active',
+        account_status: 'approved',
+        account_reviewed_at: new Date().toISOString(),
+        account_approved_by: adminUser.id,
       })
       .eq("id", user.id);
 
     if (profileError) {
-      console.error("Profile update error (non-fatal):", profileError);
+      console.error("Profile update error (FATAL):", profileError);
+      await rollbackUser("Profile update failed");
+      return jsonResponse(
+        { error: `Profile update failed: ${profileError.message}` },
+        500
+      );
     }
 
     // ── Step 5: Add to company_members ──────────────────────
@@ -247,7 +254,12 @@ Deno.serve(async (req) => {
           is_active: true,
         });
       if (memberError) {
-        console.error("Company member insert error (non-fatal):", memberError);
+        console.error("Company member insert error (FATAL):", memberError);
+        await rollbackUser("Company member linking failed");
+        return jsonResponse(
+          { error: `Company member linking failed: ${memberError.message}` },
+          500
+        );
       }
     }
 
