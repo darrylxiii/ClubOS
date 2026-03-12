@@ -128,12 +128,13 @@ export function useVoiceCommands() {
   const [lastResult, setLastResult] = useState<VoiceCommandResult | null>(null);
   const [isSupported, setIsSupported] = useState(false);
   const [micPermission, setMicPermission] = useState<PermissionState | null>(null);
-  const recognitionRef = useRef<globalThis.SpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
 
   const isAdmin = currentRole === "admin";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getSpeechRecognition = (): (new () => globalThis.SpeechRecognition) | null => {
+  const getSpeechRecognition = (): any => {
     return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
   };
 
