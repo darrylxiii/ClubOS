@@ -7,6 +7,7 @@ import { Briefcase, Users, Clock, ArrowRight, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { differenceInDays } from "date-fns";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 
 interface RoleSummary {
   id: string;
@@ -26,7 +27,6 @@ export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
   const { data: roles, isLoading } = useQuery({
     queryKey: ['open-roles-summary', companyId],
     queryFn: async (): Promise<RoleSummary[]> => {
-      // Fetch active jobs
       const { data: jobs, error: jobsError } = await supabase
         .from('jobs')
         .select('id, title, status, created_at')
@@ -39,7 +39,6 @@ export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
 
       const jobIds = jobs.map(j => j.id);
 
-      // Fetch application counts and stages per job
       const { data: applications } = await supabase
         .from('applications')
         .select('job_id, current_stage_index, stages')
@@ -47,7 +46,6 @@ export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
         .neq('status', 'rejected')
         .neq('status', 'withdrawn');
 
-      // Aggregate per job
       const appsByJob = (applications || []).reduce((acc, app) => {
         if (!acc[app.job_id]) acc[app.job_id] = [];
         acc[app.job_id].push(app);
@@ -111,7 +109,7 @@ export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
             <Briefcase className="h-4 w-4 text-primary" />
             Open Roles
           </CardTitle>
-          <Button variant="ghost" size="sm" asChild className="text-xs">
+          <Button variant="default" size="sm" asChild>
             <Link to="/company-jobs/new">
               <Plus className="h-3.5 w-3.5 mr-1" />
               New Role
@@ -121,15 +119,18 @@ export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
       </CardHeader>
       <CardContent>
         {!roles || roles.length === 0 ? (
-          <div className="text-center py-6">
-            <Briefcase className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
-            <p className="text-sm text-muted-foreground">No open roles</p>
-            <Button size="sm" variant="outline" asChild className="mt-3">
-              <Link to="/company-jobs/new">
-                <Plus className="h-3.5 w-3.5 mr-1.5" />
-                Create your first role
-              </Link>
-            </Button>
+          <div className="text-center py-8">
+            <Briefcase className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+            <p className="text-sm font-medium mb-1">No open roles yet</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Partners typically receive their first shortlist within 48 hours
+            </p>
+            <Link to="/company-jobs/new">
+              <RainbowButton className="h-10 px-6 text-sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Post a Role — get candidates in 48h
+              </RainbowButton>
+            </Link>
           </div>
         ) : (
           <div className="space-y-2">

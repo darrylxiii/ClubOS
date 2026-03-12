@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Clock, AlertCircle } from "lucide-react";
+import { BarChart3, Clock, AlertCircle, Plus, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 
 interface StageData {
   name: string;
@@ -20,6 +21,7 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
   const [stages, setStages] = useState<StageData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalActive, setTotalActive] = useState(0);
+  const [jobCount, setJobCount] = useState(0);
 
   useEffect(() => {
     fetchPipelineData();
@@ -27,7 +29,6 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
 
   const fetchPipelineData = async () => {
     try {
-      // Get company's job IDs
       const { data: jobs } = await supabase
         .from('jobs')
         .select('id')
@@ -38,9 +39,9 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
         return;
       }
 
+      setJobCount(jobs.length);
       const jobIds = jobs.map(j => j.id);
 
-      // Fetch all active applications
       const { data: applications, error } = await supabase
         .from('applications')
         .select('current_stage_index, stages, updated_at')
@@ -53,7 +54,6 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
       if (applications && applications.length > 0) {
         setTotalActive(applications.length);
 
-        // Aggregate by stage
         const stageMap = new Map<string, { count: number; totalDays: number }>();
 
         applications.forEach(app => {
@@ -85,7 +85,6 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
           avgDays: Math.round(data.totalDays / data.count)
         }));
 
-        // Sort by count descending
         stageData.sort((a, b) => b.count - a.count);
         setStages(stageData);
       }
@@ -136,9 +135,19 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">No active pipeline</p>
-            <p className="text-xs text-muted-foreground mt-1">Pipeline data will appear when you have active applications</p>
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <p className="text-sm font-medium mb-1">Your hiring pipeline starts here</p>
+            <p className="text-xs text-muted-foreground mb-5 max-w-[240px] mx-auto">
+              We source, screen, and present candidates — you just review
+            </p>
+            <Link to="/company-jobs/new">
+              <RainbowButton className="h-10 px-6 text-sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Post Your First Role
+              </RainbowButton>
+            </Link>
           </div>
         </CardContent>
       </Card>
@@ -198,6 +207,17 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
         <Button className="w-full mt-4" variant="outline" asChild>
           <Link to="/company-applications">View Full Pipeline</Link>
         </Button>
+
+        {/* Contextual nudge when pipeline exists but few roles */}
+        {jobCount <= 2 && (
+          <Link
+            to="/company-jobs/new"
+            className="flex items-center justify-center gap-1.5 mt-3 text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Plus className="h-3 w-3" />
+            Add another role to grow your pipeline
+          </Link>
+        )}
       </CardContent>
     </Card>
   );

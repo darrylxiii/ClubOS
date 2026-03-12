@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Calendar, Sparkles } from "lucide-react";
+import { MessageSquare, Calendar, Sparkles, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useStrategistAssignment } from "@/hooks/usePartnerAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,16 +30,24 @@ export function PartnerStrategistStrip({ companyId }: PartnerStrategistStripProp
 
   if (!strategist) {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-xl border border-border/50 bg-card/50">
-        <div className="p-2 rounded-full bg-primary/10">
-          <Sparkles className="h-4 w-4 text-primary" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl border border-border/50 bg-card/50">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="p-2 rounded-full bg-primary/10">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <p className="text-sm font-medium">Your Talent Strategist</p>
+            <p className="text-xs text-muted-foreground">
+              Your strategist will help you define your first role — post one now to get started
+            </p>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="text-sm font-medium">Your Talent Strategist</p>
-          <p className="text-xs text-muted-foreground">
-            A strategist will be assigned to your account shortly
-          </p>
-        </div>
+        <Button size="sm" asChild>
+          <Link to="/company-jobs/new">
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            Post a Role
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -73,6 +81,12 @@ export function PartnerStrategistStrip({ companyId }: PartnerStrategistStripProp
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        <Button size="sm" variant="outline" asChild>
+          <Link to="/company-jobs/new">
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            Discuss a Role
+          </Link>
+        </Button>
         <Button size="sm" variant="outline" asChild>
           <Link to="/messages">
             <MessageSquare className="h-3.5 w-3.5 mr-1.5" />

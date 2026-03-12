@@ -54,7 +54,7 @@ const STRATEGIST_ITEMS: RadialMenuItemConfig[] = [
 
 const PARTNER_ITEMS: RadialMenuItemConfig[] = [
   ...SHARED_ITEMS,
-  { id: "shortlist", label: "Shortlist", icon: ListChecks, actionType: "navigate", path: "/partner/shortlist" },
+  { id: "new-role", label: "New Role", icon: Plus, actionType: "navigate", path: "/company-jobs/new" },
   { id: "messages", label: "Messages", icon: MessageSquare, actionType: "navigate", path: "/messages" },
   { id: "company", label: "Company", icon: Building, actionType: "navigate", path: "/companies" },
 ];

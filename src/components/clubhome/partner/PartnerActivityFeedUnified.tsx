@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Activity, UserPlus, Briefcase, Calendar, Eye, ArrowRight } from "lucide-react";
+import { Activity, UserPlus, Briefcase, Calendar, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,7 +43,6 @@ export function PartnerActivityFeedUnified({ companyId }: PartnerActivityFeedUni
       const results: ActivityEvent[] = [];
       const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Get company jobs
       const { data: jobs } = await supabase
         .from('jobs')
         .select('id, title, created_at')
@@ -55,7 +54,6 @@ export function PartnerActivityFeedUnified({ companyId }: PartnerActivityFeedUni
         const jobIds = jobs.map(j => j.id);
         const jobNameMap = jobs.reduce((acc, j) => { acc[j.id] = j.title; return acc; }, {} as Record<string, string>);
 
-        // Recent applications
         const { data: apps } = await supabase
           .from('applications')
           .select('id, applied_at, position, user_id, current_stage_index, stages, updated_at')
@@ -90,7 +88,6 @@ export function PartnerActivityFeedUnified({ companyId }: PartnerActivityFeedUni
           });
         }
 
-        // Job creation events
         jobs.filter(j => j.created_at >= cutoff).forEach(job => {
           results.push({
             id: `job-${job.id}`,
@@ -105,7 +102,6 @@ export function PartnerActivityFeedUnified({ companyId }: PartnerActivityFeedUni
         });
       }
 
-      // Meetings
       const { data: meetings } = await supabase
         .from('meetings')
         .select('id, title, created_at')
@@ -176,7 +172,16 @@ export function PartnerActivityFeedUnified({ companyId }: PartnerActivityFeedUni
         {activities.length === 0 ? (
           <div className="text-center py-6">
             <Activity className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
-            <p className="text-sm text-muted-foreground">No recent activity</p>
+            <p className="text-sm font-medium mb-1">No recent activity</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Post a role to see applications, interviews, and updates here
+            </p>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/company-jobs/new">
+                <Plus className="h-3.5 w-3.5 mr-1.5" />
+                Post a Role
+              </Link>
+            </Button>
           </div>
         ) : (
           <div className="space-y-1">
