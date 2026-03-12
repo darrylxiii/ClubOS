@@ -13,6 +13,10 @@ export interface AuthPrefetchData {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  companyMembership: {
+    company_id: string;
+    role: string;
+  } | null;
   preferences: Record<string, any> | null;
   mfaFactors: { hasVerifiedTotp: boolean };
 }
