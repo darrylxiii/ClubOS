@@ -57842,6 +57842,7 @@ export type Database = {
         Args: { _password?: string; _token: string }
         Returns: Json
       }
+      get_pipeline_velocity_metrics: { Args: never; Returns: Json }
       get_popular_courses:
         | {
             Args: never
