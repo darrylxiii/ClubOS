@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TimelineSkeleton } from "@/components/LoadingSkeletons";
 import { 
   Mail, Phone, Video, MessageSquare, CheckSquare, 
   FileText, Target, Clock 
