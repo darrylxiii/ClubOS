@@ -232,8 +232,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </Suspense>
       </ErrorBoundary>
 
-      {/* Cursor trail — desktop only, respects motion preference */}
-      <CursorTrail />
+
     </div>
   );
 };
