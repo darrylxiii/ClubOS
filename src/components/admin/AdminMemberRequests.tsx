@@ -355,7 +355,9 @@ export const AdminMemberRequests = () => {
 
         if (provisionError) {
           console.error('[AdminMemberRequests] Partner provisioning error:', provisionError);
-          const errorMsg = provisionResult?.error || provisionError.message || 'Partner provisioning failed';
+          // Parse the edge function error body for a meaningful message
+          const { getEdgeFunctionErrorMessage } = await import('@/utils/edgeFunctionErrors');
+          const errorMsg = await getEdgeFunctionErrorMessage(provisionError, 'Partner provisioning failed');
           toast.error(`Failed to provision partner: ${errorMsg}`, { duration: 8000 });
           setSubmitting(false);
           return;

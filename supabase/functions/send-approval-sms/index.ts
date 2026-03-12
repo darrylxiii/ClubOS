@@ -8,10 +8,7 @@ const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
 
 const APP_URL = getAppUrl();
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 interface SMSRequest {
   phone: string;
@@ -27,11 +24,10 @@ serve(async (req) => {
   }
 
   try {
-    const { phone, fullName, requestType }: SMSRequest = await req.json();
+    const body: SMSRequest & { userId?: string } = await req.json();
+    const { phone, fullName, requestType, userId } = body;
 
     logger.logRequest(req.method, undefined, { phone, requestType });
-
-    if (!phone) {
       logger.warn('No phone number provided');
       return new Response(
         JSON.stringify({ success: false, message: 'No phone number' }),
@@ -79,9 +75,6 @@ serve(async (req) => {
 
     // Log notification to database
     try {
-      const bodyText = await req.text();
-      const { userId, requestType } = JSON.parse(bodyText);
-      
       if (userId && requestType) {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -122,9 +115,6 @@ serve(async (req) => {
     
     // Log failed notification attempt
     try {
-      const bodyText = await req.text();
-      const { userId, requestType, phone } = JSON.parse(bodyText);
-      
       if (userId && requestType) {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -143,7 +133,7 @@ serve(async (req) => {
             notification_type: 'sms',
             status: 'failed',
             error_message: error.message,
-            metadata: { phone }
+            metadata: { phone: body?.phone }
           })
         });
       }
