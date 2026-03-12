@@ -367,7 +367,12 @@ Deno.serve(async (req) => {
           is_active: true
         });
       if (memberError) {
-        console.error('Company member insert error:', memberError);
+        console.error('Company member insert error (FATAL):', memberError);
+        await rollbackUser('Company member linking failed');
+        return new Response(JSON.stringify({ error: `Company member linking failed: ${memberError.message}` }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
     }
 

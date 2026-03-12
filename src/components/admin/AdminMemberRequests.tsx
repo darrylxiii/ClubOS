@@ -633,7 +633,7 @@ export const AdminMemberRequests = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {requests.filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).map(request => {
+          {requests.filter(r => !isElevatedRoleCandidate(r)).filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).map(request => {
             const emailSent = request.notifications?.some(n => n.notification_type === 'email' && n.status === 'sent');
             const smsSent = request.notifications?.some(n => n.notification_type === 'sms' && n.status === 'sent');
             const hasLoggedInAfterApproval = request.activity?.last_login_at && request.reviewed_at 

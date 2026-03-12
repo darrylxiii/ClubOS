@@ -700,8 +700,9 @@ export const memberApprovalService = {
       }
 
       // Step 4: Handle pipeline assignment (auto-create candidate profile + add to job)
+      // Block pipeline assignment for elevated-role users
       const pipelineAssignment = workflowData.pipelineAssignment || workflowData.assignToJob;
-      if (workflowData.assignmentType === 'candidate' && pipelineAssignment) {
+      if (workflowData.assignmentType === 'candidate' && pipelineAssignment && !hasElevatedRole) {
         try {
           // Auto-create candidate profile if not already created
           if (!candidateId) {
