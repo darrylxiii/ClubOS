@@ -624,7 +624,7 @@ export const AdminMemberRequests = () => {
         </TabsList>
       </Tabs>
 
-      {requests.filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).length === 0 ? (
+      {requests.filter(r => !isElevatedRoleCandidate(r)).filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
