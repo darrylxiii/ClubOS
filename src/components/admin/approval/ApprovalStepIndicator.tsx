@@ -5,16 +5,23 @@ import { cn } from "@/lib/utils";
 interface ApprovalStepIndicatorProps {
   currentStep: ApprovalStep;
   completedSteps: ApprovalStep[];
+  requestType?: 'candidate' | 'partner';
 }
 
-const steps: { key: ApprovalStep; label: string }[] = [
+const candidateSteps: { key: ApprovalStep; label: string }[] = [
   { key: 'detect', label: 'Detect Profiles' },
   { key: 'create', label: 'Create Profile' },
   { key: 'assign', label: 'Assign Role' },
   { key: 'confirm', label: 'Confirm' },
 ];
 
-export const ApprovalStepIndicator = ({ currentStep, completedSteps }: ApprovalStepIndicatorProps) => {
+const partnerSteps: { key: ApprovalStep; label: string }[] = [
+  { key: 'company', label: 'Company' },
+  { key: 'confirm', label: 'Confirm' },
+];
+
+export const ApprovalStepIndicator = ({ currentStep, completedSteps, requestType = 'candidate' }: ApprovalStepIndicatorProps) => {
+  const steps = requestType === 'partner' ? partnerSteps : candidateSteps;
   const currentStepIndex = steps.findIndex(s => s.key === currentStep);
 
   return (
