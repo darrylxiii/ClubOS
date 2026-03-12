@@ -10,7 +10,7 @@ interface VoiceCommandResult {
   searchTerm?: string;
 }
 
-// ── Route mappings for fuzzy matching ──
+// ── Route mappings ──
 const routeMap: Record<string, string> = {
   home: "/home",
   dashboard: "/home",
@@ -44,20 +44,41 @@ const routeMap: Record<string, string> = {
   "meeting intelligence": "/meeting-intelligence",
 };
 
+/**
+ * Scored fuzzy matching: returns the best route match above a quality threshold.
+ * Scoring: exact (100) > starts-with (80) > contains (50).
+ * Requires spoken phrase to cover ≥60% of key length.
+ */
 function fuzzyMatchRoute(spoken: string): string | null {
   const normalized = spoken.toLowerCase().trim();
+  if (!normalized) return null;
 
   // Direct match
   if (routeMap[normalized]) return routeMap[normalized];
 
-  // Partial match
+  let bestPath: string | null = null;
+  let bestScore = 0;
+
   for (const [key, path] of Object.entries(routeMap)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return path;
+    let score = 0;
+
+    if (key === normalized) {
+      score = 100;
+    } else if (key.startsWith(normalized) && normalized.length / key.length >= 0.6) {
+      score = 80;
+    } else if (key.includes(normalized) && normalized.length / key.length >= 0.6) {
+      score = 50;
+    } else if (normalized.includes(key) && key.length / normalized.length >= 0.6) {
+      score = 50;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestPath = path;
     }
   }
 
-  return null;
+  return bestScore >= 50 ? bestPath : null;
 }
 
 function parseCommand(transcript: string): VoiceCommandResult | null {
@@ -106,14 +127,27 @@ export function useVoiceCommands() {
   const [transcript, setTranscript] = useState("");
   const [lastResult, setLastResult] = useState<VoiceCommandResult | null>(null);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const [micPermission, setMicPermission] = useState<PermissionState | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const isAdmin = currentRole === "admin";
 
   useEffect(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    setIsSupported(!!SpeechRecognition && isAdmin);
+    const SpeechRecognitionClass =
+      window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
+    const supported = !!SpeechRecognitionClass && isAdmin;
+    setIsSupported(supported);
+
+    // Check microphone permission
+    if (supported && navigator.permissions) {
+      navigator.permissions.query({ name: "microphone" as PermissionName }).then((result) => {
+        setMicPermission(result.state);
+        result.onchange = () => setMicPermission(result.state);
+      }).catch(() => {
+        // permissions API not supported for mic in some browsers — allow attempt
+        setMicPermission("prompt");
+      });
+    }
   }, [isAdmin]);
 
   const startListening = useCallback(() => {
@@ -122,9 +156,14 @@ export function useVoiceCommands() {
       return;
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    if (micPermission === "denied") {
+      toast.error("Microphone access denied. Please enable it in browser settings.");
+      return;
+    }
+
+    const SpeechRecognitionClass =
+      window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
+    if (!SpeechRecognitionClass) {
       toast.error("Voice recognition is not supported in this browser.");
       return;
     }
@@ -133,7 +172,7 @@ export function useVoiceCommands() {
       recognitionRef.current.stop();
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionClass();
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = "en-US";
@@ -145,7 +184,7 @@ export function useVoiceCommands() {
       setLastResult(null);
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = "";
       let interimTranscript = "";
 
@@ -170,13 +209,10 @@ export function useVoiceCommands() {
             navigate(result.path);
           } else if (result.action === "search" && result.searchTerm) {
             toast.success(`Searching for "${result.searchTerm}"`);
-            // Trigger Cmd+K with pre-filled query
-            const event = new KeyboardEvent("keydown", {
-              key: "k",
-              metaKey: true,
-              bubbles: true,
-            });
-            document.dispatchEvent(event);
+            // Dispatch CustomEvent for GlobalSpotlightSearch to pick up
+            window.dispatchEvent(
+              new CustomEvent("spotlight-search", { detail: result.searchTerm })
+            );
           }
         } else {
           toast.error(`Command not recognized: "${finalTranscript}"`);
@@ -184,9 +220,8 @@ export function useVoiceCommands() {
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       if (event.error !== "no-speech") {
-        console.error("Voice recognition error:", event.error);
         toast.error(`Voice error: ${event.error}`);
       }
       setIsListening(false);
@@ -198,7 +233,7 @@ export function useVoiceCommands() {
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, micPermission]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -220,7 +255,7 @@ export function useVoiceCommands() {
     isListening,
     transcript,
     lastResult,
-    isSupported,
+    isSupported: isSupported && micPermission !== "denied",
     toggle,
     startListening,
     stopListening,

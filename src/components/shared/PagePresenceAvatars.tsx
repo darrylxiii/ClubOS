@@ -1,4 +1,3 @@
-import { useLocation } from "react-router-dom";
 import { usePagePresence } from "@/hooks/usePagePresence";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,9 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const MAX_VISIBLE = 5;
 
 export function PagePresenceAvatars() {
-  const location = useLocation();
-  const pageId = location.pathname;
-  const { viewers } = usePagePresence(pageId);
+  const { viewers } = usePagePresence();
 
   if (viewers.length === 0) return null;
 

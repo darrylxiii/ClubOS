@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +7,15 @@ import { TimelineSkeleton } from "@/components/LoadingSkeletons";
 import {
   Mail, Phone, Video, MessageSquare, CheckSquare, FileText,
   Target, Clock, TrendingUp, UserPlus, Eye, Activity as ActivityIcon,
-  ChevronDown,
+  ChevronDown, AlertCircle,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────
 interface UnifiedEntityTimelineProps {
@@ -25,18 +29,18 @@ interface TimelineEvent {
   id: string;
   timestamp: string;
   type: string;
-  icon: any;
+  icon: LucideIcon;
   iconColor: string;
   title: string;
   description?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   source: string;
   expandable?: boolean;
   expandedContent?: string;
 }
 
 // ── Config ─────────────────────────────────────────────────────────
-const eventConfig: Record<string, { icon: any; color: string; label: string }> = {
+const eventConfig: Record<string, { icon: LucideIcon; color: string; label: string }> = {
   email: { icon: Mail, color: "text-blue-500", label: "Email" },
   call: { icon: Phone, color: "text-emerald-500", label: "Call" },
   meeting: { icon: Video, color: "text-purple-500", label: "Meeting" },
@@ -64,6 +68,172 @@ function formatDateGroup(dateStr: string): string {
   return format(d, "MMMM d, yyyy");
 }
 
+// ── Data fetching ──────────────────────────────────────────────────
+async function fetchTimelineEvents(
+  entityType: string,
+  entityId: string,
+  limit: number
+): Promise<TimelineEvent[]> {
+  const allEvents: TimelineEvent[] = [];
+
+  const mapActivityData = (data: Record<string, unknown> | null): string | undefined => {
+    if (!data || typeof data !== "object") return undefined;
+    return (data as Record<string, string>).description ||
+      (data as Record<string, string>).job_title ||
+      undefined;
+  };
+
+  if (entityType === "candidate") {
+    const [timelineRes, feedRes, meetingsRes] = await Promise.all([
+      supabase
+        .from("activity_timeline")
+        .select("*")
+        .eq("user_id", entityId)
+        .order("created_at", { ascending: false })
+        .limit(limit),
+      supabase
+        .from("activity_feed")
+        .select("*")
+        .eq("user_id", entityId)
+        .order("created_at", { ascending: false })
+        .limit(limit),
+      supabase
+        .from("meeting_participants")
+        .select("meeting_id, meetings(id, title, scheduled_start, status)")
+        .eq("user_id", entityId)
+        .limit(limit),
+    ]);
+
+    timelineRes.data?.forEach((t) => {
+      const cfg = getEventConfig(t.activity_type);
+      allEvents.push({
+        id: `at-${t.id}`,
+        timestamp: t.created_at || "",
+        type: t.activity_type,
+        icon: cfg.icon,
+        iconColor: cfg.color,
+        title: cfg.label,
+        description: mapActivityData(t.activity_data as Record<string, unknown>),
+        metadata: (t.activity_data as Record<string, unknown>) || undefined,
+        source: "activity_timeline",
+      });
+    });
+
+    feedRes.data?.forEach((f) => {
+      const cfg = getEventConfig(f.event_type);
+      allEvents.push({
+        id: `af-${f.id}`,
+        timestamp: f.created_at || "",
+        type: f.event_type,
+        icon: cfg.icon,
+        iconColor: cfg.color,
+        title: cfg.label,
+        description: mapActivityData(f.event_data as Record<string, unknown>),
+        metadata: (f.event_data as Record<string, unknown>) || undefined,
+        source: "activity_feed",
+      });
+    });
+
+    meetingsRes.data?.forEach((mp) => {
+      const m = mp.meetings as unknown as { id: string; title: string; scheduled_start: string; status: string } | null;
+      if (!m) return;
+      allEvents.push({
+        id: `mtg-${m.id}`,
+        timestamp: m.scheduled_start || "",
+        type: "meeting",
+        icon: Video,
+        iconColor: "text-purple-500",
+        title: m.title || "Meeting",
+        description: `Status: ${m.status}`,
+        metadata: { meetingId: m.id, status: m.status },
+        source: "meetings",
+      });
+    });
+  }
+
+  if (entityType === "company") {
+    const [touchpointsRes, companyFeedRes] = await Promise.all([
+      supabase
+        .from("crm_touchpoints")
+        .select("*")
+        .eq("prospect_id", entityId)
+        .order("performed_at", { ascending: false })
+        .limit(limit),
+      supabase
+        .from("activity_feed")
+        .select("*")
+        .eq("company_id", entityId)
+        .order("created_at", { ascending: false })
+        .limit(limit),
+    ]);
+
+    touchpointsRes.data?.forEach((tp) => {
+      const cfg = getEventConfig(tp.touchpoint_type || "other");
+      allEvents.push({
+        id: `tp-${tp.id}`,
+        timestamp: tp.performed_at,
+        type: tp.touchpoint_type || "other",
+        icon: cfg.icon,
+        iconColor: cfg.color,
+        title: tp.subject || cfg.label,
+        description: tp.content_preview || undefined,
+        expandable: !!tp.content_preview && tp.content_preview.length > 100,
+        expandedContent: tp.content_preview || undefined,
+        metadata: { direction: tp.direction, sentiment: tp.sentiment },
+        source: "crm_touchpoints",
+      });
+    });
+
+    companyFeedRes.data?.forEach((f) => {
+      const cfg = getEventConfig(f.event_type);
+      allEvents.push({
+        id: `caf-${f.id}`,
+        timestamp: f.created_at || "",
+        type: f.event_type,
+        icon: cfg.icon,
+        iconColor: cfg.color,
+        title: cfg.label,
+        description: mapActivityData(f.event_data as Record<string, unknown>),
+        metadata: (f.event_data as Record<string, unknown>) || undefined,
+        source: "activity_feed",
+      });
+    });
+  }
+
+  if (entityType === "job") {
+    const { data: apps } = await supabase
+      .from("applications")
+      .select("id, status, created_at, updated_at")
+      .eq("job_id", entityId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    apps?.forEach((a) => {
+      allEvents.push({
+        id: `app-${a.id}`,
+        timestamp: a.created_at || "",
+        type: "application_submitted",
+        icon: FileText,
+        iconColor: "text-primary",
+        title: "Application received",
+        description: `Status: ${a.status}`,
+        metadata: { applicationId: a.id, status: a.status },
+        source: "applications",
+      });
+    });
+  }
+
+  // Deduplicate and sort
+  const seen = new Set<string>();
+  const unique = allEvents.filter((e) => {
+    if (seen.has(e.id)) return false;
+    seen.add(e.id);
+    return true;
+  });
+  unique.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return unique;
+}
+
 // ── Component ──────────────────────────────────────────────────────
 export function UnifiedEntityTimeline({
   entityType,
@@ -71,181 +241,36 @@ export function UnifiedEntityTimeline({
   title = "Activity",
   limit = 20,
 }: UnifiedEntityTimelineProps) {
-  const [events, setEvents] = useState<TimelineEvent[]>([]);
-  const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(limit);
+  const queryClient = useQueryClient();
 
+  const { data: events = [], isLoading, isError } = useQuery({
+    queryKey: ["entity-timeline", entityType, entityId],
+    queryFn: () => fetchTimelineEvents(entityType, entityId, 100),
+    enabled: !!entityId,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Realtime subscription filtered by entity
   useEffect(() => {
-    loadEvents();
+    if (!entityId) return;
 
-    // Realtime subscription
+    const filterCol = entityType === "candidate" ? "user_id" : "company_id";
     const channel = supabase
       .channel(`unified-timeline-${entityType}-${entityId}`)
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
         table: "activity_feed",
-      }, () => loadEvents())
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "activity_timeline",
-      }, () => loadEvents())
+        filter: `${filterCol}=eq.${entityId}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ["entity-timeline", entityType, entityId] });
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [entityType, entityId]);
-
-  const loadEvents = async () => {
-    try {
-      const allEvents: TimelineEvent[] = [];
-
-      if (entityType === "candidate") {
-        // Activity timeline (user-centric)
-        const { data: timeline } = await supabase
-          .from("activity_timeline")
-          .select("*")
-          .eq("user_id", entityId)
-          .order("created_at", { ascending: false })
-          .limit(limit);
-
-        timeline?.forEach((t) => {
-          const cfg = getEventConfig(t.activity_type);
-          allEvents.push({
-            id: `at-${t.id}`,
-            timestamp: t.created_at,
-            type: t.activity_type,
-            icon: cfg.icon,
-            iconColor: cfg.color,
-            title: cfg.label,
-            description: typeof t.activity_data === "object" && t.activity_data !== null
-              ? (t.activity_data as any).description || (t.activity_data as any).job_title || undefined
-              : undefined,
-            metadata: t.activity_data as any,
-            source: "activity_timeline",
-          });
-        });
-
-        // Activity feed
-        const { data: feed } = await supabase
-          .from("activity_feed")
-          .select("*")
-          .eq("user_id", entityId)
-          .order("created_at", { ascending: false })
-          .limit(limit);
-
-        feed?.forEach((f) => {
-          const cfg = getEventConfig(f.event_type);
-          allEvents.push({
-            id: `af-${f.id}`,
-            timestamp: f.created_at || "",
-            type: f.event_type,
-            icon: cfg.icon,
-            iconColor: cfg.color,
-            title: cfg.label,
-            description: typeof f.event_data === "object" && f.event_data !== null
-              ? (f.event_data as any).description || undefined
-              : undefined,
-            metadata: f.event_data as any,
-            source: "activity_feed",
-          });
-        });
-      }
-
-      if (entityType === "company") {
-        // CRM touchpoints
-        const touchpointsQuery = supabase
-          .from("crm_touchpoints")
-          .select("*") as any;
-        const { data: touchpoints } = await touchpointsQuery
-          .eq("company_id", entityId)
-          .order("performed_at", { ascending: false })
-          .limit(limit);
-
-        touchpoints?.forEach((tp) => {
-          const cfg = getEventConfig(tp.touchpoint_type || "other");
-          allEvents.push({
-            id: `tp-${tp.id}`,
-            timestamp: tp.performed_at,
-            type: tp.touchpoint_type || "other",
-            icon: cfg.icon,
-            iconColor: cfg.color,
-            title: tp.subject || cfg.label,
-            description: tp.content_preview || undefined,
-            expandable: !!tp.content_preview && tp.content_preview.length > 100,
-            expandedContent: tp.content_preview || undefined,
-            metadata: { direction: tp.direction, sentiment: tp.sentiment },
-            source: "crm_touchpoints",
-          });
-        });
-
-        // Company activity feed
-        const { data: companyFeed } = await supabase
-          .from("activity_feed")
-          .select("*")
-          .eq("company_id", entityId)
-          .order("created_at", { ascending: false })
-          .limit(limit);
-
-        companyFeed?.forEach((f) => {
-          const cfg = getEventConfig(f.event_type);
-          allEvents.push({
-            id: `caf-${f.id}`,
-            timestamp: f.created_at || "",
-            type: f.event_type,
-            icon: cfg.icon,
-            iconColor: cfg.color,
-            title: cfg.label,
-            description: typeof f.event_data === "object" && f.event_data !== null
-              ? (f.event_data as any).description || undefined
-              : undefined,
-            metadata: f.event_data as any,
-            source: "activity_feed",
-          });
-        });
-      }
-
-      if (entityType === "job") {
-        // Applications for this job as events
-        const { data: apps } = await supabase
-          .from("applications")
-          .select("id, status, created_at, updated_at")
-          .eq("job_id", entityId)
-          .order("created_at", { ascending: false })
-          .limit(limit);
-
-        apps?.forEach((a) => {
-          allEvents.push({
-            id: `app-${a.id}`,
-            timestamp: a.created_at || "",
-            type: "application_submitted",
-            icon: FileText,
-            iconColor: "text-primary",
-            title: "Application received",
-            description: `Status: ${a.status}`,
-            metadata: { applicationId: a.id, status: a.status },
-            source: "applications",
-          });
-        });
-      }
-
-      // Deduplicate and sort chronologically
-      const seen = new Set<string>();
-      const unique = allEvents.filter((e) => {
-        if (seen.has(e.id)) return false;
-        seen.add(e.id);
-        return true;
-      });
-      unique.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-      setEvents(unique);
-    } catch (err) {
-      console.error("UnifiedEntityTimeline error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [entityType, entityId, queryClient]);
 
   // Group by date
   const groupedEvents = useMemo(() => {
@@ -274,7 +299,7 @@ export function UnifiedEntityTimeline({
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="border-border/50">
         <CardHeader>
@@ -285,6 +310,32 @@ export function UnifiedEntityTimeline({
         </CardHeader>
         <CardContent>
           <TimelineSkeleton count={4} />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
+            <div className="w-1 h-6 bg-foreground" />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 space-y-3">
+            <AlertCircle className="w-12 h-12 mx-auto text-destructive opacity-50" />
+            <p className="text-muted-foreground">Failed to load activity timeline.</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => queryClient.invalidateQueries({ queryKey: ["entity-timeline", entityType, entityId] })}
+            >
+              Retry
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -362,12 +413,12 @@ export function UnifiedEntityTimeline({
                             </Badge>
                             {event.metadata?.direction && (
                               <Badge variant="outline" className="text-[10px]">
-                                {event.metadata.direction}
+                                {String(event.metadata.direction)}
                               </Badge>
                             )}
                             {event.metadata?.sentiment && (
                               <Badge variant="outline" className="text-[10px]">
-                                {event.metadata.sentiment}
+                                {String(event.metadata.sentiment)}
                               </Badge>
                             )}
                           </div>
@@ -407,7 +458,6 @@ export function UnifiedEntityTimeline({
           </div>
         ))}
 
-        {/* Load more */}
         {visibleCount < events.length && (
           <div className="text-center pt-2">
             <Button
