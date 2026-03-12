@@ -6,7 +6,8 @@ import {
   ApprovalWorkflowResult,
   StaffAssignment,
   PipelineAssignment,
-  ExistingApplication
+  ExistingApplication,
+  CompanyAssignmentData
 } from "@/types/approval";
 import { mergeService } from "@/services/mergeService";
 
