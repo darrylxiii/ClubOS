@@ -37,6 +37,9 @@ import { MotionToggle } from "@/components/MotionToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
+import { CursorTrail } from "@/components/ui/cursor-trail";
+import { SoundToggle } from "@/components/ui/sound-toggle";
+import { useRoutePrediction } from "@/hooks/useRoutePrediction";
 
 import { getNavigationForRole } from "@/config/navigation.config";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
@@ -58,6 +61,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const { currentRole } = useRole();
   useLastPipeline(); // Track last visited pipeline route
+  useRoutePrediction(); // Track visits + preload popular routes
   const { data: prefetchData } = useAuthPrefetch();
   const userProfile = prefetchData?.profile ?? null;
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -144,6 +148,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             <ThemeToggle />
             <GlobalRoleSwitcher />
             <MotionToggle />
+            <SoundToggle />
             <MusicPlayer />
           </div>
           <NotificationBell />
@@ -226,6 +231,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           <FloatingClubAI />
         </Suspense>
       </ErrorBoundary>
+
+      {/* Cursor trail — desktop only, respects motion preference */}
+      <CursorTrail />
     </div>
   );
 };

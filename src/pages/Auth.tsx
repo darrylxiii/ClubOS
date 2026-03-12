@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { motion } from "@/lib/motion";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -571,7 +572,12 @@ const Auth = () => {
   if (loading || oauthProcessing) {
     return <UnifiedLoader variant="page" showBranding />;
   }
-  return <div className="min-h-screen flex items-center justify-center px-4 py-12">
+  return <div className="min-h-screen flex items-center justify-center px-4 py-12 auth-mesh-bg">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, filter: 'blur(8px)' }}
+        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      >
       <Card className="w-full max-w-lg bg-card/95 border border-border/50 shadow-2xl rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2">
@@ -777,6 +783,7 @@ const Auth = () => {
         </CardContent>
       </Card>
 
+      </motion.div>
       {resolvedTheme === 'dark' && <OAuthDiagnostics />}
       <SetPasswordModal open={setPasswordOpen} onOpenChange={setSetPasswordOpen} />
     </div>;

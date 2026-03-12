@@ -7,11 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+import { useHaptics } from '@/hooks/useHaptics';
 
 export const NotificationBell = () => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const haptics = useHaptics();
 
   useEffect(() => {
     if (!user) return;
@@ -57,7 +59,7 @@ export const NotificationBell = () => {
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={(v) => { if (v) haptics.impact('light'); setOpen(v); }}>
       <SheetTrigger asChild>
         <motion.div
           whileHover={{ scale: 1.05 }}

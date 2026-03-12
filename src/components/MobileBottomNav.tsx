@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Briefcase, MessageSquare, User, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
+import { useHaptics } from "@/hooks/useHaptics";
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", path: "/home" },
@@ -16,6 +17,7 @@ export const MobileBottomNav = () => {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const haptics = useHaptics();
 
   useEffect(() => {
     const main = document.getElementById("main-content");
@@ -48,7 +50,7 @@ export const MobileBottomNav = () => {
           return (
             <button
               key={path}
-              onClick={() => navigate(path)}
+              onClick={() => { haptics.impact('light'); navigate(path); }}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 w-16 h-full",
                 "text-[10px] font-medium transition-colors",

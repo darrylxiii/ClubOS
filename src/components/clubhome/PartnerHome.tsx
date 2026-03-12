@@ -38,8 +38,8 @@ import { usePartnerDataPopulation } from "@/hooks/usePartnerDataPopulation";
 import { usePartnerRealtime } from "@/hooks/usePartnerRealtime";
 import { TeamOverviewWidget } from "../partner/TeamOverviewWidget";
 import { T } from "@/components/T";
-import { motion } from "framer-motion";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export const PartnerHome = () => {
   const { companyId } = useRole();
@@ -52,140 +52,98 @@ export const PartnerHome = () => {
   // Enable real-time updates for dashboard
   usePartnerRealtime(companyId || undefined);
 
-  const staggerDelay = 0.1;
-
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Stats at top with animated entrance */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      <ScrollReveal variant="fade-up">
         <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
-      </motion.div>
+      </ScrollReveal>
 
       {/* Club AI Intelligence Hub */}
       <ClubAIHomeChatWidget />
 
       {/* Hero Concierge Card - Premium white-glove service */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.05}>
           <DashboardSection>
             <PartnerConciergeCard companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Candidate Review Queue — above offers */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 1.5 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.08}>
           <DashboardSection>
             <PendingReviewsWidget />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Offers & Messages - High Priority Business Metrics */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 2 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.1}>
           <DashboardSection columns={2}>
             <OfferPipelineWidget companyId={companyId} />
             <UnreadMessagesWidget companyId={companyId} userId={user?.id} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* AI Daily Briefing - Full Width */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 3 }}
-        >
+        <ScrollReveal variant="fade-scale" delay={0.12}>
           <DashboardSection>
             <DailyBriefing companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Smart Alerts, Health Score & SLA - 3-column grid */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 4 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.14}>
           <DashboardSection columns={3}>
             <SmartAlertsPanel companyId={companyId} />
             <HealthScoreDashboard companyId={companyId} />
             <SLATracker companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Today's Interviews & Upcoming Deadlines */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 5 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.16}>
           <DashboardSection columns={2}>
             <InterviewTodayWidget />
             <UpcomingDeadlinesWidget companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Pipeline Overview & Talent Matches */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 6 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.18}>
           <DashboardSection columns={2}>
             <HiringPipelineOverview companyId={companyId} />
             <TalentRecommendations companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Position Tracking, Shortlists & Benchmarks */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 7 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.2}>
           <DashboardSection columns={3}>
             <PositionFillCountdown companyId={companyId} />
             <CandidateShortlistWidget companyId={companyId} />
             <BenchmarkComparison companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Quick Actions & Interview Success */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 8 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.22}>
           <DashboardSection columns={2}>
             <div className="glass-subtle rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div>
@@ -230,36 +188,28 @@ export const PartnerHome = () => {
             </div>
             <TeamOverviewWidget companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Time Tracking & Dossier Activity */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 9 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.24}>
           <DashboardSection columns={3}>
             <TimeTrackingWidget role="partner" companyId={companyId} />
             <DossierActivityWidget companyId={companyId} />
             <InterviewSuccessWidget companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
 
       {/* Recent Applications & Activity Feed */}
       {companyId && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: staggerDelay * 10 }}
-        >
+        <ScrollReveal variant="fade-up" delay={0.26}>
           <DashboardSection columns={2}>
             <RecentApplicationsList companyId={companyId} />
             <PartnerActivityFeed companyId={companyId} />
           </DashboardSection>
-        </motion.div>
+        </ScrollReveal>
       )}
     </div>
   );
