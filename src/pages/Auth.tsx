@@ -581,9 +581,9 @@ const Auth = () => {
         animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
       >
-      <Card className="w-full max-w-xl glass shadow-glass-md rounded-2xl">
+      <Card className="w-full max-w-2xl bg-card/85 backdrop-blur-[16px] border-border/50 shadow-glass-md shadow-inner rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
-          <div className="flex items-center justify-center mb-2">
+          <div className="flex items-center justify-center mb-2 drop-shadow-lg">
             <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" fetchPriority="high" />
             <img src={quantumLogoLight} alt="The Quantum Club" className="h-24 w-auto hidden dark:block" fetchPriority="high" />
           </div>
@@ -607,7 +607,7 @@ const Auth = () => {
             </div>
           )}
 
-          {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 space-y-2">
+          {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
@@ -626,14 +626,14 @@ const Auth = () => {
               )}
             </div>}
 
-          {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+          {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
                 {t('invite.invalidOrExpired')}
               </AlertDescription>
             </Alert>}
         </CardHeader>
 
-        <CardContent className="pt-2 px-8 pb-10">
+        <CardContent className="pt-2 px-10 pb-10">
           {needsEmailVerification ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
                 <p className="text-sm font-bold text-primary text-center">{t('verification.title')}</p>
@@ -664,7 +664,7 @@ const Auth = () => {
               <button type="button" onClick={() => {
             setNeedsEmailVerification(false);
             setEmailVerificationCode("");
-          }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
+           }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
                 {t('resetPassword.backToLogin')}
               </button>
             </div> : mfaRequired ? <div className="space-y-5">
@@ -695,12 +695,12 @@ const Auth = () => {
               <button type="button" onClick={() => {
             setMfaRequired(false);
             setMfaCode("");
-          }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
+          }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
                 {t('resetPassword.backToLogin')}
               </button>
             </div> : <form onSubmit={handleEmailAuth} className="space-y-5">
               {/* Account Lockout Warning */}
-              {lockoutMessage && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+              {lockoutMessage && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                   <AlertDescription className="text-sm font-medium text-destructive">
                     {lockoutMessage}
@@ -710,19 +710,19 @@ const Auth = () => {
               {!isLogin && (
                 <div>
                   <label htmlFor="auth-fullname" className="sr-only">{t('signup.fullName')}</label>
-                  <Input id="auth-fullname" type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl" required />
+                  <Input id="auth-fullname" type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
                 </div>
               )}
 
               <div>
                 <label htmlFor="auth-email" className="sr-only">{t('login.email')}</label>
-                <Input id="auth-email" type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl" required />
+                <Input id="auth-email" type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
               </div>
 
               {isLogin ? (
                 <div>
                   <label htmlFor="auth-password" className="sr-only">{t('login.password')}</label>
-                  <Input id="auth-password" type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-xl" required />
+                  <Input id="auth-password" type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-xl glass-input" required />
                 </div>
               ) : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
 
@@ -738,7 +738,7 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => setShowAccessDialog(true)}
-                  className="text-foreground/80 hover:text-foreground text-sm transition-colors"
+                  className="text-foreground/90 hover:text-foreground hover:underline text-sm transition-colors"
                 >
                   Request Access
                 </button>
@@ -771,7 +771,7 @@ const Auth = () => {
               </Dialog>
 
               {isLogin && <div className="text-center space-y-1">
-                  <Link to="/forgot-password" className="text-sm text-foreground/70 hover:text-foreground block">
+                  <Link to="/forgot-password" className="text-sm text-foreground/90 hover:text-foreground hover:underline block">
                     {t('login.forgotPassword')}
                   </Link>
                   <button
