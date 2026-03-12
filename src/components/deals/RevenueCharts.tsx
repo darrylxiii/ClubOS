@@ -121,9 +121,9 @@ export function RevenueCharts() {
           height={300}
           config={{
             bars: [
-              { dataKey: 'entered', fill: 'hsl(var(--primary))', name: 'Deals Entered' },
-              { dataKey: 'won', fill: 'hsl(var(--success))', name: 'Deals Won' },
-              { dataKey: 'lost', fill: 'hsl(var(--destructive))', name: 'Deals Lost' },
+              { dataKey: 'progressions', fill: 'hsl(var(--primary))', name: 'Progressions' },
+              { dataKey: 'closures', fill: 'hsl(var(--success))', name: 'Closures' },
+              { dataKey: 'regressions', fill: 'hsl(var(--destructive))', name: 'Regressions' },
             ],
             xAxisDataKey: 'month',
             showGrid: true,

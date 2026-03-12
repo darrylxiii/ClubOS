@@ -105,11 +105,10 @@ export default function DealsPipeline() {
 
         <TabsContent value="insights" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <PipelineInsights />
-            <div className="space-y-6">
-              {/* Placeholder for future insights */}
-            </div>
+            <PipelineConversionFunnel />
+            <PipelineVelocityMetrics />
           </div>
+          <PipelineInsights />
         </TabsContent>
       </Tabs>
     </div>
