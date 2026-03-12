@@ -700,7 +700,7 @@ const Auth = () => {
               </button>
             </div> : <form onSubmit={handleEmailAuth} className="space-y-5">
               {/* Account Lockout Warning */}
-              {lockoutMessage && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+              {lockoutMessage && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                   <AlertDescription className="text-sm font-medium text-destructive">
                     {lockoutMessage}
