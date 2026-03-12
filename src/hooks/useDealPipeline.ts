@@ -354,6 +354,7 @@ export function useMarkDealLost() {
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       queryClient.invalidateQueries({ queryKey: ['lost-deals'] });
       queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity-metrics'] });
     },
   });
 }
