@@ -13,6 +13,7 @@ export const NotificationBell = () => {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const haptics = useHaptics();
 
   useEffect(() => {
     if (!user) return;
