@@ -1,92 +1,174 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Implementation Plan: 6 Premium UX Features
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+This is a large implementation requiring **3 batches** to ensure quality. Each batch builds on the previous.
 
 ---
 
-## Remaining
+## Batch 1: Foundation Layer
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+### Feature 10: Content-Aware Skeletons (Audit & Gap-Fill)
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+**Current state**: `LoadingSkeletons.tsx` already has 15 skeleton variants (JobCard, Profile, AdminTable, CRM, Scheduling, Analytics, etc.) and they're used in ~27 files. This is reasonably well-covered.
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+**Gaps found** (pages still using generic spinners or `animate-pulse` divs instead of proper skeletons):
+- Pipeline/Kanban views — no `PipelineSkeleton`
+- Chart-heavy pages use a single `Skeleton className="h-[300px]"` — need a `ChartSkeleton` with axis lines and bar/line shapes
+- Timeline components (`ActivityTimeline`, CRM `ActivityTimeline`) use hand-rolled `animate-pulse` divs instead of the centralized `ActivityFeedSkeleton`
+- Meeting room / video call loading states use generic loaders
 
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+**Changes**:
+- Add to `LoadingSkeletons.tsx`: `PipelineSkeleton`, `ChartSkeleton` (with fake axis + bars shape), `TimelineSkeleton`, `VideoCallSkeleton`
+- Replace hand-rolled `animate-pulse` divs in `crm/ActivityTimeline.tsx` and `candidate/ActivityTimeline.tsx` with the existing `ActivityFeedSkeleton`
+- This is the smallest feature — done first as warm-up
 
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
+### Feature 8: Real-Time Collaboration Presence
 
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+**Current state**: `useUserPresenceExtended` exists for LiveHub status (online/away/dnd). `useLiveHubPresence` tracks who's online. But there is **zero page-level presence** — nobody knows who else is viewing the same candidate, job, or CRM record.
+
+**Implementation**:
+- New hook: `src/hooks/usePagePresence.ts`
+  - Uses Supabase Realtime Presence (not Postgres changes) via `supabase.channel('page-presence').track()`
+  - Tracks `{ userId, fullName, avatarUrl, currentPage }` per user
+  - Syncs on page navigation, cleans up on unmount
+- New component: `src/components/shared/PagePresenceAvatars.tsx`
+  - Renders overlapping avatar stack of users currently on the same page
+  - Tooltip showing names, "Also viewing this page"
+  - Max 5 avatars + "+N more" overflow
+- Mount in `AppLayout.tsx` header area (next to NotificationBell)
+- Filter: only show others on the exact same route path
 
 ---
 
-### Remaining: Phase H4–H6
+## Batch 2: Core Intelligence Features
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+### Feature 2: Global Spotlight Search (Unified)
 
-### Phase I2: Remaining Ecosystem
+**Current state**: `CommandPalette.tsx` is mounted globally in `AppLayout` — it only does navigation (static list of routes). `WorkspaceCommandPalette` searches workspace pages. `AICommandPalette` is email-only. No cross-entity search exists.
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+**Implementation**:
+- Replace `src/components/CommandPalette.tsx` with `GlobalSpotlightSearch.tsx`
+  - Keep all existing navigation commands as a "Quick Actions" group
+  - Add real-time search across 6 entity types (debounced, parallel queries):
+    - **Candidates**: `profiles` where role includes candidate-like data (name, title)
+    - **Jobs**: `jobs` table (title, company)
+    - **Companies**: `companies` table (name)
+    - **Messages**: `message_threads` (title/last message preview)
+    - **Workspace Pages**: `workspace_pages` (title, content snippet — reuse `useFullTextSearch` logic)
+    - **Meetings**: `meetings` table (title, date)
+  - Each result shows: icon, title, subtitle, entity type badge
+  - Click navigates to the entity's detail page
+  - Keyboard navigation (arrow keys, Enter to select)
+  - Recent searches stored in `localStorage`
+  - Role-filtered: candidates don't see admin entities, partners don't see financials
+- Update `AppLayout.tsx` import from `CommandPalette` to `GlobalSpotlightSearch`
+- Keep `Cmd+K` binding (already wired)
+- Update radial menu "Search" action to trigger the same dialog
+
+### Feature 3: Ambient AI Suggestions
+
+**Current state**: `NextBestActionCard` exists but is a static card on the candidate home page. It checks profile completion, upcoming interviews, and browsing — basic heuristics, not data-driven ambient intelligence.
+
+**Implementation**:
+- New hook: `src/hooks/useAmbientInsights.ts`
+  - Runs on dashboard mount (admin/partner/candidate home pages)
+  - Queries real data to detect actionable situations:
+    - **Stale candidates**: Applications in "screening" for 7+ days with no activity
+    - **Uncontacted leads**: CRM prospects with no touchpoints in 14+ days
+    - **Pipeline bottleneck**: Stages with disproportionate candidate count
+    - **Upcoming deadlines**: Job closing dates within 3 days
+    - **Missing follow-ups**: Meeting happened but no notes/feedback logged within 48h
+  - Returns array of `AmbientInsight` objects with priority, message, action link, dismiss callback
+  - Dismissals stored per-user in `localStorage` (key = insight hash + date)
+- New component: `src/components/shared/AmbientInsightBar.tsx`
+  - Renders as a slim, dismissible banner at the top of the main content area
+  - Shows one insight at a time, with left/right arrows if multiple
+  - Icon + message + action button ("View" / "Fix" / "Follow up")
+  - Subtle slide-in animation
+  - Role-scoped: admin sees pipeline/stale insights, partner sees CRM insights, candidate sees profile/interview insights
+- Mount in `AppLayout.tsx` just above `{children}` inside `<main>`
+
+### Feature 6: Activity Timeline (Unified Per-Entity)
+
+**Current state**: Two separate `ActivityTimeline` components exist:
+- `candidate/ActivityTimeline.tsx` — queries `activity_timeline` table for candidate events
+- `crm/ActivityTimeline.tsx` — queries `crm_touchpoints` for CRM interactions
+
+Neither merges data from multiple sources. No unified timeline exists that combines emails, meetings, notes, status changes, and touchpoints for a single entity.
+
+**Implementation**:
+- New component: `src/components/shared/UnifiedEntityTimeline.tsx`
+  - Props: `entityType` ("candidate" | "company" | "job") + `entityId`
+  - Parallel queries to merge:
+    - `activity_feed` (filtered by relevant user/company)
+    - `activity_timeline` (for candidate entities)
+    - `crm_touchpoints` (for company/prospect entities)
+    - `meeting_participants` joined with `meetings` (for meeting events)
+    - `message_threads` / messages (recent communications)
+  - Normalizes all into a unified `TimelineEvent` interface: `{ id, timestamp, type, icon, title, description, metadata, source }`
+  - Renders as a vertical timeline with:
+    - Date group headers ("Today", "Yesterday", "March 10")
+    - Color-coded icons per event type
+    - Expandable detail sections for rich events (meeting notes, email previews)
+    - "Load more" pagination
+  - Real-time: subscribes to `activity_feed` and `activity_timeline` INSERT events
+- Integrate into:
+  - Candidate profile detail pages (replace or augment existing `ActivityTimeline`)
+  - CRM company/prospect detail views
+  - Job dashboard (candidate activity on that job)
+
+---
+
+## Batch 3: Admin-Only Voice Commands
+
+### Feature 15: Voice Commands (Admin Only)
+
+**Current state**: `SpeechRecognition` is used in `useAITranscription`, `useVoiceBooking`, and `LiveCaptions` — but only for meeting transcription and booking. No navigation or command voice interface exists.
+
+**Implementation**:
+- New hook: `src/hooks/useVoiceCommands.ts`
+  - Gated by role: only activates for `admin` role (checked via `useRole`)
+  - Uses `webkitSpeechRecognition` / `SpeechRecognition` API
+  - Continuous listening mode (toggle on/off via mic button)
+  - Command grammar:
+    - Navigation: "go to [page]", "open [page]", "show [page]" — maps spoken phrases to routes using fuzzy matching against the navigation config
+    - Search: "search for [term]" — opens GlobalSpotlightSearch with pre-filled query
+    - Actions: "create job", "new message", "show notifications"
+  - Visual feedback: floating mic indicator when active, pulsing animation, transcript preview
+  - Error handling: graceful fallback if browser doesn't support Speech API
+- New component: `src/components/admin/VoiceCommandButton.tsx`
+  - Mic icon button in header (only renders for admin)
+  - Click to toggle listening
+  - Shows small floating transcript bubble when processing
+  - Success/failure toast for recognized vs unrecognized commands
+- New component: `src/components/admin/VoiceCommandIndicator.tsx`
+  - Floating overlay showing: listening state, last recognized phrase, matched action
+  - Auto-dismisses after command execution
+- Mount `VoiceCommandButton` in `AppLayout.tsx` header, gated by `RoleGate allowedRoles={['admin']}`
+
+---
+
+## Files Summary
+
+| Batch | File | Action |
+|-------|------|--------|
+| 1 | `src/components/LoadingSkeletons.tsx` | Add 4 new skeleton variants |
+| 1 | `src/components/crm/ActivityTimeline.tsx` | Use centralized skeleton |
+| 1 | `src/components/candidate/ActivityTimeline.tsx` | Use centralized skeleton |
+| 1 | `src/hooks/usePagePresence.ts` | **New** — Realtime page presence |
+| 1 | `src/components/shared/PagePresenceAvatars.tsx` | **New** — Avatar stack |
+| 1 | `src/components/AppLayout.tsx` | Mount presence avatars |
+| 2 | `src/components/GlobalSpotlightSearch.tsx` | **New** — Replaces CommandPalette |
+| 2 | `src/components/CommandPalette.tsx` | Replaced / removed |
+| 2 | `src/hooks/useAmbientInsights.ts` | **New** — Data-driven insight engine |
+| 2 | `src/components/shared/AmbientInsightBar.tsx` | **New** — Dismissible insight banners |
+| 2 | `src/components/shared/UnifiedEntityTimeline.tsx` | **New** — Multi-source timeline |
+| 2 | `src/components/AppLayout.tsx` | Mount spotlight + ambient bar |
+| 3 | `src/hooks/useVoiceCommands.ts` | **New** — Speech-to-action (admin) |
+| 3 | `src/components/admin/VoiceCommandButton.tsx` | **New** — Mic toggle button |
+| 3 | `src/components/admin/VoiceCommandIndicator.tsx` | **New** — Transcript overlay |
+| 3 | `src/components/AppLayout.tsx` | Mount voice command button |
+
+No database changes needed — all features use existing tables and Supabase Realtime Presence (built-in, no schema required).
+
