@@ -21,6 +21,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { logger } from "@/lib/logger";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
 import { SetPasswordModal } from "@/components/auth/SetPasswordModal";
+import { ShaderAnimation } from "@/components/auth/ShaderAnimation";
 
 // Lazy load heavy components to reduce initial bundle
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
