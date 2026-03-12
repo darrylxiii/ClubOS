@@ -61,6 +61,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const { currentRole } = useRole();
   useLastPipeline(); // Track last visited pipeline route
+  useRoutePrediction(); // Track visits + preload popular routes
   const { data: prefetchData } = useAuthPrefetch();
   const userProfile = prefetchData?.profile ?? null;
   const [sidebarOpen, setSidebarOpen] = useState(false);
