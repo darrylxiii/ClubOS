@@ -221,6 +221,8 @@ serve(async (req) => {
           to: [email],
           subject: subject,
           html: htmlContent,
+          text: htmlToPlainText(htmlContent),
+          headers: getEmailHeaders(),
         }),
       });
 
