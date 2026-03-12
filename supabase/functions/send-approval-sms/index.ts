@@ -75,9 +75,6 @@ serve(async (req) => {
 
     // Log notification to database
     try {
-      const bodyText = await req.text();
-      const { userId, requestType } = JSON.parse(bodyText);
-      
       if (userId && requestType) {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
