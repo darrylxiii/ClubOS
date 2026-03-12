@@ -128,13 +128,17 @@ export function useVoiceCommands() {
   const [lastResult, setLastResult] = useState<VoiceCommandResult | null>(null);
   const [isSupported, setIsSupported] = useState(false);
   const [micPermission, setMicPermission] = useState<PermissionState | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<globalThis.SpeechRecognition | null>(null);
 
   const isAdmin = currentRole === "admin";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getSpeechRecognition = (): (new () => globalThis.SpeechRecognition) | null => {
+    return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+  };
+
   useEffect(() => {
-    const SpeechRecognitionClass =
-      window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
+    const SpeechRecognitionClass = getSpeechRecognition();
     const supported = !!SpeechRecognitionClass && isAdmin;
     setIsSupported(supported);
 
