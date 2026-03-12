@@ -9,10 +9,7 @@ import { getAppUrl } from "../_shared/app-config.ts";
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 interface NotificationRequest {
   userId: string;
