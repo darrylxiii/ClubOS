@@ -568,6 +568,20 @@ export const memberApprovalService = {
     try {
       console.log('[MemberApproval] Starting approval workflow for:', workflowData.requestId);
 
+      // Guard: Check if user has elevated roles — block candidate profile creation
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', workflowData.requestId);
+
+      const elevatedRoles = ['admin', 'super_admin', 'partner', 'strategist', 'recruiter', 'hiring_manager', 'company_admin', 'moderator'];
+      const roles = userRoles?.map(r => r.role) || [];
+      const hasElevatedRole = roles.some(r => elevatedRoles.includes(r));
+
+      if (hasElevatedRole) {
+        console.warn('[MemberApproval] User has elevated role(s):', roles, '— skipping candidate profile creation paths');
+      }
+
       // Step 1: Handle merges if any
       if (workflowData.mergeActions.length > 0) {
         for (const mergeAction of workflowData.mergeActions) {
