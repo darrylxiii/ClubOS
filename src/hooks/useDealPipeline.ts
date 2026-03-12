@@ -197,12 +197,26 @@ export function useUpdateDealStage() {
   
   return useMutation({
     mutationFn: async ({ dealId, newStage }: { dealId: string; newStage: string }) => {
+      // Look up the probability weight for the target stage
+      const { data: stageData } = await (supabase as any)
+        .from('deal_stages')
+        .select('probability_weight')
+        .ilike('name', newStage)
+        .maybeSingle();
+      
+      const probability = stageData?.probability_weight ?? undefined;
+      
+      const updatePayload: any = { 
+        deal_stage: newStage,
+        updated_at: new Date().toISOString(),
+      };
+      if (probability !== undefined) {
+        updatePayload.deal_probability = probability;
+      }
+      
       const { data, error } = await supabase
         .from('jobs')
-        .update({ 
-          deal_stage: newStage,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', dealId)
         .select()
         .single();
@@ -213,7 +227,40 @@ export function useUpdateDealStage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-velocity'] });
     },
+  });
+}
+
+export function usePipelineVelocity() {
+  return useQuery({
+    queryKey: ['pipeline-velocity-metrics'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .rpc('get_pipeline_velocity_metrics');
+      
+      if (error) throw error;
+      return data as {
+        stage_distribution: Array<{
+          stage_name: string;
+          stage_order: number;
+          probability_weight: number;
+          color: string;
+          job_count: number;
+          weighted_value: number;
+        }>;
+        conversion_rates: Array<{
+          from_stage: string;
+          to_stage: string;
+          transition_count: number;
+          avg_days: number;
+        }>;
+        win_rate: number;
+        avg_days_to_close: number;
+        total_history_records: number;
+      };
+    },
+    staleTime: 60_000,
   });
 }
 

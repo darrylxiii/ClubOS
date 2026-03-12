@@ -9,6 +9,8 @@ import { RevenuePreCalculation } from "@/components/deals/RevenuePreCalculation"
 import { ProbationTracker } from "@/components/probation/ProbationTracker";
 import { StrategistLeaderboard } from "@/components/leaderboard/StrategistLeaderboard";
 import { ClientHealthDashboard } from "@/components/client-health/ClientHealthDashboard";
+import { PipelineConversionFunnel } from "@/components/deals/PipelineConversionFunnel";
+import { PipelineVelocityMetrics } from "@/components/deals/PipelineVelocityMetrics";
 import { Button } from "@/components/ui/button";
 import { Target, TrendingUp, BarChart3, Lightbulb, Settings, Building2, Shield, Users, Heart } from "lucide-react";
 import { useDealPipeline, useDealStages } from "@/hooks/useDealPipeline";
@@ -101,11 +103,10 @@ export default function DealsPipeline() {
 
         <TabsContent value="insights" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <PipelineInsights />
-            <div className="space-y-6">
-              {/* Placeholder for future insights */}
-            </div>
+            <PipelineConversionFunnel />
+            <PipelineVelocityMetrics />
           </div>
+          <PipelineInsights />
         </TabsContent>
       </Tabs>
     </div>
