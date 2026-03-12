@@ -6,7 +6,8 @@ import {
   ApprovalWorkflowResult,
   StaffAssignment,
   PipelineAssignment,
-  ExistingApplication
+  ExistingApplication,
+  CompanyAssignmentData
 } from "@/types/approval";
 import { mergeService } from "@/services/mergeService";
 
@@ -484,6 +485,73 @@ export const memberApprovalService = {
         });
     } catch (error) {
       console.error('Error logging approval action:', error);
+    }
+  },
+
+  /**
+   * Execute partner approval workflow via edge function
+   */
+  async executePartnerApprovalWorkflow(params: {
+    requestId: string;
+    adminId: string;
+    companyAssignment: CompanyAssignmentData;
+    sendNotifications: { email: boolean; sms: boolean };
+  }): Promise<ApprovalWorkflowResult> {
+    try {
+      console.log('[MemberApproval] Starting partner approval workflow for:', params.requestId);
+
+      const { data, error } = await supabase.functions.invoke('approve-partner-request', {
+        body: {
+          requestId: params.requestId,
+          companyId: params.companyAssignment.companyId,
+          companyRole: params.companyAssignment.companyRole,
+          // Pass new company data if creating
+          ...(params.companyAssignment.companyId === null && {
+            newCompanyData: {
+              name: params.companyAssignment.companyName,
+              industry: params.companyAssignment.industry,
+              companySize: params.companyAssignment.companySize,
+              website: params.companyAssignment.website,
+              headquartersLocation: params.companyAssignment.headquartersLocation,
+            },
+          }),
+          sendEmail: params.sendNotifications.email,
+          sendSMS: params.sendNotifications.sms,
+        },
+      });
+
+      if (error) {
+        const { getEdgeFunctionErrorMessage } = await import('@/utils/edgeFunctionErrors');
+        const errorMsg = await getEdgeFunctionErrorMessage(error, 'Partner provisioning failed');
+        return {
+          success: false,
+          message: errorMsg,
+          errors: [errorMsg],
+        };
+      }
+
+      await this.logApprovalAction(
+        params.requestId,
+        params.adminId,
+        'approve',
+        {
+          companyId: data?.companyId,
+          companyAssignment: params.companyAssignment,
+        },
+        'success'
+      );
+
+      return {
+        success: true,
+        message: data?.message || 'Partner provisioned successfully',
+      };
+    } catch (error: unknown) {
+      console.error('[MemberApproval] Partner workflow error:', error);
+      return {
+        success: false,
+        message: 'Partner approval failed',
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
+      };
     }
   },
 

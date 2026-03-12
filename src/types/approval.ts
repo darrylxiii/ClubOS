@@ -104,5 +104,16 @@ export interface ApprovalWorkflowResult {
 export type ApprovalStep = 
   | 'detect'
   | 'create'
+  | 'company'
   | 'assign'
   | 'confirm';
+
+export interface CompanyAssignmentData {
+  companyId: string | null;  // null = create new
+  companyName: string;
+  companyRole: 'owner' | 'admin' | 'recruiter' | 'member';
+  industry?: string;
+  companySize?: string;
+  website?: string;
+  headquartersLocation?: string;
+}

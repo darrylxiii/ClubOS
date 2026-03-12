@@ -68,8 +68,19 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Admin access required" }, 403);
     }
 
-    // ── Parse body (ignore client-supplied approvedBy) ──────
-    const { requestId } = (await req.json()) as { requestId: string };
+    // ── Parse body ──────────────────────────────────────────
+    const { requestId, companyId: providedCompanyId, companyRole: providedCompanyRole, newCompanyData } = (await req.json()) as {
+      requestId: string;
+      companyId?: string | null;
+      companyRole?: string;
+      newCompanyData?: {
+        name?: string;
+        industry?: string;
+        companySize?: string;
+        website?: string;
+        headquartersLocation?: string;
+      };
+    };
 
     if (!requestId) {
       return jsonResponse({ error: "requestId is required" }, 400);
@@ -137,12 +148,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Step 2: Create company if needed ─────────────────────
-    let companyId: string | null = null;
-    if (!companyId && request.company_name) {
-      const domain =
-        request.contact_email.split("@")[1]?.toLowerCase() || "";
-      const slug = request.company_name
+    // ── Step 2: Create or use existing company ────────────
+    let companyId: string | null = providedCompanyId || null;
+
+    if (!companyId && (request.company_name || newCompanyData?.name)) {
+      const companyName = newCompanyData?.name || request.company_name;
+      const slug = companyName
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
@@ -150,10 +161,12 @@ Deno.serve(async (req) => {
       const { data: company, error: companyError } = await supabase
         .from("companies")
         .insert({
-          name: request.company_name,
+          name: companyName,
           slug: `${slug}-${Date.now().toString(36)}`,
-          industry: request.industry || null,
-          company_size: request.company_size || null,
+          industry: newCompanyData?.industry || request.industry || null,
+          company_size: newCompanyData?.companySize || request.company_size || null,
+          website_url: newCompanyData?.website || null,
+          headquarters_location: newCompanyData?.headquartersLocation || null,
           is_active: true,
         })
         .select()
@@ -176,8 +189,8 @@ Deno.serve(async (req) => {
         const { error: boardError } = await supabase
           .from("task_boards")
           .insert({
-            name: `${request.company_name} Team Board`,
-            description: `Shared board for all ${request.company_name} team members`,
+            name: `${companyName} Team Board`,
+            description: `Shared board for all ${companyName} team members`,
             visibility: "company",
             owner_id: user.id,
             company_id: companyId,
@@ -223,13 +236,14 @@ Deno.serve(async (req) => {
     }
 
     // ── Step 5: Add to company_members ──────────────────────
+    const memberRole = providedCompanyRole || "owner";
     if (companyId) {
       const { error: memberError } = await supabase
         .from("company_members")
         .insert({
           user_id: user.id,
           company_id: companyId,
-          role: "owner",
+          role: memberRole,
           is_active: true,
         });
       if (memberError) {
