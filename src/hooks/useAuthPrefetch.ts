@@ -24,7 +24,7 @@ export interface AuthPrefetchData {
 async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
   const startTime = Date.now();
 
-  const [rolesResult, profileResult, prefsResult, mfaResult] = await Promise.all([
+  const [rolesResult, profileResult, prefsResult, mfaResult, companyMemberResult] = await Promise.all([
     supabase.from('user_roles').select('role').eq('user_id', userId),
     supabase
       .from('profiles')
@@ -37,6 +37,14 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
       .eq('user_id', userId)
       .maybeSingle(),
     supabase.auth.mfa.listFactors(),
+    supabase
+      .from('company_members')
+      .select('company_id, role')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const roles: UserRole[] = ['user'];
