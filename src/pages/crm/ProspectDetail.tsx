@@ -467,6 +467,19 @@ export default function ProspectDetail() {
                   </CardContent>
                 </Card>
               </motion.div>
+
+              {/* Unified Activity Timeline */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <UnifiedEntityTimeline
+                  entityType="company"
+                  entityId={prospectId!}
+                  title="Unified Activity"
+                />
+              </motion.div>
             </div>
 
             {/* Sidebar */}
