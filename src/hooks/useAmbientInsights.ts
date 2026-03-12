@@ -102,12 +102,11 @@ export function useAmbientInsights() {
       if (currentRole === "partner" || currentRole === "admin" || currentRole === "strategist") {
         // CRM prospects with no touchpoints in 14+ days
         const fourteenDaysAgo = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-        const { data: coldProspects, count: coldCount } = await supabase
+        const query = supabase
           .from("crm_prospects")
           .select("id", { count: "exact", head: true })
-          .lt("last_contact_date", fourteenDaysAgo)
-          .neq("status", "lost")
-          .neq("status", "won");
+          .lt("last_contact_date", fourteenDaysAgo);
+        const { count: coldCount } = await (query as any).neq("status", "lost").neq("status", "won");
 
         if (coldCount && coldCount > 0) {
           const key = `cold-prospects-${today.toDateString()}`;

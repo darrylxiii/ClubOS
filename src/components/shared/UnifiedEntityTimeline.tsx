@@ -155,10 +155,10 @@ export function UnifiedEntityTimeline({
 
       if (entityType === "company") {
         // CRM touchpoints
-        const { data: touchpoints } = await supabase
+        const { data: touchpoints } = await (supabase
           .from("crm_touchpoints")
           .select("*")
-          .eq("company_id", entityId)
+          .eq("company_id", entityId) as any)
           .order("performed_at", { ascending: false })
           .limit(limit);
 
