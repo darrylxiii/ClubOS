@@ -56,6 +56,16 @@ export function RevenueCharts() {
         .gte('created_at', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at');
 
+      // Fetch stage order for progression/regression detection
+      const { data: stageOrder } = await (supabase as any)
+        .from('deal_stages')
+        .select('name, stage_order');
+      
+      const orderMap: Record<string, number> = {};
+      stageOrder?.forEach((s: any) => {
+        orderMap[s.name.toLowerCase()] = s.stage_order;
+      });
+
       // Aggregate transitions by month
       const monthlyData = new Map();
       
@@ -66,11 +76,17 @@ export function RevenueCharts() {
         }
         const current = monthlyData.get(month);
         const toStage = (transition.to_stage || '').toLowerCase();
+        const fromStage = (transition.from_stage || '').toLowerCase();
         if (toStage.includes('closed')) {
           current.closures += 1;
         } else {
-          // Check if it's a progression or regression based on stage order
-          current.progressions += 1;
+          const fromOrder = orderMap[fromStage] ?? 0;
+          const toOrder = orderMap[toStage] ?? 0;
+          if (toOrder > fromOrder) {
+            current.progressions += 1;
+          } else {
+            current.regressions += 1;
+          }
         }
       });
 
