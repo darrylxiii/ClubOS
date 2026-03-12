@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CommandDialog,
@@ -15,16 +15,18 @@ import {
   Sparkles, Calendar, MessageSquare, Video, Building, Rss,
   Users, Home, Target, Brain, Search, History, ArrowRight,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
+import { toast } from "sonner";
 
 // ── Types ──────────────────────────────────────────────────────────
 interface NavCommand {
   id: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   path: string;
   category: string;
   roles: string[];
@@ -34,7 +36,7 @@ interface SearchResult {
   id: string;
   title: string;
   subtitle?: string;
-  icon: any;
+  icon: LucideIcon;
   path: string;
   category: string;
   badge?: string;
@@ -90,7 +92,6 @@ export function GlobalSpotlightSearch() {
   const navigate = useNavigate();
   const { currentRole } = useRole();
   const { user } = useAuth();
-  const abortRef = useRef<AbortController | null>(null);
 
   // Keyboard shortcut
   useEffect(() => {
@@ -102,6 +103,20 @@ export function GlobalSpotlightSearch() {
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  // Voice-to-search bridge: listen for CustomEvent from useVoiceCommands
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (detail) {
+        setQuery(detail);
+        setOpen(true);
+        performSearch(detail);
+      }
+    };
+    window.addEventListener("spotlight-search", handler);
+    return () => window.removeEventListener("spotlight-search", handler);
   }, []);
 
   useEffect(() => {
@@ -122,9 +137,6 @@ export function GlobalSpotlightSearch() {
       return;
     }
 
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
     setSearching(true);
 
     try {
@@ -132,25 +144,21 @@ export function GlobalSpotlightSearch() {
 
       // Parallel queries across entities
       const [profilesRes, jobsRes, companiesRes, meetingsRes] = await Promise.all([
-        // Candidates / Profiles
         supabase
           .from("profiles")
           .select("id, full_name, current_title, avatar_url")
           .or(`full_name.ilike.${term},current_title.ilike.${term}`)
           .limit(5),
-        // Jobs
         supabase
           .from("jobs")
           .select("id, title, company_name, status")
           .ilike("title", term)
           .limit(5),
-        // Companies
         supabase
           .from("companies")
           .select("id, name, industry")
           .ilike("name", term)
           .limit(5),
-        // Meetings
         supabase
           .from("meetings")
           .select("id, title, scheduled_start, meeting_code")
@@ -158,11 +166,8 @@ export function GlobalSpotlightSearch() {
           .limit(5),
       ]);
 
-      if (controller.signal.aborted) return;
-
       const searchResults: SearchResult[] = [];
 
-      // Map profiles
       profilesRes.data?.forEach((p) => {
         searchResults.push({
           id: `profile-${p.id}`,
@@ -175,7 +180,6 @@ export function GlobalSpotlightSearch() {
         });
       });
 
-      // Map jobs
       jobsRes.data?.forEach((j) => {
         searchResults.push({
           id: `job-${j.id}`,
@@ -188,7 +192,6 @@ export function GlobalSpotlightSearch() {
         });
       });
 
-      // Map companies
       companiesRes.data?.forEach((c) => {
         searchResults.push({
           id: `company-${c.id}`,
@@ -201,7 +204,6 @@ export function GlobalSpotlightSearch() {
         });
       });
 
-      // Map meetings
       meetingsRes.data?.forEach((m) => {
         searchResults.push({
           id: `meeting-${m.id}`,
@@ -218,9 +220,9 @@ export function GlobalSpotlightSearch() {
 
       setResults(searchResults);
     } catch (err) {
-      console.error("Spotlight search error:", err);
+      toast.error("Search failed. Please try again.");
     } finally {
-      if (!controller.signal.aborted) setSearching(false);
+      setSearching(false);
     }
   }, 300);
 
@@ -323,27 +325,22 @@ export function GlobalSpotlightSearch() {
             </CommandGroup>
           ))}
 
-        {/* Navigation commands — show when no query or filtered by query */}
-        {(!hasQuery || !hasResults) && (
-          <>
-            {hasQuery && hasResults && <CommandSeparator />}
-            <CommandGroup heading="Navigate">
-              {filteredCommands.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <CommandItem
-                    key={item.id}
-                    onSelect={() => handleSelect(item.path)}
-                    className="cursor-pointer"
-                  >
-                    <Icon className="mr-2 h-4 w-4" />
-                    <span>{item.label}</span>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </>
-        )}
+        {/* Navigation commands — always rendered, cmdk handles filtering */}
+        <CommandGroup heading="Navigate">
+          {filteredCommands.map((item) => {
+            const Icon = item.icon;
+            return (
+              <CommandItem
+                key={item.id}
+                onSelect={() => handleSelect(item.path)}
+                className="cursor-pointer"
+              >
+                <Icon className="mr-2 h-4 w-4" />
+                <span>{item.label}</span>
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
       </CommandList>
 
       <div className="border-t border-border/30 px-3 py-2 flex items-center justify-between text-[10px] text-muted-foreground">

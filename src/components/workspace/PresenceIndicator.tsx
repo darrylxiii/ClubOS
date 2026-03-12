@@ -4,12 +4,11 @@ import { usePagePresence } from "@/hooks/usePagePresence";
 import { cn } from "@/lib/utils";
 
 interface PresenceIndicatorProps {
-  pageId: string;
   maxVisible?: number;
 }
 
-export function PresenceIndicator({ pageId, maxVisible = 3 }: PresenceIndicatorProps) {
-  const { viewers } = usePagePresence(pageId);
+export function PresenceIndicator({ maxVisible = 3 }: PresenceIndicatorProps) {
+  const { viewers } = usePagePresence();
 
   if (viewers.length === 0) return null;
 
@@ -19,7 +18,7 @@ export function PresenceIndicator({ pageId, maxVisible = 3 }: PresenceIndicatorP
   return (
     <div className="flex items-center -space-x-2">
       {visibleViewers.map((viewer, index) => (
-        <Tooltip key={viewer.id}>
+        <Tooltip key={viewer.user_id}>
           <TooltipTrigger asChild>
             <div
               className={cn(

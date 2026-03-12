@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { UnifiedEntityTimeline } from '@/components/shared/UnifiedEntityTimeline';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -465,6 +466,19 @@ export default function ProspectDetail() {
                     )}
                   </CardContent>
                 </Card>
+              </motion.div>
+
+              {/* Unified Activity Timeline */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <UnifiedEntityTimeline
+                  entityType="company"
+                  entityId={prospectId!}
+                  title="Unified Activity"
+                />
               </motion.div>
             </div>
 

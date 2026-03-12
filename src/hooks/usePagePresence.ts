@@ -1,132 +1,108 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 
-interface Presence {
-  id: string;
-  page_id: string;
+export interface PresenceUser {
   user_id: string;
-  last_seen_at: string;
-  cursor_position: any;
+  user_name: string;
+  user_avatar: string | null;
   is_editing: boolean;
-  user_name?: string;
-  user_avatar?: string;
+  online_at: string;
 }
 
-export function usePagePresence(pageId: string | undefined) {
+/**
+ * Realtime Presence via Supabase channels — zero DB writes.
+ * Derives channel name from current pathname so all users on the same route sync.
+ */
+export function usePagePresence() {
   const { user } = useAuth();
-  const [viewers, setViewers] = useState<Presence[]>([]);
-  const [userProfiles, setUserProfiles] = useState<Record<string, { full_name: string; avatar_url: string | null }>>({});
+  const { profile } = useProfile();
+  const location = useLocation();
+  const [viewers, setViewers] = useState<PresenceUser[]>([]);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Update own presence
   useEffect(() => {
-    if (!pageId || !user) return;
+    if (!user) return;
 
-    const updatePresence = async () => {
-      await supabase
-        .from("page_presence")
-        .upsert({
-          page_id: pageId,
-          user_id: user.id,
-          last_seen_at: new Date().toISOString(),
-          is_editing: false,
-        }, { onConflict: "page_id,user_id" });
-    };
+    // Normalize: strip trailing slash, lowercase
+    const normalized = location.pathname.replace(/\/+$/, "").toLowerCase() || "/";
+    const channelName = `presence:${normalized}`;
 
-    updatePresence();
+    // Unsubscribe previous channel if route changed
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
-    // Update presence every 30 seconds
-    const interval = setInterval(updatePresence, 30000);
+    const channel = supabase.channel(channelName, {
+      config: { presence: { key: user.id } },
+    });
 
-    // Cleanup on unmount
-    return () => {
-      clearInterval(interval);
-      supabase
-        .from("page_presence")
-        .delete()
-        .eq("page_id", pageId)
-        .eq("user_id", user.id);
-    };
-  }, [pageId, user]);
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState<{
+          user_id: string;
+          user_name: string;
+          user_avatar: string | null;
+          is_editing: boolean;
+          online_at: string;
+        }>();
 
-  // Fetch current viewers
-  useEffect(() => {
-    if (!pageId) return;
-
-    const fetchViewers = async () => {
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      
-      const { data } = await supabase
-        .from("page_presence")
-        .select("*")
-        .eq("page_id", pageId)
-        .gte("last_seen_at", fiveMinutesAgo);
-
-      if (data) {
-        setViewers(data);
-
-        // Fetch user profiles
-        const userIds = [...new Set(data.map((p) => p.user_id))];
-        if (userIds.length > 0) {
-          const { data: profiles } = await supabase
-            .from("profiles")
-            .select("id, full_name, avatar_url")
-            .in("id", userIds);
-
-          if (profiles) {
-            const profileMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
-            profiles.forEach((p) => {
-              profileMap[p.id] = { full_name: p.full_name || "Unknown", avatar_url: p.avatar_url };
+        const users: PresenceUser[] = [];
+        for (const [userId, presences] of Object.entries(state)) {
+          if (userId === user.id) continue; // exclude self
+          const latest = presences[presences.length - 1];
+          if (latest) {
+            users.push({
+              user_id: userId,
+              user_name: latest.user_name || "Unknown",
+              user_avatar: latest.user_avatar || null,
+              is_editing: latest.is_editing || false,
+              online_at: latest.online_at || new Date().toISOString(),
             });
-            setUserProfiles(profileMap);
           }
         }
-      }
-    };
-
-    fetchViewers();
-
-    // Subscribe to changes
-    const channel = supabase
-      .channel(`page-presence-${pageId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "page_presence", filter: `page_id=eq.${pageId}` },
-        () => {
-          fetchViewers();
+        setViewers(users);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({
+            user_id: user.id,
+            user_name: profile?.full_name || user.email?.split("@")[0] || "Unknown",
+            user_avatar: profile?.avatar_url || null,
+            is_editing: false,
+            online_at: new Date().toISOString(),
+          });
         }
-      )
-      .subscribe();
+      });
+
+    channelRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      setViewers([]);
     };
-  }, [pageId]);
+  }, [user, profile?.full_name, profile?.avatar_url, location.pathname]);
 
   const setEditing = async (isEditing: boolean) => {
-    if (!pageId || !user) return;
-
-    await supabase
-      .from("page_presence")
-      .upsert({
-        page_id: pageId,
-        user_id: user.id,
-        last_seen_at: new Date().toISOString(),
-        is_editing: isEditing,
-      }, { onConflict: "page_id,user_id" });
+    if (!channelRef.current || !user) return;
+    await channelRef.current.track({
+      user_id: user.id,
+      user_name: profile?.full_name || "Unknown",
+      user_avatar: profile?.avatar_url || null,
+      is_editing: isEditing,
+      online_at: new Date().toISOString(),
+    });
   };
 
-  const viewersWithProfiles = viewers.map((v) => ({
-    ...v,
-    user_name: userProfiles[v.user_id]?.full_name || "Unknown",
-    user_avatar: userProfiles[v.user_id]?.avatar_url || null,
-  }));
-
-  // Filter out current user from viewers list
-  const otherViewers = viewersWithProfiles.filter((v) => v.user_id !== user?.id);
-
   return {
-    viewers: otherViewers,
+    viewers,
+    count: viewers.length,
     setEditing,
   };
 }

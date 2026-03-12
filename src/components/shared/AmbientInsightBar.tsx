@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSwipeable } from "react-swipeable";
 import { useAmbientInsights, AmbientInsight } from "@/hooks/useAmbientInsights";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { X, ChevronLeft, ChevronRight, AlertTriangle, Clock, Users, Target, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -15,13 +17,35 @@ const iconMap = {
 };
 
 export function AmbientInsightBar() {
-  const { insights, dismiss } = useAmbientInsights();
+  const { insights, loading, dismiss } = useAmbientInsights();
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
+  // Clamp index when insights change
+  const clampedIndex = useMemo(
+    () => Math.min(currentIndex, Math.max(0, insights.length - 1)),
+    [currentIndex, insights.length]
+  );
+
+  // Mobile swipe handlers
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => setCurrentIndex((i) => Math.min(insights.length - 1, i + 1)),
+    onSwipedRight: () => setCurrentIndex((i) => Math.max(0, i - 1)),
+    trackMouse: false,
+    preventScrollOnSwipe: true,
+  });
+
+  if (loading) {
+    return (
+      <div className="mx-4 sm:mx-6 mt-2 mb-0">
+        <Skeleton className="h-10 w-full rounded-lg" />
+      </div>
+    );
+  }
+
   if (insights.length === 0) return null;
 
-  const current = insights[Math.min(currentIndex, insights.length - 1)];
+  const current = insights[clampedIndex];
   if (!current) return null;
 
   const Icon = iconMap[current.icon] || AlertTriangle;
@@ -32,8 +56,8 @@ export function AmbientInsightBar() {
 
   const handleDismiss = () => {
     dismiss(current);
-    if (currentIndex >= insights.length - 1) {
-      setCurrentIndex(Math.max(0, currentIndex - 1));
+    if (clampedIndex >= insights.length - 1) {
+      setCurrentIndex(Math.max(0, clampedIndex - 1));
     }
   };
 
@@ -51,8 +75,10 @@ export function AmbientInsightBar() {
         className={cn(
           "mx-4 sm:mx-6 mt-2 mb-0 rounded-lg border border-border/40",
           "bg-card/60 backdrop-blur-sm shadow-sm",
-          "flex items-center gap-3 px-4 py-2.5"
+          "flex items-center gap-3 px-4 py-2.5",
+          "sticky top-0 z-10"
         )}
+        {...swipeHandlers}
       >
         {/* Icon */}
         <div className="shrink-0">
@@ -72,19 +98,19 @@ export function AmbientInsightBar() {
               size="icon"
               className="h-6 w-6"
               onClick={handlePrev}
-              disabled={currentIndex === 0}
+              disabled={clampedIndex === 0}
             >
               <ChevronLeft className="h-3 w-3" />
             </Button>
             <span className="text-[10px] text-muted-foreground tabular-nums">
-              {currentIndex + 1}/{insights.length}
+              {clampedIndex + 1}/{insights.length}
             </span>
             <Button
               variant="ghost"
               size="icon"
               className="h-6 w-6"
               onClick={handleNext}
-              disabled={currentIndex >= insights.length - 1}
+              disabled={clampedIndex >= insights.length - 1}
             >
               <ChevronRight className="h-3 w-3" />
             </Button>
