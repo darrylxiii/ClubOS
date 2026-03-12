@@ -166,8 +166,7 @@ export function useVoiceCommands() {
       return;
     }
 
-    const SpeechRecognitionClass =
-      window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
+    const SpeechRecognitionClass = getSpeechRecognition();
     if (!SpeechRecognitionClass) {
       toast.error("Voice recognition is not supported in this browser.");
       return;
