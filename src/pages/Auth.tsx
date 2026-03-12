@@ -695,7 +695,7 @@ const Auth = () => {
               <button type="button" onClick={() => {
             setMfaRequired(false);
             setMfaCode("");
-          }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
+          }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
                 {t('resetPassword.backToLogin')}
               </button>
             </div> : <form onSubmit={handleEmailAuth} className="space-y-5">
