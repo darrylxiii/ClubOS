@@ -716,7 +716,7 @@ const Auth = () => {
 
               <div>
                 <label htmlFor="auth-email" className="sr-only">{t('login.email')}</label>
-                <Input id="auth-email" type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl" required />
+                <Input id="auth-email" type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
               </div>
 
               {isLogin ? (
