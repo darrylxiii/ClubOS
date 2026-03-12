@@ -5,16 +5,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { AssignmentType, StaffAssignment, PipelineAssignment } from "@/types/approval";
+import { AssignmentType, StaffAssignment, PipelineAssignment, CompanyAssignmentData } from "@/types/approval";
 
 interface ApprovalConfirmationStepProps {
   summary: {
-    action: 'merge' | 'create';
+    action: 'merge' | 'create' | 'assign_company' | 'create_company';
     mergeCount?: number;
     profileCreated?: boolean;
     assignmentType?: AssignmentType;
     staffAssignment?: StaffAssignment;
     pipelineAssignment?: PipelineAssignment;
+    companyAssignment?: CompanyAssignmentData;
   };
   sendEmail: boolean;
   setSendEmail: (value: boolean) => void;
