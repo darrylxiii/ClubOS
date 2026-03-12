@@ -17,6 +17,7 @@ export const MobileBottomNav = () => {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const haptics = useHaptics();
 
   useEffect(() => {
     const main = document.getElementById("main-content");
