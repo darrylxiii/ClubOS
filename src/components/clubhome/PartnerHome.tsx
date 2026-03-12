@@ -1,213 +1,67 @@
-import { Button } from "@/components/ui/button";
-import {
-  Plus,
-  Users,
-  MessageSquare,
-  Calendar,
-  PlusCircle,
-} from "lucide-react";
-import { Link } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { RecentApplicationsList } from "./RecentApplicationsList";
-import { TalentRecommendations } from "../partner/TalentRecommendations";
-import { PendingReviewsWidget } from "../partner/PendingReviewsWidget";
-import { HiringPipelineOverview } from "./HiringPipelineOverview";
-import { PartnerActivityFeed } from "./PartnerActivityFeed";
-import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
-import { HealthScoreDashboard } from "../partner/HealthScoreDashboard";
-import { DailyBriefing } from "../partner/DailyBriefing";
-import { BenchmarkComparison } from "../partner/BenchmarkComparison";
-import { PartnerConciergeCard } from "../partner/PartnerConciergeCard";
-import { SLATracker } from "../partner/SLATracker";
-import { UnifiedStatsBar } from "./UnifiedStatsBar";
-import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
-import { UpcomingMeetingsWidget } from "./UpcomingMeetingsWidget";
-import { TimeTrackingWidget } from "./TimeTrackingWidget";
-import { InterviewTodayWidget } from "./InterviewTodayWidget";
-
-import { OfferPipelineWidget } from "../partner/OfferPipelineWidget";
-import { CandidateShortlistWidget } from "../partner/CandidateShortlistWidget";
-import { PositionFillCountdown } from "../partner/PositionFillCountdown";
-import { InterviewSuccessWidget } from "../partner/InterviewSuccessWidget";
-import { UnreadMessagesWidget } from "../partner/UnreadMessagesWidget";
-import { UpcomingDeadlinesWidget } from "../partner/UpcomingDeadlinesWidget";
-import { DossierActivityWidget } from "../partner/DossierActivityWidget";
 import { usePartnerDataPopulation } from "@/hooks/usePartnerDataPopulation";
 import { usePartnerRealtime } from "@/hooks/usePartnerRealtime";
-import { TeamOverviewWidget } from "../partner/TeamOverviewWidget";
-import { T } from "@/components/T";
-import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
+
+import { UnifiedStatsBar } from "./UnifiedStatsBar";
+import { DashboardSection } from "./DashboardSection";
+import { PendingReviewsWidget } from "../partner/PendingReviewsWidget";
+import { HiringPipelineOverview } from "./HiringPipelineOverview";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+
+import { PartnerActionStrip } from "./partner/PartnerActionStrip";
+import { PartnerStrategistStrip } from "./partner/PartnerStrategistStrip";
+import { OpenRolesSummary } from "./partner/OpenRolesSummary";
+import { PartnerActivityFeedUnified } from "./partner/PartnerActivityFeedUnified";
+import { UpcomingScheduleWidget } from "./partner/UpcomingScheduleWidget";
 
 export const PartnerHome = () => {
   const { companyId } = useRole();
   const { user } = useAuth();
   const { stats, loading } = useRoleStats('partner', undefined, companyId || undefined);
-  
-  // Auto-populate dashboard data on mount
+
   usePartnerDataPopulation(companyId || undefined);
-  
-  // Enable real-time updates for dashboard
   usePartnerRealtime(companyId || undefined);
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Stats at top with animated entrance */}
+      {/* Zone 0: Stats Bar */}
       <ScrollReveal variant="fade-up">
         <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
       </ScrollReveal>
 
-      {/* Club AI Intelligence Hub */}
-      <ClubAIHomeChatWidget />
+      {/* Zone 1: Action Required Strip */}
+      <ScrollReveal variant="fade-up" delay={0.04}>
+        <PartnerActionStrip />
+      </ScrollReveal>
 
-      {/* Hero Concierge Card - Premium white-glove service */}
-      {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.05}>
-          <DashboardSection>
-            <PartnerConciergeCard companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Candidate Review Queue — above offers */}
+      {/* Zone 2: Your Strategist */}
       {companyId && (
         <ScrollReveal variant="fade-up" delay={0.08}>
-          <DashboardSection>
-            <PendingReviewsWidget />
-          </DashboardSection>
+          <PartnerStrategistStrip companyId={companyId} />
         </ScrollReveal>
       )}
 
-      {/* Offers & Messages - High Priority Business Metrics */}
+      {/* Zone 3: Pipeline + Open Roles + Pending Reviews */}
       {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.1}>
+        <ScrollReveal variant="fade-up" delay={0.12}>
           <DashboardSection columns={2}>
-            <OfferPipelineWidget companyId={companyId} />
-            <UnreadMessagesWidget companyId={companyId} userId={user?.id} />
+            <div className="space-y-4">
+              <PendingReviewsWidget />
+              <HiringPipelineOverview companyId={companyId} />
+            </div>
+            <OpenRolesSummary companyId={companyId} />
           </DashboardSection>
         </ScrollReveal>
       )}
 
-      {/* AI Daily Briefing - Full Width */}
-      {companyId && (
-        <ScrollReveal variant="fade-scale" delay={0.12}>
-          <DashboardSection>
-            <DailyBriefing companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Smart Alerts, Health Score & SLA - 3-column grid */}
-      {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.14}>
-          <DashboardSection columns={3}>
-            <SmartAlertsPanel companyId={companyId} />
-            <HealthScoreDashboard companyId={companyId} />
-            <SLATracker companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Today's Interviews & Upcoming Deadlines */}
+      {/* Zone 4 + 5: Activity Feed + Upcoming Schedule */}
       {companyId && (
         <ScrollReveal variant="fade-up" delay={0.16}>
           <DashboardSection columns={2}>
-            <InterviewTodayWidget />
-            <UpcomingDeadlinesWidget companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Pipeline Overview & Talent Matches */}
-      {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.18}>
-          <DashboardSection columns={2}>
-            <HiringPipelineOverview companyId={companyId} />
-            <TalentRecommendations companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Position Tracking, Shortlists & Benchmarks */}
-      {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.2}>
-          <DashboardSection columns={3}>
-            <PositionFillCountdown companyId={companyId} />
-            <CandidateShortlistWidget companyId={companyId} />
-            <BenchmarkComparison companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Quick Actions & Interview Success */}
-      {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.22}>
-          <DashboardSection columns={2}>
-            <div className="glass-subtle rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
-              <div>
-                <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
-                  <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                  <T k="common:dashboard.quickActions.title" fallback="Quick Actions" />
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  <T k="common:dashboard.quickActions.description" fallback="Common tasks and shortcuts" />
-                </p>
-              </div>
-              <div className="space-y-2 sm:space-y-3">
-                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                  <Link to="/company-jobs/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Create New Role</span>
-                    <span className="sm:hidden">New Role</span>
-                  </Link>
-                </Button>
-                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                  <Link to="/company-applications">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Review Shortlist</span>
-                    <span className="sm:hidden">Shortlist</span>
-                  </Link>
-                </Button>
-                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                  <Link to="/meetings">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Schedule Interview</span>
-                    <span className="sm:hidden">Interview</span>
-                  </Link>
-                </Button>
-                <Button className="w-full justify-start text-sm" variant="ghost" asChild>
-                  <Link to="/messages">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Message Candidates</span>
-                    <span className="sm:hidden">Messages</span>
-                  </Link>
-                </Button>
-              </div>
-            </div>
-            <TeamOverviewWidget companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Time Tracking & Dossier Activity */}
-      {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.24}>
-          <DashboardSection columns={3}>
-            <TimeTrackingWidget role="partner" companyId={companyId} />
-            <DossierActivityWidget companyId={companyId} />
-            <InterviewSuccessWidget companyId={companyId} />
-          </DashboardSection>
-        </ScrollReveal>
-      )}
-
-      {/* Recent Applications & Activity Feed */}
-      {companyId && (
-        <ScrollReveal variant="fade-up" delay={0.26}>
-          <DashboardSection columns={2}>
-            <RecentApplicationsList companyId={companyId} />
-            <PartnerActivityFeed companyId={companyId} />
+            <PartnerActivityFeedUnified companyId={companyId} />
+            <UpcomingScheduleWidget />
           </DashboardSection>
         </ScrollReveal>
       )}
