@@ -68,8 +68,19 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Admin access required" }, 403);
     }
 
-    // ── Parse body (ignore client-supplied approvedBy) ──────
-    const { requestId } = (await req.json()) as { requestId: string };
+    // ── Parse body ──────────────────────────────────────────
+    const { requestId, companyId: providedCompanyId, companyRole: providedCompanyRole, newCompanyData } = (await req.json()) as {
+      requestId: string;
+      companyId?: string | null;
+      companyRole?: string;
+      newCompanyData?: {
+        name?: string;
+        industry?: string;
+        companySize?: string;
+        website?: string;
+        headquartersLocation?: string;
+      };
+    };
 
     if (!requestId) {
       return jsonResponse({ error: "requestId is required" }, 400);
