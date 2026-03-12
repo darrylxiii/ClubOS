@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useRole } from "@/contexts/RoleContext";
+import { EmptyState } from "@/components/EmptyState";
 // OceanBackgroundVideo removed — global DynamicBackground handles this
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
