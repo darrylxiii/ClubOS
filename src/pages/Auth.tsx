@@ -633,7 +633,7 @@ const Auth = () => {
             </Alert>}
         </CardHeader>
 
-        <CardContent className="pt-2 px-8 pb-10">
+        <CardContent className="pt-2 px-10 pb-10">
           {needsEmailVerification ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
                 <p className="text-sm font-bold text-primary text-center">{t('verification.title')}</p>
