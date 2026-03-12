@@ -583,7 +583,7 @@ const Auth = () => {
       >
       <Card className="w-full max-w-2xl bg-card/85 backdrop-blur-[16px] border-border/50 shadow-glass-md shadow-inner rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
-          <div className="flex items-center justify-center mb-2">
+          <div className="flex items-center justify-center mb-2 drop-shadow-lg">
             <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" fetchPriority="high" />
             <img src={quantumLogoLight} alt="The Quantum Club" className="h-24 w-auto hidden dark:block" fetchPriority="high" />
           </div>
