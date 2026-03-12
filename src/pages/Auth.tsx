@@ -664,7 +664,7 @@ const Auth = () => {
               <button type="button" onClick={() => {
             setNeedsEmailVerification(false);
             setEmailVerificationCode("");
-          }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
+           }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
                 {t('resetPassword.backToLogin')}
               </button>
             </div> : mfaRequired ? <div className="space-y-5">
