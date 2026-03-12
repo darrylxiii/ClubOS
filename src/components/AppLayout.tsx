@@ -148,6 +148,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             <ThemeToggle />
             <GlobalRoleSwitcher />
             <MotionToggle />
+            <SoundToggle />
             <MusicPlayer />
           </div>
           <NotificationBell />
