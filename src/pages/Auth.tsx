@@ -722,7 +722,7 @@ const Auth = () => {
               {isLogin ? (
                 <div>
                   <label htmlFor="auth-password" className="sr-only">{t('login.password')}</label>
-                  <Input id="auth-password" type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-xl" required />
+                  <Input id="auth-password" type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-xl glass-input" required />
                 </div>
               ) : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
 
