@@ -738,7 +738,7 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => setShowAccessDialog(true)}
-                  className="text-foreground/80 hover:text-foreground text-sm transition-colors"
+                  className="text-foreground/90 hover:text-foreground hover:underline text-sm transition-colors"
                 >
                   Request Access
                 </button>
