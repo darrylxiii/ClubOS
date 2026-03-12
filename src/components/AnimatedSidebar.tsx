@@ -16,6 +16,8 @@ import { useNavigationState } from "@/hooks/useNavigationState";
 import { T } from "@/components/T";
 import { useTranslation } from "react-i18next";
 import { AppearanceSettingsModal } from "./appearance/AppearanceSettingsModal";
+import { prefetchRoute } from "@/hooks/useRoutePrediction";
+import { useHaptics } from "@/hooks/useHaptics";
 
 // ============================================================================
 // Sidebar Context - Proper React state management (no window globals)
