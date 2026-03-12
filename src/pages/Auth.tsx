@@ -626,7 +626,7 @@ const Auth = () => {
               )}
             </div>}
 
-          {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+          {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
                 {t('invite.invalidOrExpired')}
               </AlertDescription>
