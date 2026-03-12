@@ -217,6 +217,7 @@ Deno.serve(async (req) => {
         phone: request.contact_phone,
         provisioned_by: adminUser.id,
         provisioned_at: new Date().toISOString(),
+        account_status: 'active',
       })
       .eq("id", user.id);
 
