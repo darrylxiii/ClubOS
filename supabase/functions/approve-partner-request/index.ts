@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
         phone: request.contact_phone,
         provisioned_by_admin: true,
         provisioned_at: new Date().toISOString(),
+        force_password_change: true,
       },
     });
 
@@ -216,6 +217,7 @@ Deno.serve(async (req) => {
         phone: request.contact_phone,
         provisioned_by: adminUser.id,
         provisioned_at: new Date().toISOString(),
+        account_status: 'active',
       })
       .eq("id", user.id);
 
@@ -263,7 +265,7 @@ Deno.serve(async (req) => {
       await supabase.auth.admin.generateLink({
         type: "magiclink",
         email: request.contact_email,
-        options: { redirectTo: `${siteUrl}/partner-welcome` },
+        options: { redirectTo: `${siteUrl}/partner-setup` },
       });
 
     if (!linkError && linkData?.properties?.action_link) {
