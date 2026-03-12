@@ -115,9 +115,6 @@ serve(async (req) => {
     
     // Log failed notification attempt
     try {
-      const bodyText = await req.text();
-      const { userId, requestType, phone } = JSON.parse(bodyText);
-      
       if (userId && requestType) {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -136,7 +133,7 @@ serve(async (req) => {
             notification_type: 'sms',
             status: 'failed',
             error_message: error.message,
-            metadata: { phone }
+            metadata: { phone: body?.phone }
           })
         });
       }
