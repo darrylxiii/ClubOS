@@ -771,7 +771,7 @@ const Auth = () => {
               </Dialog>
 
               {isLogin && <div className="text-center space-y-1">
-                  <Link to="/forgot-password" className="text-sm text-foreground/70 hover:text-foreground block">
+                  <Link to="/forgot-password" className="text-sm text-foreground/90 hover:text-foreground hover:underline block">
                     {t('login.forgotPassword')}
                   </Link>
                   <button
