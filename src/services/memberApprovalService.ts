@@ -621,8 +621,8 @@ export const memberApprovalService = {
         }
       }
 
-      // Step 2: Create candidate profile if needed
-      if (workflowData.createProfile && !candidateId) {
+      // Step 2: Create candidate profile if needed (skip for elevated-role users)
+      if (workflowData.createProfile && !candidateId && !hasElevatedRole) {
         try {
           candidateId = await this.createCandidateFromRequest(
             workflowData.createProfile,
