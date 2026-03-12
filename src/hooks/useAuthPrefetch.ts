@@ -70,9 +70,14 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
 
   logger.info('[useAuthPrefetch] Fetched in', { elapsed: Date.now() - startTime });
 
+  const companyMembership = companyMemberResult.data
+    ? { company_id: companyMemberResult.data.company_id, role: companyMemberResult.data.role }
+    : null;
+
   return {
     roles,
     profile,
+    companyMembership,
     preferences: prefsResult.data || null,
     mfaFactors: { hasVerifiedTotp: verifiedTotp.length > 0 },
   };

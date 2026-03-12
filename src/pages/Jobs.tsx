@@ -444,6 +444,19 @@ const Jobs = () => {
   // ═══════════════════════════════════════════════
   // ADMIN / PARTNER: Jobs Command Center
   // ═══════════════════════════════════════════════
+  // Partner without a company: block access to all jobs
+  if (isPartnerWithoutCompany) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-16 pb-8 flex items-center justify-center">
+        <EmptyState
+          icon={Briefcase}
+          title="No company assigned"
+          description="Your account is not linked to a company yet. Please contact your strategist or our team to get set up."
+        />
+      </div>
+    );
+  }
+
   if (isAdminOrPartner) {
     return (
       <>
