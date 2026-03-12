@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Briefcase, MessageSquare, User, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
+import { useHaptics } from "@/hooks/useHaptics";
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", path: "/home" },
