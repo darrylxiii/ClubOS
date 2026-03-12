@@ -710,7 +710,7 @@ const Auth = () => {
               {!isLogin && (
                 <div>
                   <label htmlFor="auth-fullname" className="sr-only">{t('signup.fullName')}</label>
-                  <Input id="auth-fullname" type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl" required />
+                  <Input id="auth-fullname" type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
                 </div>
               )}
 
