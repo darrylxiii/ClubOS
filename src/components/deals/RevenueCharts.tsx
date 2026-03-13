@@ -16,10 +16,12 @@ export function RevenueCharts() {
         .gte('hired_date', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())
         .order('hired_date');
 
-      // Get projected revenue
-      const { data: projectedData } = await (supabase as any)
-        .from('projected_earnings')
-        .select('created_at, projected_fee_amount, confidence_score');
+      // Get projected revenue from weighted pipeline (active deals)
+      const { data: projectedData } = await supabase
+        .from('jobs')
+        .select('created_at, deal_value_override, deal_probability, salary_max')
+        .in('status', ['published'])
+        .eq('is_lost', false);
 
       // Aggregate by month
       const monthlyData = new Map();
@@ -39,7 +41,8 @@ export function RevenueCharts() {
           monthlyData.set(month, { month, realized: 0, projected: 0 });
         }
         const current = monthlyData.get(month);
-        current.projected += item.projected_fee_amount * (item.confidence_score || 0.5);
+        const dealValue = item.deal_value_override || (item.salary_max || 60000) * 0.2;
+        current.projected += dealValue * ((item.deal_probability || 50) / 100);
       });
 
       return Array.from(monthlyData.values()).slice(-12);
@@ -49,14 +52,12 @@ export function RevenueCharts() {
   const { data: pipelineVelocity, isLoading: velocityLoading } = useQuery({
     queryKey: ['pipeline-velocity'],
     queryFn: async () => {
-      // Use actual stage transition data from deal_stage_history
       const { data } = await (supabase as any)
         .from('deal_stage_history')
         .select('from_stage, to_stage, created_at, duration_days')
         .gte('created_at', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at');
 
-      // Fetch stage order for progression/regression detection
       const { data: stageOrder } = await (supabase as any)
         .from('deal_stages')
         .select('name, stage_order');
@@ -66,7 +67,6 @@ export function RevenueCharts() {
         orderMap[s.name.toLowerCase()] = s.stage_order;
       });
 
-      // Aggregate transitions by month
       const monthlyData = new Map();
       
       data?.forEach((transition: any) => {
@@ -104,7 +104,6 @@ export function RevenueCharts() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {/* Revenue Trend */}
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
         <h3 className="text-lg font-semibold mb-4 text-foreground">Revenue Trend</h3>
         <DynamicChart
@@ -128,7 +127,6 @@ export function RevenueCharts() {
         />
       </Card>
 
-      {/* Pipeline Velocity */}
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
         <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Velocity</h3>
         <DynamicChart

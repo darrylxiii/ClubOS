@@ -53,7 +53,6 @@ export function useDealStages() {
   return useQuery({
     queryKey: ['deal-stages'],
     queryFn: async () => {
-      // WS-4: Optimized query with specific fields
       const { data, error } = await (supabase as any)
         .from('deal_stages')
         .select('id, name, stage_order, color, description, probability_weight, is_terminal, stage_type')
@@ -68,7 +67,6 @@ export function useDealStages() {
 // Helper function for case-insensitive stage matching
 export function findStageByName(stages: DealStage[], stageName: string): DealStage | undefined {
   if (!stages || !stageName) return undefined;
-  // Try exact match first, then case-insensitive
   return stages.find(s => s.name === stageName) || 
          stages.find(s => s.name.toLowerCase() === stageName.toLowerCase());
 }
@@ -77,9 +75,6 @@ export function useDealPipeline() {
   return useQuery({
     queryKey: ['deal-pipeline'],
     queryFn: async () => {
-      
-      
-      // WS-4: Optimized query with specific fields instead of select('*')
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -99,57 +94,58 @@ export function useDealPipeline() {
         throw error;
       }
       
-      
-      
       if (!data || data.length === 0) {
         return [];
       }
       
-      // Transform data and calculate revenue for each deal
-      const dealsWithRevenue = await Promise.all(
-        data.map(async (job: any) => {
-          const feePercentage = job.companies?.placement_fee_percentage || 0;
-          
-          // Get candidate salary stats - use avg_desired_salary from fixed function
-          let avgSalary = 0;
-          try {
-            const { data: salaryData, error: salaryError } = await (supabase as any)
-              .rpc('get_pipeline_candidate_stats', { p_job_id: job.id });
-            
-            if (salaryError) {
-              logger.warn('Salary stats error for job', { componentName: 'DealPipeline', jobId: job.id, error: salaryError });
-            } else {
-              avgSalary = salaryData?.[0]?.avg_desired_salary || salaryData?.[0]?.avg_current_salary || 0;
-            }
-          } catch (err) {
-            logger.warn('Failed to fetch salary stats for job', { componentName: 'DealPipeline', jobId: job.id, error: err });
-          }
-          
-          // Calculate estimated revenue using job salary if no candidate data
-          const baseSalary = avgSalary || job.salary_max || job.salary_min || 60000;
-          const estimatedRevenue = baseSalary * (feePercentage / 100);
-          
-          // Multi-hire calculations
-          const targetHireCount = job.target_hire_count || 1;
-          const hiredCount = job.hired_count || 0;
-          const remainingPositions = Math.max(targetHireCount - hiredCount, 0);
-          const singleFeeValue = job.deal_value_override || estimatedRevenue;
-          const totalDealValue = singleFeeValue * remainingPositions;
-          
-          return {
-            ...job,
-            company_name: job.companies?.name || job.company_name || 'Unknown',
-            active_candidates: job.applications?.[0]?.count || 0,
-            estimated_value: singleFeeValue,
-            target_hire_count: targetHireCount,
-            hired_count: hiredCount,
-            is_continuous: job.is_continuous || false,
-            remaining_positions: remainingPositions,
-            total_deal_value: totalDealValue,
-          };
-        })
-      ) as Deal[];
+      // Batch fetch salary stats for all jobs in a single RPC call
+      const jobIds = data.map((j: any) => j.id);
+      const salaryMap = new Map<string, { avg_desired_salary: number; avg_current_salary: number }>();
       
+      try {
+        const { data: batchStats, error: batchError } = await (supabase as any)
+          .rpc('get_pipeline_candidate_stats_batch', { p_job_ids: jobIds });
+        
+        if (batchError) {
+          logger.warn('Batch salary stats error', { componentName: 'DealPipeline', error: batchError });
+        } else if (batchStats) {
+          batchStats.forEach((row: any) => {
+            salaryMap.set(row.job_id, {
+              avg_desired_salary: row.avg_desired_salary || 0,
+              avg_current_salary: row.avg_current_salary || 0,
+            });
+          });
+        }
+      } catch (err) {
+        logger.warn('Failed to fetch batch salary stats', { componentName: 'DealPipeline', error: err });
+      }
+
+      const dealsWithRevenue = data.map((job: any) => {
+        const feePercentage = job.companies?.placement_fee_percentage || 0;
+        const stats = salaryMap.get(job.id);
+        const avgSalary = stats?.avg_desired_salary || stats?.avg_current_salary || 0;
+        
+        const baseSalary = avgSalary || job.salary_max || job.salary_min || 60000;
+        const estimatedRevenue = baseSalary * (feePercentage / 100);
+        
+        const targetHireCount = job.target_hire_count || 1;
+        const hiredCount = job.hired_count || 0;
+        const remainingPositions = Math.max(targetHireCount - hiredCount, 0);
+        const singleFeeValue = job.deal_value_override || estimatedRevenue;
+        const totalDealValue = singleFeeValue * remainingPositions;
+        
+        return {
+          ...job,
+          company_name: job.companies?.name || job.company_name || 'Unknown',
+          active_candidates: job.applications?.[0]?.count || 0,
+          estimated_value: singleFeeValue,
+          target_hire_count: targetHireCount,
+          hired_count: hiredCount,
+          is_continuous: job.is_continuous || false,
+          remaining_positions: remainingPositions,
+          total_deal_value: totalDealValue,
+        };
+      }) as Deal[];
       
       return dealsWithRevenue;
     },
@@ -160,8 +156,6 @@ export function usePipelineMetrics() {
   return useQuery({
     queryKey: ['pipeline-metrics'],
     queryFn: async () => {
-      
-      
       const { data, error } = await (supabase as any)
         .rpc('calculate_weighted_pipeline');
       
@@ -170,9 +164,6 @@ export function usePipelineMetrics() {
         throw error;
       }
       
-      
-      
-      // Handle empty result
       if (!data || data.length === 0) {
         return {
           total_pipeline: 0,
@@ -197,7 +188,6 @@ export function useUpdateDealStage() {
   
   return useMutation({
     mutationFn: async ({ dealId, newStage }: { dealId: string; newStage: string }) => {
-      // Look up the probability weight for the target stage
       const { data: stageData } = await (supabase as any)
         .from('deal_stages')
         .select('probability_weight')
@@ -273,7 +263,6 @@ export function useUpdateDealHealth(dealId: string) {
       
       if (error) throw error;
       
-      // Update the job with the new health score
       await supabase
         .from('jobs')
         .update({ deal_health_score: data })
@@ -289,7 +278,6 @@ export function useLostDeals() {
   return useQuery({
     queryKey: ['lost-deals'],
     queryFn: async () => {
-      // WS-4: Optimized query with specific fields
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -324,7 +312,6 @@ export function useMarkDealLost() {
       competitorName?: string;
       couldRevisit: boolean;
     }) => {
-      // Update job
       const { error: jobError } = await supabase
         .from('jobs')
         .update({ 
@@ -337,7 +324,6 @@ export function useMarkDealLost() {
       
       if (jobError) throw jobError;
       
-      // Create loss reason
       const { error: reasonError } = await (supabase as any)
         .from('deal_loss_reasons')
         .insert({
@@ -374,7 +360,6 @@ export function useCloseJobWon() {
       actualSalary: number;
       placementFee: number;
     }) => {
-      // 1. Update job to closed won
       const { error: jobError } = await supabase
         .from('jobs')
         .update({
@@ -390,7 +375,6 @@ export function useCloseJobWon() {
       
       if (jobError) throw jobError;
       
-      // 2. Update hired candidate application
       const { error: appError } = await supabase
         .from('applications')
         .update({
@@ -401,7 +385,6 @@ export function useCloseJobWon() {
       
       if (appError) throw appError;
       
-      // 3. Close other applications
       const { error: closeError } = await supabase
         .from('applications')
         .update({ status: 'closed' })
@@ -436,7 +419,6 @@ export function useCloseJobLost() {
       lossReason: string;
       lossNotes?: string;
     }) => {
-      // 1. Update job to closed lost
       const { error: jobError } = await supabase
         .from('jobs')
         .update({
@@ -451,7 +433,6 @@ export function useCloseJobLost() {
       
       if (jobError) throw jobError;
       
-      // 2. Insert loss reason
       const { error: lossError } = await (supabase as any)
         .from('deal_loss_reasons')
         .insert({
@@ -462,7 +443,6 @@ export function useCloseJobLost() {
       
       if (lossError) throw lossError;
       
-      // 3. Close all applications
       const { error: closeError } = await supabase
         .from('applications')
         .update({ status: 'closed' })

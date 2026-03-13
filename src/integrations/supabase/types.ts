@@ -57838,6 +57838,15 @@ export type Database = {
           candidate_count: number
         }[]
       }
+      get_pipeline_candidate_stats_batch: {
+        Args: { p_job_ids: string[] }
+        Returns: {
+          avg_current_salary: number
+          avg_desired_salary: number
+          candidate_count: number
+          job_id: string
+        }[]
+      }
       get_pipeline_share_data: {
         Args: { _password?: string; _token: string }
         Returns: Json
