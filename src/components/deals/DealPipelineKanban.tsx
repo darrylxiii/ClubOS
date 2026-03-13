@@ -95,7 +95,7 @@ const StageColumn = memo(function StageColumn({
   );
 });
 
-export function DealPipelineKanban() {
+export function DealPipelineKanban({ companyFilter }: { companyFilter?: string | null }) {
   const { data: stages, isLoading: stagesLoading } = useDealStages();
   const { data: deals, isLoading: dealsLoading } = useDealPipeline();
   const updateDealStage = useUpdateDealStage();
