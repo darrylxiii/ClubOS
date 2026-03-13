@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DealPipelineKanban } from "@/components/deals/DealPipelineKanban";
 import { PipelineMetricsCards } from "@/components/deals/PipelineMetricsCards";
@@ -6,13 +7,12 @@ import { PipelineInsights } from "@/components/deals/PipelineInsights";
 import { ProjectedEarnings } from "@/components/financial/ProjectedEarnings";
 import { RevenueIntelligenceDashboard } from "@/components/deals/RevenueIntelligenceDashboard";
 import { RevenuePreCalculation } from "@/components/deals/RevenuePreCalculation";
-import { ProbationTracker } from "@/components/probation/ProbationTracker";
-import { StrategistLeaderboard } from "@/components/leaderboard/StrategistLeaderboard";
 import { ClientHealthDashboard } from "@/components/client-health/ClientHealthDashboard";
 import { PipelineConversionFunnel } from "@/components/deals/PipelineConversionFunnel";
 import { PipelineVelocityMetrics } from "@/components/deals/PipelineVelocityMetrics";
+import { CompanyPipelineSummary } from "@/components/deals/CompanyPipelineSummary";
 import { Button } from "@/components/ui/button";
-import { Target, TrendingUp, BarChart3, Lightbulb, Settings, Building2, Shield, Users, Heart } from "lucide-react";
+import { Target, TrendingUp, BarChart3, Lightbulb, Building2, Heart } from "lucide-react";
 import { useDealPipeline, useDealStages } from "@/hooks/useDealPipeline";
 import { useNavigate } from "react-router-dom";
 
@@ -20,6 +20,7 @@ export default function DealsPipeline() {
   const navigate = useNavigate();
   const { data: deals } = useDealPipeline();
   const { data: stages } = useDealStages();
+  const [companyFilter, setCompanyFilter] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -37,7 +38,7 @@ export default function DealsPipeline() {
       <PipelineMetricsCards />
 
       <Tabs defaultValue="pipeline" className="space-y-6">
-        <TabsList className="grid w-full max-w-5xl grid-cols-8 bg-muted/50">
+        <TabsList className="grid w-full max-w-4xl grid-cols-6 bg-muted/50">
           <TabsTrigger value="pipeline" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
             Pipeline
@@ -50,20 +51,12 @@ export default function DealsPipeline() {
             <BarChart3 className="h-4 w-4" />
             Forecasting
           </TabsTrigger>
-          <TabsTrigger value="probation" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Probation
-          </TabsTrigger>
-          <TabsTrigger value="leaderboard" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Team
-          </TabsTrigger>
           <TabsTrigger value="client-health" className="flex items-center gap-2">
             <Heart className="h-4 w-4" />
             Clients
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
+            <Building2 className="h-4 w-4" />
             Analytics
           </TabsTrigger>
           <TabsTrigger value="insights" className="flex items-center gap-2">
@@ -73,7 +66,8 @@ export default function DealsPipeline() {
         </TabsList>
 
         <TabsContent value="pipeline" className="space-y-6">
-          <DealPipelineKanban />
+          <CompanyPipelineSummary onCompanyFilter={setCompanyFilter} />
+          <DealPipelineKanban companyFilter={companyFilter} />
         </TabsContent>
 
         <TabsContent value="revenue" className="space-y-6">
@@ -83,14 +77,6 @@ export default function DealsPipeline() {
         <TabsContent value="forecasting" className="space-y-6">
           <RevenueIntelligenceDashboard />
           <ProjectedEarnings />
-        </TabsContent>
-
-        <TabsContent value="probation" className="space-y-6">
-          <ProbationTracker />
-        </TabsContent>
-
-        <TabsContent value="leaderboard" className="space-y-6">
-          <StrategistLeaderboard />
         </TabsContent>
 
         <TabsContent value="client-health" className="space-y-6">
