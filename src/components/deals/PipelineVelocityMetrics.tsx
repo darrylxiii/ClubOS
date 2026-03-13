@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { usePipelineVelocity, useDealStages } from "@/hooks/useDealPipeline";
-import { Loader2, Clock, Trophy, TrendingUp, Zap } from "lucide-react";
+import { Loader2, Clock, Trophy, Zap } from "lucide-react";
 
 export function PipelineVelocityMetrics() {
   const { data, isLoading, error } = usePipelineVelocity();
+  const { data: stages } = useDealStages();
 
   if (isLoading) {
     return (
@@ -29,16 +30,17 @@ export function PipelineVelocityMetrics() {
   const avgDaysToClose = data.avg_days_to_close || 0;
   const historyCount = data.total_history_records || 0;
 
+  // Build dynamic stage order from DB instead of hardcoding
+  const stageOrder: Record<string, number> = {};
+  stages?.forEach(s => {
+    stageOrder[s.name] = s.stage_order;
+    stageOrder[s.name.toLowerCase()] = s.stage_order;
+  });
+
   // Get forward-progression transitions only
   const forwardTransitions = (data.conversion_rates || []).filter((c: any) => {
-    const stageOrder: Record<string, number> = {
-      'New': 1, 'new': 1,
-      'Qualified': 2,
-      'Proposal': 3,
-      'Negotiation': 4,
-      'Closed Won': 5,
-    };
-    return (stageOrder[c.from_stage] || 0) < (stageOrder[c.to_stage] || 0);
+    return (stageOrder[c.from_stage] ?? stageOrder[c.from_stage?.toLowerCase()] ?? 0) <
+           (stageOrder[c.to_stage] ?? stageOrder[c.to_stage?.toLowerCase()] ?? 0);
   });
 
   const getDaysColor = (days: number) => {

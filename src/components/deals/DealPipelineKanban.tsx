@@ -36,58 +36,32 @@ const StageColumn = memo(function StageColumn({
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      {/* Stage Header */}
       <Card className="mb-4 p-4 bg-card/30 backdrop-blur-sm border-border/50">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: stage.color }}
-            />
-            <h3 className="font-semibold text-sm text-foreground">
-              {stage.name}
-            </h3>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stage.color }} />
+            <h3 className="font-semibold text-sm text-foreground">{stage.name}</h3>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            {deals.length}
-          </Badge>
+          <Badge variant="secondary" className="text-xs">{deals.length}</Badge>
         </div>
-
-        <div className="text-xs text-muted-foreground mb-1">
-          {stage.description}
-        </div>
-
+        <div className="text-xs text-muted-foreground mb-1">{stage.description}</div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Weighted Value</span>
-          <span className="font-semibold text-foreground">
-            {formatCurrency(stageValue)}
-          </span>
+          <span className="font-semibold text-foreground">{formatCurrency(stageValue)}</span>
         </div>
-
         <div className="flex items-center justify-between text-xs mt-1">
           <span className="text-muted-foreground">Probability</span>
-          <span className="font-medium text-primary">
-            {stage.probability_weight}%
-          </span>
+          <span className="font-medium text-primary">{stage.probability_weight}%</span>
         </div>
       </Card>
 
-      {/* Deal Cards */}
       <div className="space-y-3">
         {deals.map((deal) => (
-          <DealCard
-            key={deal.id}
-            deal={deal}
-            onDragStart={onDragStart}
-            onPublish={onPublish}
-          />
+          <DealCard key={deal.id} deal={deal} onDragStart={onDragStart} onPublish={onPublish} />
         ))}
-        
         {deals.length === 0 && (
           <Card className="p-8 text-center border-dashed border-border/50 bg-muted/20">
-            <p className="text-sm text-muted-foreground">
-              No deals in this stage
-            </p>
+            <p className="text-sm text-muted-foreground">No deals in this stage</p>
           </Card>
         )}
       </div>
@@ -102,7 +76,6 @@ export function DealPipelineKanban({ companyFilter }: { companyFilter?: string |
   const queryClient = useQueryClient();
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
 
-  // Memoize handlers to prevent recreating on every render
   const handleDragStart = useCallback((deal: Deal) => {
     setDraggedDeal(deal);
   }, []);
@@ -178,12 +151,7 @@ export function DealPipelineKanban({ companyFilter }: { companyFilter?: string |
         description: 'Candidates can now discover and apply to this opportunity'
       });
       
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
     } catch (error) {
       console.error('Error publishing deal:', error);
@@ -191,19 +159,26 @@ export function DealPipelineKanban({ companyFilter }: { companyFilter?: string |
     }
   }, [queryClient]);
 
+  // Filter deals by company if filter is active
+  const filteredDeals = useMemo(() => {
+    if (!deals) return [];
+    if (!companyFilter) return deals;
+    return deals.filter(deal => deal.company_id === companyFilter);
+  }, [deals, companyFilter]);
+
   // Memoize deals by stage mapping
   const dealsByStage = useMemo(() => {
-    if (!deals || !stages) return new Map<string, Deal[]>();
+    if (!filteredDeals || !stages) return new Map<string, Deal[]>();
     
     const map = new Map<string, Deal[]>();
     stages.forEach(stage => {
       map.set(
         stage.name.toLowerCase(),
-        deals.filter(deal => deal.deal_stage?.toLowerCase() === stage.name.toLowerCase())
+        filteredDeals.filter(deal => deal.deal_stage?.toLowerCase() === stage.name.toLowerCase())
       );
     });
     return map;
-  }, [deals, stages]);
+  }, [filteredDeals, stages]);
 
   // Memoize stage values
   const stageValues = useMemo(() => {
