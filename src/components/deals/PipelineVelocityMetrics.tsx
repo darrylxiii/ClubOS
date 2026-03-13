@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { usePipelineVelocity } from "@/hooks/useDealPipeline";
+import { usePipelineVelocity, useDealStages } from "@/hooks/useDealPipeline";
 import { Loader2, Clock, Trophy, TrendingUp, Zap } from "lucide-react";
 
 export function PipelineVelocityMetrics() {
