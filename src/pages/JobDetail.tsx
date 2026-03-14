@@ -103,9 +103,14 @@ export default function JobDetail() {
           )
         `)
         .eq('id', jobId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        toast.error('Job not found');
+        navigate('/jobs');
+        return;
+      }
       setJob(data);
     } catch (error) {
       console.error('Error loading job:', error);

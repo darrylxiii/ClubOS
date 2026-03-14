@@ -34,7 +34,7 @@ export function PipelineSnapshot() {
   }).length;
 
   // Most advanced application
-  const topApp = active.sort((a, b) => {
+  const topApp = [...active].sort((a, b) => {
     const aProgress = a.stages?.length ? a.current_stage_index / a.stages.length : 0;
     const bProgress = b.stages?.length ? b.current_stage_index / b.stages.length : 0;
     return bProgress - aProgress;

@@ -119,7 +119,7 @@ export function CompactInterviewCountdown() {
           Join
         </Button>
       ) : (
-        <Button size="sm" variant="ghost" className="shrink-0 h-8" onClick={() => navigate('/interview-prep')}>
+        <Button size="sm" variant="ghost" className="shrink-0 h-8" onClick={() => navigate('/jobs?tab=interview-prep')}>
           <BookOpen className="h-3.5 w-3.5 mr-1" />
           Prepare
         </Button>

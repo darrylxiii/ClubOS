@@ -13,21 +13,36 @@ export function CompactProfileStrength() {
   const { data: completion } = useQuery({
     queryKey: ['profile-strength', user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
-        .eq('id', user!.id)
-        .maybeSingle();
+      const [{ data: profileData }, { data: candidateData }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
+          .eq('id', user!.id)
+          .maybeSingle(),
+        supabase
+          .from('candidate_profiles')
+          .select('skills, current_title, work_authorization, industries, resume_url')
+          .eq('user_id', user!.id)
+          .maybeSingle(),
+      ]);
 
-      if (!data) return 0;
+      const profileFields = profileData ? [
+        profileData.full_name, profileData.current_title, profileData.bio, profileData.avatar_url,
+        profileData.phone, profileData.location, profileData.linkedin_url, profileData.preferred_currency,
+        profileData.resume_url, profileData.current_salary_min,
+      ] : [];
 
-      const fields = [
-        data.full_name, data.current_title, data.bio, data.avatar_url,
-        data.phone, data.location, data.linkedin_url, data.preferred_currency,
-        data.resume_url, data.current_salary_min,
-      ];
-      const filled = fields.filter(v => v !== null && v !== undefined && v !== '').length;
-      return Math.round((filled / fields.length) * 100);
+      const candidateFields = candidateData ? [
+        candidateData.skills ? candidateData.skills : null,
+        candidateData.current_title,
+        candidateData.work_authorization,
+        candidateData.industries && (candidateData.industries as string[]).length > 0 ? candidateData.industries : null,
+        candidateData.resume_url,
+      ] : [];
+
+      const allFields = [...profileFields, ...candidateFields];
+      const filled = allFields.filter(v => v !== null && v !== undefined && v !== '').length;
+      return Math.round((filled / Math.max(allFields.length, 1)) * 100);
     },
     enabled: !!user,
     staleTime: 5 * 60_000,

@@ -98,7 +98,7 @@ export function CompactStrategist() {
       return { strategist: profile as Strategist, avgResponseMin };
     },
     enabled: !!user,
-    staleTime: 10 * 60_000,
+    staleTime: 30 * 60_000,
   });
 
   if (!data?.strategist) return null;

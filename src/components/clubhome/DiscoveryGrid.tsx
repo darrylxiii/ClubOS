@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Sparkles, Bookmark, MessageSquare, MapPin, Building2 } from "lucide-react";
@@ -96,7 +96,7 @@ function SavedColumn() {
       if (!user) return [];
       const { data } = await supabase
         .from('saved_jobs')
-        .select('id, job_id, job:jobs(id, title, location, company:companies(name))')
+        .select('id, job_id, job:jobs(id, title, location, companies:company_id(name))')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(2);
@@ -129,7 +129,7 @@ function SavedColumn() {
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
             <Building2 className="h-3 w-3 shrink-0" />
-            <span className="truncate">{s.job?.company?.name || 'Company'}</span>
+            <span className="truncate">{s.job?.companies?.name || 'Company'}</span>
           </div>
         </button>
       ))}
@@ -141,6 +141,7 @@ function SavedColumn() {
 function MessagesColumn() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: msgData, isLoading: loading } = useQuery({
     queryKey: ['discovery-messages', user?.id],
     queryFn: async () => {
@@ -187,12 +188,11 @@ function MessagesColumn() {
     const channel = supabase
       .channel('discovery-messages-rt')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-        // Refetch on new message
-        window.dispatchEvent(new CustomEvent('invalidate-messages'));
+        queryClient.invalidateQueries({ queryKey: ['discovery-messages', user.id] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, queryClient]);
 
   const msgs = msgData?.msgs || [];
   const unread = msgData?.unread || 0;

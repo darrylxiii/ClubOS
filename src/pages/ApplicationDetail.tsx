@@ -98,7 +98,7 @@ export default function ApplicationDetail() {
           )
         `)
         .eq("id", applicationId)
-        .eq("user_id", user.id)
+        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`)
         .maybeSingle();
 
       if (error) throw error;
