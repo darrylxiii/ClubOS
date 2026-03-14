@@ -129,7 +129,7 @@ function SavedColumn() {
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
             <Building2 className="h-3 w-3 shrink-0" />
-            <span className="truncate">{s.job?.company?.name || 'Company'}</span>
+            <span className="truncate">{s.job?.companies?.name || 'Company'}</span>
           </div>
         </button>
       ))}
