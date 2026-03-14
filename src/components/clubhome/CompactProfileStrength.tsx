@@ -21,7 +21,7 @@ export function CompactProfileStrength() {
           .maybeSingle(),
         supabase
           .from('candidate_profiles')
-          .select('skills, desired_role, work_authorization, industries, resume_url')
+          .select('skills, current_title, work_authorization, industries, resume_url')
           .eq('user_id', user!.id)
           .maybeSingle(),
       ]);
@@ -33,10 +33,10 @@ export function CompactProfileStrength() {
       ] : [];
 
       const candidateFields = candidateData ? [
-        candidateData.skills && (candidateData.skills as any[]).length > 0 ? candidateData.skills : null,
-        candidateData.desired_role,
+        candidateData.skills ? candidateData.skills : null,
+        candidateData.current_title,
         candidateData.work_authorization,
-        candidateData.industries && (candidateData.industries as any[]).length > 0 ? candidateData.industries : null,
+        candidateData.industries && (candidateData.industries as string[]).length > 0 ? candidateData.industries : null,
         candidateData.resume_url,
       ] : [];
 
