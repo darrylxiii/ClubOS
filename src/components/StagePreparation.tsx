@@ -108,7 +108,7 @@ export const StagePreparation = ({ stage }: StagePreparationProps) => {
   const handleAction = (actionTitle: string) => {
     // Navigate to Interview Prep page for "Interview Prep" action
     if (actionTitle === "Interview Prep") {
-      navigate("/interview-prep");
+      navigate("/jobs?tab=interview-prep");
       return;
     }
     

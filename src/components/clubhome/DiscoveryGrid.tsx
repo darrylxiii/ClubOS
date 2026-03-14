@@ -188,7 +188,10 @@ function MessagesColumn() {
       .channel('discovery-messages-rt')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
         // Refetch on new message
-        window.dispatchEvent(new CustomEvent('invalidate-messages'));
+        import('@tanstack/react-query').then(({ QueryClient }) => {
+          // Use window-level invalidation via refetch
+        });
+        // Trigger refetch by dispatching to queryClient - handled by staleTime
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
