@@ -1,92 +1,136 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Full Candidate Environment Audit
 
-## Completed
+## Critical Bugs
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
+### 1. ApplicationDetail only matches `user_id`, not `candidate_id`
+**File:** `src/pages/ApplicationDetail.tsx` line 101
+The query uses `.eq("user_id", user.id)` but `useApplications.ts` (the list page) uses `.or("user_id.eq.${userId},candidate_id.eq.${userId}")`. If an application was created via admin/strategist sourcing (setting `candidate_id` but not `user_id`), the candidate can see it in the list but gets "Application not found" when clicking into it.
 
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
+**Fix:** Change `.eq("user_id", user.id)` to `.or("user_id.eq.${user.id},candidate_id.eq.${user.id}")`.
 
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
+### 2. `interview-prep/session` route doesn't exist
+**File:** `src/pages/Applications.tsx` line 325
+The "Interview Prep" button in `ApplicationCard` navigates to `/interview-prep/session?jobId=...` but no route is registered for this path. The candidate routes only define `/interview-prep` (redirects to jobs tab) and `/interview-prep/chat/:sessionId`. Clicking this button results in a 404.
 
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
+**Fix:** Either register a `/interview-prep/session` route or change the navigation to `/jobs?tab=interview-prep&jobId=...`.
 
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
+### 3. `Home.tsx` queries `candidate_id` column for application count
+**File:** `src/pages/Home.tsx` line 47
+Uses `.eq('candidate_id', user.id)` but should also check `user_id` like `useApplications` does. This means the dashboard stats may show 0 pending applications when the candidate actually has some via `user_id`.
 
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
+**Fix:** Use `.or("user_id.eq.${user.id},candidate_id.eq.${user.id}")`.
 
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
+### 4. Duplicate home pages: `/home` vs `/club-home`
+`Home.tsx` renders its own dashboard (NextBestAction + FeaturedJobs + ApplicationStatusTracker + CandidateQuickActions) while `ClubHome.tsx` renders `CandidateHome` (completely different 6-zone layout). The candidate gets a different experience depending on which URL they land on. If `/home` is the default route, the carefully designed `CandidateHome` is never shown.
 
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+**Fix:** Determine which is canonical. If `CandidateHome` is the intended experience, redirect `/home` to `/club-home` or replace `Home.tsx` content with `CandidateHome`.
+
+### 5. `JobDetail.tsx` uses `.single()` instead of `.maybeSingle()`
+**File:** `src/pages/JobDetail.tsx` line 106
+If a job is deleted or has an invalid ID, `.single()` throws a hard runtime error instead of gracefully redirecting. Per project standards, filter-based lookups must use `.maybeSingle()`.
+
+**Fix:** Change to `.maybeSingle()` and handle null.
 
 ---
 
-## Remaining
+## Moderate Issues
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+### 6. `ApplicationDetail.tsx` doesn't use `useQuery` (TanStack)
+It uses raw `useState`/`useEffect` with manual loading state. This means no caching, no deduplication, no stale-while-revalidate. Navigating back and forth re-fetches every time.
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+**Fix:** Refactor to `useQuery` with `queryKey: ['application-detail', applicationId]`.
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+### 7. `CompactInterviewCountdown` navigates to `/interview-prep` which redirects
+Line 122 navigates to `/interview-prep` which immediately redirects to `/jobs?tab=interview-prep`. This causes a visible URL flash and adds to browser history. Same issue in `InterviewCountdownWidget.tsx` and `StagePreparation.tsx`.
 
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+**Fix:** Navigate directly to `/jobs?tab=interview-prep`.
 
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
+### 8. `Settings.tsx` is a 751-line monolith with 20+ `useState` calls
+Violates the project standard of decomposing files >500 lines. All profile, compensation, privacy, and social state is managed in one component with a manual debounced save. No `react-hook-form` or `zod` validation despite project standards requiring it for settings.
 
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+**Fix:** Extract state into `useSettingsProfile`, `useSettingsCompensation`, `useSettingsPrivacy` hooks. Migrate forms to `react-hook-form + zod`.
+
+### 9. `DiscoveryGrid` saved jobs query uses wrong join syntax
+**File:** `src/components/clubhome/DiscoveryGrid.tsx` line 99
+Uses `job:jobs(id, title, location, company:companies(name))` — the join `company:companies` may fail because `jobs` references `companies` via `company_id` FK, not a column called `company`. Should be `companies:company_id(name)` or the PostgREST auto-detected join.
+
+**Fix:** Change to `jobs!inner(id, title, location, companies:company_id(name))`.
+
+### 10. `CompactStrategist` SLA computation is expensive and client-side
+Lines 49-96: Fetches up to 500 messages, loops through all conversations, and computes average response time in the browser. This is O(n*m) work that should be a server-side RPC or cached metric.
+
+**Fix:** Either create an RPC `get_strategist_avg_response_time(user_id, strategist_id)` or cache the result with a longer `staleTime`.
+
+### 11. `DiscoveryGrid` Messages realtime uses `dispatchEvent` instead of query invalidation
+Line 191: Dispatches `window.dispatchEvent(new CustomEvent('invalidate-messages'))` but nothing listens for this event. The realtime subscription does nothing.
+
+**Fix:** Use `queryClient.invalidateQueries({ queryKey: ['discovery-messages'] })`.
+
+### 12. Profile strength only checks 10 fields
+`CompactProfileStrength` and `NextBestActionCard` both compute profile completion from the same 10 `profiles` fields, but ignore `candidate_profiles` fields (skills, work authorization, industry preferences, etc.). A candidate could be "100% complete" while missing critical hiring data.
+
+**Fix:** Include `candidate_profiles` fields (skills, desired_role, work_authorization, etc.) in the completion calculation.
 
 ---
 
-### Remaining: Phase H4–H6
+## Missing Features
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+### 13. No withdrawal confirmation for applied jobs
+The `handleApply` in `JobDetail.tsx` inserts an application but there's no way for a candidate to withdraw from this page. Withdrawal is mentioned in project standards but only exists in the Applications list page.
 
-### Phase I2: Remaining Ecosystem
+### 14. No notification when application stage changes
+The realtime subscription in `Applications.tsx` invalidates queries but doesn't show a toast or notification when a stage change happens. The candidate has to notice the UI update.
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+### 15. No interview prep session route with job context
+The `ApplicationCard` "Interview Prep" button tries to navigate with `jobId` and `title` query params, but the route doesn't exist and the `InterviewPrep` page doesn't read these params to auto-select the application.
+
+### 16. `PipelineSnapshot` sorts applications client-side by mutating array
+Line 37: `active.sort(...)` mutates the filtered array in place. Should use `[...active].sort(...)` to avoid React state mutation issues.
+
+---
+
+## Implementation Plan
+
+### Step 1: Fix critical routing/query bugs (items 1-5)
+- `ApplicationDetail.tsx`: Add `candidate_id` to filter
+- `Applications.tsx`: Fix interview-prep navigation path
+- `Home.tsx`: Fix application count query
+- Determine canonical home page (Home vs ClubHome)
+- `JobDetail.tsx`: Change `.single()` to `.maybeSingle()`
+
+### Step 2: Fix moderate data flow issues (items 6, 7, 9, 11, 16)
+- `ApplicationDetail.tsx`: Refactor to `useQuery`
+- Fix all `/interview-prep` navigations to go to `/jobs?tab=interview-prep`
+- Fix `DiscoveryGrid` saved jobs join and realtime invalidation
+- Fix `PipelineSnapshot` array mutation
+
+### Step 3: Performance improvements (item 10)
+- Move strategist SLA computation server-side or increase cache time significantly
+
+### Step 4: Profile completion accuracy (item 12)
+- Include `candidate_profiles` fields in completion calculation
+
+### Step 5: Settings refactor (item 8)
+- Extract hooks, add `react-hook-form + zod` validation (large task, can be deferred)
+
+---
+
+## Files to Change
+
+| File | Change |
+|------|--------|
+| `src/pages/ApplicationDetail.tsx` | Fix `user_id` → `or(user_id, candidate_id)`, refactor to `useQuery` |
+| `src/pages/Applications.tsx` | Fix interview-prep nav path |
+| `src/pages/Home.tsx` | Fix application count query |
+| `src/pages/JobDetail.tsx` | `.single()` → `.maybeSingle()` |
+| `src/components/clubhome/CompactInterviewCountdown.tsx` | Fix nav to `/jobs?tab=interview-prep` |
+| `src/components/clubhome/InterviewCountdownWidget.tsx` | Fix nav path |
+| `src/components/StagePreparation.tsx` | Fix nav path |
+| `src/components/clubhome/DiscoveryGrid.tsx` | Fix saved jobs join + realtime invalidation |
+| `src/components/clubhome/PipelineSnapshot.tsx` | Fix array mutation |
+| `src/components/clubhome/CompactProfileStrength.tsx` | Add candidate_profiles fields |
+| `src/components/clubhome/NextBestActionCard.tsx` | Add candidate_profiles fields |
+| `src/components/clubhome/CompactStrategist.tsx` | Increase staleTime, simplify SLA |
+
