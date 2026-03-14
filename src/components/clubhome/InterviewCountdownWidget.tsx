@@ -265,7 +265,7 @@ export function InterviewCountdownWidget() {
               <Button 
                 variant="outline"
                 className="flex-1"
-                onClick={() => navigate('/interview-prep')}
+                onClick={() => navigate('/jobs?tab=interview-prep')}
               >
                 <BookOpen className="w-4 h-4 mr-2" />
                 Prepare
