@@ -141,6 +141,7 @@ function SavedColumn() {
 function MessagesColumn() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: msgData, isLoading: loading } = useQuery({
     queryKey: ['discovery-messages', user?.id],
     queryFn: async () => {
@@ -187,15 +188,11 @@ function MessagesColumn() {
     const channel = supabase
       .channel('discovery-messages-rt')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-        // Refetch on new message
-        import('@tanstack/react-query').then(({ QueryClient }) => {
-          // Use window-level invalidation via refetch
-        });
-        // Trigger refetch by dispatching to queryClient - handled by staleTime
+        queryClient.invalidateQueries({ queryKey: ['discovery-messages', user.id] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, queryClient]);
 
   const msgs = msgData?.msgs || [];
   const unread = msgData?.unread || 0;
