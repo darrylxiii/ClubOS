@@ -96,7 +96,7 @@ function SavedColumn() {
       if (!user) return [];
       const { data } = await supabase
         .from('saved_jobs')
-        .select('id, job_id, job:jobs(id, title, location, company:companies(name))')
+        .select('id, job_id, job:jobs(id, title, location, companies:company_id(name))')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(2);
