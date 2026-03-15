@@ -328,7 +328,7 @@ export function useClubAIChat() {
     let assistantContent = "";
     let needsConfirmation = false;
     let confirmationMessage = "";
-    const pendingToolCalls: Array<{ type: string; path: string; reason: string }> = [];
+    const pendingToolCalls: Array<{ type: "navigate"; path: string; reason: string }> = [];
 
     const updateAssistant = (chunk: string, toolCalls?: unknown) => {
       assistantContent += chunk;
