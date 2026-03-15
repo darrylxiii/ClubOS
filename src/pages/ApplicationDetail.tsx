@@ -613,7 +613,11 @@ export default function ApplicationDetail() {
                       <p className="text-xs text-muted-foreground">Click to view profile</p>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full mt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={() => navigate(`/messages?to=${application.talent_strategist?.user_id}`)}
+                  >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Send Message
                   </Button>

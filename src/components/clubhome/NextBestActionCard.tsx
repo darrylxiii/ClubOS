@@ -40,15 +40,30 @@ export const NextBestActionCard = () => {
     queryFn: async (): Promise<NextAction | null> => {
       if (!user) return null;
 
-      // Check profile completion (same 10-field logic as CompactProfileStrength)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
-        .eq('id', user.id)
-        .maybeSingle();
+      // Check profile completion (synced with CompactProfileStrength logic)
+      const [{ data: profile }, { data: candidateData }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('candidate_profiles')
+          .select('skills, current_title, work_authorization, industries, resume_url')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+      ]);
 
       const profileFields = profile ? Object.values(profile).filter(v => v !== null && v !== undefined && v !== '').length : 0;
-      const profileComplete = profileFields >= 8; // 80% of 10 fields
+      const candidateFields = candidateData ? [
+        candidateData.skills,
+        candidateData.current_title,
+        candidateData.work_authorization,
+        candidateData.industries && (candidateData.industries as string[]).length > 0 ? candidateData.industries : null,
+        candidateData.resume_url,
+      ].filter(v => v !== null && v !== undefined && v !== '').length : 0;
+      const totalFields = 15; // 10 profile + 5 candidate
+      const profileComplete = (profileFields + candidateFields) >= Math.ceil(totalFields * 0.8);
 
       if (!profileComplete) {
         return {

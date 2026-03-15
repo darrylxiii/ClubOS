@@ -9,6 +9,9 @@ import { motion } from "framer-motion";
 
 export const ReferralNetworkWidget = () => {
   // Note: candidate_referrals table not yet in schema - showing placeholder
+  // Note: candidate_referrals table not yet in schema — hide widget until real data exists
+  return null;
+
   const stats = {
     totalReferrals: 0,
     projectedEarnings: 0,
