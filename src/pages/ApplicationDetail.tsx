@@ -576,8 +576,6 @@ export default function ApplicationDetail() {
               <TimelineDeadlines
                 appliedDate={application.applied_at}
                 nextStageName={nextStage?.title}
-                estimatedDaysToNext={5}
-                finalDecisionDate="2025-10-25"
               />
 
               {/* Competition Insight */}
