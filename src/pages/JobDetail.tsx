@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { JobProfileHero } from "@/components/jobs/JobProfileHero";

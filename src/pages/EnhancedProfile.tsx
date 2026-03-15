@@ -70,7 +70,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
       .maybeSingle();
 
     if (error) {
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile:', { error });
       return;
     }
     setProfile(data);
