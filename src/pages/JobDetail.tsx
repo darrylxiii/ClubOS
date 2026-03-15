@@ -146,7 +146,7 @@ export default function JobDetail() {
 
       setIsSaved(!!savedData);
     } catch (error) {
-      console.error('Error checking user status:', error);
+      logger.error('Error checking user status:', { error });
     }
   };
 
