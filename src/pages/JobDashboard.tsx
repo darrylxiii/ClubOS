@@ -654,50 +654,7 @@ export default function JobDashboard() {
                                 ? `This stage has ${stageApps.length} candidate(s). They will be moved to "${targetStageName}". Delete "${stage.name}"?`
                                 : `Delete stage "${stage.name}"?`;
 
-                              if (!window.confirm(message)) return;
-
-                              try {
-                                // Migrate candidates out of the deleted stage
-                                if (stageApps.length > 0) {
-                                  const appIds = stageApps.map(a => a.id);
-                                  const { error: migrateError } = await supabase
-                                    .from('applications')
-                                    .update({ current_stage_index: targetIndex })
-                                    .in('id', appIds);
-                                  if (migrateError) throw migrateError;
-                                }
-
-                                // Also shift down candidates in stages above the deleted one
-                                const appsAbove = applications.filter(a => a.current_stage_index > index);
-                                if (appsAbove.length > 0) {
-                                  for (const app of appsAbove) {
-                                    await supabase
-                                      .from('applications')
-                                      .update({ current_stage_index: app.current_stage_index - 1 })
-                                      .eq('id', app.id);
-                                  }
-                                }
-
-                                // Remove stage and reindex
-                                const updatedStages = stages
-                                  .filter((_, i) => i !== index)
-                                  .map((s, i) => ({ ...s, order: i }));
-
-                                const { error } = await supabase
-                                  .from('jobs')
-                                  .update({ pipeline_stages: updatedStages })
-                                  .eq('id', jobId);
-
-                                if (!error) {
-                                  await fetchJobDetails();
-                                  toast.success("Stage deleted successfully");
-                                } else {
-                                  toast.error("Failed to delete stage");
-                                }
-                              } catch (err) {
-                                console.error('Stage deletion error:', err);
-                                toast.error("Failed to delete stage — candidates were not moved");
-                              }
+                              setPendingStageDelete({ index, message, stageApps });
                             }}
                             onAdvanceCandidate={(candidate) => {
                               setSelectedCandidateForAction({ candidate, action: 'advance' });
