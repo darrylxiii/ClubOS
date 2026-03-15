@@ -127,6 +127,7 @@ export default function JobDashboard() {
   } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [expandedStageIndices, setExpandedStageIndices] = useState<Set<number>>(new Set());
+  const [pendingStageDelete, setPendingStageDelete] = useState<{ index: number; message: string; stageApps: EnrichedApplication[] } | null>(null);
   const { jobRole, permissions, loading: jobRoleLoading } = useJobTeamRole(jobId!);
 
   // Drag and drop sensors
