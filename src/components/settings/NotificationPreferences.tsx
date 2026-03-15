@@ -101,7 +101,7 @@ export const NotificationPreferences = () => {
           .maybeSingle(),
         supabase
           .from('profiles')
-          .select('phone_number')
+          .select('phone')
           .eq('id', user.id)
           .single(),
       ]);
