@@ -188,7 +188,7 @@ export default function JobDetail() {
         setCanEdit(!!companyMember);
       }
     } catch (error) {
-      console.error('Error checking edit permissions:', error);
+      logger.error('Error checking edit permissions:', { error });
     }
   };
 
