@@ -108,7 +108,7 @@ export const NotificationPreferences = () => {
 
       if (prefError && prefError.code !== 'PGRST116') throw prefError;
 
-      setHasPhone(!!profile?.phone_number);
+      setHasPhone(!!profile?.phone);
 
       if (prefData) {
         setPrefs({
