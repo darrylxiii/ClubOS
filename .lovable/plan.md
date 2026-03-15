@@ -1,92 +1,69 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Audit Status: What's Next
 
-## Completed
+## Completed So Far
+1. **Round 1 Candidate Audit** — 12 fixes shipped (query patterns, navigation, sorting)
+2. **Round 2 Candidate Audit** — 5 fixes shipped (dead code, hardcoded dates, useQuery refactor, Send Message button, widget fixes)
+3. **Notification System** — Phase 1-3 complete (orchestrator, settings UI, 7 new edge functions, email templates standardized)
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
+## What Remains — Prioritized
 
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
+### TIER 1: Code Quality Debt (Candidate Pages)
 
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
+**A. Settings.tsx — 751-line monolith (flagged twice, still unfixed)**
+- 20+ `useState` calls, no form validation, manual debounced save
+- Heavy `as any` casting throughout (lines 226-227, 281-284, 357, 400, 425)
+- Should decompose into hook (`useSettingsForm`) + existing sub-components already extract some tabs
 
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
+**B. ClubAI.tsx — 1024-line monolith (flagged, still unfixed)**
+- Full chat page in a single file
+- Should extract: `useClubAIChat` hook, `ChatMessageList`, `ChatSessionSidebar`, `ChatConfirmationDialog`
 
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
+**C. Meetings.tsx — 441 lines, uses `useState/useEffect` with manual fetch**
+- No `useQuery`, no caching, refetches on every mount
+- Same pattern fixed in `ApplicationDetail` — should apply the same refactor
 
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
+**D. Messages.tsx — 493 lines**
+- Already uses `useMessages` hook, but the page itself is large
+- Lower priority — functional
 
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
+**E. Jobs.tsx — 834 lines**
+- Uses `useQuery` already — structurally better
+- Large but modular (tabs are lazy-loaded)
 
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+### TIER 2: console.log/error Cleanup
+- **760 matches across 60 files** — `console.error` should be `logger.error`
+- Candidate-facing offenders: `JobDetail.tsx` (5 instances), `CareerPath.tsx`, `DocumentManagement.tsx`, `InterviewPrep.tsx`, `Meetings.tsx`, `EnhancedProfile.tsx`
 
----
+### TIER 3: Remaining `window.confirm()` Calls
+- `JobDashboard.tsx` line 656 — delete pipeline stage
+- `UnifiedUserManagement.tsx` line 865 — reset MFA (admin page, lower priority)
 
-## Remaining
+### TIER 4: `as any` Type Safety
+- **368 matches in 40 files** — Settings.tsx is the worst offender
+- `Companies.tsx`, `EnhancedProfile.tsx`, `UnifiedCandidateProfile.tsx`, `InterviewPrepChat.tsx` all cast Supabase joins
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
-
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
-
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
-
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
-
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
-
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+### TIER 5: Remaining Tech Debt (from TECHNICAL_DEBT.md)
+5 low-priority items remain (~9h estimated):
+- TD-008: Email scheduling via Edge Function
+- TD-010: User profile fetch for assessment personalization
+- TD-011: Meeting templates table
+- TD-013/14/15: Contract detail page modals (revision, upload, comments)
 
 ---
 
-### Remaining: Phase H4–H6
+## Recommended Next Step
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+**Refactor Settings.tsx and Meetings.tsx** — these are the two highest-impact candidate-facing monoliths:
 
-### Phase I2: Remaining Ecosystem
+| File | Lines | Issue | Fix |
+|------|-------|-------|-----|
+| `Settings.tsx` | 751 | 20+ useState, no validation, `as any` everywhere | Extract `useSettingsData` hook, add Zod validation, type Supabase queries |
+| `Meetings.tsx` | 441 | Manual fetch, no caching | Refactor to `useQuery`, add skeleton loading |
+| `ClubAI.tsx` | 1024 | Monolith | Extract hook + 3 sub-components |
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+Then sweep `console.error` → `logger.error` across the 6 candidate-facing pages, and replace the remaining `window.confirm()` in `JobDashboard.tsx`.
+
+This would bring the candidate experience code quality to a consistent standard across all pages.
+
