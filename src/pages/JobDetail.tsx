@@ -114,7 +114,7 @@ export default function JobDetail() {
       }
       setJob(data);
     } catch (error) {
-      console.error('Error loading job:', error);
+      logger.error('Error loading job:', { error });
       toast.error('Failed to load job details');
       navigate('/jobs');
     } finally {
