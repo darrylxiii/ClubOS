@@ -990,6 +990,72 @@ export default function JobDashboard() {
         isAdmin={role === 'admin'}
         onConfirm={handleDelete}
       />
+
+      {/* Stage Delete Confirmation Dialog */}
+      <AlertDialog open={!!pendingStageDelete} onOpenChange={(open) => { if (!open) setPendingStageDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Pipeline Stage</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStageDelete?.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingStageDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!pendingStageDelete) return;
+                const { index, stageApps } = pendingStageDelete;
+                const targetIndex = index > 0 ? index - 1 : 0;
+                setPendingStageDelete(null);
+
+                try {
+                  if (stageApps.length > 0) {
+                    const appIds = stageApps.map(a => a.id);
+                    const { error: migrateError } = await supabase
+                      .from('applications')
+                      .update({ current_stage_index: targetIndex })
+                      .in('id', appIds);
+                    if (migrateError) throw migrateError;
+                  }
+
+                  const appsAbove = applications.filter(a => a.current_stage_index > index);
+                  if (appsAbove.length > 0) {
+                    for (const app of appsAbove) {
+                      await supabase
+                        .from('applications')
+                        .update({ current_stage_index: app.current_stage_index - 1 })
+                        .eq('id', app.id);
+                    }
+                  }
+
+                  const updatedStages = stages
+                    .filter((_, i) => i !== index)
+                    .map((s, i) => ({ ...s, order: i }));
+
+                  const { error } = await supabase
+                    .from('jobs')
+                    .update({ pipeline_stages: updatedStages })
+                    .eq('id', jobId);
+
+                  if (!error) {
+                    await fetchJobDetails();
+                    toast.success("Stage deleted successfully");
+                  } else {
+                    toast.error("Failed to delete stage");
+                  }
+                } catch (err) {
+                  logger.error('Stage deletion error:', { error: err });
+                  toast.error("Failed to delete stage — candidates were not moved");
+                }
+              }}
+            >
+              Delete Stage
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
