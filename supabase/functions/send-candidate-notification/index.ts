@@ -107,9 +107,9 @@ serve(async (req) => {
             break;
 
           case "sms":
-            if (profile?.phone_number) {
+            if (phoneNumber) {
               results.sms = await sendSMS({
-                phone: profile.phone_number,
+                phone: phoneNumber,
                 message: `${payload.title}: ${payload.body}`,
               });
             }
