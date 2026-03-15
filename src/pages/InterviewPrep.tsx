@@ -162,7 +162,7 @@ export default function InterviewPrep() {
         setAiPrep(data.prep);
       }
     } catch (err) {
-      console.error('Error generating AI prep:', err);
+      logger.error('Error generating AI prep:', { error: err });
       toast.error("Could not generate AI prep. Using default questions.");
     } finally {
       setAiLoading(false);
