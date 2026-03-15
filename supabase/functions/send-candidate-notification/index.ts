@@ -116,9 +116,9 @@ serve(async (req) => {
             break;
 
           case "whatsapp":
-            if (profile?.phone_number) {
+            if (phoneNumber) {
               results.whatsapp = await sendWhatsApp(supabase, {
-                phone: profile.phone_number,
+                phone: phoneNumber,
                 message: `*${payload.title}*\n\n${payload.body}`,
                 userId: user_id,
               });
