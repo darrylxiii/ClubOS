@@ -35,18 +35,22 @@
     "email": "Email Notifications",
     "push": "Push Notifications",
     "sms": "SMS Notifications",
+    "whatsapp": "WhatsApp Notifications",
     "inApp": "In-App Notifications",
     "frequency": "Notification Frequency",
     "immediate": "Immediate",
     "daily": "Daily Digest",
     "weekly": "Weekly Digest",
     "never": "Never",
+    "preferredChannel": "Preferred Channel",
     "types": {
       "messages": "Messages",
       "applications": "Applications",
       "interviews": "Interviews",
       "offers": "Offers",
       "reminders": "Reminders",
+      "stageUpdates": "Stage Updates",
+      "jobMatches": "Job Matches",
       "marketing": "Marketing & Updates"
     }
   },
