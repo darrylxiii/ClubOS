@@ -246,7 +246,7 @@ export default function JobDetail() {
       setIsApplied(true);
       toast.success('Application submitted successfully!');
     } catch (error) {
-      console.error('Error applying:', error);
+      logger.error('Error applying:', { error });
       toast.error('Failed to submit application');
     }
   };
