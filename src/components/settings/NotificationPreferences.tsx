@@ -346,7 +346,7 @@ export const NotificationPreferences = () => {
           <CardDescription>
             Get updates directly on WhatsApp for a more personal experience
             {!hasPhone && (
-              <span className="block mt-1 text-amber-500">
+              <span className="block mt-1 text-destructive">
                 Add a phone number in your profile to enable WhatsApp notifications.
               </span>
             )}

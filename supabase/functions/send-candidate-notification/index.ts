@@ -75,9 +75,11 @@ serve(async (req) => {
     // 3. Load user profile for contact info
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email, full_name, phone_number")
+      .select("email, full_name, phone")
       .eq("id", user_id)
       .single();
+
+    const phoneNumber = profile?.phone;
 
     // 4. Check quiet hours
     const isQuietHours = checkQuietHours(prefs);
