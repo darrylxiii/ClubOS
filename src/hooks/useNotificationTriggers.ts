@@ -8,8 +8,12 @@ import {
 } from '@/services/pushNotificationService';
 
 /**
- * Hook that sets up real-time listeners for notification triggers
- * This should be used in a top-level component that's always mounted
+ * Hook that sets up real-time listeners for notification triggers.
+ * This should be used in a top-level component that's always mounted.
+ *
+ * Fixes from audit:
+ * - Application updates now use or(user_id, candidate_id) to catch admin-sourced apps
+ * - Meeting reminders use notification_delivery_log (DB) instead of sessionStorage
  */
 export function useNotificationTriggers() {
   const { user } = useAuth();
@@ -29,7 +33,7 @@ export function useNotificationTriggers() {
         },
         async (payload) => {
           const message = payload.new as Record<string, any>;
-          
+
           // Don't notify for own messages
           if (message.sender_id === user.id) return;
 
@@ -52,7 +56,6 @@ export function useNotificationTriggers() {
 
           const senderName = sender?.full_name || 'Someone';
 
-          // Send notification
           await notifyNewMessage(
             user.id,
             senderName,
@@ -63,7 +66,7 @@ export function useNotificationTriggers() {
       )
       .subscribe();
 
-    // Subscribe to application updates
+    // Subscribe to application updates — watch both user_id and candidate_id
     const applicationsChannel = supabase
       .channel('notification-applications')
       .on(
@@ -72,11 +75,15 @@ export function useNotificationTriggers() {
           event: 'UPDATE',
           schema: 'public',
           table: 'applications',
-          filter: `user_id=eq.${user.id}`,
         },
         async (payload) => {
           const oldApp = payload.old as Record<string, any>;
           const newApp = payload.new as Record<string, any>;
+
+          // Only process if this application belongs to the current user
+          const isOwner =
+            newApp.user_id === user.id || newApp.candidate_id === user.id;
+          if (!isOwner) return;
 
           // Only notify if status changed
           if (oldApp.status === newApp.status) return;
@@ -88,11 +95,33 @@ export function useNotificationTriggers() {
             newApp.status,
             newApp.id
           );
+
+          // Also fire the orchestrator for multi-channel delivery
+          try {
+            await supabase.functions.invoke('send-candidate-notification', {
+              body: {
+                user_id: user.id,
+                event_type: 'application_stage_change',
+                event_id: `${newApp.id}-${newApp.status}`,
+                payload: {
+                  title: `${newApp.position} at ${newApp.company_name}`,
+                  body: `Your application status changed to ${newApp.status}`,
+                  route: `/applications/${newApp.id}`,
+                  data: {
+                    applicationId: newApp.id,
+                    status: newApp.status,
+                  },
+                },
+              },
+            });
+          } catch {
+            // Non-critical — push notification already sent above
+          }
         }
       )
       .subscribe();
 
-    // Subscribe to meeting reminders (meetings starting within 15 minutes)
+    // Check for meeting reminders every minute — DB-backed dedup
     const checkMeetingReminders = async () => {
       const now = new Date();
       const fifteenMinutesFromNow = new Date(now.getTime() + 15 * 60 * 1000);
@@ -110,28 +139,58 @@ export function useNotificationTriggers() {
         .lte('scheduled_start', fifteenMinutesFromNow.toISOString())
         .eq('meeting_participants.user_id', user.id);
 
-      if (upcomingMeetings?.length) {
-        for (const meeting of upcomingMeetings) {
-          // Check if we already sent a reminder for this meeting
-          const reminderKey = `meeting-reminder-${meeting.id}`;
-          if (sessionStorage.getItem(reminderKey)) continue;
+      if (!upcomingMeetings?.length) return;
 
-          await notifyMeetingReminder(
-            [user.id],
-            meeting.title || 'Meeting',
-            new Date(meeting.scheduled_start),
-            meeting.id
-          );
+      for (const meeting of upcomingMeetings) {
+        // DB-backed dedup: check notification_delivery_log
+        const { data: alreadySent } = await supabase
+          .from('notification_delivery_log')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('event_type', 'meeting_reminder')
+          .eq('event_id', meeting.id)
+          .limit(1);
 
-          // Mark as reminded
-          sessionStorage.setItem(reminderKey, 'true');
+        if (alreadySent && alreadySent.length > 0) continue;
+
+        // Log immediately to prevent duplicates
+        await supabase.from('notification_delivery_log').insert({
+          user_id: user.id,
+          event_type: 'meeting_reminder',
+          event_id: meeting.id,
+          channel: 'push',
+          status: 'sent',
+        });
+
+        await notifyMeetingReminder(
+          [user.id],
+          meeting.title || 'Meeting',
+          new Date(meeting.scheduled_start),
+          meeting.id
+        );
+
+        // Fire orchestrator for SMS/WhatsApp delivery
+        try {
+          await supabase.functions.invoke('send-candidate-notification', {
+            body: {
+              user_id: user.id,
+              event_type: 'meeting_reminder',
+              event_id: meeting.id,
+              payload: {
+                title: 'Meeting Starting Soon',
+                body: `${meeting.title || 'Meeting'} starts at ${new Date(meeting.scheduled_start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`,
+                route: `/meetings/${meeting.id}`,
+                data: { meetingId: meeting.id },
+              },
+            },
+          });
+        } catch {
+          // Non-critical
         }
       }
     };
 
-    // Check for meeting reminders every minute
     const meetingInterval = setInterval(checkMeetingReminders, 60000);
-    // Also check immediately
     checkMeetingReminders();
 
     return () => {

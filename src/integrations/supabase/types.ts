@@ -33833,6 +33833,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_delivery_log: {
+        Row: {
+          channel: string
+          created_at: string | null
+          event_id: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           browser_meetings: boolean | null
@@ -33856,13 +33889,25 @@ export type Database = {
           meeting_sound_type: string | null
           milestone_approaching: boolean | null
           milestone_unlocked: boolean | null
+          preferred_channel: string | null
           quiet_hours_enabled: boolean | null
           quiet_hours_end: string | null
           quiet_hours_start: string | null
           quiet_hours_timezone: string | null
+          sms_enabled: boolean | null
+          sms_interviews: boolean | null
+          sms_offers: boolean | null
+          sms_reminders: boolean | null
+          sms_stage_updates: boolean | null
           sound_meetings: boolean | null
           updated_at: string
           user_id: string
+          whatsapp_enabled: boolean | null
+          whatsapp_interviews: boolean | null
+          whatsapp_job_matches: boolean | null
+          whatsapp_offers: boolean | null
+          whatsapp_reminders: boolean | null
+          whatsapp_stage_updates: boolean | null
         }
         Insert: {
           browser_meetings?: boolean | null
@@ -33886,13 +33931,25 @@ export type Database = {
           meeting_sound_type?: string | null
           milestone_approaching?: boolean | null
           milestone_unlocked?: boolean | null
+          preferred_channel?: string | null
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           quiet_hours_timezone?: string | null
+          sms_enabled?: boolean | null
+          sms_interviews?: boolean | null
+          sms_offers?: boolean | null
+          sms_reminders?: boolean | null
+          sms_stage_updates?: boolean | null
           sound_meetings?: boolean | null
           updated_at?: string
           user_id: string
+          whatsapp_enabled?: boolean | null
+          whatsapp_interviews?: boolean | null
+          whatsapp_job_matches?: boolean | null
+          whatsapp_offers?: boolean | null
+          whatsapp_reminders?: boolean | null
+          whatsapp_stage_updates?: boolean | null
         }
         Update: {
           browser_meetings?: boolean | null
@@ -33916,13 +33973,25 @@ export type Database = {
           meeting_sound_type?: string | null
           milestone_approaching?: boolean | null
           milestone_unlocked?: boolean | null
+          preferred_channel?: string | null
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           quiet_hours_timezone?: string | null
+          sms_enabled?: boolean | null
+          sms_interviews?: boolean | null
+          sms_offers?: boolean | null
+          sms_reminders?: boolean | null
+          sms_stage_updates?: boolean | null
           sound_meetings?: boolean | null
           updated_at?: string
           user_id?: string
+          whatsapp_enabled?: boolean | null
+          whatsapp_interviews?: boolean | null
+          whatsapp_job_matches?: boolean | null
+          whatsapp_offers?: boolean | null
+          whatsapp_reminders?: boolean | null
+          whatsapp_stage_updates?: boolean | null
         }
         Relationships: []
       }

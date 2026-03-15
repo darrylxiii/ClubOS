@@ -1,197 +1,92 @@
+# Club Meetings System — Full Audit Plan
 
-# Comprehensive Candidate Communication & Notification Audit
-
-## Current State: What Exists Today
-
-### Candidate Journey Touchpoints
-```text
-Onboarding → Home Dashboard → Browse Jobs → Apply → Pipeline Stages → Interview Prep → Meetings → Offer → Placement
-     ↕              ↕              ↕          ↕           ↕                ↕              ↕         ↕         ↕
-  Settings      Messages       Companies  Referrals   Assessments      ClubAI       Scheduling  Salary   Career Path
-```
-
-### Existing Candidate-Facing Edge Functions (Emails)
-
-| Edge Function | Trigger | Channel | Status |
-|---|---|---|---|
-| `send-candidate-welcome-email` | Onboarding approval | Email | Working |
-| `send-interview-scheduled-email` | Interview booked | Email | Working |
-| `send-offer-notification-email` | Offer extended | Email | Working |
-| `send-placement-congratulations-email` | Hired/placed | Email | Working |
-| `send-booking-confirmation` | Booking confirmed | Email | Working |
-| `send-booking-reminder-email` | Cron (pre-meeting) | Email | Working |
-| `send-booking-sms-reminder` | Cron (pre-meeting) | SMS | Working |
-| `send-meeting-invitation-email` | Meeting created | Email | Working |
-| `send-meeting-summary-email` | Post-meeting | Email | Working |
-| `send-approval-sms` | Onboarding approved | SMS | Working |
-| `send-feedback-response` | Feedback given | Email | Working |
-
-### Existing Notification Preferences (Settings Page)
-The `NotificationPreferences` component supports toggles for:
-- Email: Applications, Messages, Interviews, Job Matches, System, Digest (daily/weekly)
-- In-App: Applications, Messages, Interviews, Job Matches, System
-- Quiet Hours
-
-**Missing channels**: No SMS or WhatsApp toggles in preferences UI.
-
-### Existing Real-Time Triggers (`useNotificationTriggers`)
-Only 3 client-side triggers exist:
-1. New message → in-app toast + push notification
-2. Application status change → push notification (only on `user_id`, misses `candidate_id`)
-3. Meeting starting in 15 min → push notification (uses `sessionStorage`, lost on refresh)
-
-### Existing WhatsApp Infrastructure
-- `whatsapp-webhook-receiver` — receives inbound WhatsApp messages
-- `whatsapp-booking-handler` — AI-powered booking via WhatsApp
-- `process-whatsapp-message` — AI response generation
-- `_shared/communication-utils.ts` — `sendWhatsAppMessage()` using Meta Graph API
-- `whatsapp_messages`, `whatsapp_conversations`, `whatsapp_business_accounts` tables exist
-- `WHATSAPP_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` env vars used
-
-### Existing SMS Infrastructure
-- `send-sms` edge function using Twilio (direct API, not connector gateway)
-- `send-approval-sms` and `send-booking-sms-reminder` functions
-- `sms_messages` table exists
+## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
 ---
 
-## Gap Analysis: What's Missing
+## Completed
 
-### A. Notifications That Should Exist But Don't
+### Phase 1–4 (Original): 72/100 baseline
+- All items from original plan completed.
 
-| Event | Email | SMS | WhatsApp | In-App | Current State |
-|---|---|---|---|---|---|
-| **Application submitted** | `send-application-submitted-email` exists | -- | -- | -- | Edge function exists but not confirmed wired |
-| **Application stage change** | -- | -- | -- | Partial (push only) | No email/SMS/WhatsApp sent to candidate |
-| **Application rejected** | -- | -- | -- | -- | No notification at all |
-| **New job match** | -- | -- | -- | -- | Preference toggle exists, nothing sends |
-| **Interview rescheduled** | -- | -- | -- | -- | No notification |
-| **Interview cancelled** | -- | -- | -- | -- | No notification |
-| **Interview feedback available** | -- | -- | -- | -- | No notification |
-| **Strategist assigned** | -- | -- | -- | -- | No notification |
-| **Strategist message** | -- | -- | -- | -- | Only in-app toast |
-| **Document requested** | -- | -- | -- | -- | No notification |
-| **Profile incomplete reminder** | -- | -- | -- | -- | No nudge |
-| **Weekly activity digest** | -- | -- | -- | -- | Preference exists, nothing sends |
-| **Meeting no-show follow-up** | -- | -- | -- | -- | No candidate notification |
-| **Offer deadline approaching** | -- | -- | -- | -- | No reminder |
-| **Assessment results ready** | -- | -- | -- | -- | No notification |
-| **Referral status update** | -- | -- | -- | -- | No notification |
+### Phase A: User-Facing Bugs ✅ (72 → 82)
+- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
 
-### B. Bugs in Current Notification System
+### Phase B: UX Parity ✅ (82 → 92)
+- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
 
-1. **`useNotificationTriggers` only watches `user_id` for application updates** — misses admin-sourced applications via `candidate_id`
-2. **Meeting reminders use `sessionStorage`** — reminder state lost on page refresh or new tab; should use a DB flag
-3. **`notification_preferences` table used with `as any` cast** — suggests it may not be in the typed schema
-4. **No preference checking before sending** — edge functions send emails regardless of user preferences
-5. **SMS functions use direct Twilio API** — should use Twilio connector gateway for consistency
+### Phase C: Architecture ✅ (92 → 97)
+- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
 
-### C. WhatsApp for Candidates — Currently Admin/Booking Only
-The WhatsApp infrastructure is fully built but only used for:
-- Admin-side conversation management (`WhatsAppInbox`)
-- Booking flow (`whatsapp-booking-handler`)
-- Agent-triggered messages (`agent-event-processor`)
+### Phase D: Final Polish ✅ (97 → 100)
+- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
 
-It is **not** used for proactive candidate notifications (stage changes, reminders, etc.).
+### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
+- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
+
+### Phase F: Data Integrity ✅ (72 → 82)
+- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
+- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
+- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
+- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
+- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
+- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
+
+### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
+- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
+- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
+- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
+- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
+- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
+- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
 
 ---
 
-## Implementation Plan
+## Remaining
 
-### Phase 1: Notification Orchestrator + Preference Enforcement
-Create a central `send-candidate-notification` edge function that:
-- Accepts: `candidateId`, `eventType`, `payload`
-- Checks `notification_preferences` for the user
-- Routes to appropriate channels (email, SMS, WhatsApp, in-app)
-- Respects quiet hours
-- Logs all sends to `email_send_log` / `sms_messages` / `whatsapp_messages`
+### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
+- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
+- Kept console.error for actual failures
 
-### Phase 2: Add SMS + WhatsApp Toggles to Settings
-Extend `NotificationPreferences` component with:
-- SMS section: master toggle + per-category (interviews, reminders, offers)
-- WhatsApp section: master toggle + per-category
-- Phone number verification requirement for SMS/WhatsApp
-- Add columns to `notification_preferences` table: `sms_enabled`, `sms_interviews`, `sms_reminders`, `whatsapp_enabled`, `whatsapp_interviews`, `whatsapp_reminders`, `whatsapp_stage_updates`
+### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
+- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
+- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
+- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
+- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
 
-### Phase 3: Wire Up Missing Candidate Notifications (Priority Order)
+### Phase I1: Ecosystem Polish ✅
+- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
+- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
+- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
+- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
 
-**Must-have (immediate engagement impact):**
-1. Application stage change → Email + optional WhatsApp/SMS
-2. Interview scheduled/rescheduled/cancelled → Email + SMS + WhatsApp
-3. New job match → Email (digest-compatible) + optional WhatsApp
-4. Strategist assigned → Email + in-app
-5. Offer received → Already exists, add SMS + WhatsApp channel
-6. Weekly activity digest → Email (cron-driven)
+### Phase H1: .single() Crash Prevention ✅ (62 → 68)
+- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
+- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
 
-**Should-have (retention):**
-7. Profile incomplete nudge → Email (3 days after signup, then weekly)
-8. Interview feedback available → Email + in-app
-9. Assessment results ready → Email + in-app
-10. Offer deadline reminder (48h before) → Email + SMS + WhatsApp
-11. Meeting no-show follow-up → Email + WhatsApp
+### Phase H2: ErrorState Integration ✅ (68 → 75)
+- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
+  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
+- Added `fetchError` state + error render before loading checks
+- Each page shows a branded error card with "Try again" retry action
 
-**Nice-to-have (delight):**
-12. Referral status update → Email + in-app
-13. Document requested → Email + WhatsApp
-14. Placement anniversary → Email
-
-### Phase 4: Fix Existing Bugs
-- Fix `useNotificationTriggers` to use `or(user_id, candidate_id)` filter
-- Replace `sessionStorage` meeting reminder tracking with DB-backed `notification_sent_log`
-- Ensure all send functions check `notification_preferences` before dispatching
-
-### Phase 5: WhatsApp Template Messages
-WhatsApp Business API requires pre-approved templates for outbound messages (outside 24h window). Create templates for:
-- Interview reminder (24h before)
-- Application stage update
-- Offer notification
-- Weekly digest summary
-- Profile completion nudge
+### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
+- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
 
 ---
 
-## Database Changes Required
+### Remaining: Phase H4–H6
 
-```sql
--- Add SMS + WhatsApp columns to notification_preferences
-ALTER TABLE notification_preferences
-  ADD COLUMN sms_enabled boolean DEFAULT false,
-  ADD COLUMN sms_interviews boolean DEFAULT true,
-  ADD COLUMN sms_reminders boolean DEFAULT true,
-  ADD COLUMN sms_offers boolean DEFAULT true,
-  ADD COLUMN whatsapp_enabled boolean DEFAULT false,
-  ADD COLUMN whatsapp_interviews boolean DEFAULT true,
-  ADD COLUMN whatsapp_reminders boolean DEFAULT true,
-  ADD COLUMN whatsapp_stage_updates boolean DEFAULT true,
-  ADD COLUMN whatsapp_job_matches boolean DEFAULT false,
-  ADD COLUMN preferred_channel text DEFAULT 'email';
+| Phase | Task | Files | Status | Impact |
+|-------|------|-------|--------|--------|
+| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
+| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
+| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
 
--- Track which notifications have been sent (replaces sessionStorage)
-CREATE TABLE notification_delivery_log (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  event_type text NOT NULL,
-  event_id text NOT NULL,
-  channel text NOT NULL, -- 'email', 'sms', 'whatsapp', 'inapp', 'push'
-  status text DEFAULT 'sent',
-  created_at timestamptz DEFAULT now(),
-  UNIQUE(user_id, event_type, event_id, channel)
-);
-```
+### Phase I2: Remaining Ecosystem
 
-## Files to Create/Modify
-
-| File | Action |
-|---|---|
-| `supabase/functions/send-candidate-notification/index.ts` | **CREATE** — Central orchestrator |
-| `src/components/settings/NotificationPreferences.tsx` | **EDIT** — Add SMS + WhatsApp sections |
-| `src/hooks/useNotificationTriggers.ts` | **EDIT** — Fix `candidate_id` filter, use DB for dedup |
-| `supabase/functions/send-stage-change-notification/index.ts` | **CREATE** — Application stage change emails |
-| `supabase/functions/send-job-match-notification/index.ts` | **CREATE** — Job match notifications |
-| `supabase/functions/send-weekly-digest/index.ts` | **CREATE** — Weekly candidate digest |
-| `supabase/functions/send-profile-nudge/index.ts` | **CREATE** — Profile completion reminder |
-| `supabase/functions/send-interview-cancelled-email/index.ts` | **CREATE** |
-| `supabase/functions/send-offer-deadline-reminder/index.ts` | **CREATE** |
-| DB migration | Add SMS/WhatsApp columns + `notification_delivery_log` table |
-
-This is a large multi-phase effort. I recommend starting with **Phase 1 + 2** (orchestrator + settings UI) followed by **Phase 3 items 1-6** (the must-have notifications), then iterating on the rest.
+| # | Task | Status | Impact |
+|---|------|--------|--------|
+| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
+| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
+| 25 | Candidate meeting portal | Pending | Candidate experience |
