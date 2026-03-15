@@ -109,7 +109,7 @@ const DEFAULT_PRIVACY: PrivacySettings = {
   share_notice_period: true,
 };
 
-export function useSettingsData(user: User | null, i18n: { language: string; changeLanguage: (lang: string) => Promise<void> }) {
+export function useSettingsData(user: User | null, i18n: { language: string; changeLanguage: (lang: string) => Promise<unknown> }) {
   const [state, setState] = useState<SettingsState>({
     profile: null,
     fullName: "",
