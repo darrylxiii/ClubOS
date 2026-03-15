@@ -1,19 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Card, Button, InfoRow, Spacer, Divider } from "../_shared/email-templates/components.ts";
+import { getEmailAppUrl, EMAIL_COLORS } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
-
-/**
- * Weekly digest email for candidates. Run via pg_cron every Monday at 9am CET.
- * Summarizes: new job matches, application updates, upcoming meetings, profile tips.
- *
- * Body: { user_id? } — if user_id provided, sends to that user only (testing).
- *       Otherwise, sends to all users with email_digest enabled.
- */
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -28,7 +23,6 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const targetUserId = body.user_id;
 
-    // Get users who want the digest
     let usersQuery = supabase
       .from("notification_preferences")
       .select("user_id")
@@ -54,10 +48,10 @@ serve(async (req) => {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     let sentCount = 0;
     let skipCount = 0;
+    const appUrl = getEmailAppUrl();
 
     for (const user of users) {
       try {
-        // Gather weekly data
         const [appsResult, meetingsResult, profileResult] = await Promise.all([
           supabase
             .from("applications")
@@ -84,16 +78,52 @@ serve(async (req) => {
         const meetings = meetingsResult.data || [];
         const profile = profileResult.data;
 
-        // Skip if nothing happened this week and no upcoming meetings
         if (apps.length === 0 && meetings.length === 0) {
           skipCount++;
           continue;
         }
 
-        const emailHtml = buildDigestEmail({
-          name: profile?.full_name || "there",
-          applications: apps,
-          meetings,
+        const name = profile?.full_name || "there";
+
+        // Build application rows
+        const appsContentHtml = apps.map(a => {
+          return `
+            ${InfoRow({ label: a.position || 'Role', value: `${a.company_name || ''} · ${formatStatus(a.status)}` })}
+          `;
+        }).join('');
+
+        // Build meeting rows
+        const meetingsContentHtml = meetings.map(m => {
+          const d = new Date(m.start_time);
+          const formatted = d.toLocaleDateString("en-GB", {
+            weekday: "short", day: "numeric", month: "short",
+            hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam",
+          });
+          return InfoRow({ label: m.title || 'Meeting', value: `${formatted} CET` });
+        }).join('');
+
+        const content = `
+          ${Heading({ text: 'Your Weekly Summary', level: 1 })}
+          ${Paragraph(`Hello ${name}, here is what happened this week.`)}
+          ${apps.length > 0 ? `
+            ${Spacer(8)}
+            ${Heading({ text: 'Application Updates', level: 2 })}
+            ${Card({ content: appsContentHtml, variant: 'default' })}
+          ` : ''}
+          ${meetings.length > 0 ? `
+            ${Spacer(16)}
+            ${Heading({ text: 'Upcoming Meetings', level: 2 })}
+            ${Card({ content: meetingsContentHtml, variant: 'default' })}
+          ` : ''}
+          ${Spacer(24)}
+          <div style="text-align: center;">
+            ${Button({ url: `${appUrl}/home`, text: 'Go to Dashboard' })}
+          </div>
+        `;
+
+        const emailHtml = baseEmailTemplate({
+          preheader: `Your weekly summary — ${apps.length} update${apps.length !== 1 ? 's' : ''}, ${meetings.length} upcoming meeting${meetings.length !== 1 ? 's' : ''}`,
+          content,
         });
 
         const summaryParts: string[] = [];
@@ -133,78 +163,6 @@ serve(async (req) => {
     );
   }
 });
-
-function buildDigestEmail(opts: {
-  name: string;
-  applications: Array<{ position: string; company_name: string; status: string; updated_at: string }>;
-  meetings: Array<{ title: string; start_time: string; meeting_type: string }>;
-}): string {
-  const appsHtml = opts.applications.length > 0
-    ? opts.applications.map(a => `
-        <tr>
-          <td style="padding:8px 0;border-bottom:1px solid #2a2a2d;">
-            <p style="margin:0;font-size:14px;color:#F5F4EF;font-weight:600;">${a.position}</p>
-            <p style="margin:2px 0 0;font-size:12px;color:#999;">${a.company_name} · ${formatStatus(a.status)}</p>
-          </td>
-        </tr>`).join("")
-    : "";
-
-  const meetingsHtml = opts.meetings.length > 0
-    ? opts.meetings.map(m => {
-        const d = new Date(m.start_time);
-        const formatted = d.toLocaleDateString("en-GB", {
-          weekday: "short", day: "numeric", month: "short",
-          hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam",
-        });
-        return `
-        <tr>
-          <td style="padding:8px 0;border-bottom:1px solid #2a2a2d;">
-            <p style="margin:0;font-size:14px;color:#F5F4EF;">${m.title}</p>
-            <p style="margin:2px 0 0;font-size:12px;color:#999;">${formatted} CET</p>
-          </td>
-        </tr>`;
-      }).join("")
-    : "";
-
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#0E0E10;color:#F5F4EF;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0E0E10;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background-color:#1a1a1d;border-radius:8px;overflow:hidden;">
-        <tr><td style="padding:32px 40px;border-bottom:1px solid #2a2a2d;">
-          <img src="https://thequantumclub.lovable.app/lovable-uploads/quantum-club-logo.png" alt="The Quantum Club" width="160" style="display:block;" />
-        </td></tr>
-        <tr><td style="padding:40px;">
-          <h1 style="margin:0 0 4px;font-size:22px;color:#C9A24E;">Your Weekly Summary</h1>
-          <p style="margin:0 0 24px;font-size:14px;color:#999;">Hello ${opts.name}, here's what happened this week.</p>
-          ${appsHtml ? `
-          <h2 style="margin:0 0 12px;font-size:16px;color:#F5F4EF;">Application Updates</h2>
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">${appsHtml}</table>
-          ` : ""}
-          ${meetingsHtml ? `
-          <h2 style="margin:0 0 12px;font-size:16px;color:#F5F4EF;">Upcoming Meetings</h2>
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">${meetingsHtml}</table>
-          ` : ""}
-          <table cellpadding="0" cellspacing="0">
-            <tr><td style="background-color:#C9A24E;border-radius:6px;padding:12px 28px;">
-              <a href="https://thequantumclub.lovable.app/home" style="color:#0E0E10;text-decoration:none;font-weight:600;font-size:14px;">
-                Go to Dashboard
-              </a>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="padding:24px 40px;border-top:1px solid #2a2a2d;font-size:12px;color:#666;">
-          <p style="margin:0;">The Quantum Club</p>
-          <p style="margin:4px 0 0;">Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
 
 function formatStatus(status: string): string {
   const map: Record<string, string> = {
