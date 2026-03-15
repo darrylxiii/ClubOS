@@ -213,7 +213,7 @@ export function useSettingsData(user: User | null, i18n: { language: string; cha
           stealthModeEnabled: data.stealth_mode_enabled || false,
           stealthModeLevel: data.stealth_mode_level || 1,
           allowStealthColdOutreach: data.allow_stealth_cold_outreach !== false,
-          privacySettings: (data.privacy_settings as PrivacySettings) || DEFAULT_PRIVACY,
+          privacySettings: (data.privacy_settings as unknown as PrivacySettings) || DEFAULT_PRIVACY,
           preferredCurrency: (data.preferred_currency as SettingsState['preferredCurrency']) || 'EUR',
           preferredLanguage: userLanguage,
           jobAlertFrequency: data.job_alert_frequency || 'daily',
