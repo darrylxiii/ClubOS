@@ -30,7 +30,7 @@ export function CompactStrategist() {
       const { data: cp } = await supabase
         .from('candidate_profiles')
         .select('assigned_strategist_id')
-        .eq('id', user!.id)
+        .eq('user_id', user!.id)
         .maybeSingle();
 
       if (!cp?.assigned_strategist_id) return null;

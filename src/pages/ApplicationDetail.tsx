@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
@@ -59,41 +60,23 @@ interface ApplicationDetail {
 export default function ApplicationDetail() {
   const { applicationId } = useParams();
   const navigate = useNavigate();
-  const [application, setApplication] = useState<ApplicationDetail | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadApplication();
-  }, [applicationId]);
-
-  const loadApplication = async () => {
-    try {
+  const { data: application, isLoading } = useQuery({
+    queryKey: ['application-detail', applicationId],
+    queryFn: async (): Promise<ApplicationDetail | null> => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) return null;
 
-      // Fetch application with full job details including pipeline stages
       const { data, error } = await supabase
         .from("applications")
         .select(`
           *,
           jobs!applications_job_id_fkey (
-            id,
-            title,
-            location,
-            salary_min,
-            salary_max,
-            currency,
-            employment_type,
-            description,
-            requirements,
-            benefits,
-            company_id,
-            pipeline_stages,
+            id, title, location, salary_min, salary_max, currency,
+            employment_type, description, requirements, benefits,
+            company_id, pipeline_stages,
             companies!jobs_company_id_fkey (
-              name,
-              logo_url,
-              description,
-              website_url
+              name, logo_url, description, website_url
             )
           )
         `)
@@ -105,20 +88,18 @@ export default function ApplicationDetail() {
       if (!data) {
         toast.error("Application not found");
         navigate("/applications");
-        return;
+        return null;
       }
 
-      // Get count of other candidates
       const { count } = await supabase
         .from("applications")
         .select("*", { count: 'exact', head: true })
         .eq("job_id", data.job_id)
         .neq("user_id", user.id);
 
-      // Get talent strategist
       let strategist = null;
       if (data.jobs?.company_id) {
-        const { data: companyMembers, error: strategistError } = await supabase
+        const { data: companyMembers } = await supabase
           .from("company_members")
           .select("user_id, role")
           .eq("company_id", data.jobs.company_id)
@@ -127,11 +108,6 @@ export default function ApplicationDetail() {
           .order('created_at', { ascending: true })
           .limit(1);
 
-        if (strategistError) {
-          console.error("Error fetching strategist:", strategistError);
-        }
-
-        // Get profile data separately
         if (companyMembers && companyMembers.length > 0) {
           const member = companyMembers[0];
           const { data: profileData } = await supabase
@@ -151,9 +127,8 @@ export default function ApplicationDetail() {
         }
       }
 
-      // Use job's pipeline_stages as the source of truth
       const jobPipelineStages = data.jobs?.pipeline_stages || [];
-      const formattedStages = Array.isArray(jobPipelineStages) 
+      const formattedStages = Array.isArray(jobPipelineStages)
         ? jobPipelineStages.map((stage: any) => ({
             id: stage.id || String(stage.order),
             title: stage.name,
@@ -176,7 +151,7 @@ export default function ApplicationDetail() {
           }))
         : [];
 
-      setApplication({
+      return {
         ...data,
         job: {
           ...data.jobs,
@@ -186,21 +161,27 @@ export default function ApplicationDetail() {
         stages: formattedStages,
         other_candidates_count: count || 0,
         talent_strategist: strategist,
-      });
-    } catch (error) {
-      console.error("Error loading application:", error);
-      toast.error("Failed to load application details");
-      navigate("/applications");
-    } finally {
-      setLoading(false);
-    }
-  };
+      };
+    },
+    enabled: !!applicationId,
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-muted-foreground">Loading application details...</p>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-48 w-full rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-40 w-full rounded-xl" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
         </div>
+      </div>
     );
   }
 
@@ -596,8 +577,6 @@ export default function ApplicationDetail() {
               <TimelineDeadlines
                 appliedDate={application.applied_at}
                 nextStageName={nextStage?.title}
-                estimatedDaysToNext={5}
-                finalDecisionDate="2025-10-25"
               />
 
               {/* Competition Insight */}
@@ -635,7 +614,11 @@ export default function ApplicationDetail() {
                       <p className="text-xs text-muted-foreground">Click to view profile</p>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full mt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={() => navigate(`/messages?to=${application.talent_strategist?.user_id}`)}
+                  >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Send Message
                   </Button>
