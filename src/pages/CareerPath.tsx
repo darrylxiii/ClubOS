@@ -46,7 +46,7 @@ export default function CareerPath() {
       if (error) throw error;
       setCareerPaths(data || []);
     } catch (error) {
-      console.error('Error fetching career paths:', error);
+      logger.error('Error fetching career paths:', { error });
     } finally {
       setLoading(false);
     }

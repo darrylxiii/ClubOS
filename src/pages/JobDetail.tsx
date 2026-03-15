@@ -285,7 +285,7 @@ export default function JobDetail() {
         trackJobSave(user.id, jobId!, true);
       }
     } catch (error) {
-      console.error('Error saving job:', error);
+      logger.error('Error saving job:', { error });
       toast.error('Failed to save job. Please try again.');
     }
   };

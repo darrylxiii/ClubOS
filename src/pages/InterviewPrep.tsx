@@ -190,7 +190,7 @@ export default function InterviewPrep() {
       if (error) throw error;
       toast.success("STAR answer saved to your preparation notes");
     } catch (err) {
-      console.error('Error saving STAR answer:', err);
+      logger.error('Error saving STAR answer:', { error: err });
       toast.error("Failed to save answer");
     }
   };

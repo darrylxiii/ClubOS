@@ -125,7 +125,7 @@ const DocumentManagement = () => {
       toast.success('Document uploaded successfully');
       loadDocuments();
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', { error });
       toast.error('Failed to upload document');
     } finally {
       setUploading(false);
