@@ -1,16 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Heading, Paragraph, Card, Button, Spacer } from "../_shared/email-templates/components.ts";
+import { getEmailAppUrl, EMAIL_COLORS } from "../_shared/email-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
-
-/**
- * Notifies a candidate when a strategist has been assigned to them.
- * Body: { candidate_user_id, strategist_user_id }
- */
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -31,7 +29,6 @@ serve(async (req) => {
       );
     }
 
-    // Get strategist profile
     const { data: strategist } = await supabase
       .from("profiles")
       .select("full_name, avatar_url, headline")
@@ -40,13 +37,42 @@ serve(async (req) => {
 
     const strategistName = strategist?.full_name || "Your Strategist";
     const strategistTitle = strategist?.headline || "Career Strategist";
+    const appUrl = getEmailAppUrl();
 
-    const body = `${strategistName} has been assigned as your career strategist. They'll guide you through your job search and help you land the right role.`;
+    const bodyText = `${strategistName} has been assigned as your career strategist. They will guide you through your job search and help you land the right role.`;
 
-    const emailHtml = buildStrategistEmail({
-      strategistName,
-      strategistTitle,
-      avatarUrl: strategist?.avatar_url,
+    // Build avatar HTML (table-based for email compatibility)
+    const avatarHtml = strategist?.avatar_url
+      ? `<img src="${strategist.avatar_url}" alt="${strategistName}" width="64" height="64" style="border-radius: 50%; display: block; margin: 0 auto 12px;" />`
+      : `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 12px;">
+          <tr><td style="width: 64px; height: 64px; border-radius: 50%; background-color: ${EMAIL_COLORS.gold}; text-align: center; vertical-align: middle; font-size: 24px; font-weight: 700; color: ${EMAIL_COLORS.eclipse};">
+            ${strategistName.charAt(0)}
+          </td></tr>
+        </table>`;
+
+    const strategistCardContent = `
+      <div style="text-align: center;">
+        ${avatarHtml}
+        <p style="margin: 0 0 4px; font-size: 18px; font-weight: 600; color: ${EMAIL_COLORS.textPrimary};">${strategistName}</p>
+        <p style="margin: 0; font-size: 14px; color: ${EMAIL_COLORS.textSecondary};">${strategistTitle}</p>
+      </div>
+    `;
+
+    const content = `
+      ${Heading({ text: 'Meet Your Strategist', level: 1, align: 'center' })}
+      ${Spacer(8)}
+      ${Card({ content: strategistCardContent, variant: 'highlight' })}
+      ${Spacer(16)}
+      ${Paragraph('Your dedicated career strategist will help you navigate opportunities, prepare for interviews, and negotiate offers. Feel free to reach out via the messaging feature at any time.')}
+      ${Spacer(16)}
+      <div style="text-align: center;">
+        ${Button({ url: `${appUrl}/messages`, text: 'Send a Message' })}
+      </div>
+    `;
+
+    const emailHtml = baseEmailTemplate({
+      preheader: `${strategistName} is now your career strategist at The Quantum Club`,
+      content,
     });
 
     const { data: result, error: invokeError } = await supabase.functions.invoke(
@@ -58,7 +84,7 @@ serve(async (req) => {
           event_id: `strategist-${strategist_user_id}-${candidate_user_id}`,
           payload: {
             title: "Strategist Assigned",
-            body,
+            body: bodyText,
             email_html: emailHtml,
             route: "/home",
             data: { strategistUserId: strategist_user_id, strategistName },
@@ -81,51 +107,3 @@ serve(async (req) => {
     );
   }
 });
-
-function buildStrategistEmail(opts: {
-  strategistName: string;
-  strategistTitle: string;
-  avatarUrl?: string;
-}): string {
-  const avatarHtml = opts.avatarUrl
-    ? `<img src="${opts.avatarUrl}" alt="${opts.strategistName}" width="64" height="64" style="border-radius:50%;display:block;margin:0 auto 12px;" />`
-    : `<div style="width:64px;height:64px;border-radius:50%;background-color:#C9A24E;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;">
-        <span style="color:#0E0E10;font-size:24px;font-weight:700;">${opts.strategistName.charAt(0)}</span>
-      </div>`;
-
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background-color:#0E0E10;color:#F5F4EF;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0E0E10;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background-color:#1a1a1d;border-radius:8px;overflow:hidden;">
-        <tr><td style="padding:32px 40px;border-bottom:1px solid #2a2a2d;">
-          <img src="https://thequantumclub.lovable.app/lovable-uploads/quantum-club-logo.png" alt="The Quantum Club" width="160" style="display:block;" />
-        </td></tr>
-        <tr><td style="padding:40px;text-align:center;">
-          <h1 style="margin:0 0 24px;font-size:22px;color:#C9A24E;">Meet Your Strategist</h1>
-          ${avatarHtml}
-          <p style="margin:0 0 4px;font-size:18px;font-weight:600;color:#F5F4EF;">${opts.strategistName}</p>
-          <p style="margin:0 0 24px;font-size:14px;color:#999;">${opts.strategistTitle}</p>
-          <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#F5F4EF;text-align:left;">
-            Your dedicated career strategist will help you navigate opportunities, prepare for interviews, and negotiate offers. Feel free to reach out via the messaging feature at any time.
-          </p>
-          <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
-            <tr><td style="background-color:#C9A24E;border-radius:6px;padding:12px 28px;">
-              <a href="https://thequantumclub.lovable.app/messages" style="color:#0E0E10;text-decoration:none;font-weight:600;font-size:14px;">
-                Send a Message
-              </a>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="padding:24px 40px;border-top:1px solid #2a2a2d;font-size:12px;color:#666;">
-          <p style="margin:0;">The Quantum Club</p>
-          <p style="margin:4px 0 0;">Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
