@@ -338,7 +338,7 @@ export function useClubAIChat() {
           if (fn?.name === "navigate_to_page") {
             try {
               const args = JSON.parse(fn.arguments || "{}") as { path: string; reason: string };
-              pendingToolCalls.push({ type: "navigate", path: args.path, reason: args.reason });
+              pendingToolCalls.push({ type: "navigate" as const, path: args.path, reason: args.reason });
             } catch (e) {
               logger.error("Failed to parse tool call:", { error: e });
             }
