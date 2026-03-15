@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail, Shield, MessageSquare } from "lucide-react";
 import { lazy, Suspense } from "react";
+import { logger } from "@/lib/logger";
 import { PageLoader } from "@/components/PageLoader";
 
 const MyCommunicationsPage = lazy(() => import('@/pages/MyCommunications'));
@@ -69,7 +70,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
       .maybeSingle();
 
     if (error) {
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile:', { error });
       return;
     }
     setProfile(data);

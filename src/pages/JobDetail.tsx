@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { JobProfileHero } from "@/components/jobs/JobProfileHero";
@@ -113,7 +114,7 @@ export default function JobDetail() {
       }
       setJob(data);
     } catch (error) {
-      console.error('Error loading job:', error);
+      logger.error('Error loading job:', { error });
       toast.error('Failed to load job details');
       navigate('/jobs');
     } finally {
@@ -145,7 +146,7 @@ export default function JobDetail() {
 
       setIsSaved(!!savedData);
     } catch (error) {
-      console.error('Error checking user status:', error);
+      logger.error('Error checking user status:', { error });
     }
   };
 
@@ -187,7 +188,7 @@ export default function JobDetail() {
         setCanEdit(!!companyMember);
       }
     } catch (error) {
-      console.error('Error checking edit permissions:', error);
+      logger.error('Error checking edit permissions:', { error });
     }
   };
 
@@ -245,7 +246,7 @@ export default function JobDetail() {
       setIsApplied(true);
       toast.success('Application submitted successfully!');
     } catch (error) {
-      console.error('Error applying:', error);
+      logger.error('Error applying:', { error });
       toast.error('Failed to submit application');
     }
   };
@@ -284,7 +285,7 @@ export default function JobDetail() {
         trackJobSave(user.id, jobId!, true);
       }
     } catch (error) {
-      console.error('Error saving job:', error);
+      logger.error('Error saving job:', { error });
       toast.error('Failed to save job. Please try again.');
     }
   };

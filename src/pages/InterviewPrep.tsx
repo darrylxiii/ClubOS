@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ErrorState } from "@/components/ui/error-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,7 +139,7 @@ export default function InterviewPrep() {
         setSelectedApp(formatted[0]);
       }
     } catch (error) {
-      console.error('Error fetching applications:', error);
+      logger.error('Error fetching applications:', { error });
       setFetchError("Failed to load your applications");
       toast.error("Failed to load interview prep data");
     } finally {
@@ -161,7 +162,7 @@ export default function InterviewPrep() {
         setAiPrep(data.prep);
       }
     } catch (err) {
-      console.error('Error generating AI prep:', err);
+      logger.error('Error generating AI prep:', { error: err });
       toast.error("Could not generate AI prep. Using default questions.");
     } finally {
       setAiLoading(false);
@@ -189,7 +190,7 @@ export default function InterviewPrep() {
       if (error) throw error;
       toast.success("STAR answer saved to your preparation notes");
     } catch (err) {
-      console.error('Error saving STAR answer:', err);
+      logger.error('Error saving STAR answer:', { error: err });
       toast.error("Failed to save answer");
     }
   };

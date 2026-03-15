@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2, Mail, Shield, Share2 } from "lucide-react";
 import { SharePipelineDialog } from "@/components/jobs/SharePipelineDialog";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
@@ -127,6 +129,7 @@ export default function JobDashboard() {
   } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [expandedStageIndices, setExpandedStageIndices] = useState<Set<number>>(new Set());
+  const [pendingStageDelete, setPendingStageDelete] = useState<{ index: number; message: string; stageApps: EnrichedApplication[] } | null>(null);
   const { jobRole, permissions, loading: jobRoleLoading } = useJobTeamRole(jobId!);
 
   // Drag and drop sensors
@@ -653,50 +656,7 @@ export default function JobDashboard() {
                                 ? `This stage has ${stageApps.length} candidate(s). They will be moved to "${targetStageName}". Delete "${stage.name}"?`
                                 : `Delete stage "${stage.name}"?`;
 
-                              if (!window.confirm(message)) return;
-
-                              try {
-                                // Migrate candidates out of the deleted stage
-                                if (stageApps.length > 0) {
-                                  const appIds = stageApps.map(a => a.id);
-                                  const { error: migrateError } = await supabase
-                                    .from('applications')
-                                    .update({ current_stage_index: targetIndex })
-                                    .in('id', appIds);
-                                  if (migrateError) throw migrateError;
-                                }
-
-                                // Also shift down candidates in stages above the deleted one
-                                const appsAbove = applications.filter(a => a.current_stage_index > index);
-                                if (appsAbove.length > 0) {
-                                  for (const app of appsAbove) {
-                                    await supabase
-                                      .from('applications')
-                                      .update({ current_stage_index: app.current_stage_index - 1 })
-                                      .eq('id', app.id);
-                                  }
-                                }
-
-                                // Remove stage and reindex
-                                const updatedStages = stages
-                                  .filter((_, i) => i !== index)
-                                  .map((s, i) => ({ ...s, order: i }));
-
-                                const { error } = await supabase
-                                  .from('jobs')
-                                  .update({ pipeline_stages: updatedStages })
-                                  .eq('id', jobId);
-
-                                if (!error) {
-                                  await fetchJobDetails();
-                                  toast.success("Stage deleted successfully");
-                                } else {
-                                  toast.error("Failed to delete stage");
-                                }
-                              } catch (err) {
-                                console.error('Stage deletion error:', err);
-                                toast.error("Failed to delete stage — candidates were not moved");
-                              }
+                              setPendingStageDelete({ index, message, stageApps });
                             }}
                             onAdvanceCandidate={(candidate) => {
                               setSelectedCandidateForAction({ candidate, action: 'advance' });
@@ -1032,6 +992,72 @@ export default function JobDashboard() {
         isAdmin={role === 'admin'}
         onConfirm={handleDelete}
       />
+
+      {/* Stage Delete Confirmation Dialog */}
+      <AlertDialog open={!!pendingStageDelete} onOpenChange={(open) => { if (!open) setPendingStageDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Pipeline Stage</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStageDelete?.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingStageDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!pendingStageDelete) return;
+                const { index, stageApps } = pendingStageDelete;
+                const targetIndex = index > 0 ? index - 1 : 0;
+                setPendingStageDelete(null);
+
+                try {
+                  if (stageApps.length > 0) {
+                    const appIds = stageApps.map(a => a.id);
+                    const { error: migrateError } = await supabase
+                      .from('applications')
+                      .update({ current_stage_index: targetIndex })
+                      .in('id', appIds);
+                    if (migrateError) throw migrateError;
+                  }
+
+                  const appsAbove = applications.filter(a => a.current_stage_index > index);
+                  if (appsAbove.length > 0) {
+                    for (const app of appsAbove) {
+                      await supabase
+                        .from('applications')
+                        .update({ current_stage_index: app.current_stage_index - 1 })
+                        .eq('id', app.id);
+                    }
+                  }
+
+                  const updatedStages = stages
+                    .filter((_, i) => i !== index)
+                    .map((s, i) => ({ ...s, order: i }));
+
+                  const { error } = await supabase
+                    .from('jobs')
+                    .update({ pipeline_stages: updatedStages })
+                    .eq('id', jobId);
+
+                  if (!error) {
+                    await fetchJobDetails();
+                    toast.success("Stage deleted successfully");
+                  } else {
+                    toast.error("Failed to delete stage");
+                  }
+                } catch (err) {
+                  logger.error('Stage deletion error:', { error: err });
+                  toast.error("Failed to delete stage — candidates were not moved");
+                }
+              }}
+            >
+              Delete Stage
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

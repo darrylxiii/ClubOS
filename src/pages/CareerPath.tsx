@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export default function CareerPath() {
       if (error) throw error;
       setCareerPaths(data || []);
     } catch (error) {
-      console.error('Error fetching career paths:', error);
+      logger.error('Error fetching career paths:', { error });
     } finally {
       setLoading(false);
     }

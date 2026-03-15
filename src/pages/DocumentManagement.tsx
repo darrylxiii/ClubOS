@@ -12,11 +12,11 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
-import { logger } from "@/lib/logger";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -125,7 +125,7 @@ const DocumentManagement = () => {
       toast.success('Document uploaded successfully');
       loadDocuments();
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', { error });
       toast.error('Failed to upload document');
     } finally {
       setUploading(false);

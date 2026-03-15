@@ -4,9 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Settings as SettingsIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
@@ -25,495 +24,86 @@ import { CommunicationSettings } from "@/components/settings/CommunicationSettin
 import { useTranslation } from 'react-i18next';
 import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
+import { useSettingsData } from "@/hooks/useSettingsData";
+import { logger } from "@/lib/logger";
 
 const Settings = () => {
   const { user } = useAuth();
   const { i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
+  const [resumeModalOpen, setResumeModalOpen] = useState(false);
+
+  const {
+    state,
+    updateField,
+    updateFields,
+    saveProfile,
+    debouncedSave,
+    loadProfile,
+    handlePrivacyToggle,
+    handleExportData,
+    handleCurrencyChange,
+    handleDisconnectSocial,
+  } = useSettingsData(user ?? null, i18n);
 
   // Listen for language changes from banner switcher
   useEffect(() => {
     const handleLanguageChange = (event: CustomEvent<string>) => {
-      const newLang = event.detail;
-      setPreferredLanguage(newLang);
+      updateField('preferredLanguage', event.detail);
     };
-
     window.addEventListener('languageChange', handleLanguageChange as EventListener);
-    return () => {
-      window.removeEventListener('languageChange', handleLanguageChange as EventListener);
-    };
-  }, []);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
-
-  // Profile states
-  const [fullName, setFullName] = useState("");
-  const [currentTitle, setCurrentTitle] = useState("");
-  const [bio, setBio] = useState("");
-  const [locationCity, setLocationCity] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [linkedinUrl, setLinkedinUrl] = useState("");
-  const [preferredWorkLocations, setPreferredWorkLocations] = useState<string[]>([]);
-  const [remoteWorkPreference, setRemoteWorkPreference] = useState(false);
-  const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
-
-  // Compensation states
-  const [employmentType, setEmploymentType] = useState<'fulltime' | 'freelance' | 'both'>('fulltime');
-  const [currentSalaryRange, setCurrentSalaryRange] = useState<[number, number]>([150000, 180000]);
-  const [desiredSalaryRange, setDesiredSalaryRange] = useState<[number, number]>([200000, 250000]);
-  const [freelanceHourlyRate, setFreelanceHourlyRate] = useState<[number, number]>([100, 200]);
-  const [fulltimeHoursPerWeek, setFulltimeHoursPerWeek] = useState<[number, number]>([35, 45]);
-  const [freelanceHoursPerWeek, setFreelanceHoursPerWeek] = useState<[number, number]>([15, 25]);
-  const [noticePeriod, setNoticePeriod] = useState("2_weeks");
-  const [contractEndDate, setContractEndDate] = useState<Date | null>(null);
-  const [hasIndefiniteContract, setHasIndefiniteContract] = useState(false);
-
-  // Privacy states
-  const [blockedCompanies, setBlockedCompanies] = useState<string[]>([]);
-  const [companySearchQuery, setCompanySearchQuery] = useState("");
-  const [stealthModeEnabled, setStealthModeEnabled] = useState(false);
-  const [stealthModeLevel, setStealthModeLevel] = useState(1);
-  const [allowStealthColdOutreach, setAllowStealthColdOutreach] = useState(true);
-  const [privacySettings, setPrivacySettings] = useState({
-    share_full_name: true,
-    share_email: true,
-    share_phone: true,
-    share_location: true,
-    share_current_title: true,
-    share_linkedin_url: true,
-    share_career_preferences: true,
-    share_resume: true,
-    share_salary_expectations: true,
-    share_notice_period: true,
-  });
-
-  // Social connections
-  const [socialConnections, setSocialConnections] = useState({
-    linkedin: false,
-    instagram: false,
-    twitter: false,
-    github: false,
-    instagramUsername: '',
-    twitterUsername: '',
-    githubUsername: '',
-  });
-
-  const [musicConnections, setMusicConnections] = useState({
-    spotifyConnected: false,
-    appleMusicConnected: false,
-    spotifyPlaylists: [] as any[],
-    appleMusicPlaylists: [] as any[],
-  });
-
-  // Preferences
-  const [preferredCurrency, setPreferredCurrency] = useState<'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH'>('EUR');
-  const [preferredLanguage, setPreferredLanguage] = useState('en');
-  const [jobAlertFrequency, setJobAlertFrequency] = useState('daily');
-  const [companySizePreference, setCompanySizePreference] = useState('any');
-  const [industryPreference, setIndustryPreference] = useState('any');
-  const [workTimezone, setWorkTimezone] = useState('Europe/Amsterdam');
-  const [availableHoursPerWeek, setAvailableHoursPerWeek] = useState(40);
-  const [resumeModalOpen, setResumeModalOpen] = useState(false);
+    return () => window.removeEventListener('languageChange', handleLanguageChange as EventListener);
+  }, [updateField]);
 
   // Initialize exchange rate tracking
   useExchangeRates();
 
-  // Get active tab from URL (query param or hash) or default to 'profile'
+  // Get active tab from URL
   const getActiveTab = () => {
-    // Check if returning from OAuth with a code
     const urlParams = new URLSearchParams(location.search);
-    if (urlParams.get('code')) {
-      return 'connections';
-    }
-
-    // Check if OAuth set a return tab
+    if (urlParams.get('code')) return 'connections';
     const oauthReturnTab = localStorage.getItem('oauth_return_tab');
-    if (oauthReturnTab) {
-      return oauthReturnTab;
-    }
-
+    if (oauthReturnTab) return oauthReturnTab;
     const tabParam = urlParams.get('tab');
     if (tabParam && ['profile', 'ai-persona', 'compensation', 'freelance', 'connections', 'calendar', 'notifications', 'privacy', 'security', 'preferences', 'time-tracking', 'api', 'communication', 'company'].includes(tabParam)) {
       return tabParam;
     }
-    const hash = location.hash.replace('#', '');
-    return hash || 'profile';
+    return location.hash.replace('#', '') || 'profile';
   };
 
   const [activeTab, setActiveTab] = useState(getActiveTab());
 
-  // Update active tab when URL changes
   useEffect(() => {
     setActiveTab(getActiveTab());
   }, [location.search, location.hash]);
 
-  // Handle tab change and update URL
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     navigate(`/settings?tab=${value}`, { replace: true });
   };
 
-  // Debounced save function
-  const debouncedSave = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      saveProfile();
-    }, 1000);
-  }, []);
-
-  // Load profile data
-  useEffect(() => {
-    loadProfile();
-    loadCities();
-  }, [user]);
-
-  const loadProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data) {
-        setProfile(data);
-        setFullName(data.full_name || '');
-        setCurrentTitle(data.current_title || '');
-        setBio(data.career_preferences || '');
-        setLocationCity(data.location || '');
-        setPhoneNumber(data.phone || '');
-        setPhoneVerified(data.phone_verified || false);
-        setEmailVerified(data.email_verified || false);
-        setLinkedinUrl(data.linkedin_url || '');
-        setPreferredWorkLocations((data.preferred_work_locations as string[]) || []);
-        setRemoteWorkPreference(data.remote_work_preference || false);
-
-        // Compensation
-        setEmploymentType((data.employment_type_preference as 'fulltime' | 'freelance' | 'both') || 'fulltime');
-        setCurrentSalaryRange([
-          data.current_salary_min || 150000,
-          data.current_salary_max || 180000
-        ]);
-        setDesiredSalaryRange([
-          data.desired_salary_min || 200000,
-          data.desired_salary_max || 250000
-        ]);
-        setFreelanceHourlyRate([
-          data.freelance_hourly_rate_min || 100,
-          data.freelance_hourly_rate_max || 200
-        ]);
-        setFulltimeHoursPerWeek([
-          data.fulltime_hours_per_week_min || 35,
-          data.fulltime_hours_per_week_max || 45
-        ]);
-        setFreelanceHoursPerWeek([
-          data.freelance_hours_per_week_min || 15,
-          data.freelance_hours_per_week_max || 25
-        ]);
-        setNoticePeriod(data.notice_period || '2_weeks');
-        setContractEndDate((data as any).contract_end_date ? new Date((data as any).contract_end_date) : null);
-        setHasIndefiniteContract((data as any).has_indefinite_contract || false);
-
-        // Privacy
-        setBlockedCompanies((data.blocked_companies as string[]) || []);
-        setStealthModeEnabled(data.stealth_mode_enabled || false);
-        setStealthModeLevel(data.stealth_mode_level || 1);
-        setAllowStealthColdOutreach(data.allow_stealth_cold_outreach !== false);
-        if (data.privacy_settings) {
-          setPrivacySettings(data.privacy_settings as any);
-        }
-
-        // Currency
-        setPreferredCurrency((data.preferred_currency as 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') || 'EUR');
-
-        // New preferences
-        const userLanguage = data.preferred_language || 'en';
-        setPreferredLanguage(userLanguage);
-        // Sync i18n language with user preference
-        if (i18n.language !== userLanguage) {
-          i18n.changeLanguage(userLanguage);
-        }
-        setJobAlertFrequency(data.job_alert_frequency || 'daily');
-        setCompanySizePreference(data.company_size_preference || 'any');
-        setIndustryPreference(data.industry_preference || 'any');
-        setWorkTimezone(data.work_timezone || 'Europe/Amsterdam');
-        setAvailableHoursPerWeek(data.available_hours_per_week || 40);
-
-        // Social connections
-        if (data.linkedin_connected) {
-          setSocialConnections(prev => ({ ...prev, linkedin: true }));
-        }
-        if (data.instagram_connected && data.instagram_username) {
-          setSocialConnections(prev => ({
-            ...prev,
-            instagram: true,
-            instagramUsername: data.instagram_username
-          }));
-        }
-        if (data.twitter_connected && data.twitter_username) {
-          setSocialConnections(prev => ({
-            ...prev,
-            twitter: true,
-            twitterUsername: data.twitter_username
-          }));
-        }
-        if (data.github_connected && data.github_username) {
-          setSocialConnections(prev => ({
-            ...prev,
-            github: true,
-            githubUsername: data.github_username
-          }));
-        }
-
-        setMusicConnections({
-          spotifyConnected: (data as any).spotify_connected || false,
-          appleMusicConnected: (data as any).apple_music_connected || false,
-          spotifyPlaylists: (data as any).spotify_playlists || [],
-          appleMusicPlaylists: (data as any).apple_music_playlists || [],
-        });
-      }
-    } catch (error: unknown) {
-      console.error('Error loading profile:', error);
-      toast.error('Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadCities = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('cities')
-        .select('id, name, country')
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      if (data) {
-        setCities(data);
-      }
-    } catch (error) {
-      console.error('Error loading cities:', error);
-    }
-  };
-
-  const saveProfile = async () => {
-    if (!user) return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          current_title: currentTitle,
-          career_preferences: bio,
-          location: locationCity,
-          phone: phoneNumber,
-          phone_verified: phoneVerified,
-          email_verified: emailVerified,
-          linkedin_url: linkedinUrl,
-          preferred_work_locations: preferredWorkLocations,
-          remote_work_preference: remoteWorkPreference,
-          employment_type_preference: employmentType,
-          current_salary_min: currentSalaryRange[0],
-          current_salary_max: currentSalaryRange[1],
-          desired_salary_min: desiredSalaryRange[0],
-          desired_salary_max: desiredSalaryRange[1],
-          freelance_hourly_rate_min: freelanceHourlyRate[0],
-          freelance_hourly_rate_max: freelanceHourlyRate[1],
-          fulltime_hours_per_week_min: fulltimeHoursPerWeek[0],
-          fulltime_hours_per_week_max: fulltimeHoursPerWeek[1],
-          freelance_hours_per_week_min: freelanceHoursPerWeek[0],
-          freelance_hours_per_week_max: freelanceHoursPerWeek[1],
-          notice_period: noticePeriod,
-          contract_end_date: contractEndDate?.toISOString(),
-          has_indefinite_contract: hasIndefiniteContract,
-          blocked_companies: blockedCompanies,
-          stealth_mode_enabled: stealthModeEnabled,
-          stealth_mode_level: stealthModeLevel,
-          allow_stealth_cold_outreach: allowStealthColdOutreach,
-          privacy_settings: privacySettings,
-          preferred_currency: preferredCurrency,
-          preferred_language: preferredLanguage,
-          job_alert_frequency: jobAlertFrequency,
-          company_size_preference: companySizePreference,
-          industry_preference: industryPreference,
-          work_timezone: workTimezone,
-          available_hours_per_week: availableHoursPerWeek,
-          updated_at: new Date().toISOString()
-        } as any)
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      toast.success('Settings saved successfully');
-    } catch (error: unknown) {
-      console.error('Error saving profile:', error);
-      toast.error('Failed to save settings');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSavePrivacy = async () => {
-    await saveProfile();
-  };
-
-  const handleExportData = async () => {
-    if (!user) return;
-
-    toast.success('Preparing your data export...');
-
-    try {
-      const { error } = await supabase
-        .from('profile_data_exports')
-        .insert({
-          user_id: user.id,
-          export_status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast.success("Data export requested. You'll receive an email when ready.");
-    } catch (error: unknown) {
-      console.error('Error requesting export:', error);
-      toast.error('Failed to request data export');
-    }
-  };
-
-  const handlePrivacyToggle = (setting: string) => {
-    setPrivacySettings({
-      ...privacySettings,
-      [setting]: !(privacySettings as any)[setting],
-    });
-    debouncedSave();
-  };
-
-  const handleStealthModeChange = (enabled: boolean) => {
-    setStealthModeEnabled(enabled);
-    debouncedSave();
-  };
-
-  const handleStealthLevelChange = (level: number) => {
-    setStealthModeLevel(level);
-    debouncedSave();
-  };
-
-  const handleColdOutreachChange = (allowed: boolean) => {
-    setAllowStealthColdOutreach(allowed);
-    debouncedSave();
-  };
-
   const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
     try {
       const redirectTo = `${window.location.origin}/settings`;
-
       await signInWithOAuthCustomDomain({
-        provider: provider as any,
+        provider: provider as Parameters<typeof signInWithOAuthCustomDomain>[0]['provider'],
         redirectTo,
         scopes: provider === 'linkedin_oidc' ? 'openid profile email' :
           provider === 'github' ? 'read:user user:email' : undefined,
       });
-
       toast.success(`Redirecting to ${provider} login...`);
     } catch (error) {
-      console.error(`${provider} connection error:`, error);
+      logger.error(`${provider} connection error:`, { error });
       toast.error(`Failed to connect ${provider}`);
     }
   };
 
-  const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter' | 'github') => {
-    try {
-      const updates: any = {};
-
-      if (platform === 'linkedin') {
-        updates.linkedin_connected = false;
-        updates.linkedin_profile_data = null;
-      } else if (platform === 'instagram') {
-        updates.instagram_connected = false;
-        updates.instagram_username = null;
-      } else if (platform === 'twitter') {
-        updates.twitter_connected = false;
-        updates.twitter_username = null;
-      } else if (platform === 'github') {
-        updates.github_connected = false;
-        updates.github_username = null;
-        updates.github_profile_data = null;
-      }
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user?.id);
-
-      if (error) throw error;
-
-      setSocialConnections(prev => ({
-        ...prev,
-        [platform]: false,
-        [`${platform}Username`]: '',
-      }));
-
-      toast.success(`${platform} disconnected`);
-    } catch (error) {
-      console.error(`Error disconnecting ${platform}:`, error);
-      toast.error(`Failed to disconnect ${platform}`);
-    }
-  };
-
-  const handleSocialUpdate = async () => {
-    await loadProfile();
-  };
-
-  const handleCurrencyChange = async (currency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') => {
-    setPreferredCurrency(currency);
-
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ preferred_currency: currency })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      toast.success(`Currency preference updated to ${currency}`);
-    } catch (error) {
-      console.error('Error updating currency:', error);
-      toast.error('Failed to update currency preference');
-    }
-  };
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  if (loading) {
+  if (state.loading) {
     return (
-      <>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
@@ -530,10 +120,6 @@ const Settings = () => {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-
-
-            {/* ... (in TabList) */}
-
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="ai-persona">AI Persona</TabsTrigger>
             <TabsTrigger value="compensation">Compensation</TabsTrigger>
@@ -553,38 +139,38 @@ const Settings = () => {
           <TabsContent value="profile" className="space-y-4">
             <ProfileSettings
               user={user}
-              profile={profile}
-              fullName={fullName}
-              setFullName={setFullName}
-              currentTitle={currentTitle}
-              setCurrentTitle={setCurrentTitle}
-              bio={bio}
-              setBio={setBio}
-              locationCity={locationCity}
-              setLocationCity={setLocationCity}
-              phoneNumber={phoneNumber}
-              setPhoneNumber={setPhoneNumber}
-              phoneVerified={phoneVerified}
-              setPhoneVerified={setPhoneVerified}
-              emailVerified={emailVerified}
-              setEmailVerified={setEmailVerified}
-              linkedinUrl={linkedinUrl}
-              setLinkedinUrl={setLinkedinUrl}
-              preferredWorkLocations={preferredWorkLocations}
-              setPreferredWorkLocations={setPreferredWorkLocations}
-              remoteWorkPreference={remoteWorkPreference}
-              setRemoteWorkPreference={setRemoteWorkPreference}
-              cities={cities}
+              profile={state.profile}
+              fullName={state.fullName}
+              setFullName={(v) => updateField('fullName', v)}
+              currentTitle={state.currentTitle}
+              setCurrentTitle={(v) => updateField('currentTitle', v)}
+              bio={state.bio}
+              setBio={(v) => updateField('bio', v)}
+              locationCity={state.locationCity}
+              setLocationCity={(v) => updateField('locationCity', v)}
+              phoneNumber={state.phoneNumber}
+              setPhoneNumber={(v) => updateField('phoneNumber', v)}
+              phoneVerified={state.phoneVerified}
+              setPhoneVerified={(v) => updateField('phoneVerified', v)}
+              emailVerified={state.emailVerified}
+              setEmailVerified={(v) => updateField('emailVerified', v)}
+              linkedinUrl={state.linkedinUrl}
+              setLinkedinUrl={(v) => updateField('linkedinUrl', v)}
+              preferredWorkLocations={state.preferredWorkLocations}
+              setPreferredWorkLocations={(v) => updateField('preferredWorkLocations', v)}
+              remoteWorkPreference={state.remoteWorkPreference}
+              setRemoteWorkPreference={(v) => updateField('remoteWorkPreference', v)}
+              cities={state.cities}
               onSave={saveProfile}
-              onAvatarChange={(url) => setProfile({ ...profile, avatar_url: url })}
-              saving={saving}
+              onAvatarChange={(url) => updateField('profile', { ...state.profile, avatar_url: url } as typeof state.profile)}
+              saving={state.saving}
             />
           </TabsContent>
 
           <TabsContent value="ai-persona" className="space-y-4">
-            {profile && (
+            {state.profile && (
               <EntityKnowledgeProfile
-                entityId={profile.id}
+                entityId={state.profile.id}
                 entityType="user"
                 title="My AI Persona"
                 description="Teach the AI your personal communication style and preferences."
@@ -594,26 +180,26 @@ const Settings = () => {
 
           <TabsContent value="compensation" className="space-y-4">
             <CompensationSettings
-              employmentType={employmentType}
-              setEmploymentType={setEmploymentType}
-              currentSalaryRange={currentSalaryRange}
-              setCurrentSalaryRange={setCurrentSalaryRange}
-              desiredSalaryRange={desiredSalaryRange}
-              setDesiredSalaryRange={setDesiredSalaryRange}
-              freelanceHourlyRate={freelanceHourlyRate}
-              setFreelanceHourlyRate={setFreelanceHourlyRate}
-              fulltimeHoursPerWeek={fulltimeHoursPerWeek}
-              setFulltimeHoursPerWeek={setFulltimeHoursPerWeek}
-              freelanceHoursPerWeek={freelanceHoursPerWeek}
-              setFreelanceHoursPerWeek={setFreelanceHoursPerWeek}
-              noticePeriod={noticePeriod}
-              setNoticePeriod={setNoticePeriod}
-              contractEndDate={contractEndDate}
-              setContractEndDate={setContractEndDate}
-              hasIndefiniteContract={hasIndefiniteContract}
-              setHasIndefiniteContract={setHasIndefiniteContract}
+              employmentType={state.employmentType}
+              setEmploymentType={(v) => updateField('employmentType', v)}
+              currentSalaryRange={state.currentSalaryRange}
+              setCurrentSalaryRange={(v) => updateField('currentSalaryRange', v)}
+              desiredSalaryRange={state.desiredSalaryRange}
+              setDesiredSalaryRange={(v) => updateField('desiredSalaryRange', v)}
+              freelanceHourlyRate={state.freelanceHourlyRate}
+              setFreelanceHourlyRate={(v) => updateField('freelanceHourlyRate', v)}
+              fulltimeHoursPerWeek={state.fulltimeHoursPerWeek}
+              setFulltimeHoursPerWeek={(v) => updateField('fulltimeHoursPerWeek', v)}
+              freelanceHoursPerWeek={state.freelanceHoursPerWeek}
+              setFreelanceHoursPerWeek={(v) => updateField('freelanceHoursPerWeek', v)}
+              noticePeriod={state.noticePeriod}
+              setNoticePeriod={(v) => updateField('noticePeriod', v)}
+              contractEndDate={state.contractEndDate}
+              setContractEndDate={(v) => updateField('contractEndDate', v)}
+              hasIndefiniteContract={state.hasIndefiniteContract}
+              setHasIndefiniteContract={(v) => updateField('hasIndefiniteContract', v)}
               onSave={saveProfile}
-              saving={saving}
+              saving={state.saving}
             />
           </TabsContent>
 
@@ -627,11 +213,11 @@ const Settings = () => {
 
           <TabsContent value="connections" className="space-y-4">
             <ConnectionsSettings
-              socialConnections={socialConnections}
-              musicConnections={musicConnections}
+              socialConnections={state.socialConnections}
+              musicConnections={state.musicConnections}
               onConnectSocial={handleConnectSocial}
               onDisconnectSocial={handleDisconnectSocial}
-              onUpdate={handleSocialUpdate}
+              onUpdate={loadProfile}
             />
           </TabsContent>
 
@@ -649,28 +235,26 @@ const Settings = () => {
 
           <TabsContent value="privacy" className="space-y-4">
             <PrivacySettings
-              blockedCompanies={blockedCompanies}
-              setBlockedCompanies={setBlockedCompanies}
-              companySearchQuery={companySearchQuery}
-              setCompanySearchQuery={setCompanySearchQuery}
-              stealthModeEnabled={stealthModeEnabled}
-              stealthModeLevel={stealthModeLevel}
-              allowStealthColdOutreach={allowStealthColdOutreach}
-              onStealthModeChange={handleStealthModeChange}
-              onStealthLevelChange={handleStealthLevelChange}
-              onColdOutreachChange={handleColdOutreachChange}
-              privacySettings={privacySettings}
+              blockedCompanies={state.blockedCompanies}
+              setBlockedCompanies={(v) => updateField('blockedCompanies', v)}
+              companySearchQuery={state.companySearchQuery}
+              setCompanySearchQuery={(v) => updateField('companySearchQuery', v)}
+              stealthModeEnabled={state.stealthModeEnabled}
+              stealthModeLevel={state.stealthModeLevel}
+              allowStealthColdOutreach={state.allowStealthColdOutreach}
+              onStealthModeChange={(v) => { updateField('stealthModeEnabled', v); debouncedSave(); }}
+              onStealthLevelChange={(v) => { updateField('stealthModeLevel', v); debouncedSave(); }}
+              onColdOutreachChange={(v) => { updateField('allowStealthColdOutreach', v); debouncedSave(); }}
+              privacySettings={state.privacySettings}
               onPrivacyToggle={handlePrivacyToggle}
-              onSave={handleSavePrivacy}
+              onSave={saveProfile}
               onExportData={handleExportData}
-              saving={saving}
+              saving={state.saving}
             />
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4">
             <SecuritySettings />
-
-            {/* Documents Section */}
             <Card>
               <CardHeader>
                 <CardTitle>Documents</CardTitle>
@@ -692,26 +276,26 @@ const Settings = () => {
 
           <TabsContent value="preferences" className="space-y-4">
             <PreferencesSettings
-              preferredCurrency={preferredCurrency}
+              preferredCurrency={state.preferredCurrency}
               onCurrencyChange={handleCurrencyChange}
-              preferredLanguage={preferredLanguage}
+              preferredLanguage={state.preferredLanguage}
               onLanguageChange={async (lang) => {
-                setPreferredLanguage(lang);
+                updateField('preferredLanguage', lang);
                 await i18n.changeLanguage(lang);
                 debouncedSave();
               }}
-              jobAlertFrequency={jobAlertFrequency}
-              onJobAlertFrequencyChange={(freq) => { setJobAlertFrequency(freq); debouncedSave(); }}
-              companySizePreference={companySizePreference}
-              onCompanySizeChange={(size) => { setCompanySizePreference(size); debouncedSave(); }}
-              industryPreference={industryPreference}
-              onIndustryChange={(industry) => { setIndustryPreference(industry); debouncedSave(); }}
-              workTimezone={workTimezone}
-              onTimezoneChange={(tz) => { setWorkTimezone(tz); debouncedSave(); }}
-              availableHoursPerWeek={availableHoursPerWeek}
-              onAvailableHoursChange={(hours) => { setAvailableHoursPerWeek(hours); debouncedSave(); }}
+              jobAlertFrequency={state.jobAlertFrequency}
+              onJobAlertFrequencyChange={(freq) => { updateField('jobAlertFrequency', freq); debouncedSave(); }}
+              companySizePreference={state.companySizePreference}
+              onCompanySizeChange={(size) => { updateField('companySizePreference', size); debouncedSave(); }}
+              industryPreference={state.industryPreference}
+              onIndustryChange={(industry) => { updateField('industryPreference', industry); debouncedSave(); }}
+              workTimezone={state.workTimezone}
+              onTimezoneChange={(tz) => { updateField('workTimezone', tz); debouncedSave(); }}
+              availableHoursPerWeek={state.availableHoursPerWeek}
+              onAvailableHoursChange={(hours) => { updateField('availableHoursPerWeek', hours); debouncedSave(); }}
               onSave={saveProfile}
-              saving={saving}
+              saving={state.saving}
             />
           </TabsContent>
 
