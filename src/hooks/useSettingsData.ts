@@ -351,7 +351,7 @@ export function useSettingsData(user: User | null, i18n: { language: string; cha
       ...prev,
       privacySettings: {
         ...prev.privacySettings,
-        [setting]: !(prev.privacySettings as Record<string, boolean>)[setting],
+        [setting]: !(prev.privacySettings as unknown as Record<string, boolean>)[setting],
       },
     }));
     debouncedSave();

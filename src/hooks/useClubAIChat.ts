@@ -160,7 +160,7 @@ export function useClubAIChat() {
       const { error } = await supabase
         .from("ai_conversations")
         .update({
-          messages: JSON.stringify(updatedMessages) as unknown as Record<string, unknown>,
+          messages: JSON.stringify(updatedMessages) as unknown as import("@/integrations/supabase/types").Json,
           updated_at: new Date().toISOString()
         })
         .eq("id", currentConversationId);
