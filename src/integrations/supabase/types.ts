@@ -11392,6 +11392,66 @@ export type Database = {
           },
         ]
       }
+      company_offices: {
+        Row: {
+          city: string | null
+          company_id: string
+          country: string | null
+          country_code: string | null
+          created_at: string | null
+          created_by: string | null
+          formatted_address: string | null
+          id: string
+          is_headquarters: boolean | null
+          label: string
+          latitude: number | null
+          longitude: number | null
+        }
+        Insert: {
+          city?: string | null
+          company_id: string
+          country?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          formatted_address?: string | null
+          id?: string
+          is_headquarters?: boolean | null
+          label: string
+          latitude?: number | null
+          longitude?: number | null
+        }
+        Update: {
+          city?: string | null
+          company_id?: string
+          country?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          formatted_address?: string | null
+          id?: string
+          is_headquarters?: boolean | null
+          label?: string
+          latitude?: number | null
+          longitude?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_offices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_offices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_people: {
         Row: {
           auto_purge_at: string | null
