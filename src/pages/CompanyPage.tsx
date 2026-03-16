@@ -39,6 +39,7 @@ import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledg
 
 
 import { CompanyFinancialsTab } from "@/components/companies/CompanyFinancialsTab";
+import { CompanyOfficeManager } from "@/components/companies/CompanyOfficeManager";
 import { DomainManagementPanel } from "@/components/admin/DomainManagementPanel";
 import { PartnerOrgIntelligence } from "@/components/organization/PartnerOrgIntelligence";
 
@@ -686,6 +687,12 @@ export default function CompanyPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Office Locations */}
+            <CompanyOfficeManager
+              companyId={company.id}
+              canManage={isAdmin || isCompanyMember}
+            />
           </TabsContent>
 
           <TabsContent value="jobs" className="space-y-6 mt-6">

@@ -26,7 +26,8 @@ import { Separator } from "@/components/ui/separator";
 import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
-import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
+import { type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
+import { CompanyOfficeLocationPicker } from "@/components/jobs/CompanyOfficeLocationPicker";
 import { MultiLocationInput, type LocationInput } from "@/components/jobs/MultiLocationInput";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
@@ -927,13 +928,19 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       {formData.location_type !== 'remote' && (
         <div className="space-y-2">
           <Label className="glass-label">Primary Location <span className="text-destructive">*</span></Label>
-          <EnhancedLocationAutocomplete
-            value={locationData}
-            onChange={handleLocationChange}
-            placeholder="e.g. Amsterdam, Netherlands"
-            disabled={isSubmitting}
-            className={getFieldError('location') ? 'border-destructive' : ''}
-          />
+          {formData.company_id ? (
+            <CompanyOfficeLocationPicker
+              companyId={formData.company_id}
+              value={locationData}
+              onChange={handleLocationChange}
+              disabled={isSubmitting}
+              className={getFieldError('location') ? 'border-destructive' : ''}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground p-3 rounded-xl border border-border/20 bg-card/20">
+              Select a company first to choose from saved offices
+            </p>
+          )}
           {getFieldError('location') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('location')}</p>}
           {locationData && <p className="text-xs text-muted-foreground">Coordinates captured for map display</p>}
         </div>

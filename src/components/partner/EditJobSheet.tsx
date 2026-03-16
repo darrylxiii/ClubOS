@@ -37,7 +37,8 @@ import { StealthAuditTimeline } from "@/components/jobs/StealthAuditTimeline";
 import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 import { JobStatusManager } from "@/components/jobs/JobStatusManager";
 import { JobStatus } from "@/components/jobs/JobStatusBadge";
-import { EnhancedLocationAutocomplete, type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
+import { type LocationResult } from "@/components/ui/enhanced-location-autocomplete";
+import { CompanyOfficeLocationPicker } from "@/components/jobs/CompanyOfficeLocationPicker";
 import { LocationMapCard } from "@/components/ui/location-map-card";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
@@ -677,11 +678,19 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="location">Location</Label>
-                        <EnhancedLocationAutocomplete
-                          value={locationData}
-                          onChange={handleLocationChange}
-                          placeholder="e.g., Amsterdam, Remote"
-                        />
+                        {formData.company_id ? (
+                          <CompanyOfficeLocationPicker
+                            companyId={formData.company_id}
+                            value={locationData}
+                            onChange={handleLocationChange}
+                          />
+                        ) : (
+                          <CompanyOfficeLocationPicker
+                            companyId={job?.company_id || ""}
+                            value={locationData}
+                            onChange={handleLocationChange}
+                          />
+                        )}
                         {locationData && (
                           <p className="text-xs text-muted-foreground">📍 Coordinates captured</p>
                         )}
