@@ -39,6 +39,7 @@ import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledg
 
 
 import { CompanyFinancialsTab } from "@/components/companies/CompanyFinancialsTab";
+import { CompanyOfficeManager } from "@/components/companies/CompanyOfficeManager";
 import { DomainManagementPanel } from "@/components/admin/DomainManagementPanel";
 import { PartnerOrgIntelligence } from "@/components/organization/PartnerOrgIntelligence";
 
