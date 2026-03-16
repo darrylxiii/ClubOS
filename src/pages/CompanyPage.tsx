@@ -687,6 +687,12 @@ export default function CompanyPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Office Locations */}
+            <CompanyOfficeManager
+              companyId={company.id}
+              canManage={isAdmin || isCompanyMember}
+            />
           </TabsContent>
 
           <TabsContent value="jobs" className="space-y-6 mt-6">
