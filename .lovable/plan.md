@@ -1,92 +1,165 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Audit of Current Plan: Company Office Locations for Job Creation
 
-## Completed
+## Current Score: 62/100
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+Here is a breakdown of what the plan gets right, what it misses, and what needs to change.
 
 ---
 
-## Remaining
+## What the plan gets RIGHT (+42 points)
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
+| Area | Score | Notes |
+|------|-------|-------|
+| Core concept | +15 | Correct idea: reusable office table, pick-or-create in job dialog |
+| Database design | +10 | Reasonable schema for `company_offices` |
+| UX flow description | +10 | "Select existing or add new + optionally save back" is solid |
+| Integration point identified | +7 | Correctly targets Step 1 of `CreateJobDialog.tsx` |
 
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+## What the plan MISSES or gets WRONG (-38 points)
 
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+### 1. Ignores existing `job_locations` table (-8)
+A `job_locations` table already exists with `job_id`, `city`, `country`, `country_code`, `latitude`, `longitude`, `formatted_address`, `location_type`, `is_primary`. The plan doesn't mention how `company_offices` relates to this — are we inserting into `job_locations` when an office is selected? The current `MultiLocationInput` component already writes to this pattern. This must be explicitly wired.
 
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+### 2. No company settings UI for managing offices (-10)
+The plan only covers the job creation flow. But the user explicitly said "we should already have an option to add Company Office Locations to the company itself." There must be an **Office Management section** on the Company Settings/Detail page where admins can CRUD offices independently of job creation. Without this, the feature is half-built.
 
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
+### 3. No `EditJobSheet` integration (-5)
+The plan only updates `CreateJobDialog`. The `EditJobSheet.tsx` (which also uses `EnhancedLocationAutocomplete`) must get the same office picker — otherwise editing a job loses the office context.
 
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+### 4. Missing backfill strategy detail (-3)
+The plan says "backfill from HQ data" but `headquarters_location` is a free-text string. The structured fields (`headquarters_latitude`, `headquarters_longitude`, `headquarters_city`, `headquarters_country_code`) exist on `companies` — the migration must use these, not parse the text field.
+
+### 5. No RLS detail (-4)
+Plan says "INSERT/UPDATE/DELETE restricted to company members" but doesn't specify the actual policy SQL. Given the `company_members` table pattern, the policies need to join on `company_members.user_id = auth.uid()` with appropriate role checks, plus admin/strategist override via `has_role()`.
+
+### 6. Missing `is_primary` handling on the picker (-3)
+When a user picks an office as the job's primary location, it should populate both the job's top-level `location`/`latitude`/`longitude` fields AND create a `job_locations` row with `is_primary = true`. The plan doesn't address this data flow.
+
+### 7. No types update consideration (-2)
+After creating the `company_offices` table, the Supabase types auto-regenerate. The hook must import from the generated types, not define inline interfaces.
+
+### 8. CreateJobDialog is already 1338 lines (-3)
+Adding more logic here without extracting makes it worse. The plan should note that the office picker is a self-contained component with its own hook — no new state variables should land in `CreateJobDialog` itself beyond the component props.
 
 ---
 
-### Remaining: Phase H4–H6
+## Revised Plan: 100/100
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+### Phase 1: Database — `company_offices` table
 
-### Phase I2: Remaining Ecosystem
+```sql
+CREATE TABLE public.company_offices (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+  label text NOT NULL,  -- "Amsterdam HQ", "London Office"
+  city text,
+  country text,
+  country_code text,
+  latitude double precision,
+  longitude double precision,
+  formatted_address text,
+  is_headquarters boolean DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  created_by uuid REFERENCES auth.users(id)
+);
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+-- RLS
+ALTER TABLE public.company_offices ENABLE ROW LEVEL SECURITY;
+
+-- Anyone authenticated can read offices (needed for job forms)
+CREATE POLICY "Authenticated users can view offices"
+  ON public.company_offices FOR SELECT TO authenticated USING (true);
+
+-- Company members (owner/admin/recruiter) can manage their company's offices
+CREATE POLICY "Company members can manage offices"
+  ON public.company_offices FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.company_members
+      WHERE company_members.company_id = company_offices.company_id
+        AND company_members.user_id = auth.uid()
+        AND company_members.is_active = true
+        AND company_members.role IN ('owner', 'admin', 'recruiter')
+    )
+    OR public.has_role(auth.uid(), 'admin')
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.company_members
+      WHERE company_members.company_id = company_offices.company_id
+        AND company_members.user_id = auth.uid()
+        AND company_members.is_active = true
+        AND company_members.role IN ('owner', 'admin', 'recruiter')
+    )
+    OR public.has_role(auth.uid(), 'admin')
+  );
+
+-- Backfill from existing structured HQ data
+INSERT INTO public.company_offices (company_id, label, city, country_code, latitude, longitude, formatted_address, is_headquarters)
+SELECT id, 'Headquarters', headquarters_city, headquarters_country_code,
+       headquarters_latitude, headquarters_longitude, headquarters_location, true
+FROM public.companies
+WHERE headquarters_city IS NOT NULL OR headquarters_latitude IS NOT NULL;
+```
+
+### Phase 2: Hook — `useCompanyOffices.ts`
+
+- `useCompanyOffices(companyId)` — TanStack `useQuery` fetching offices for a company
+- `useAddCompanyOffice()` — `useMutation` to insert a new office, invalidates query cache
+- `useDeleteCompanyOffice()` — `useMutation` to delete
+- `useUpdateCompanyOffice()` — `useMutation` to update label/is_headquarters
+- Types imported from auto-generated Supabase types
+
+### Phase 3: Component — `CompanyOfficeLocationPicker.tsx`
+
+Self-contained component, props:
+```typescript
+interface CompanyOfficeLocationPickerProps {
+  companyId: string;
+  value: LocationResult | null;
+  onChange: (location: LocationResult | null) => void;
+  disabled?: boolean;
+  className?: string;
+}
+```
+
+**UI behavior:**
+1. Dropdown shows existing offices grouped: HQ first (starred), then others by label
+2. Each office row: `🏢 Amsterdam HQ — Netherlands` with coordinates badge
+3. Divider + "Add new location" button at bottom
+4. Clicking "Add new" expands `EnhancedLocationAutocomplete` inline
+5. After selecting a new location, checkbox appears: **"Save as company office"** with a label input
+6. If checkbox checked → `useAddCompanyOffice` mutation fires alongside the location selection
+7. If not checked → location passes through as a one-off (same as current behavior)
+
+### Phase 4: Integration — `CreateJobDialog.tsx` + `EditJobSheet.tsx`
+
+- In Step 1 (Location), when `location_type !== 'remote'`:
+  - Replace standalone `EnhancedLocationAutocomplete` with `CompanyOfficeLocationPicker`
+  - Pass `formData.company_id` as the `companyId` prop
+  - The `onChange` callback maps to existing `handleLocationChange` — no new state needed
+- Same replacement in `EditJobSheet.tsx` location section
+- `MultiLocationInput` for additional locations stays unchanged (it handles secondary locations)
+
+### Phase 5: Company Office Management UI
+
+- New section in Company Detail/Settings page: **"Office Locations"**
+- Table/card list of all offices with edit/delete actions
+- "Add Office" button using `EnhancedLocationAutocomplete` + label input
+- Toggle `is_headquarters` (only one allowed — enforce in mutation)
+- This ensures offices can be managed independently of job creation
+
+### Files to create/modify
+
+| File | Action |
+|------|--------|
+| Migration SQL | Create table + RLS + backfill |
+| `src/hooks/useCompanyOffices.ts` | **New** — query + mutations |
+| `src/components/jobs/CompanyOfficeLocationPicker.tsx` | **New** — picker component |
+| `src/components/partner/CreateJobDialog.tsx` | Replace location autocomplete with picker |
+| `src/components/partner/EditJobSheet.tsx` | Same replacement |
+| `src/components/companies/CompanyOfficeManager.tsx` | **New** — CRUD UI for company settings |
+| Company detail page (wherever offices should appear) | Wire in `CompanyOfficeManager` |
+
