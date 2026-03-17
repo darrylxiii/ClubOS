@@ -345,6 +345,13 @@ const App = () => {
                     </RouteErrorBoundary>
                   </PublicProviders>
                 } />
+                <Route path="/change-password" element={
+                  <PublicProviders>
+                    <RouteErrorBoundary>
+                      <Suspense fallback={<PageLoader />}><ChangePassword /></Suspense>
+                    </RouteErrorBoundary>
+                  </PublicProviders>
+                } />
 
                 {/* Blog Routes (Public-ish, inside protected layout for nav) */}
                 <Route path="/blog" element={

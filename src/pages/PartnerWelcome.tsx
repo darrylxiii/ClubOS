@@ -119,7 +119,7 @@ const PartnerWelcome = () => {
         });
 
       toast.success('Welcome to The Quantum Club!');
-      navigate('/partner');
+      navigate('/partner/hub');
     } catch (error) {
       logger.error('Error completing onboarding', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerWelcome' });
       toast.error('Failed to complete onboarding');
