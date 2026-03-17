@@ -167,6 +167,9 @@ const PartnerSetup = () => {
       });
       if (metaError) throw metaError;
 
+      // Refresh session so ProtectedRoute sees updated metadata immediately
+      await supabase.auth.refreshSession();
+
       // Step 2: Now safe to mark onboarding complete + save LinkedIn
       const updates: Record<string, unknown> = {
         onboarding_completed_at: new Date().toISOString(),

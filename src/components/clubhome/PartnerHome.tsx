@@ -27,6 +27,9 @@ export const PartnerHome = () => {
   const { user } = useAuth();
   const { stats, loading } = useRoleStats('partner', undefined, companyId || undefined);
 
+  // Only show setup CTA if force_password_change is still true (setup not completed)
+  const needsSetup = user?.user_metadata?.force_password_change === true;
+
   usePartnerDataPopulation(companyId || undefined);
   usePartnerRealtime(companyId || undefined);
 
