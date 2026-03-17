@@ -236,6 +236,37 @@ const Auth = () => {
           navigate('/partner-setup');
           return;
         }
+
+        // Retry consume-invite for users who signed up with an invite code
+        // but the initial consume failed (e.g. no session during email verification)
+        const pendingInviteCode = user.user_metadata?.invite_code;
+        if (pendingInviteCode) {
+          try {
+            const { data: existingRoles } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', user.id);
+
+            // Only retry if user has no roles assigned yet (consume failed initially)
+            if (!existingRoles || existingRoles.length === 0) {
+              logger.debug('Retrying consume-invite for pending invite code', {
+                componentName: 'Auth',
+              });
+              const { data: consumeResult } = await supabase.functions.invoke('consume-invite', {
+                body: { code: pendingInviteCode },
+              });
+              if (consumeResult?.success) {
+                logger.debug('Invite code consumed on retry', { componentName: 'Auth' });
+              }
+            }
+          } catch (err) {
+            logger.warn('consume-invite retry failed (non-blocking)', {
+              componentName: 'Auth',
+              err,
+            });
+          }
+        }
+
         try {
           // Check if user has completed onboarding
           const {
