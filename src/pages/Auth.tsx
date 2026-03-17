@@ -621,11 +621,24 @@ const Auth = () => {
 
           <div className="space-y-3">
             <h1 className="tracking-tight text-foreground font-bold text-3xl">
-              {isLogin ? t('login.title') : t('signup.title')}
+              {isLogin
+                ? t('login.title')
+                : inviteInfo?.targetRole === 'partner'
+                  ? 'Set Up Your Partnership'
+                  : t('signup.title')}
             </h1>
             <div className="flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4 text-foreground/90" />
-              <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly')}</p>
+              {inviteInfo?.targetRole === 'partner' ? (
+                <>
+                  <Building2 className="w-4 h-4 text-foreground/90" />
+                  <p className="text-sm text-foreground/90 font-semibold">Partner Account</p>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 text-foreground/90" />
+                  <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly')}</p>
+                </>
+              )}
             </div>
           </div>
 

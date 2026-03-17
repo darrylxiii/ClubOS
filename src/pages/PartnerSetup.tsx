@@ -393,6 +393,13 @@ const PartnerSetup = () => {
               </motion.div>
             )}
 
+            {step === 'team' && (
+              <TeamInviteStep
+                onComplete={handleCompleteSetup}
+                onBack={() => setStep('profile')}
+              />
+            )}
+
             {step === 'complete' && (
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
