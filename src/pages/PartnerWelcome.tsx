@@ -52,7 +52,7 @@ const PartnerWelcome = () => {
       // Accept both provisioned and invite-based partners
 
       if (profile?.onboarding_completed_at) {
-        navigate('/partner');
+        navigate('/partner/hub');
         return;
       }
 
