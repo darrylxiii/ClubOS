@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from '@/lib/motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,7 +28,21 @@ interface PendingInvite {
   role: 'admin' | 'recruiter' | 'member';
 }
 
+interface CompanyInfo {
+  companyId: string;
+  companyName: string;
+}
+
 const MAX_INVITES = 10;
+
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
 
 export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
   const { user } = useAuth();
@@ -36,6 +50,36 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
   const [currentEmail, setCurrentEmail] = useState('');
   const [currentRole, setCurrentRole] = useState<'admin' | 'recruiter' | 'member'>('member');
   const [isSending, setIsSending] = useState(false);
+  const [company, setCompany] = useState<CompanyInfo | null>(null);
+  const [companyLoading, setCompanyLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('company_members')
+          .select('company_id, companies (name)')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (data?.company_id) {
+          const companies = data.companies as { name: string } | null;
+          setCompany({
+            companyId: data.company_id,
+            companyName: companies?.name || 'Your Organization',
+          });
+        }
+      } catch (err) {
+        logger.error('Failed to load company', err instanceof Error ? err : new Error(String(err)), { componentName: 'TeamInviteStep' });
+      } finally {
+        setCompanyLoading(false);
+      }
+    })();
+  }, [user]);
 
   const addInvite = () => {
     const trimmed = currentEmail.trim().toLowerCase();
@@ -70,28 +114,83 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
       return;
     }
 
+    if (!company) {
+      toast.error('Company information not found. You can invite colleagues from settings later.');
+      onComplete();
+      return;
+    }
+
     setIsSending(true);
+    let successCount = 0;
+    const failures: string[] = [];
+
     try {
-      const { data, error } = await supabase.functions.invoke('send-team-invite', {
-        body: {
-          invites: invites.map((i) => ({
-            email: i.email,
-            role: i.role,
-          })),
-        },
-      });
+      const inviterName = user?.user_metadata?.full_name || user?.email || 'A colleague';
 
-      if (error) throw error;
+      for (const invite of invites) {
+        try {
+          // 1. Generate invite code and insert into invite_codes
+          const code = generateInviteCode();
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 7);
 
-      const successCount = data?.sent ?? invites.length;
-      toast.success(`${successCount} invitation${successCount !== 1 ? 's' : ''} sent.`);
+          const { error: codeError } = await supabase
+            .from('invite_codes')
+            .insert({
+              code,
+              invite_type: 'team',
+              target_role: invite.role,
+              company_id: company.companyId,
+              created_by: user!.id,
+              created_by_type: 'partner',
+              expires_at: expiresAt.toISOString(),
+              metadata: {
+                recipient_email: invite.email,
+                company_name: company.companyName,
+              },
+            });
+
+          if (codeError) {
+            logger.error('Failed to create invite code', codeError instanceof Error ? codeError : new Error(String(codeError)), { componentName: 'TeamInviteStep' });
+            failures.push(invite.email);
+            continue;
+          }
+
+          // 2. Call send-team-invite with correct single-object payload
+          const { error: sendError } = await supabase.functions.invoke('send-team-invite', {
+            body: {
+              email: invite.email,
+              inviteCode: code,
+              companyId: company.companyId,
+              companyName: company.companyName,
+              inviterName,
+              role: invite.role,
+            },
+          });
+
+          if (sendError) {
+            logger.error('Failed to send team invite email', sendError instanceof Error ? sendError : new Error(String(sendError)), { componentName: 'TeamInviteStep' });
+            failures.push(invite.email);
+            continue;
+          }
+
+          successCount++;
+        } catch (err) {
+          logger.error('Team invite iteration error', err instanceof Error ? err : new Error(String(err)), { componentName: 'TeamInviteStep' });
+          failures.push(invite.email);
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`${successCount} invitation${successCount !== 1 ? 's' : ''} sent.`);
+      }
+      if (failures.length > 0) {
+        toast.error(`Failed to send to: ${failures.join(', ')}`);
+      }
+
       onComplete();
     } catch (err) {
-      logger.error(
-        'Failed to send team invites',
-        err instanceof Error ? err : new Error(String(err)),
-        { componentName: 'TeamInviteStep' }
-      );
+      logger.error('Failed to send team invites', err instanceof Error ? err : new Error(String(err)), { componentName: 'TeamInviteStep' });
       toast.error('Failed to send invitations. You can do this later from settings.');
     } finally {
       setIsSending(false);
@@ -112,7 +211,11 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
           Invite your team (optional)
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Add up to {MAX_INVITES} colleagues. You can always invite more later.
+          {companyLoading
+            ? 'Loading company details…'
+            : company
+              ? `Invite colleagues to ${company.companyName}. Up to ${MAX_INVITES} invitations.`
+              : `Add up to ${MAX_INVITES} colleagues. You can always invite more later.`}
         </p>
       </div>
 
@@ -133,6 +236,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
             }}
             placeholder="colleague@company.com"
             className="h-11 rounded-xl flex-1"
+            disabled={companyLoading}
           />
           <Select value={currentRole} onValueChange={(v) => setCurrentRole(v as 'admin' | 'recruiter' | 'member')}>
             <SelectTrigger className="w-[130px] h-11 rounded-xl">
@@ -150,7 +254,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
             variant="outline"
             size="icon"
             className="h-11 w-11 rounded-xl shrink-0"
-            disabled={invites.length >= MAX_INVITES}
+            disabled={invites.length >= MAX_INVITES || companyLoading}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -201,7 +305,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
         </Button>
         <RainbowButton
           onClick={handleSendInvites}
-          disabled={isSending}
+          disabled={isSending || companyLoading}
           className="flex-1 h-12 rounded-xl font-semibold"
         >
           {isSending ? (
