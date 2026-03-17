@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AssistedPasswordConfirmation } from '@/components/ui/assisted-password-confirmation';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
 import { toast } from 'sonner';
-import { Lock, Linkedin, Camera, ArrowRight, ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react';
+import { Lock, Linkedin, Camera, ArrowRight, ArrowLeft, CheckCircle, Loader2, Sparkles, Users } from 'lucide-react';
+import { TeamInviteStep } from '@/components/partner-setup/TeamInviteStep';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
