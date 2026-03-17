@@ -7,8 +7,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { CandidateApplicationTracker } from "@/components/candidate-onboarding/CandidateApplicationTracker";
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
-import { XCircle } from "lucide-react";
+import { XCircle, Building2, Clock } from "lucide-react";
 import { PageLoader } from "@/components/PageLoader";
+import { logger } from "@/lib/logger";
 
 interface ProfileStatus {
   account_status: 'pending' | 'approved' | 'declined';
@@ -16,25 +17,64 @@ interface ProfileStatus {
   full_name: string;
 }
 
+type UserType = 'candidate' | 'partner' | 'unknown';
+
 export default function PendingApproval() {
   const [status, setStatus] = useState<ProfileStatus | null>(null);
+  const [userType, setUserType] = useState<UserType>('unknown');
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     checkApprovalStatus();
 
-    // Poll for status updates every 30 seconds
-    const interval = setInterval(checkApprovalStatus, 30000);
+    // Fallback polling every 60s (realtime handles the fast path)
+    const interval = setInterval(checkApprovalStatus, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Realtime subscription for instant approval detection
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel('pending-approval-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`,
+        },
+        (payload) => {
+          const newStatus = payload.new.account_status as string;
+          logger.info('[PendingApproval] Realtime status update', { newStatus });
+
+          if (newStatus === 'approved') {
+            navigate('/home');
+          } else if (newStatus === 'declined') {
+            setStatus(prev => prev ? {
+              ...prev,
+              account_status: 'declined',
+              account_decline_reason: payload.new.account_decline_reason as string | null,
+            } : prev);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, navigate]);
 
   const checkApprovalStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        // Show generic pending message for logged-out users (just submitted)
         setStatus({ 
           account_status: 'pending', 
           account_decline_reason: null, 
@@ -43,6 +83,8 @@ export default function PendingApproval() {
         setLoading(false);
         return;
       }
+
+      setUserId(user.id);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -55,12 +97,24 @@ export default function PendingApproval() {
 
       setStatus(data as ProfileStatus);
 
-      // Auto-redirect if approved
+      // Determine user type from roles
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const roleList = roles?.map(r => r.role) || [];
+      if (roleList.includes('partner')) {
+        setUserType('partner');
+      } else {
+        setUserType('candidate');
+      }
+
       if (data.account_status === 'approved') {
         navigate('/home');
       }
     } catch (error) {
-      console.error('Error checking status:', error);
+      logger.error('Error checking status:', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
     }
@@ -76,6 +130,8 @@ export default function PendingApproval() {
   }
 
   if (!status) return null;
+
+  const firstName = status.full_name?.split(' ')[0] || '';
 
   return (
     <div className="min-h-screen bg-background">
@@ -100,14 +156,40 @@ export default function PendingApproval() {
           {status.account_status === 'pending' && (
             <>
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold mb-3">Application Under Review</h1>
+                <h1 className="text-3xl font-bold mb-3">
+                  {firstName ? `${firstName}, your application is under review` : 'Application Under Review'}
+                </h1>
                 <p className="text-lg text-muted-foreground">
-                  Thank you for your application. Darryl is reviewing your profile now.
+                  {userType === 'partner'
+                    ? 'Thank you for your partnership application. Our team is reviewing your company profile and will be in touch shortly.'
+                    : 'Thank you for your application. Darryl is reviewing your profile now.'}
                 </p>
               </div>
 
-              {/* Show existing CandidateApplicationTracker */}
-              <CandidateApplicationTracker />
+              {userType === 'partner' ? (
+                <Card className="border-border/50">
+                  <CardContent className="py-8">
+                    <div className="flex flex-col items-center gap-4 text-center">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Partnership Review in Progress</h3>
+                        <p className="text-sm text-muted-foreground max-w-md">
+                          We are verifying your company details and preparing your partner portal.
+                          You will receive an email notification once your account is activated.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Typical review time: 1–2 business days</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <CandidateApplicationTracker />
+              )}
             </>
           )}
 
