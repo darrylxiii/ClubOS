@@ -1,92 +1,112 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Partner Onboarding System Audit — Round 3
 
-## Completed
-
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
-
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
-
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
-
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
-
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+## Score: 78/100
 
 ---
 
-## Remaining
+## What works well (+78)
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
-
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
-
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
-
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
-
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
-
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+| Area | Score |
+|------|-------|
+| PartnerSetup password flow (Timo bug fixed) | +15 |
+| ProtectedRoute gating chain | +12 |
+| approve-partner-request (company-required guard) | +15 |
+| consume-invite (role, company, auto-approve, audit) | +10 |
+| PendingApproval (realtime + role-aware) | +10 |
+| PartnerHome conditional setup/no-company cards | +5 |
+| validate-invite-code (rate-limited, shared CORS, .maybeSingle) | +6 |
+| Auth.tsx invite retry on first login | +5 |
 
 ---
 
-### Remaining: Phase H4–H6
+## Issues found (-22)
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+### 1. CRITICAL: TeamInviteStep sends wrong payload to `send-team-invite` (-8)
 
-### Phase I2: Remaining Ecosystem
+`TeamInviteStep.tsx` line 75-82 sends:
+```json
+{ "invites": [{ "email": "...", "role": "..." }] }
+```
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+But `send-team-invite/index.ts` line 68 expects a **single** `TeamInviteRequest`:
+```json
+{ "email": "...", "inviteCode": "...", "companyName": "...", "companyId": "...", "role": "..." }
+```
+
+Missing fields: `inviteCode`, `companyName`, `companyId`. Wrong structure: array vs single object. **Every team invite will fail with 400 "Missing required fields".**
+
+**Fix:** Rewrite `TeamInviteStep` to: (a) fetch the partner's company from `company_members`, (b) for each invite, create an `invite_codes` row, then (c) call `send-team-invite` once per invite with the correct payload. Or batch it in a new edge function.
+
+### 2. CRITICAL: Invite-based partners land on candidate onboarding (-6)
+
+When a partner signs up via invite code (not admin-provisioned), `consume-invite` sets `account_status: 'approved'` and assigns the partner role. But it does NOT set `force_password_change: true` in `user_metadata`. After email verification and login:
+
+- Auth.tsx line 232: checks `force_password_change === true` → false → skips `/partner-setup`
+- Auth.tsx line 285: checks `onboarding_completed_at` → null → redirects to `/oauth-onboarding` (candidate flow)
+
+The invite-based partner ends up in the **candidate** onboarding wizard instead of the partner setup flow.
+
+**Fix:** In `consume-invite`, when `target_role === 'partner'`, also set `user_metadata.force_password_change = true` via `supabase.auth.admin.updateUserById()`. This ensures they hit the partner setup flow on first login, matching the admin-provisioned path.
+
+### 3. `send-team-invite` uses deprecated `serve()` and inline CORS (-3)
+
+Line 1: `import { serve }` from deprecated stdlib. Line 7-10: inline `corsHeaders` instead of shared utility.
+
+**Fix:** Switch to `Deno.serve()` and `import { corsHeaders } from "../_shared/cors.ts"`.
+
+### 4. `console.error` in `consume-invite` and `validate-invite-code` (-2)
+
+5 occurrences in `consume-invite`, 2 in `validate-invite-code`. Should use structured logging for consistency (non-blocking, but enterprise standard).
+
+### 5. PartnerWelcome sets `onboarding_completed_at` redundantly (-1)
+
+`PartnerSetup.handleCompleteSetup` already sets `onboarding_completed_at` (line 176). Then `PartnerWelcome.handleCompleteOnboarding` sets it again (line 109). Not harmful but creates unnecessary DB writes.
+
+**Fix:** Remove the `onboarding_completed_at` update from `PartnerWelcome` — it's already set by `PartnerSetup`. PartnerWelcome should only log the activation event.
+
+### 6. Auth.tsx "Request Access → For Partners" navigates to `/partner` (-2)
+
+Line 809: `navigate('/partner')` — this is the partner portal dashboard, a protected route. An unauthenticated user clicking this hits ProtectedRoute → redirects to `/auth`. Should navigate to `/partner-request` or the partner application form.
+
+**Fix:** Change to the correct partner request/application route.
+
+---
+
+## Implementation Plan
+
+### Fix 1: Rewrite TeamInviteStep to generate proper invites
+- Fetch partner's company from `company_members` on mount
+- On send: for each invite, insert into `invite_codes` table (generate code, set `target_role`, `company_id`, `metadata`)
+- Then call `send-team-invite` per invite with the full `TeamInviteRequest` payload
+- Handle partial failures gracefully
+
+### Fix 2: Set `force_password_change` for invite-based partners
+In `consume-invite/index.ts`, after the auto-approve block (line 137-147), add:
+```typescript
+await supabase.auth.admin.updateUserById(user.id, {
+  user_metadata: { force_password_change: true }
+});
+```
+
+### Fix 3: Modernize `send-team-invite`
+- Replace `serve()` with `Deno.serve()`
+- Import shared `corsHeaders`
+
+### Fix 4: Remove redundant `onboarding_completed_at` from PartnerWelcome
+Keep only the activation event log in `handleCompleteOnboarding`.
+
+### Fix 5: Fix "For Partners" link in Auth.tsx
+Change `navigate('/partner')` to the correct partner request route.
+
+### Files to modify
+
+| File | Change |
+|------|--------|
+| `src/components/partner-setup/TeamInviteStep.tsx` | Rewrite to generate invite codes + call send-team-invite correctly |
+| `supabase/functions/consume-invite/index.ts` | Add `force_password_change` for partner signups |
+| `supabase/functions/send-team-invite/index.ts` | Modernize to Deno.serve() + shared CORS |
+| `src/pages/PartnerWelcome.tsx` | Remove redundant onboarding_completed_at update |
+| `src/pages/Auth.tsx` | Fix "For Partners" navigation target |
+
