@@ -376,22 +376,18 @@ const PartnerSetup = () => {
                   </Button>
                   <Button
                     variant="ghost"
-                    onClick={handleCompleteSetup}
+                    onClick={() => setStep('team')}
                     disabled={isSubmitting}
                     className="flex-1 h-12 rounded-xl"
                   >
                     Skip for now
                   </Button>
                   <RainbowButton
-                    onClick={handleCompleteSetup}
+                    onClick={() => setStep('team')}
                     disabled={isSubmitting}
                     className="flex-1 h-12 rounded-xl font-semibold"
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>Complete Setup <Sparkles className="h-4 w-4 ml-2" /></>
-                    )}
+                    Continue <ArrowRight className="h-4 w-4 ml-2" />
                   </RainbowButton>
                 </div>
               </motion.div>
