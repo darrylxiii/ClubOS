@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
+import { logger } from '@/lib/logger';
 
 /**
  * PartnerWelcome - Concierge welcome screen for pre-provisioned partners
