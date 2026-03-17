@@ -61,10 +61,18 @@ const PartnerSetup = () => {
   };
 
   const handleSetPassword = async () => {
-    try {
-      passwordSchema.parse(password);
-    } catch {
-      toast.error('Password must be at least 12 characters with uppercase, lowercase, number, and symbol.');
+    const strength = validatePasswordStrength(password);
+    if (!strength.valid) {
+      const labels: Record<string, string> = {
+        minLength: '12+ characters',
+        uppercase: 'uppercase letter',
+        lowercase: 'lowercase letter',
+        number: 'number',
+        special: 'special character',
+        noCommonPattern: 'no common patterns',
+      };
+      const missing = strength.missing.map(k => labels[k] || k).join(', ');
+      toast.error(`Password needs: ${missing}`);
       return;
     }
     if (password !== confirmPassword) {
