@@ -245,12 +245,12 @@ const PartnerSetup = () => {
 
             {/* Step indicator */}
             <div className="flex items-center justify-center gap-2 mt-4">
-              {(['password', 'profile', 'complete'] as SetupStep[]).map((s, i) => (
+              {(['password', 'profile', 'team', 'complete'] as SetupStep[]).map((s, i) => (
                 <div
                   key={s}
                   className={`h-1.5 rounded-full transition-all ${
                     step === s ? 'w-8 bg-primary' :
-                    i < ['password', 'profile', 'complete'].indexOf(step) ? 'w-8 bg-primary/40' :
+                    i < ['password', 'profile', 'team', 'complete'].indexOf(step) ? 'w-8 bg-primary/40' :
                     'w-4 bg-muted'
                   }`}
                 />
