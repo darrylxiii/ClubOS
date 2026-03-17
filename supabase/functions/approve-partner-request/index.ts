@@ -243,8 +243,17 @@ Deno.serve(async (req) => {
     }
 
     // ── Step 5: Add to company_members ──────────────────────
+    if (!companyId) {
+      console.error("No company assigned to partner — aborting approval");
+      await rollbackUser("No company assigned");
+      return jsonResponse(
+        { error: "A company must be assigned to approve a partner. Please select or create a company." },
+        400
+      );
+    }
+
     const memberRole = providedCompanyRole || "owner";
-    if (companyId) {
+    {
       const { error: memberError } = await supabase
         .from("company_members")
         .insert({

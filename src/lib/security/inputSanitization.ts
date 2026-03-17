@@ -126,7 +126,7 @@ export function sanitizeEmail(email: string): string | null {
  */
 export function sanitizePhone(phone: string): string {
   // Keep only digits and common phone characters
-  return phone.replace(/[^\\d+\\-.()\\s]/g, '').slice(0, 20);
+  return phone.replace(/[^\d+\-()\s.]/g, '').slice(0, 20);
 }
 
 /**
