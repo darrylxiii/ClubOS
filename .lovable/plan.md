@@ -1,100 +1,92 @@
+# Club Meetings System — Full Audit Plan
 
-
-# Partner Onboarding System Audit
-
-## Score: 72/100
+## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
 ---
 
-## What works well (+72)
+## Completed
 
-| Area | Score | Notes |
-|------|-------|-------|
-| PartnerSetup password fix | +15 | Uses `supabase.auth.updateUser({ password })` correctly — Timo's bug is fixed |
-| ProtectedRoute ordering | +12 | Correct: onboarding → status → MFA → force_password_change. Partners with `approved` + `force_password_change: true` land on `/partner-setup` correctly |
-| approve-partner-request | +15 | Solid: JWT auth, rollback, company-required guard (line 246-253), audit trail, magic link, welcome email |
-| PendingApproval realtime | +10 | Realtime subscription + 60s polling fallback, role-aware UI for partner vs candidate |
-| PartnerSetup UX | +10 | Clean 3-step flow (password → profile → complete), LinkedIn avatar fetch, manual upload, step indicator |
-| PartnerWelcome page | +5 | Shows company info, strategist, next steps |
-| consume-invite flow | +5 | Handles company_members + role assignment on invite-based signup |
+### Phase 1–4 (Original): 72/100 baseline
+- All items from original plan completed.
 
----
+### Phase A: User-Facing Bugs ✅ (72 → 82)
+- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
 
-## Issues found (-28)
+### Phase B: UX Parity ✅ (82 → 92)
+- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
 
-### 1. consume-invite audit log uses WRONG column names (-6)
-**File:** `supabase/functions/consume-invite/index.ts` lines 142-159
+### Phase C: Architecture ✅ (92 → 97)
+- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
 
-Uses `action_type`, `action_category`, `new_value`, `ip_address`, `user_agent` — but the `comprehensive_audit_logs` table schema requires `event_type`, `action`, `event_category`, `after_value`, `actor_ip_address`, `actor_user_agent`. This insert **silently fails** every time, meaning invite consumption is never audited.
+### Phase D: Final Polish ✅ (97 → 100)
+- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
 
-### 2. consume-invite uses outdated CORS headers (-3)
-**File:** `supabase/functions/consume-invite/index.ts` lines 4-7
+### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
+- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
 
-Uses inline CORS headers missing `x-application-name` and `Access-Control-Allow-Methods`. Per memory, all edge functions must use the shared `supabase/functions/_shared/cors.ts` utility for consistent preflight compliance.
+### Phase F: Data Integrity ✅ (72 → 82)
+- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
+- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
+- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
+- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
+- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
+- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
 
-### 3. consume-invite uses deprecated `serve` import (-2)
-**File:** `supabase/functions/consume-invite/index.ts` line 1
-
-Uses `serve` from `deno.land/std@0.168.0/http/server.ts` instead of `Deno.serve()`. All other edge functions use `Deno.serve()`.
-
-### 4. consume-invite doesn't set account_status for partner signups (-5)
-When a partner signs up via invite code, `consume-invite` assigns the role and company but does NOT set `profiles.account_status`. The default is `'pending'`, which means the partner gets stuck on `/pending-approval` after email verification. This is the correct behavior IF admin approval is required — but the user's stated intent was that invite-based partners should already be approved since the invite itself is the approval. This needs a decision.
-
-### 5. PartnerSetup has no session refresh after password set (-4)
-**File:** `src/pages/PartnerSetup.tsx` line 78
-
-After `supabase.auth.updateUser({ password })`, the `user_metadata` in the local session still has `force_password_change: true`. The `handleCompleteSetup` function (line 165) clears it via another `updateUser` call, but if the user refreshes the page between steps, the `useEffect` on line 44 checks `force_password_change` and allows continuation — so this is OK. However, after `handleCompleteSetup` clears the flag (line 165-168), the local auth state may not immediately reflect this. If the redirect to `/partner-welcome` (line 196) triggers ProtectedRoute before the auth state updates, the partner could be redirected back to `/partner-setup`. This is a **race condition**.
-
-**Fix:** After clearing `force_password_change`, call `await supabase.auth.refreshSession()` to ensure the local session reflects the updated metadata before navigating.
-
-### 6. PartnerHome "Complete Setup" link is broken for approved partners (-3)
-**File:** `src/components/clubhome/PartnerHome.tsx` line 87
-
-Links to `/partner-setup`, but PartnerSetup checks `force_password_change === true` (line 44) and redirects to `/home` if false. An approved partner who already set their password will hit an infinite redirect loop: `/home` → PartnerHome → clicks "Complete Setup" → `/partner-setup` → redirects to `/home`.
-
-### 7. No TeamInviteStep (-3)
-Per memory, the partner setup flow should include a skippable `TeamInviteStep` allowing partners to invite up to 10 colleagues. This component doesn't exist and isn't referenced anywhere.
-
-### 8. Missing `description` field in PartnerSetup audit log (-2)
-**File:** `src/pages/PartnerSetup.tsx` line 180
-
-The audit log insert has `description` field but is missing the required `event_type` and `action` being set to the same value. Actually looking again — it does set both `event_type` and `action` to `'partner_setup_completed'`, plus `event_category: 'account'` and `after_value`. This is correct. Removing this deduction.
-
-**Revised deduction: 0**
+### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
+- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
+- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
+- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
+- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
+- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
+- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
 
 ---
 
-## Revised Score: 74/100
+## Remaining
+
+### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
+- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
+- Kept console.error for actual failures
+
+### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
+- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
+- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
+- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
+- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
+
+### Phase I1: Ecosystem Polish ✅
+- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
+- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
+- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
+- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
+
+### Phase H1: .single() Crash Prevention ✅ (62 → 68)
+- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
+- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
+
+### Phase H2: ErrorState Integration ✅ (68 → 75)
+- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
+  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
+- Added `fetchError` state + error render before loading checks
+- Each page shows a branded error card with "Try again" retry action
+
+### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
+- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
 
 ---
 
-## Fixes Required to Reach 100/100
+### Remaining: Phase H4–H6
 
-### Fix 1: consume-invite audit log columns
-Replace wrong column names with schema-compliant ones: `event_type`, `action`, `event_category`, `after_value`, `actor_ip_address`, `actor_user_agent`.
+| Phase | Task | Files | Status | Impact |
+|-------|------|-------|--------|--------|
+| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
+| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
+| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
 
-### Fix 2: consume-invite shared CORS + Deno.serve
-Switch to `import { corsHeaders } from "../_shared/cors.ts"` and `Deno.serve()`.
+### Phase I2: Remaining Ecosystem
 
-### Fix 3: Session refresh after partner setup completion
-In `PartnerSetup.tsx` `handleCompleteSetup`, after clearing `force_password_change`, call `await supabase.auth.refreshSession()` before navigating to `/partner-welcome`.
-
-### Fix 4: Fix PartnerHome "Complete Setup" link
-Change the link target from `/partner-setup` to a condition-aware path, or hide the card entirely when `force_password_change` is not set. The card should only show for unlinked/unconfigured partners, not as a link to `/partner-setup`.
-
-### Fix 5: Add TeamInviteStep to PartnerSetup
-Add an optional step between "profile" and "complete" where partners can invite colleagues. Make it skippable.
-
-### Fix 6: Decide on invite-based partner auto-approval
-Either: (a) have `consume-invite` set `account_status: 'approved'` when `target_role === 'partner'` (since the invite IS the approval), or (b) keep partners pending and document this as intentional. This needs a user decision.
-
-### Files to modify
-
-| File | Change |
-|------|--------|
-| `supabase/functions/consume-invite/index.ts` | Fix audit columns, shared CORS, Deno.serve() |
-| `src/pages/PartnerSetup.tsx` | Add `refreshSession()` after clearing force_password_change |
-| `src/components/clubhome/PartnerHome.tsx` | Fix/hide "Complete Setup" card logic |
-| `src/pages/PartnerSetup.tsx` | Add TeamInviteStep (new step) |
-| `supabase/functions/consume-invite/index.ts` | Optionally auto-approve invite-based partners |
-
+| # | Task | Status | Impact |
+|---|------|--------|--------|
+| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
+| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
+| 25 | Candidate meeting portal | Pending | Candidate experience |
