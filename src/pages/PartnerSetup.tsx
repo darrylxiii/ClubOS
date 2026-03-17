@@ -22,7 +22,7 @@ import quantumLogoDark from '@/assets/quantum-club-logo.png';
 
 const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
 
-type SetupStep = 'password' | 'profile' | 'complete';
+type SetupStep = 'password' | 'profile' | 'team' | 'complete';
 
 const PartnerSetup = () => {
   const navigate = useNavigate();
