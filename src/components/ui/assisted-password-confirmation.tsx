@@ -113,8 +113,10 @@ export function AssistedPasswordConfirmation({
         )}
 
         <input
+          id="password-input"
           type="password"
           placeholder="Password"
+          aria-label="Password"
           value={password}
           onChange={(e) => onPasswordChange?.(e.target.value)}
           required
@@ -162,9 +164,11 @@ export function AssistedPasswordConfirmation({
         animate={matchAnimation}
       >
         <motion.input
+          id="confirm-password-input"
           className="h-full w-full rounded-2xl border-2 bg-background px-3.5 py-3 tracking-[0.4em] text-foreground outline-none placeholder:tracking-normal placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 font-semibold text-base transition-all"
           type="password"
           placeholder="Confirm Password"
+          aria-label="Confirm password"
           value={confirmPassword}
           onChange={handleConfirmPasswordChange}
           animate={borderAnimation}
