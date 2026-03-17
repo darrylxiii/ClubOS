@@ -94,7 +94,7 @@ const PartnerWelcome = () => {
         }
       }
     } catch (error) {
-      console.error('Error loading onboarding data:', error);
+      logger.error('Error loading onboarding data', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerWelcome' });
     } finally {
       setIsLoading(false);
     }
