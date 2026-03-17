@@ -75,29 +75,15 @@ const PartnerSetup = () => {
 
     setIsSubmitting(true);
     try {
-      // Route through password-reset-set-password edge function for HIBP + history checks
-      const { data, error } = await supabase.functions.invoke('password-reset-set-password', {
-        body: { password }
-      });
-
+      const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      if (data?.error) {
-        // Handle specific error codes from the edge function
-        if (data.code === 'weak_password' || data.code === 'pwned') {
-          toast.error('This password has appeared in a data breach. Please choose a different one.');
-        } else if (data.code === 'password_reused') {
-          toast.error('You have used this password recently. Please choose a new one.');
-        } else {
-          toast.error(data.error || 'Failed to set password.');
-        }
-        return;
-      }
 
       toast.success('Password set successfully.');
       setStep('profile');
     } catch (error) {
       logger.error('Password set error', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerSetup' });
-      toast.error(error instanceof Error ? error.message : 'Failed to set password.');
+      const message = error instanceof Error ? error.message : 'Failed to set password.';
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
