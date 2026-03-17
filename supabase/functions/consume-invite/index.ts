@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 5: Auto-approve partners (invite IS the approval)
+    // Step 5: Auto-approve partners (invite IS the approval) + set force_password_change
     if (inviteData?.target_role === 'partner') {
       const { error: statusError } = await supabase
         .from('profiles')
@@ -143,6 +143,15 @@ Deno.serve(async (req) => {
 
       if (statusError) {
         console.error('Failed to auto-approve partner via invite:', statusError);
+      }
+
+      // Set force_password_change so invite-based partners route to /partner-setup
+      const { error: metaError } = await supabase.auth.admin.updateUserById(user.id, {
+        user_metadata: { force_password_change: true }
+      });
+
+      if (metaError) {
+        console.error('Failed to set force_password_change for invite partner:', metaError);
       }
     }
 

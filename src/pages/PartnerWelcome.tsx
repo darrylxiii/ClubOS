@@ -104,12 +104,7 @@ const PartnerWelcome = () => {
     if (!user) return;
 
     try {
-      await supabase
-        .from('profiles')
-        .update({ onboarding_completed_at: new Date().toISOString() })
-        .eq('id', user.id);
-
-      // Log activation event
+      // Log activation event (onboarding_completed_at is already set by PartnerSetup)
       await supabase
         .from('activation_events')
         .insert({
