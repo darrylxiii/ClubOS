@@ -48,11 +48,8 @@ const PartnerWelcome = () => {
         .eq('id', user.id)
         .maybeSingle();
 
-      // If not provisioned or already completed onboarding, redirect
-      if (!profile?.provisioned_by) {
-        navigate('/home');
-        return;
-      }
+      // If already completed onboarding, go to partner portal
+      // Accept both provisioned and invite-based partners
 
       if (profile?.onboarding_completed_at) {
         navigate('/partner');
