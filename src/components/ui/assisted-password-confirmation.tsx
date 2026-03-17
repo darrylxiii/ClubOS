@@ -113,8 +113,10 @@ export function AssistedPasswordConfirmation({
         )}
 
         <input
+          id="password-input"
           type="password"
           placeholder="Password"
+          aria-label="Password"
           value={password}
           onChange={(e) => onPasswordChange?.(e.target.value)}
           required
