@@ -233,11 +233,13 @@ const PartnerSetup = () => {
             <CardTitle className="text-2xl font-bold">
               {step === 'password' && 'Secure Your Account'}
               {step === 'profile' && 'Complete Your Profile'}
+              {step === 'team' && 'Invite Your Team'}
               {step === 'complete' && 'All Set'}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               {step === 'password' && `Welcome, ${profileName}. Set a password for future logins.`}
               {step === 'profile' && 'Add a profile photo and your LinkedIn to get started.'}
+              {step === 'team' && 'Bring your colleagues on board.'}
               {step === 'complete' && 'Your partner account is ready.'}
             </CardDescription>
 
