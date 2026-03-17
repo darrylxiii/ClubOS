@@ -1,18 +1,14 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 /**
  * consume-invite: Called after signup with an invite code.
  * 1. Calls use_invite_code() to mark the code as used
  * 2. If the invite has a company_id, adds user to company_members
  * 3. If the invite has a target_role, assigns user_roles
+ * 4. If target_role is 'partner', auto-approves (invite = approval)
  */
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -138,24 +134,38 @@ serve(async (req) => {
       }
     }
 
-    // Step 5: Audit log
+    // Step 5: Auto-approve partners (invite IS the approval)
+    if (inviteData?.target_role === 'partner') {
+      const { error: statusError } = await supabase
+        .from('profiles')
+        .update({ account_status: 'approved' })
+        .eq('id', user.id);
+
+      if (statusError) {
+        console.error('Failed to auto-approve partner via invite:', statusError);
+      }
+    }
+
+    // Step 6: Audit log (schema-compliant column names)
     await supabase
       .from('comprehensive_audit_logs')
       .insert({
         actor_id: user.id,
         actor_role: 'user',
-        action_type: 'invite_code_consumed',
-        action_category: 'authentication',
+        event_type: 'invite_code_consumed',
+        action: 'invite_code_consumed',
+        event_category: 'authentication',
         resource_type: 'invite_code',
         description: `Consumed invite code ${code.substring(0, 6)}*** and joined ${inviteData?.company_id ? 'company' : 'platform'}`,
-        new_value: {
+        after_value: {
           invite_code: code.substring(0, 6) + '***',
           company_assigned: companyAssigned,
           role_assigned: roleAssigned,
-          target_role: inviteData?.target_role
+          target_role: inviteData?.target_role,
+          auto_approved: inviteData?.target_role === 'partner',
         },
-        ip_address: req.headers.get('x-forwarded-for') || 'unknown',
-        user_agent: req.headers.get('user-agent') || 'unknown'
+        actor_ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+        actor_user_agent: req.headers.get('user-agent') || 'unknown'
       });
 
     return new Response(JSON.stringify({
