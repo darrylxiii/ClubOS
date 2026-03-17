@@ -15,12 +15,10 @@ import { toast } from 'sonner';
 import { Lock, Linkedin, Camera, ArrowRight, ArrowLeft, CheckCircle, Loader2, Sparkles, Users } from 'lucide-react';
 import { TeamInviteStep } from '@/components/partner-setup/TeamInviteStep';
 import { logger } from '@/lib/logger';
-import { z } from 'zod';
+import { validatePasswordStrength } from '@/utils/passwordReset';
 
 import quantumLogoLight from '@/assets/quantum-logo-dark.png';
 import quantumLogoDark from '@/assets/quantum-club-logo.png';
-
-const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
 
 type SetupStep = 'password' | 'profile' | 'team' | 'complete';
 
