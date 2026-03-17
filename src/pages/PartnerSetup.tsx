@@ -15,12 +15,10 @@ import { toast } from 'sonner';
 import { Lock, Linkedin, Camera, ArrowRight, ArrowLeft, CheckCircle, Loader2, Sparkles, Users } from 'lucide-react';
 import { TeamInviteStep } from '@/components/partner-setup/TeamInviteStep';
 import { logger } from '@/lib/logger';
-import { z } from 'zod';
+import { validatePasswordStrength } from '@/utils/passwordReset';
 
 import quantumLogoLight from '@/assets/quantum-logo-dark.png';
 import quantumLogoDark from '@/assets/quantum-club-logo.png';
-
-const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
 
 type SetupStep = 'password' | 'profile' | 'team' | 'complete';
 
@@ -63,10 +61,18 @@ const PartnerSetup = () => {
   };
 
   const handleSetPassword = async () => {
-    try {
-      passwordSchema.parse(password);
-    } catch {
-      toast.error('Password must be at least 12 characters with uppercase, lowercase, number, and symbol.');
+    const strength = validatePasswordStrength(password);
+    if (!strength.valid) {
+      const labels: Record<string, string> = {
+        minLength: '12+ characters',
+        uppercase: 'uppercase letter',
+        lowercase: 'lowercase letter',
+        number: 'number',
+        special: 'special character',
+        noCommonPattern: 'no common patterns',
+      };
+      const missing = strength.missing.map(k => labels[k] || k).join(', ');
+      toast.error(`Password needs: ${missing}`);
       return;
     }
     if (password !== confirmPassword) {
