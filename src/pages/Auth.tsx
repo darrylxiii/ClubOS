@@ -257,6 +257,14 @@ const Auth = () => {
               });
               if (consumeResult?.success) {
                 logger.debug('Invite code consumed on retry', { componentName: 'Auth' });
+                
+                // Refresh session to pick up updated metadata (force_password_change, roles)
+                await supabase.auth.refreshSession();
+                const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+                if (refreshedUser?.user_metadata?.force_password_change === true) {
+                  navigate('/partner-setup');
+                  return;
+                }
               }
             }
           } catch (err) {
