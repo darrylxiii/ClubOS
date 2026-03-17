@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AssistedPasswordConfirmation } from '@/components/ui/assisted-password-confirmation';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
 import { toast } from 'sonner';
-import { Lock, Linkedin, Camera, ArrowRight, ArrowLeft, CheckCircle, Loader2, Sparkles } from 'lucide-react';
+import { Lock, Linkedin, Camera, ArrowRight, ArrowLeft, CheckCircle, Loader2, Sparkles, Users } from 'lucide-react';
+import { TeamInviteStep } from '@/components/partner-setup/TeamInviteStep';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
@@ -21,7 +22,7 @@ import quantumLogoDark from '@/assets/quantum-club-logo.png';
 
 const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
 
-type SetupStep = 'password' | 'profile' | 'complete';
+type SetupStep = 'password' | 'profile' | 'team' | 'complete';
 
 const PartnerSetup = () => {
   const navigate = useNavigate();
@@ -232,22 +233,24 @@ const PartnerSetup = () => {
             <CardTitle className="text-2xl font-bold">
               {step === 'password' && 'Secure Your Account'}
               {step === 'profile' && 'Complete Your Profile'}
+              {step === 'team' && 'Invite Your Team'}
               {step === 'complete' && 'All Set'}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               {step === 'password' && `Welcome, ${profileName}. Set a password for future logins.`}
               {step === 'profile' && 'Add a profile photo and your LinkedIn to get started.'}
+              {step === 'team' && 'Bring your colleagues on board.'}
               {step === 'complete' && 'Your partner account is ready.'}
             </CardDescription>
 
             {/* Step indicator */}
             <div className="flex items-center justify-center gap-2 mt-4">
-              {(['password', 'profile', 'complete'] as SetupStep[]).map((s, i) => (
+              {(['password', 'profile', 'team', 'complete'] as SetupStep[]).map((s, i) => (
                 <div
                   key={s}
                   className={`h-1.5 rounded-full transition-all ${
                     step === s ? 'w-8 bg-primary' :
-                    i < ['password', 'profile', 'complete'].indexOf(step) ? 'w-8 bg-primary/40' :
+                    i < ['password', 'profile', 'team', 'complete'].indexOf(step) ? 'w-8 bg-primary/40' :
                     'w-4 bg-muted'
                   }`}
                 />
@@ -373,25 +376,28 @@ const PartnerSetup = () => {
                   </Button>
                   <Button
                     variant="ghost"
-                    onClick={handleCompleteSetup}
+                    onClick={() => setStep('team')}
                     disabled={isSubmitting}
                     className="flex-1 h-12 rounded-xl"
                   >
                     Skip for now
                   </Button>
                   <RainbowButton
-                    onClick={handleCompleteSetup}
+                    onClick={() => setStep('team')}
                     disabled={isSubmitting}
                     className="flex-1 h-12 rounded-xl font-semibold"
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>Complete Setup <Sparkles className="h-4 w-4 ml-2" /></>
-                    )}
+                    Continue <ArrowRight className="h-4 w-4 ml-2" />
                   </RainbowButton>
                 </div>
               </motion.div>
+            )}
+
+            {step === 'team' && (
+              <TeamInviteStep
+                onComplete={handleCompleteSetup}
+                onBack={() => setStep('profile')}
+              />
             )}
 
             {step === 'complete' && (

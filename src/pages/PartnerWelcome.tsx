@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
+import { logger } from '@/lib/logger';
 
 /**
  * PartnerWelcome - Concierge welcome screen for pre-provisioned partners
@@ -47,11 +48,8 @@ const PartnerWelcome = () => {
         .eq('id', user.id)
         .maybeSingle();
 
-      // If not provisioned or already completed onboarding, redirect
-      if (!profile?.provisioned_by) {
-        navigate('/home');
-        return;
-      }
+      // If already completed onboarding, go to partner portal
+      // Accept both provisioned and invite-based partners
 
       if (profile?.onboarding_completed_at) {
         navigate('/partner');
@@ -96,7 +94,7 @@ const PartnerWelcome = () => {
         }
       }
     } catch (error) {
-      console.error('Error loading onboarding data:', error);
+      logger.error('Error loading onboarding data', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerWelcome' });
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +126,7 @@ const PartnerWelcome = () => {
       toast.success('Welcome to The Quantum Club!');
       navigate('/partner');
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      logger.error('Error completing onboarding', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerWelcome' });
       toast.error('Failed to complete onboarding');
     }
   };

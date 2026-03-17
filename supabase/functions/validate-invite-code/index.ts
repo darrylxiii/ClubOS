@@ -1,14 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders } from '../_shared/cors.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { logSecurityEvent } from '../_shared/security-logger.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -65,19 +60,34 @@ serve(async (req) => {
       .from('invite_codes')
       .select('code, is_active, expires_at, used_by, used_at, created_by, target_role, metadata')
       .eq('code', code.toUpperCase())
-      .single();
+      .maybeSingle();
     
+    if (error) {
+      console.error('Database error:', error);
+      return new Response(
+        JSON.stringify({ 
+          valid: false, 
+          reason: 'error',
+          message: 'Error validating invite code. Please try again.' 
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
     let referrerName = 'a member';
     if (codeData?.created_by) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', codeData.created_by)
-        .single();
+        .maybeSingle();
       referrerName = profile?.full_name || 'a member';
     }
 
-    if (error || !codeData) {
+    if (!codeData) {
       // Log failed validation attempt
       await logSecurityEvent({
         eventType: 'invite_code_validation_failed',
