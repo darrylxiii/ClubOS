@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -16,6 +17,7 @@ type MfaStep = 'intro' | 'elevate' | 'verify' | 'complete';
 export default function MfaSetup() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<MfaStep>('intro');
   const [qrCode, setQrCode] = useState<string>('');
   const [secret, setSecret] = useState<string>('');
@@ -39,12 +41,11 @@ export default function MfaSetup() {
         const { data: factorsData } = await supabase.auth.mfa.listFactors();
         const verified = factorsData?.totp?.filter(f => f.status === 'verified') || [];
 
-        // Session is AAL1 but a verified factor exists → need to elevate first
+        // Session is AAL1 but a verified factor exists → need to elevate to prove identity, then redirect home
         if (aalData?.currentLevel === 'aal1' && aalData?.nextLevel === 'aal2' && verified.length > 0) {
           const existingFactor = verified[0];
           setElevateFactorId(existingFactor.id);
 
-          // Create a challenge for the existing factor
           const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
             factorId: existingFactor.id,
           });
@@ -62,8 +63,9 @@ export default function MfaSetup() {
           return;
         }
 
-        // Already at AAL2 with verified factors → redirect to home
+        // Already at AAL2 with verified factors → MFA is already set up, go home
         if (aalData?.currentLevel === 'aal2' && verified.length > 0) {
+          await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
           navigate('/home', { replace: true });
           return;
         }
@@ -85,9 +87,10 @@ export default function MfaSetup() {
     };
 
     checkExisting();
-  }, [user, navigate]);
+  }, [user, navigate, queryClient]);
 
   // Elevate session from AAL1 → AAL2 by verifying existing TOTP factor
+  // After elevation, redirect to /home (user already has MFA set up)
   const handleElevate = useCallback(async () => {
     if (elevateCode.length !== 6 || isElevating) return;
 
@@ -111,32 +114,17 @@ export default function MfaSetup() {
         return;
       }
 
-      // Session is now AAL2 — unenroll old factor, then proceed to enroll
-      toast.success('Identity verified. Setting up new authenticator.');
-
-      // Unenroll the old factor now that we're AAL2
-      await supabase.auth.mfa.unenroll({ factorId: elevateFactorId });
-
-      // Clean up any other stale factors
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      const stale = factors?.totp?.filter(f => f.status === 'unverified') || [];
-      for (const f of stale) {
-        try {
-          await supabase.auth.mfa.unenroll({ factorId: f.id });
-        } catch {
-          // Ignore
-        }
-      }
-
-      // Now proceed to enrollment
-      setStep('intro');
+      // Session is now AAL2 — user already has MFA, redirect to home
+      toast.success('Identity verified.');
+      await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
+      navigate('/home', { replace: true });
     } catch (err) {
       logger.error('[MfaSetup] Elevation error:', err);
       toast.error('Verification failed. Please try again.');
     } finally {
       setIsElevating(false);
     }
-  }, [elevateCode, isElevating, elevateFactorId, elevateChallengeId]);
+  }, [elevateCode, isElevating, elevateFactorId, elevateChallengeId, queryClient, navigate]);
 
   // Auto-submit elevate code on 6 digits
   useEffect(() => {
@@ -166,33 +154,29 @@ export default function MfaSetup() {
         }
       }
 
+      // Check if user already has a verified factor (edge case: factor was set up elsewhere)
+      const verified = factors?.totp?.filter(f => f.status === 'verified') || [];
+      if (verified.length > 0) {
+        toast.success('MFA is already enabled on your account.');
+        await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
+        navigate('/home', { replace: true });
+        return;
+      }
+
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: 'The Quantum Club TOTP',
       });
 
       if (error) {
-        // Handle insufficient_aal gracefully — transition to elevate step
+        // Handle insufficient_aal gracefully — user already has a verified factor
         const errorMsg = error.message?.toLowerCase() || '';
         if (errorMsg.includes('aal2') || errorMsg.includes('insufficient_aal')) {
-          // There must be an existing verified factor we missed — try to elevate
-          const { data: factorsData } = await supabase.auth.mfa.listFactors();
-          const verified = factorsData?.totp?.filter(f => f.status === 'verified') || [];
-          if (verified.length > 0) {
-            setElevateFactorId(verified[0].id);
-            const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
-              factorId: verified[0].id,
-            });
-            if (challengeData) {
-              setElevateChallengeId(challengeData.id);
-              setStep('elevate');
-              toast.info('Please verify your existing authenticator first.');
-              return;
-            }
-            if (challengeErr) {
-              logger.error('[MfaSetup] Challenge creation failed during fallback:', challengeErr);
-            }
-          }
+          // Already has MFA — just redirect home
+          toast.success('MFA is already enabled on your account.');
+          await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
+          navigate('/home', { replace: true });
+          return;
         }
 
         toast.error('Failed to set up MFA. Please try again.');
@@ -237,6 +221,8 @@ export default function MfaSetup() {
         return;
       }
 
+      // Invalidate cache so ProtectedRoute sees the new verified factor
+      await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
       setStep('complete');
       toast.success('MFA enabled successfully');
     } catch (err) {
@@ -245,7 +231,7 @@ export default function MfaSetup() {
     } finally {
       setIsVerifying(false);
     }
-  }, [verifyCode, isVerifying, factorId]);
+  }, [verifyCode, isVerifying, factorId, queryClient]);
 
   // Auto-submit verify code on 6 digits
   useEffect(() => {
@@ -253,6 +239,16 @@ export default function MfaSetup() {
       handleVerify();
     }
   }, [verifyCode, isVerifying, step, handleVerify]);
+
+  // Auto-redirect to /home after reaching 'complete' step
+  useEffect(() => {
+    if (step === 'complete') {
+      const timer = setTimeout(() => {
+        navigate('/home', { replace: true });
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [step, navigate]);
 
   const copySecret = () => {
     navigator.clipboard.writeText(secret);
@@ -282,8 +278,7 @@ export default function MfaSetup() {
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Verify Your Identity</h1>
                 <p className="text-muted-foreground mt-2 text-sm">
-                  Enter the 6-digit code from your current authenticator app to continue.
-                  This verifies your identity before updating your MFA settings.
+                  Enter the 6-digit code from your authenticator app to continue.
                 </p>
               </div>
             </CardHeader>
@@ -392,7 +387,7 @@ export default function MfaSetup() {
               <div>
                 <h1 className="text-2xl font-bold text-foreground">MFA Enabled</h1>
                 <p className="text-muted-foreground mt-2 text-sm">
-                  Two-factor authentication is now active on your account.
+                  Two-factor authentication is now active on your account. Redirecting...
                 </p>
               </div>
             </CardHeader>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 import QRCode from 'qrcode';
 
 export const TwoFactorSettings = () => {
+  const queryClient = useQueryClient();
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
@@ -24,6 +26,10 @@ export const TwoFactorSettings = () => {
   useEffect(() => {
     checkMFAStatus();
   }, []);
+
+  const invalidateAuthCache = () => {
+    queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
+  };
 
   const checkMFAStatus = async () => {
     try {
@@ -65,8 +71,9 @@ export const TwoFactorSettings = () => {
       setFactorId('');
       setRecoveryCodes([]);
       
-      // Refresh status
+      // Refresh status and invalidate auth cache
       await checkMFAStatus();
+      invalidateAuthCache();
     } catch (error: unknown) {
       console.error('Error removing MFA factor:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to remove 2FA factor');
@@ -76,7 +83,6 @@ export const TwoFactorSettings = () => {
   };
 
   const handleEnableMFA = async () => {
-    // Check if there's already an existing "Authenticator App" factor
     const existingAuthFactor = existingFactors.find(
       f => f.friendly_name === 'Authenticator App'
     );
@@ -94,7 +100,6 @@ export const TwoFactorSettings = () => {
       });
 
       if (error) {
-        // Handle specific duplicate error
         if (error.message?.includes('factor with the friendly name')) {
           toast.error('2FA factor already exists. Refreshing status...');
           await checkMFAStatus();
@@ -107,13 +112,11 @@ export const TwoFactorSettings = () => {
         setFactorId(data.id);
         setSecret(data.totp.secret);
         
-        // Generate QR code from the URI (not the SVG)
         const qr = await QRCode.toDataURL(data.totp.uri);
         setQrCode(qr);
         
         toast.success('Scan the QR code with your authenticator app');
         
-        // Refresh factors list
         await checkMFAStatus();
       }
     } catch (error: unknown) {
@@ -138,7 +141,6 @@ export const TwoFactorSettings = () => {
 
       if (error) throw error;
 
-      // Generate recovery codes securely on server-side
       toast.loading('Generating secure recovery codes...');
       
       const { data: recoveryData, error: recoveryError } = await supabase.functions.invoke('generate-recovery-codes');
@@ -156,6 +158,7 @@ export const TwoFactorSettings = () => {
       setMfaEnabled(true);
       setQrCode('');
       setVerifyCode('');
+      invalidateAuthCache();
     } catch (error: unknown) {
       console.error('Error verifying MFA:', error);
       toast.error(error instanceof Error ? error.message : 'Invalid code. Please try again.');
@@ -183,6 +186,7 @@ export const TwoFactorSettings = () => {
       toast.success('2FA disabled');
       setMfaEnabled(false);
       setRecoveryCodes([]);
+      invalidateAuthCache();
     } catch (error: unknown) {
       console.error('Error disabling MFA:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to disable 2FA');
@@ -218,7 +222,6 @@ export const TwoFactorSettings = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Show existing factors status */}
         {existingFactors.length > 0 && (
           <div className="space-y-3">
             <Label className="text-sm font-semibold">Current 2FA Factors:</Label>
