@@ -288,6 +288,13 @@ export function ExtractedCandidatesPreview({
       setImportedCandidateIds(newImportedIds);
       setImportComplete(true);
       onImportComplete();
+
+      // Auto-enrich all imported candidates (fire-and-forget)
+      if (newImportedIds.length > 0) {
+        import('@/utils/triggerAutoEnrich').then(({ triggerAutoEnrich }) => {
+          triggerAutoEnrich(newImportedIds, jobId);
+        });
+      }
     } catch (error: any) {
       console.error("Import error:", error);
       toast.error(error.message || "Failed to import candidates");

@@ -675,6 +675,16 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         description: `${logName} has been added to the pipeline${selectedExistingCandidate ? ' (existing profile linked)' : ''}`,
       });
 
+      // Auto-enrich from LinkedIn + calculate skill match (fire-and-forget)
+      const linkedinPresent = selectedExistingCandidate
+        ? !!selectedExistingCandidate.linkedin_url
+        : !!formData.linkedinUrl;
+      if (linkedinPresent) {
+        import('@/utils/triggerAutoEnrich').then(({ triggerAutoEnrich }) => {
+          triggerAutoEnrich([candidateId], jobId);
+        });
+      }
+
       onCandidateAdded();
       handleOpenChange(false);
     } catch (error: unknown) {

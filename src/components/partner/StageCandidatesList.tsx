@@ -139,10 +139,50 @@ export function StageCandidatesList({
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline" className="shrink-0 text-xs font-medium">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {timeInStage}
-                    </Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {candidate.match_score != null && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs font-bold gap-1 ${
+                                  candidate.match_score >= 80
+                                    ? 'border-emerald-500/40 text-emerald-500 bg-emerald-500/10'
+                                    : candidate.match_score >= 50
+                                    ? 'border-amber-500/40 text-amber-500 bg-amber-500/10'
+                                    : 'border-red-500/40 text-red-500 bg-red-500/10'
+                                }`}
+                              >
+                                <Target className="w-3 h-3" />
+                                {candidate.match_score}%
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent side="left" className="max-w-[260px]">
+                              <p className="font-medium text-xs mb-1">Skill Match: {candidate.match_score}%</p>
+                              {candidate.skill_match_details && (
+                                <div className="text-xs space-y-1">
+                                  {(candidate.skill_match_details.must_have_matched?.length ?? 0) > 0 && (
+                                    <p className="text-emerald-400">
+                                      ✓ {candidate.skill_match_details.must_have_matched?.join(', ')}
+                                    </p>
+                                  )}
+                                  {(candidate.skill_match_details.must_have_missing?.length ?? 0) > 0 && (
+                                    <p className="text-red-400">
+                                      ✗ {candidate.skill_match_details.must_have_missing?.join(', ')}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      <Badge variant="outline" className="text-xs font-medium">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {timeInStage}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Contact Info */}

@@ -98,6 +98,8 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
           Add Candidate
         </Button>
 
+        <PipelineLinkedInSync jobId={jobId} onComplete={onRefresh} />
+
         <Button
           onClick={handleAIRecommendations}
           variant="outline"
