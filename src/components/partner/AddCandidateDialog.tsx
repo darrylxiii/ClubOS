@@ -595,7 +595,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           user_id: adminUser.id,
           action: 'candidate_added',
           stage_data: {
-            candidate_name: formData.fullName,
+            candidate_name: candidateName,
             candidate_email: formData.email || 'N/A',
             starting_stage: formData.startStageIndex,
             starting_stage_name: startingStageName,
