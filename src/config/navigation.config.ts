@@ -204,7 +204,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Companies", icon: Building, path: "/companies" },
-        { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+        { name: "Assessments", icon: ClipboardCheck, path: "/assessments", locked: true, lockedMessage: "Releasing soon" },
         { name: "Partner Hub", icon: LayoutDashboard, path: "/partner/hub" },
       ],
     },
