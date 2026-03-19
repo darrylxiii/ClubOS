@@ -512,8 +512,9 @@ export const AddCandidateDialog = ({
 
       if (!newApplication) {
         console.error('❌ [Add Candidate] Application was not created (no data returned)');
-        // Clean up orphaned candidate profile
-        await supabase.from('candidate_profiles').delete().eq('id', candidateId);
+        if (!selectedExistingCandidate) {
+          await supabase.from('candidate_profiles').delete().eq('id', candidateId);
+        }
         throw new Error('Application was not created. Please try again or contact support.');
       }
 
