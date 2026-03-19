@@ -1,0 +1,1 @@
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS check_approval_requires_onboarding_for_candidates;
