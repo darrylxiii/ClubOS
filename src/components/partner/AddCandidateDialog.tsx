@@ -546,10 +546,10 @@ export const AddCandidateDialog = ({
           application_id: application.id,
           interaction_type: 'status_change',
           interaction_direction: 'internal',
-          title: 'Candidate Added to Pipeline',
-          content: `🎯 **Admin-Added Candidate**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
+          title: selectedExistingCandidate ? 'Existing Candidate Added to Pipeline' : 'Candidate Added to Pipeline',
+          content: `🎯 **${selectedExistingCandidate ? 'Existing Candidate Linked' : 'Admin-Added Candidate'}**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
 
-**Name:** ${formData.fullName}
+**Name:** ${candidateName}
 **Email:** ${formData.email || 'N/A'}
 **Phone:** ${formData.phone || "N/A"}
 **LinkedIn:** ${formData.linkedinUrl || "N/A"}
