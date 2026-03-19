@@ -74,6 +74,8 @@ export interface NavigationItem {
   path: string;
   roles?: ('candidate' | 'partner' | 'admin' | 'strategist')[];
   badge?: string;
+  locked?: boolean;
+  lockedMessage?: string;
 }
 
 export interface NavigationGroup {
