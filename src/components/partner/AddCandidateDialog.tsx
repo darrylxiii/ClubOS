@@ -96,7 +96,8 @@ export const AddCandidateDialog = ({
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; email: string }>>([]);
   const [creditPopoverOpen, setCreditPopoverOpen] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [duplicateCandidates, setDuplicateCandidates] = useState<Array<{ id: string; candidate_id: string; current_stage_index: number; candidate_profiles: { id: string; full_name: string | null; email: string | null; linkedin_url: string | null; current_title: string | null; current_company: string | null } }>>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- matches DuplicateCandidateDialog's expected shape from join queries
+  const [duplicateCandidates, setDuplicateCandidates] = useState<any[]>([]);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateMatchType, setDuplicateMatchType] = useState<"name" | "linkedin" | "both">("name");
   const [proceedWithDuplicate, setProceedWithDuplicate] = useState(false);
