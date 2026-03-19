@@ -349,9 +349,9 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Post Project", icon: Plus, path: "/projects/new", locked: true, lockedMessage: "Releasing soon" },
         { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs", locked: true, lockedMessage: "Releasing soon" },
         { name: "All Proposals", icon: FileText, path: "/projects/proposals", locked: true, lockedMessage: "Releasing soon" },
-        { name: "Disputes", icon: AlertTriangle, path: "/projects/disputes" },
-        { name: "Contracts", icon: FileSignature, path: "/contracts" },
-        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
+        { name: "Disputes", icon: AlertTriangle, path: "/projects/disputes", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Contracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "Releasing soon" },
       ],
     },
     // === SOCIAL (kept separate - distinct domain) ===

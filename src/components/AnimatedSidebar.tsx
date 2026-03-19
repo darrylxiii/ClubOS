@@ -402,6 +402,8 @@ interface NavigationItem {
   name: string;
   icon: LucideIcon;
   path: string;
+  locked?: boolean;
+  lockedMessage?: string;
 }
 
 interface SidebarLinkProps {
