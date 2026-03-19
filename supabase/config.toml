@@ -6,6 +6,12 @@ verify_jwt = false
 # =============================================================================
 # Partner Invite & Provisioning
 # =============================================================================
+[functions.admin-fix-user-metadata]
+verify_jwt = false
+
+[functions.session-change-password]
+verify_jwt = false
+
 [functions.provision-partner]
 verify_jwt = false
 

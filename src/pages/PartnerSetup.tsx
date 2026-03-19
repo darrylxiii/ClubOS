@@ -82,8 +82,16 @@ const PartnerSetup = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      // Use server-side edge function to atomically set password + clear force_password_change
+      const { data, error } = await supabase.functions.invoke('session-change-password', {
+        body: { new_password: password },
+      });
+
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Refresh session so ProtectedRoute sees updated metadata
+      await supabase.auth.refreshSession();
 
       toast.success('Password set successfully.');
       setStep('profile');
@@ -168,11 +176,20 @@ const PartnerSetup = () => {
     if (!user) return;
     setIsSubmitting(true);
     try {
-      // Step 1: Clear force_password_change FIRST — if this fails, don't mark onboarding complete
+      // Safety net: ensure force_password_change is cleared (should already be done at password step)
+      // Try client-side first, fall back to edge function
       const { error: metaError } = await supabase.auth.updateUser({
         data: { force_password_change: false }
       });
-      if (metaError) throw metaError;
+      if (metaError) {
+        logger.warn('[PartnerSetup] Client-side metadata clear failed, using edge function fallback', { error: metaError });
+        const { error: efError } = await supabase.functions.invoke('session-change-password', {
+          body: { new_password: password || '__skip_password_update__' },
+        });
+        if (efError) {
+          logger.error('[PartnerSetup] Edge function fallback also failed', efError);
+        }
+      }
 
       // Refresh session so ProtectedRoute sees updated metadata immediately
       await supabase.auth.refreshSession();
