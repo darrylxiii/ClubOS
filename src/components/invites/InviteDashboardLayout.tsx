@@ -1,19 +1,26 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InviteStatsCards } from "./InviteStatsCards";
 import { SendInviteTab } from "./SendInviteTab";
 import { InviteHistoryTab } from "./InviteHistoryTab";
 import { InviteAnalyticsTab } from "./InviteAnalyticsTab";
-import { Mail, History, BarChart3, Send, ShieldCheck } from "lucide-react";
+import { PartnerProvisioningModal } from "@/components/admin/PartnerProvisioningModal";
+import { Mail, History, BarChart3, Send, Crown } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import type { PrefillData } from "@/components/admin/partner-provisioning/useProvisionForm";
 
 export function InviteDashboardLayout() {
   const [activeTab, setActiveTab] = useState("send");
   const { currentRole } = useRole();
-  const navigate = useNavigate();
   const isElevated = currentRole === 'admin' || currentRole === 'strategist';
+  const [provisionOpen, setProvisionOpen] = useState(false);
+  const [provisionPrefill, setProvisionPrefill] = useState<PrefillData | undefined>();
+
+  const openProvisioning = (prefill?: PrefillData) => {
+    setProvisionPrefill(prefill);
+    setProvisionOpen(true);
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -37,12 +44,12 @@ export function InviteDashboardLayout() {
         </Button>
         {isElevated && (
           <Button
-            variant="outline"
-            onClick={() => navigate("/admin/companies")}
+            variant="primary"
+            onClick={() => openProvisioning()}
             className="gap-2"
           >
-            <ShieldCheck className="h-4 w-4" />
-            Full Provisioning
+            <Crown className="h-4 w-4" />
+            Provision Partner
           </Button>
         )}
       </div>
@@ -73,7 +80,7 @@ export function InviteDashboardLayout() {
 
           <TabsContent value="send" className="space-y-4">
             <div className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border rounded-lg p-6 sm:p-8">
-              <SendInviteTab />
+              <SendInviteTab onOpenProvisioning={openProvisioning} />
             </div>
           </TabsContent>
 
@@ -90,6 +97,15 @@ export function InviteDashboardLayout() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Provisioning Modal */}
+      {isElevated && (
+        <PartnerProvisioningModal
+          open={provisionOpen}
+          onClose={() => setProvisionOpen(false)}
+          prefillData={provisionPrefill}
+        />
+      )}
     </div>
   );
 }

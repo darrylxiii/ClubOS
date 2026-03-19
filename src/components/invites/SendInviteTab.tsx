@@ -22,7 +22,11 @@ interface InviteSuccess {
   role: string;
 }
 
-export function SendInviteTab() {
+interface SendInviteTabProps {
+  onOpenProvisioning?: (prefill?: { email?: string; fullName?: string; companyName?: string }) => void;
+}
+
+export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
   const [recipientName, setRecipientName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
