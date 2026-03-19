@@ -874,15 +874,19 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           </div>
         )}
 
-        <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "manual" | "linkedin")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs value={addMode} onValueChange={(v) => { setAddMode(v as "manual" | "linkedin" | "existing"); setSelectedExistingCandidate(null); }} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="manual">
               <UserPlus className="w-4 h-4 mr-2" />
-              Manual Entry
+              Manual
             </TabsTrigger>
             <TabsTrigger value="linkedin">
               <Zap className="w-4 h-4 mr-2" />
-              LinkedIn Quick Add
+              LinkedIn
+            </TabsTrigger>
+            <TabsTrigger value="existing">
+              <Users className="w-4 h-4 mr-2" />
+              Existing
             </TabsTrigger>
           </TabsList>
 
