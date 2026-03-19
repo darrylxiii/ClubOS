@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Linkedin, Mail, Download, UserPlus, Briefcase } from "lucide-react";
 import { CandidateInvitationDialog } from "./CandidateInvitationDialog";
 import { AddToJobDialog } from "./AddToJobDialog";
+import { useRole } from "@/contexts/RoleContext";
 
 interface CandidateQuickActionsProps {
   candidateId: string;
@@ -29,6 +30,9 @@ export const CandidateQuickActions = ({
   candidateName,
   onRefresh 
 }: CandidateQuickActionsProps) => {
+  const { currentRole } = useRole();
+  const isAdmin = currentRole === 'admin' || currentRole === 'strategist';
+
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [scraping, setScraping] = useState(false);
   const [linkedinDialogOpen, setLinkedinDialogOpen] = useState(false);
@@ -172,10 +176,12 @@ export const CandidateQuickActions = ({
         Invite to Platform
       </Button>
 
-      <Button variant="outline" size="sm" onClick={() => setAddToJobOpen(true)}>
-        <Briefcase className="w-4 h-4 mr-2" />
-        Add to Job
-      </Button>
+      {isAdmin && (
+        <Button variant="outline" size="sm" onClick={() => setAddToJobOpen(true)}>
+          <Briefcase className="w-4 h-4 mr-2" />
+          Add to Job
+        </Button>
+      )}
 
       <CandidateInvitationDialog
         open={inviteDialogOpen}
@@ -186,13 +192,15 @@ export const CandidateQuickActions = ({
         suggestedJobs={[]}
       />
 
-      <AddToJobDialog
-        open={addToJobOpen}
-        onOpenChange={setAddToJobOpen}
-        candidateId={candidateId}
-        candidateName={candidateName}
-        onAdded={onRefresh}
-      />
+      {isAdmin && (
+        <AddToJobDialog
+          open={addToJobOpen}
+          onOpenChange={setAddToJobOpen}
+          candidateId={candidateId}
+          candidateName={candidateName}
+          onAdded={onRefresh}
+        />
+      )}
     </div>
   );
 };

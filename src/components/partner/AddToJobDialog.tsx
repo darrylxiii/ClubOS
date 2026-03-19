@@ -32,14 +32,26 @@ interface AddToJobDialogProps {
   onAdded?: () => void;
 }
 
+interface PipelineStage {
+  name: string;
+  [key: string]: unknown;
+}
+
 interface JobResult {
   id: string;
   title: string;
   company_name: string | null;
   status: string;
-  pipeline_stages: any[] | null;
+  pipeline_stages: PipelineStage[] | null;
   alreadyInPipeline?: boolean;
 }
+
+const DEFAULT_STAGES: PipelineStage[] = [
+  { name: "Applied" },
+  { name: "Screening" },
+  { name: "Interview" },
+  { name: "Final Round" },
+];
 
 export const AddToJobDialog = ({
   open,
@@ -50,7 +62,6 @@ export const AddToJobDialog = ({
 }: AddToJobDialogProps) => {
   const [search, setSearch] = useState("");
   const [jobs, setJobs] = useState<JobResult[]>([]);
-  const [existingJobIds, setExistingJobIds] = useState<Set<string>>(new Set());
   const [selectedJob, setSelectedJob] = useState<JobResult | null>(null);
   const [startStageIndex, setStartStageIndex] = useState("0");
   const [notes, setNotes] = useState("");
@@ -65,30 +76,29 @@ export const AddToJobDialog = ({
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch active jobs
+        // Fetch active jobs (raised limit to 500)
         const { data: jobsData } = await supabase
           .from("jobs")
           .select("id, title, company_name, status, pipeline_stages")
           .in("status", ["active", "open", "published"])
           .order("created_at", { ascending: false })
-          .limit(100);
+          .limit(500);
 
         // Fetch candidate's existing active applications
         const { data: existingApps } = await supabase
           .from("applications")
           .select("job_id")
           .eq("candidate_id", candidateId)
-          .not("status", "in", '("rejected","withdrawn")');
+          .not("status", "in", "(rejected,withdrawn)");
 
         const existingIds = new Set(
           (existingApps || []).map((a) => a.job_id).filter(Boolean) as string[]
         );
-        setExistingJobIds(existingIds);
 
         setJobs(
           (jobsData || []).map((j) => ({
             ...j,
-            pipeline_stages: j.pipeline_stages as any[] | null,
+            pipeline_stages: (j.pipeline_stages as PipelineStage[] | null),
             alreadyInPipeline: existingIds.has(j.id),
           }))
         );
@@ -114,16 +124,11 @@ export const AddToJobDialog = ({
     );
   }, [jobs, debouncedSearch]);
 
-  const stages: { name: string }[] = useMemo(() => {
-    if (!selectedJob?.pipeline_stages) {
-      return [
-        { name: "Applied" },
-        { name: "Screening" },
-        { name: "Interview" },
-        { name: "Final Round" },
-      ];
+  const stages: PipelineStage[] = useMemo(() => {
+    if (!selectedJob?.pipeline_stages || selectedJob.pipeline_stages.length === 0) {
+      return DEFAULT_STAGES;
     }
-    return selectedJob.pipeline_stages as { name: string }[];
+    return selectedJob.pipeline_stages;
   }, [selectedJob]);
 
   const handleSubmit = async () => {
@@ -135,6 +140,8 @@ export const AddToJobDialog = ({
         data: { user: adminUser },
       } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
+
+      const startingStageName = stages[parseInt(startStageIndex)]?.name || "Applied";
 
       // Insert application
       const { data: newApp, error: appError } = await supabase
@@ -172,36 +179,58 @@ export const AddToJobDialog = ({
         throw appError;
       }
 
-      // Log interaction
-      await supabase.from("candidate_interactions").insert({
-        candidate_id: candidateId,
-        application_id: newApp.id,
-        interaction_type: "status_change",
-        interaction_direction: "internal",
-        title: "Added to Job Pipeline",
-        content: `Added to **${selectedJob.title}** (${selectedJob.company_name || "N/A"}) at stage ${stages[parseInt(startStageIndex)]?.name || "Applied"}.${notes ? `\n\nNotes: ${notes}` : ""}`,
-        created_by: adminUser.id,
-        is_internal: true,
-        visible_to_candidate: false,
-      });
+      // Sourcing credits
+      try {
+        await supabase.from("sourcing_credits").insert({
+          application_id: newApp.id,
+          user_id: adminUser.id,
+          credit_type: "sourcer",
+          credit_percentage: 100,
+          created_by: adminUser.id,
+        });
+      } catch (creditError) {
+        console.error("[AddToJob] Failed to insert sourcing credits:", creditError);
+      }
 
-      // Audit log
-      await supabase.from("pipeline_audit_logs").insert({
-        job_id: selectedJob.id,
-        user_id: adminUser.id,
-        action: "candidate_added",
-        stage_data: {
-          candidate_name: candidateName,
-          starting_stage: startStageIndex,
-          starting_stage_name:
-            stages[parseInt(startStageIndex)]?.name || "Applied",
-          source: "profile_add_to_job",
-        },
-        metadata: {
+      // Log interaction
+      try {
+        await supabase.from("candidate_interactions").insert({
           candidate_id: candidateId,
           application_id: newApp.id,
-        },
-      });
+          interaction_type: "status_change",
+          interaction_direction: "internal",
+          title: "Added to Job Pipeline",
+          content: `Added to **${selectedJob.title}** (${selectedJob.company_name || "N/A"}) at stage ${startingStageName}.${notes ? `\n\nNotes: ${notes}` : ""}`,
+          created_by: adminUser.id,
+          is_internal: true,
+          visible_to_candidate: false,
+        });
+      } catch (interactionError) {
+        console.error("[AddToJob] Failed to log interaction:", interactionError);
+        toast.error("Candidate added but interaction log failed");
+      }
+
+      // Audit log
+      try {
+        await supabase.from("pipeline_audit_logs").insert({
+          job_id: selectedJob.id,
+          user_id: adminUser.id,
+          action: "candidate_added",
+          stage_data: {
+            candidate_name: candidateName,
+            starting_stage: startStageIndex,
+            starting_stage_name: startingStageName,
+            source: "profile_add_to_job",
+          },
+          metadata: {
+            candidate_id: candidateId,
+            application_id: newApp.id,
+          },
+        });
+      } catch (auditError) {
+        console.error("[AddToJob] Failed to log audit:", auditError);
+        toast.error("Candidate added but audit log failed");
+      }
 
       toast.success(`Added to ${selectedJob.title}`, {
         description: `${candidateName} is now in the pipeline.`,
@@ -353,7 +382,10 @@ export const AddToJobDialog = ({
             className="gap-2"
           >
             {submitting ? (
-              "Adding..."
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Adding...
+              </>
             ) : (
               <>
                 <Briefcase className="w-4 h-4" />
