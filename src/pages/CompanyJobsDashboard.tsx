@@ -219,40 +219,36 @@ const CompanyJobsDashboard = () => {
   if (!companyId && role !== 'admin') {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-destructive" />
-                Access Denied
-              </CardTitle>
-              <CardDescription>
-                You need to be associated with a company to access this dashboard.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
+        <Card className="bg-card/30 backdrop-blur border-border/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-destructive" />
+              Access Denied
+            </CardTitle>
+            <CardDescription>
+              You need to be associated with a company to access this dashboard.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4 md:py-8 space-y-4 md:space-y-6">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 md:py-8 space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-foreground pb-4 md:pb-6">
-          <div className="flex-1">
-            <p className="text-caps text-muted-foreground">Company Jobs Dashboard</p>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight">
+        <div className="flex items-center justify-between gap-4 py-2">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold text-foreground truncate">
               {companyName || 'Your Company'}
             </h1>
-            <p className="text-sm md:text-base text-muted-foreground mt-2">
+            <p className="text-sm text-muted-foreground mt-0.5">
               Manage your jobs and customize hiring pipeline
             </p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            <span className="sm:inline">Create New Job</span>
+          <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="gap-1.5 h-9 shrink-0">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">New Job</span>
           </Button>
         </div>
 
