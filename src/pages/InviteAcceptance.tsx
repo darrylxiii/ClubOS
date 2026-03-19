@@ -65,11 +65,18 @@ export default function InviteAcceptance() {
         sessionStorage.setItem('expected_invitation_email', candidate.email);
       }
 
-      await signInWithOAuthCustomDomain({
-        provider: provider === 'linkedin' ? 'linkedin_oidc' : provider,
-        redirectTo: `${window.location.origin}/invite/${token}/complete`,
-        scopes: provider === 'linkedin' ? 'openid profile email' : undefined,
-      });
+      if (provider === 'linkedin') {
+        await signInWithOAuthCustomDomain({
+          provider: 'linkedin_oidc',
+          redirectTo: `${window.location.origin}/invite/${token}/complete`,
+          scopes: 'openid profile email',
+        });
+      } else {
+        const result = await lovable.auth.signInWithOAuth(provider, {
+          redirect_uri: `${window.location.origin}/invite/${token}/complete`,
+        });
+        if (result?.error) throw result.error;
+      }
     } catch (error) {
       console.error('Sign up error:', error);
       toast.error('Failed to sign up');

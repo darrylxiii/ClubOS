@@ -534,10 +534,10 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      await signInWithOAuthCustomDomain({
-        provider: 'apple',
-        redirectTo: redirectUrl,
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: redirectUrl,
       });
+      if (result?.error) throw result.error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.apple')

@@ -105,6 +105,8 @@ export default defineConfig(({ mode, command }) => ({
         ]
       },
       workbox: {
+        // CRITICAL: OAuth redirects to /~oauth must always hit the network
+        navigateFallbackDenylist: [/^\/~oauth/],
         // CRITICAL: Do NOT precache HTML - use NetworkFirst at runtime
         // This prevents stale index.html from bricking the app after deploy
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
