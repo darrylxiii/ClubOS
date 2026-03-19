@@ -335,7 +335,7 @@ export const AddCandidateDialog = ({
     if (!formData.fullName && !formData.linkedinUrl && !formData.email) return [];
 
     try {
-      let duplicates: ExistingCandidateResult[] = [];
+      let duplicates: any[] = [];
       
       if (formData.email) {
         const { data: emailMatches } = await supabase
