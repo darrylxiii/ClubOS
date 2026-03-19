@@ -25,6 +25,7 @@ import {
   Award,
 } from "lucide-react";
 import { AddCandidateDialog } from "./AddCandidateDialog";
+import { PipelineLinkedInSync } from "./PipelineLinkedInSync";
 import { toast } from "sonner";
 
 interface AdminJobToolsProps {
