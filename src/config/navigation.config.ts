@@ -179,14 +179,14 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     {
       title: "Club Projects",
       icon: Layers,
-      badge: "New",
+      badge: "Soon",
       items: [
-        { name: "Browse Projects", icon: Layers, path: "/projects" },
-        { name: "Freelancer Setup", icon: User, path: "/projects/freelancer/setup" },
-        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs" },
-        { name: "My Proposals", icon: FileText, path: "/projects/proposals" },
-        { name: "My Contracts", icon: FileSignature, path: "/contracts" },
-        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
+        { name: "Browse Projects", icon: Layers, path: "/projects", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Freelancer Setup", icon: User, path: "/projects/freelancer/setup", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs", locked: true, lockedMessage: "Releasing soon" },
+        { name: "My Proposals", icon: FileText, path: "/projects/proposals", locked: true, lockedMessage: "Releasing soon" },
+        { name: "My Contracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "Releasing soon" },
       ],
     },
     {
