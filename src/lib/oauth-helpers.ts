@@ -1,24 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Detects whether the app is running on a custom domain
- * (not lovable.app, lovableproject.com, or localhost).
+ * OAuth helper — LinkedIn only.
+ * Google and Apple now use Lovable Cloud managed auth via lovable.auth.signInWithOAuth().
  */
-export const isCustomDomain = (): boolean =>
-  !window.location.hostname.includes('lovable.app') &&
-  !window.location.hostname.includes('lovableproject.com') &&
-  !window.location.hostname.includes('localhost');
 
 const ALLOWED_OAUTH_HOSTS = [
-  'accounts.google.com',
-  'appleid.apple.com',
   'www.linkedin.com',
   'linkedin.com',
 ];
 
-/**
- * Validates that the OAuth URL points to a known provider.
- */
 const validateOAuthUrl = (url: string): boolean => {
   try {
     const parsed = new URL(url);
@@ -29,22 +20,26 @@ const validateOAuthUrl = (url: string): boolean => {
   }
 };
 
-type OAuthProvider = 'google' | 'apple' | 'linkedin_oidc';
+/**
+ * Detects whether the app is running on a custom domain.
+ */
+export const isCustomDomain = (): boolean =>
+  !window.location.hostname.includes('lovable.app') &&
+  !window.location.hostname.includes('lovableproject.com') &&
+  !window.location.hostname.includes('localhost');
 
-interface CustomDomainOAuthOptions {
-  provider: OAuthProvider;
+interface LinkedInOAuthOptions {
+  provider: 'linkedin_oidc';
   redirectTo: string;
   scopes?: string;
-  queryParams?: Record<string, string>;
 }
 
 /**
- * Initiates OAuth with custom-domain awareness.
- * On custom domains, uses skipBrowserRedirect to bypass the auth-bridge
- * and manually redirects. On Lovable domains, uses the default flow.
+ * Initiates LinkedIn OAuth with custom-domain awareness.
+ * On custom domains, uses skipBrowserRedirect to bypass the auth-bridge.
  */
-export const signInWithOAuthCustomDomain = async (options: CustomDomainOAuthOptions) => {
-  const { provider, redirectTo, scopes, queryParams } = options;
+export const signInWithOAuthCustomDomain = async (options: LinkedInOAuthOptions) => {
+  const { provider, redirectTo, scopes } = options;
 
   if (isCustomDomain()) {
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -53,7 +48,6 @@ export const signInWithOAuthCustomDomain = async (options: CustomDomainOAuthOpti
         redirectTo,
         skipBrowserRedirect: true,
         scopes,
-        queryParams,
       },
     });
 
@@ -68,13 +62,11 @@ export const signInWithOAuthCustomDomain = async (options: CustomDomainOAuthOpti
       throw new Error('No OAuth URL returned');
     }
   } else {
-    // Default flow — auth-bridge handles it on lovable.app
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo,
         scopes,
-        queryParams,
       },
     });
 
