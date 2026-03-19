@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,12 +14,14 @@ import { ApplicationsTable } from '@/components/partner/ApplicationsTable';
 import { ApplicationsFilters } from '@/components/partner/ApplicationsFilters';
 import { ApplicationsAnalytics } from '@/components/partner/ApplicationsAnalytics';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PartnerPageHeader } from '@/components/partner/PartnerPageHeader';
+import { PartnerInlineStats } from '@/components/partner/PartnerInlineStats';
+import { PartnerGlassCard } from '@/components/partner/PartnerGlassCard';
 
 async function fetchApplicationsData(userId: string, currentRole: string | null, companyId: string | null) {
   const isAdmin = currentRole === 'admin';
   const isPartner = currentRole === 'partner';
 
-  // Get company memberships for partners
   let companyIds: string[] = [];
   if (isPartner && !isAdmin) {
     if (companyId) {
@@ -35,7 +36,6 @@ async function fetchApplicationsData(userId: string, currentRole: string | null,
     }
   }
 
-  // Build jobs query
   let jobsQuery = supabase
     .from('jobs')
     .select(`id, title, company_id, status, created_at, companies:company_id (id, name, logo_url)`);
@@ -58,7 +58,6 @@ async function fetchApplicationsData(userId: string, currentRole: string | null,
 
   if (appsError) throw appsError;
 
-  // Enrich with candidate profiles
   const enrichedApps = await Promise.all(
     (appsData || []).map(async (app) => {
       let candidateData = null;
@@ -166,7 +165,6 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
   const jobs = data?.jobs || [];
   const companies = data?.companies || [];
 
-  // Filter
   const filteredApplications = applications.filter((app: any) => {
     const candidate = app.candidate_profiles;
     const matchesSearch =
@@ -236,68 +234,43 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">Applications Hub</h1>
-          <p className="text-muted-foreground">Manage all candidates across your company jobs</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleExport} variant="outline">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <PartnerPageHeader
+        title="Applications Hub"
+        subtitle="Manage all candidates across your company jobs"
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by name, email, or job..."
+        actions={
+          <Button onClick={handleExport} variant="outline" size="sm" className="h-9 border-border/30">
             <Download className="w-4 h-4 mr-2" />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {[
-          { label: 'Total', value: stats.total, icon: Users, color: 'text-primary' },
-          { label: 'Active', value: stats.active, icon: TrendingUp, color: 'text-blue-500' },
-          { label: 'Needs Action', value: stats.needsAction, icon: AlertCircle, color: 'text-amber-500' },
-          { label: 'Hired', value: stats.hired, icon: Briefcase, color: 'text-green-500' },
-          { label: 'Rejected', value: stats.rejected, icon: Users, color: 'text-red-500' },
-        ].map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-3xl font-bold">{stat.value}</p>
-                </div>
-                <stat.icon className={`w-8 h-8 ${stat.color}`} />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <PartnerInlineStats
+        stats={[
+          { value: stats.total, label: 'Total', icon: Users, highlight: true },
+          { value: stats.active, label: 'Active', icon: TrendingUp },
+          { value: stats.needsAction, label: 'Needs Action', icon: AlertCircle },
+          { value: stats.hired, label: 'Hired', icon: Briefcase },
+        ]}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filters & Search
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <Input placeholder="Search by name, email, or job..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full" />
-            </div>
-          </div>
-          <ApplicationsFilters
-            selectedStage={selectedStage} setSelectedStage={setSelectedStage}
-            selectedJob={selectedJob} setSelectedJob={setSelectedJob}
-            selectedCompany={selectedCompany} setSelectedCompany={setSelectedCompany}
-            selectedSource={selectedSource} setSelectedSource={setSelectedSource}
-            urgencyFilter={urgencyFilter} setUrgencyFilter={setUrgencyFilter}
-            jobs={jobs} companies={companies}
-          />
-        </CardContent>
-      </Card>
+      <PartnerGlassCard>
+        <ApplicationsFilters
+          selectedStage={selectedStage} setSelectedStage={setSelectedStage}
+          selectedJob={selectedJob} setSelectedJob={setSelectedJob}
+          selectedCompany={selectedCompany} setSelectedCompany={setSelectedCompany}
+          selectedSource={selectedSource} setSelectedSource={setSelectedSource}
+          urgencyFilter={urgencyFilter} setUrgencyFilter={setUrgencyFilter}
+          jobs={jobs} companies={companies}
+        />
+      </PartnerGlassCard>
 
       <Tabs defaultValue="table" className="w-full">
-        <TabsList>
+        <TabsList className="bg-card/30 backdrop-blur-sm border border-border/20">
           <TabsTrigger value="table">Candidates Table</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
