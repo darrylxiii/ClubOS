@@ -116,6 +116,45 @@ export const AddCandidateDialog = ({
     }
   }, [open]);
 
+  // Search existing candidates when in "existing" mode
+  useEffect(() => {
+    if (addMode !== "existing" || !existingSearch.trim()) {
+      setExistingResults([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      setExistingLoading(true);
+      try {
+        const q = `%${existingSearch.trim()}%`;
+        const { data } = await supabase
+          .from("candidate_profiles")
+          .select("id, full_name, email, avatar_url, current_title, current_company, linkedin_url, tags")
+          .or(`full_name.ilike.${q},email.ilike.${q},linkedin_url.ilike.${q}`)
+          .order("full_name")
+          .limit(20);
+
+        // Check which are already in this job
+        if (data && data.length > 0) {
+          const ids = data.map((c) => c.id);
+          const { data: existing } = await supabase
+            .from("applications")
+            .select("candidate_id")
+            .eq("job_id", jobId)
+            .in("candidate_id", ids)
+            .not("status", "in", '("rejected","withdrawn")');
+
+          const existingSet = new Set((existing || []).map((a) => a.candidate_id).filter(Boolean));
+          setExistingJobCandidateIds(existingSet);
+        }
+
+        setExistingResults(data || []);
+      } finally {
+        setExistingLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [existingSearch, addMode, jobId]);
+
   // Client-side URL name extraction as fallback
   const extractNameFromLinkedInUrl = (url: string): string => {
     const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
