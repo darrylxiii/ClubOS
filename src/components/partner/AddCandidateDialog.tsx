@@ -367,66 +367,65 @@ export const AddCandidateDialog = ({
 
   const proceedWithSubmission = async () => {
     try {
-      console.log('🎯 [Add Candidate] Starting submission:', {
-        fullName: formData.fullName,
-        linkedinUrl: formData.linkedinUrl,
-        email: formData.email,
-        jobId,
-        jobTitle,
-        timestamp: new Date().toISOString()
-      });
-
       // Get current admin user
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
-      // STEP 1: Create STANDALONE candidate profile (NO USER LINKING)
-      const { data: candidateProfile, error: profileError } = await supabase
-        .from("candidate_profiles")
-        .insert({
-          user_id: null, // ALWAYS null for manual additions
-          full_name: formData.fullName,
-          email: formData.email || null,
-          phone: formData.phone || null,
-          linkedin_url: formData.linkedinUrl || null,
-          current_company: formData.currentCompany || null,
-          current_title: formData.currentTitle || null,
-          avatar_url: scrapedAvatarUrl, // Use avatar from LinkedIn scraper if available
-          source_channel: linkedinImported ? 'linkedin_import' : 'manual_admin',
-          created_by: adminUser.id,
-          tags: linkedinImported 
-            ? ['linkedin_imported', 'standalone_profile'] 
-            : ['manually_added', 'standalone_profile']
-        })
-        .select()
-        .single();
+      let candidateId: string;
+      let candidateName: string;
 
-      if (profileError) {
-        console.error('❌ [Add Candidate] Profile creation failed:', {
-          code: profileError.code,
-          message: profileError.message,
-          details: profileError.details,
-          hint: profileError.hint
+      // BRANCH: If existing candidate selected, skip profile creation
+      if (selectedExistingCandidate) {
+        candidateId = selectedExistingCandidate.id;
+        candidateName = selectedExistingCandidate.full_name || 'Unknown';
+        console.log('🎯 [Add Candidate] Using existing candidate:', { candidateId, candidateName });
+      } else {
+        console.log('🎯 [Add Candidate] Starting submission:', {
+          fullName: formData.fullName,
+          linkedinUrl: formData.linkedinUrl,
+          email: formData.email,
+          jobId,
+          jobTitle,
+          timestamp: new Date().toISOString()
         });
-        
-        // Specific error messages
-        if (profileError.code === '23505') {
-          const identifier = formData.email || formData.linkedinUrl || formData.fullName;
-          throw new Error(`A candidate matching "${identifier}" already exists. Please check for duplicates or update the existing candidate.`);
+
+        // STEP 1: Create STANDALONE candidate profile (NO USER LINKING)
+        const { data: candidateProfile, error: profileError } = await supabase
+          .from("candidate_profiles")
+          .insert({
+            user_id: null,
+            full_name: formData.fullName,
+            email: formData.email || null,
+            phone: formData.phone || null,
+            linkedin_url: formData.linkedinUrl || null,
+            current_company: formData.currentCompany || null,
+            current_title: formData.currentTitle || null,
+            avatar_url: scrapedAvatarUrl,
+            source_channel: linkedinImported ? 'linkedin_import' : 'manual_admin',
+            created_by: adminUser.id,
+            tags: linkedinImported 
+              ? ['linkedin_imported', 'standalone_profile'] 
+              : ['manually_added', 'standalone_profile']
+          })
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error('❌ [Add Candidate] Profile creation failed:', profileError);
+          if (profileError.code === '23505') {
+            const identifier = formData.email || formData.linkedinUrl || formData.fullName;
+            throw new Error(`A candidate matching "${identifier}" already exists. Please check for duplicates or update the existing candidate.`);
+          }
+          if (profileError.message?.includes('RLS') || profileError.code === '42501') {
+            throw new Error('You do not have permission to add candidates. Please contact an admin.');
+          }
+          throw new Error(profileError.message || 'Failed to create candidate profile');
         }
-        if (profileError.message?.includes('RLS') || profileError.code === '42501') {
-          throw new Error('You do not have permission to add candidates. Please contact an admin.');
-        }
-        
-        throw new Error(profileError.message || 'Failed to create candidate profile');
+
+        candidateId = candidateProfile.id;
+        candidateName = formData.fullName;
+        console.log('✅ [Add Candidate] Standalone profile created:', { candidateId });
       }
-
-      console.log('✅ [Add Candidate] Standalone profile created:', {
-        candidateId: candidateProfile.id,
-        fullName: candidateProfile.full_name
-      });
-
-      const candidateId = candidateProfile.id;
 
       // STEP 2: Create application (also with null user_id for standalone candidates)
       // Set sourced_by to first credited team member (primary sourcer)
