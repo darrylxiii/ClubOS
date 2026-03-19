@@ -20,6 +20,7 @@ import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
+import { lovable } from "@/integrations/lovable/index";
 import { SetPasswordModal } from "@/components/auth/SetPasswordModal";
 import { ShaderAnimation } from "@/components/auth/ShaderAnimation";
 
