@@ -29,11 +29,22 @@ export const UpcomingMeetingsWidget = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Resolve candidate profile ID for admin-sourced bookings
+      const { data: cp } = await supabase
+        .from('candidate_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const orFilter = cp?.id
+        ? `user_id.eq.${user.id},candidate_id.eq.${cp.id}`
+        : `user_id.eq.${user.id}`;
+
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("bookings")
         .select("id, guest_name, meeting_type, interview_type, scheduled_start, scheduled_end, status, video_meeting_link, quantum_meeting_link, google_meet_hangout_link, job_id, notes")
-        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`)
+        .or(orFilter)
         .gte("scheduled_start", now)
         .in("status", ["confirmed", "pending"])
         .order("scheduled_start", { ascending: true })

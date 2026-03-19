@@ -486,13 +486,24 @@ export const AddCandidateDialog = ({
         candidateName = formData.fullName;
       }
 
-      // STEP 2: Create application
+      // STEP 2: Fetch candidate's user_id if they already have an account
+      let linkedUserId: string | null = null;
+      if (selectedExistingCandidate) {
+        const { data: cpData } = await supabase
+          .from('candidate_profiles')
+          .select('user_id')
+          .eq('id', candidateId)
+          .maybeSingle();
+        linkedUserId = cpData?.user_id || null;
+      }
+
+      // STEP 3: Create application
       const primarySourcer = creditTo.length > 0 ? creditTo[0] : adminUser.id;
       
       const { data: newApplication, error: appError } = await supabase
         .from("applications")
         .insert({
-          user_id: null,
+          user_id: linkedUserId,
           candidate_id: candidateId,
           job_id: jobId,
           position: jobTitle,

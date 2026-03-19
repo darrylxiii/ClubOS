@@ -141,13 +141,20 @@ export const AddToJobDialog = ({
       } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
+      // Fetch candidate's user_id if they already have an account
+      const { data: cpData } = await supabase
+        .from('candidate_profiles')
+        .select('user_id')
+        .eq('id', candidateId)
+        .maybeSingle();
+
       const startingStageName = stages[parseInt(startStageIndex)]?.name || "Applied";
 
       // Insert application
       const { data: newApp, error: appError } = await supabase
         .from("applications")
         .insert({
-          user_id: null,
+          user_id: cpData?.user_id || null,
           candidate_id: candidateId,
           job_id: selectedJob.id,
           position: selectedJob.title,

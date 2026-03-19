@@ -67,6 +67,17 @@ export default function ApplicationDetail() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
+      // Resolve candidate profile ID for admin-sourced applications
+      const { data: cp } = await supabase
+        .from('candidate_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const orFilter = cp?.id
+        ? `user_id.eq.${user.id},candidate_id.eq.${cp.id}`
+        : `user_id.eq.${user.id}`;
+
       const { data, error } = await supabase
         .from("applications")
         .select(`
@@ -81,7 +92,7 @@ export default function ApplicationDetail() {
           )
         `)
         .eq("id", applicationId)
-        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`)
+        .or(orFilter)
         .maybeSingle();
 
       if (error) throw error;
