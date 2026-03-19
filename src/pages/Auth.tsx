@@ -24,10 +24,6 @@ import { lovable } from "@/integrations/lovable/index";
 import { SetPasswordModal } from "@/components/auth/SetPasswordModal";
 import { ShaderAnimation } from "@/components/auth/ShaderAnimation";
 
-// Lazy load heavy components to reduce initial bundle
-const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
-  default: m.OAuthDiagnostics
-})));
 
 // Inline Google icon SVG to avoid react-icons bundle size
 const GoogleIcon = () => <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
