@@ -35,6 +35,18 @@ export interface ApplicationData {
 }
 
 async function fetchApplicationsOptimized(userId: string): Promise<ApplicationData[]> {
+  // Resolve candidate_profiles.id for this user (admin-sourced apps use this as candidate_id)
+  const { data: cp } = await supabase
+    .from('candidate_profiles')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  const candidateProfileId = cp?.id;
+  const orFilter = candidateProfileId
+    ? `user_id.eq.${userId},candidate_id.eq.${candidateProfileId}`
+    : `user_id.eq.${userId}`;
+
   // Single optimized query with all joins
   const { data, error } = await supabase
     .from("applications")
@@ -55,7 +67,7 @@ async function fetchApplicationsOptimized(userId: string): Promise<ApplicationDa
         )
       )
     `)
-    .or(`user_id.eq.${userId},candidate_id.eq.${userId}`)
+    .or(orFilter)
     .order("applied_at", { ascending: false });
 
   if (error) throw error;

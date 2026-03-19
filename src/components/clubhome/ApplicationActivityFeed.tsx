@@ -57,10 +57,21 @@ export const ApplicationActivityFeed = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Resolve candidate profile ID for admin-sourced applications
+      const { data: cp } = await supabase
+        .from('candidate_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const orFilter = cp?.id
+        ? `user_id.eq.${user.id},candidate_id.eq.${cp.id}`
+        : `user_id.eq.${user.id}`;
+
       const { data, error } = await supabase
         .from("applications")
         .select("id, position, company_name, status, stage_updated_at, updated_at, current_stage_index")
-        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`)
+        .or(orFilter)
         .order("updated_at", { ascending: false })
         .limit(8);
 

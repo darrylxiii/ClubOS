@@ -100,11 +100,21 @@ export const NextBestActionCard = () => {
         };
       }
 
-      // Check application count
+      // Check application count - resolve candidate profile for admin-sourced apps
+      const { data: cpData } = await supabase
+        .from('candidate_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const appOrFilter = cpData?.id
+        ? `user_id.eq.${user.id},candidate_id.eq.${cpData.id}`
+        : `user_id.eq.${user.id}`;
+
       const { count: applicationCount } = await supabase
         .from('applications')
         .select('id', { count: 'exact', head: true })
-        .or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`);
+        .or(appOrFilter);
 
       if (!applicationCount || applicationCount === 0) {
         return {
