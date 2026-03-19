@@ -1,96 +1,42 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useJobDashboardData, type PipelineStage, type EnrichedApplication } from "@/hooks/useJobDashboardData";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2, Mail, Shield, Share2 } from "lucide-react";
+import { Mail, Shield } from "lucide-react";
 import { SharePipelineDialog } from "@/components/jobs/SharePipelineDialog";
-import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { JobClosureDialog } from "@/components/jobs/JobClosureDialog";
 import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";
 import { JobArchiveDialog } from "@/components/jobs/JobArchiveDialog";
-import { useCloseJobWon, useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
+import { useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
 import { useRole } from "@/contexts/RoleContext";
-import { QuickActionsBar } from "@/components/partner/QuickActionsBar";
-import { SmartInsightsCard } from "@/components/partner/SmartInsightsCard";
-import { EnhancedFiltersPanel } from "@/components/partner/EnhancedFiltersPanel";
-import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
-import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
-import { TeamActivityCard } from "@/components/partner/TeamActivityCard";
 import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTab";
 import { EnhancedCandidateActionDialog } from "@/components/partner/EnhancedCandidateActionDialog";
-import { ExpandablePipelineStage } from "@/components/partner/ExpandablePipelineStage";
-
 import { InternalReviewPanel } from "@/components/partner/InternalReviewPanel";
 import { PartnerFirstReviewPanel } from "@/components/partner/PartnerFirstReviewPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AddStageDialog } from "@/components/partner/AddStageDialog";
 import { AdminJobTools } from "@/components/partner/AdminJobTools";
 import { EditJobSheet } from "@/components/partner/EditJobSheet";
-import { JobDocuments } from "@/components/partner/JobDocuments";
 import { JobAnalytics } from "@/components/partner/JobAnalytics";
-import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
 import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
-import { CandidateIntelligenceDossier } from "@/components/intelligence/CandidateIntelligenceDossier";
-import { ExecutiveBriefingCard } from "@/components/intelligence/ExecutiveBriefingCard";
-import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
-import { MLInsightsWidget } from "@/components/intelligence/MLInsightsWidget";
-import { useJobTeamRole } from "@/hooks/useJobTeamRole";
-import { HiringManagerDashboard } from "@/components/partner/dashboards/HiringManagerDashboard";
-import { ExecutiveDashboard } from "@/components/partner/dashboards/ExecutiveDashboard";
-import { InterviewerDashboard } from "@/components/partner/dashboards/InterviewerDashboard";
-import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
-import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
-import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
+import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
+import { TeamActivityCard } from "@/components/partner/TeamActivityCard";
 import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
-import {
-  JobDashboardSidebar,
-  InlineActivityFeed,
-  CollapsibleSection,
-  CandidatesAtRiskPanel,
-  QuickResponseTimeTracker,
-  PipelineVelocityTracker,
-  CandidateLeaderboard,
-  CandidateEngagementStream,
-  StageQuickActionsToolbar,
-  JobPerformanceScorecard
-} from "@/components/job-dashboard";
-import { motion } from "framer-motion";
+import { JobDashboardHeader } from "@/components/job-dashboard/JobDashboardHeader";
+import { JobDashboardStatsBar } from "@/components/job-dashboard/JobDashboardStatsBar";
+import { PipelineKanbanBoard } from "@/components/job-dashboard/PipelineKanbanBoard";
+import { InlineActivityFeed } from "@/components/job-dashboard/InlineActivityFeed";
+import { InlineDocumentsCard } from "@/components/job-dashboard/InlineDocumentsCard";
 import { EmailDumpTab } from "@/components/jobs/email-dump";
 import { JobInterviewRecordingsPanel } from "@/components/partner/JobInterviewRecordingsPanel";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-
-interface JobMetrics {
-  totalApplicants: number;
-  stageBreakdown: { [key: number]: number };
-  avgDaysInStage: { [key: number]: number };
-  conversionRates: { [key: string]: number };
-  needsClubCheck: number;
-  lastActivity: string;
-}
+import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
+import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
 
 export default function JobDashboard() {
   const { jobId } = useParams();
@@ -113,97 +59,25 @@ export default function JobDashboard() {
   const [showClosureDialog, setShowClosureDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
-
-  const closeJobLost = useCloseJobLost();
-  const archiveJob = useArchiveJob();
-  const deleteJob = useDeleteJob();
   const [showBrainConfig, setShowBrainConfig] = useState(false);
   const [showCalendarLinker, setShowCalendarLinker] = useState(false);
-  const [editingStage, setEditingStage] = useState<PipelineStage | null>(null);
-  const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
-  const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
-  const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<PipelineStage | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [pendingStageDelete, setPendingStageDelete] = useState<{
+    index: number;
+    message: string;
+    stageApps: EnrichedApplication[];
+  } | null>(null);
   const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<{
     candidate: EnrichedApplication;
     action: 'advance' | 'decline' | 'move_back';
   } | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [expandedStageIndices, setExpandedStageIndices] = useState<Set<number>>(new Set());
-  const [pendingStageDelete, setPendingStageDelete] = useState<{ index: number; message: string; stageApps: EnrichedApplication[] } | null>(null);
-  const { jobRole, permissions, loading: jobRoleLoading } = useJobTeamRole(jobId!);
 
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const archiveJob = useArchiveJob();
+  const deleteJob = useDeleteJob();
 
-  // Load display settings from localStorage
-  useEffect(() => {
-    if (jobId) {
-      const saved = localStorage.getItem(`pipeline-breakdown-display-${jobId}`);
-      if (saved) {
-        try {
-          setDisplaySettings(JSON.parse(saved));
-        } catch (e) {
-          console.error('Failed to parse display settings:', e);
-        }
-      }
-    }
-  }, [jobId]);
-
-  const toggleStageExpansion = (stageIndex: number) => {
-    setExpandedStageIndices(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(stageIndex)) {
-        newSet.delete(stageIndex);
-      } else {
-        newSet.add(stageIndex);
-      }
-      return newSet;
-    });
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = parseInt(active.id.toString().replace('stage-', ''));
-      const newIndex = parseInt(over.id.toString().replace('stage-', ''));
-
-      const updatedStages = [...stages];
-      const [movedStage] = updatedStages.splice(oldIndex, 1);
-      updatedStages.splice(newIndex, 0, movedStage);
-
-      // Update order values
-      const reorderedStages = updatedStages.map((stage, index) => ({
-        ...stage,
-        order: index
-      }));
-
-      const { error } = await supabase
-        .from('jobs')
-        .update({ pipeline_stages: reorderedStages })
-        .eq('id', jobId);
-
-      if (!error) {
-        await fetchJobDetails();
-        toast.success("Pipeline reordered successfully");
-      } else {
-        toast.error("Failed to reorder pipeline");
-      }
-    }
-  };
-
-  // Job closure handler - now handled by unified dialog
   const handleClosureComplete = () => {
     setShowClosureDialog(false);
-    // Delay fetch to let dialog animation complete
-    setTimeout(() => {
-      fetchJobDetails();
-    }, 300);
+    setTimeout(() => fetchJobDetails(), 300);
   };
 
   const handleArchive = async () => {
@@ -220,28 +94,24 @@ export default function JobDashboard() {
     navigate('/jobs');
   };
 
-  // Data is now fetched by useJobDashboardData hook
-
-  if (roleLoading || jobRoleLoading || loading) {
+  // Loading state
+  if (roleLoading || loading) {
     return (
-      <>
-        <div className="animate-pulse space-y-4">
-          <div className="h-32 bg-muted rounded"></div>
-          <div className="h-96 bg-muted rounded"></div>
-        </div>
-      </>
+      <div className="animate-pulse space-y-4 px-4 sm:px-6 lg:px-8 py-6">
+        <div className="h-12 bg-muted/30 rounded-xl" />
+        <div className="h-10 bg-muted/20 rounded-lg" />
+        <div className="h-[400px] bg-muted/20 rounded-xl" />
+      </div>
     );
   }
 
   if (!job) {
     return (
-      <>
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Job not found</p>
-          </CardContent>
-        </Card>
-      </>
+      <Card className="mx-4 sm:mx-6 lg:mx-8 my-6">
+        <CardContent className="py-12 text-center">
+          <p className="text-muted-foreground">Job not found</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -253,9 +123,7 @@ export default function JobDashboard() {
   ];
 
   const internalReviewPendingCount = applications.filter(
-    (app) =>
-      app.status !== 'rejected' &&
-      app.internal_review_status === 'pending',
+    (app) => app.status !== 'rejected' && app.internal_review_status === 'pending',
   ).length;
 
   const partnerReviewPendingCount = applications.filter(
@@ -268,9 +136,24 @@ export default function JobDashboard() {
 
   const pendingReviewsCount = internalReviewPendingCount + partnerReviewPendingCount;
 
+  const daysOpen = job.created_at
+    ? Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  const activeCandidates = metrics
+    ? Object.entries(metrics.stageBreakdown)
+        .filter(([key]) => parseInt(key) > 0)
+        .reduce((sum, [_, count]) => sum + (count as number), 0)
+    : 0;
+
+  const avgTimeToHire = metrics
+    ? Math.round(Object.values(metrics.avgDaysInStage).reduce((a: number, b: unknown) => a + (b as number), 0))
+    : 0;
+
   return (
     <>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 space-y-4 animate-fade-in">
+        {/* Share Dialog */}
         {job && (
           <SharePipelineDialog
             open={showShareDialog}
@@ -282,15 +165,13 @@ export default function JobDashboard() {
             jobTitle={job.title}
           />
         )}
-        {/* Admin Tools Bar - Only visible to admins */}
+
+        {/* Admin Tools Bar */}
         {role === 'admin' && (
-          <AdminJobTools
-            jobId={jobId!}
-            jobTitle={job.title}
-            onRefresh={fetchJobDetails}
-          />
+          <AdminJobTools jobId={jobId!} jobTitle={job.title} onRefresh={fetchJobDetails} />
         )}
 
+        {/* Job Context Dialog */}
         <Dialog open={showBrainConfig} onOpenChange={setShowBrainConfig}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -305,607 +186,132 @@ export default function JobDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* Premium Header with Glass Morphism */}
-        <div className="relative overflow-hidden rounded-2xl border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl p-6 md:p-8 shadow-[var(--shadow-glass-lg)]">
-          <div className="absolute inset-0 bg-gradient-to-r from-muted/10 via-transparent to-muted/10" />
-
-          <div className="relative flex flex-col md:flex-row items-start justify-between gap-4">
-            <div className="space-y-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/jobs')}
-                className="mb-2 hover:bg-muted/20 transition-all duration-300"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Jobs
-              </Button>
-              <div className="flex items-center gap-4">
-                {job.companies?.logo_url && (
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-muted/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-                    <img
-                      src={job.companies.logo_url}
-                      alt={job.companies.name}
-                      className="relative w-16 h-16 rounded-xl object-cover border-2 border-border/30 shadow-lg"
-                    />
-                  </div>
-                )}
-                <div className="space-y-1">
-                  <h1 className="text-4xl font-black uppercase bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text">
-                    {job.title}
-                  </h1>
-                  <p className="text-muted-foreground font-medium">{job.companies?.name}</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBrainConfig(true)}
-                className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
-              >
-                <Brain className="w-4 h-4" />
-                Job Context
-              </Button>
-
-              {(role === 'admin' || role === 'strategist') && (
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowShareDialog(true)}
-                    className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Share
-                  </Button>
-                  {activeShareCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground leading-none">
-                      {activeShareCount > 9 ? '9+' : activeShareCount}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditDialogOpen(true)}
-                className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
-              >
-                <Edit className="w-4 h-4" />
-                Edit Job
-              </Button>
-
-              {/* Job Actions Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {job.status !== 'closed' && (
-                    <DropdownMenuItem onClick={() => setShowClosureDialog(true)}>
-                      <Trophy className="w-4 h-4 mr-2 text-success" />
-                      Close Job
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setShowArchiveDialog(true)}>
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive Job
-                  </DropdownMenuItem>
-                  {(job.status === 'draft' || role === 'admin') && (
-                    <DropdownMenuItem
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Job
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Badge
-                variant={job.status === 'published' ? 'default' : 'secondary'}
-                className="h-8 px-4 text-sm font-bold animate-pulse"
-              >
-                {job.status}
-              </Badge>
-
-              {/* Continuous Pipeline Badge */}
-              <ContinuousPipelineBadge
-                isContinuous={job.is_continuous}
-                hiredCount={job.hired_count || 0}
-                targetHireCount={job.target_hire_count}
-                size="lg"
-                showProgress={true}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions Bar */}
-        <QuickActionsBar
-          jobId={job.id}
-          jobTitle={job.title}
-          candidateCount={metrics?.totalApplicants || 0}
+        {/* 1. Compact Header */}
+        <JobDashboardHeader
+          job={job}
+          role={role}
+          activeShareCount={activeShareCount}
+          onEdit={() => setEditDialogOpen(true)}
+          onShare={() => setShowShareDialog(true)}
+          onJobContext={() => setShowBrainConfig(true)}
+          onClose={() => setShowClosureDialog(true)}
+          onArchive={() => setShowArchiveDialog(true)}
+          onDelete={() => setShowDeleteDialog(true)}
         />
 
-        {/* NEW 70/30 Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-          {/* Main Content (Left - 70%) */}
-          <main className="space-y-6">
-            {/* Candidates at Risk - Top Priority Alert */}
-            {metrics && applications.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <CandidatesAtRiskPanel
-                  applications={applications as any[]}
-                  stages={stages}
-                  avgDaysInStage={metrics.avgDaysInStage}
-                  jobId={jobId!}
-                />
-              </motion.div>
-            )}
+        {/* 2. Inline Stats Bar */}
+        <JobDashboardStatsBar
+          totalCandidates={metrics?.totalApplicants || 0}
+          activeCandidates={activeCandidates}
+          pendingReviews={pendingReviewsCount}
+          daysOpen={daysOpen}
+          conversionRate={metrics?.conversionRates?.['0-1'] || 0}
+          avgTimeToHire={avgTimeToHire}
+        />
 
-            {/* Pipeline Velocity & Performance - Side by Side */}
-            {metrics && (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <PipelineVelocityTracker
-                  stages={stages}
-                  avgDaysInStage={metrics.avgDaysInStage}
-                  stageBreakdown={metrics.stageBreakdown}
-                />
-                <JobPerformanceScorecard
-                  metrics={metrics}
-                  daysOpen={Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))}
-                />
-              </div>
-            )}
+        {/* 3. Pipeline Kanban — Hero Section */}
+        <PipelineKanbanBoard
+          stages={stages}
+          applications={applications}
+          metrics={metrics}
+          onAddStage={() => setShowAddStage(true)}
+          onAdvanceCandidate={(candidate) =>
+            setSelectedCandidateForAction({ candidate, action: 'advance' })
+          }
+          onRejectCandidate={(candidate) =>
+            setSelectedCandidateForAction({ candidate, action: 'decline' })
+          }
+          onViewProfile={(candidate) => {
+            const candidateId = candidate.candidate_id || candidate.user_id;
+            if (!candidateId) {
+              toast.error('Unable to load candidate profile');
+              return;
+            }
+            const stageIndex = candidate.current_stage_index || 0;
+            const stageName = stages[stageIndex]?.name || '';
+            navigate(`/candidate/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stageName)}&stageIndex=${stageIndex}`);
+          }}
+        />
 
-            {/* Top Candidates Leaderboard */}
-            {applications.length > 0 && (
-              <CandidateLeaderboard
-                applications={applications as any[]}
-                stages={stages}
-                jobId={jobId!}
-              />
-            )}
-
-            {/* Smart Insights - Promoted */}
-            {metrics && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              >
-                <SmartInsightsCard metrics={metrics} stages={stages} />
-              </motion.div>
-            )}
-
-            {/* Enhanced Pipeline Breakdown */}
-            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
-              <CardHeader>
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-black uppercase">Pipeline Breakdown</CardTitle>
-                    <div className="flex gap-2">
-                      <PipelineDisplaySettings
-                        jobId={job.id}
-                        settings={displaySettings}
-                        onSettingsChange={setDisplaySettings}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAddStage(true)}
-                        className="gap-2"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add Stage
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const name = window.prompt("Template name:");
-                          if (!name?.trim()) return;
-                          try {
-                            const existing = JSON.parse(localStorage.getItem('pipeline-templates') || '[]');
-                            existing.push({
-                              name: name.trim(),
-                              stages: stages.map(({ name, order }) => ({ name, order })),
-                              created_at: new Date().toISOString(),
-                            });
-                            localStorage.setItem('pipeline-templates', JSON.stringify(existing));
-                            toast.success(`Template "${name.trim()}" saved`);
-                          } catch {
-                            toast.error("Failed to save template");
-                          }
-                        }}
-                        className="gap-2"
-                      >
-                        <Save className="w-4 h-4" />
-                        Save as Template
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Icon Legend */}
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-background/40 backdrop-blur-sm rounded-lg p-3 border border-border/20">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      <span>Your Company</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      <span>Quantum Club Elite</span>
-                    </div>
-                    <div className="h-4 w-px bg-border" />
-                    <div className="flex items-center gap-2">
-                      <Video className="w-4 h-4" />
-                      <span>Online</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>In-Person</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      <span>Hybrid</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4" />
-                      <span>Assessment</span>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <DndContext
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                  sensors={sensors}
-                >
-                  <SortableContext
-                    items={stages.map((_, i) => `stage-${i}`)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="space-y-3 md:space-y-4">
-                      {stages.sort((a, b) => a.order - b.order).map((stage, index) => {
-                        const count = metrics?.stageBreakdown[stage.order] || 0;
-                        const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
-                        const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                        const stageApplications = applications.filter(
-                          (app) =>
-                            app.current_stage_index === stage.order &&
-                            (app.partner_review_status === null ||
-                              typeof app.partner_review_status === 'undefined' ||
-                              app.partner_review_status === 'approved'),
-                        );
-
-                        // Stage health indicator
-                        const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
-
-                        return (
-                          <ExpandablePipelineStage
-                            key={`stage-${index}`}
-                            stage={stage}
-                            stageIndex={stage.order}
-                            candidateCount={count}
-                            avgDays={avgDays}
-                            conversionRate={nextConversion}
-                            applications={stageApplications as any[]}
-                            jobId={jobId!}
-                            isExpanded={expandedStageIndices.has(stage.order)}
-                            onToggleExpand={() => toggleStageExpansion(stage.order)}
-                            displaySettings={displaySettings}
-                            totalStages={stages.length}
-                            onEdit={(updatedStage) => {
-                              // Save inline edits
-                              const updatedStages = [...stages];
-                              updatedStages[index] = { ...updatedStage, order: index };
-
-                              supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId)
-                                .then(({ error }) => {
-                                  if (!error) {
-                                    fetchJobDetails();
-                                    toast.success("Stage updated successfully");
-                                  } else {
-                                    toast.error("Failed to update stage");
-                                  }
-                                });
-                            }}
-                            onDuplicate={async () => {
-                              const duplicatedStage = {
-                                ...stage,
-                                name: `${stage.name} (Copy)`,
-                                order: stages.length
-                              };
-                              const updatedStages = [...stages, duplicatedStage];
-
-                              const { error } = await supabase
-                                .from('jobs')
-                                .update({ pipeline_stages: updatedStages })
-                                .eq('id', jobId);
-
-                              if (!error) {
-                                await fetchJobDetails();
-                                toast.success("Stage duplicated successfully");
-                              } else {
-                                toast.error("Failed to duplicate stage");
-                              }
-                            }}
-                            onDelete={async () => {
-                              const stageApps = applications.filter(a => a.current_stage_index === index);
-                              const targetIndex = index > 0 ? index - 1 : 0;
-                              const targetStageName = index > 0 ? stages[targetIndex]?.name : stages.length > 1 ? stages[1]?.name : 'the first stage';
-
-                              const message = stageApps.length > 0
-                                ? `This stage has ${stageApps.length} candidate(s). They will be moved to "${targetStageName}". Delete "${stage.name}"?`
-                                : `Delete stage "${stage.name}"?`;
-
-                              setPendingStageDelete({ index, message, stageApps });
-                            }}
-                            onAdvanceCandidate={(candidate) => {
-                              setSelectedCandidateForAction({ candidate, action: 'advance' });
-                            }}
-                            onRejectCandidate={(candidate) => {
-                              setSelectedCandidateForAction({ candidate, action: 'decline' });
-                            }}
-                            onMoveBackCandidate={(candidate) => {
-                              setSelectedCandidateForAction({ candidate, action: 'move_back' });
-                            }}
-                            onViewProfile={(candidate) => {
-                              const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
-                              if (!candidateId) {
-                                toast.error('Unable to load candidate profile');
-                                return;
-                              }
-                              navigate(`/candidate/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </SortableContext>
-                </DndContext>
-              </CardContent>
-            </Card>
-
-            {/* Team & Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <TeamActivityCard jobId={job.id} />
-
-              <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                    Next Actions Required
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm">
-                    {metrics?.needsClubCheck ? (
-                      <span className="font-bold">
-                        {metrics.needsClubCheck} candidate{metrics.needsClubCheck !== 1 ? 's' : ''} need Club Check
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">All candidates reviewed</span>
-                    )}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-          </main>
-
-          {/* Sidebar (Right - 30%) */}
-          <aside className="order-first lg:order-last">
-            <JobDashboardSidebar
-              job={job}
-              metrics={metrics}
-              stages={stages}
-              onEditJob={() => setEditDialogOpen(true)}
-              onRefresh={fetchJobDetails}
-            />
-          </aside>
-        </div>
-
-        {/* Consolidated Tabs - Reduced from 8 to 3 */}
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              Intelligence
-            </TabsTrigger>
-            {jobRole && (
-              <TabsTrigger value="my-view" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-                <Target className="h-4 w-4 mr-1 inline" />
-                My View
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="reviews" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+        {/* 4. Streamlined Tabs */}
+        <Tabs defaultValue="reviews" className="w-full">
+          <TabsList className="w-full justify-start bg-card/30 backdrop-blur-sm border border-border/20 p-1 h-auto flex-wrap gap-1">
+            <TabsTrigger value="reviews" className="text-xs data-[state=active]:bg-background/60">
               Reviews
               {pendingReviewsCount > 0 && (
-                <Badge variant="secondary" className="ml-1">{pendingReviewsCount}</Badge>
+                <Badge variant="secondary" className="ml-1.5 h-4 text-[10px] px-1.5">{pendingReviewsCount}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs data-[state=active]:bg-background/60">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="text-xs data-[state=active]:bg-background/60">
+              Activity
+            </TabsTrigger>
+            <TabsTrigger value="rejected" className="text-xs data-[state=active]:bg-background/60">
+              Rejected
+              {rejectedCount > 0 && (
+                <Badge variant="secondary" className="ml-1.5 h-4 text-[10px] px-1.5">{rejectedCount}</Badge>
               )}
             </TabsTrigger>
             {(role === 'admin' || role === 'strategist') && (
-              <TabsTrigger value="email-dump" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-                <Mail className="h-4 w-4 mr-1 inline" />
-                Email Dump
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="rejected" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-              Rejected ({rejectedCount})
-            </TabsTrigger>
-            {(role === 'admin' || role === 'strategist') && (
-              <TabsTrigger value="audit-log" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
-                <Shield className="h-4 w-4 mr-1 inline" />
-                Audit Log
+              <TabsTrigger value="more" className="text-xs data-[state=active]:bg-background/60">
+                More
               </TabsTrigger>
             )}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6 mt-6">
-            {/* Predictive Analytics Widget */}
-            <PredictiveAnalyticsDashboard jobId={job.id} />
-
-            {/* ML Insights Widget */}
-            <MLInsightsWidget jobId={job.id} />
-
-            {/* Candidate Intelligence Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left: Top Candidates Dossiers */}
-              <Card className="border-2 border-border/40 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60">
-                <CardHeader>
-                  <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
-                    <Target className="w-4 h-4 text-primary" />
-                    Top Candidate Intelligence
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {applications
-                    .filter(app => app.status === 'active')
-                    .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
-                    .slice(0, 3)
-                    .map(app => (
-                      <CandidateIntelligenceDossier
-                        key={app.id}
-                        candidateId={app.candidate_id}
-                        jobId={job.id}
-                      />
-                    ))}
-                  {applications.filter(app => app.status === 'active').length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No active candidates yet
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Right: Executive Briefings */}
-              <Card className="border-2 border-border/40 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60">
-                <CardHeader>
-                  <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    Decision-Ready Briefings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {applications
-                    .filter(app => app.status === 'active')
-                    .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
-                    .slice(0, 3)
-                    .map(app => (
-                      <ExecutiveBriefingCard
-                        key={app.id}
-                        candidateId={app.candidate_id}
-                        jobId={job.id}
-                        compact={false}
-                      />
-                    ))}
-                  {applications.filter(app => app.status === 'active').length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No active candidates yet
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="reviews" className="space-y-4 mt-4">
+            {(role === 'admin' || role === 'strategist') && <InternalReviewPanel jobId={job.id} />}
+            <PartnerFirstReviewPanel jobId={job.id} />
           </TabsContent>
 
-          <TabsContent value="my-view" className="mt-6">
-            {jobRole === 'hiring_manager' && <HiringManagerDashboard jobId={job.id} />}
-            {jobRole === 'founder_reviewer' && <ExecutiveDashboard jobId={job.id} />}
-            {['technical_interviewer', 'behavioral_interviewer', 'panel_member'].includes(jobRole || '') &&
-              <InterviewerDashboard jobId={job.id} />
-            }
-            {jobRole === 'observer' && <ObserverDashboard jobId={job.id} />}
-            {!jobRole && (
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground text-center">
-                    You don't have a specific role assigned for this job. Contact the hiring manager to get access.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-4 mt-6">
+          <TabsContent value="analytics" className="space-y-4 mt-4">
             <JobInterviewRecordingsPanel jobId={job.id} />
             <JobAnalytics jobId={job.id} />
           </TabsContent>
 
-          <TabsContent value="reviews" className="space-y-4 mt-6">
-            {(role === 'admin' || role === 'strategist') ? (
-              <InternalReviewPanel jobId={job.id} />
-            ) : null}
-            <PartnerFirstReviewPanel jobId={job.id} />
+          <TabsContent value="activity" className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <InlineActivityFeed jobId={job.id} initialLimit={10} />
+              <div className="space-y-4">
+                <TeamActivityCard jobId={job.id} />
+                <JobTeamPanel jobId={job.id} />
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="email-dump" className="space-y-4 mt-6">
-            <EmailDumpTab
-              jobId={job.id}
-              jobTitle={job.title}
-              companyName={job.companies?.name || ''}
-              onCandidatesImported={fetchJobDetails}
-            />
-          </TabsContent>
-
-          <TabsContent value="rejected" className="space-y-4 mt-6">
-            <RejectedCandidatesTab
-              jobId={job.id}
-              stages={stages}
-            />
+          <TabsContent value="rejected" className="space-y-4 mt-4">
+            <RejectedCandidatesTab jobId={job.id} stages={stages} />
           </TabsContent>
 
           {(role === 'admin' || role === 'strategist') && (
-            <TabsContent value="audit-log" className="space-y-4 mt-6">
-              <PipelineAuditLog jobId={job.id} />
+            <TabsContent value="more" className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <PipelineAuditLog jobId={job.id} />
+                <InlineDocumentsCard jobId={job.id} />
+              </div>
+              <EmailDumpTab
+                jobId={job.id}
+                jobTitle={job.title}
+                companyName={job.companies?.name || ''}
+                onCandidatesImported={fetchJobDetails}
+              />
             </TabsContent>
           )}
         </Tabs>
       </div>
 
-      {/* Add Stage Dialog */}
+      {/* Dialogs — kept outside main flow */}
       <AddStageDialog
         open={showAddStage}
-        onOpenChange={(open) => {
-          setShowAddStage(open);
-          if (!open) {
-            setEditingStage(null);
-            setEditingStageIndex(null);
-          }
-        }}
+        onOpenChange={setShowAddStage}
         onSave={async (newStage) => {
-          let updatedStages;
-          if (editingStageIndex !== null) {
-            updatedStages = stages.map((s, i) => i === editingStageIndex ? newStage : s);
-          } else {
-            updatedStages = [...stages, newStage];
-          }
-
+          const updatedStages = [...stages, newStage];
           const { error } = await supabase
             .from('jobs')
             .update({ pipeline_stages: updatedStages })
             .eq('id', jobId);
-
           if (!error) {
             await fetchJobDetails();
             return { success: true };
@@ -917,8 +323,6 @@ export default function JobDashboard() {
         companyId={job?.company_id || ''}
       />
 
-
-      {/* Candidate Action Dialog */}
       {selectedCandidateForAction && (
         <EnhancedCandidateActionDialog
           open={!!selectedCandidateForAction}
@@ -936,12 +340,11 @@ export default function JobDashboard() {
           actionType={selectedCandidateForAction.action}
           onComplete={() => {
             setSelectedCandidateForAction(null);
-            fetchJobDetails(); // This will refresh both metrics and rejected count
+            fetchJobDetails();
           }}
         />
       )}
 
-      {/* Edit Job Sheet */}
       {job && (
         <EditJobSheet
           open={editDialogOpen}
@@ -951,7 +354,6 @@ export default function JobDashboard() {
         />
       )}
 
-      {/* Manual Interview Entry Dialog */}
       <ManualInterviewEntryDialog
         open={showManualInterview}
         onOpenChange={setShowManualInterview}
@@ -959,7 +361,6 @@ export default function JobDashboard() {
         onInterviewAdded={fetchJobDetails}
       />
 
-      {/* Calendar Interview Linker */}
       <CalendarInterviewLinker
         open={showCalendarLinker}
         onOpenChange={setShowCalendarLinker}
@@ -968,7 +369,6 @@ export default function JobDashboard() {
         onInterviewLinked={fetchJobDetails}
       />
 
-      {/* Job Closure & Management Dialogs */}
       <JobClosureDialog
         open={showClosureDialog}
         onOpenChange={setShowClosureDialog}
@@ -992,72 +392,6 @@ export default function JobDashboard() {
         isAdmin={role === 'admin'}
         onConfirm={handleDelete}
       />
-
-      {/* Stage Delete Confirmation Dialog */}
-      <AlertDialog open={!!pendingStageDelete} onOpenChange={(open) => { if (!open) setPendingStageDelete(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Pipeline Stage</AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingStageDelete?.message}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingStageDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={async () => {
-                if (!pendingStageDelete) return;
-                const { index, stageApps } = pendingStageDelete;
-                const targetIndex = index > 0 ? index - 1 : 0;
-                setPendingStageDelete(null);
-
-                try {
-                  if (stageApps.length > 0) {
-                    const appIds = stageApps.map(a => a.id);
-                    const { error: migrateError } = await supabase
-                      .from('applications')
-                      .update({ current_stage_index: targetIndex })
-                      .in('id', appIds);
-                    if (migrateError) throw migrateError;
-                  }
-
-                  const appsAbove = applications.filter(a => a.current_stage_index > index);
-                  if (appsAbove.length > 0) {
-                    for (const app of appsAbove) {
-                      await supabase
-                        .from('applications')
-                        .update({ current_stage_index: app.current_stage_index - 1 })
-                        .eq('id', app.id);
-                    }
-                  }
-
-                  const updatedStages = stages
-                    .filter((_, i) => i !== index)
-                    .map((s, i) => ({ ...s, order: i }));
-
-                  const { error } = await supabase
-                    .from('jobs')
-                    .update({ pipeline_stages: updatedStages })
-                    .eq('id', jobId);
-
-                  if (!error) {
-                    await fetchJobDetails();
-                    toast.success("Stage deleted successfully");
-                  } else {
-                    toast.error("Failed to delete stage");
-                  }
-                } catch (err) {
-                  logger.error('Stage deletion error:', { error: err });
-                  toast.error("Failed to delete stage — candidates were not moved");
-                }
-              }}
-            >
-              Delete Stage
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
