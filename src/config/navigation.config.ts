@@ -127,9 +127,8 @@ const baseNavigationGroups: NavigationGroup[] = [
     ],
   },
   {
-    title: "Quantum OS",
+    title: "OS Notes",
     icon: NotebookPen,
-    badge: "New",
     items: [
       { name: "All Pages", icon: FileText, path: "/pages" },
       { name: "Favorites", icon: Star, path: "/pages?tab=favorites" },
