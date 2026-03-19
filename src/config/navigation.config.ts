@@ -343,12 +343,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     {
       title: "Club Projects",
       icon: Layers,
-      badge: "New",
+      badge: "Soon",
       items: [
-        { name: "All Projects", icon: Layers, path: "/projects" },
-        { name: "Post Project", icon: Plus, path: "/projects/new" },
-        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs" },
-        { name: "All Proposals", icon: FileText, path: "/projects/proposals" },
+        { name: "All Projects", icon: Layers, path: "/projects", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Post Project", icon: Plus, path: "/projects/new", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs", locked: true, lockedMessage: "Releasing soon" },
+        { name: "All Proposals", icon: FileText, path: "/projects/proposals", locked: true, lockedMessage: "Releasing soon" },
         { name: "Disputes", icon: AlertTriangle, path: "/projects/disputes" },
         { name: "Contracts", icon: FileSignature, path: "/contracts" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
