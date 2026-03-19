@@ -193,6 +193,18 @@ export const CandidateHeroSection = ({
                     Deep Enrich
                   </Button>
                 )}
+
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAddToJobOpen(true)}
+                    className="border-primary/30 hover:border-primary/60"
+                  >
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Add to Job
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -206,6 +218,13 @@ export const CandidateHeroSection = ({
         candidateId={candidate.id}
         candidateData={candidate}
         onComplete={() => onRefresh?.()}
+      />
+
+      <AddToJobDialog
+        candidateId={candidate.id}
+        candidateName={candidateName}
+        open={addToJobOpen}
+        onOpenChange={setAddToJobOpen}
       />
     </>
   );
