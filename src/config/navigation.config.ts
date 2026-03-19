@@ -204,7 +204,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Companies", icon: Building, path: "/companies" },
-        { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+        { name: "Assessments", icon: ClipboardCheck, path: "/assessments", locked: true, lockedMessage: "Releasing soon" },
         { name: "Partner Hub", icon: LayoutDashboard, path: "/partner/hub" },
       ],
     },
@@ -218,6 +218,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Find Talent", icon: Users, path: "/projects/talent", locked: true, lockedMessage: "Releasing soon" },
         { name: "Contracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "Releasing soon" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace", locked: true, lockedMessage: "Releasing soon" },
       ],
     },
   ],
@@ -374,7 +375,6 @@ const adminSpecificItems: NavigationItem[] = [
 // Partner-specific items
 const partnerSpecificItems: NavigationItem[] = [
   { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
-  { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
 ];
 
 // Candidate-specific items
