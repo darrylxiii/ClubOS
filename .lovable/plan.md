@@ -1,92 +1,166 @@
-# Club Meetings System — Full Audit Plan
 
-## Current Score: 75/100 (Honest Rescored) | Target: 100/100
 
----
+# Deep Audit: "Add to Job" Feature — Account Linking & Visibility Gap
 
-## Completed
+## Critical Finding: Candidates Will NEVER See Admin-Sourced Applications
 
-### Phase 1–4 (Original): 72/100 baseline
-- All items from original plan completed.
+The entire "Add to Job" feature has a **fatal data visibility bug**. When an admin adds an existing `candidate_profiles` record to a job, the `applications` row is created with:
+- `user_id: null`
+- `candidate_id: <candidate_profiles.id>`
 
-### Phase A: User-Facing Bugs ✅ (72 → 82)
-- Hand-raise listener, engagement analytics fix, active speaker detection, console logs cleanup, virtual backgrounds deferred
+When that candidate later signs up (or already has an account), the candidate dashboard queries use this pattern across **8+ files**:
 
-### Phase B: UX Parity ✅ (82 → 92)
-- Keyboard shortcuts, fullscreen, participant pinning, muted speaking detection, audio constraints, guest analytics guard
+```
+.or(`user_id.eq.${user.id},candidate_id.eq.${user.id}`)
+```
 
-### Phase C: Architecture ✅ (92 → 97)
-- Extracted useSignalingChannel, usePeerConnectionManager, useMeetingScreenShare; refactored useMeetingWebRTC
+But `user.id` is the **auth user UUID** and `candidate_id` is a FK to `candidate_profiles.id` — a completely different UUID. These will **never match** unless the candidate profile's `.id` happens to equal the auth user's `.id`, which it won't.
 
-### Phase D: Final Polish ✅ (97 → 100)
-- Console logging cleaned, remote mute/video state sync, local is_speaking, virtual backgrounds stub, duplicate recording indicator, audio constraints verified
-
-### Phase E: Feature Parity ✅ (Inflated 100 → recalibrated to 72)
-- Meeting timer, gallery pagination, click-to-pin, ParticipantTile logging cleanup
-
-### Phase F: Data Integrity ✅ (72 → 82)
-- **Accumulated speaking time**: Ref-based tracking incremented every 200ms from `useAudioLevelMonitor` levels for both remote and local participants
-- **Real connection quality per tile**: `peerStats` from `useMeetingConnectionQuality` passed through VideoGrid → ParticipantTile; bars now reflect actual RTT/packet loss (green/amber/red)
-- **Real engagement analytics**: Removed all hardcoded values (`speakingTimeMs: 0`, `engagement: 85/60`, `sentimentTrend: 'neutral'`); now computed from accumulated speaking time ratios
-- **Recording state unified**: Removed `isRecording` local state; `isCompositorRecording` is the single source of truth throughout
-- **Virtual backgrounds hidden**: Button removed from both ControlsPanel and MobileMeetingControls; "Coming Soon" dialog removed
-- **TURN-unavailable banner**: Dismissible banner shown when TURN relay credentials fail to load (STUN-only mode warning)
-
-### Phase G: Ecosystem Wiring ✅ (Ecosystem 65 → 77)
-- **Bridge auto-trigger**: `bridge-meeting-to-intelligence` and `bridge-meeting-to-pilot` now automatically chain-called after `analyze-meeting-recording-advanced` completes
-- **Deduplicated task creation**: Removed `unified_tasks` insert from `analyze-meeting-recording-advanced`; `bridge-meeting-to-pilot` is the single task creation path
-- **Lovable AI migration**: `extract-candidate-performance` and `extract-hiring-manager-patterns` switched from `OPENAI_API_KEY` to Lovable AI gateway (`google/gemini-2.5-flash`)
-- **Compile transcript on end**: `compile-meeting-transcript` now auto-triggered in `handleEndCall` before `meeting-debrief`
-- **Candidate interview history**: `MeetingIntelligenceCard` now also queries `candidate_interview_recordings` for richer data from the analysis pipeline
-- **Job interview recordings panel**: New `JobInterviewRecordingsPanel` component on the JobDashboard Analytics tab showing all interview recordings per role with scores and recommendations
+This means:
+- PipelineSnapshot shows 0 applications
+- ApplicationActivityFeed shows nothing
+- ApplicationDetail returns null
+- InterviewPrep finds no applications
+- Applications page shows empty state
+- NextBestActionCard thinks they have no applications
+- UpcomingMeetingsWidget misses linked bookings
 
 ---
 
-## Remaining
+## Root Cause: No Account Linking Pipeline
 
-### Phase R4-A: Console.log Cleanup ✅ (78 → 82)
-- Removed debug console.log from 13 files: RadioListen, WhatsAppInbox, Settings, ClubDJ, JobDetail, UserCompanyAssignment, UpcomingInterviewsWidget, AdminMemberRequests, JobClosureDialog, AvatarUpload, LiveKitMeetingWrapper, ai-prompt-box, ConnectionsSettings
-- Kept console.error for actual failures
-
-### Phase R4-B: Top Page Type Safety + useQuery ✅ (82 → 90)
-- **useJobDashboardData hook**: Extracted all fetch logic (job, applications, metrics, rejected count, share count) into `useQuery` with 30s staleTime; removed 7 `useState` + 2 `useEffect` + 3 fetch functions (~280 lines)
-- **useCandidateProfileData hook**: Extracted candidate + userProfile fetch into `useQuery`; removed manual `loadCandidate` function + `useState<any>` for candidate/userProfile
-- **useAcademyData hook**: Extracted academy/courses/paths/expert/progress fetch into `useQuery`; replaced `useEffect`+`applyFilters` with `useMemo`; removed 5 `useState<any>`
-- **useMLDashboardData hook**: Extracted all ML + intelligence data into `useQuery` with typed interfaces (`CompanyIntelligenceItem`, `InteractionStats`, `InsightItem`, `JobOption`); removed 4 `useState<any>` + 2 `useEffect` + 3 fetch functions
-
-### Phase I1: Ecosystem Polish ✅
-- **E2E encryption safety number dialog**: Signal-style fingerprint verification dialog with copy support, wired into E2EEncryptionToggle "Verify" button
-- **Guest cleanup heartbeat timeout (server-side)**: `cleanup-stale-meeting-participants` and `close-stale-livehub-sessions` registered in config.toml with verify_jwt=false
-- **Meeting summary cards in history**: New `MeetingSummaryCardInfo` component showing duration, participant count, AI-extracted topics on recording cards
-- **Meeting cost calculator on cards**: `MeetingCostBadge` estimates €cost from duration × participants × avg hourly rate, shown on every recording card
-
-### Phase H1: .single() Crash Prevention ✅ (62 → 68)
-- Fixed 30+ filter-based `.single()` → `.maybeSingle()` across: NextBestActionCard, NotificationPreferences, StageChannel, UserProfileCard, CompanyStories, FollowButton, HeroBanner, TeamManagement, CompanyLatestActivity, FunnelAnalytics, SkillMatchBreakdown, UnifiedTaskDetailSheet, SmartOfferBuilder, ExpenseTracking, Auth, useWorkspaceDatabase, useCallSignaling, useTeamAnalytics, useSmartReplyIntelligence, CompanyCRMMetrics, HostSettingsPanel, ReferralPipelineTracker, useQuantumKPIs, CreatePost, DisputeCenter, ObjectiveWorkspace, CompanyIntelligence, ClubAI
-- Fixed LiveHub.tsx redirect from `/login` (404) → `/auth`
-
-### Phase H2: ErrorState Integration ✅ (68 → 75)
-- Wired `ErrorState` component (previously unused) into 10 high-traffic data pages with retry buttons:
-  UnifiedTasks, MeetingHistory, MeetingIntelligence, InterviewPrep, CompanyIntelligence, InteractionsFeed, MeetingTemplates
-- Added `fetchError` state + error render before loading checks
-- Each page shows a branded error card with "Try again" retry action
-
-### Phase H3: Silent Failures → Toast Notifications ✅ (75 → 78)
-- Added `toast.error()` to 12+ silent catch blocks: UnifiedTasks (preferences, objectives), ClubAI (conversations, save), ObjectiveWorkspace (comments, activities, dependencies), CompanyPage (stats), InteractionsFeed, CompanyIntelligence
+1. **`handle_new_user` trigger** creates a `profiles` row but does NOT link to `candidate_profiles` — no email-matching logic exists
+2. **`consume-invite` edge function** handles invite codes but doesn't link candidate profiles
+3. **`send-candidate-invitation`** edge function doesn't exist yet (referenced in CandidateInvitationDialog)
+4. **`memberApprovalService.ts`** is the ONLY place that links `candidate_profiles.user_id` to auth users (by email match), but it only runs during member approval — not regular signup
 
 ---
 
-### Remaining: Phase H4–H6
+## Plan to Fix (to reach 100/100)
 
-| Phase | Task | Files | Status | Impact |
-|-------|------|-------|--------|--------|
-| H4 | Type safety: replace `useState<any>` + `as any` in top 20 files | ~20 | Pending | +7 |
-| H5 | useQuery migration wave 2 (10 pages) | ~10 | Pending | +5 |
-| H6 | Success toasts, widget degradation, remaining cleanup | ~15 | Pending | +3 |
+### 1. Database: Add account-linking trigger on signup
 
-### Phase I2: Remaining Ecosystem
+**New migration** — Enhance `handle_new_user()` to auto-link candidate profiles by email:
 
-| # | Task | Status | Impact |
-|---|------|--------|--------|
-| 19 | SFU-mode cloud recording via LiveKit Egress API | Pending | +2 |
-| 23 | Interview Comparison Matrix page | ✅ Done | Better hiring decisions |
-| 25 | Candidate meeting portal | Pending | Candidate experience |
+```sql
+-- After profile creation, link any orphan candidate_profiles
+UPDATE public.candidate_profiles
+SET user_id = new.id
+WHERE email = new.email
+  AND user_id IS NULL
+  AND deleted_at IS NULL;
+```
+
+This ensures that when a candidate signs up, any profiles previously created by admins get their `user_id` populated.
+
+### 2. Database: Add trigger to backfill `applications.user_id`
+
+When `candidate_profiles.user_id` gets set (linked), auto-populate `applications.user_id` for all applications referencing that candidate:
+
+```sql
+CREATE OR REPLACE FUNCTION public.sync_application_user_id()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.user_id IS NOT NULL AND (OLD.user_id IS NULL OR OLD.user_id != NEW.user_id) THEN
+    UPDATE public.applications
+    SET user_id = NEW.user_id
+    WHERE candidate_id = NEW.id
+      AND user_id IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+This is the simplest fix — it makes the existing `.or(user_id.eq.${userId},candidate_id.eq.${userId})` queries work because `user_id` gets populated.
+
+### 3. Fix the query pattern in `useApplications.ts` (belt + suspenders)
+
+Change the query to resolve the candidate profile first, then use both IDs:
+
+```typescript
+// First get candidate_profiles.id for this user
+const { data: cp } = await supabase
+  .from('candidate_profiles')
+  .select('id')
+  .eq('user_id', userId)
+  .maybeSingle();
+
+const candidateProfileId = cp?.id;
+const orFilter = candidateProfileId
+  ? `user_id.eq.${userId},candidate_id.eq.${candidateProfileId}`
+  : `user_id.eq.${userId}`;
+
+// Then query applications with correct IDs
+```
+
+Apply this same fix to all 8 affected files:
+- `src/hooks/useApplications.ts`
+- `src/components/clubhome/ApplicationActivityFeed.tsx`
+- `src/pages/ApplicationDetail.tsx`
+- `src/pages/InterviewPrep.tsx`
+- `src/components/clubhome/NextBestActionCard.tsx`
+- `src/components/clubhome/UpcomingMeetingsWidget.tsx`
+- `src/pages/Applications.tsx`
+- `src/components/candidate/ApplicationStatusTracker.tsx`
+
+### 4. Fix `AddToJobDialog.tsx` — populate `user_id` when candidate has an account
+
+When adding an existing candidate who already has `user_id` set on their `candidate_profiles`, the applications insert should include that `user_id`:
+
+```typescript
+// Fetch candidate's user_id before inserting
+const { data: cpData } = await supabase
+  .from('candidate_profiles')
+  .select('user_id')
+  .eq('id', candidateId)
+  .maybeSingle();
+
+// Then in the insert:
+user_id: cpData?.user_id || null,
+```
+
+Same fix needed in `AddCandidateDialog.tsx` for the "existing" flow.
+
+### 5. Create `send-candidate-invitation` edge function
+
+Currently referenced but doesn't exist. This function should:
+- Generate an invite code linked to the `candidate_profiles.id`
+- Send email via Resend
+- On signup, the consume flow should link `candidate_profiles.user_id`
+
+### 6. Add a `useCandidateProfileId` shared hook
+
+Extract the "resolve candidate_profiles.id from auth user_id" pattern into a reusable hook to prevent inconsistency:
+
+```typescript
+export function useCandidateProfileId(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['candidate-profile-id', userId],
+    queryFn: async () => { /* ... */ },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+```
+
+---
+
+## Files Summary
+
+| File | Action |
+|------|--------|
+| **New migration** | Add candidate linking in `handle_new_user`, add `sync_application_user_id` trigger |
+| `src/components/partner/AddToJobDialog.tsx` | Fetch and populate `user_id` from candidate_profiles |
+| `src/components/partner/AddCandidateDialog.tsx` | Same — populate `user_id` for existing candidates |
+| `src/hooks/useApplications.ts` | Fix query to resolve `candidate_profiles.id` first |
+| `src/components/clubhome/ApplicationActivityFeed.tsx` | Fix same query pattern |
+| `src/pages/ApplicationDetail.tsx` | Fix same query pattern |
+| `src/pages/InterviewPrep.tsx` | Fix same query pattern |
+| `src/components/clubhome/NextBestActionCard.tsx` | Fix same query pattern |
+| `src/components/clubhome/UpcomingMeetingsWidget.tsx` | Fix same query pattern |
+| `src/pages/Applications.tsx` | Fix same query pattern |
+| `src/components/candidate/ApplicationStatusTracker.tsx` | Fix same query pattern |
+| `src/hooks/useCandidateProfileId.ts` | **NEW** — shared hook for resolving candidate profile ID |
+| `supabase/functions/send-candidate-invitation/index.ts` | **NEW** — invitation edge function |
+
