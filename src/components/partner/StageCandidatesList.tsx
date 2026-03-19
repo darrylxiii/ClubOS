@@ -12,8 +12,10 @@ import {
   Linkedin,
   ExternalLink,
   Users,
-  Calendar
+  Calendar,
+  Target
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
 import { ScheduleInterviewButton } from "./ScheduleInterviewButton";
 import { ensureHttpsUrl } from "@/utils/urlHelpers";
