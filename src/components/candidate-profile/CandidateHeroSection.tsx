@@ -5,13 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Send, Calendar, Edit, Linkedin, User,
   AlertCircle, CheckCircle, Mail, Phone, MapPin,
-  RefreshCw, Scan
+  RefreshCw, Scan, Briefcase
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { ensureHttpsUrl } from "@/utils/urlHelpers";
 import { useState } from "react";
 import { EnrichmentProgressModal } from "./EnrichmentProgressModal";
+import { AddToJobDialog } from "@/components/partner/AddToJobDialog";
 
 interface Props {
   candidate: any;
@@ -43,6 +44,7 @@ export const CandidateHeroSection = ({
     open: false,
     mode: 'linkedin',
   });
+  const [addToJobOpen, setAddToJobOpen] = useState(false);
 
   const hasAccount = !!candidate.user_id;
 
@@ -191,6 +193,18 @@ export const CandidateHeroSection = ({
                     Deep Enrich
                   </Button>
                 )}
+
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAddToJobOpen(true)}
+                    className="border-primary/30 hover:border-primary/60"
+                  >
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Add to Job
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -204,6 +218,13 @@ export const CandidateHeroSection = ({
         candidateId={candidate.id}
         candidateData={candidate}
         onComplete={() => onRefresh?.()}
+      />
+
+      <AddToJobDialog
+        candidateId={candidate.id}
+        candidateName={candidateName}
+        open={addToJobOpen}
+        onOpenChange={setAddToJobOpen}
       />
     </>
   );
