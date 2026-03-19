@@ -276,21 +276,34 @@ const Auth = () => {
         }
 
         try {
-          // Check if user has completed onboarding
-          const {
-            data: profile,
-            error
-          } = await supabase.from('profiles').select('onboarding_completed_at').eq('id', user.id).maybeSingle();
-          if (error) {
+          // Fetch roles and profile in parallel
+          const [rolesResult, profileResult] = await Promise.all([
+            supabase.from('user_roles').select('role').eq('user_id', user.id),
+            supabase.from('profiles').select('onboarding_completed_at').eq('id', user.id).maybeSingle(),
+          ]);
+
+          const roles = rolesResult.data?.map(r => r.role) || [];
+          const isElevatedRole = roles.includes('partner') || roles.includes('admin') || roles.includes('strategist');
+
+          // Partners, admins, and strategists skip candidate onboarding
+          if (isElevatedRole) {
+            logger.debug('Elevated role detected, skipping onboarding check', {
+              componentName: 'Auth',
+              roles,
+            });
+            navigate("/home");
+            return;
+          }
+
+          if (profileResult.error) {
             logger.warn('Failed to fetch profile for onboarding check', {
               componentName: 'Auth',
-              error
+              error: profileResult.error,
             });
-            // Safe default: route to onboarding
             navigate("/oauth-onboarding");
             return;
           }
-          if (!profile?.onboarding_completed_at) {
+          if (!profileResult.data?.onboarding_completed_at) {
             logger.debug('User needs to complete onboarding', {
               componentName: 'Auth'
             });
@@ -305,7 +318,6 @@ const Auth = () => {
           logger.error('Error checking onboarding status', err instanceof Error ? err : new Error(String(err)), {
             componentName: 'Auth'
           });
-          // Safe default: route to onboarding
           navigate("/oauth-onboarding");
         }
       }
