@@ -8,6 +8,7 @@ import { CheckCircle2, AlertCircle, Briefcase, User } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { toast } from "sonner";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
+import { lovable } from "@/integrations/lovable/index";
 
 export default function InviteAcceptance() {
   const { token } = useParams();
