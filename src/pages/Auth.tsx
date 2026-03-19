@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion } from "@/lib/motion";
 import { useTranslation } from "react-i18next";
@@ -20,13 +20,10 @@ import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
+import { lovable } from "@/integrations/lovable/index";
 import { SetPasswordModal } from "@/components/auth/SetPasswordModal";
 import { ShaderAnimation } from "@/components/auth/ShaderAnimation";
 
-// Lazy load heavy components to reduce initial bundle
-const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({
-  default: m.OAuthDiagnostics
-})));
 
 // Inline Google icon SVG to avoid react-icons bundle size
 const GoogleIcon = () => <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
@@ -512,14 +509,14 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      await signInWithOAuthCustomDomain({
-        provider: 'google',
-        redirectTo: redirectUrl,
-        queryParams: {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: redirectUrl,
+        extraParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
       });
+      if (result?.error) throw result.error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.google')
@@ -533,10 +530,10 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      await signInWithOAuthCustomDomain({
-        provider: 'apple',
-        redirectTo: redirectUrl,
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: redirectUrl,
       });
+      if (result?.error) throw result.error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.apple')
@@ -851,7 +848,7 @@ const Auth = () => {
       </Card>
 
       </motion.div>
-      {resolvedTheme === 'dark' && <OAuthDiagnostics />}
+      
       <SetPasswordModal open={setPasswordOpen} onOpenChange={setSetPasswordOpen} />
     </div>;
 };
