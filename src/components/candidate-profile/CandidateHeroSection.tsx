@@ -5,13 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Send, Calendar, Edit, Linkedin, User,
   AlertCircle, CheckCircle, Mail, Phone, MapPin,
-  RefreshCw, Scan
+  RefreshCw, Scan, Briefcase
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { ensureHttpsUrl } from "@/utils/urlHelpers";
 import { useState } from "react";
 import { EnrichmentProgressModal } from "./EnrichmentProgressModal";
+import { AddToJobDialog } from "@/components/partner/AddToJobDialog";
 
 interface Props {
   candidate: any;
