@@ -3039,6 +3039,7 @@ export type Database = {
           position: string
           probation_end_date: string | null
           probation_status: string | null
+          skill_match_details: Json | null
           source_context: Json | null
           sourced_by: string | null
           stage_updated_at: string | null
@@ -3083,6 +3084,7 @@ export type Database = {
           position: string
           probation_end_date?: string | null
           probation_status?: string | null
+          skill_match_details?: Json | null
           source_context?: Json | null
           sourced_by?: string | null
           stage_updated_at?: string | null
@@ -3127,6 +3129,7 @@ export type Database = {
           position?: string
           probation_end_date?: string | null
           probation_status?: string | null
+          skill_match_details?: Json | null
           source_context?: Json | null
           sourced_by?: string | null
           stage_updated_at?: string | null
