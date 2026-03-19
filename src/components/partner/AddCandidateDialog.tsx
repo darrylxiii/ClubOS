@@ -33,7 +33,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award, Info } from "lucide-react";
+import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award, Info, Search, Users, CheckCircle2, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { DuplicateCandidateDialog } from "./DuplicateCandidateDialog";
 
@@ -54,7 +57,12 @@ export const AddCandidateDialog = ({
 }: AddCandidateDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [scrapingLinkedIn, setScrapingLinkedIn] = useState(false);
-  const [addMode, setAddMode] = useState<"manual" | "linkedin">("manual");
+  const [addMode, setAddMode] = useState<"manual" | "linkedin" | "existing">("manual");
+  const [existingSearch, setExistingSearch] = useState("");
+  const [existingResults, setExistingResults] = useState<any[]>([]);
+  const [existingLoading, setExistingLoading] = useState(false);
+  const [selectedExistingCandidate, setSelectedExistingCandidate] = useState<any | null>(null);
+  const [existingJobCandidateIds, setExistingJobCandidateIds] = useState<Set<string>>(new Set());
   const [linkedinUrlForScrape, setLinkedinUrlForScrape] = useState("");
   const [linkedinImported, setLinkedinImported] = useState(false);
   const [creditTo, setCreditTo] = useState<string[]>([]);
@@ -107,6 +115,45 @@ export const AddCandidateDialog = ({
       setSubmitError(null);
     }
   }, [open]);
+
+  // Search existing candidates when in "existing" mode
+  useEffect(() => {
+    if (addMode !== "existing" || !existingSearch.trim()) {
+      setExistingResults([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      setExistingLoading(true);
+      try {
+        const q = `%${existingSearch.trim()}%`;
+        const { data } = await supabase
+          .from("candidate_profiles")
+          .select("id, full_name, email, avatar_url, current_title, current_company, linkedin_url, tags")
+          .or(`full_name.ilike.${q},email.ilike.${q},linkedin_url.ilike.${q}`)
+          .order("full_name")
+          .limit(20);
+
+        // Check which are already in this job
+        if (data && data.length > 0) {
+          const ids = data.map((c) => c.id);
+          const { data: existing } = await supabase
+            .from("applications")
+            .select("candidate_id")
+            .eq("job_id", jobId)
+            .in("candidate_id", ids)
+            .not("status", "in", '("rejected","withdrawn")');
+
+          const existingSet = new Set((existing || []).map((a) => a.candidate_id).filter(Boolean));
+          setExistingJobCandidateIds(existingSet);
+        }
+
+        setExistingResults(data || []);
+      } finally {
+        setExistingLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [existingSearch, addMode, jobId]);
 
   // Client-side URL name extraction as fallback
   const extractNameFromLinkedInUrl = (url: string): string => {
@@ -320,66 +367,65 @@ export const AddCandidateDialog = ({
 
   const proceedWithSubmission = async () => {
     try {
-      console.log('🎯 [Add Candidate] Starting submission:', {
-        fullName: formData.fullName,
-        linkedinUrl: formData.linkedinUrl,
-        email: formData.email,
-        jobId,
-        jobTitle,
-        timestamp: new Date().toISOString()
-      });
-
       // Get current admin user
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
-      // STEP 1: Create STANDALONE candidate profile (NO USER LINKING)
-      const { data: candidateProfile, error: profileError } = await supabase
-        .from("candidate_profiles")
-        .insert({
-          user_id: null, // ALWAYS null for manual additions
-          full_name: formData.fullName,
-          email: formData.email || null,
-          phone: formData.phone || null,
-          linkedin_url: formData.linkedinUrl || null,
-          current_company: formData.currentCompany || null,
-          current_title: formData.currentTitle || null,
-          avatar_url: scrapedAvatarUrl, // Use avatar from LinkedIn scraper if available
-          source_channel: linkedinImported ? 'linkedin_import' : 'manual_admin',
-          created_by: adminUser.id,
-          tags: linkedinImported 
-            ? ['linkedin_imported', 'standalone_profile'] 
-            : ['manually_added', 'standalone_profile']
-        })
-        .select()
-        .single();
+      let candidateId: string;
+      let candidateName: string;
 
-      if (profileError) {
-        console.error('❌ [Add Candidate] Profile creation failed:', {
-          code: profileError.code,
-          message: profileError.message,
-          details: profileError.details,
-          hint: profileError.hint
+      // BRANCH: If existing candidate selected, skip profile creation
+      if (selectedExistingCandidate) {
+        candidateId = selectedExistingCandidate.id;
+        candidateName = selectedExistingCandidate.full_name || 'Unknown';
+        console.log('🎯 [Add Candidate] Using existing candidate:', { candidateId, candidateName });
+      } else {
+        console.log('🎯 [Add Candidate] Starting submission:', {
+          fullName: formData.fullName,
+          linkedinUrl: formData.linkedinUrl,
+          email: formData.email,
+          jobId,
+          jobTitle,
+          timestamp: new Date().toISOString()
         });
-        
-        // Specific error messages
-        if (profileError.code === '23505') {
-          const identifier = formData.email || formData.linkedinUrl || formData.fullName;
-          throw new Error(`A candidate matching "${identifier}" already exists. Please check for duplicates or update the existing candidate.`);
+
+        // STEP 1: Create STANDALONE candidate profile (NO USER LINKING)
+        const { data: candidateProfile, error: profileError } = await supabase
+          .from("candidate_profiles")
+          .insert({
+            user_id: null,
+            full_name: formData.fullName,
+            email: formData.email || null,
+            phone: formData.phone || null,
+            linkedin_url: formData.linkedinUrl || null,
+            current_company: formData.currentCompany || null,
+            current_title: formData.currentTitle || null,
+            avatar_url: scrapedAvatarUrl,
+            source_channel: linkedinImported ? 'linkedin_import' : 'manual_admin',
+            created_by: adminUser.id,
+            tags: linkedinImported 
+              ? ['linkedin_imported', 'standalone_profile'] 
+              : ['manually_added', 'standalone_profile']
+          })
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error('❌ [Add Candidate] Profile creation failed:', profileError);
+          if (profileError.code === '23505') {
+            const identifier = formData.email || formData.linkedinUrl || formData.fullName;
+            throw new Error(`A candidate matching "${identifier}" already exists. Please check for duplicates or update the existing candidate.`);
+          }
+          if (profileError.message?.includes('RLS') || profileError.code === '42501') {
+            throw new Error('You do not have permission to add candidates. Please contact an admin.');
+          }
+          throw new Error(profileError.message || 'Failed to create candidate profile');
         }
-        if (profileError.message?.includes('RLS') || profileError.code === '42501') {
-          throw new Error('You do not have permission to add candidates. Please contact an admin.');
-        }
-        
-        throw new Error(profileError.message || 'Failed to create candidate profile');
+
+        candidateId = candidateProfile.id;
+        candidateName = formData.fullName;
+        console.log('✅ [Add Candidate] Standalone profile created:', { candidateId });
       }
-
-      console.log('✅ [Add Candidate] Standalone profile created:', {
-        candidateId: candidateProfile.id,
-        fullName: candidateProfile.full_name
-      });
-
-      const candidateId = candidateProfile.id;
 
       // STEP 2: Create application (also with null user_id for standalone candidates)
       // Set sourced_by to first credited team member (primary sourcer)
@@ -417,12 +463,14 @@ export const AddCandidateDialog = ({
           postgresError: appError
         });
 
-        // Delete orphaned candidate profile
-        console.log('🧹 [Add Candidate] Cleaning up orphaned candidate profile:', candidateId);
-        await supabase
-          .from('candidate_profiles')
-          .delete()
-          .eq('id', candidateId);
+        // Delete orphaned candidate profile only if we just created it
+        if (!selectedExistingCandidate) {
+          console.log('🧹 [Add Candidate] Cleaning up orphaned candidate profile:', candidateId);
+          await supabase
+            .from('candidate_profiles')
+            .delete()
+            .eq('id', candidateId);
+        }
 
         // Throw specific error based on type
         if (appError.code === '23505' && appError.message?.includes('idx_unique_active_application_per_job')) {
@@ -464,8 +512,9 @@ export const AddCandidateDialog = ({
 
       if (!newApplication) {
         console.error('❌ [Add Candidate] Application was not created (no data returned)');
-        // Clean up orphaned candidate profile
-        await supabase.from('candidate_profiles').delete().eq('id', candidateId);
+        if (!selectedExistingCandidate) {
+          await supabase.from('candidate_profiles').delete().eq('id', candidateId);
+        }
         throw new Error('Application was not created. Please try again or contact support.');
       }
 
@@ -497,10 +546,10 @@ export const AddCandidateDialog = ({
           application_id: application.id,
           interaction_type: 'status_change',
           interaction_direction: 'internal',
-          title: 'Candidate Added to Pipeline',
-          content: `🎯 **Admin-Added Candidate**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
+          title: selectedExistingCandidate ? 'Existing Candidate Added to Pipeline' : 'Candidate Added to Pipeline',
+          content: `🎯 **${selectedExistingCandidate ? 'Existing Candidate Linked' : 'Admin-Added Candidate'}**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
 
-**Name:** ${formData.fullName}
+**Name:** ${candidateName}
 **Email:** ${formData.email || 'N/A'}
 **Phone:** ${formData.phone || "N/A"}
 **LinkedIn:** ${formData.linkedinUrl || "N/A"}
@@ -513,7 +562,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             job_id: jobId,
             job_title: jobTitle,
             starting_stage: formData.startStageIndex,
-            linkedin_imported: linkedinImported,
+            linked_existing: !!selectedExistingCandidate,
             credit_to: creditTo,
             duplicate_override: proceedWithDuplicate,
             duplicate_matched_by: proceedWithDuplicate ? duplicateMatchType : null
@@ -546,7 +595,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           user_id: adminUser.id,
           action: 'candidate_added',
           stage_data: {
-            candidate_name: formData.fullName,
+            candidate_name: candidateName,
             candidate_email: formData.email || 'N/A',
             starting_stage: formData.startStageIndex,
             starting_stage_name: startingStageName,
@@ -563,7 +612,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       }
 
       toast.success("Candidate added successfully", {
-        description: `${formData.fullName} has been added to the pipeline as a standalone candidate`,
+        description: `${candidateName} has been added to the pipeline${selectedExistingCandidate ? ' (existing profile linked)' : ''}`,
       });
 
       onCandidateAdded();
@@ -586,6 +635,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       setProceedWithDuplicate(false);
       setDuplicateCandidates([]);
       setShowDuplicateDialog(false);
+      setSelectedExistingCandidate(null);
+      setExistingSearch("");
+      setExistingResults([]);
     } catch (error: unknown) {
       console.error("Error adding candidate:", error);
       const err = error as { message?: string; code?: string };
@@ -822,15 +874,19 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           </div>
         )}
 
-        <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "manual" | "linkedin")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs value={addMode} onValueChange={(v) => { setAddMode(v as "manual" | "linkedin" | "existing"); setSelectedExistingCandidate(null); }} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="manual">
               <UserPlus className="w-4 h-4 mr-2" />
-              Manual Entry
+              Manual
             </TabsTrigger>
             <TabsTrigger value="linkedin">
               <Zap className="w-4 h-4 mr-2" />
-              LinkedIn Quick Add
+              LinkedIn
+            </TabsTrigger>
+            <TabsTrigger value="existing">
+              <Users className="w-4 h-4 mr-2" />
+              Existing
             </TabsTrigger>
           </TabsList>
 
@@ -881,6 +937,165 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   AI will automatically fill in candidate details from their LinkedIn profile
                 </p>
               </div>
+            </div>
+          </TabsContent>
+
+          {/* Existing Candidate Tab */}
+          <TabsContent value="existing" className="space-y-4 mt-4">
+            <div className="p-4 rounded-lg border border-border/40 bg-card/30">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 rounded-full bg-accent/10">
+                  <Users className="w-5 h-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-1">Link Existing Candidate</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Search for a candidate already in the system and add them to this job without creating a duplicate profile.
+                  </p>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, email, or LinkedIn URL..."
+                  value={existingSearch}
+                  onChange={(e) => setExistingSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {/* Results */}
+              <ScrollArea className="h-52 rounded-lg border border-border/30">
+                {existingLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : existingSearch.trim() && existingResults.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No candidates found.</p>
+                ) : !existingSearch.trim() ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Start typing to search candidates.</p>
+                ) : (
+                  <div className="p-1 space-y-1">
+                    {existingResults.map((c) => {
+                      const inPipeline = existingJobCandidateIds.has(c.id);
+                      const isSelected = selectedExistingCandidate?.id === c.id;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          disabled={inPipeline}
+                          onClick={() => setSelectedExistingCandidate(isSelected ? null : c)}
+                          className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
+                            inPipeline
+                              ? "opacity-50 cursor-not-allowed"
+                              : isSelected
+                                ? "bg-accent/10 border border-accent/30"
+                                : "hover:bg-foreground/5 border border-transparent"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={c.avatar_url || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {(c.full_name || "?").slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{c.full_name}</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {c.current_title ? `${c.current_title}${c.current_company ? ` at ${c.current_company}` : ""}` : c.email || "No details"}
+                              </p>
+                            </div>
+                            {inPipeline ? (
+                              <Badge variant="outline" className="text-[10px] shrink-0 border-muted-foreground/30">
+                                Already in pipeline
+                              </Badge>
+                            ) : isSelected ? (
+                              <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
+                            ) : null}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+
+              {/* Stage picker + submit for existing */}
+              {selectedExistingCandidate && (
+                <div className="mt-4 space-y-4 pt-4 border-t border-border/30">
+                  <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
+                    <p className="text-sm font-medium">
+                      Selected: <strong>{selectedExistingCandidate.full_name}</strong>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedExistingCandidate.email || selectedExistingCandidate.linkedin_url || "No contact info"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Starting Pipeline Stage</Label>
+                    <Select
+                      value={formData.startStageIndex}
+                      onValueChange={(value) => setFormData({ ...formData, startStageIndex: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Applied</SelectItem>
+                        <SelectItem value="1">Screening</SelectItem>
+                        <SelectItem value="2">Interview</SelectItem>
+                        <SelectItem value="3">Final Round</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Notes (optional)</Label>
+                    <Textarea
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      rows={2}
+                      placeholder="Why are you adding this candidate to this job?"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onOpenChange(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={loading}
+                      onClick={async () => {
+                        setLoading(true);
+                        try {
+                          await proceedWithSubmission();
+                        } catch {
+                          // handled inside
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      {loading ? "Adding..." : (
+                        <>
+                          <UserPlus className="w-4 h-4" />
+                          Add to Pipeline
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 

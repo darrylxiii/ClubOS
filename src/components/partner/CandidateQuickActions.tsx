@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Linkedin, Mail, Download, UserPlus } from "lucide-react";
+import { Linkedin, Mail, Download, UserPlus, Briefcase } from "lucide-react";
 import { CandidateInvitationDialog } from "./CandidateInvitationDialog";
+import { AddToJobDialog } from "./AddToJobDialog";
 
 interface CandidateQuickActionsProps {
   candidateId: string;
@@ -32,6 +33,7 @@ export const CandidateQuickActions = ({
   const [scraping, setScraping] = useState(false);
   const [linkedinDialogOpen, setLinkedinDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [addToJobOpen, setAddToJobOpen] = useState(false);
 
   const handleLinkedInScrape = async () => {
     if (!linkedinUrl.trim()) {
@@ -170,6 +172,11 @@ export const CandidateQuickActions = ({
         Invite to Platform
       </Button>
 
+      <Button variant="outline" size="sm" onClick={() => setAddToJobOpen(true)}>
+        <Briefcase className="w-4 h-4 mr-2" />
+        Add to Job
+      </Button>
+
       <CandidateInvitationDialog
         open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
@@ -177,6 +184,14 @@ export const CandidateQuickActions = ({
         candidateEmail={candidateEmail}
         candidateName={candidateName}
         suggestedJobs={[]}
+      />
+
+      <AddToJobDialog
+        open={addToJobOpen}
+        onOpenChange={setAddToJobOpen}
+        candidateId={candidateId}
+        candidateName={candidateName}
+        onAdded={onRefresh}
       />
     </div>
   );
