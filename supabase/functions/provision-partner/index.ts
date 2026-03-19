@@ -315,6 +315,7 @@ Deno.serve(async (req) => {
         account_status: 'approved',
         account_reviewed_at: new Date().toISOString(),
         account_approved_by: adminUser.id,
+        onboarding_completed_at: new Date().toISOString(),
       })
       .eq('id', newUserId);
     if (profileError) {
