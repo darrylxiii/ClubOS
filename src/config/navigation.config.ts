@@ -375,7 +375,6 @@ const adminSpecificItems: NavigationItem[] = [
 // Partner-specific items
 const partnerSpecificItems: NavigationItem[] = [
   { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
-  { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
 ];
 
 // Candidate-specific items
