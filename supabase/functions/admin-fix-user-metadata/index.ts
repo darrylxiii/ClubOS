@@ -28,8 +28,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const token = authHeader?.replace("Bearer ", "") || "";
 
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -38,8 +37,8 @@ Deno.serve(async (req) => {
 
     let callerId = "service-role";
 
-    // If the token is the service role key, allow (for CLI/internal calls)
-    if (token !== serviceRoleKey) {
+    // If service role via apikey or token, skip JWT verification
+    if (!isServiceRoleViaApikey && token !== serviceRoleKey) {
       // Verify as user JWT and check admin role
       const anonClient = createClient(
         Deno.env.get("SUPABASE_URL")!,
