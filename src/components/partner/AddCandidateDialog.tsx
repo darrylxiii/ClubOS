@@ -562,7 +562,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             job_id: jobId,
             job_title: jobTitle,
             starting_stage: formData.startStageIndex,
-            linkedin_imported: linkedinImported,
+            linked_existing: !!selectedExistingCandidate,
             credit_to: creditTo,
             duplicate_override: proceedWithDuplicate,
             duplicate_matched_by: proceedWithDuplicate ? duplicateMatchType : null
