@@ -635,6 +635,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       setProceedWithDuplicate(false);
       setDuplicateCandidates([]);
       setShowDuplicateDialog(false);
+      setSelectedExistingCandidate(null);
+      setExistingSearch("");
+      setExistingResults([]);
     } catch (error: unknown) {
       console.error("Error adding candidate:", error);
       const err = error as { message?: string; code?: string };
