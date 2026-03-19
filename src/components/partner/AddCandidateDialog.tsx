@@ -612,7 +612,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       }
 
       toast.success("Candidate added successfully", {
-        description: `${formData.fullName} has been added to the pipeline as a standalone candidate`,
+        description: `${candidateName} has been added to the pipeline${selectedExistingCandidate ? ' (existing profile linked)' : ''}`,
       });
 
       onCandidateAdded();
