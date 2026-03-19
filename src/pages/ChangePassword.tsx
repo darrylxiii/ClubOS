@@ -66,17 +66,13 @@ const ChangePassword = () => {
     setIsSubmitting(true);
 
     try {
-      // Update password
-      const { error: pwError } = await supabase.auth.updateUser({ password });
-      if (pwError) throw pwError;
-
-      // Clear force_password_change flag
-      const { error: metaError } = await supabase.auth.updateUser({
-        data: { force_password_change: false },
+      // Use server-side edge function to atomically set password + clear force_password_change
+      const { data, error: efError } = await supabase.functions.invoke('session-change-password', {
+        body: { new_password: password },
       });
-      if (metaError) {
-        logger.error('[ChangePassword] Failed to clear force_password_change', metaError);
-      }
+
+      if (efError) throw efError;
+      if (data?.error) throw new Error(data.error);
 
       // Refresh session so ProtectedRoute sees updated metadata
       await supabase.auth.refreshSession();
