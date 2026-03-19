@@ -44,6 +44,7 @@ export const CandidateHeroSection = ({
     open: false,
     mode: 'linkedin',
   });
+  const [addToJobOpen, setAddToJobOpen] = useState(false);
 
   const hasAccount = !!candidate.user_id;
 
