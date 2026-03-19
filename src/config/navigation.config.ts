@@ -112,7 +112,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     title: "Learning",
     icon: GraduationCap,
     items: [
-      { name: "Academy", icon: GraduationCap, path: "/academy" },
+      { name: "Academy", icon: GraduationCap, path: "/academy", locked: true, lockedMessage: "Releasing soon" },
       { name: "Blog", icon: BookOpen, path: "/blog" },
     ],
   },
