@@ -1,7 +1,7 @@
 import { useState, createContext, useContext, ReactNode, useCallback, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, ChevronDown, Palette } from "lucide-react";
+import { Menu, X, ChevronDown, Palette, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
