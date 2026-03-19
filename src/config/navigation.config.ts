@@ -218,6 +218,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Find Talent", icon: Users, path: "/projects/talent", locked: true, lockedMessage: "Releasing soon" },
         { name: "Contracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "Releasing soon" },
         { name: "Time Tracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace", locked: true, lockedMessage: "Releasing soon" },
       ],
     },
   ],
