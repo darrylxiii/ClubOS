@@ -359,7 +359,7 @@ export const AddCandidateDialog = ({
           .limit(3);
         
         if (emailMatches && emailMatches.length > 0) {
-          duplicates = emailMatches.filter(d => d.candidate_profiles) as unknown as ExistingCandidateResult[];
+          duplicates = emailMatches.filter(d => d.candidate_profiles);
           if (duplicates.length > 0) {
             setDuplicateMatchType('name'); // closest available
             return duplicates;
