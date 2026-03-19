@@ -418,7 +418,7 @@ export const AddCandidateDialog = ({
           .limit(3);
         
         if (nameMatches && nameMatches.length > 0) {
-          duplicates = nameMatches.filter(d => d.candidate_profiles) as unknown as ExistingCandidateResult[];
+          duplicates = nameMatches.filter(d => d.candidate_profiles);
           if (duplicates.length > 0) {
             setDuplicateMatchType('name');
             return duplicates;
