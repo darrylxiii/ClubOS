@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +25,9 @@ import {
 } from "lucide-react";
 import { RejectedCandidateDetailDialog } from "@/components/partner/RejectedCandidateDetailDialog";
 import { PageLoadingSkeleton } from "@/components/LoadingSkeletons";
+import { PartnerPageHeader } from "@/components/partner/PartnerPageHeader";
+import { PartnerInlineStats } from "@/components/partner/PartnerInlineStats";
+import { PartnerGlassCard } from "@/components/partner/PartnerGlassCard";
 
 const REJECTION_LABELS: { [key: string]: string } = {
   'skills_gap': 'Skills Gap',
@@ -39,14 +41,14 @@ const REJECTION_LABELS: { [key: string]: string } = {
 };
 
 const REJECTION_COLORS: { [key: string]: string } = {
-  'skills_gap': 'bg-orange-500/20 text-orange-500 border-orange-500/30',
-  'experience_junior': 'bg-blue-500/20 text-blue-500 border-blue-500/30',
-  'experience_senior': 'bg-purple-500/20 text-purple-500 border-purple-500/30',
-  'salary_high': 'bg-red-500/20 text-red-500 border-red-500/30',
-  'location': 'bg-green-500/20 text-green-500 border-green-500/30',
-  'culture_fit': 'bg-pink-500/20 text-pink-500 border-pink-500/30',
-  'communication': 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30',
-  'other': 'bg-gray-500/20 text-gray-500 border-gray-500/30',
+  'skills_gap': 'bg-destructive/20 text-destructive border-destructive/30',
+  'experience_junior': 'bg-primary/20 text-primary border-primary/30',
+  'experience_senior': 'bg-accent/20 text-accent-foreground border-accent/30',
+  'salary_high': 'bg-destructive/20 text-destructive border-destructive/30',
+  'location': 'bg-secondary/40 text-secondary-foreground border-secondary/30',
+  'culture_fit': 'bg-muted text-muted-foreground border-border/30',
+  'communication': 'bg-accent/20 text-accent-foreground border-accent/30',
+  'other': 'bg-muted text-muted-foreground border-border/30',
 };
 
 export default function PartnerRejections() {
@@ -62,9 +64,7 @@ export default function PartnerRejections() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (user?.id) {
-      loadData();
-    }
+    if (user?.id) loadData();
   }, [user?.id]);
 
   const loadData = async () => {
@@ -88,27 +88,16 @@ export default function PartnerRejections() {
         .from('jobs')
         .select('*')
         .eq('company_id', membership.company_id);
-
       if (jobsError) throw jobsError;
       setJobs(companyJobs || []);
 
       const jobIds = companyJobs?.map(j => j.id) || [];
-
       const { data: applications, error: appsError } = await supabase
         .from('applications')
-        .select(`
-          *,
-          jobs!applications_job_id_fkey (
-            id,
-            title,
-            location,
-            pipeline_stages
-          )
-        `)
+        .select(`*, jobs!applications_job_id_fkey (id, title, location, pipeline_stages)`)
         .in('job_id', jobIds)
         .eq('status', 'rejected')
         .order('updated_at', { ascending: false });
-
       if (appsError) throw appsError;
 
       const candidateIds = applications?.map(app => app.candidate_id).filter(Boolean) || [];
@@ -127,7 +116,6 @@ export default function PartnerRejections() {
       const enrichedCandidates = (applications || []).map(app => {
         const profile = profiles?.find(p => p.id === app.candidate_id);
         const feedback = feedbacks?.find(f => f.application_id === app.id);
-        
         return {
           ...app,
           full_name: profile?.full_name || 'Unknown',
@@ -159,10 +147,8 @@ export default function PartnerRejections() {
       candidate.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       candidate.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       candidate.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesJob = filterJob === "all" || candidate.job_id === filterJob;
     const matchesReason = filterReason === "all" || candidate.rejection_reason === filterReason;
-
     return matchesSearch && matchesJob && matchesReason;
   });
 
@@ -181,8 +167,7 @@ export default function PartnerRejections() {
       }, {} as Record<string, number>)
     ).sort((a, b) => (b[1] as number) - (a[1] as number))[0],
     talentPool: rejectedCandidates.filter(c => 
-      c.rejection_reason === 'experience_junior' || 
-      c.rejection_reason === 'experience_senior'
+      c.rejection_reason === 'experience_junior' || c.rejection_reason === 'experience_senior'
     ).length,
   };
 
@@ -190,9 +175,7 @@ export default function PartnerRejections() {
     const csv = [
       ['Candidate', 'Email', 'Job', 'Reason', 'Applied Date', 'Rejected Date', 'Days in Pipeline'].join(','),
       ...filteredCandidates.map(c => [
-        c.full_name,
-        c.email,
-        c.jobs?.title,
+        c.full_name, c.email, c.jobs?.title,
         REJECTION_LABELS[c.rejection_reason] || 'Unknown',
         new Date(c.applied_at).toLocaleDateString(),
         new Date(c.rejected_at).toLocaleDateString(),
@@ -210,168 +193,87 @@ export default function PartnerRejections() {
   };
 
   if (loading) {
-    return (
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <PageLoadingSkeleton />
-      </div>
-    );
+    return <PageLoadingSkeleton />;
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight">
-            Rejected Candidates
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage rejected candidates and identify talent pool opportunities
-          </p>
-        </div>
-        <Button onClick={handleExport} variant="outline">
-          <Download className="w-4 h-4 mr-2" />
-          Export
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Rejections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-destructive" />
-              <span className="text-3xl font-bold">{stats.total}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-orange-500" />
-              <span className="text-3xl font-bold">{stats.thisMonth}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Reason</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              <span className="text-lg font-bold">
-                {stats.topReason ? REJECTION_LABELS[stats.topReason[0]] : 'N/A'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Talent Pool</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-blue-500" />
-              <span className="text-3xl font-bold">{stats.talentPool}</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Candidates for future roles
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-6">
+      <PartnerInlineStats
+        stats={[
+          { value: stats.total, label: 'Total Rejections', icon: TrendingDown, highlight: true },
+          { value: stats.thisMonth, label: 'This Month', icon: Clock },
+          { value: stats.talentPool, label: 'Talent Pool', icon: Lightbulb },
+          { value: filteredCandidates.length, label: 'Showing', icon: Users },
+        ]}
+      />
 
       {/* Info Banner */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="py-4">
-          <div className="flex items-start gap-3">
-            <Lightbulb className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium">💡 Talent Pool Opportunity</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Candidates rejected for seniority mismatches might be perfect for other roles. 
-                Review your talent pool regularly for cross-role opportunities.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
+        <Lightbulb className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium">Talent Pool Opportunity</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Candidates rejected for seniority mismatches might be perfect for other roles. 
+            Review your talent pool regularly for cross-role opportunities.
+          </p>
+        </div>
+      </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search candidates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-
-            <Select value={filterJob} onValueChange={setFilterJob}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Jobs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Jobs</SelectItem>
-                {jobs.map(job => (
-                  <SelectItem key={job.id} value={job.id}>
-                    {job.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filterReason} onValueChange={setFilterReason}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Reasons" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Reasons</SelectItem>
-                {Object.entries(REJECTION_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <PartnerGlassCard>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search candidates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-card/50 border-border/30"
+            />
           </div>
-        </CardContent>
-      </Card>
+          <Select value={filterJob} onValueChange={setFilterJob}>
+            <SelectTrigger className="bg-card/50 border-border/30">
+              <SelectValue placeholder="All Jobs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Jobs</SelectItem>
+              {jobs.map(job => (
+                <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterReason} onValueChange={setFilterReason}>
+            <SelectTrigger className="bg-card/50 border-border/30">
+              <SelectValue placeholder="All Reasons" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Reasons</SelectItem>
+              {Object.entries(REJECTION_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleExport} variant="outline" className="border-border/30">
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </PartnerGlassCard>
 
       {/* Results */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Rejected Candidates ({filteredCandidates.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <VirtualizedPartnerRejectionList
-            candidates={filteredCandidates}
-            onSelectCandidate={(candidate) => {
-              setSelectedCandidate(candidate);
-              setDetailDialogOpen(true);
-            }}
-          />
-        </CardContent>
-      </Card>
+      <PartnerGlassCard
+        title={`Rejected Candidates (${filteredCandidates.length})`}
+        icon={<Users className="w-5 h-5 text-muted-foreground" />}
+      >
+        <VirtualizedPartnerRejectionList
+          candidates={filteredCandidates}
+          onSelectCandidate={(candidate) => {
+            setSelectedCandidate(candidate);
+            setDetailDialogOpen(true);
+          }}
+        />
+      </PartnerGlassCard>
 
-      {/* Detail Dialog */}
       {selectedCandidate && (
         <RejectedCandidateDetailDialog
           open={detailDialogOpen}
@@ -441,7 +343,7 @@ function VirtualizedPartnerRejectionList({
             >
               <div
                 onClick={() => onSelectCandidate(candidate)}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 rounded-lg bg-card/20 border border-border/10 hover:bg-card/40 cursor-pointer transition-colors"
               >
                 <div className="flex items-center gap-4 flex-1">
                   <Avatar className="w-12 h-12">

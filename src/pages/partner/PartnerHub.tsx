@@ -1,10 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Building2 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageLoader } from '@/components/PageLoader';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { PartnerPageHeader } from '@/components/partner/PartnerPageHeader';
 
 const PartnerAnalyticsDashboard = lazy(() => import('@/pages/PartnerAnalyticsDashboard'));
 const BillingDashboard = lazy(() => import('@/pages/partner/BillingDashboard'));
@@ -36,20 +36,15 @@ export default function PartnerHub() {
 
   return (
     <RoleGate allowedRoles={['partner', 'admin', 'strategist']}>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold tracking-tight">PARTNER HUB</h1>
-          </div>
-          <p className="text-muted-foreground">
-            Analytics, billing, SLA, integrations and partner operations
-          </p>
-        </div>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-4">
+        <PartnerPageHeader
+          title="Partner Hub"
+          subtitle="Analytics, billing, SLA, integrations and partner operations"
+        />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <ScrollArea className="w-full whitespace-nowrap">
-            <TabsList className="h-auto inline-flex bg-card/50 backdrop-blur-sm rounded-lg p-1">
+            <TabsList className="h-auto inline-flex bg-card/30 backdrop-blur-sm border border-border/20 rounded-lg p-1">
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="billing">Billing</TabsTrigger>
               <TabsTrigger value="sla">SLA</TabsTrigger>
