@@ -25,6 +25,7 @@ import {
   Award,
 } from "lucide-react";
 import { AddCandidateDialog } from "./AddCandidateDialog";
+import { PipelineLinkedInSync } from "./PipelineLinkedInSync";
 import { toast } from "sonner";
 
 interface AdminJobToolsProps {
@@ -96,6 +97,8 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
           <UserPlus className="w-4 h-4" />
           Add Candidate
         </Button>
+
+        <PipelineLinkedInSync jobId={jobId} onComplete={onRefresh} />
 
         <Button
           onClick={handleAIRecommendations}

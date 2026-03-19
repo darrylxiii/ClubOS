@@ -82,6 +82,23 @@ export const CandidateQuickActions = ({
         setLinkedinDialogOpen(false);
         setLinkedinUrl("");
         onRefresh();
+
+        // Auto-calculate skill match for any jobs this candidate is in
+        try {
+          const { data: apps } = await supabase
+            .from('applications')
+            .select('job_id')
+            .eq('candidate_id', candidateId)
+            .eq('status', 'active');
+          if (apps && apps.length > 0) {
+            const { triggerAutoEnrich } = await import('@/utils/triggerAutoEnrich');
+            for (const app of apps) {
+              triggerAutoEnrich([candidateId], app.job_id, { silent: true });
+            }
+          }
+        } catch (e) {
+          console.error('[CandidateQuickActions] Skill match trigger failed:', e);
+        }
       } else {
         throw new Error(data?.error || "Scraper returned no data");
       }
