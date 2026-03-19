@@ -20,7 +20,7 @@ import { ensureHttpsUrl } from "@/utils/urlHelpers";
 
 interface Candidate {
   id: string;
-  candidate_id?: string; // Add candidate_id field
+  candidate_id?: string;
   user_id: string;
   full_name?: string;
   email?: string;
@@ -33,6 +33,13 @@ interface Candidate {
   current_stage_index: number;
   stages: any[];
   is_linked_user?: boolean;
+  match_score?: number | null;
+  skill_match_details?: {
+    must_have_matched?: string[];
+    must_have_missing?: string[];
+    score?: number;
+    total_must_have?: number;
+  } | null;
 }
 
 interface StageCandidatesListProps {
