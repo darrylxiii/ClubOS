@@ -271,6 +271,34 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
         )}
       </div>
 
+      {role === 'partner' && onOpenProvisioning && (
+        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+          <div className="flex items-start gap-3">
+            <Crown className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Recommended: Full Provisioning</p>
+              <p className="text-xs text-muted-foreground">
+                Pre-configure their account, company, and access so they can log in immediately with everything ready. No verification steps needed.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => onOpenProvisioning({
+              email: email.trim() || undefined,
+              fullName: recipientName.trim() || undefined,
+              companyName: companyName.trim() || undefined,
+            })}
+            className="gap-2"
+          >
+            <Crown className="h-3.5 w-3.5" />
+            Use Full Provisioning
+          </Button>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="invite-message">Personal Message (Optional)</Label>
         <Textarea
