@@ -618,7 +618,6 @@ const CompanyJobsDashboard = () => {
           companyId={companyId}
           onJobCreated={fetchJobs}
         />
-      </div>
     </div>
   );
 };
