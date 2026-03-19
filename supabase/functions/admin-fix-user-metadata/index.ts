@@ -13,8 +13,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Accept auth from Authorization header OR apikey header (for service-role calls via curl tool)
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const apikeyHeader = req.headers.get("apikey");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    // If apikey matches service role key, allow directly
+    const isServiceRoleViaApikey = apikeyHeader === serviceRoleKey;
+    
+    if (!isServiceRoleViaApikey && !authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
