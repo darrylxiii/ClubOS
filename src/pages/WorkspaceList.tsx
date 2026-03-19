@@ -93,7 +93,7 @@ export default function WorkspaceList() {
                     <PanelLeft className="h-4 w-4" />
                   )}
                 </Button>
-                <span className="text-sm text-muted-foreground">Quantum OS</span>
+                <span className="text-sm text-muted-foreground">OS Notes</span>
               </div>
               
               <Button
