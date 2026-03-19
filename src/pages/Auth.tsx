@@ -513,14 +513,14 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      await signInWithOAuthCustomDomain({
-        provider: 'google',
-        redirectTo: redirectUrl,
-        queryParams: {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: redirectUrl,
+        extraParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
       });
+      if (result?.error) throw result.error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
         provider: t('oauth.google')
