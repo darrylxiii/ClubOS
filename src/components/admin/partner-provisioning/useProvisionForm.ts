@@ -122,6 +122,7 @@ export function useProvisionForm(prefillData?: PrefillData) {
   const [strategists, setStrategists] = useState<Strategist[]>([]);
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
+  const [domainMatchedCompany, setDomainMatchedCompany] = useState<{ id: string; name: string } | null>(null);
 
   const form = useForm<ProvisionFormData>({
     resolver: zodResolver(provisionSchema),
@@ -131,7 +132,7 @@ export function useProvisionForm(prefillData?: PrefillData) {
       phoneNumber: prefillData?.phoneNumber || '',
       linkedinUrl: prefillData?.linkedinUrl || '',
       markEmailVerified: true,
-      markPhoneVerified: false,
+      markPhoneVerified: !!prefillData?.phoneNumber,
       companyMode: 'new',
       companyId: '',
       companyName: prefillData?.companyName || '',
@@ -156,16 +157,54 @@ export function useProvisionForm(prefillData?: PrefillData) {
     mode: 'onBlur',
   });
 
-  // Extract domain from email
+  // Extract domain from email + auto-match company
   const watchEmail = form.watch('email');
   useEffect(() => {
     if (watchEmail && watchEmail.includes('@')) {
-      const domain = watchEmail.split('@')[1];
-      if (domain && !GENERIC_DOMAINS.includes(domain.toLowerCase())) {
-        form.setValue('companyDomain', domain.toLowerCase());
+      const domain = watchEmail.split('@')[1]?.toLowerCase();
+      if (domain && !GENERIC_DOMAINS.includes(domain)) {
+        form.setValue('companyDomain', domain);
+
+        // Auto-match company from domain
+        (async () => {
+          const { data } = await supabase
+            .from('organization_domain_settings')
+            .select('company_id')
+            .eq('domain', domain)
+            .eq('is_enabled', true)
+            .limit(1)
+            .maybeSingle();
+
+          if (data?.company_id) {
+            // Find company name
+            const { data: company } = await supabase
+              .from('companies')
+              .select('id, name')
+              .eq('id', data.company_id)
+              .single();
+
+            if (company) {
+              setDomainMatchedCompany({ id: company.id, name: company.name });
+              form.setValue('companyMode', 'existing', { shouldDirty: true });
+              form.setValue('companyId', company.id, { shouldDirty: true });
+              return;
+            }
+          }
+          setDomainMatchedCompany(null);
+        })();
+      } else {
+        setDomainMatchedCompany(null);
       }
     }
   }, [watchEmail, form]);
+
+  // Auto-set phone verified when phone is provided
+  const watchPhone = form.watch('phoneNumber');
+  useEffect(() => {
+    if (watchPhone && watchPhone.length > 3) {
+      form.setValue('markPhoneVerified', true);
+    }
+  }, [watchPhone, form]);
 
   // Load companies
   const loadCompanies = useCallback(async () => {
@@ -185,7 +224,6 @@ export function useProvisionForm(prefillData?: PrefillData) {
       .eq('role', 'strategist');
 
     if (!roles?.length) {
-      // Fallback: include admins so there's always someone to assign
       const { data: adminRoles } = await supabase
         .from('user_roles')
         .select('user_id')
@@ -266,6 +304,7 @@ export function useProvisionForm(prefillData?: PrefillData) {
   const resetForm = useCallback(() => {
     form.reset();
     setDuplicateWarning(null);
+    setDomainMatchedCompany(null);
   }, [form]);
 
   const isDirty = form.formState.isDirty;
@@ -280,5 +319,6 @@ export function useProvisionForm(prefillData?: PrefillData) {
     resetForm,
     isDirty,
     loadCompanies,
+    domainMatchedCompany,
   };
 }

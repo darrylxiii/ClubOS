@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Crown } from 'lucide-react';
+import { Crown, Zap, Settings2 } from 'lucide-react';
 import { AnimatePresence, motion } from '@/lib/motion';
 import { usePartnerProvisioning } from '@/hooks/usePartnerProvisioning';
 import { useProvisionForm, type PrefillData, type ProvisionFormData } from './partner-provisioning/useProvisionForm';
@@ -9,6 +9,7 @@ import { CompanyStep } from './partner-provisioning/steps/CompanyStep';
 import { AccessStep } from './partner-provisioning/steps/AccessStep';
 import { ReviewStep } from './partner-provisioning/steps/ReviewStep';
 import { ProvisionSuccessView } from './partner-provisioning/ProvisionSuccessView';
+import { QuickProvisionView } from './partner-provisioning/QuickProvisionView';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 
 interface PartnerProvisioningModalProps {
@@ -36,8 +37,10 @@ export function PartnerProvisioningModal({
     checkDuplicate,
     resetForm,
     isDirty,
+    domainMatchedCompany,
   } = useProvisionForm(prefillData);
 
+  const [mode, setMode] = useState<'quick' | 'advanced'>('quick');
   const [step, setStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
@@ -60,25 +63,34 @@ export function PartnerProvisioningModal({
   }, [resetForm, onClose, onSuccess, showSuccess]);
 
   const handleSubmit = useCallback(async () => {
-    const valid = await form.trigger();
-    if (!valid) return;
+    // In quick mode, only validate essentials
+    if (mode === 'quick') {
+      const emailValid = await form.trigger('email');
+      const nameValid = await form.trigger('fullName');
+      if (!emailValid || !nameValid) return;
+    } else {
+      const valid = await form.trigger();
+      if (!valid) return;
+    }
 
     const v = form.getValues();
+
+    // Quick mode defaults
     const result = await provisionPartner({
       email: v.email,
       fullName: v.fullName,
       phoneNumber: v.phoneNumber || undefined,
-      markEmailVerified: v.markEmailVerified,
-      markPhoneVerified: v.markPhoneVerified,
+      markEmailVerified: true,
+      markPhoneVerified: !!v.phoneNumber,
       companyId: v.companyMode === 'existing' ? v.companyId : undefined,
       companyName: v.companyMode === 'new' ? v.companyName : undefined,
       companyDomain: v.companyDomain || undefined,
       companyRole: v.companyRole,
       industry: v.industry || undefined,
       companySize: v.companySize || undefined,
-      provisionMethod: v.provisionMethod,
+      provisionMethod: mode === 'quick' ? 'magic_link' : v.provisionMethod,
       temporaryPassword: v.temporaryPassword || undefined,
-      enableDomainAutoProvisioning: v.enableDomainAutoProvisioning,
+      enableDomainAutoProvisioning: mode === 'quick' ? false : v.enableDomainAutoProvisioning,
       domainDefaultRole: v.domainDefaultRole,
       requireDomainApproval: v.requireDomainApproval,
       welcomeMessage: v.welcomeMessage || undefined,
@@ -88,7 +100,7 @@ export function PartnerProvisioningModal({
     if (result.success) {
       setShowSuccess(true);
     }
-  }, [form, provisionPartner]);
+  }, [form, provisionPartner, mode]);
 
   const handleAddAnother = useCallback(() => {
     setShowSuccess(false);
@@ -116,7 +128,7 @@ export function PartnerProvisioningModal({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className={mode === 'quick' ? 'sm:max-w-lg max-h-[90vh] overflow-y-auto' : 'sm:max-w-2xl max-h-[90vh] overflow-y-auto'}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary" />
@@ -127,85 +139,129 @@ export function PartnerProvisioningModal({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Step Progress */}
-          <nav aria-label="Provisioning steps" className="flex items-center justify-between px-2 mb-4">
-            {STEP_LABELS.map((label, i) => {
-              const s = i + 1;
-              const isActive = step === s;
-              const isComplete = step > s;
-              return (
-                <div key={label} className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => s < step && setStep(s)}
-                    disabled={s > step}
-                    aria-current={isActive ? 'step' : undefined}
-                    className={`
-                      flex items-center gap-2 text-sm font-medium transition-colors
-                      ${isActive ? 'text-primary' : isComplete ? 'text-foreground cursor-pointer' : 'text-muted-foreground'}
-                    `}
-                  >
-                    <div className={`
-                      w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold
-                      ${isActive ? 'bg-primary text-primary-foreground' : isComplete ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}
-                    `}>
-                      {s}
-                    </div>
-                    <span className="hidden sm:inline">{label}</span>
-                  </button>
-                  {s < 4 && (
-                    <div className={`w-8 sm:w-14 h-0.5 mx-1.5 ${step > s ? 'bg-primary' : 'bg-muted'}`} />
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
+          {/* Mode Toggle */}
+          <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+            <button
+              type="button"
+              onClick={() => { setMode('quick'); setStep(1); }}
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md transition-all ${
+                mode === 'quick'
+                  ? 'bg-background text-foreground shadow-sm font-medium'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              {step === 1 && (
-                <ContactStep
-                  form={form}
-                  duplicateWarning={duplicateWarning}
-                  isCheckingDuplicate={isCheckingDuplicate}
-                  onCheckDuplicate={checkDuplicate}
-                  onNext={() => setStep(2)}
-                />
-              )}
-              {step === 2 && (
-                <CompanyStep
-                  form={form}
-                  companies={companies}
-                  onBack={() => setStep(1)}
-                  onNext={() => setStep(3)}
-                />
-              )}
-              {step === 3 && (
-                <AccessStep
-                  form={form}
-                  strategists={strategists}
-                  onBack={() => setStep(2)}
-                  onNext={() => setStep(4)}
-                />
-              )}
-              {step === 4 && (
-                <ReviewStep
-                  form={form}
-                  companies={companies}
-                  isProvisioning={isProvisioning}
-                  onBack={() => setStep(3)}
-                  onSubmit={handleSubmit}
-                  onGoToStep={setStep}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+              <Zap className="w-3.5 h-3.5" />
+              Quick
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('advanced')}
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md transition-all ${
+                mode === 'advanced'
+                  ? 'bg-background text-foreground shadow-sm font-medium'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              Advanced
+            </button>
+          </div>
+
+          {mode === 'quick' ? (
+            <QuickProvisionView
+              form={form}
+              companies={companies}
+              strategists={strategists}
+              duplicateWarning={duplicateWarning}
+              isCheckingDuplicate={isCheckingDuplicate}
+              onCheckDuplicate={checkDuplicate}
+              isProvisioning={isProvisioning}
+              onSubmit={handleSubmit}
+              domainMatchedCompany={domainMatchedCompany}
+            />
+          ) : (
+            <>
+              {/* Step Progress */}
+              <nav aria-label="Provisioning steps" className="flex items-center justify-between px-2 mb-4">
+                {STEP_LABELS.map((label, i) => {
+                  const s = i + 1;
+                  const isActive = step === s;
+                  const isComplete = step > s;
+                  return (
+                    <div key={label} className="flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => s < step && setStep(s)}
+                        disabled={s > step}
+                        aria-current={isActive ? 'step' : undefined}
+                        className={`
+                          flex items-center gap-2 text-sm font-medium transition-colors
+                          ${isActive ? 'text-primary' : isComplete ? 'text-foreground cursor-pointer' : 'text-muted-foreground'}
+                        `}
+                      >
+                        <div className={`
+                          w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold
+                          ${isActive ? 'bg-primary text-primary-foreground' : isComplete ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}
+                        `}>
+                          {s}
+                        </div>
+                        <span className="hidden sm:inline">{label}</span>
+                      </button>
+                      {s < 4 && (
+                        <div className={`w-8 sm:w-14 h-0.5 mx-1.5 ${step > s ? 'bg-primary' : 'bg-muted'}`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </nav>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {step === 1 && (
+                    <ContactStep
+                      form={form}
+                      duplicateWarning={duplicateWarning}
+                      isCheckingDuplicate={isCheckingDuplicate}
+                      onCheckDuplicate={checkDuplicate}
+                      onNext={() => setStep(2)}
+                    />
+                  )}
+                  {step === 2 && (
+                    <CompanyStep
+                      form={form}
+                      companies={companies}
+                      onBack={() => setStep(1)}
+                      onNext={() => setStep(3)}
+                    />
+                  )}
+                  {step === 3 && (
+                    <AccessStep
+                      form={form}
+                      strategists={strategists}
+                      onBack={() => setStep(2)}
+                      onNext={() => setStep(4)}
+                    />
+                  )}
+                  {step === 4 && (
+                    <ReviewStep
+                      form={form}
+                      companies={companies}
+                      isProvisioning={isProvisioning}
+                      onBack={() => setStep(3)}
+                      onSubmit={handleSubmit}
+                      onGoToStep={setStep}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

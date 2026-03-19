@@ -143,9 +143,9 @@ export function ContactStep({
         <Button
           type="button"
           onClick={onNext}
-          disabled={!email || !watch('fullName') || !!duplicateWarning}
+          disabled={!email || !watch('fullName')}
         >
-          Continue
+          {duplicateWarning ? 'Continue Anyway' : 'Continue'}
         </Button>
       </div>
     </div>

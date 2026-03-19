@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Send, Loader2, CheckCircle, Copy, MessageCircle, Sparkles } from "lucide-react";
+import { Send, Loader2, CheckCircle, Copy, MessageCircle, Sparkles, Crown } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { useQueryClient } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
@@ -22,7 +22,11 @@ interface InviteSuccess {
   role: string;
 }
 
-export function SendInviteTab() {
+interface SendInviteTabProps {
+  onOpenProvisioning?: (prefill?: { email?: string; fullName?: string; companyName?: string }) => void;
+}
+
+export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
   const [recipientName, setRecipientName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -266,6 +270,34 @@ export function SendInviteTab() {
           </div>
         )}
       </div>
+
+      {role === 'partner' && onOpenProvisioning && (
+        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+          <div className="flex items-start gap-3">
+            <Crown className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Recommended: Full Provisioning</p>
+              <p className="text-xs text-muted-foreground">
+                Pre-configure their account, company, and access so they can log in immediately with everything ready. No verification steps needed.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => onOpenProvisioning({
+              email: email.trim() || undefined,
+              fullName: recipientName.trim() || undefined,
+              companyName: companyName.trim() || undefined,
+            })}
+            className="gap-2"
+          >
+            <Crown className="h-3.5 w-3.5" />
+            Use Full Provisioning
+          </Button>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="invite-message">Personal Message (Optional)</Label>
