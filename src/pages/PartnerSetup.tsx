@@ -82,8 +82,16 @@ const PartnerSetup = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      // Use server-side edge function to atomically set password + clear force_password_change
+      const { data, error } = await supabase.functions.invoke('session-change-password', {
+        body: { new_password: password },
+      });
+
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Refresh session so ProtectedRoute sees updated metadata
+      await supabase.auth.refreshSession();
 
       toast.success('Password set successfully.');
       setStep('profile');
