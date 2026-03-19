@@ -463,12 +463,14 @@ export const AddCandidateDialog = ({
           postgresError: appError
         });
 
-        // Delete orphaned candidate profile
-        console.log('🧹 [Add Candidate] Cleaning up orphaned candidate profile:', candidateId);
-        await supabase
-          .from('candidate_profiles')
-          .delete()
-          .eq('id', candidateId);
+        // Delete orphaned candidate profile only if we just created it
+        if (!selectedExistingCandidate) {
+          console.log('🧹 [Add Candidate] Cleaning up orphaned candidate profile:', candidateId);
+          await supabase
+            .from('candidate_profiles')
+            .delete()
+            .eq('id', candidateId);
+        }
 
         // Throw specific error based on type
         if (appError.code === '23505' && appError.message?.includes('idx_unique_active_application_per_job')) {
