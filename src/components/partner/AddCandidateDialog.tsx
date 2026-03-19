@@ -940,7 +940,166 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             </div>
           </TabsContent>
 
-          <TabsContent value="manual">
+          {/* Existing Candidate Tab */}
+          <TabsContent value="existing" className="space-y-4 mt-4">
+            <div className="p-4 rounded-lg border border-border/40 bg-card/30">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 rounded-full bg-accent/10">
+                  <Users className="w-5 h-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-1">Link Existing Candidate</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Search for a candidate already in the system and add them to this job without creating a duplicate profile.
+                  </p>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, email, or LinkedIn URL..."
+                  value={existingSearch}
+                  onChange={(e) => setExistingSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {/* Results */}
+              <ScrollArea className="h-52 rounded-lg border border-border/30">
+                {existingLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : existingSearch.trim() && existingResults.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No candidates found.</p>
+                ) : !existingSearch.trim() ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Start typing to search candidates.</p>
+                ) : (
+                  <div className="p-1 space-y-1">
+                    {existingResults.map((c) => {
+                      const inPipeline = existingJobCandidateIds.has(c.id);
+                      const isSelected = selectedExistingCandidate?.id === c.id;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          disabled={inPipeline}
+                          onClick={() => setSelectedExistingCandidate(isSelected ? null : c)}
+                          className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
+                            inPipeline
+                              ? "opacity-50 cursor-not-allowed"
+                              : isSelected
+                                ? "bg-accent/10 border border-accent/30"
+                                : "hover:bg-foreground/5 border border-transparent"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={c.avatar_url || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {(c.full_name || "?").slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{c.full_name}</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {c.current_title ? `${c.current_title}${c.current_company ? ` at ${c.current_company}` : ""}` : c.email || "No details"}
+                              </p>
+                            </div>
+                            {inPipeline ? (
+                              <Badge variant="outline" className="text-[10px] shrink-0 border-muted-foreground/30">
+                                Already in pipeline
+                              </Badge>
+                            ) : isSelected ? (
+                              <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
+                            ) : null}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+
+              {/* Stage picker + submit for existing */}
+              {selectedExistingCandidate && (
+                <div className="mt-4 space-y-4 pt-4 border-t border-border/30">
+                  <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
+                    <p className="text-sm font-medium">
+                      Selected: <strong>{selectedExistingCandidate.full_name}</strong>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedExistingCandidate.email || selectedExistingCandidate.linkedin_url || "No contact info"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Starting Pipeline Stage</Label>
+                    <Select
+                      value={formData.startStageIndex}
+                      onValueChange={(value) => setFormData({ ...formData, startStageIndex: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Applied</SelectItem>
+                        <SelectItem value="1">Screening</SelectItem>
+                        <SelectItem value="2">Interview</SelectItem>
+                        <SelectItem value="3">Final Round</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Notes (optional)</Label>
+                    <Textarea
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      rows={2}
+                      placeholder="Why are you adding this candidate to this job?"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onOpenChange(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={loading}
+                      onClick={async () => {
+                        setLoading(true);
+                        try {
+                          await proceedWithSubmission();
+                        } catch {
+                          // handled inside
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      {loading ? "Adding..." : (
+                        <>
+                          <UserPlus className="w-4 h-4" />
+                          Add to Pipeline
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
