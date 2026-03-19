@@ -417,6 +417,39 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
   const isActive = location.pathname === item.path;
   const haptics = useHaptics();
 
+  if (item.locked) {
+    return (
+      <button
+        onClick={() => {
+          haptics.impact('light');
+          import('sonner').then(({ toast }) => {
+            toast(item.lockedMessage || 'Coming soon', {
+              description: 'This feature is currently under development.',
+              icon: '🔒',
+            });
+          });
+        }}
+        className={cn(
+          "flex items-center rounded-xl w-full",
+          open ? "gap-3 px-4" : "justify-center px-0",
+          "min-h-[44px] h-[44px]",
+          "transition-all duration-300 ease-in-out",
+          "border border-transparent",
+          "opacity-50 cursor-not-allowed",
+          className
+        )}
+      >
+        <item.icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+        {open && (
+          <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis text-label-md font-medium text-muted-foreground">
+            {item.name}
+          </span>
+        )}
+        {open && <Lock className="h-3 w-3 flex-shrink-0 text-muted-foreground" />}
+      </button>
+    );
+  }
+
   return (
     <Link
       to={item.path}
@@ -425,7 +458,7 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
       className={cn(
         "flex items-center rounded-xl",
         open ? "gap-3 px-4" : "justify-center px-0",
-        "min-h-[44px] h-[44px]", // Fixed height to prevent shifting
+        "min-h-[44px] h-[44px]",
         "transition-all duration-300 ease-in-out",
         "border border-transparent",
         "hover:bg-muted/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
