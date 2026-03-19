@@ -389,7 +389,7 @@ export const AddCandidateDialog = ({
           .limit(3);
         
         if (linkedinMatches && linkedinMatches.length > 0) {
-          duplicates = linkedinMatches.filter(d => d.candidate_profiles) as unknown as ExistingCandidateResult[];
+          duplicates = linkedinMatches.filter(d => d.candidate_profiles);
           if (duplicates.length > 0) {
             setDuplicateMatchType('linkedin');
             return duplicates;
