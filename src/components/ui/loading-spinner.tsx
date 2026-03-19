@@ -52,7 +52,7 @@ export interface PageLoadingProps {
   text?: string;
 }
 
-export function PageLoading({ text = "Loading Quantum OS..." }: PageLoadingProps) {
+export function PageLoading({ text = "Loading OS Notes..." }: PageLoadingProps) {
   return (
     <div className="flex-1 flex items-center justify-center min-h-[200px]">
       <div className="flex flex-col items-center gap-3">

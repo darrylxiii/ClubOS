@@ -93,7 +93,7 @@ export default function WorkspaceList() {
                     <PanelLeft className="h-4 w-4" />
                   )}
                 </Button>
-                <span className="text-sm text-muted-foreground">Quantum OS</span>
+                <span className="text-sm text-muted-foreground">OS Notes</span>
               </div>
               
               <Button
@@ -112,7 +112,7 @@ export default function WorkspaceList() {
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-3xl font-bold">Quantum OS</h1>
+                  <h1 className="text-3xl font-bold">OS Notes</h1>
                   <p className="text-muted-foreground mt-1">
                     Your personal workspace for notes, docs, and more
                   </p>

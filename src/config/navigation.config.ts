@@ -74,6 +74,8 @@ export interface NavigationItem {
   path: string;
   roles?: ('candidate' | 'partner' | 'admin' | 'strategist')[];
   badge?: string;
+  locked?: boolean;
+  lockedMessage?: string;
 }
 
 export interface NavigationGroup {
@@ -110,7 +112,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     title: "Learning",
     icon: GraduationCap,
     items: [
-      { name: "Academy", icon: GraduationCap, path: "/academy" },
+      { name: "Academy", icon: GraduationCap, path: "/academy", locked: true, lockedMessage: "Releasing soon" },
       { name: "Blog", icon: BookOpen, path: "/blog" },
     ],
   },
@@ -125,9 +127,8 @@ const baseNavigationGroups: NavigationGroup[] = [
     ],
   },
   {
-    title: "Quantum OS",
+    title: "OS Notes",
     icon: NotebookPen,
-    badge: "New",
     items: [
       { name: "All Pages", icon: FileText, path: "/pages" },
       { name: "Favorites", icon: Star, path: "/pages?tab=favorites" },
@@ -178,14 +179,14 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     {
       title: "Club Projects",
       icon: Layers,
-      badge: "New",
+      badge: "Soon",
       items: [
-        { name: "Browse Projects", icon: Layers, path: "/projects" },
-        { name: "Freelancer Setup", icon: User, path: "/projects/freelancer/setup" },
-        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs" },
-        { name: "My Proposals", icon: FileText, path: "/projects/proposals" },
-        { name: "My Contracts", icon: FileSignature, path: "/contracts" },
-        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
+        { name: "Browse Projects", icon: Layers, path: "/projects", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Freelancer Setup", icon: User, path: "/projects/freelancer/setup", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs", locked: true, lockedMessage: "Releasing soon" },
+        { name: "My Proposals", icon: FileText, path: "/projects/proposals", locked: true, lockedMessage: "Releasing soon" },
+        { name: "My Contracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "Releasing soon" },
       ],
     },
     {
@@ -210,13 +211,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     {
       title: "Club Projects",
       icon: Layers,
-      badge: "New",
+      badge: "Soon",
       items: [
-        { name: "Browse Projects", icon: Layers, path: "/projects" },
-        { name: "Post Project", icon: Plus, path: "/projects/new" },
-        { name: "Find Talent", icon: Users, path: "/projects/talent" },
-        { name: "Contracts", icon: FileSignature, path: "/contracts" },
-        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
+        { name: "Browse Projects", icon: Layers, path: "/projects", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Post Project", icon: Plus, path: "/projects/new", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Find Talent", icon: Users, path: "/projects/talent", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Contracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "Releasing soon" },
       ],
     },
   ],
@@ -342,15 +343,15 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
     {
       title: "Club Projects",
       icon: Layers,
-      badge: "New",
+      badge: "Soon",
       items: [
-        { name: "All Projects", icon: Layers, path: "/projects" },
-        { name: "Post Project", icon: Plus, path: "/projects/new" },
-        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs" },
-        { name: "All Proposals", icon: FileText, path: "/projects/proposals" },
-        { name: "Disputes", icon: AlertTriangle, path: "/projects/disputes" },
-        { name: "Contracts", icon: FileSignature, path: "/contracts" },
-        { name: "Time Tracking", icon: Timer, path: "/time-tracking" },
+        { name: "All Projects", icon: Layers, path: "/projects", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Post Project", icon: Plus, path: "/projects/new", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Gig Marketplace", icon: Briefcase, path: "/projects/gigs", locked: true, lockedMessage: "Releasing soon" },
+        { name: "All Proposals", icon: FileText, path: "/projects/proposals", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Disputes", icon: AlertTriangle, path: "/projects/disputes", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Contracts", icon: FileSignature, path: "/contracts", locked: true, lockedMessage: "Releasing soon" },
+        { name: "Time Tracking", icon: Timer, path: "/time-tracking", locked: true, lockedMessage: "Releasing soon" },
       ],
     },
     // === SOCIAL (kept separate - distinct domain) ===

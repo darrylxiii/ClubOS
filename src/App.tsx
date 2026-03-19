@@ -353,16 +353,7 @@ const App = () => {
                   </PublicProviders>
                 } />
 
-                {/* Blog Routes (Public-ish, inside protected layout for nav) */}
-                <Route path="/blog" element={
-                  <Suspense fallback={<PageLoader />}><Blog /></Suspense>
-                } />
-                <Route path="/blog/:category" element={
-                  <Suspense fallback={<PageLoader />}><BlogCategory /></Suspense>
-                } />
-                <Route path="/blog/:category/:slug" element={
-                  <Suspense fallback={<PageLoader />}><BlogPost /></Suspense>
-                } />
+                {/* Blog Routes moved inside protected layout below */}
 
                 {/* Protected Routes */}
                 <Route element={
@@ -390,6 +381,11 @@ const App = () => {
                   <Route path="/help" element={<KnowledgeBase />} />
                   <Route path="/partner/relationships" element={<PartnerRelationships />} />
                   <Route path="/live-hub" element={<LiveHub />} />
+                  
+                  {/* Blog Routes (inside protected layout so nav/sidebar is available) */}
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:category" element={<BlogCategory />} />
+                  <Route path="/blog/:category/:slug" element={<BlogPost />} />
                   <Route path="/club-ai" element={<ClubAI />} />
                   <Route path="/communication-intelligence" element={<Navigate to="/admin/communication-hub?tab=intelligence" replace />} />
                   <Route path="/my-communications" element={<Navigate to="/profile?tab=communications" replace />} />

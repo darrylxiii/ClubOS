@@ -110,7 +110,7 @@ export const sharedRoutes = (
     {/* WhatsApp Business - Redirect to unified hub */}
     <Route path="/whatsapp" element={<Navigate to="/admin/whatsapp" replace />} />
     
-    {/* Quantum OS Workspace */}
+    {/* OS Notes Workspace */}
     <Route path="/pages" element={<ProtectedRoute><WorkspaceList /></ProtectedRoute>} />
     <Route path="/pages/:pageId" element={<ProtectedRoute><WorkspacePage /></ProtectedRoute>} />
     
