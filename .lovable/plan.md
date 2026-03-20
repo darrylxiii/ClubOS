@@ -1,24 +1,18 @@
 
 
-# Fix: Preview Build Error (HTTP 412)
+# Fix: Preview Build Error
 
-## Diagnosis
+## Root Cause
 
-The preview shows "HTTP ERROR 412" — the Vite dev server fails to compile `main.tsx`. I audited all files touched in the previous revamp:
+The `@mantine/hooks` package is listed in `package.json` and `bun.lock`, but Rollup still fails to resolve it from `@blocknote/mantine`. This is a peer dependency resolution issue — the package exists but isn't being found during the build because Vite doesn't pre-bundle it.
 
-- All 5 new components exist and export correctly
-- All 11 deleted components have zero remaining import references
-- All imports in `JobDashboard.tsx` resolve to existing files
-- `index.ts` barrel exports match existing files
-- No circular dependencies detected
-
-The likely cause is **unused imports** in `JobDashboard.tsx` that may trigger strict mode errors, combined with the build server struggling after the large batch of file changes.
+All Job Dashboard code and imports are clean — no stale references to deleted components.
 
 ## Fix
 
-**Clean up `JobDashboard.tsx`** — remove unused imports on lines 10-11:
-- `AlertDialog` family (6 components) — imported but never used in the refactored page
-- `Mail`, `Shield` icons — imported but never used
+1. **Add `@mantine/hooks` to `optimizeDeps.include` in `vite.config.ts`** — This ensures Vite pre-bundles the package so Rollup can resolve it from `@blocknote/mantine`.
 
-This single cleanup should resolve the build compilation and restore the preview.
+2. **Add `@mantine/hooks` to `resolve.dedupe`** — Prevents duplicate instances that can cause resolution failures.
+
+Single file change: `vite.config.ts` — add two strings to existing arrays.
 
