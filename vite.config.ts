@@ -44,6 +44,7 @@ export default defineConfig(({ mode, command }) => ({
       '@radix-ui/react-checkbox', '@radix-ui/react-toggle',
       '@radix-ui/react-toast', '@radix-ui/react-accordion',
       '@radix-ui/react-progress', '@radix-ui/react-navigation-menu',
+      '@mantine/hooks',
     ],
     exclude: ['mermaid', 'katex'],
   },
