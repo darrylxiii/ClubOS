@@ -239,6 +239,7 @@ export default defineConfig(({ mode, command }) => ({
       'react/jsx-runtime',
       'react/jsx-dev-runtime',
       'scheduler',
+      '@mantine/hooks',
     ],
   },
   build: {
