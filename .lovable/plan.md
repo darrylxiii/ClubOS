@@ -1,68 +1,72 @@
 
+Goal: make Advanced Partner Provisioning impossible to fail silently, especially for the Password flow.
 
-# Fix: Partner Provisioning "Provision Partner" Button Does Nothing on Step 4
+Audit summary (what I found)
+- The provisioning backend function is available, but there are no user-attempt logs from this stuck flow, which indicates the submit is being blocked client-side before the function call.
+- You confirmed the failing path is:
+  - Step 4 click behavior: “Nothing happens”
+  - Access method: “Password”
+- In current UI flow, Step 3 does not hard-validate before moving to Step 4, so an invalid password can reach Review.
+- Final submit currently relies on `form.trigger()` + immediate `form.formState.errors` reads, which can produce weak/late feedback and feel like a no-op.
 
-## Root Cause
+Implementation plan (step-by-step)
 
-In `handleSubmit` (PartnerProvisioningModal.tsx line 71-73), when in advanced mode:
+1) Replace silent final validation with explicit `handleSubmit(onValid, onInvalid)`
+- File: `src/components/admin/PartnerProvisioningModal.tsx`
+- Change final submit path to use RHF `handleSubmit`.
+- `onInvalid(errors)` will always fire with concrete error data.
+- In `onInvalid`:
+  - show a blocking toast with clear message
+  - set a visible inline error summary state
+  - auto-navigate to the correct step
+- This removes the “click and nothing happens” behavior entirely.
 
-```ts
-const valid = await form.trigger();
-if (!valid) return; // ← silently exits, no error feedback
-```
+2) Add robust field→step routing + recursive first-error extraction
+- File: `src/components/admin/PartnerProvisioningModal.tsx`
+- Add a deterministic `FIELD_TO_STEP` map and a helper that safely extracts first human-readable error from nested RHF errors.
+- If a field cannot be mapped, default user to Step 3 for password-related flows and still show summary + toast.
 
-`form.trigger()` validates the ENTIRE zod schema including all refinements. If ANY field fails validation, the button silently does nothing — no toast, no error message, no visual indicator on the Review step.
+3) Validate each step before advancing (not only at final submit)
+- Files:
+  - `src/components/admin/partner-provisioning/steps/ContactStep.tsx`
+  - `src/components/admin/partner-provisioning/steps/CompanyStep.tsx`
+  - `src/components/admin/partner-provisioning/steps/AccessStep.tsx`
+- Convert each `onNext` to guarded progression:
+  - Step 1: validate contact fields
+  - Step 2: validate company fields based on mode
+  - Step 3: validate access fields; if `provisionMethod === 'password'`, enforce min 12 before allowing Review
+- This catches issues at source and prevents hidden errors from accumulating.
 
-The most likely validation failures:
-1. **`linkedinUrl`** — defined as `z.string().url().optional().or(z.literal(''))`. If user typed anything that isn't a valid URL or empty string (e.g. just "linkedin.com/in/someone" without https://), validation fails silently
-2. **`websiteUrl`** — same pattern, same problem
-3. **`companyName` refinement** — if `companyMode` is `'new'` but `companyName` is empty or < 2 chars
-4. **`companyId` refinement** — if `companyMode` is `'existing'` but no company selected
+4) Make Review errors always visible/reactive
+- File: `src/components/admin/partner-provisioning/steps/ReviewStep.tsx`
+- Subscribe to form errors reactively (via form-state subscription pattern) and render a persistent error panel.
+- Add “Fix now” links per error that jump directly to the relevant step.
 
-The Review step shows a summary but **displays zero validation errors**. The user clicks "Provision Partner", nothing happens, no feedback at all.
+5) Tighten password UX for the known failing path
+- Files:
+  - `src/components/admin/partner-provisioning/steps/AccessStep.tsx`
+  - `src/components/admin/partner-provisioning/useProvisionForm.ts`
+- Keep backend schema rule (>=12), but also add immediate inline helper + requirement checklist in Step 3.
+- Disable “Review” until password rule passes when Password method is selected.
 
-## Fix (2 changes)
+6) Add submit-state instrumentation and safe fallback feedback
+- File: `src/components/admin/PartnerProvisioningModal.tsx`
+- Add explicit attempt state + submit lifecycle markers:
+  - “Validating…”
+  - “Submitting…”
+  - “Blocked by validation”
+- Ensure every blocked path produces either a toast or inline error (never silent return).
 
-### 1. Show validation errors + toast on failed submit
+7) Verification pass after implementation
+- Password path with invalid password: blocked on Step 3 with visible reason.
+- Password path with valid password: reaches Step 4 and calls provisioning.
+- Existing-company and new-company paths: both show clear errors and step jump when invalid.
+- Confirm backend invocation appears in logs when final submit is valid.
 
-In `handleSubmit` (PartnerProvisioningModal.tsx), after `form.trigger()` returns false, show a toast with the first error and auto-navigate to the step containing the error:
-
-```ts
-const valid = await form.trigger();
-if (!valid) {
-  const errors = form.formState.errors;
-  const firstError = Object.values(errors)[0];
-  const msg = (firstError as any)?.message || 'Please fix validation errors';
-  toast.error(msg);
-  
-  // Auto-navigate to the step with the error
-  const errorField = Object.keys(errors)[0];
-  if (['fullName','email','phoneNumber','linkedinUrl','markEmailVerified'].includes(errorField)) setStep(1);
-  else if (['companyMode','companyId','companyName','companyDomain','companyRole','industry','companySize','websiteUrl','feeType','placementFeePercentage','placementFeeFixed','defaultPaymentTermsDays','enableDomainAutoProvisioning'].includes(errorField)) setStep(2);
-  else if (['provisionMethod','temporaryPassword','welcomeMessage','assignedStrategistId'].includes(errorField)) setStep(3);
-  return;
-}
-```
-
-### 2. Fix URL fields to accept partial URLs gracefully
-
-In `useProvisionForm.ts`, change `linkedinUrl` and `websiteUrl` validators to be more forgiving:
-
-```ts
-linkedinUrl: z.string()
-  .transform(v => v.trim())
-  .pipe(z.string().url().or(z.literal('')))
-  .optional()
-  .or(z.literal('')),
-```
-
-Or simpler: just make them `z.string().optional().default('')` and validate URL format only if non-empty via a custom refinement that won't block the entire form.
-
-## Files
-
-| File | Change |
-|------|--------|
-| `src/components/admin/PartnerProvisioningModal.tsx` | Add toast + auto-navigate to error step on validation failure |
-| `src/components/admin/partner-provisioning/useProvisionForm.ts` | Relax `linkedinUrl` and `websiteUrl` validators to not block submission for partial URLs |
-| `src/components/admin/partner-provisioning/steps/ReviewStep.tsx` | Show inline error banner when `form.formState.errors` has entries |
-
+Files to update
+- `src/components/admin/PartnerProvisioningModal.tsx`
+- `src/components/admin/partner-provisioning/steps/ContactStep.tsx`
+- `src/components/admin/partner-provisioning/steps/CompanyStep.tsx`
+- `src/components/admin/partner-provisioning/steps/AccessStep.tsx`
+- `src/components/admin/partner-provisioning/steps/ReviewStep.tsx`
+- `src/components/admin/partner-provisioning/useProvisionForm.ts`
