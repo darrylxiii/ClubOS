@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Crown, Zap, Settings2 } from 'lucide-react';
 import { AnimatePresence, motion } from '@/lib/motion';
 import { toast } from 'sonner';
+import { FieldErrors } from 'react-hook-form';
 import { usePartnerProvisioning } from '@/hooks/usePartnerProvisioning';
 import { useProvisionForm, type PrefillData, type ProvisionFormData } from './partner-provisioning/useProvisionForm';
 import { ContactStep } from './partner-provisioning/steps/ContactStep';
@@ -21,6 +22,32 @@ interface PartnerProvisioningModalProps {
 }
 
 const STEP_LABELS = ['Contact', 'Company', 'Access', 'Review'];
+
+const FIELD_TO_STEP: Record<string, number> = {
+  fullName: 1, email: 1, phoneNumber: 1, linkedinUrl: 1, markEmailVerified: 1, markPhoneVerified: 1,
+  companyMode: 2, companyId: 2, companyName: 2, companyDomain: 2, companyRole: 2, industry: 2,
+  companySize: 2, websiteUrl: 2, feeType: 2, placementFeePercentage: 2, placementFeeFixed: 2,
+  defaultPaymentTermsDays: 2, enableDomainAutoProvisioning: 2, estimatedRolesPerYear: 2,
+  provisionMethod: 3, temporaryPassword: 3, welcomeMessage: 3, assignedStrategistId: 3,
+  agreedNda: 4,
+};
+
+function extractFirstError(errors: FieldErrors): string {
+  for (const key of Object.keys(errors)) {
+    const err = errors[key];
+    if (!err) continue;
+    if (typeof err.message === 'string') return err.message;
+    if (err.root && typeof err.root.message === 'string') return err.root.message;
+  }
+  return 'Please fix validation errors before submitting';
+}
+
+function getFirstErrorStep(errors: FieldErrors): number | null {
+  for (const key of Object.keys(errors)) {
+    if (FIELD_TO_STEP[key]) return FIELD_TO_STEP[key];
+  }
+  return null;
+}
 
 export function PartnerProvisioningModal({
   open,
@@ -63,62 +90,61 @@ export function PartnerProvisioningModal({
     if (showSuccess) onSuccess?.();
   }, [resetForm, onClose, onSuccess, showSuccess]);
 
-  const handleSubmit = useCallback(async () => {
-    // In quick mode, only validate essentials
-    if (mode === 'quick') {
-      const emailValid = await form.trigger('email');
-      const nameValid = await form.trigger('fullName');
-      if (!emailValid || !nameValid) return;
-    } else {
-      const valid = await form.trigger();
-      if (!valid) {
-        const errors = form.formState.errors;
-        const errorKeys = Object.keys(errors);
-        const firstError = errorKeys.length > 0 ? (errors as any)[errorKeys[0]] : null;
-        const msg = firstError?.message || 'Please fix validation errors before submitting';
-        toast.error(msg);
-
-        // Auto-navigate to the step containing the first error
-        const field = errorKeys[0];
-        if (['fullName','email','phoneNumber','linkedinUrl','markEmailVerified','markPhoneVerified'].includes(field)) {
-          setStep(1);
-        } else if (['companyMode','companyId','companyName','companyDomain','companyRole','industry','companySize','websiteUrl','feeType','placementFeePercentage','placementFeeFixed','defaultPaymentTermsDays','enableDomainAutoProvisioning','estimatedRolesPerYear'].includes(field)) {
-          setStep(2);
-        } else if (['provisionMethod','temporaryPassword','welcomeMessage','assignedStrategistId'].includes(field)) {
-          setStep(3);
-        }
-        return;
-      }
-    }
-
-    const v = form.getValues();
-
-    // Quick mode defaults
+  const doProvision = useCallback(async (data: ProvisionFormData) => {
     const result = await provisionPartner({
-      email: v.email,
-      fullName: v.fullName,
-      phoneNumber: v.phoneNumber || undefined,
+      email: data.email,
+      fullName: data.fullName,
+      phoneNumber: data.phoneNumber || undefined,
       markEmailVerified: true,
-      markPhoneVerified: !!v.phoneNumber,
-      companyId: v.companyMode === 'existing' ? v.companyId : undefined,
-      companyName: v.companyMode === 'new' ? v.companyName : undefined,
-      companyDomain: v.companyDomain || undefined,
-      companyRole: v.companyRole,
-      industry: v.industry || undefined,
-      companySize: v.companySize || undefined,
-      provisionMethod: mode === 'quick' ? 'magic_link' : v.provisionMethod,
-      temporaryPassword: v.temporaryPassword || undefined,
-      enableDomainAutoProvisioning: mode === 'quick' ? false : v.enableDomainAutoProvisioning,
-      domainDefaultRole: v.domainDefaultRole,
-      requireDomainApproval: v.requireDomainApproval,
-      welcomeMessage: v.welcomeMessage || undefined,
-      assignedStrategistId: v.assignedStrategistId || undefined,
+      markPhoneVerified: !!data.phoneNumber,
+      companyId: data.companyMode === 'existing' ? data.companyId : undefined,
+      companyName: data.companyMode === 'new' ? data.companyName : undefined,
+      companyDomain: data.companyDomain || undefined,
+      companyRole: data.companyRole,
+      industry: data.industry || undefined,
+      companySize: data.companySize || undefined,
+      provisionMethod: mode === 'quick' ? 'magic_link' : data.provisionMethod,
+      temporaryPassword: data.temporaryPassword || undefined,
+      enableDomainAutoProvisioning: mode === 'quick' ? false : data.enableDomainAutoProvisioning,
+      domainDefaultRole: data.domainDefaultRole,
+      requireDomainApproval: data.requireDomainApproval,
+      welcomeMessage: data.welcomeMessage || undefined,
+      assignedStrategistId: data.assignedStrategistId || undefined,
     });
 
     if (result.success) {
       setShowSuccess(true);
     }
-  }, [form, provisionPartner, mode]);
+  }, [provisionPartner, mode]);
+
+  const onInvalid = useCallback((errors: FieldErrors<ProvisionFormData>) => {
+    const msg = extractFirstError(errors);
+    toast.error(msg);
+    const errorStep = getFirstErrorStep(errors);
+    if (errorStep && errorStep < 4) {
+      setStep(errorStep);
+    }
+  }, []);
+
+  const handleSubmit = useCallback(() => {
+    if (mode === 'quick') {
+      // Quick mode: trigger only essentials then submit
+      form.trigger(['email', 'fullName']).then((valid) => {
+        if (!valid) {
+          const msg = extractFirstError(form.formState.errors);
+          toast.error(msg);
+          return;
+        }
+        doProvision(form.getValues());
+      });
+    } else {
+      // Advanced mode: use handleSubmit which guarantees onInvalid fires
+      form.handleSubmit(
+        (data) => doProvision(data),
+        onInvalid
+      )();
+    }
+  }, [form, mode, doProvision, onInvalid]);
 
   const handleAddAnother = useCallback(() => {
     setShowSuccess(false);
@@ -247,7 +273,11 @@ export function PartnerProvisioningModal({
                       duplicateWarning={duplicateWarning}
                       isCheckingDuplicate={isCheckingDuplicate}
                       onCheckDuplicate={checkDuplicate}
-                      onNext={() => setStep(2)}
+                      onNext={() => {
+                        form.trigger(['fullName', 'email']).then((valid) => {
+                          if (valid) setStep(2);
+                        });
+                      }}
                     />
                   )}
                   {step === 2 && (
@@ -255,7 +285,16 @@ export function PartnerProvisioningModal({
                       form={form}
                       companies={companies}
                       onBack={() => setStep(1)}
-                      onNext={() => setStep(3)}
+                      onNext={() => {
+                        const companyMode = form.getValues('companyMode');
+                        const fields: Array<keyof ProvisionFormData> = companyMode === 'existing'
+                          ? ['companyId']
+                          : ['companyName'];
+                        form.trigger(fields).then((valid) => {
+                          if (valid) setStep(3);
+                          else toast.error(extractFirstError(form.formState.errors));
+                        });
+                      }}
                     />
                   )}
                   {step === 3 && (
@@ -263,7 +302,20 @@ export function PartnerProvisioningModal({
                       form={form}
                       strategists={strategists}
                       onBack={() => setStep(2)}
-                      onNext={() => setStep(4)}
+                      onNext={() => {
+                        const method = form.getValues('provisionMethod');
+                        if (method === 'password') {
+                          const pw = form.getValues('temporaryPassword') || '';
+                          if (pw.length < 12) {
+                            form.setError('temporaryPassword', {
+                              message: 'Password must be at least 12 characters',
+                            });
+                            toast.error('Password must be at least 12 characters');
+                            return;
+                          }
+                        }
+                        setStep(4);
+                      }}
                     />
                   )}
                   {step === 4 && (
