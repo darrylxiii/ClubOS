@@ -23,7 +23,10 @@ export const provisionSchema = z.object({
     .email('Enter a valid email address')
     .max(255, 'Email is too long'),
   phoneNumber: z.string().optional().default(''),
-  linkedinUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  linkedinUrl: z.string().optional().default('').refine(
+    (val) => !val || /^https?:\/\/.+/.test(val) || /^[a-zA-Z0-9]/.test(val),
+    { message: 'Enter a valid LinkedIn URL' }
+  ),
   markEmailVerified: z.boolean().default(true),
   markPhoneVerified: z.boolean().default(false),
 
