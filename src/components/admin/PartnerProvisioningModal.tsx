@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Crown, Zap, Settings2 } from 'lucide-react';
 import { AnimatePresence, motion } from '@/lib/motion';
+import { toast } from 'sonner';
 import { usePartnerProvisioning } from '@/hooks/usePartnerProvisioning';
 import { useProvisionForm, type PrefillData, type ProvisionFormData } from './partner-provisioning/useProvisionForm';
 import { ContactStep } from './partner-provisioning/steps/ContactStep';
@@ -70,7 +71,24 @@ export function PartnerProvisioningModal({
       if (!emailValid || !nameValid) return;
     } else {
       const valid = await form.trigger();
-      if (!valid) return;
+      if (!valid) {
+        const errors = form.formState.errors;
+        const errorKeys = Object.keys(errors);
+        const firstError = errorKeys.length > 0 ? (errors as any)[errorKeys[0]] : null;
+        const msg = firstError?.message || 'Please fix validation errors before submitting';
+        toast.error(msg);
+
+        // Auto-navigate to the step containing the first error
+        const field = errorKeys[0];
+        if (['fullName','email','phoneNumber','linkedinUrl','markEmailVerified','markPhoneVerified'].includes(field)) {
+          setStep(1);
+        } else if (['companyMode','companyId','companyName','companyDomain','companyRole','industry','companySize','websiteUrl','feeType','placementFeePercentage','placementFeeFixed','defaultPaymentTermsDays','enableDomainAutoProvisioning','estimatedRolesPerYear'].includes(field)) {
+          setStep(2);
+        } else if (['provisionMethod','temporaryPassword','welcomeMessage','assignedStrategistId'].includes(field)) {
+          setStep(3);
+        }
+        return;
+      }
     }
 
     const v = form.getValues();
