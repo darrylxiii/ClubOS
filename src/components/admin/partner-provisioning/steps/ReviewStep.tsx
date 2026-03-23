@@ -1,10 +1,10 @@
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Pencil, FileCheck } from 'lucide-react';
+import { UserPlus, Pencil, FileCheck, AlertCircle } from 'lucide-react';
 import { motion } from '@/lib/motion';
 import type { ProvisionFormData, CompanyOption } from '../useProvisionForm';
 
@@ -16,6 +16,13 @@ interface ReviewStepProps {
   onSubmit: () => void;
   onGoToStep: (step: number) => void;
 }
+
+const FIELD_TO_STEP: Record<string, number> = {
+  fullName: 1, email: 1, phoneNumber: 1, linkedinUrl: 1,
+  companyMode: 2, companyId: 2, companyName: 2, companyDomain: 2, companyRole: 2,
+  websiteUrl: 2, industry: 2, companySize: 2,
+  provisionMethod: 3, temporaryPassword: 3, welcomeMessage: 3, assignedStrategistId: 3,
+};
 
 function Row({ label, value, onEdit }: { label: string; value: string; onEdit?: () => void }) {
   return (
@@ -47,6 +54,9 @@ export function ReviewStep({
   onGoToStep,
 }: ReviewStepProps) {
   const v = form.getValues();
+  // Subscribe reactively to errors so they update in real-time
+  const { errors } = useFormState({ control: form.control });
+
   const companyName = v.companyMode === 'existing'
     ? companies.find(c => c.id === v.companyId)?.name || '—'
     : v.companyName || '—';
@@ -63,10 +73,13 @@ export function ReviewStep({
     ? `€${v.placementFeeFixed || 0}`
     : `${v.placementFeePercentage || 0}% + €${v.placementFeeFixed || 0}`;
 
-  const errors = form.formState.errors;
-  const errorMessages = Object.entries(errors)
-    .map(([, err]) => (err as any)?.message)
-    .filter(Boolean);
+  const errorEntries = Object.entries(errors)
+    .map(([key, err]) => ({
+      field: key,
+      message: (err as any)?.message as string | undefined,
+      step: FIELD_TO_STEP[key] || 3,
+    }))
+    .filter(e => e.message);
 
   return (
     <div className="space-y-6">
@@ -75,11 +88,24 @@ export function ReviewStep({
         Review & Confirm
       </h3>
 
-      {errorMessages.length > 0 && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-1">
-          <p className="text-sm font-medium text-destructive">Please fix the following errors:</p>
-          {errorMessages.map((msg, i) => (
-            <p key={i} className="text-xs text-destructive/80">• {msg}</p>
+      {errorEntries.length > 0 && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-2">
+          <p className="text-sm font-medium text-destructive flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4" />
+            Please fix the following errors:
+          </p>
+          {errorEntries.map((e, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onGoToStep(e.step)}
+              className="flex items-center gap-2 text-xs text-destructive/80 hover:text-destructive hover:underline w-full text-left"
+            >
+              <span>• {e.message}</span>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-auto shrink-0">
+                Fix → Step {e.step}
+              </Badge>
+            </button>
           ))}
         </div>
       )}
@@ -138,7 +164,7 @@ export function ReviewStep({
       <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
         <Switch
           checked={form.watch('agreedNda')}
-          onCheckedChange={(v) => form.setValue('agreedNda', v)}
+          onCheckedChange={(val) => form.setValue('agreedNda', val)}
           id="nda"
         />
         <Label htmlFor="nda" className="text-sm cursor-pointer">

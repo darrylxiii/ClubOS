@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Lock, Globe, Key, Send, Users } from 'lucide-react';
+import { Sparkles, Lock, Globe, Key, Send, Users, Check, X } from 'lucide-react';
 import type { ProvisionFormData, Strategist } from '../useProvisionForm';
 
 interface AccessStepProps {
@@ -16,9 +16,19 @@ interface AccessStepProps {
   onNext: () => void;
 }
 
+const PASSWORD_RULES = [
+  { test: (pw: string) => pw.length >= 12, label: 'At least 12 characters' },
+  { test: (pw: string) => /[A-Z]/.test(pw), label: 'One uppercase letter' },
+  { test: (pw: string) => /[a-z]/.test(pw), label: 'One lowercase letter' },
+  { test: (pw: string) => /[0-9]/.test(pw), label: 'One number' },
+];
+
 export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProps) {
   const { watch, setValue, register, formState: { errors } } = form;
   const provisionMethod = watch('provisionMethod');
+  const temporaryPassword = watch('temporaryPassword') || '';
+
+  const passwordValid = provisionMethod !== 'password' || temporaryPassword.length >= 12;
 
   return (
     <div className="space-y-6">
@@ -53,17 +63,37 @@ export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProp
       </RadioGroup>
 
       {provisionMethod === 'password' && (
-        <div className="space-y-2">
-          <Label>Temporary Password *</Label>
-          <Input
-            type="password"
-            {...register('temporaryPassword')}
-            placeholder="Min 12 characters"
-            aria-invalid={!!errors.temporaryPassword}
-          />
-          {errors.temporaryPassword && (
-            <p className="text-xs text-destructive mt-1">{errors.temporaryPassword.message}</p>
-          )}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label>Temporary Password *</Label>
+            <Input
+              type="password"
+              {...register('temporaryPassword')}
+              placeholder="Min 12 characters"
+              aria-invalid={!!errors.temporaryPassword}
+            />
+            {errors.temporaryPassword && (
+              <p className="text-xs text-destructive mt-1">{errors.temporaryPassword.message}</p>
+            )}
+          </div>
+          {/* Password requirement checklist */}
+          <div className="space-y-1 pl-1">
+            {PASSWORD_RULES.map((rule) => {
+              const passed = rule.test(temporaryPassword);
+              return (
+                <div key={rule.label} className="flex items-center gap-2 text-xs">
+                  {passed ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <X className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  )}
+                  <span className={passed ? 'text-emerald-500' : 'text-muted-foreground'}>
+                    {rule.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -112,7 +142,9 @@ export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProp
 
       <div className="flex justify-between">
         <Button type="button" variant="outline" onClick={onBack}>Back</Button>
-        <Button type="button" onClick={onNext}>Review</Button>
+        <Button type="button" onClick={onNext} disabled={!passwordValid}>
+          Review
+        </Button>
       </div>
     </div>
   );
