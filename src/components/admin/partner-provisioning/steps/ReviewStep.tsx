@@ -63,12 +63,26 @@ export function ReviewStep({
     ? `€${v.placementFeeFixed || 0}`
     : `${v.placementFeePercentage || 0}% + €${v.placementFeeFixed || 0}`;
 
+  const errors = form.formState.errors;
+  const errorMessages = Object.entries(errors)
+    .map(([, err]) => (err as any)?.message)
+    .filter(Boolean);
+
   return (
     <div className="space-y-6">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
         <FileCheck className="w-4 h-4" />
         Review & Confirm
       </h3>
+
+      {errorMessages.length > 0 && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-1">
+          <p className="text-sm font-medium text-destructive">Please fix the following errors:</p>
+          {errorMessages.map((msg, i) => (
+            <p key={i} className="text-xs text-destructive/80">• {msg}</p>
+          ))}
+        </div>
+      )}
 
       {/* Contact */}
       <Card className="bg-muted/30">
