@@ -255,7 +255,8 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Talent Management",
       icon: Users,
       items: [
-        { name: "Talent Pool", icon: Sparkles, path: "/talent-pool", badge: "New" },
+        { name: "User Management", icon: Users, path: "/admin/users", badge: "New" },
+        { name: "Talent Pool", icon: Sparkles, path: "/talent-pool" },
         { name: "Talent Lists", icon: FolderOpen, path: "/admin/talent-pool/lists" },
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
         { name: "All Jobs", icon: Briefcase, path: "/jobs" },
