@@ -825,6 +825,20 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const isSubmitting = submitStep !== "idle" && submitStep !== "complete";
   const isPartner = currentRole !== 'admin' && currentRole !== 'strategist';
 
+  const restoreDraft = (draft: any) => {
+    setFormData(draft.formData);
+    setRequiredTools(draft.requiredTools);
+    setNiceToHaveTools(draft.niceToHaveTools);
+    if (draft.requirements) setRequirements(draft.requirements);
+    if (draft.niceToHave) setNiceToHave(draft.niceToHave);
+    if (draft.startDateISO) setStartDate(new Date(draft.startDateISO));
+    if (draft.currentStep) setCurrentStep(draft.currentStep);
+    if (draft.jobLocations) setJobLocations(draft.jobLocations);
+    setPendingDraft(null);
+    setShowDraftChoice(false);
+    toast.success("Draft restored");
+  };
+
   // Fix 6: Ctrl+Enter to submit
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && currentStep === TOTAL_STEPS - 1 && !isSubmitting) {
