@@ -475,11 +475,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       }
     }
 
-    if (step === 3) {
-      if ((!formData.description || formData.description.trim().length < 10) && !jobDescriptionFile) {
-        errors.push({ field: 'description', message: 'Provide a description (10+ chars) or upload a JD file' });
-      }
-    }
+    // Step 3: Description is optional — no blocking validation
 
     setFieldErrors(errors);
     return errors.length === 0;
