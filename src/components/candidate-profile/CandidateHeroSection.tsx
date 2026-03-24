@@ -352,6 +352,9 @@ export const CandidateHeroSection = ({
                 <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                   <Sparkles className="w-3 h-3" />
                   QUIN
+                  {breakdown?.computed_at && (
+                    <span className="text-muted-foreground/60 ml-1">· {formatRelativeTime(breakdown.computed_at)}</span>
+                  )}
                 </span>
                 {onRecompute && (
                   <Button variant="ghost" size="sm" onClick={onRecompute} disabled={isComputing} className="h-6 text-[10px] px-2">
