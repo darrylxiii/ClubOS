@@ -215,7 +215,8 @@ const PartnersTab = () => {
         {showProvision && (
           <PartnerProvisioningModal
             open={showProvision}
-            onOpenChange={setShowProvision}
+            onClose={() => setShowProvision(false)}
+            onSuccess={() => { setShowProvision(false); refetch(); }}
           />
         )}
       </CardContent>
