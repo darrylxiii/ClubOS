@@ -11,7 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { UserEditDrawer } from "./UserEditDrawer";
 import { formatDistanceToNow } from "date-fns";
 
-const STAFF_ROLES = ["admin", "strategist", "recruiter", "company_admin"];
+const STAFF_ROLES = ["admin", "strategist", "recruiter", "company_admin"] as const;
+type StaffRoleType = "admin" | "company_admin" | "hiring_manager" | "moderator" | "partner" | "recruiter" | "strategist" | "super_admin" | "user";
 
 interface StaffUser {
   id: string;
