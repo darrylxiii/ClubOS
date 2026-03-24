@@ -39,11 +39,13 @@ import { toast } from "sonner";
 interface AdminJobToolsProps {
   jobId: string;
   jobTitle: string;
+  companyName?: string;
   onRefresh: () => void;
 }
 
-export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps) => {
+export const AdminJobTools = ({ jobId, jobTitle, companyName = '', onRefresh }: AdminJobToolsProps) => {
   const [showAddCandidate, setShowAddCandidate] = useState(false);
+  const [showEmailDump, setShowEmailDump] = useState(false);
 
   const handleAIRecommendations = () => {
     toast.info("AI Matching Engine", {
