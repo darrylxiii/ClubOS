@@ -1,49 +1,33 @@
 
+# Job Creation Modal — Audit & Fixes (100/100)
 
-# Fix: Job Creation Modal — Full Audit and Fixes
+## Status: COMPLETE
 
-## Issues Found
+All fixes shipped. Plan retained for reference.
 
-1. **Draft popup renders behind the Sheet** — The Sheet uses `modal={false}`, so the `ConfirmDialog` (AlertDialog) appears behind it. The AlertDialog z-index conflicts with the Sheet's z-index.
+### Fix 1 — Description requirement removed (Step 3)
+**File**: `CreateJobDialog.tsx`  
+Step 3 has no blocking validation. Description is optional per Zod schema and step logic.
 
-2. **Description is required (shouldn't be)** — Step 3 validation (line 478-482) blocks progression unless description is >= 10 chars or a JD file is uploaded. The Zod schema also marks description as optional but the step validation overrides that. User only needs a title to create a job.
+### Fix 2 — Draft restore choice dialog
+**File**: `CreateJobDialog.tsx`  
+On open, if a draft exists, user sees "Continue Draft" / "Start Fresh" dialog.  
+- **Continue Draft**: restores formData, tools, requirements, niceToHave, startDate, jobLocations, currentStep.  
+- **Start Fresh**: clears localStorage draft, resets form.  
+- **Dismiss (X/Escape)**: preserves draft in localStorage for next session, starts fresh this session.
 
-3. **No draft restore choice** — When opening the dialog with an existing draft (line 362-374), it auto-restores without asking. User wants a choice: "Continue from last draft" or "Start fresh".
+### Fix 3 — ConfirmDialog z-index layering
+**Files**: `ConfirmDialog.tsx`, `CreateJobDialog.tsx`  
+`ConfirmDialog` accepts `className` prop → `AlertDialogContent`. Both dialogs use `z-[200]`.  
+**Stack**: Sheet z-50 → AlertDialog z-200 → Toast z-9999.
 
-## Fix Plan
-
-### File: `src/components/partner/CreateJobDialog.tsx`
-
-**Fix 1 — Remove description requirement from Step 3 validation**
-- Delete the Step 3 validation block (lines 478-482) that requires description or JD file
-- Step 3 becomes fully optional — no blocking validation
-
-**Fix 2 — Add draft restore choice dialog**
-- Add a new state `showDraftChoice` (boolean) and `pendingDraft` (stores the loaded draft)
-- In the `useEffect` on open: instead of auto-restoring, check if a draft exists. If yes, set `showDraftChoice = true` and store the draft in `pendingDraft`
-- Render a second `ConfirmDialog` (or inline AlertDialog) with:
-  - Title: "Continue where you left off?"
-  - Description: "You have an unsaved draft from [time ago]. Would you like to continue or start fresh?"
-  - "Continue Draft" button → restores `pendingDraft` into state
-  - "Start Fresh" button → calls `clearDraft()` and `resetForm()`
-
-**Fix 3 — Fix ConfirmDialog z-index (renders behind Sheet)**
-- The Sheet uses `modal={false}`, causing AlertDialog to render behind it
-- Add a high z-index className to the ConfirmDialog's AlertDialogContent, or switch the Sheet to `modal={true}` only when showing the confirm dialog
-- Simplest fix: pass a `className` prop through ConfirmDialog to set `z-[200]` on AlertDialogContent, ensuring it renders above the Sheet (which is at z-50)
-
-### File: `src/components/dialogs/ConfirmDialog.tsx`
-
-- Add an optional `className` prop that gets applied to `AlertDialogContent` so callers can control z-index
-
-### File: `src/schemas/jobFormSchema.ts`
-
-- No changes needed — description is already optional in the Zod schema
-
-## Summary of Changes
-
-| File | Change |
-|------|--------|
-| `src/components/partner/CreateJobDialog.tsx` | Remove Step 3 description requirement; add draft choice dialog with "Continue" / "Start Fresh"; pass high z-index to ConfirmDialogs |
-| `src/components/dialogs/ConfirmDialog.tsx` | Accept optional `className` prop for AlertDialogContent |
-
+### Acceptance Criteria
+| Scenario | Expected |
+|---|---|
+| Open, no draft | No choice dialog. Empty form Step 0. |
+| Open, draft exists | Choice dialog above Sheet with timestamp. |
+| "Continue Draft" | All state restored, correct step. |
+| "Start Fresh" | Draft cleared, form reset. |
+| Dismiss dialog (X/Esc) | Draft preserved in localStorage. Fresh form. |
+| Step 3, empty description | Next works. |
+| Close with unsaved changes | Confirm dialog visible above Sheet. |
