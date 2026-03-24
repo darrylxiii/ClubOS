@@ -241,6 +241,11 @@ const CandidatesTab = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
+                    {user.last_login_at
+                      ? formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })
+                      : <span className="text-muted-foreground/60">Never</span>}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right">
