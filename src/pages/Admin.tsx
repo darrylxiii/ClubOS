@@ -89,7 +89,7 @@ const Admin = () => {
           <Tabs defaultValue="companies" className="space-y-6">
             <TabsList className="flex w-full max-w-[1600px] overflow-x-auto sticky top-4 z-20 gap-2 justify-start">
               <TabsTrigger value="companies">Companies</TabsTrigger>
-              <TabsTrigger value="users">Users & Roles</TabsTrigger>
+              <TabsTrigger value="users" onClick={() => navigate('/admin/users')}>Users & Roles →</TabsTrigger>
               <TabsTrigger value="revenue">Revenue</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
               <TabsTrigger value="merge">Merge</TabsTrigger>
@@ -110,8 +110,10 @@ const Admin = () => {
             </TabsContent>
 
             <TabsContent value="users" className="space-y-6">
-              <UsersDashboard />
-              <UnifiedUserManagement />
+              <div className="text-center py-12">
+                <p className="text-muted-foreground mb-4">User management has moved to its own dedicated hub.</p>
+                <Button onClick={() => navigate('/admin/users')}>Open User Management</Button>
+              </div>
             </TabsContent>
 
             <TabsContent value="revenue" className="space-y-6">

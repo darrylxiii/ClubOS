@@ -3,7 +3,12 @@
   "subtitle": "Manage your platform",
   "navigation": {
     "dashboard": "Dashboard",
-    "users": "Users",
+    "users": "User Management",
+    "candidates": "Candidates",
+    "partners": "Partners",
+    "staff": "Staff",
+    "pendingRequests": "Pending Requests",
+    "allUsers": "All Users",
     "companies": "Companies",
     "jobs": "Jobs",
     "analytics": "Analytics",

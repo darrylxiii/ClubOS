@@ -9,6 +9,7 @@ import { PageLoader } from "@/components/PageLoader";
 // ──────────────────────────────────────────────
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
+const UserManagementHub = lazy(() => import("@/pages/admin/UserManagementHub"));
 
 // ──────────────────────────────────────────────
 // Hub Pages (consolidated)
@@ -101,6 +102,7 @@ export const adminRoutes = (
     {/* HUB ROUTES                                  */}
     {/* ════════════════════════════════════════════ */}
     {R("/admin", Admin)}
+    {R("/admin/users", UserManagementHub)}
     {R("/admin/translations", TranslationsHub)}
     {R("/admin/security", SecurityHub)}
     {R("/admin/communication-hub", CommunicationHub)}
