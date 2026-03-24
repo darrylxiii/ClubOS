@@ -27,6 +27,7 @@ interface CandidateUser {
   resume_url: string | null;
   stealth_mode_enabled: boolean | null;
   location: string | null;
+  last_login_at: string | null;
 }
 
 const CandidatesTab = () => {
@@ -72,9 +73,18 @@ const CandidatesTab = () => {
 
       const cpMap = new Map(candidateProfiles?.map((cp) => [cp.user_id, cp.id]) || []);
 
+      // Fetch last login timestamps
+      const { data: activityData } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_login_at")
+        .in("user_id", pureCandidateIds);
+
+      const loginMap = new Map(activityData?.map((a) => [a.user_id, a.last_login_at]) || []);
+
       return (profiles || []).map((p) => ({
         ...p,
         candidate_id: cpMap.get(p.id) || null,
+        last_login_at: loginMap.get(p.id) || null,
       })) as CandidateUser[];
     },
   });
@@ -175,6 +185,7 @@ const CandidatesTab = () => {
               <TableHead>Resume</TableHead>
               <TableHead>Stealth</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Last Login</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -182,13 +193,13 @@ const CandidatesTab = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                 <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                   Loading candidates...
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                   No candidates found
                 </TableCell>
               </TableRow>
@@ -228,6 +239,11 @@ const CandidatesTab = () => {
                     >
                       {user.account_status || "active"}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {user.last_login_at
+                      ? formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })
+                      : <span className="text-muted-foreground/60">Never</span>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}

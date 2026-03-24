@@ -20,6 +20,7 @@ interface PartnerUser {
   created_at: string;
   account_status: string | null;
   companies: Array<{ company_id: string; company_name: string; role: string }>;
+  last_login_at: string | null;
 }
 
 const PartnersTab = () => {
@@ -63,9 +64,18 @@ const PartnersTab = () => {
         memberMap.set(m.user_id, list);
       });
 
+      // Fetch last login timestamps
+      const { data: activityData } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_login_at")
+        .in("user_id", partnerIds);
+
+      const loginMap = new Map(activityData?.map((a) => [a.user_id, a.last_login_at]) || []);
+
       return (profiles || []).map((p) => ({
         ...p,
         companies: memberMap.get(p.id) || [],
+        last_login_at: loginMap.get(p.id) || null,
       })) as PartnerUser[];
     },
   });
@@ -115,6 +125,7 @@ const PartnersTab = () => {
               <TableHead>Email</TableHead>
               <TableHead>Companies</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Last Login</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -122,11 +133,11 @@ const PartnersTab = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">Loading partners...</TableCell>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">Loading partners...</TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No partners found</TableCell>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">No partners found</TableCell>
               </TableRow>
             ) : (
               filtered.map((user) => (
@@ -155,6 +166,11 @@ const PartnersTab = () => {
                     >
                       {user.account_status || "active"}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {user.last_login_at
+                      ? formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })
+                      : <span className="text-muted-foreground/60">Never</span>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}

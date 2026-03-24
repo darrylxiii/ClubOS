@@ -21,6 +21,7 @@ interface StaffUser {
   created_at: string;
   account_status: string | null;
   roles: string[];
+  last_login_at: string | null;
 }
 
 const StaffTab = () => {
@@ -53,9 +54,18 @@ const StaffTab = () => {
         .in("id", staffIds)
         .order("created_at", { ascending: false });
 
+      // Fetch last login timestamps
+      const { data: activityData } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_login_at")
+        .in("user_id", staffIds);
+
+      const loginMap = new Map(activityData?.map((a) => [a.user_id, a.last_login_at]) || []);
+
       return (profiles || []).map((p) => ({
         ...p,
         roles: roleMap.get(p.id) || [],
+        last_login_at: loginMap.get(p.id) || null,
       })) as StaffUser[];
     },
   });
@@ -115,6 +125,7 @@ const StaffTab = () => {
               <TableHead>Email</TableHead>
               <TableHead>Roles</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Last Login</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -122,11 +133,11 @@ const StaffTab = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">Loading staff...</TableCell>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">Loading staff...</TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No staff found</TableCell>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">No staff found</TableCell>
               </TableRow>
             ) : (
               filtered.map((user) => (
@@ -149,6 +160,11 @@ const StaffTab = () => {
                     >
                       {user.account_status || "active"}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {user.last_login_at
+                      ? formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })
+                      : <span className="text-muted-foreground/60">Never</span>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
