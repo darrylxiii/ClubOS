@@ -27,6 +27,7 @@ interface CandidateUser {
   resume_url: string | null;
   stealth_mode_enabled: boolean | null;
   location: string | null;
+  last_login_at: string | null;
 }
 
 const CandidatesTab = () => {
