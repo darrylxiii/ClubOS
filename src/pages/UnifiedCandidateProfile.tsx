@@ -6,7 +6,6 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { CandidateHeroSection } from "@/components/candidate-profile/CandidateHeroSection";
-import { CandidateDecisionDashboard } from "@/components/partner/CandidateDecisionDashboard";
 import { CandidateSkillAssessment } from "@/components/candidate-profile/CandidateSkillAssessment";
 import { ExperienceTimeline } from "@/components/candidate-profile/ExperienceTimeline";
 import { PortfolioGrid } from "@/components/candidate-profile/PortfolioGrid";
@@ -34,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { CandidateTagManager } from "@/components/candidates/CandidateTagManager";
 import { Progress } from "@/components/ui/progress";
+import { useAssessmentScores } from "@/hooks/useAssessmentScores";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -71,6 +71,9 @@ export default function UnifiedCandidateProfile() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [relationship, setRelationship] = useState<any>(null);
+
+  // Lift assessment hook to page level — single query, passed to hero + skill assessment
+  const { breakdown: assessmentBreakdown, isLoading: assessmentLoading, isComputing, error: assessmentError, recompute } = useAssessmentScores(candidateId, fromJob);
 
   useEffect(() => {
     if (candidateId) {
@@ -217,8 +220,8 @@ export default function UnifiedCandidateProfile() {
       <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <Skeleton className="h-64 w-full rounded-2xl" />
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-            <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
+            <div className="space-y-4">
               <Skeleton className="h-96 w-full rounded-2xl" />
               <Skeleton className="h-64 w-full rounded-2xl" />
             </div>
@@ -244,7 +247,7 @@ export default function UnifiedCandidateProfile() {
 
   return (
     <>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 space-y-3">
         {/* Back Button */}
         <BackButton
           fromJob={fromJob || undefined}
@@ -253,7 +256,7 @@ export default function UnifiedCandidateProfile() {
           fromSearch={fromSearch}
         />
 
-        {/* Hero Section - Compact */}
+        {/* Hero Section with integrated Assessment */}
         <CandidateHeroSection
           candidate={candidate}
           fromJob={fromJob || undefined}
@@ -261,6 +264,11 @@ export default function UnifiedCandidateProfile() {
           isAdmin={isAdmin}
           onEdit={() => setIsEditModalOpen(true)}
           onRefresh={loadCandidateData}
+          assessmentBreakdown={assessmentBreakdown}
+          assessmentLoading={assessmentLoading}
+          isComputing={isComputing}
+          onRecompute={recompute}
+          applicationId={applicationId}
         />
 
         {/* Full Pipeline Breakdown - Prominent after hero */}
@@ -270,39 +278,42 @@ export default function UnifiedCandidateProfile() {
           />
         )}
 
-        {/* Main Content Grid: 70/30 split */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+        {/* Main Content Grid: 65/35 split */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-3">
           {/* Left Column: Main Content */}
-          <div className="space-y-4">
-            {/* Decision Intelligence Zone (Always Expanded) */}
-            <CandidateDecisionDashboard candidate={candidate} applications={application ? [application] : []} />
-
-            {/* Meeting Intelligence - Interview Insights */}
-            <MeetingIntelligenceCard candidateId={candidateId!} />
-
-            {/* Interview Scorecard - AI Analysis from Interviews */}
-            <InterviewScorecard candidateId={candidateId!} />
-
-            {/* Assessment Insights */}
-            <AssessmentInsightsCard candidateId={candidateId!} />
-
-            {/* Skills & Assessment Engine */}
-            <CandidateSkillAssessment
-              candidateId={candidateId!}
-              candidate={candidate}
-              jobId={fromJob}
-              skills={skills}
-            />
-
-            {/* Experience Timeline */}
+          <div className="space-y-3">
+            {/* Experience Timeline — promoted to first */}
             <ExperienceTimeline
               experiences={experiences}
               education={education}
               certifications={certifications}
             />
 
-            {/* Portfolio & Links */}
-            <PortfolioGrid candidate={candidate} portfolioItems={portfolioItems} />
+            {/* Skills & Assessment sub-components (no duplicate top card) */}
+            <CandidateSkillAssessment
+              candidateId={candidateId!}
+              candidate={candidate}
+              jobId={fromJob}
+              skills={skills}
+              breakdown={assessmentBreakdown}
+              error={assessmentError}
+              isComputing={isComputing}
+              onRecompute={recompute}
+            />
+
+            {/* Meeting Intelligence - only if data exists */}
+            <MeetingIntelligenceCard candidateId={candidateId!} />
+
+            {/* Interview Scorecard */}
+            <InterviewScorecard candidateId={candidateId!} />
+
+            {/* Assessment Insights */}
+            <AssessmentInsightsCard candidateId={candidateId!} />
+
+            {/* Portfolio & Links — only if has items */}
+            {portfolioItems.length > 0 && (
+              <PortfolioGrid candidate={candidate} portfolioItems={portfolioItems} />
+            )}
 
             {/* Documents & Assessments */}
             <Card className={candidateProfileTokens.glass.card}>
@@ -354,8 +365,8 @@ export default function UnifiedCandidateProfile() {
             </Card>
           </div>
 
-          {/* Right Sidebar: Sticky Cards - Tighter spacing */}
-          <div className="space-y-4">
+          {/* Right Sidebar */}
+          <div className="space-y-3">
             {/* Candidate Tags */}
             {isAdmin && (
               <CandidateTagManager candidateId={candidateId!} />
@@ -363,7 +374,7 @@ export default function UnifiedCandidateProfile() {
 
             {/* Profile Completeness */}
             {isAdmin && (
-              <Card className={`${candidateProfileTokens.glass.card}`}>
+              <Card className={candidateProfileTokens.glass.card}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Data Completeness</CardTitle>
                 </CardHeader>
@@ -384,7 +395,7 @@ export default function UnifiedCandidateProfile() {
 
             {/* Talent Pool Status - Admin Only */}
             {isAdmin && (
-              <Card className={`${candidateProfileTokens.glass.card}`}>
+              <Card className={candidateProfileTokens.glass.card}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Talent Pool Status</CardTitle>
@@ -418,12 +429,11 @@ export default function UnifiedCandidateProfile() {
             )}
 
             {/* Career Preferences - Compact */}
-            <Card className={`${candidateProfileTokens.glass.card}`}>
+            <Card className={candidateProfileTokens.glass.card}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Career Preferences</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {/* Salary - Compact row */}
                 {(candidate.desired_salary_min || candidate.desired_salary_max) && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Salary:</span>
@@ -433,7 +443,6 @@ export default function UnifiedCandidateProfile() {
                   </div>
                 )}
 
-                {/* Notice Period - Compact row */}
                 {candidate.notice_period && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Notice:</span>
@@ -441,7 +450,6 @@ export default function UnifiedCandidateProfile() {
                   </div>
                 )}
 
-                {/* Remote Preference - Compact row */}
                 {candidate.remote_preference && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Work:</span>
@@ -451,7 +459,6 @@ export default function UnifiedCandidateProfile() {
                   </div>
                 )}
 
-                {/* Locations - Compact */}
                 {candidate.desired_locations && candidate.desired_locations.length > 0 && (
                   <div className="space-y-1">
                     <span className="text-xs text-muted-foreground">Desired Locations:</span>
@@ -490,7 +497,7 @@ export default function UnifiedCandidateProfile() {
 
         {/* Audit Log for Admins */}
         {isAdmin && candidate && (
-          <div className="mt-8">
+          <div className="mt-4">
             <AuditLogViewer candidateId={candidate.id} />
           </div>
         )}

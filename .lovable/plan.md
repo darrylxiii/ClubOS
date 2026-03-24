@@ -1,33 +1,22 @@
 
-# Job Creation Modal — Audit & Fixes (100/100)
+# Candidate Profile Page Redesign — Holistic Layout
 
 ## Status: COMPLETE
 
-All fixes shipped. Plan retained for reference.
+All changes shipped. Plan retained for reference.
 
-### Fix 1 — Description requirement removed (Step 3)
-**File**: `CreateJobDialog.tsx`  
-Step 3 has no blocking validation. Description is optional per Zod schema and step logic.
+### Change 1 — Hero + Assessment merge
+**File**: `CandidateHeroSection.tsx`
+Hero now accepts `assessmentBreakdown`, renders 6 dimension score cards in a compact 6-column grid, radar chart (180px) on the right, collapsible AI Summary with strengths/concerns badges. Avatar reduced to 96px, buttons compacted.
 
-### Fix 2 — Draft restore choice dialog
-**File**: `CreateJobDialog.tsx`  
-On open, if a draft exists, user sees "Continue Draft" / "Start Fresh" dialog.  
-- **Continue Draft**: restores formData, tools, requirements, niceToHave, startDate, jobLocations, currentStep.  
-- **Start Fresh**: clears localStorage draft, resets form.  
-- **Dismiss (X/Escape)**: preserves draft in localStorage for next session, starts fresh this session.
+### Change 2 — DecisionDashboard removed from profile
+**File**: `UnifiedCandidateProfile.tsx`
+`CandidateDecisionDashboard` no longer imported or rendered. `useAssessmentScores` lifted to page level, passed to both Hero and SkillAssessment. Grid changed to 65/35 (1fr_300px). Spacing tightened to `space-y-3`.
 
-### Fix 3 — ConfirmDialog z-index layering
-**Files**: `ConfirmDialog.tsx`, `CreateJobDialog.tsx`  
-`ConfirmDialog` accepts `className` prop → `AlertDialogContent`. Both dialogs use `z-[200]`.  
-**Stack**: Sheet z-50 → AlertDialog z-200 → Toast z-9999.
+### Change 3 — Experience promoted, sections reordered
+**File**: `UnifiedCandidateProfile.tsx`
+`ExperienceTimeline` moved to first position in left column. Portfolio conditionally rendered only when items exist.
 
-### Acceptance Criteria
-| Scenario | Expected |
-|---|---|
-| Open, no draft | No choice dialog. Empty form Step 0. |
-| Open, draft exists | Choice dialog above Sheet with timestamp. |
-| "Continue Draft" | All state restored, correct step. |
-| "Start Fresh" | Draft cleared, form reset. |
-| Dismiss dialog (X/Esc) | Draft preserved in localStorage. Fresh form. |
-| Step 3, empty description | Next works. |
-| Close with unsaved changes | Confirm dialog visible above Sheet. |
+### Change 4 — SkillAssessment deduplicated
+**File**: `CandidateSkillAssessment.tsx`
+Top-level assessment card (overall score, dimension cards, radar) removed — now in Hero. Component only renders sub-components: SkillMatchBreakdown, CultureFitSignals, EngagementTimeline, SalaryComparisonVisualizer, AvailabilityNoticeCard, CareerTrajectoryTimeline. Accepts `breakdown` as prop instead of calling `useAssessmentScores` internally.
