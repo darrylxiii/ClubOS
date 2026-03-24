@@ -670,7 +670,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               country_code: loc.countryCode || null,
               latitude: loc.latitude,
               longitude: loc.longitude,
-              formatted_address: loc.formattedAddress || loc.location,
+              formatted_address: loc.formattedAddress || loc.city || '',
               is_primary: false,
             });
           }
