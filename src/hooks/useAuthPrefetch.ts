@@ -4,6 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/roles';
 import { logger } from '@/lib/logger';
 
+export interface CompanyMembership {
+  company_id: string;
+  role: string;
+  company_name?: string;
+}
+
 export interface AuthPrefetchData {
   roles: UserRole[];
   profile: {
@@ -13,10 +19,10 @@ export interface AuthPrefetchData {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
-  companyMembership: {
-    company_id: string;
-    role: string;
-  } | null;
+  /** @deprecated Use companyMemberships instead */
+  companyMembership: CompanyMembership | null;
+  companyMemberships: CompanyMembership[];
+  activeCompanyId: string | null;
   preferences: Record<string, any> | null;
   mfaFactors: { hasVerifiedTotp: boolean };
 }
