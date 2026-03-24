@@ -18,6 +18,7 @@ interface ConfirmDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   variant?: "default" | "destructive";
+  className?: string;
 }
 
 export function ConfirmDialog({
