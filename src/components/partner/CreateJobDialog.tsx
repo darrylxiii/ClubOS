@@ -644,6 +644,45 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       const jobId = job.id;
 
+      // Save locations to job_locations table
+      try {
+        const locationInserts: any[] = [];
+        // Primary location
+        if (finalFormData.latitude && finalFormData.longitude) {
+          locationInserts.push({
+            job_id: jobId,
+            location_type: finalFormData.location_type || 'onsite',
+            city: finalFormData.location_city,
+            country_code: finalFormData.location_country_code,
+            latitude: finalFormData.latitude,
+            longitude: finalFormData.longitude,
+            formatted_address: finalFormData.location_formatted || finalFormData.location,
+            is_primary: true,
+          });
+        }
+        // Additional locations
+        for (const loc of jobLocations) {
+          if (loc.latitude && loc.longitude) {
+            locationInserts.push({
+              job_id: jobId,
+              location_type: loc.locationType || finalFormData.location_type || 'onsite',
+              city: loc.city || null,
+              country_code: loc.countryCode || null,
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+              formatted_address: loc.formattedAddress || loc.city || '',
+              is_primary: false,
+            });
+          }
+        }
+        if (locationInserts.length > 0) {
+          const { error: locError } = await supabase.from('job_locations').insert(locationInserts);
+          if (locError) console.error('Error inserting job locations:', locError);
+        }
+      } catch (locErr) {
+        console.error('Job locations insert failed (non-blocking):', locErr);
+      }
+
       // Stealth viewers
       if (isStealthEnabled) {
         const performer = { id: user?.id || '', email: user?.email, full_name: user?.user_metadata?.full_name };
@@ -911,6 +950,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                   handleInputChange('location', 'Remote');
                 } else {
                   setIsRemote(false);
+                  // Clear auto-set "Remote" so user must pick a real location
+                  if (formData.location === 'Remote') {
+                    handleLocationChange(null);
+                  }
                 }
               }}
               label={opt.label}
@@ -1194,6 +1237,18 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SummaryRow label="Seniority" value={seniorityLabel} />
               <SummaryRow label="Work Model" value={locationTypeLabel} />
               <SummaryRow label="Location" value={formData.location || '—'} />
+              {jobLocations.length > 0 && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Additional Locations:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {jobLocations.map((loc, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border">
+                        {loc.formattedAddress || loc.city || 'Unknown'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <SummaryRow label="Urgency" value={urgencyLabel} />
               {startDate && <SummaryRow label="Start Date" value={format(startDate, 'PPP')} />}
               {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
