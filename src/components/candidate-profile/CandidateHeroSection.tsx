@@ -88,17 +88,26 @@ export const CandidateHeroSection = ({
     .join('')
     .toUpperCase();
 
-  const renderConfidenceDots = (confidence: number) => {
-    const dots = confidence > 0.6 ? 3 : confidence > 0.3 ? 2 : 1;
+  const getConfidenceIndicator = (confidence: number) => {
+    if (confidence >= 0.5) return { dotColor: 'bg-green-500', opacity: '', border: '' };
+    if (confidence >= 0.2) return { dotColor: 'bg-amber-500', opacity: 'opacity-70', border: 'border-dashed' };
+    return { dotColor: 'bg-red-500', opacity: 'opacity-40', border: 'border-dashed' };
+  };
+
+  const renderConfidenceDot = (confidence: number) => {
+    const { dotColor } = getConfidenceIndicator(confidence);
     return (
-      <div className="flex gap-0.5" title={`${Math.round(confidence * 100)}% confidence`}>
-        {[1, 2, 3].map(i => (
-          <div
-            key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i <= dots ? 'bg-primary' : 'bg-muted-foreground/20'}`}
-          />
-        ))}
-      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-[10px]">
+            {confidence < 0.2 ? 'Not enough data' : confidence < 0.5 ? 'Partial data' : 'High confidence'}
+            {' '}({Math.round(confidence * 100)}%)
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
 
