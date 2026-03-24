@@ -52335,6 +52335,7 @@ export type Database = {
       user_preferences: {
         Row: {
           accent_color: string | null
+          active_company_id: string | null
           apply_to_all_pages: boolean | null
           auto_create_tqc_for_interviews: boolean | null
           auto_sync_to_calendar: boolean | null
@@ -52353,6 +52354,7 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          active_company_id?: string | null
           apply_to_all_pages?: boolean | null
           auto_create_tqc_for_interviews?: boolean | null
           auto_sync_to_calendar?: boolean | null
@@ -52371,6 +52373,7 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          active_company_id?: string | null
           apply_to_all_pages?: boolean | null
           auto_create_tqc_for_interviews?: boolean | null
           auto_sync_to_calendar?: boolean | null
@@ -52387,7 +52390,22 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_active_company_id_fkey"
+            columns: ["active_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_preferences_active_company_id_fkey"
+            columns: ["active_company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_presence: {
         Row: {

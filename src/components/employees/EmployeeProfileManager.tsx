@@ -40,7 +40,7 @@ export function EmployeeProfileManager() {
   // Compute effective companyId: undefined = wait, null = all users (admin fallback)
   const effectiveCompanyId = isLoadingCompany 
     ? undefined  // Still loading - wait
-    : (userCompany?.id ?? null);  // Loaded - use ID or null for all users
+    : (userCompany?.[0]?.id ?? null);  // Loaded - use first company ID or null
 
   const filteredEmployees = employees?.filter(emp => {
     const profileData = emp.profile as { full_name?: string } | undefined;

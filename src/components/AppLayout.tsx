@@ -37,6 +37,7 @@ import { MotionToggle } from "@/components/MotionToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
+import { CompanySwitcher } from "@/components/CompanySwitcher";
 
 import { SoundToggle } from "@/components/ui/sound-toggle";
 import { useRoutePrediction } from "@/hooks/useRoutePrediction";
@@ -164,14 +165,17 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           logoDarkShort={quantumClubLogoDarkShort}
           open={sidebarOpen}
           onOpenChange={handleSidebarOpenChange}
-          footer={
-            <SidebarFooter
-              userName={firstName}
-              userInitial={firstName[0].toUpperCase()}
-              userAvatarUrl={userProfile?.avatar_url || null}
-              onSignOut={signOut}
-              profilePath={profilePath}
-            />
+        footer={
+            <>
+              <CompanySwitcher />
+              <SidebarFooter
+                userName={firstName}
+                userInitial={firstName[0].toUpperCase()}
+                userAvatarUrl={userProfile?.avatar_url || null}
+                onSignOut={signOut}
+                profilePath={profilePath}
+              />
+            </>
           }
         >
           {navigationGroups.map((group) => (

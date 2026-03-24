@@ -4,6 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/roles';
 import { logger } from '@/lib/logger';
 
+export interface CompanyMembership {
+  company_id: string;
+  role: string;
+  company_name?: string;
+}
+
 export interface AuthPrefetchData {
   roles: UserRole[];
   profile: {
@@ -13,10 +19,10 @@ export interface AuthPrefetchData {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
-  companyMembership: {
-    company_id: string;
-    role: string;
-  } | null;
+  /** @deprecated Use companyMemberships instead */
+  companyMembership: CompanyMembership | null;
+  companyMemberships: CompanyMembership[];
+  activeCompanyId: string | null;
   preferences: Record<string, any> | null;
   mfaFactors: { hasVerifiedTotp: boolean };
 }
@@ -39,12 +45,10 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
     supabase.auth.mfa.listFactors(),
     supabase
       .from('company_members')
-      .select('company_id, role')
+      .select('company_id, role, companies:company_id(name)')
       .eq('user_id', userId)
       .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle(),
+      .order('created_at', { ascending: true }),
   ]);
 
   const roles: UserRole[] = ['user'];
@@ -70,14 +74,20 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
 
   logger.info('[useAuthPrefetch] Fetched in', { elapsed: Date.now() - startTime });
 
-  const companyMembership = companyMemberResult.data
-    ? { company_id: companyMemberResult.data.company_id, role: companyMemberResult.data.role }
-    : null;
+  const companyMemberships: CompanyMembership[] = (companyMemberResult.data || []).map((m: any) => ({
+    company_id: m.company_id,
+    role: m.role,
+    company_name: (m.companies as any)?.name ?? undefined,
+  }));
+
+  const activeCompanyId = (prefsResult.data as any)?.active_company_id ?? null;
 
   return {
     roles,
     profile,
-    companyMembership,
+    companyMembership: companyMemberships[0] || null,
+    companyMemberships,
+    activeCompanyId,
     preferences: prefsResult.data || null,
     mfaFactors: { hasVerifiedTotp: verifiedTotp.length > 0 },
   };

@@ -12,16 +12,12 @@ export const useUserCompany = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['user-company', user?.id],
-    queryFn: async (): Promise<UserCompany | null> => {
+    queryKey: ['user-companies', user?.id],
+    queryFn: async (): Promise<UserCompany[]> => {
       if (!user?.id) {
-        console.log('useUserCompany: No user ID available');
-        return null;
+        return [];
       }
 
-      console.log('useUserCompany: Fetching company for user:', user.id);
-
-      // Get the user's primary company from company_members
       const { data, error } = await supabase
         .from('company_members')
         .select(`
@@ -34,36 +30,30 @@ export const useUserCompany = () => {
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .order('created_at', { ascending: true })
-        .limit(1);
+        .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('useUserCompany: Error fetching company:', error);
+        console.error('useUserCompany: Error fetching companies:', error);
         throw error;
       }
 
       if (!data || data.length === 0) {
-        console.log('useUserCompany: No company membership found for user');
-        return null;
+        return [];
       }
 
-      const membership = data[0];
-      const company = membership.companies as { id: string; name: string } | null;
-      
-      if (!company) {
-        console.log('useUserCompany: No company data in membership');
-        return null;
-      }
-
-      console.log('useUserCompany: Found company:', company.name, company.id);
-
-      return {
-        id: company.id,
-        name: company.name,
-        role: membership.role,
-      };
+      return data
+        .map((membership) => {
+          const company = membership.companies as { id: string; name: string } | null;
+          if (!company) return null;
+          return {
+            id: company.id,
+            name: company.name,
+            role: membership.role,
+          };
+        })
+        .filter((c): c is UserCompany => c !== null);
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 };
