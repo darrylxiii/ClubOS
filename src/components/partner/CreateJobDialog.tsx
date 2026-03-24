@@ -911,6 +911,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                   handleInputChange('location', 'Remote');
                 } else {
                   setIsRemote(false);
+                  // Clear auto-set "Remote" so user must pick a real location
+                  if (formData.location === 'Remote') {
+                    handleLocationChange(null);
+                  }
                 }
               }}
               label={opt.label}

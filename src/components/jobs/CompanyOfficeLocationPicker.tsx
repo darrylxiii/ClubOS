@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Building2, MapPin, Plus, Save, Star, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,13 @@ export function CompanyOfficeLocationPicker({
   const hqOffices = useMemo(() => offices.filter((o) => o.is_headquarters), [offices]);
   const otherOffices = useMemo(() => offices.filter((o) => !o.is_headquarters), [offices]);
 
+  // Auto-enter add mode when no offices exist
+  useEffect(() => {
+    if (!isLoading && offices.length === 0) {
+      setAddingNew(true);
+    }
+  }, [isLoading, offices.length]);
+
   const handleSelectOffice = (office: CompanyOffice) => {
     const locationResult: LocationResult = {
       displayName: office.formatted_address || `${office.city || ""}, ${office.country || ""}`.trim(),
@@ -69,7 +76,6 @@ export function CompanyOfficeLocationPicker({
     setNewLocation(location);
     if (location && !saveAsOffice) {
       onChange(location);
-      setOpen(false);
       setAddingNew(false);
     }
   };
@@ -92,11 +98,22 @@ export function CompanyOfficeLocationPicker({
     }
 
     onChange(newLocation);
-    setOpen(false);
     setAddingNew(false);
     setSaveAsOffice(false);
     setOfficeLabel("");
     setNewLocation(null);
+  };
+
+  const handleStartAddNew = () => {
+    setOpen(false); // Close popover first
+    setAddingNew(true);
+  };
+
+  const handleCancelAdd = () => {
+    setAddingNew(false);
+    setNewLocation(null);
+    setSaveAsOffice(false);
+    setOfficeLabel("");
   };
 
   const displayValue = value
@@ -107,27 +124,28 @@ export function CompanyOfficeLocationPicker({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            disabled={disabled}
-            className={cn(
-              "w-full justify-between h-11 min-h-[44px] font-normal text-sm",
-              !displayValue && "text-muted-foreground"
-            )}
-          >
-            <span className="flex items-center gap-2 truncate">
-              <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
-              {displayValue || "Select office location..."}
-            </span>
-            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-          {!addingNew ? (
+      {/* Trigger button — opens popover only when NOT in add mode */}
+      {!addingNew ? (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              disabled={disabled}
+              className={cn(
+                "w-full justify-between h-11 min-h-[44px] font-normal text-sm",
+                !displayValue && "text-muted-foreground"
+              )}
+            >
+              <span className="flex items-center gap-2 truncate">
+                <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
+                {displayValue || "Select office location..."}
+              </span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
             <Command>
               <CommandList>
                 {isLoading ? (
@@ -155,7 +173,7 @@ export function CompanyOfficeLocationPicker({
                 <CommandSeparator />
                 <CommandGroup>
                   <CommandItem
-                    onSelect={() => setAddingNew(true)}
+                    onSelect={handleStartAddNew}
                     className="cursor-pointer"
                   >
                     <Plus className="w-4 h-4 mr-2 text-primary" />
@@ -164,77 +182,79 @@ export function CompanyOfficeLocationPicker({
                 </CommandGroup>
               </CommandList>
             </Command>
-          ) : (
-            <div className="p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Search for a location</Label>
+          </PopoverContent>
+        </Popover>
+      ) : (
+        /* Inline add-new form — rendered OUTSIDE the Popover so autocomplete dropdown works */
+        <div className="rounded-xl border border-border/40 bg-card/50 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">
+              {offices.length === 0
+                ? "No offices yet — search for a location"
+                : "Search for a location"}
+            </Label>
+            {offices.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelAdd}
+                className="h-7 text-xs"
+              >
+                Back
+              </Button>
+            )}
+          </div>
+
+          <EnhancedLocationAutocomplete
+            value={newLocation}
+            onChange={handleNewLocationSelected}
+            placeholder="e.g. Amsterdam, Netherlands"
+          />
+
+          {newLocation && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="save-office"
+                    checked={saveAsOffice}
+                    onCheckedChange={(checked) => setSaveAsOffice(checked === true)}
+                  />
+                  <label htmlFor="save-office" className="text-sm cursor-pointer">
+                    Save as company office
+                  </label>
+                </div>
+
+                {saveAsOffice && (
+                  <Input
+                    placeholder='e.g. "Berlin Office"'
+                    value={officeLabel}
+                    onChange={(e) => setOfficeLabel(e.target.value)}
+                    className="h-9"
+                  />
+                )}
+
                 <Button
-                  variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setAddingNew(false);
-                    setNewLocation(null);
-                    setSaveAsOffice(false);
-                    setOfficeLabel("");
-                  }}
-                  className="h-7 text-xs"
+                  variant="primary"
+                  onClick={handleConfirmSave}
+                  disabled={saveAsOffice && !officeLabel.trim()}
+                  className="w-full"
                 >
-                  Back
+                  {saveAsOffice ? (
+                    <>
+                      <Save className="w-3 h-3 mr-1" /> Use & Save Office
+                    </>
+                  ) : (
+                    "Use this location"
+                  )}
                 </Button>
               </div>
-
-              <EnhancedLocationAutocomplete
-                value={newLocation}
-                onChange={handleNewLocationSelected}
-                placeholder="e.g. Amsterdam, Netherlands"
-              />
-
-              {newLocation && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="save-office"
-                        checked={saveAsOffice}
-                        onCheckedChange={(checked) => setSaveAsOffice(checked === true)}
-                      />
-                      <label htmlFor="save-office" className="text-sm cursor-pointer">
-                        Save as company office
-                      </label>
-                    </div>
-
-                    {saveAsOffice && (
-                      <Input
-                        placeholder='e.g. "Berlin Office"'
-                        value={officeLabel}
-                        onChange={(e) => setOfficeLabel(e.target.value)}
-                        className="h-9"
-                      />
-                    )}
-
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={handleConfirmSave}
-                      disabled={saveAsOffice && !officeLabel.trim()}
-                      className="w-full"
-                    >
-                      {saveAsOffice ? (
-                        <>
-                          <Save className="w-3 h-3 mr-1" /> Use & Save Office
-                        </>
-                      ) : (
-                        "Use this location"
-                      )}
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
+            </>
           )}
-        </PopoverContent>
-      </Popover>
+        </div>
+      )}
     </div>
   );
 }
