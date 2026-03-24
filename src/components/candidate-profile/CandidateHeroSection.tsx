@@ -325,43 +325,41 @@ export const CandidateHeroSection = ({
             )}
           </div>
 
-          {/* Assessment Dimension Cards Row */}
-          {(breakdown || assessmentLoading) && (
-            <div className="mt-4 pt-4 border-t border-border/30">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground">Assessment</span>
-                  {breakdown && (
-                    <span className="text-lg font-bold" style={{ color: getScoreColor(breakdown.overall_score).bg }}>
-                      {breakdown.overall_score}
-                      <span className="text-[10px] font-normal text-muted-foreground">/100</span>
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                    <Sparkles className="w-3 h-3" />
-                    QUIN
+          {/* Assessment Dimension Cards Row — always visible */}
+          <div className="mt-4 pt-4 border-t border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Assessment</span>
+                {breakdown && (
+                  <span className="text-lg font-bold" style={{ color: getScoreColor(breakdown.overall_score).bg }}>
+                    {breakdown.overall_score}
+                    <span className="text-[10px] font-normal text-muted-foreground">/100</span>
                   </span>
-                  {onRecompute && (
-                    <Button variant="ghost" size="sm" onClick={onRecompute} disabled={isComputing} className="h-6 text-[10px] px-2">
-                      <RefreshCw className={`w-3 h-3 mr-0.5 ${isComputing ? 'animate-spin' : ''}`} />
-                      {isComputing ? 'Computing...' : 'Refresh'}
-                    </Button>
-                  )}
-                </div>
+                )}
               </div>
-              {assessmentLoading ? (
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-16 rounded-xl" />)}
-                </div>
-              ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {DIMENSION_CONFIG.map(renderDimensionCard)}
-                </div>
-              )}
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                  <Sparkles className="w-3 h-3" />
+                  QUIN
+                </span>
+                {onRecompute && (
+                  <Button variant="ghost" size="sm" onClick={onRecompute} disabled={isComputing} className="h-6 text-[10px] px-2">
+                    <RefreshCw className={`w-3 h-3 mr-0.5 ${isComputing ? 'animate-spin' : ''}`} />
+                    {isComputing ? 'Computing...' : breakdown ? 'Refresh' : 'Compute'}
+                  </Button>
+                )}
+              </div>
             </div>
-          )}
+            {assessmentLoading ? (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-16 rounded-xl" />)}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {DIMENSION_CONFIG.map(renderDimensionCard)}
+              </div>
+            )}
+          </div>
 
           {/* AI Summary - collapsible */}
           {aiSummary && (
