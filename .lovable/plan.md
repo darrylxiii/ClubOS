@@ -1,27 +1,35 @@
 
-# Multi-Company Ownership — Implementation
+# User Management Hub — Implementation
 
 ## Status: COMPLETE
 
-Users (especially founders) can now be owners/admins of multiple companies with a seamless company switcher in the sidebar.
+Dedicated User Management Hub at `/admin/users` with role-separated tabs replacing the monolithic Users & Roles tab in the Admin panel.
 
-### Change 1 — Database Migration
-Added `active_company_id` (uuid, FK to companies) to `user_preferences` to persist selected company across sessions.
+### Change 1 — UserManagementHub page
+New page at `src/pages/admin/UserManagementHub.tsx` with 5 tabs (Candidates, Partners, Staff, Pending Requests, All Users) using `useSearchParams` for URL persistence.
 
-### Change 2 — useAuthPrefetch multi-company
-Removed `.limit(1).maybeSingle()` on `company_members` query. Now fetches ALL memberships with company names. Returns `companyMemberships[]` array + `activeCompanyId` from preferences. Backward-compat `companyMembership` still available as first item.
+### Change 2 — CandidatesTab
+Role-filtered table showing only pure candidates (no elevated roles). Columns: name, email, location, salary range, resume, stealth, status, joined. Inline actions: view profile, view as candidate, edit (drawer), suspend/unsuspend.
 
-### Change 3 — RoleContext upgraded
-Added `companies[]` array and `switchCompany(companyId)` method to context. Active company resolved from: `active_company_id` preference → first membership → legacy `profile.company_id`. On switch: optimistic state update → persist to DB → invalidate all company-dependent React Query caches. Realtime subscription also handles external company switches.
+### Change 3 — PartnersTab
+Multi-company display per partner with company names and roles as badges. "Provision Partner" button opens existing `PartnerProvisioningModal`. Inline actions: view, edit, suspend.
 
-### Change 4 — useUserCompany returns array
-Returns `UserCompany[]` instead of single company. All consumers updated (`EmployeeProfileManager` uses `[0]`).
+### Change 4 — StaffTab
+Shows admins, strategists, recruiters, company_admins with role badges. Links to Employee Dashboard for detailed performance. Inline edit via drawer.
 
-### Change 5 — CompanySwitcher component (NEW)
-Compact dropdown in sidebar footer area. Shows all companies with logos, names, and role badges. Active company has checkmark. Only renders when `companies.length >= 2`. Uses `CompanyLogoStatic` for performance.
+### Change 5 — PendingRequestsTab
+Wraps existing `AdminMemberRequests` component — no duplication, just embedding.
 
-### Change 6 — AppLayout integration
-CompanySwitcher inserted above SidebarFooter in the sidebar.
+### Change 6 — AllUsersTab
+Wraps existing `UnifiedUserManagement` for cross-role power-user search.
+
+### Change 7 — UserEditDrawer
+Full-width drawer replacing cramped dialog. Supports multi-company memberships (add/remove), system role checkboxes, account lifecycle (suspend/unsuspend), MFA reset. Uses React Query for data fetching.
+
+### Change 8 — Route & Navigation
+- Added `/admin/users` route in `admin.routes.tsx`
+- Added "User Management" as first item in Talent Management nav group with "New" badge
+- Admin panel Users tab now redirects to `/admin/users`
 
 ### Zero Breaking Changes
-All 12+ pages using `const { companyId } = useRole()` continue working unchanged — they receive the active company ID.
+All existing routes, data flows, and RLS policies unchanged. `UnifiedUserManagement` preserved as All Users power view.
