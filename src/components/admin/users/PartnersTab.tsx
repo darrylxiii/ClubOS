@@ -64,9 +64,18 @@ const PartnersTab = () => {
         memberMap.set(m.user_id, list);
       });
 
+      // Fetch last login timestamps
+      const { data: activityData } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_login_at")
+        .in("user_id", partnerIds);
+
+      const loginMap = new Map(activityData?.map((a) => [a.user_id, a.last_login_at]) || []);
+
       return (profiles || []).map((p) => ({
         ...p,
         companies: memberMap.get(p.id) || [],
+        last_login_at: loginMap.get(p.id) || null,
       })) as PartnerUser[];
     },
   });
