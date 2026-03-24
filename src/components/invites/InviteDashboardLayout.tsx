@@ -61,7 +61,7 @@ export function InviteDashboardLayout() {
       {/* Main Tabbed Interface */}
       <div className="mt-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className={`grid w-full mb-6 ${isElevated ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="send" className="gap-2">
               <Mail className="h-4 w-4" />
               <span className="hidden sm:inline">Send Invites</span>
@@ -72,6 +72,13 @@ export function InviteDashboardLayout() {
               <span className="hidden sm:inline">Invitation History</span>
               <span className="sm:hidden">History</span>
             </TabsTrigger>
+            {isElevated && (
+              <TabsTrigger value="provisioned" className="gap-2">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Provisioned</span>
+                <span className="sm:hidden">Prov.</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Analytics</span>
@@ -90,6 +97,14 @@ export function InviteDashboardLayout() {
               <InviteHistoryTab />
             </div>
           </TabsContent>
+
+          {isElevated && (
+            <TabsContent value="provisioned" className="space-y-4">
+              <div className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border rounded-lg p-6 sm:p-8">
+                <ProvisionedPartnersTab />
+              </div>
+            </TabsContent>
+          )}
 
           <TabsContent value="analytics" className="space-y-4">
             <div className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border rounded-lg p-6 sm:p-8">
