@@ -30,6 +30,7 @@ export function ConfirmDialog({
   cancelText = "Cancel",
   onConfirm,
   variant = "default",
+  className,
 }: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm();
