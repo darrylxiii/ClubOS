@@ -5,8 +5,9 @@ import { InviteStatsCards } from "./InviteStatsCards";
 import { SendInviteTab } from "./SendInviteTab";
 import { InviteHistoryTab } from "./InviteHistoryTab";
 import { InviteAnalyticsTab } from "./InviteAnalyticsTab";
+import { ProvisionedPartnersTab } from "./ProvisionedPartnersTab";
 import { PartnerProvisioningModal } from "@/components/admin/PartnerProvisioningModal";
-import { Mail, History, BarChart3, Send, Crown } from "lucide-react";
+import { Mail, History, BarChart3, Send, Crown, Users } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import type { PrefillData } from "@/components/admin/partner-provisioning/useProvisionForm";
 
