@@ -74,14 +74,20 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
 
   logger.info('[useAuthPrefetch] Fetched in', { elapsed: Date.now() - startTime });
 
-  const companyMembership = companyMemberResult.data
-    ? { company_id: companyMemberResult.data.company_id, role: companyMemberResult.data.role }
-    : null;
+  const companyMemberships: CompanyMembership[] = (companyMemberResult.data || []).map((m: any) => ({
+    company_id: m.company_id,
+    role: m.role,
+    company_name: (m.companies as any)?.name ?? undefined,
+  }));
+
+  const activeCompanyId = (prefsResult.data as any)?.active_company_id ?? null;
 
   return {
     roles,
     profile,
-    companyMembership,
+    companyMembership: companyMemberships[0] || null,
+    companyMemberships,
+    activeCompanyId,
     preferences: prefsResult.data || null,
     mfaFactors: { hasVerifiedTotp: verifiedTotp.length > 0 },
   };

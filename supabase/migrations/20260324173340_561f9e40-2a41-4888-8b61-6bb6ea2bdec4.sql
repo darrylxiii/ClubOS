@@ -1,0 +1,1 @@
+ALTER TABLE public.user_preferences ADD COLUMN active_company_id uuid REFERENCES public.companies(id) ON DELETE SET NULL;
