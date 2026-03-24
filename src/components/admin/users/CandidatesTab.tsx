@@ -193,13 +193,13 @@ const CandidatesTab = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                 <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                   Loading candidates...
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                   No candidates found
                 </TableCell>
               </TableRow>
