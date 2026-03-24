@@ -1243,7 +1243,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                   <div className="flex flex-wrap gap-1 mt-1">
                     {jobLocations.map((loc, i) => (
                       <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border">
-                        {loc.location || loc.formattedAddress || loc.city || 'Unknown'}
+                        {loc.formattedAddress || loc.city || 'Unknown'}
                       </span>
                     ))}
                   </div>
