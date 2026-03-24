@@ -21,6 +21,7 @@ interface StaffUser {
   created_at: string;
   account_status: string | null;
   roles: string[];
+  last_login_at: string | null;
 }
 
 const StaffTab = () => {
