@@ -193,7 +193,7 @@ const PartnersTab = () => {
                           onClick={async () => { await unsuspendUser(user.id); refetch(); }}
                           title="Unsuspend"
                         >
-                          <Ban className="w-4 h-4 text-green-500" />
+                          <Ban className="w-4 h-4 text-emerald-500" />
                         </Button>
                       ) : null}
                     </div>

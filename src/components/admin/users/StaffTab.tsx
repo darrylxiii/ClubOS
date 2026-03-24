@@ -34,7 +34,7 @@ const StaffTab = () => {
       const { data: staffRoles } = await supabase
         .from("user_roles")
         .select("user_id, role")
-        .in("role", STAFF_ROLES);
+        .in("role", STAFF_ROLES as unknown as StaffRoleType[]);
 
       if (!staffRoles?.length) return [];
 
