@@ -20,6 +20,7 @@ interface PartnerUser {
   created_at: string;
   account_status: string | null;
   companies: Array<{ company_id: string; company_name: string; role: string }>;
+  last_login_at: string | null;
 }
 
 const PartnersTab = () => {
