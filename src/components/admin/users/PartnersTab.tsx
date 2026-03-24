@@ -125,6 +125,7 @@ const PartnersTab = () => {
               <TableHead>Email</TableHead>
               <TableHead>Companies</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Last Login</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
