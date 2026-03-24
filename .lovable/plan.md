@@ -1,35 +1,65 @@
 
-# User Management Hub — Implementation
 
-## Status: COMPLETE
+# Fix: Auth Edge Functions CORS Blocking Login & Password Reset
 
-Dedicated User Management Hub at `/admin/users` with role-separated tabs replacing the monolithic Users & Roles tab in the Admin panel.
+## Root Cause
 
-### Change 1 — UserManagementHub page
-New page at `src/pages/admin/UserManagementHub.tsx` with 5 tabs (Candidates, Partners, Staff, Pending Requests, All Users) using `useSearchParams` for URL persistence.
+The file `supabase/functions/_shared/auth-cors.ts` has a hardcoded allowlist of 3 origins:
+- `https://thequantumclub.lovable.app`
+- `https://os.thequantumclub.com`
+- `https://app.thequantumclub.nl`
 
-### Change 2 — CandidatesTab
-Role-filtered table showing only pure candidates (no elevated roles). Columns: name, email, location, salary range, resume, stealth, status, joined. Inline actions: view profile, view as candidate, edit (drawer), suspend/unsuspend.
+But Evelien (and anyone using the published URL or `lovableproject.com` domain) gets CORS-blocked when the app calls `check-login-lockout` and `password-reset-request` edge functions. The console confirms: `FunctionsFetchError: Failed to send a request to the Edge Function`.
 
-### Change 3 — PartnersTab
-Multi-company display per partner with company names and roles as badges. "Provision Partner" button opens existing `PartnerProvisioningModal`. Inline actions: view, edit, suspend.
+Login still works because `useLoginLockout` fails open, but `password-reset-request` (Set Password) fails hard -- that is why Evelien gets a 2xx-looking response with no actual email sent.
 
-### Change 4 — StaffTab
-Shows admins, strategists, recruiters, company_admins with role badges. Links to Employee Dashboard for detailed performance. Inline edit via drawer.
+## Fix
 
-### Change 5 — PendingRequestsTab
-Wraps existing `AdminMemberRequests` component — no duplication, just embedding.
+### Change 1 -- `supabase/functions/_shared/auth-cors.ts`
+Add the `lovableproject.com` domain and lovable preview domains to the allowlist. Use a pattern match for `*.lovable.app` and `*.lovableproject.com` so all preview/published variants work:
 
-### Change 6 — AllUsersTab
-Wraps existing `UnifiedUserManagement` for cross-role power-user search.
+```typescript
+const ALLOWED_ORIGINS = [
+  'https://thequantumclub.lovable.app',
+  'https://os.thequantumclub.com',
+  'https://app.thequantumclub.nl',
+];
 
-### Change 7 — UserEditDrawer
-Full-width drawer replacing cramped dialog. Supports multi-company memberships (add/remove), system role checkboxes, account lifecycle (suspend/unsuspend), MFA reset. Uses React Query for data fetching.
+// Lovable preview & project domains
+const LOVABLE_PATTERN = /^https:\/\/.*\.lovable(project)?\.app$/;
 
-### Change 8 — Route & Navigation
-- Added `/admin/users` route in `admin.routes.tsx`
-- Added "User Management" as first item in Talent Management nav group with "New" badge
-- Admin panel Users tab now redirects to `/admin/users`
+if (Deno.env.get('DENO_ENV') === 'development') {
+  ALLOWED_ORIGINS.push('http://localhost:5173', 'http://localhost:8080');
+}
 
-### Zero Breaking Changes
-All existing routes, data flows, and RLS policies unchanged. `UnifiedUserManagement` preserved as All Users power view.
+export function getAuthCorsOrigin(req: Request): string {
+  const origin = req.headers.get('origin') || '';
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
+  if (LOVABLE_PATTERN.test(origin)) return origin;
+  return ALLOWED_ORIGINS[0];
+}
+```
+
+This single change fixes both login lockout checks and password reset requests from any Lovable domain.
+
+### Change 2 -- `supabase/functions/check-login-lockout/index.ts`
+Replace the legacy `serve()` import with `Deno.serve()` for consistency and to avoid import issues:
+```typescript
+// Line 1: Replace
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// With: remove import, use Deno.serve() instead of serve()
+```
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `supabase/functions/_shared/auth-cors.ts` | Add lovable domain pattern matching to CORS allowlist |
+| `supabase/functions/check-login-lockout/index.ts` | Switch to `Deno.serve()` for consistency |
+
+## Impact
+- Evelien can log in without CORS errors on the lockout check
+- Set Password flow sends the reset email successfully
+- All Lovable preview/published domains work automatically
+- Custom domains (`os.thequantumclub.com`, `app.thequantumclub.nl`) continue working
+
