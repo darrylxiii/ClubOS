@@ -166,7 +166,7 @@ export default function JobDashboard() {
 
         {/* Admin Tools Bar */}
         {role === 'admin' && (
-          <AdminJobTools jobId={jobId!} jobTitle={job.title} onRefresh={fetchJobDetails} />
+          <AdminJobTools jobId={jobId!} jobTitle={job.title} companyName={job.companies?.name || ''} onRefresh={fetchJobDetails} />
         )}
 
         {/* Job Context Dialog */}

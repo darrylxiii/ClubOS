@@ -10,6 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   Shield,
   UserPlus,
   Zap,
@@ -23,19 +29,23 @@ import {
   RefreshCw,
   Sparkles,
   Award,
+  Mail,
 } from "lucide-react";
 import { AddCandidateDialog } from "./AddCandidateDialog";
 import { PipelineLinkedInSync } from "./PipelineLinkedInSync";
+import { EmailDumpTab } from "@/components/jobs/email-dump";
 import { toast } from "sonner";
 
 interface AdminJobToolsProps {
   jobId: string;
   jobTitle: string;
+  companyName?: string;
   onRefresh: () => void;
 }
 
-export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps) => {
+export const AdminJobTools = ({ jobId, jobTitle, companyName = '', onRefresh }: AdminJobToolsProps) => {
   const [showAddCandidate, setShowAddCandidate] = useState(false);
+  const [showEmailDump, setShowEmailDump] = useState(false);
 
   const handleAIRecommendations = () => {
     toast.info("AI Matching Engine", {
@@ -154,6 +164,13 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
               <Award className="w-4 h-4" />
               Assign Strategist
             </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem onClick={() => setShowEmailDump(true)} className="gap-2 text-muted-foreground">
+              <Mail className="w-4 h-4" />
+              Email Dump
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -165,6 +182,25 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
         jobTitle={jobTitle}
         onCandidateAdded={onRefresh}
       />
+
+      <Sheet open={showEmailDump} onOpenChange={setShowEmailDump}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-sm font-bold uppercase tracking-wide">Email Dump</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <EmailDumpTab
+              jobId={jobId}
+              jobTitle={jobTitle}
+              companyName={companyName}
+              onCandidatesImported={() => {
+                onRefresh();
+                setShowEmailDump(false);
+              }}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
