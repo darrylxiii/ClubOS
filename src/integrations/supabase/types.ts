@@ -58595,7 +58595,7 @@ export type Database = {
       update_task_overdue_status: { Args: never; Returns: undefined }
       update_user_activity_tracking: {
         Args: {
-          p_action_type: string
+          p_action_type?: string
           p_increment_actions?: boolean
           p_is_login?: boolean
           p_is_logout?: boolean
