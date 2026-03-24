@@ -54,9 +54,18 @@ const StaffTab = () => {
         .in("id", staffIds)
         .order("created_at", { ascending: false });
 
+      // Fetch last login timestamps
+      const { data: activityData } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_login_at")
+        .in("user_id", staffIds);
+
+      const loginMap = new Map(activityData?.map((a) => [a.user_id, a.last_login_at]) || []);
+
       return (profiles || []).map((p) => ({
         ...p,
         roles: roleMap.get(p.id) || [],
+        last_login_at: loginMap.get(p.id) || null,
       })) as StaffUser[];
     },
   });
