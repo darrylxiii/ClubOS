@@ -73,9 +73,18 @@ const CandidatesTab = () => {
 
       const cpMap = new Map(candidateProfiles?.map((cp) => [cp.user_id, cp.id]) || []);
 
+      // Fetch last login timestamps
+      const { data: activityData } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_login_at")
+        .in("user_id", pureCandidateIds);
+
+      const loginMap = new Map(activityData?.map((a) => [a.user_id, a.last_login_at]) || []);
+
       return (profiles || []).map((p) => ({
         ...p,
         candidate_id: cpMap.get(p.id) || null,
+        last_login_at: loginMap.get(p.id) || null,
       })) as CandidateUser[];
     },
   });
