@@ -10,6 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   Shield,
   UserPlus,
   Zap,
@@ -23,9 +29,11 @@ import {
   RefreshCw,
   Sparkles,
   Award,
+  Mail,
 } from "lucide-react";
 import { AddCandidateDialog } from "./AddCandidateDialog";
 import { PipelineLinkedInSync } from "./PipelineLinkedInSync";
+import { EmailDumpTab } from "@/components/jobs/email-dump";
 import { toast } from "sonner";
 
 interface AdminJobToolsProps {
