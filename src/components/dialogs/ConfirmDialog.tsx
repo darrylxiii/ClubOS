@@ -18,6 +18,7 @@ interface ConfirmDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   variant?: "default" | "destructive";
+  className?: string;
 }
 
 export function ConfirmDialog({
@@ -29,6 +30,7 @@ export function ConfirmDialog({
   cancelText = "Cancel",
   onConfirm,
   variant = "default",
+  className,
 }: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm();
@@ -37,7 +39,7 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className={className}>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>

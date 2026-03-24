@@ -289,6 +289,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showDraftChoice, setShowDraftChoice] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<any>(null);
 
   // Stealth job state
   const [isStealthEnabled, setIsStealthEnabled] = useState(false);
@@ -356,26 +358,20 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     jobLocations,
   });
 
-  useEffect(() => {
+   useEffect(() => {
     if (open) {
       fetchCompanies();
       const draft = loadDraft();
       if (draft) {
-        setFormData(draft.formData);
-        setRequiredTools(draft.requiredTools);
-        setNiceToHaveTools(draft.niceToHaveTools);
-        // Restore extended draft state
-        if (draft.requirements) setRequirements(draft.requirements);
-        if (draft.niceToHave) setNiceToHave(draft.niceToHave);
-        if (draft.startDateISO) setStartDate(new Date(draft.startDateISO));
-        if (draft.currentStep) setCurrentStep(draft.currentStep);
-        if (draft.jobLocations) setJobLocations(draft.jobLocations);
-        toast.success("Draft restored");
+        setPendingDraft(draft);
+        setShowDraftChoice(true);
       }
     } else {
       // Fix 8: Reset form on close
       setCurrentStep(0);
       resetForm();
+      setPendingDraft(null);
+      setShowDraftChoice(false);
     }
   }, [open, loadDraft]);
 
@@ -475,11 +471,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       }
     }
 
-    if (step === 3) {
-      if ((!formData.description || formData.description.trim().length < 10) && !jobDescriptionFile) {
-        errors.push({ field: 'description', message: 'Provide a description (10+ chars) or upload a JD file' });
-      }
-    }
+    // Step 3: Description is optional — no blocking validation
 
     setFieldErrors(errors);
     return errors.length === 0;
@@ -832,6 +824,20 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const isSubmitting = submitStep !== "idle" && submitStep !== "complete";
   const isPartner = currentRole !== 'admin' && currentRole !== 'strategist';
+
+  const restoreDraft = (draft: any) => {
+    setFormData(draft.formData);
+    setRequiredTools(draft.requiredTools);
+    setNiceToHaveTools(draft.niceToHaveTools);
+    if (draft.requirements) setRequirements(draft.requirements);
+    if (draft.niceToHave) setNiceToHave(draft.niceToHave);
+    if (draft.startDateISO) setStartDate(new Date(draft.startDateISO));
+    if (draft.currentStep) setCurrentStep(draft.currentStep);
+    if (draft.jobLocations) setJobLocations(draft.jobLocations);
+    setPendingDraft(null);
+    setShowDraftChoice(false);
+    toast.success("Draft restored");
+  };
 
   // Fix 6: Ctrl+Enter to submit
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -1368,7 +1374,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         </SheetContent>
       </Sheet>
 
-      {/* Fix 2: Close confirmation dialog */}
+      {/* Close confirmation dialog */}
       <ConfirmDialog
         open={showCloseConfirm}
         onOpenChange={setShowCloseConfirm}
@@ -1377,6 +1383,29 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         confirmText="Leave"
         cancelText="Continue editing"
         onConfirm={handleConfirmClose}
+        className="z-[200]"
+      />
+
+      {/* Draft restore choice dialog */}
+      <ConfirmDialog
+        open={showDraftChoice}
+        onOpenChange={(open) => {
+          if (!open) {
+            // "Start Fresh" — clear draft and reset
+            clearDraft();
+            resetForm();
+            setPendingDraft(null);
+            setShowDraftChoice(false);
+          }
+        }}
+        title="Continue where you left off?"
+        description={pendingDraft ? `You have an unsaved draft from ${new Date(pendingDraft.timestamp).toLocaleString()}. Would you like to continue or start fresh?` : "You have an unsaved draft."}
+        confirmText="Continue Draft"
+        cancelText="Start Fresh"
+        onConfirm={() => {
+          if (pendingDraft) restoreDraft(pendingDraft);
+        }}
+        className="z-[200]"
       />
     </>
   );
