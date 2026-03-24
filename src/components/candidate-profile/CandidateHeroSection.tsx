@@ -17,6 +17,7 @@ import { useState } from "react";
 import { EnrichmentProgressModal } from "./EnrichmentProgressModal";
 import { AddToJobDialog } from "@/components/partner/AddToJobDialog";
 import { useRecharts } from "@/hooks/useRecharts";
+import { formatRelativeTime } from "@/lib/format";
 import type { AssessmentBreakdown, AssessmentDimension } from "@/hooks/useAssessmentScores";
 
 const DIMENSION_CONFIG = [
