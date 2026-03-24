@@ -37,6 +37,7 @@ import { MotionToggle } from "@/components/MotionToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
+import { CompanySwitcher } from "@/components/CompanySwitcher";
 
 import { SoundToggle } from "@/components/ui/sound-toggle";
 import { useRoutePrediction } from "@/hooks/useRoutePrediction";
