@@ -644,6 +644,45 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       const jobId = job.id;
 
+      // Save locations to job_locations table
+      try {
+        const locationInserts: any[] = [];
+        // Primary location
+        if (finalFormData.latitude && finalFormData.longitude) {
+          locationInserts.push({
+            job_id: jobId,
+            location_type: finalFormData.location_type || 'onsite',
+            city: finalFormData.location_city,
+            country_code: finalFormData.location_country_code,
+            latitude: finalFormData.latitude,
+            longitude: finalFormData.longitude,
+            formatted_address: finalFormData.location_formatted || finalFormData.location,
+            is_primary: true,
+          });
+        }
+        // Additional locations
+        for (const loc of jobLocations) {
+          if (loc.latitude && loc.longitude) {
+            locationInserts.push({
+              job_id: jobId,
+              location_type: loc.locationType || finalFormData.location_type || 'onsite',
+              city: loc.city || null,
+              country_code: loc.countryCode || null,
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+              formatted_address: loc.formattedAddress || loc.location,
+              is_primary: false,
+            });
+          }
+        }
+        if (locationInserts.length > 0) {
+          const { error: locError } = await supabase.from('job_locations').insert(locationInserts);
+          if (locError) console.error('Error inserting job locations:', locError);
+        }
+      } catch (locErr) {
+        console.error('Job locations insert failed (non-blocking):', locErr);
+      }
+
       // Stealth viewers
       if (isStealthEnabled) {
         const performer = { id: user?.id || '', email: user?.email, full_name: user?.user_metadata?.full_name };
