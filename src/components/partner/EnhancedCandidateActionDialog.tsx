@@ -312,15 +312,13 @@ export function EnhancedCandidateActionDialog({
           rejectionReason
         });
 
-        const { error: updateError, data: updateData } = await supabase
+        const { error: updateError } = await supabase
           .from('applications')
           .update({ 
             status: 'rejected',
             updated_at: new Date().toISOString(),
           })
-          .eq('id', applicationId)
-          .select()
-          .single();
+          .eq('id', applicationId);
 
         if (updateError) {
           console.error('[Pipeline] Failed to decline candidate:', {
@@ -331,7 +329,7 @@ export function EnhancedCandidateActionDialog({
           throw updateError;
         }
 
-        console.log('[Pipeline] Successfully declined candidate:', updateData);
+        console.log('[Pipeline] Successfully declined candidate:', applicationId);
 
         // Determine seniority from reason
         let seniorityValue = null;
