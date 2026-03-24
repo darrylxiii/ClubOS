@@ -43,6 +43,39 @@ const SALARY_MULTIPLIERS: Record<string, number> = {
   annual: 1, monthly: 12, daily: 220, hourly: 1760,
 };
 
+// Seniority-based salary medians (EUR, annual) for fallback
+const SENIORITY_SALARY_MEDIANS: Record<string, { min: number; max: number }> = {
+  intern: { min: 20000, max: 30000 },
+  junior: { min: 35000, max: 50000 },
+  mid: { min: 50000, max: 70000 },
+  'mid-senior': { min: 60000, max: 85000 },
+  senior: { min: 70000, max: 100000 },
+  lead: { min: 85000, max: 120000 },
+  principal: { min: 100000, max: 140000 },
+  staff: { min: 100000, max: 140000 },
+  head: { min: 110000, max: 150000 },
+  director: { min: 120000, max: 170000 },
+  vp: { min: 140000, max: 200000 },
+  'c-level': { min: 160000, max: 250000 },
+};
+
+// Proficiency level weights for skills matching
+const PROFICIENCY_WEIGHTS: Record<string, number> = {
+  expert: 1.0, advanced: 1.0, senior: 1.0,
+  intermediate: 0.7, mid: 0.7,
+  beginner: 0.4, junior: 0.4, novice: 0.4,
+};
+
+// Dimension weights for confidence-weighted overall
+const DIMENSION_WEIGHTS: Record<string, number> = {
+  skills_match: 0.25,
+  experience: 0.20,
+  engagement: 0.15,
+  culture_fit: 0.15,
+  salary_match: 0.15,
+  location_match: 0.10,
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -73,7 +106,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch all supporting data in parallel (including profile_experience as fallback)
+    // Fetch all supporting data in parallel — including NEW intelligence tables
     const [
       { data: profileSkills },
       { data: interactions },
@@ -82,6 +115,10 @@ Deno.serve(async (req) => {
       { data: applications },
       { data: communications },
       { data: profileExperience },
+      { data: interviewIntelligence },
+      { data: interviewPerformance },
+      { data: meetingParticipants },
+      { data: valuesPokerSessions },
     ] = await Promise.all([
       supabase.from("profile_skills").select("*").eq("user_id", candidate_id),
       supabase.from("candidate_interactions").select("*").eq("candidate_id", candidate_id),
@@ -91,6 +128,20 @@ Deno.serve(async (req) => {
       supabase.from("unified_communications").select("original_timestamp, direction, channel")
         .eq("entity_id", candidate_id).order("original_timestamp", { ascending: true }).limit(100),
       supabase.from("profile_experience").select("*").eq("user_id", candidate_id).order("start_date", { ascending: false }),
+      // NEW: Interview intelligence (AI-computed scores from meetings)
+      supabase.from("interview_intelligence").select("culture_fit_score, technical_depth_score, communication_clarity_score, overall_score, meeting_id, created_at")
+        .eq("candidate_id", candidate_id),
+      // NEW: Candidate interview performance (structured performance data)
+      supabase.from("candidate_interview_performance").select("cultural_fit_score, technical_competence_score, communication_clarity_score, hiring_recommendation, key_strengths, red_flags")
+        .eq("candidate_id", candidate_id),
+      // NEW: Meeting participants (attendance tracking) — use user_id if candidate has one
+      candidate.user_id
+        ? supabase.from("meeting_participants").select("id, attended, joined_at, left_at").eq("user_id", candidate.user_id).eq("attended", true)
+        : Promise.resolve({ data: [] }),
+      // NEW: Values poker sessions (culture assessment games)
+      candidate.user_id
+        ? supabase.from("values_poker_sessions").select("culture_fit_scores, consistency_score, value_archetype, red_flags").eq("user_id", candidate.user_id)
+        : Promise.resolve({ data: [] }),
     ]);
 
     // Fetch interview feedback via applications
@@ -116,22 +167,44 @@ Deno.serve(async (req) => {
       jobLocations = jl || [];
     }
 
+    // Bundle intelligence data for compute functions
+    const intelligence = {
+      interviewIntelligence: interviewIntelligence || [],
+      interviewPerformance: interviewPerformance || [],
+      meetingParticipants: meetingParticipants || [],
+      valuesPokerSessions: valuesPokerSessions || [],
+    };
+
     // ===== COMPUTE EACH DIMENSION =====
-    const skillsMatch = computeSkillsMatch(candidate, profileSkills || [], job, taxonomy || []);
+    const skillsMatch = computeSkillsMatch(candidate, profileSkills || [], job, taxonomy || [], intelligence);
     const experience = computeExperience(candidate, job, profileExperience || []);
-    const engagement = computeEngagement(candidate, interactions || [], applicationLogs || [], communications || []);
-    const cultureFit = computeCultureFit(candidate, allFeedback);
+    const engagement = computeEngagement(candidate, interactions || [], applicationLogs || [], communications || [], intelligence);
+    const cultureFit = computeCultureFit(candidate, allFeedback, intelligence);
     const salaryMatch = computeSalaryMatch(candidate, job);
     const locationMatch = computeLocationMatch(candidate, job, jobLocations);
 
-    // Calculate overall (only count dimensions with confidence > 0.1)
-    const dimensions = [skillsMatch, experience, engagement, cultureFit, salaryMatch, locationMatch];
-    const scored = dimensions.filter((d) => d.confidence > 0.1);
-    const overallScore = scored.length > 0
-      ? Math.round(scored.reduce((sum, d) => sum + d.score, 0) / scored.length)
-      : 0;
-    const overallConfidence = scored.length > 0
-      ? Math.round((scored.reduce((sum, d) => sum + d.confidence, 0) / dimensions.length) * 100) / 100
+    // Confidence-weighted overall score
+    const dimensionEntries: { key: string; dim: AssessmentDimension }[] = [
+      { key: 'skills_match', dim: skillsMatch },
+      { key: 'experience', dim: experience },
+      { key: 'engagement', dim: engagement },
+      { key: 'culture_fit', dim: cultureFit },
+      { key: 'salary_match', dim: salaryMatch },
+      { key: 'location_match', dim: locationMatch },
+    ];
+
+    let weightedSum = 0;
+    let weightedDenom = 0;
+    for (const { key, dim } of dimensionEntries) {
+      if (dim.confidence < 0.1) continue;
+      const w = DIMENSION_WEIGHTS[key] || 0.15;
+      weightedSum += dim.score * dim.confidence * w;
+      weightedDenom += dim.confidence * w;
+    }
+
+    const overallScore = weightedDenom > 0 ? Math.round(weightedSum / weightedDenom) : 0;
+    const overallConfidence = weightedDenom > 0
+      ? Math.round((dimensionEntries.filter(e => e.dim.confidence > 0.1).reduce((s, e) => s + e.dim.confidence, 0) / dimensionEntries.length) * 100) / 100
       : 0;
 
     const breakdown: AssessmentBreakdown = {
@@ -171,20 +244,32 @@ Deno.serve(async (req) => {
 
 // ==================== SKILLS MATCH ====================
 function computeSkillsMatch(
-  candidate: any, profileSkills: any[], job: any | null, taxonomy: any[]
+  candidate: any, profileSkills: any[], job: any | null, taxonomy: any[],
+  intelligence: any
 ): AssessmentDimension {
-  // Gather candidate skills from all sources
+  // Gather candidate skills from all sources with proficiency weights
   const candidateSkillNames = new Set<string>();
+  const skillProficiency = new Map<string, number>(); // skill -> weight (0-1)
 
   profileSkills.forEach((s) => {
-    if (s.skill_name) candidateSkillNames.add(s.skill_name.toLowerCase().trim());
+    if (s.skill_name) {
+      const name = s.skill_name.toLowerCase().trim();
+      candidateSkillNames.add(name);
+      // Use proficiency_level for weighting
+      const prof = (s.proficiency_level || '').toLowerCase();
+      skillProficiency.set(name, PROFICIENCY_WEIGHTS[prof] || 0.7);
+    }
   });
 
   if (candidate.skills) {
     const arr = Array.isArray(candidate.skills) ? candidate.skills : [];
     arr.forEach((s: any) => {
       const name = typeof s === "string" ? s : s?.name || s?.skill;
-      if (name) candidateSkillNames.add(name.toLowerCase().trim());
+      if (name) {
+        const lower = name.toLowerCase().trim();
+        candidateSkillNames.add(lower);
+        if (!skillProficiency.has(lower)) skillProficiency.set(lower, 0.7);
+      }
     });
   }
 
@@ -193,9 +278,11 @@ function computeSkillsMatch(
     const wh = Array.isArray(candidate.work_history) ? candidate.work_history : [];
     wh.forEach((w: any) => {
       const title = (w.title || w.job_title || '').toLowerCase();
-      // Extract obvious skill keywords from titles
       const keywords = title.split(/[\s,/\-&]+/).filter((k: string) => k.length > 2);
-      keywords.forEach((k: string) => candidateSkillNames.add(k));
+      keywords.forEach((k: string) => {
+        candidateSkillNames.add(k);
+        skillProficiency.set(k, 0.5);
+      });
     });
   }
 
@@ -217,9 +304,11 @@ function computeSkillsMatch(
   });
 
   // Normalize candidate skills
-  const normalizedCandidate = new Set<string>();
+  const normalizedCandidate = new Map<string, number>(); // canonical -> proficiency weight
   candidateSkillNames.forEach((skill) => {
-    normalizedCandidate.add(synonymMap.get(skill) || skill);
+    const canonical = synonymMap.get(skill) || skill;
+    const prof = skillProficiency.get(skill) || 0.7;
+    normalizedCandidate.set(canonical, Math.max(normalizedCandidate.get(canonical) || 0, prof));
   });
 
   if (!job) {
@@ -263,23 +352,60 @@ function computeSkillsMatch(
   const normMustHave = mustHave.map((r) => synonymMap.get(r) || r);
   const normNiceToHave = niceToHave.map((r) => synonymMap.get(r) || r);
 
-  // Match
+  // Proficiency-weighted match: a match with expert proficiency counts more
+  let mustMatchWeight = 0;
+  let mustTotalWeight = 0;
+  for (const req of normMustHave) {
+    mustTotalWeight += 1;
+    if (normalizedCandidate.has(req)) {
+      mustMatchWeight += normalizedCandidate.get(req)!;
+    }
+  }
+
+  let niceMatchWeight = 0;
+  let niceTotalWeight = 0;
+  for (const req of normNiceToHave) {
+    niceTotalWeight += 1;
+    if (normalizedCandidate.has(req)) {
+      niceMatchWeight += normalizedCandidate.get(req)!;
+    }
+  }
+
+  const mustScore = mustTotalWeight > 0 ? (mustMatchWeight / mustTotalWeight) : 1;
+  const niceScore = niceTotalWeight > 0 ? (niceMatchWeight / niceTotalWeight) : 0.5;
+
+  // Base score from keyword matching
+  let score = Math.round((mustScore * 0.7 + niceScore * 0.3) * 100);
+
+  const sources = ["profile_skills", "skills_taxonomy", "job_requirements"];
   const matchedMust = normMustHave.filter((r) => normalizedCandidate.has(r)).length;
   const matchedNice = normNiceToHave.filter((r) => normalizedCandidate.has(r)).length;
-
-  const mustWeight = 0.7;
-  const niceWeight = 0.3;
-  const mustScore = normMustHave.length > 0 ? (matchedMust / normMustHave.length) : 1;
-  const niceScore = normNiceToHave.length > 0 ? (matchedNice / normNiceToHave.length) : 0.5;
-  const score = Math.round((mustScore * mustWeight + niceScore * niceWeight) * 100);
-
   const missingMust = normMustHave.length - matchedMust;
 
+  // Supplement with interview intelligence technical scores (10% weight)
+  const techScores: number[] = [];
+  for (const ii of intelligence.interviewIntelligence) {
+    if (ii.technical_depth_score != null && ii.technical_depth_score > 0) {
+      techScores.push(ii.technical_depth_score);
+    }
+  }
+  for (const ip of intelligence.interviewPerformance) {
+    if (ip.technical_competence_score != null && ip.technical_competence_score > 0) {
+      techScores.push(ip.technical_competence_score);
+    }
+  }
+
+  if (techScores.length > 0) {
+    const avgTech = techScores.reduce((a, b) => a + b, 0) / techScores.length;
+    score = Math.round(score * 0.85 + avgTech * 0.15);
+    sources.push("interview_intelligence");
+  }
+
   return {
-    score,
+    score: Math.min(100, score),
     confidence: 0.85,
-    sources: ["profile_skills", "skills_taxonomy", "job_requirements"],
-    details: `${matchedMust}/${normMustHave.length} must-have, ${matchedNice}/${normNiceToHave.length} nice-to-have${missingMust > 0 ? `. Missing ${missingMust} critical skills` : ''}`,
+    sources,
+    details: `${matchedMust}/${normMustHave.length} must-have, ${matchedNice}/${normNiceToHave.length} nice-to-have${missingMust > 0 ? `. Missing ${missingMust} critical skills` : ''}${techScores.length > 0 ? ` + ${techScores.length} interview tech scores` : ''}`,
   };
 }
 
@@ -448,7 +574,8 @@ function computeYearsFromWorkHistory(workHistory: any[]): number {
 
 // ==================== ENGAGEMENT ====================
 function computeEngagement(
-  candidate: any, interactions: any[], applicationLogs: any[], communications: any[]
+  candidate: any, interactions: any[], applicationLogs: any[], communications: any[],
+  intelligence: any
 ): AssessmentDimension {
   const sources: string[] = [];
   let totalScore = 0;
@@ -456,18 +583,18 @@ function computeEngagement(
   const now = Date.now();
   const ninetyDaysAgo = now - 90 * 24 * 60 * 60 * 1000;
 
-  // 1. Direct interactions (30%)
+  // 1. Direct interactions (20% — was 25%, reduced to make room for meetings)
   const recentInteractions = interactions.filter(
     (i) => new Date(i.created_at).getTime() > ninetyDaysAgo
   );
   if (interactions.length > 0) {
     const score = Math.min(100, recentInteractions.length * 12);
-    totalScore += score * 0.25;
-    weights += 0.25;
+    totalScore += score * 0.20;
+    weights += 0.20;
     sources.push("candidate_interactions");
   }
 
-  // 2. Communications / response time (30%)
+  // 2. Communications / response time (25% — was 30%)
   if (communications && communications.length > 0) {
     const inbound = communications.filter((c: any) => c.direction === 'inbound');
     const outbound = communications.filter((c: any) => c.direction === 'outbound');
@@ -502,19 +629,19 @@ function computeEngagement(
     const volumeScore = Math.min(100, (inbound.length + outbound.length) * 8);
     const commScore = responseScore * 0.6 + volumeScore * 0.4;
 
-    totalScore += commScore * 0.30;
-    weights += 0.30;
+    totalScore += commScore * 0.25;
+    weights += 0.25;
     sources.push("communications");
   }
 
-  // 3. Application logs (20%)
+  // 3. Application logs (15% — was 20%)
   const recentLogs = applicationLogs.filter(
     (l) => new Date(l.created_at).getTime() > ninetyDaysAgo
   );
   if (applicationLogs.length > 0) {
     const logScore = Math.min(100, recentLogs.length * 10);
-    totalScore += logScore * 0.20;
-    weights += 0.20;
+    totalScore += logScore * 0.15;
+    weights += 0.15;
     sources.push("application_logs");
   }
 
@@ -526,7 +653,7 @@ function computeEngagement(
     sources.push("profile_completeness");
   }
 
-  // 5. Login recency (15%)
+  // 5. Login recency (10% — was 15%)
   const lastActivity = candidate.last_activity_at || candidate.updated_at;
   if (lastActivity) {
     const daysSince = (now - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24);
@@ -536,9 +663,24 @@ function computeEngagement(
     else if (daysSince < 14) recencyScore = 60;
     else if (daysSince < 30) recencyScore = 40;
     else recencyScore = 15;
-    totalScore += recencyScore * 0.15;
-    weights += 0.15;
+    totalScore += recencyScore * 0.10;
+    weights += 0.10;
     sources.push("last_activity");
+  }
+
+  // 6. NEW: Meeting attendance (20%)
+  const attendedMeetings = intelligence.meetingParticipants || [];
+  if (attendedMeetings.length > 0) {
+    let meetingScore = 0;
+    const count = attendedMeetings.length;
+    if (count >= 4) meetingScore = 100;
+    else if (count === 3) meetingScore = 80;
+    else if (count === 2) meetingScore = 65;
+    else meetingScore = 40;
+
+    totalScore += meetingScore * 0.20;
+    weights += 0.20;
+    sources.push("meeting_attendance");
   }
 
   if (weights === 0) {
@@ -550,6 +692,7 @@ function computeEngagement(
     interactions.length > 0 ? `${recentInteractions.length} interactions` : null,
     communications && communications.length > 0 ? `${communications.length} comms` : null,
     recentLogs.length > 0 ? `${recentLogs.length} app logs` : null,
+    attendedMeetings.length > 0 ? `${attendedMeetings.length} meetings attended` : null,
   ].filter(Boolean).join(', ') + ' (90d)';
 
   return {
@@ -561,43 +704,88 @@ function computeEngagement(
 }
 
 // ==================== CULTURE FIT ====================
-function computeCultureFit(candidate: any, feedback: any[]): AssessmentDimension {
+function computeCultureFit(candidate: any, feedback: any[], intelligence: any): AssessmentDimension {
   const sources: string[] = [];
   let totalScore = 0;
   let weights = 0;
 
-  // 1. Interview feedback culture scores (primary, high confidence)
+  // 1. NEW PRIMARY: interview_intelligence.culture_fit_score (0-100, highest quality AI signal)
+  const iiCultureScores = (intelligence.interviewIntelligence || [])
+    .filter((ii: any) => ii.culture_fit_score != null && ii.culture_fit_score > 0)
+    .map((ii: any) => ii.culture_fit_score);
+
+  if (iiCultureScores.length > 0) {
+    const avg = iiCultureScores.reduce((a: number, b: number) => a + b, 0) / iiCultureScores.length;
+    totalScore += avg * 0.35;
+    weights += 0.35;
+    sources.push("interview_intelligence");
+  }
+
+  // 2. NEW: candidate_interview_performance.cultural_fit_score (0-100)
+  const ipCultureScores = (intelligence.interviewPerformance || [])
+    .filter((ip: any) => ip.cultural_fit_score != null && ip.cultural_fit_score > 0)
+    .map((ip: any) => ip.cultural_fit_score);
+
+  if (ipCultureScores.length > 0) {
+    const avg = ipCultureScores.reduce((a: number, b: number) => a + b, 0) / ipCultureScores.length;
+    totalScore += avg * 0.25;
+    weights += 0.25;
+    sources.push("interview_performance");
+  }
+
+  // 3. Interview feedback culture scores (existing — scale 1-10 to 0-100)
   const cultureFitScores = feedback
     .filter((f) => f.culture_fit_score != null && f.culture_fit_score > 0)
     .map((f) => f.culture_fit_score);
 
   if (cultureFitScores.length > 0) {
     const avg = cultureFitScores.reduce((a: number, b: number) => a + b, 0) / cultureFitScores.length;
-    totalScore += (avg * 10) * 0.6; // scale 1-10 to 0-100
-    weights += 0.6;
+    totalScore += (avg * 10) * 0.20; // scale 1-10 to 0-100
+    weights += 0.20;
     sources.push("interview_feedback");
   }
 
-  // 2. AI personality insights baseline (lower confidence)
+  // 4. NEW: values_poker_sessions culture_fit_scores
+  const vpSessions = intelligence.valuesPokerSessions || [];
+  if (vpSessions.length > 0) {
+    const vpScores: number[] = [];
+    for (const vp of vpSessions) {
+      if (vp.culture_fit_scores) {
+        const scores = typeof vp.culture_fit_scores === 'object' ? vp.culture_fit_scores : {};
+        const vals = Object.values(scores).filter((v: any) => typeof v === 'number' && v > 0) as number[];
+        if (vals.length > 0) {
+          vpScores.push(vals.reduce((a, b) => a + b, 0) / vals.length);
+        }
+      }
+      if (vp.consistency_score != null && vp.consistency_score > 0) {
+        vpScores.push(vp.consistency_score);
+      }
+    }
+    if (vpScores.length > 0) {
+      const avg = vpScores.reduce((a, b) => a + b, 0) / vpScores.length;
+      totalScore += avg * 0.10;
+      weights += 0.10;
+      sources.push("values_poker");
+    }
+  }
+
+  // 5. AI personality insights + candidate_brief (existing fallbacks)
   if (candidate.personality_insights) {
     const insights = typeof candidate.personality_insights === 'string'
       ? candidate.personality_insights
       : JSON.stringify(candidate.personality_insights);
-    // Simple heuristic: if personality insights exist, give a baseline moderate score
     if (insights.length > 20) {
-      totalScore += 55 * 0.2; // moderate baseline
-      weights += 0.2;
+      totalScore += 55 * 0.05;
+      weights += 0.05;
       sources.push("personality_insights");
     }
   }
 
-  // 3. Candidate brief / AI assessment
   if (candidate.candidate_brief) {
     const brief = typeof candidate.candidate_brief === 'string'
       ? candidate.candidate_brief
       : JSON.stringify(candidate.candidate_brief);
     if (brief.length > 50) {
-      // Check for positive/negative culture signals
       const positiveSignals = ['team player', 'collaborative', 'culture', 'values', 'adaptable', 'empathetic'].filter(
         (s) => brief.toLowerCase().includes(s)
       ).length;
@@ -605,8 +793,8 @@ function computeCultureFit(candidate: any, feedback: any[]): AssessmentDimension
         (s) => brief.toLowerCase().includes(s)
       ).length;
       const briefScore = Math.min(100, Math.max(20, 50 + positiveSignals * 10 - negativeSignals * 15));
-      totalScore += briefScore * 0.2;
-      weights += 0.2;
+      totalScore += briefScore * 0.05;
+      weights += 0.05;
       sources.push("candidate_brief");
     }
   }
@@ -621,17 +809,22 @@ function computeCultureFit(candidate: any, feedback: any[]): AssessmentDimension
   }
 
   const score = Math.round(totalScore / weights);
-  const confidence = cultureFitScores.length > 0
-    ? Math.min(1, 0.3 + cultureFitScores.length * 0.2)
-    : Math.min(0.4, weights);
+  // Confidence based on best available source
+  let confidence = Math.min(0.4, weights);
+  if (iiCultureScores.length > 0) confidence = Math.min(1, 0.5 + iiCultureScores.length * 0.15);
+  else if (ipCultureScores.length > 0) confidence = Math.min(1, 0.4 + ipCultureScores.length * 0.15);
+  else if (cultureFitScores.length > 0) confidence = Math.min(1, 0.3 + cultureFitScores.length * 0.2);
 
   const detailParts: string[] = [];
+  if (iiCultureScores.length > 0) detailParts.push(`${iiCultureScores.length} AI interview analysis`);
+  if (ipCultureScores.length > 0) detailParts.push(`${ipCultureScores.length} performance review(s)`);
   if (cultureFitScores.length > 0) {
     const avg = cultureFitScores.reduce((a: number, b: number) => a + b, 0) / cultureFitScores.length;
-    detailParts.push(`${cultureFitScores.length} interview(s) avg ${avg.toFixed(1)}/10`);
+    detailParts.push(`${cultureFitScores.length} feedback avg ${avg.toFixed(1)}/10`);
   }
-  if (sources.includes("personality_insights")) detailParts.push("AI personality baseline");
-  if (sources.includes("candidate_brief")) detailParts.push("brief analysis");
+  if (vpSessions.length > 0) detailParts.push("values poker");
+  if (sources.includes("personality_insights")) detailParts.push("AI personality");
+  if (sources.includes("candidate_brief")) detailParts.push("brief");
 
   return {
     score: Math.min(100, score),
@@ -643,29 +836,60 @@ function computeCultureFit(candidate: any, feedback: any[]): AssessmentDimension
 
 // ==================== SALARY MATCH ====================
 function computeSalaryMatch(candidate: any, job: any | null): AssessmentDimension {
-  const candidateMin = candidate.desired_salary_min;
-  const candidateMax = candidate.desired_salary_max;
+  let candidateMin = candidate.desired_salary_min;
+  let candidateMax = candidate.desired_salary_max;
+  let salaryConfidence = 0.85;
+  const sources: string[] = [];
+
+  // FALLBACK 1: Use current salary + 15% as inferred desired range
+  if (!candidateMin && !candidateMax) {
+    const currentMin = candidate.current_salary_min;
+    const currentMax = candidate.current_salary_max;
+    if (currentMin || currentMax) {
+      candidateMin = Math.round((currentMin || currentMax) * 1.15);
+      candidateMax = Math.round((currentMax || currentMin) * 1.25);
+      salaryConfidence = 0.45;
+      sources.push("current_salary_inferred");
+    }
+  }
+
+  // FALLBACK 2: Seniority-based median
+  if (!candidateMin && !candidateMax) {
+    const seniority = inferSeniority(candidate);
+    if (seniority && SENIORITY_SALARY_MEDIANS[seniority]) {
+      const median = SENIORITY_SALARY_MEDIANS[seniority];
+      candidateMin = median.min;
+      candidateMax = median.max;
+      salaryConfidence = 0.3;
+      sources.push("seniority_median_inferred");
+    }
+  }
 
   if (!candidateMin && !candidateMax) {
     return { score: 0, confidence: 0, sources: [], details: "No salary expectation data" };
+  }
+
+  if (!sources.includes("current_salary_inferred") && !sources.includes("seniority_median_inferred")) {
+    sources.push("candidate_salary");
   }
 
   if (!job || (!job.salary_min && !job.salary_max)) {
     return {
       score: 50,
       confidence: 0.1,
-      sources: ["candidate_profile"],
+      sources,
       details: "No job salary data to compare",
     };
   }
 
-  // Normalize salary to annual using salary_period
+  sources.push("job_salary");
+
+  // Normalize salary to annual
   const jobPeriod = (job.salary_period || 'annual').toLowerCase();
   const multiplier = SALARY_MULTIPLIERS[jobPeriod] || 1;
   const jobMin = (job.salary_min || 0) * multiplier;
   const jobMax = (job.salary_max || jobMin * 1.5) * multiplier;
 
-  // Candidate salaries are assumed annual (from profile preferences)
   const cMin = candidateMin || candidateMax;
   const cMax = candidateMax || candidateMin;
 
@@ -682,8 +906,9 @@ function computeSalaryMatch(candidate: any, job: any | null): AssessmentDimensio
 
     let details = `Overlap: €${Math.round(overlapStart / 1000)}K-€${Math.round(overlapEnd / 1000)}K`;
     if (jobPeriod !== 'annual') details += ` (job: ${jobPeriod}, normalized)`;
+    if (sources.includes("current_salary_inferred")) details += ' (inferred from current)';
+    if (sources.includes("seniority_median_inferred")) details += ' (inferred from seniority)';
 
-    // Current vs desired intelligence
     if (candidate.current_salary_min) {
       const currentAvg = (candidate.current_salary_min + (candidate.current_salary_max || candidate.current_salary_min)) / 2;
       const desiredAvg = (cMin + cMax) / 2;
@@ -691,12 +916,7 @@ function computeSalaryMatch(candidate: any, job: any | null): AssessmentDimensio
       if (jumpPct > 20) details += `. ${jumpPct}% salary jump desired`;
     }
 
-    return {
-      score,
-      confidence: 0.85,
-      sources: ["candidate_salary", "job_salary"],
-      details,
-    };
+    return { score, confidence: salaryConfidence, sources, details };
   }
 
   // No overlap
@@ -705,33 +925,103 @@ function computeSalaryMatch(candidate: any, job: any | null): AssessmentDimensio
   const gapPercent = (gap / midJob) * 100;
   const score = Math.max(0, Math.round(60 - gapPercent * 1.5));
 
-  return {
-    score,
-    confidence: 0.8,
-    sources: ["candidate_salary", "job_salary"],
-    details: `Gap: €${Math.round(gap / 1000)}K apart (${Math.round(gapPercent)}%)`,
-  };
+  let details = `Gap: €${Math.round(gap / 1000)}K apart (${Math.round(gapPercent)}%)`;
+  if (sources.includes("current_salary_inferred")) details += ' (inferred from current)';
+  if (sources.includes("seniority_median_inferred")) details += ' (inferred from seniority)';
+
+  return { score, confidence: salaryConfidence, sources, details };
+}
+
+// Helper: infer seniority from candidate data
+function inferSeniority(candidate: any): string | null {
+  const title = (candidate.current_title || '').toLowerCase();
+  const yoe = candidate.years_of_experience;
+
+  // Try title-based inference
+  const titleMap: [string, string][] = [
+    ['intern', 'intern'], ['trainee', 'intern'], ['junior', 'junior'], ['jr.', 'junior'],
+    ['associate', 'mid'], ['mid', 'mid'], ['senior', 'senior'], ['sr.', 'senior'],
+    ['lead', 'lead'], ['principal', 'principal'], ['staff', 'staff'],
+    ['head', 'head'], ['director', 'director'], ['vp', 'vp'],
+    ['chief', 'c-level'], ['cto', 'c-level'], ['ceo', 'c-level'], ['cfo', 'c-level'],
+  ];
+
+  for (const [keyword, level] of titleMap) {
+    if (title.includes(keyword)) return level;
+  }
+
+  // Fall back to years of experience
+  if (yoe != null) {
+    if (yoe < 2) return 'junior';
+    if (yoe < 5) return 'mid';
+    if (yoe < 8) return 'mid-senior';
+    if (yoe < 12) return 'senior';
+    return 'lead';
+  }
+
+  return 'mid'; // safe default
 }
 
 // ==================== LOCATION MATCH ====================
 function computeLocationMatch(
   candidate: any, job: any | null, jobLocations: any[]
 ): AssessmentDimension {
-  // Use desired_locations (correct column name)
   const desiredLocations = candidate.desired_locations;
   const remotePref = (candidate.remote_preference || '').toLowerCase();
+  const sources = ["location_match"];
 
-  if (!remotePref && (!desiredLocations || (Array.isArray(desiredLocations) && desiredLocations.length === 0))) {
+  // FALLBACK: use current location when preferences are empty
+  let useCurrentLocation = false;
+  let locationConfidence = 0.85;
+  let effectiveLocations: string[] = [];
+
+  if (desiredLocations && Array.isArray(desiredLocations) && desiredLocations.length > 0) {
+    effectiveLocations = desiredLocations;
+  } else if (candidate.location) {
+    // Parse current location as fallback
+    const loc = typeof candidate.location === 'string' ? candidate.location : '';
+    if (loc) {
+      effectiveLocations = [loc];
+      useCurrentLocation = true;
+      locationConfidence = 0.4;
+      sources.push("current_location_inferred");
+    }
+  }
+
+  const hasRemotePref = !!remotePref;
+  const hasLocations = effectiveLocations.length > 0;
+
+  if (!hasRemotePref && !hasLocations) {
+    // Last resort: check work_authorization for country compatibility
+    if (candidate.work_authorization && job) {
+      const wa = typeof candidate.work_authorization === 'string'
+        ? candidate.work_authorization.toLowerCase()
+        : JSON.stringify(candidate.work_authorization || '').toLowerCase();
+      const jobCountry = (job.location_country_code || job.location || '').toLowerCase();
+
+      if (wa.includes('eu') || wa.includes('europe')) {
+        const euCountries = ['nl', 'de', 'fr', 'be', 'netherlands', 'germany', 'france', 'belgium', 'spain', 'italy', 'portugal', 'ireland', 'austria', 'luxembourg'];
+        if (euCountries.some(c => jobCountry.includes(c))) {
+          return {
+            score: 55,
+            confidence: 0.25,
+            sources: ["work_authorization_inferred"],
+            details: "EU work authorization matches job country (no location preference set)",
+          };
+        }
+      }
+
+      return { score: 30, confidence: 0.15, sources: ["work_authorization_inferred"], details: "Work authorization exists but location preference unknown" };
+    }
+
     return { score: 0, confidence: 0, sources: [], details: "No location preference data" };
   }
 
   if (!job) {
-    return { score: 50, confidence: 0.1, sources: ["candidate_profile"], details: "No job to compare" };
+    return { score: 50, confidence: 0.1, sources, details: "No job to compare" };
   }
 
-  const sources = ["location_match"];
-
-  // Determine job's remote status from is_remote boolean first, then text
+  // Determine job's remote status
   let jobRemoteType: 'remote' | 'hybrid' | 'onsite' = 'onsite';
   if (job.is_remote === true) {
     jobRemoteType = 'remote';
@@ -743,22 +1033,20 @@ function computeLocationMatch(
   }
 
   // Determine candidate's preference
-  let candPref: 'remote' | 'hybrid' | 'onsite' = 'hybrid'; // default
+  let candPref: 'remote' | 'hybrid' | 'onsite' = 'hybrid';
   if (remotePref.includes('remote') || remotePref === 'fully_remote') candPref = 'remote';
   else if (remotePref.includes('onsite') || remotePref === 'office') candPref = 'onsite';
   else if (remotePref.includes('hybrid')) candPref = 'hybrid';
 
-  // Use the matrix for remote/hybrid/onsite scoring
   const remoteScore = LOCATION_MATRIX[candPref]?.[jobRemoteType] ?? 50;
 
   // Location proximity check
   let locationScore = 0;
   let locationMatched = false;
 
-  if (desiredLocations && Array.isArray(desiredLocations)) {
-    const normalizedDesired = desiredLocations.map((l: string) => l.toLowerCase().trim());
+  if (hasLocations) {
+    const normalizedDesired = effectiveLocations.map((l: string) => l.toLowerCase().trim());
 
-    // Check against job_locations table (structured)
     if (jobLocations.length > 0) {
       sources.push("job_locations");
       for (const jl of jobLocations) {
@@ -776,7 +1064,6 @@ function computeLocationMatch(
       }
     }
 
-    // Fallback: check job.location text, job.location_city, job.location_country_code
     if (!locationMatched) {
       const jobLoc = (job.location || '').toLowerCase();
       const jobCity = (job.location_city || '').toLowerCase();
@@ -799,22 +1086,21 @@ function computeLocationMatch(
   let details: string;
 
   if (jobRemoteType === 'remote') {
-    // For remote jobs, location doesn't matter much
     finalScore = remoteScore;
     details = `Job: remote, Candidate: ${candPref}`;
   } else if (locationMatched) {
-    // Weighted: 40% remote-type match + 60% location match
     finalScore = Math.round(remoteScore * 0.4 + locationScore * 0.6);
     details = `${candPref} ↔ ${jobRemoteType}, location match: ${locationScore}%`;
   } else {
-    // No location match, rely on remote type
-    finalScore = Math.round(remoteScore * 0.7 + 15); // small baseline
+    finalScore = Math.round(remoteScore * 0.7 + 15);
     details = `${candPref} ↔ ${jobRemoteType}, no location match`;
   }
 
+  if (useCurrentLocation) details += ' (using current location)';
+
   return {
     score: Math.min(100, finalScore),
-    confidence: locationMatched ? 0.85 : 0.5,
+    confidence: locationMatched ? locationConfidence : Math.min(locationConfidence, 0.5),
     sources,
     details,
   };

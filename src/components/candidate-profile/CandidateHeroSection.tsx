@@ -17,6 +17,7 @@ import { useState } from "react";
 import { EnrichmentProgressModal } from "./EnrichmentProgressModal";
 import { AddToJobDialog } from "@/components/partner/AddToJobDialog";
 import { useRecharts } from "@/hooks/useRecharts";
+import { formatRelativeTime } from "@/lib/format";
 import type { AssessmentBreakdown, AssessmentDimension } from "@/hooks/useAssessmentScores";
 
 const DIMENSION_CONFIG = [
@@ -87,17 +88,26 @@ export const CandidateHeroSection = ({
     .join('')
     .toUpperCase();
 
-  const renderConfidenceDots = (confidence: number) => {
-    const dots = confidence > 0.6 ? 3 : confidence > 0.3 ? 2 : 1;
+  const getConfidenceIndicator = (confidence: number) => {
+    if (confidence >= 0.5) return { dotColor: 'bg-green-500', opacity: '', border: '' };
+    if (confidence >= 0.2) return { dotColor: 'bg-amber-500', opacity: 'opacity-70', border: 'border-dashed' };
+    return { dotColor: 'bg-red-500', opacity: 'opacity-40', border: 'border-dashed' };
+  };
+
+  const renderConfidenceDot = (confidence: number) => {
+    const { dotColor } = getConfidenceIndicator(confidence);
     return (
-      <div className="flex gap-0.5" title={`${Math.round(confidence * 100)}% confidence`}>
-        {[1, 2, 3].map(i => (
-          <div
-            key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i <= dots ? 'bg-primary' : 'bg-muted-foreground/20'}`}
-          />
-        ))}
-      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-[10px]">
+            {confidence < 0.2 ? 'Not enough data' : confidence < 0.5 ? 'Partial data' : 'High confidence'}
+            {' '}({Math.round(confidence * 100)}%)
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
 
@@ -107,16 +117,17 @@ export const CandidateHeroSection = ({
     const score = hasData ? data.score : 0;
     const scoreColor = hasData ? getScoreColor(score) : null;
     const Icon = dim.icon;
+    const ci = hasData ? getConfidenceIndicator(data.confidence) : null;
 
     return (
       <TooltipProvider key={dim.key}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="bg-card/60 backdrop-blur border border-border/30 rounded-xl p-2.5 transition-all hover:border-primary/30">
+            <div className={`bg-card/60 backdrop-blur border border-border/30 rounded-xl p-2.5 transition-all hover:border-primary/30 ${ci?.opacity || ''} ${ci?.border || ''}`}>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-[11px] text-muted-foreground truncate">{dim.label}</span>
-                {hasData && renderConfidenceDots(data.confidence)}
+                {hasData && renderConfidenceDot(data.confidence)}
               </div>
               {hasData ? (
                 <div className="text-xl font-bold" style={{ color: scoreColor?.bg }}>
@@ -341,6 +352,9 @@ export const CandidateHeroSection = ({
                 <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                   <Sparkles className="w-3 h-3" />
                   QUIN
+                  {breakdown?.computed_at && (
+                    <span className="text-muted-foreground/60 ml-1">· {formatRelativeTime(breakdown.computed_at)}</span>
+                  )}
                 </span>
                 {onRecompute && (
                   <Button variant="ghost" size="sm" onClick={onRecompute} disabled={isComputing} className="h-6 text-[10px] px-2">
