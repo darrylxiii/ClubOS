@@ -289,6 +289,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showDraftChoice, setShowDraftChoice] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<any>(null);
 
   // Stealth job state
   const [isStealthEnabled, setIsStealthEnabled] = useState(false);
