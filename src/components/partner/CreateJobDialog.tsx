@@ -1403,6 +1403,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         onConfirm={() => {
           if (pendingDraft) restoreDraft(pendingDraft);
         }}
+        onCancel={() => {
+          clearDraft();
+          resetForm();
+        }}
         className="z-[200]"
       />
     </>
