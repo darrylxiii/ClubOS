@@ -117,16 +117,17 @@ export const CandidateHeroSection = ({
     const score = hasData ? data.score : 0;
     const scoreColor = hasData ? getScoreColor(score) : null;
     const Icon = dim.icon;
+    const ci = hasData ? getConfidenceIndicator(data.confidence) : null;
 
     return (
       <TooltipProvider key={dim.key}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="bg-card/60 backdrop-blur border border-border/30 rounded-xl p-2.5 transition-all hover:border-primary/30">
+            <div className={`bg-card/60 backdrop-blur border border-border/30 rounded-xl p-2.5 transition-all hover:border-primary/30 ${ci?.opacity || ''} ${ci?.border || ''}`}>
               <div className="flex items-center gap-1.5 mb-0.5">
                 <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-[11px] text-muted-foreground truncate">{dim.label}</span>
-                {hasData && renderConfidenceDots(data.confidence)}
+                {hasData && renderConfidenceDot(data.confidence)}
               </div>
               {hasData ? (
                 <div className="text-xl font-bold" style={{ color: scoreColor?.bg }}>
