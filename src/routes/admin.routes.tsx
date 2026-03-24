@@ -9,6 +9,7 @@ import { PageLoader } from "@/components/PageLoader";
 // ──────────────────────────────────────────────
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
+const UserManagementHub = lazy(() => import("@/pages/admin/UserManagementHub"));
 
 // ──────────────────────────────────────────────
 // Hub Pages (consolidated)
