@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAuthPrefetch } from "@/hooks/useAuthPrefetch";
+import { useAuthPrefetch, CompanyMembership } from "@/hooks/useAuthPrefetch";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { UserRole } from "@/types/roles";
 import { logger } from "@/lib/logger";
 
@@ -11,6 +12,10 @@ interface RoleContextType {
   switchRole: (newRole: UserRole) => Promise<void>;
   loading: boolean;
   companyId: string | null;
+  /** All companies the user is a member of */
+  companies: CompanyMembership[];
+  /** Switch active company context */
+  switchCompany: (companyId: string) => Promise<void>;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -18,10 +23,12 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const { data: prefetch, isLoading: prefetchLoading } = useAuthPrefetch();
+  const queryClient = useQueryClient();
   const [currentRole, setCurrentRole] = useState<UserRole>('user');
   const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companies, setCompanies] = useState<CompanyMembership[]>([]);
   const [initialized, setInitialized] = useState(false);
 
   // Derive roles from prefetch cache instead of fetching independently
@@ -30,8 +37,16 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
     const roles = prefetch.roles;
     setAvailableRoles(roles);
-    // Prefer company_members (authoritative) over legacy profiles.company_id
-    const resolvedCompanyId = prefetch.companyMembership?.company_id || prefetch.profile?.company_id || null;
+
+    // Store all company memberships
+    setCompanies(prefetch.companyMemberships);
+
+    // Resolve active company: preference → first membership → legacy profile
+    const resolvedCompanyId =
+      prefetch.activeCompanyId ||
+      prefetch.companyMemberships[0]?.company_id ||
+      prefetch.profile?.company_id ||
+      null;
     setCompanyId(resolvedCompanyId);
 
     // Determine current role from preferences
@@ -45,7 +60,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
       selectedRole = priority.find((r) => roles.includes(r)) || 'user';
     }
 
-    logger.info('[RoleContext] ✅ Role set from prefetch cache', { selectedRole });
+    logger.info('[RoleContext] ✅ Role set from prefetch cache', { selectedRole, companiesCount: prefetch.companyMemberships.length });
     setCurrentRole(selectedRole);
     setLoading(false);
     setInitialized(true);
@@ -59,6 +74,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
       setAvailableRoles([]);
       setCurrentRole('user');
       setCompanyId(null);
+      setCompanies([]);
     }
   }, [user]);
 
@@ -85,6 +101,13 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
             lastKnownRoleRef.current = newRole;
             setCurrentRole(newRole);
           }
+
+          // Also handle external company switch
+          const newCompanyId = payload.new.active_company_id as string | null;
+          if (newCompanyId && newCompanyId !== companyId && companies.some(c => c.company_id === newCompanyId)) {
+            logger.info('[RoleContext] External company switch detected', { newCompanyId });
+            setCompanyId(newCompanyId);
+          }
         }
       )
       .subscribe();
@@ -92,7 +115,60 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, availableRoles]); // Do NOT include currentRole
+  }, [user, availableRoles]); // Do NOT include currentRole or companyId
+
+  const switchCompany = useCallback(async (newCompanyId: string) => {
+    if (newCompanyId === companyId) return;
+    if (!user) throw new Error('User not authenticated');
+
+    const membership = companies.find(c => c.company_id === newCompanyId);
+    if (!membership) throw new Error(`Not a member of company ${newCompanyId}`);
+
+    const previousCompanyId = companyId;
+
+    try {
+      // Optimistic update
+      setCompanyId(newCompanyId);
+
+      // Persist to user_preferences
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert(
+          {
+            user_id: user.id,
+            active_company_id: newCompanyId,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        );
+
+      if (error) throw error;
+
+      logger.info('[RoleContext] Company switched', {
+        from: previousCompanyId,
+        to: newCompanyId,
+        companyName: membership.company_name,
+      });
+
+      // Invalidate all queries that might depend on company context
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey;
+          // Invalidate queries containing the old or new company ID, or 'company' in key
+          return key.some(
+            (k) =>
+              k === previousCompanyId ||
+              k === newCompanyId ||
+              (typeof k === 'string' && (k.includes('company') || k.includes('partner') || k.includes('job') || k.includes('application') || k.includes('billing') || k.includes('sla')))
+          );
+        },
+      });
+    } catch (error) {
+      logger.error('[RoleContext] Failed to switch company, reverting:', error);
+      setCompanyId(previousCompanyId);
+      throw error;
+    }
+  }, [user, companyId, companies, queryClient]);
 
   const switchRole = useCallback(async (newRole: UserRole) => {
     if (newRole === currentRole) return;
@@ -149,8 +225,8 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   }, [user, currentRole, availableRoles]);
 
   const contextValue = useMemo(
-    () => ({ currentRole, availableRoles, switchRole, loading, companyId }),
-    [currentRole, availableRoles, switchRole, loading, companyId]
+    () => ({ currentRole, availableRoles, switchRole, loading, companyId, companies, switchCompany }),
+    [currentRole, availableRoles, switchRole, loading, companyId, companies, switchCompany]
   );
 
   return <RoleContext.Provider value={contextValue}>{children}</RoleContext.Provider>;
