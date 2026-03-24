@@ -1391,6 +1391,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         open={showDraftChoice}
         onOpenChange={(open) => {
           if (!open) {
+            // "Start Fresh" — clear draft and reset
+            clearDraft();
+            resetForm();
             setPendingDraft(null);
             setShowDraftChoice(false);
           }
