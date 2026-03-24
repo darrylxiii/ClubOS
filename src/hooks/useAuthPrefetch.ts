@@ -45,12 +45,10 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
     supabase.auth.mfa.listFactors(),
     supabase
       .from('company_members')
-      .select('company_id, role')
+      .select('company_id, role, companies:company_id(name)')
       .eq('user_id', userId)
       .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle(),
+      .order('created_at', { ascending: true }),
   ]);
 
   const roles: UserRole[] = ['user'];
