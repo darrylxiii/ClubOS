@@ -358,26 +358,20 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     jobLocations,
   });
 
-  useEffect(() => {
+   useEffect(() => {
     if (open) {
       fetchCompanies();
       const draft = loadDraft();
       if (draft) {
-        setFormData(draft.formData);
-        setRequiredTools(draft.requiredTools);
-        setNiceToHaveTools(draft.niceToHaveTools);
-        // Restore extended draft state
-        if (draft.requirements) setRequirements(draft.requirements);
-        if (draft.niceToHave) setNiceToHave(draft.niceToHave);
-        if (draft.startDateISO) setStartDate(new Date(draft.startDateISO));
-        if (draft.currentStep) setCurrentStep(draft.currentStep);
-        if (draft.jobLocations) setJobLocations(draft.jobLocations);
-        toast.success("Draft restored");
+        setPendingDraft(draft);
+        setShowDraftChoice(true);
       }
     } else {
       // Fix 8: Reset form on close
       setCurrentStep(0);
       resetForm();
+      setPendingDraft(null);
+      setShowDraftChoice(false);
     }
   }, [open, loadDraft]);
 
