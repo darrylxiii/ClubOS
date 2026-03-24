@@ -1237,6 +1237,18 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               <SummaryRow label="Seniority" value={seniorityLabel} />
               <SummaryRow label="Work Model" value={locationTypeLabel} />
               <SummaryRow label="Location" value={formData.location || '—'} />
+              {jobLocations.length > 0 && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Additional Locations:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {jobLocations.map((loc, i) => (
+                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border">
+                        {loc.location || loc.formattedAddress || loc.city || 'Unknown'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <SummaryRow label="Urgency" value={urgencyLabel} />
               {startDate && <SummaryRow label="Start Date" value={format(startDate, 'PPP')} />}
               {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
