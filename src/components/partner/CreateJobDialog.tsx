@@ -1374,7 +1374,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         </SheetContent>
       </Sheet>
 
-      {/* Fix 2: Close confirmation dialog */}
+      {/* Close confirmation dialog */}
       <ConfirmDialog
         open={showCloseConfirm}
         onOpenChange={setShowCloseConfirm}
@@ -1383,6 +1383,26 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         confirmText="Leave"
         cancelText="Continue editing"
         onConfirm={handleConfirmClose}
+        className="z-[200]"
+      />
+
+      {/* Draft restore choice dialog */}
+      <ConfirmDialog
+        open={showDraftChoice}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDraft(null);
+            setShowDraftChoice(false);
+          }
+        }}
+        title="Continue where you left off?"
+        description={pendingDraft ? `You have an unsaved draft from ${new Date(pendingDraft.timestamp).toLocaleString()}. Would you like to continue or start fresh?` : "You have an unsaved draft."}
+        confirmText="Continue Draft"
+        cancelText="Start Fresh"
+        onConfirm={() => {
+          if (pendingDraft) restoreDraft(pendingDraft);
+        }}
+        className="z-[200]"
       />
     </>
   );
