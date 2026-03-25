@@ -125,6 +125,12 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
             <Target className="w-4 h-4 shrink-0" />
             <span>{(Array.isArray(job.pipeline_stages) ? job.pipeline_stages.length : 0)} stages</span>
           </div>
+          {taskSummary && taskSummary.total > 0 && (
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-4 h-4 shrink-0" />
+              <span>{taskSummary.done}/{taskSummary.total} tasks done</span>
+            </div>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
