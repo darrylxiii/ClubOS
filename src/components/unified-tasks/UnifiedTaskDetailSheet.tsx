@@ -133,7 +133,7 @@ export const UnifiedTaskDetailSheet = ({
     queryKey: ["task-activity", taskId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("task_activity")
+        .from("task_activity" as any)
         .select("*, profiles:user_id(full_name)")
         .eq("task_id", taskId)
         .order("created_at", { ascending: false })

@@ -5,7 +5,7 @@ import { isPast, differenceInDays } from "date-fns";
  * Higher score = should appear higher in the column.
  */
 export function computeUrgency(task: {
-  due_date: string | null;
+  due_date?: string | null;
   priority: string;
   status: string;
   blockingCount?: number;
