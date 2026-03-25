@@ -142,7 +142,6 @@ export const CreateUnifiedTaskDialog = ({
       .limit(50);
     if (data) setAvailableJobs(data);
   };
-  };
 
   const loadProfiles = async () => {
     try {
