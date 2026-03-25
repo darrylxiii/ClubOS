@@ -90,6 +90,7 @@ export function UnifiedTasksProvider({
   objectiveId?: string | null;
 }) {
   const { user } = useAuth();
+  const { currentBoard } = useTaskBoard();
   const [tasks, setTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
