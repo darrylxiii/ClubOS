@@ -94,6 +94,7 @@ interface JobTableViewProps {
   onArchive: (jobId: string, title: string) => void;
   onRestore: (jobId: string, title: string) => void;
   isSelected: (jobId: string) => boolean;
+  isAdmin?: boolean;
 }
 
 type SortKey = 'title' | 'company_name' | 'status' | 'candidate_count' | 'days_since_opened' | 'conversion_rate' | 'created_at';
