@@ -191,9 +191,3 @@ export function getUrgencyLabel(score: number): string {
   if (score >= 2) return 'Low';
   return 'Healthy';
 }
-  if (score >= 8) return 'Critical';
-  if (score >= 6) return 'High';
-  if (score >= 4) return 'Medium';
-  if (score >= 2) return 'Low';
-  return 'Healthy';
-}
