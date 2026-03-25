@@ -167,6 +167,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           is_continuous,
           hired_count,
           target_hire_count,
+          urgency_score_manual,
+          urgency_score_manual_set_by,
+          urgency_score_manual_set_at,
+          expected_close_date,
+          expected_start_date,
+          urgency,
+          deal_health_score,
           companies (
             name,
             logo_url
