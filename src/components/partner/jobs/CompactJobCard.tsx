@@ -409,14 +409,6 @@ export const CompactJobCard = memo(({
           <JobStatusBadge status={job.status as JobStatus} size="sm" />
           <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
           <NextActionBadge action={nextAction} size="sm" />
-          <div className="ml-auto">
-            <UrgencyMeter
-              jobId={job.id}
-              result={urgencyResult}
-              isAdmin={isAdmin}
-              size="sm"
-            />
-          </div>
         </div>
       </CardHeader>
 

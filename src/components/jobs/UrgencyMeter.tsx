@@ -20,6 +20,7 @@ import {
   type UrgencyScoreResult,
   getUrgencyScoreColor,
   getUrgencyLabel,
+  getUrgencyAccentHsl,
 } from '@/lib/jobUrgencyScore';
 
 interface UrgencyMeterProps {
@@ -27,10 +28,34 @@ interface UrgencyMeterProps {
   result: UrgencyScoreResult;
   isAdmin?: boolean;
   size?: 'sm' | 'md';
+  variant?: 'badge' | 'dot';
   onManualScoreChange?: (score: number | null) => void;
   manualSetByName?: string | null;
   manualSetAt?: string | null;
 }
+
+/** Compact circular dot showing the score number */
+const ScoreDot = memo(({ score, size }: { score: number; size: 'sm' | 'md' }) => {
+  const dim = size === 'sm' ? 24 : 28;
+  const fontSize = size === 'sm' ? 10 : 12;
+  const accentColor = getUrgencyAccentHsl(score);
+
+  return (
+    <div
+      className="rounded-full flex items-center justify-center font-bold text-white shrink-0"
+      style={{
+        width: dim,
+        height: dim,
+        fontSize,
+        backgroundColor: accentColor,
+      }}
+    >
+      {Math.round(score)}
+    </div>
+  );
+});
+
+ScoreDot.displayName = 'ScoreDot';
 
 /** Circular arc gauge for urgency score 0-10 */
 const ArcGauge = memo(({ score, size }: { score: number; size: 'sm' | 'md' }) => {
@@ -38,13 +63,12 @@ const ArcGauge = memo(({ score, size }: { score: number; size: 'sm' | 'md' }) =>
   const dim = size === 'sm' ? 36 : 44;
   const stroke = size === 'sm' ? 3 : 4;
   const radius = (dim - stroke) / 2;
-  const circumference = Math.PI * radius; // half-circle
+  const circumference = Math.PI * radius;
   const progress = (score / 10) * circumference;
   const fontSize = size === 'sm' ? 11 : 14;
 
   return (
     <svg width={dim} height={dim / 2 + 6} viewBox={`0 0 ${dim} ${dim / 2 + 6}`} className="overflow-visible">
-      {/* Background arc */}
       <path
         d={`M ${stroke / 2} ${dim / 2} A ${radius} ${radius} 0 0 1 ${dim - stroke / 2} ${dim / 2}`}
         fill="none"
@@ -52,7 +76,6 @@ const ArcGauge = memo(({ score, size }: { score: number; size: 'sm' | 'md' }) =>
         strokeWidth={stroke}
         strokeLinecap="round"
       />
-      {/* Progress arc */}
       <path
         d={`M ${stroke / 2} ${dim / 2} A ${radius} ${radius} 0 0 1 ${dim - stroke / 2} ${dim / 2}`}
         fill="none"
@@ -63,7 +86,6 @@ const ArcGauge = memo(({ score, size }: { score: number; size: 'sm' | 'md' }) =>
         strokeDashoffset={`${circumference - progress}`}
         className={colors.text}
       />
-      {/* Score text */}
       <text
         x={dim / 2}
         y={dim / 2 + 2}
@@ -114,6 +136,7 @@ export const UrgencyMeter = memo(({
   result,
   isAdmin = false,
   size = 'sm',
+  variant = 'badge',
   onManualScoreChange,
   manualSetByName,
   manualSetAt,
@@ -173,19 +196,29 @@ export const UrgencyMeter = memo(({
     }
   }, [jobId, onManualScoreChange]);
 
+  const isDot = variant === 'dot';
+
+  const visualElement = isDot ? (
+    <ScoreDot score={result.effectiveScore} size={size} />
+  ) : (
+    <ArcGauge score={result.effectiveScore} size={size} />
+  );
+
   const meterContent = (
     <div
       className={cn(
-        'inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 border transition-colors',
-        colors.bg,
-        colors.border,
-        isAdmin && 'cursor-pointer hover:ring-2',
-        isAdmin && colors.ring,
+        'inline-flex items-center gap-1 transition-colors',
+        !isDot && 'rounded-lg px-1.5 py-0.5 border',
+        !isDot && colors.bg,
+        !isDot && colors.border,
+        isAdmin && 'cursor-pointer',
+        isAdmin && !isDot && 'hover:ring-2',
+        isAdmin && !isDot && colors.ring,
       )}
       onClick={(e) => e.stopPropagation()}
     >
-      <ArcGauge score={result.effectiveScore} size={size} />
-      {result.isManual && (
+      {visualElement}
+      {result.isManual && !isDot && (
         <UserPen className={cn('shrink-0', size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5', 'text-muted-foreground')} />
       )}
     </div>
@@ -216,7 +249,6 @@ export const UrgencyMeter = memo(({
 
           <BreakdownDisplay result={result} />
 
-          {/* Manual override slider */}
           <div className="space-y-2 pt-2 border-t border-border/30">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">Manual Override</span>
