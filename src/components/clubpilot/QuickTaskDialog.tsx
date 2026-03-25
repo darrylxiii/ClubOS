@@ -19,6 +19,8 @@ interface QuickTaskDialogProps {
   open: boolean;
   onClose: () => void;
   onExpand?: (title: string, priority: string) => void;
+  jobId?: string;
+  companyId?: string;
 }
 
 const PRIORITIES = [
