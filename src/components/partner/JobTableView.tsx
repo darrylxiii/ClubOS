@@ -450,6 +450,32 @@ export const JobTableView = memo(({
     });
   }, [jobs, sortKey, sortDirection]);
 
+  // Pre-compute urgency scores for all jobs
+  const urgencyScores = useMemo(() => {
+    const map = new Map<string, UrgencyScoreResult>();
+    for (const job of sortedJobs) {
+      const lastActivityDaysAgo = job.last_activity
+        ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      map.set(job.id, computeJobUrgencyScore({
+        daysOpen: job.days_since_opened,
+        expectedCloseDate: job.expected_close_date,
+        expectedStartDate: job.expected_start_date,
+        urgency: job.urgency,
+        hiredCount: job.hired_count,
+        targetHireCount: job.target_hire_count,
+        isContinuous: job.is_continuous,
+        dealHealthScore: job.deal_health_score,
+        candidateCount: job.candidate_count,
+        activeCount: job.active_stage_count,
+        conversionRate: job.conversion_rate,
+        lastActivityDaysAgo,
+        manualScore: job.urgency_score_manual,
+      }));
+    }
+    return map;
+  }, [sortedJobs]);
+
   // Virtualization for large datasets
   const { parentRef, virtualItems, totalSize, getItem } = useVirtualizedTable({
     items: sortedJobs,
