@@ -1,23 +1,30 @@
 
 
-# Fix: Convert UserEditDrawer from Bottom Drawer to Right-Side Sheet
+# Fix: Avatar Hub Password Saving
 
 ## Problem
-The `UserEditDrawer` uses the `Drawer` component (bottom sheet), which slides up from the bottom of the screen. This causes z-index issues where it renders underneath other page content, and the bottom-sheet UX feels unprofessional for an admin editing panel with this much content.
+The `avatar-account-credentials` edge function checks admin status using `profiles.role` (line 42-43), but this project stores roles in the `user_roles` table. The `profiles` table likely has no `role` column, so the admin check always returns 403 "Admin access required", silently preventing credential saves.
 
 ## Solution
-Convert from `Drawer` to `Sheet` (right-side sliding panel) with a polished, professional layout.
+Update the edge function to check the `user_roles` table instead of `profiles.role`, matching the pattern used by all other edge functions in the project.
 
 ## Changes
 
-### `src/components/admin/users/UserEditDrawer.tsx` — Full rewrite
-- Replace all `Drawer*` imports with `Sheet*` equivalents (`Sheet`, `SheetContent`, `SheetHeader`, `SheetTitle`, `SheetDescription`, `SheetFooter`, `SheetClose`)
-- Use `<SheetContent side="right" className="w-[480px] sm:max-w-[480px] overflow-y-auto">` for a proper right-panel
-- Restructure the layout with clear visual sections using cards/containers for "System Roles", "Company Memberships", and "Account Actions"
-- Add a sticky header with user avatar initial + name + email + account status badge
-- Add a sticky footer with Save/Cancel buttons
-- The scrollable content area sits between header and footer using `flex-1 overflow-y-auto`
-- Sheet uses Portal rendering which guarantees correct z-index above all page content
+### `supabase/functions/avatar-account-credentials/index.ts`
+Replace lines 41-44 (the admin role check) with the correct `user_roles` table lookup:
 
-No other files need changes — the props interface (`open`, `onClose`, `onSaved`) stays identical.
+```typescript
+// Check admin role via user_roles table (matches project pattern)
+const { data: roles } = await supabase
+  .from('user_roles')
+  .select('role')
+  .eq('user_id', userId);
+
+const userRoles = (roles || []).map((r: any) => r.role);
+if (!userRoles.includes('admin') && !userRoles.includes('super_admin') && !userRoles.includes('strategist')) {
+  return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+}
+```
+
+This is a single-file fix. No other changes needed.
 
