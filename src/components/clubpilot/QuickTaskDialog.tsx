@@ -29,7 +29,7 @@ const PRIORITIES = [
   { value: "high", label: "High", color: "bg-destructive/20 text-destructive" },
 ] as const;
 
-export const QuickTaskDialog = ({ open, onClose, onExpand }: QuickTaskDialogProps) => {
+export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: QuickTaskDialogProps) => {
   const { user } = useAuth();
   const { currentBoard } = useTaskBoard();
   const [title, setTitle] = useState("");
