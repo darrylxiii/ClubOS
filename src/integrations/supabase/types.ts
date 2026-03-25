@@ -25657,6 +25657,9 @@ export type Database = {
           title: string
           updated_at: string | null
           urgency: string | null
+          urgency_score_manual: number | null
+          urgency_score_manual_set_at: string | null
+          urgency_score_manual_set_by: string | null
         }
         Insert: {
           benefits?: Json | null
@@ -25729,6 +25732,9 @@ export type Database = {
           title: string
           updated_at?: string | null
           urgency?: string | null
+          urgency_score_manual?: number | null
+          urgency_score_manual_set_at?: string | null
+          urgency_score_manual_set_by?: string | null
         }
         Update: {
           benefits?: Json | null
@@ -25801,6 +25807,9 @@ export type Database = {
           title?: string
           updated_at?: string | null
           urgency?: string | null
+          urgency_score_manual?: number | null
+          urgency_score_manual_set_at?: string | null
+          urgency_score_manual_set_by?: string | null
         }
         Relationships: [
           {
