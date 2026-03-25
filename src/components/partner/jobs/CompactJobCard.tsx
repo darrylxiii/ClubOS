@@ -77,6 +77,7 @@ interface CompactJobCardProps {
   isSelected: boolean;
   isFocused: boolean;
   isFavorite?: boolean;
+  isAdmin?: boolean;
   onToggleSelect: () => void;
   onNavigate: () => void;
   onPublish: () => void;
