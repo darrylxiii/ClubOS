@@ -29,6 +29,14 @@ interface JobCardHeaderProps {
   daysOpen?: number;
   lastActivityDaysAgo?: number;
   applicantsCount?: number;
+  isAdmin?: boolean;
+  urgencyScoreManual?: number | null;
+  expectedCloseDate?: string | null;
+  expectedStartDate?: string | null;
+  urgency?: string | null;
+  dealHealthScore?: number | null;
+  conversionRate?: number | null;
+  jobId?: string;
 }
 
 export const JobCardHeader = memo(({
