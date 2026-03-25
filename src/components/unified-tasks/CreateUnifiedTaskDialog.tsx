@@ -133,6 +133,17 @@ export const CreateUnifiedTaskDialog = ({
     if (data) setAllTasks(data);
   };
 
+  const loadAvailableJobs = async () => {
+    const { data } = await supabase
+      .from("jobs")
+      .select("id, title, company_id, companies(name)")
+      .in("status", ["open", "published", "active"])
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setAvailableJobs(data);
+  };
+  };
+
   const loadProfiles = async () => {
     try {
       const { data, error } = await supabase
