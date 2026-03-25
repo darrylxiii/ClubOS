@@ -120,59 +120,6 @@ export const CreateUnifiedTaskDialog = ({
     enabled: open && !jobId,
   });
 
-  const loadObjectives = async () => {
-    const { data } = await supabase
-      .from("club_objectives")
-      .select("id, title, status")
-      .order("created_at", { ascending: false });
-
-    if (data) setObjectives(data);
-  };
-
-  const loadProjects = async () => {
-    const { data } = await supabase
-      .from("marketplace_projects")
-      .select("id, title, status")
-      .eq("status", "active") // Fetch active projects
-      .order("created_at", { ascending: false });
-
-    if (data) setProjects(data);
-  };
-
-  const loadTasks = async () => {
-    const { data } = await supabase
-      .from("unified_tasks")
-      .select("id, title, status, task_number")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (data) setAllTasks(data);
-  };
-
-  const loadAvailableJobs = async () => {
-    const { data } = await supabase
-      .from("jobs")
-      .select("id, title, company_id, companies(name)")
-      .in("status", ["open", "published", "active"])
-      .order("created_at", { ascending: false })
-      .limit(50);
-    if (data) setAvailableJobs(data);
-  };
-
-  const loadProfiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .neq("id", user?.id || "")
-        .limit(50);
-
-      if (error) throw error;
-      setProfiles(data || []);
-    } catch (error) {
-      console.error("Error loading profiles:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
