@@ -48,6 +48,8 @@ import { JobStatusBadge, JobStatus } from '@/components/jobs/JobStatusBadge';
 import { VirtualizedList } from '@/components/ui/VirtualizedList';
 import { useVirtualizedTable } from '@/hooks/useVirtualizedList';
 import { format } from 'date-fns';
+import { UrgencyMeter } from '@/components/jobs/UrgencyMeter';
+import { computeJobUrgencyScore, type UrgencyScoreResult } from '@/lib/jobUrgencyScore';
 
 interface JobWithMetrics {
   id: string;
@@ -68,6 +70,13 @@ interface JobWithMetrics {
   is_continuous: boolean;
   hired_count: number;
   target_hire_count: number | null;
+  urgency_score_manual?: number | null;
+  urgency_score_manual_set_by?: string | null;
+  urgency_score_manual_set_at?: string | null;
+  expected_close_date?: string | null;
+  expected_start_date?: string | null;
+  urgency?: string | null;
+  deal_health_score?: number | null;
 }
 
 interface JobTableViewProps {
@@ -85,9 +94,10 @@ interface JobTableViewProps {
   onArchive: (jobId: string, title: string) => void;
   onRestore: (jobId: string, title: string) => void;
   isSelected: (jobId: string) => boolean;
+  isAdmin?: boolean;
 }
 
-type SortKey = 'title' | 'company_name' | 'status' | 'candidate_count' | 'days_since_opened' | 'conversion_rate' | 'created_at';
+type SortKey = 'title' | 'company_name' | 'status' | 'candidate_count' | 'days_since_opened' | 'conversion_rate' | 'created_at' | 'urgency_score';
 type SortDirection = 'asc' | 'desc';
 
 const SortableHeader = memo(({
@@ -136,6 +146,8 @@ const JobTableRow = memo(({
   job,
   isSelected,
   isFocused,
+  isAdmin,
+  urgencyResult,
   onToggleSelect,
   onNavigate,
   onPublish,
@@ -148,6 +160,8 @@ const JobTableRow = memo(({
   job: JobWithMetrics;
   isSelected: boolean;
   isFocused: boolean;
+  isAdmin: boolean;
+  urgencyResult: UrgencyScoreResult;
   onToggleSelect: () => void;
   onNavigate: () => void;
   onPublish: () => void;
@@ -261,6 +275,16 @@ const JobTableRow = memo(({
         )}
       </TableCell>
 
+      {/* Urgency */}
+      <TableCell className="text-center">
+        <UrgencyMeter
+          jobId={job.id}
+          result={urgencyResult}
+          isAdmin={isAdmin}
+          size="sm"
+        />
+      </TableCell>
+
       {/* Created */}
       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
         {format(new Date(job.created_at), 'MMM d, yyyy')}
@@ -326,7 +350,7 @@ const JobTableRow = memo(({
 JobTableRow.displayName = 'JobTableRow';
 
 // Column visibility settings
-type ColumnKey = 'location' | 'status' | 'candidates' | 'days' | 'conversion' | 'progress' | 'created';
+type ColumnKey = 'location' | 'status' | 'candidates' | 'days' | 'conversion' | 'progress' | 'urgency' | 'created';
 
 interface ColumnConfig {
   key: ColumnKey;
@@ -341,6 +365,7 @@ const COLUMNS: ColumnConfig[] = [
   { key: 'days', label: 'Days Open', defaultVisible: true },
   { key: 'conversion', label: 'Conversion', defaultVisible: true },
   { key: 'progress', label: 'Progress', defaultVisible: false },
+  { key: 'urgency', label: 'Urgency', defaultVisible: true },
   { key: 'created', label: 'Created', defaultVisible: true },
 ];
 
@@ -372,6 +397,7 @@ export const JobTableView = memo(({
   onArchive,
   onRestore,
   isSelected,
+  isAdmin = false,
 }: JobTableViewProps) => {
   const [sortKey, setSortKey] = useState<SortKey | null>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -401,8 +427,37 @@ export const JobTableView = memo(({
     if (!sortKey) return jobs;
 
     return [...jobs].sort((a, b) => {
-      let aVal: any = a[sortKey];
-      let bVal: any = b[sortKey];
+      let aVal: any;
+      let bVal: any;
+
+      if (sortKey === 'urgency_score') {
+        // Compute urgency scores for sorting
+        const computeScore = (job: JobWithMetrics) => {
+          const lastActivityDaysAgo = job.last_activity
+            ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24))
+            : 999;
+          return computeJobUrgencyScore({
+            daysOpen: job.days_since_opened,
+            expectedCloseDate: job.expected_close_date,
+            expectedStartDate: job.expected_start_date,
+            urgency: job.urgency,
+            hiredCount: job.hired_count,
+            targetHireCount: job.target_hire_count,
+            isContinuous: job.is_continuous,
+            dealHealthScore: job.deal_health_score,
+            candidateCount: job.candidate_count,
+            activeCount: job.active_stage_count,
+            conversionRate: job.conversion_rate,
+            lastActivityDaysAgo,
+            manualScore: job.urgency_score_manual,
+          }).effectiveScore;
+        };
+        aVal = computeScore(a);
+        bVal = computeScore(b);
+      } else {
+        aVal = a[sortKey as keyof JobWithMetrics];
+        bVal = b[sortKey as keyof JobWithMetrics];
+      }
 
       // Handle nulls
       if (aVal === null) aVal = sortDirection === 'asc' ? Infinity : -Infinity;
@@ -423,6 +478,32 @@ export const JobTableView = memo(({
       }
     });
   }, [jobs, sortKey, sortDirection]);
+
+  // Pre-compute urgency scores for all jobs
+  const urgencyScores = useMemo(() => {
+    const map = new Map<string, UrgencyScoreResult>();
+    for (const job of sortedJobs) {
+      const lastActivityDaysAgo = job.last_activity
+        ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      map.set(job.id, computeJobUrgencyScore({
+        daysOpen: job.days_since_opened,
+        expectedCloseDate: job.expected_close_date,
+        expectedStartDate: job.expected_start_date,
+        urgency: job.urgency,
+        hiredCount: job.hired_count,
+        targetHireCount: job.target_hire_count,
+        isContinuous: job.is_continuous,
+        dealHealthScore: job.deal_health_score,
+        candidateCount: job.candidate_count,
+        activeCount: job.active_stage_count,
+        conversionRate: job.conversion_rate,
+        lastActivityDaysAgo,
+        manualScore: job.urgency_score_manual,
+      }));
+    }
+    return map;
+  }, [sortedJobs]);
 
   // Virtualization for large datasets
   const { parentRef, virtualItems, totalSize, getItem } = useVirtualizedTable({
@@ -498,6 +579,16 @@ export const JobTableView = memo(({
               />
             )}
             {columnVisibility.progress && <TableHead className="text-center">Progress</TableHead>}
+            {columnVisibility.urgency && (
+              <SortableHeader
+                label="Urgency"
+                sortKey="urgency_score"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                className="text-center"
+              />
+            )}
             {columnVisibility.created && (
               <SortableHeader
                 label="Created"
@@ -539,6 +630,8 @@ export const JobTableView = memo(({
               job={job}
               isSelected={isSelected(job.id)}
               isFocused={focusedIndex === index}
+              isAdmin={isAdmin}
+              urgencyResult={urgencyScores.get(job.id)!}
               onToggleSelect={() => onToggleSelect(job.id)}
               onNavigate={() => onNavigate(job.id)}
               onPublish={() => onPublish(job.id, job.title)}

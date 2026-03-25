@@ -77,6 +77,13 @@ interface JobWithMetrics {
   is_continuous: boolean;
   hired_count: number;
   target_hire_count: number | null;
+  urgency_score_manual?: number | null;
+  urgency_score_manual_set_by?: string | null;
+  urgency_score_manual_set_at?: string | null;
+  expected_close_date?: string | null;
+  expected_start_date?: string | null;
+  urgency?: string | null;
+  deal_health_score?: number | null;
 }
 
 interface CompanyMetrics {
@@ -160,6 +167,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           is_continuous,
           hired_count,
           target_hire_count,
+          urgency_score_manual,
+          urgency_score_manual_set_by,
+          urgency_score_manual_set_at,
+          expected_close_date,
+          expected_start_date,
+          urgency,
+          deal_health_score,
           companies (
             name,
             logo_url
@@ -255,6 +269,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           is_continuous: job.is_continuous || false,
           hired_count: job.hired_count || 0,
           target_hire_count: job.target_hire_count,
+          urgency_score_manual: job.urgency_score_manual ?? null,
+          urgency_score_manual_set_by: job.urgency_score_manual_set_by ?? null,
+          urgency_score_manual_set_at: job.urgency_score_manual_set_at ?? null,
+          expected_close_date: job.expected_close_date ?? null,
+          expected_start_date: job.expected_start_date ?? null,
+          urgency: job.urgency ?? null,
+          deal_health_score: job.deal_health_score ?? null,
         };
       });
 
@@ -887,6 +908,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       isSelected={isSelected(job.id)}
                       isFocused={focusedIndex === index}
                       isFavorite={isFavorite(job.id)}
+                      isAdmin={isAdmin}
                       onToggleSelect={() => toggleJob(job.id)}
                       onNavigate={() => navigate(`/jobs/${job.id}/dashboard`)}
                       onPublish={() => handlePublishJob(job.id, job.title)}
@@ -967,6 +989,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                   onArchive={handleArchiveJob}
                   onRestore={handleRestoreJob}
                   isSelected={isSelected}
+                  isAdmin={isAdmin}
                 />
               )}
             </>

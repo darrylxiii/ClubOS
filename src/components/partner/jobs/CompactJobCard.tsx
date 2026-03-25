@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,8 @@ import { JobStatusBadge, JobStatus } from '@/components/jobs/JobStatusBadge';
 import { ClubSyncBadge } from '@/components/jobs/ClubSyncBadge';
 import { NextActionBadge } from '@/components/jobs/NextActionBadge';
 import { JobLocationDisplay, type JobLocationItem } from '@/components/jobs/JobLocationDisplay';
+import { UrgencyMeter } from '@/components/jobs/UrgencyMeter';
+import { computeJobUrgencyScore } from '@/lib/jobUrgencyScore';
 
 interface CompactJobCardProps {
   job: {
@@ -64,10 +66,18 @@ interface CompactJobCardProps {
     last_activity: string | null;
     hired_count?: number;
     target_hire_count?: number | null;
+    urgency_score_manual?: number | null;
+    urgency_score_manual_set_by?: string | null;
+    urgency_score_manual_set_at?: string | null;
+    expected_close_date?: string | null;
+    expected_start_date?: string | null;
+    urgency?: string | null;
+    deal_health_score?: number | null;
   };
   isSelected: boolean;
   isFocused: boolean;
   isFavorite?: boolean;
+  isAdmin?: boolean;
   onToggleSelect: () => void;
   onNavigate: () => void;
   onPublish: () => void;
@@ -174,6 +184,7 @@ export const CompactJobCard = memo(({
   isSelected,
   isFocused,
   isFavorite = false,
+  isAdmin = false,
   onToggleSelect,
   onNavigate,
   onPublish,
@@ -186,6 +197,26 @@ export const CompactJobCard = memo(({
 }: CompactJobCardProps) => {
   const nextAction = getNextAction(job);
   const trendData = generateTrendData(job.candidate_count, job.days_since_opened);
+
+  const lastActivityDaysAgo = job.last_activity
+    ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24))
+    : 999;
+
+  const urgencyResult = useMemo(() => computeJobUrgencyScore({
+    daysOpen: job.days_since_opened,
+    expectedCloseDate: job.expected_close_date,
+    expectedStartDate: job.expected_start_date,
+    urgency: job.urgency,
+    hiredCount: job.hired_count,
+    targetHireCount: job.target_hire_count,
+    isContinuous: false,
+    dealHealthScore: job.deal_health_score,
+    candidateCount: job.candidate_count,
+    activeCount: job.active_stage_count,
+    conversionRate: job.conversion_rate,
+    lastActivityDaysAgo,
+    manualScore: job.urgency_score_manual,
+  }), [job, lastActivityDaysAgo]);
 
   const getDaysColor = (days: number) => {
     if (days > 45) return 'text-destructive';
@@ -357,11 +388,19 @@ export const CompactJobCard = memo(({
           </div>
         </div>
 
-        {/* Row 2: Badges (horizontal layout - same sizing) */}
+        {/* Row 2: Badges + Urgency Meter */}
         <div className="flex items-center gap-2 flex-wrap">
           <JobStatusBadge status={job.status as JobStatus} size="sm" />
           <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
           <NextActionBadge action={nextAction} size="sm" />
+          <div className="ml-auto">
+            <UrgencyMeter
+              jobId={job.id}
+              result={urgencyResult}
+              isAdmin={isAdmin}
+              size="sm"
+            />
+          </div>
         </div>
       </CardHeader>
 

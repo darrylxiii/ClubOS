@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Lock, ExternalLink } from "lucide-react";
 import { JobStatusBadge, JobStatus } from "@/components/jobs/JobStatusBadge";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { UrgencyBadge } from "@/components/jobs/UrgencyBadge";
+import { UrgencyMeter } from "@/components/jobs/UrgencyMeter";
+import { computeJobUrgencyScore } from "@/lib/jobUrgencyScore";
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
@@ -27,6 +29,14 @@ interface JobCardHeaderProps {
   daysOpen?: number;
   lastActivityDaysAgo?: number;
   applicantsCount?: number;
+  isAdmin?: boolean;
+  urgencyScoreManual?: number | null;
+  expectedCloseDate?: string | null;
+  expectedStartDate?: string | null;
+  urgency?: string | null;
+  dealHealthScore?: number | null;
+  conversionRate?: number | null;
+  jobId?: string;
 }
 
 export const JobCardHeader = memo(({
@@ -43,7 +53,27 @@ export const JobCardHeader = memo(({
   daysOpen = 0,
   lastActivityDaysAgo = 0,
   applicantsCount = 0,
+  isAdmin = false,
+  urgencyScoreManual,
+  expectedCloseDate,
+  expectedStartDate,
+  urgency,
+  dealHealthScore,
+  conversionRate,
+  jobId,
 }: JobCardHeaderProps) => {
+  const urgencyResult = useMemo(() => computeJobUrgencyScore({
+    daysOpen,
+    expectedCloseDate,
+    expectedStartDate,
+    urgency,
+    dealHealthScore,
+    candidateCount: applicantsCount,
+    activeCount: 0,
+    conversionRate: conversionRate ?? null,
+    lastActivityDaysAgo,
+    manualScore: urgencyScoreManual,
+  }), [daysOpen, expectedCloseDate, expectedStartDate, urgency, dealHealthScore, applicantsCount, conversionRate, lastActivityDaysAgo, urgencyScoreManual]);
   return (
     <div className="flex items-center gap-3 flex-1">
       <Avatar className="h-12 w-12 border-2 border-border/20 shrink-0">
@@ -87,12 +117,14 @@ export const JobCardHeader = memo(({
             targetHireCount={targetHireCount}
             size="sm"
           />
-          <UrgencyBadge
-            daysOpen={daysOpen}
-            lastActivityDaysAgo={lastActivityDaysAgo}
-            applicantsCount={applicantsCount}
-            size="sm"
-          />
+          {jobId && (
+            <UrgencyMeter
+              jobId={jobId}
+              result={urgencyResult}
+              isAdmin={isAdmin}
+              size="sm"
+            />
+          )}
           {isStealth && (
             <TooltipProvider>
               <Tooltip>
