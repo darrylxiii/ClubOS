@@ -46,6 +46,29 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
     },
   });
 
+  // Realtime subscription for live task updates
+  useEffect(() => {
+    const channel = supabase
+      .channel(`job-tasks-${jobId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'unified_tasks',
+          filter: `job_id=eq.${jobId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["job-tasks", jobId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [jobId, queryClient]);
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ taskId, status }: { taskId: string; status: string }) => {
       const { error } = await supabase
