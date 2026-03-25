@@ -54,6 +54,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
   const [addingCompany, setAddingCompany] = useState(false);
   const [newCompanyId, setNewCompanyId] = useState("");
   const [newCompanyRole, setNewCompanyRole] = useState("member");
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const { data: userData } = useQuery({
     queryKey: ["user-edit-drawer", userId],
