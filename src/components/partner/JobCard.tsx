@@ -28,6 +28,20 @@ import { useQuery } from "@tanstack/react-query";
 export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) => {
   const [isRecruiting, setIsRecruiting] = useState(false);
 
+  const { data: taskSummary } = useQuery({
+    queryKey: ["job-task-summary", job.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unified_tasks")
+        .select("status")
+        .eq("job_id", job.id);
+      if (error) throw error;
+      const total = data?.length || 0;
+      const done = data?.filter((t: any) => t.status === "completed").length || 0;
+      return { total, done };
+    },
+  });
+
   const handleAutoRecruit = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsRecruiting(true);
