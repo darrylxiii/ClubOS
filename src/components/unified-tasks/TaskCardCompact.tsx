@@ -14,6 +14,8 @@ import {
   Lock,
   Link2,
   CircleCheck,
+  Briefcase,
+  Building2,
 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { cn } from "@/lib/utils";

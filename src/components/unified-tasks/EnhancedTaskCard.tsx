@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Building2 } from "lucide-react";
 import { useUnifiedTasks, UnifiedTask } from "@/contexts/UnifiedTasksContext";
 
 interface EnhancedTaskCardProps {
