@@ -397,6 +397,7 @@ export const JobTableView = memo(({
   onArchive,
   onRestore,
   isSelected,
+  isAdmin = false,
 }: JobTableViewProps) => {
   const [sortKey, setSortKey] = useState<SortKey | null>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
