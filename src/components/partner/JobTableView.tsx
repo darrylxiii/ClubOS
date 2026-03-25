@@ -48,6 +48,8 @@ import { JobStatusBadge, JobStatus } from '@/components/jobs/JobStatusBadge';
 import { VirtualizedList } from '@/components/ui/VirtualizedList';
 import { useVirtualizedTable } from '@/hooks/useVirtualizedList';
 import { format } from 'date-fns';
+import { UrgencyMeter } from '@/components/jobs/UrgencyMeter';
+import { computeJobUrgencyScore, type UrgencyScoreResult } from '@/lib/jobUrgencyScore';
 
 interface JobWithMetrics {
   id: string;
