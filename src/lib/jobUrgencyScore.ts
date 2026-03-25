@@ -176,6 +176,13 @@ export function getUrgencyScoreColor(score: number): {
   };
 }
 
+/** Raw HSL color for urgency accent (for inline styles) */
+export function getUrgencyAccentHsl(score: number): string {
+  if (score >= 7) return 'hsl(0, 72%, 51%)';     // red-500
+  if (score >= 4) return 'hsl(38, 92%, 50%)';     // amber-500
+  return 'hsl(160, 84%, 39%)';                     // emerald-500
+}
+
 /** Label for urgency level */
 export function getUrgencyLabel(score: number): string {
   if (score >= 8) return 'Critical';

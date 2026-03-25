@@ -43,7 +43,7 @@ import { ClubSyncBadge } from '@/components/jobs/ClubSyncBadge';
 import { NextActionBadge } from '@/components/jobs/NextActionBadge';
 import { JobLocationDisplay, type JobLocationItem } from '@/components/jobs/JobLocationDisplay';
 import { UrgencyMeter } from '@/components/jobs/UrgencyMeter';
-import { computeJobUrgencyScore } from '@/lib/jobUrgencyScore';
+import { computeJobUrgencyScore, getUrgencyAccentHsl } from '@/lib/jobUrgencyScore';
 
 interface CompactJobCardProps {
   job: {
@@ -247,7 +247,7 @@ export const CompactJobCard = memo(({
   return (
     <Card
       className={cn(
-        'relative group cursor-pointer transition-all duration-200',
+        'relative group cursor-pointer transition-all duration-200 overflow-hidden',
         'border border-border/30 bg-card/40 backdrop-blur-sm',
         'hover:border-border/50 hover:bg-card/50 hover:shadow-lg',
         isSelected && 'ring-2 ring-primary border-primary/50',
@@ -255,6 +255,11 @@ export const CompactJobCard = memo(({
       )}
       onClick={onNavigate}
     >
+      {/* Urgency accent bar */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+        style={{ backgroundColor: getUrgencyAccentHsl(urgencyResult.effectiveScore) }}
+      />
       <CardHeader className="pb-3 space-y-3">
         {/* Row 1: Checkbox + Logo + Title/Company/Location + Favorite + Menu */}
         <div className="flex items-start gap-3">
@@ -273,13 +278,24 @@ export const CompactJobCard = memo(({
             />
           </div>
 
-          {/* Company Logo */}
-          <Avatar className="h-12 w-12 border border-border/30 shrink-0">
-            <AvatarImage src={job.company_logo || undefined} alt={job.company_name} />
-            <AvatarFallback className="bg-muted text-foreground text-sm font-medium">
-              {job.company_name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          {/* Company Logo + Urgency Dot */}
+          <div className="relative shrink-0">
+            <Avatar className="h-12 w-12 border border-border/30">
+              <AvatarImage src={job.company_logo || undefined} alt={job.company_name} />
+              <AvatarFallback className="bg-muted text-foreground text-sm font-medium">
+                {job.company_name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -top-1.5 -right-1.5">
+              <UrgencyMeter
+                jobId={job.id}
+                result={urgencyResult}
+                isAdmin={isAdmin}
+                size="sm"
+                variant="dot"
+              />
+            </div>
+          </div>
 
           {/* Title + Company + Location - Full text, no truncation */}
           <div className="flex-1 min-w-0">
@@ -393,14 +409,6 @@ export const CompactJobCard = memo(({
           <JobStatusBadge status={job.status as JobStatus} size="sm" />
           <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
           <NextActionBadge action={nextAction} size="sm" />
-          <div className="ml-auto">
-            <UrgencyMeter
-              jobId={job.id}
-              result={urgencyResult}
-              isAdmin={isAdmin}
-              size="sm"
-            />
-          </div>
         </div>
       </CardHeader>
 
