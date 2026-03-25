@@ -213,8 +213,8 @@ export const CreateUnifiedTaskDialog = ({
           objective_id: effectiveObjectiveId,
           project_id: selectedProject || null,
           board_id: currentBoard?.id || null,
-          job_id: jobId || null,
-          company_id: companyId || null,
+          job_id: effectiveJobId,
+          company_id: effectiveCompanyId,
           user_id: user.id,
           created_by: user.id,
         }])
