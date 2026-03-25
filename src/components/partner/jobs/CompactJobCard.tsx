@@ -278,13 +278,24 @@ export const CompactJobCard = memo(({
             />
           </div>
 
-          {/* Company Logo */}
-          <Avatar className="h-12 w-12 border border-border/30 shrink-0">
-            <AvatarImage src={job.company_logo || undefined} alt={job.company_name} />
-            <AvatarFallback className="bg-muted text-foreground text-sm font-medium">
-              {job.company_name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          {/* Company Logo + Urgency Dot */}
+          <div className="relative shrink-0">
+            <Avatar className="h-12 w-12 border border-border/30">
+              <AvatarImage src={job.company_logo || undefined} alt={job.company_name} />
+              <AvatarFallback className="bg-muted text-foreground text-sm font-medium">
+                {job.company_name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -top-1.5 -right-1.5">
+              <UrgencyMeter
+                jobId={job.id}
+                result={urgencyResult}
+                isAdmin={isAdmin}
+                size="sm"
+                variant="dot"
+              />
+            </div>
+          </div>
 
           {/* Title + Company + Location - Full text, no truncation */}
           <div className="flex-1 min-w-0">
