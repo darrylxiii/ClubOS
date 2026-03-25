@@ -97,7 +97,7 @@ interface JobTableViewProps {
   isAdmin?: boolean;
 }
 
-type SortKey = 'title' | 'company_name' | 'status' | 'candidate_count' | 'days_since_opened' | 'conversion_rate' | 'created_at';
+type SortKey = 'title' | 'company_name' | 'status' | 'candidate_count' | 'days_since_opened' | 'conversion_rate' | 'created_at' | 'urgency_score';
 type SortDirection = 'asc' | 'desc';
 
 const SortableHeader = memo(({
