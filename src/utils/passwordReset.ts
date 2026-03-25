@@ -44,7 +44,7 @@ export const hasCommonPattern = (password: string): boolean => {
  */
 export const validatePasswordStrength = (password: string) => {
   const requirements = {
-    minLength: password.length >= 12,
+    minLength: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /[0-9]/.test(password),
@@ -55,11 +55,11 @@ export const validatePasswordStrength = (password: string) => {
   const metCount = Object.values(requirements).filter(Boolean).length;
   
   let strength: 'weak' | 'medium' | 'strong' = 'weak';
-  if (metCount === 6) strength = 'strong';
-  else if (metCount >= 4) strength = 'medium';
+  if (metCount >= 5) strength = 'strong';
+  else if (metCount >= 3) strength = 'medium';
 
   return {
-    valid: metCount === 6,
+    valid: requirements.minLength && metCount >= 4,
     strength,
     requirements,
     missing: Object.keys(requirements).filter(
