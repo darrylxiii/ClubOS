@@ -53,7 +53,27 @@ export const JobCardHeader = memo(({
   daysOpen = 0,
   lastActivityDaysAgo = 0,
   applicantsCount = 0,
+  isAdmin = false,
+  urgencyScoreManual,
+  expectedCloseDate,
+  expectedStartDate,
+  urgency,
+  dealHealthScore,
+  conversionRate,
+  jobId,
 }: JobCardHeaderProps) => {
+  const urgencyResult = useMemo(() => computeJobUrgencyScore({
+    daysOpen,
+    expectedCloseDate,
+    expectedStartDate,
+    urgency,
+    dealHealthScore,
+    candidateCount: applicantsCount,
+    activeCount: 0,
+    conversionRate: conversionRate ?? null,
+    lastActivityDaysAgo,
+    manualScore: urgencyScoreManual,
+  }), [daysOpen, expectedCloseDate, expectedStartDate, urgency, dealHealthScore, applicantsCount, conversionRate, lastActivityDaysAgo, urgencyScoreManual]);
   return (
     <div className="flex items-center gap-3 flex-1">
       <Avatar className="h-12 w-12 border-2 border-border/20 shrink-0">

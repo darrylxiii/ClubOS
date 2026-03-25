@@ -989,6 +989,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                   onArchive={handleArchiveJob}
                   onRestore={handleRestoreJob}
                   isSelected={isSelected}
+                  isAdmin={isAdmin}
                 />
               )}
             </>
