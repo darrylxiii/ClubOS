@@ -42,6 +42,9 @@ export const CreateUnifiedTaskDialog = ({
   initialTitle = "",
   initialDescription = "",
   initialPriority = "medium",
+  jobId,
+  companyId,
+  jobTitle,
 }: CreateUnifiedTaskDialogProps) => {
   const { user } = useAuth();
   const { currentBoard } = useTaskBoard();
