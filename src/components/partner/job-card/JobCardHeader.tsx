@@ -117,12 +117,14 @@ export const JobCardHeader = memo(({
             targetHireCount={targetHireCount}
             size="sm"
           />
-          <UrgencyBadge
-            daysOpen={daysOpen}
-            lastActivityDaysAgo={lastActivityDaysAgo}
-            applicantsCount={applicantsCount}
-            size="sm"
-          />
+          {jobId && (
+            <UrgencyMeter
+              jobId={jobId}
+              result={urgencyResult}
+              isAdmin={isAdmin}
+              size="sm"
+            />
+          )}
           {isStealth && (
             <TooltipProvider>
               <Tooltip>
