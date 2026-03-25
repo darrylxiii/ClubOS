@@ -388,11 +388,19 @@ export const CompactJobCard = memo(({
           </div>
         </div>
 
-        {/* Row 2: Badges (horizontal layout - same sizing) */}
+        {/* Row 2: Badges + Urgency Meter */}
         <div className="flex items-center gap-2 flex-wrap">
           <JobStatusBadge status={job.status as JobStatus} size="sm" />
           <ClubSyncBadge status={job.club_sync_status as any} size="sm" />
           <NextActionBadge action={nextAction} size="sm" />
+          <div className="ml-auto">
+            <UrgencyMeter
+              jobId={job.id}
+              result={urgencyResult}
+              isAdmin={isAdmin}
+              size="sm"
+            />
+          </div>
         </div>
       </CardHeader>
 

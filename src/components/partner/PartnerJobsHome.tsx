@@ -908,6 +908,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       isSelected={isSelected(job.id)}
                       isFocused={focusedIndex === index}
                       isFavorite={isFavorite(job.id)}
+                      isAdmin={isAdmin}
                       onToggleSelect={() => toggleJob(job.id)}
                       onNavigate={() => navigate(`/jobs/${job.id}/dashboard`)}
                       onPublish={() => handlePublishJob(job.id, job.title)}
