@@ -76,12 +76,26 @@ export const JobCardHeader = memo(({
   }), [daysOpen, expectedCloseDate, expectedStartDate, urgency, dealHealthScore, applicantsCount, conversionRate, lastActivityDaysAgo, urgencyScoreManual]);
   return (
     <div className="flex items-center gap-3 flex-1">
-      <Avatar className="h-12 w-12 border-2 border-border/20 shrink-0">
-        <AvatarImage src={companyLogo || undefined} alt={companyName} />
-        <AvatarFallback className="bg-card/40 text-foreground font-bold">
-          {companyName.substring(0, 2).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
+      {/* Avatar with urgency dot overlay */}
+      <div className="relative shrink-0">
+        <Avatar className="h-12 w-12 border-2 border-border/20">
+          <AvatarImage src={companyLogo || undefined} alt={companyName} />
+          <AvatarFallback className="bg-card/40 text-foreground font-bold">
+            {companyName.substring(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        {jobId && (
+          <div className="absolute -top-1.5 -right-1.5">
+            <UrgencyMeter
+              jobId={jobId}
+              result={urgencyResult}
+              isAdmin={isAdmin}
+              size="sm"
+              variant="dot"
+            />
+          </div>
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <CardTitle className="text-lg font-black uppercase mb-1 truncate">
