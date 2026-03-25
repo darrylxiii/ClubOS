@@ -43,14 +43,14 @@ export const PartnerTaskRequestDialog = ({
 
     setLoading(true);
     try {
-      // Find an admin to assign to
+      // Find all admins/strategists to notify
       const { data: admins } = await supabase
         .from("user_roles")
         .select("user_id")
-        .in("role", ["admin", "strategist"])
-        .limit(1);
+        .in("role", ["admin", "strategist"]);
 
-      const adminId = admins?.[0]?.user_id;
+      const adminIds = (admins || []).map((a: any) => a.user_id);
+      const primaryAdminId = adminIds[0];
 
       // Create the task
       const { data: task, error } = await supabase
