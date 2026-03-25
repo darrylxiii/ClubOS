@@ -135,8 +135,8 @@ export function UnifiedTasksProvider({
   }, [user, currentBoard?.id]);
 
   useEffect(() => {
-    loadTasks(objectiveId);
-  }, [objectiveId, refreshKey, loadTasks]);
+    loadTasks(objectiveId, currentBoard?.id);
+  }, [objectiveId, refreshKey, loadTasks, currentBoard?.id]);
 
   const refreshTasks = useCallback(() => {
     setRefreshKey(prev => prev + 1);
