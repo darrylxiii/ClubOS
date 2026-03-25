@@ -269,6 +269,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           is_continuous: job.is_continuous || false,
           hired_count: job.hired_count || 0,
           target_hire_count: job.target_hire_count,
+          urgency_score_manual: job.urgency_score_manual ?? null,
+          urgency_score_manual_set_by: job.urgency_score_manual_set_by ?? null,
+          urgency_score_manual_set_at: job.urgency_score_manual_set_at ?? null,
+          expected_close_date: job.expected_close_date ?? null,
+          expected_start_date: job.expected_start_date ?? null,
+          urgency: job.urgency ?? null,
+          deal_health_score: job.deal_health_score ?? null,
         };
       });
 
