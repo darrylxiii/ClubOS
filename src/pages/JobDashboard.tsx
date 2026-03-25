@@ -253,6 +253,9 @@ export default function JobDashboard() {
                 <Badge variant="secondary" className="ml-1.5 h-4 text-[10px] px-1.5">{rejectedCount}</Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs data-[state=active]:bg-background/60">
+              Tasks
+            </TabsTrigger>
             {(role === 'admin' || role === 'strategist') && (
               <TabsTrigger value="more" className="text-xs data-[state=active]:bg-background/60">
                 More
