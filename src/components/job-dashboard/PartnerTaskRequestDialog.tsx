@@ -74,12 +74,13 @@ export const PartnerTaskRequestDialog = ({
 
       if (error) throw error;
 
-      // Assign to admin
-      if (task && adminId) {
-        await supabase.from("unified_task_assignees").insert({
+      // Assign to all admins/strategists so everyone gets notified via trigger
+      if (task && adminIds.length > 0) {
+        const assigneeInserts = adminIds.map((aid: string) => ({
           task_id: task.id,
-          user_id: adminId,
-        });
+          user_id: aid,
+        }));
+        await supabase.from("unified_task_assignees").insert(assigneeInserts);
       }
 
       toast.success("Task request submitted. The team will review it shortly.");

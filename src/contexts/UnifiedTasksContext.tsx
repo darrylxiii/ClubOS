@@ -53,7 +53,7 @@ interface UnifiedTasksContextType {
   viewMode: 'board' | 'list' | 'calendar' | 'analytics';
   
   // Actions
-  loadTasks: (objectiveId?: string | null) => Promise<void>;
+  loadTasks: (objectiveId?: string | null, boardId?: string | null) => Promise<void>;
   refreshTasks: () => void;
   updateTask: (taskId: string, updates: Partial<UnifiedTask>) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;

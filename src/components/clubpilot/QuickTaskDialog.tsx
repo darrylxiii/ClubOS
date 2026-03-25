@@ -52,6 +52,8 @@ export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: Q
         task_type: "general",
         scheduling_mode: "manual",
         task_number: "",
+        job_id: jobId || null,
+        company_id: companyId || null,
       }).select("id").single();
 
       if (error) throw error;

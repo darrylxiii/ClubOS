@@ -31,6 +31,24 @@ import { JobDashboardStatsBar } from "@/components/job-dashboard/JobDashboardSta
 import { PipelineKanbanBoard } from "@/components/job-dashboard/PipelineKanbanBoard";
 import { InlineActivityFeed } from "@/components/job-dashboard/InlineActivityFeed";
 import { JobTasksPanel } from "@/components/job-dashboard/JobTasksPanel";
+import { useQuery } from "@tanstack/react-query";
+
+function TaskCountBadge({ jobId }: { jobId: string }) {
+  const { data: count } = useQuery({
+    queryKey: ["job-task-count", jobId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("unified_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("job_id", jobId)
+        .neq("status", "completed");
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+  if (!count) return null;
+  return <Badge variant="secondary" className="ml-1.5 h-4 text-[10px] px-1.5">{count}</Badge>;
+}
 import { InlineDocumentsCard } from "@/components/job-dashboard/InlineDocumentsCard";
 import { EmailDumpTab } from "@/components/jobs/email-dump";
 import { JobInterviewRecordingsPanel } from "@/components/partner/JobInterviewRecordingsPanel";
