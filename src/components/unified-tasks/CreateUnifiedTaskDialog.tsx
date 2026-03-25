@@ -165,8 +165,11 @@ export const CreateUnifiedTaskDialog = ({
     setLoading(true);
     try {
       // Auto-create objective for job if needed
+      const effectiveJobId = selectedJobId || jobId || null;
+      const effectiveCompanyId = selectedCompanyId || companyId || null;
+      const effectiveJobTitle = effectiveJobId ? (availableJobs.find((j: any) => j.id === effectiveJobId)?.title || jobTitle || 'Job') : null;
       let effectiveObjectiveId = selectedObjective || null;
-      if (jobId && !effectiveObjectiveId) {
+      if (effectiveJobId && !effectiveObjectiveId) {
         // Check if an objective already exists for this job
         const { data: existingObj } = await supabase
           .from("club_objectives")
