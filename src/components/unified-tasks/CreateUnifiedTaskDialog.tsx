@@ -82,10 +82,10 @@ export const CreateUnifiedTaskDialog = ({
   useEffect(() => {
     if (open) {
       loadProfiles();
-
       loadObjectives();
       loadProjects();
       loadTasks();
+      if (!jobId) loadAvailableJobs();
       setAssignToSelf(true);
       setSelectedAssignees([]);
       setShowAssignOthers(false);
