@@ -49,17 +49,16 @@ export const validatePasswordStrength = (password: string) => {
     lowercase: /[a-z]/.test(password),
     number: /[0-9]/.test(password),
     special: /[^A-Za-z0-9]/.test(password),
-    noCommonPattern: !hasCommonPattern(password),
   };
 
   const metCount = Object.values(requirements).filter(Boolean).length;
   
   let strength: 'weak' | 'medium' | 'strong' = 'weak';
-  if (metCount >= 5) strength = 'strong';
+  if (metCount >= 4) strength = 'strong';
   else if (metCount >= 3) strength = 'medium';
 
   return {
-    valid: requirements.minLength && metCount >= 4,
+    valid: requirements.minLength && metCount >= 3,
     strength,
     requirements,
     missing: Object.keys(requirements).filter(
