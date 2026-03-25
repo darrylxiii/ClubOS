@@ -38,9 +38,10 @@ Deno.serve(async (req) => {
     // Service client for DB operations
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Check admin role
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
-    if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
+    // Check admin role via user_roles table
+    const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', userId);
+    const userRoles = (roles || []).map((r: any) => r.role);
+    if (!userRoles.includes('admin') && !userRoles.includes('super_admin') && !userRoles.includes('strategist')) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
