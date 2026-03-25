@@ -13,7 +13,7 @@ import { JobStatusBadge, JobStatus } from "@/components/jobs/JobStatusBadge";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { UrgencyBadge } from "@/components/jobs/UrgencyBadge";
 import { UrgencyMeter } from "@/components/jobs/UrgencyMeter";
-import { computeJobUrgencyScore } from "@/lib/jobUrgencyScore";
+import { computeJobUrgencyScore, getUrgencyAccentHsl } from "@/lib/jobUrgencyScore";
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
