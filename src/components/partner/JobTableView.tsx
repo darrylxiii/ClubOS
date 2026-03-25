@@ -275,6 +275,16 @@ const JobTableRow = memo(({
         )}
       </TableCell>
 
+      {/* Urgency */}
+      <TableCell className="text-center">
+        <UrgencyMeter
+          jobId={job.id}
+          result={urgencyResult}
+          isAdmin={isAdmin}
+          size="sm"
+        />
+      </TableCell>
+
       {/* Created */}
       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
         {format(new Date(job.created_at), 'MMM d, yyyy')}
