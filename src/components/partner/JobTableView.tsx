@@ -365,6 +365,7 @@ const COLUMNS: ColumnConfig[] = [
   { key: 'days', label: 'Days Open', defaultVisible: true },
   { key: 'conversion', label: 'Conversion', defaultVisible: true },
   { key: 'progress', label: 'Progress', defaultVisible: false },
+  { key: 'urgency', label: 'Urgency', defaultVisible: true },
   { key: 'created', label: 'Created', defaultVisible: true },
 ];
 
