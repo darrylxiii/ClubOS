@@ -306,6 +306,10 @@ export const CreateUnifiedTaskDialog = ({
 
     setSelectedObjective(undefined);
     setSelectedProject(undefined);
+    if (!jobId) {
+      setSelectedJobId(undefined);
+      setSelectedCompanyId(undefined);
+    }
   };
 
   const toggleAssignee = (userId: string) => {
