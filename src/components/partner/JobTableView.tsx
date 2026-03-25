@@ -350,7 +350,7 @@ const JobTableRow = memo(({
 JobTableRow.displayName = 'JobTableRow';
 
 // Column visibility settings
-type ColumnKey = 'location' | 'status' | 'candidates' | 'days' | 'conversion' | 'progress' | 'created';
+type ColumnKey = 'location' | 'status' | 'candidates' | 'days' | 'conversion' | 'progress' | 'urgency' | 'created';
 
 interface ColumnConfig {
   key: ColumnKey;
