@@ -184,6 +184,7 @@ export const CompactJobCard = memo(({
   isSelected,
   isFocused,
   isFavorite = false,
+  isAdmin = false,
   onToggleSelect,
   onNavigate,
   onPublish,
