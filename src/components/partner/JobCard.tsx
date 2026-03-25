@@ -22,10 +22,25 @@ interface JobCardProps {
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, CheckSquare } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) => {
   const [isRecruiting, setIsRecruiting] = useState(false);
+
+  const { data: taskSummary } = useQuery({
+    queryKey: ["job-task-summary", job.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unified_tasks")
+        .select("status")
+        .eq("job_id", job.id);
+      if (error) throw error;
+      const total = data?.length || 0;
+      const done = data?.filter((t: any) => t.status === "completed").length || 0;
+      return { total, done };
+    },
+  });
 
   const handleAutoRecruit = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -110,6 +125,12 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
             <Target className="w-4 h-4 shrink-0" />
             <span>{(Array.isArray(job.pipeline_stages) ? job.pipeline_stages.length : 0)} stages</span>
           </div>
+          {taskSummary && taskSummary.total > 0 && (
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-4 h-4 shrink-0" />
+              <span>{taskSummary.done}/{taskSummary.total} tasks done</span>
+            </div>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button

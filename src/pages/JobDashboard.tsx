@@ -30,6 +30,7 @@ import { JobDashboardHeader } from "@/components/job-dashboard/JobDashboardHeade
 import { JobDashboardStatsBar } from "@/components/job-dashboard/JobDashboardStatsBar";
 import { PipelineKanbanBoard } from "@/components/job-dashboard/PipelineKanbanBoard";
 import { InlineActivityFeed } from "@/components/job-dashboard/InlineActivityFeed";
+import { JobTasksPanel } from "@/components/job-dashboard/JobTasksPanel";
 import { InlineDocumentsCard } from "@/components/job-dashboard/InlineDocumentsCard";
 import { EmailDumpTab } from "@/components/jobs/email-dump";
 import { JobInterviewRecordingsPanel } from "@/components/partner/JobInterviewRecordingsPanel";
@@ -252,6 +253,9 @@ export default function JobDashboard() {
                 <Badge variant="secondary" className="ml-1.5 h-4 text-[10px] px-1.5">{rejectedCount}</Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs data-[state=active]:bg-background/60">
+              Tasks
+            </TabsTrigger>
             {(role === 'admin' || role === 'strategist') && (
               <TabsTrigger value="more" className="text-xs data-[state=active]:bg-background/60">
                 More
@@ -281,6 +285,10 @@ export default function JobDashboard() {
 
           <TabsContent value="rejected" className="space-y-4 mt-4">
             <RejectedCandidatesTab jobId={job.id} stages={stages} />
+          </TabsContent>
+
+          <TabsContent value="tasks" className="space-y-4 mt-4">
+            <JobTasksPanel jobId={job.id} companyId={job.company_id} jobTitle={job.title} />
           </TabsContent>
 
           {(role === 'admin' || role === 'strategist') && (

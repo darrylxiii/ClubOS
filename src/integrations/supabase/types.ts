@@ -9003,6 +9003,7 @@ export type Database = {
       }
       club_objectives: {
         Row: {
+          company_id: string | null
           completion_percentage: number | null
           created_at: string
           created_by: string | null
@@ -9011,6 +9012,7 @@ export type Database = {
           goals: string | null
           hard_deadline: string | null
           id: string
+          job_id: string | null
           milestone_type: string | null
           owners: string[] | null
           priority: string | null
@@ -9023,6 +9025,7 @@ export type Database = {
           visibility: string | null
         }
         Insert: {
+          company_id?: string | null
           completion_percentage?: number | null
           created_at?: string
           created_by?: string | null
@@ -9031,6 +9034,7 @@ export type Database = {
           goals?: string | null
           hard_deadline?: string | null
           id?: string
+          job_id?: string | null
           milestone_type?: string | null
           owners?: string[] | null
           priority?: string | null
@@ -9043,6 +9047,7 @@ export type Database = {
           visibility?: string | null
         }
         Update: {
+          company_id?: string | null
           completion_percentage?: number | null
           created_at?: string
           created_by?: string | null
@@ -9051,6 +9056,7 @@ export type Database = {
           goals?: string | null
           hard_deadline?: string | null
           id?: string
+          job_id?: string | null
           milestone_type?: string | null
           owners?: string[] | null
           priority?: string | null
@@ -9062,7 +9068,29 @@ export type Database = {
           updated_at?: string
           visibility?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "club_objectives_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_objectives_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_objectives_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       club_sync_requests: {
         Row: {
@@ -51368,6 +51396,7 @@ export type Database = {
           ai_confidence_score: number | null
           auto_scheduled: boolean | null
           board_id: string | null
+          company_id: string | null
           company_name: string | null
           completed_at: string | null
           created_at: string | null
@@ -51377,6 +51406,7 @@ export type Database = {
           estimated_duration_minutes: number | null
           id: string
           is_overdue: boolean | null
+          job_id: string | null
           last_activity_at: string | null
           legacy_club_task_id: string | null
           legacy_pilot_task_id: string | null
@@ -51407,6 +51437,7 @@ export type Database = {
           ai_confidence_score?: number | null
           auto_scheduled?: boolean | null
           board_id?: string | null
+          company_id?: string | null
           company_name?: string | null
           completed_at?: string | null
           created_at?: string | null
@@ -51416,6 +51447,7 @@ export type Database = {
           estimated_duration_minutes?: number | null
           id?: string
           is_overdue?: boolean | null
+          job_id?: string | null
           last_activity_at?: string | null
           legacy_club_task_id?: string | null
           legacy_pilot_task_id?: string | null
@@ -51446,6 +51478,7 @@ export type Database = {
           ai_confidence_score?: number | null
           auto_scheduled?: boolean | null
           board_id?: string | null
+          company_id?: string | null
           company_name?: string | null
           completed_at?: string | null
           created_at?: string | null
@@ -51455,6 +51488,7 @@ export type Database = {
           estimated_duration_minutes?: number | null
           id?: string
           is_overdue?: boolean | null
+          job_id?: string | null
           last_activity_at?: string | null
           legacy_club_task_id?: string | null
           legacy_pilot_task_id?: string | null
@@ -51494,6 +51528,27 @@ export type Database = {
             columns: ["board_id"]
             isOneToOne: false
             referencedRelation: "user_accessible_boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_tasks_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
           {
