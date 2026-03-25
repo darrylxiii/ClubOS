@@ -184,11 +184,11 @@ export const CreateUnifiedTaskDialog = ({
           const { data: newObj } = await supabase
             .from("club_objectives")
             .insert({
-              title: `Tasks for ${jobTitle || 'Job'}`,
+              title: `Tasks for ${effectiveJobTitle || 'Job'}`,
               status: "active",
               created_by: user.id,
-              job_id: jobId,
-              company_id: companyId || null,
+              job_id: effectiveJobId,
+              company_id: effectiveCompanyId,
             })
             .select("id")
             .single();
