@@ -550,6 +550,16 @@ export const JobTableView = memo(({
               />
             )}
             {columnVisibility.progress && <TableHead className="text-center">Progress</TableHead>}
+            {columnVisibility.urgency && (
+              <SortableHeader
+                label="Urgency"
+                sortKey="urgency_score"
+                currentSortKey={sortKey}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                className="text-center"
+              />
+            )}
             {columnVisibility.created && (
               <SortableHeader
                 label="Created"
