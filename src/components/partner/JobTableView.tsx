@@ -70,6 +70,13 @@ interface JobWithMetrics {
   is_continuous: boolean;
   hired_count: number;
   target_hire_count: number | null;
+  urgency_score_manual?: number | null;
+  urgency_score_manual_set_by?: string | null;
+  urgency_score_manual_set_at?: string | null;
+  expected_close_date?: string | null;
+  expected_start_date?: string | null;
+  urgency?: string | null;
+  deal_health_score?: number | null;
 }
 
 interface JobTableViewProps {
