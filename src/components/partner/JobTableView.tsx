@@ -427,8 +427,37 @@ export const JobTableView = memo(({
     if (!sortKey) return jobs;
 
     return [...jobs].sort((a, b) => {
-      let aVal: any = a[sortKey];
-      let bVal: any = b[sortKey];
+      let aVal: any;
+      let bVal: any;
+
+      if (sortKey === 'urgency_score') {
+        // Compute urgency scores for sorting
+        const computeScore = (job: JobWithMetrics) => {
+          const lastActivityDaysAgo = job.last_activity
+            ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24))
+            : 999;
+          return computeJobUrgencyScore({
+            daysOpen: job.days_since_opened,
+            expectedCloseDate: job.expected_close_date,
+            expectedStartDate: job.expected_start_date,
+            urgency: job.urgency,
+            hiredCount: job.hired_count,
+            targetHireCount: job.target_hire_count,
+            isContinuous: job.is_continuous,
+            dealHealthScore: job.deal_health_score,
+            candidateCount: job.candidate_count,
+            activeCount: job.active_stage_count,
+            conversionRate: job.conversion_rate,
+            lastActivityDaysAgo,
+            manualScore: job.urgency_score_manual,
+          }).effectiveScore;
+        };
+        aVal = computeScore(a);
+        bVal = computeScore(b);
+      } else {
+        aVal = a[sortKey as keyof JobWithMetrics];
+        bVal = b[sortKey as keyof JobWithMetrics];
+      }
 
       // Handle nulls
       if (aVal === null) aVal = sortDirection === 'asc' ? Infinity : -Infinity;
