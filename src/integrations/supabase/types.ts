@@ -57847,7 +57847,6 @@ export type Database = {
         Args: { p_job_id: string; p_limit?: number }
         Returns: undefined
       }
-      generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
       generate_weekly_timesheet: {
         Args: { p_user_id: string; p_week_start?: string }

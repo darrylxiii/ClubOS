@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarWidget } from "@/components/ui/calendar";
 import { format, formatDistanceToNow } from "date-fns";
-import { Calendar, Clock, Lock, Unlock, Target, ExternalLink, Users, Briefcase, CheckSquare, Plus, Building2 } from "lucide-react";
+import { Calendar, Clock, Lock, Unlock, Target, ExternalLink, Users, Briefcase, CheckSquare, Plus, Building2, Pencil } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { TaskComments } from "./TaskComments";
+import { InlineTaskEditor } from "./InlineTaskEditor";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -54,9 +57,11 @@ export const UnifiedTaskDetailSheet = ({
   onTaskUpdated,
   onStatusChange,
 }: UnifiedTaskDetailSheetProps) => {
+  const queryClient = useQueryClient();
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [localSubtasks, setLocalSubtasks] = useState<any[]>([]);
+  const [editingField, setEditingField] = useState<'title' | 'description' | null>(null);
 
   const taskId = task?.id;
   const isOpen = open && !!task;
@@ -124,7 +129,20 @@ export const UnifiedTaskDetailSheet = ({
     enabled: isOpen,
   });
 
-  // Merge server subtasks with local optimistic additions
+  const { data: activityLog = [] } = useQuery({
+    queryKey: ["task-activity", taskId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("task_activity" as any)
+        .select("*, profiles:user_id(full_name)")
+        .eq("task_id", taskId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return data || [];
+    },
+    enabled: isOpen,
+  });
+
   const subtasks = [...subtasksData, ...localSubtasks.filter(ls => !subtasksData.some((s: any) => s.id === ls.id))];
 
   const handleAddSubtask = async (e: React.FormEvent) => {
@@ -144,7 +162,26 @@ export const UnifiedTaskDetailSheet = ({
     if (error) { toast.error("Failed to update subtask"); }
     else {
       setLocalSubtasks(prev => prev.map(s => s.id === subtaskId ? { ...s, status: newStatus } : s));
+      queryClient.invalidateQueries({ queryKey: ["task-subtasks", taskId] });
     }
+  };
+
+  const handleInlineUpdate = async (field: string, value: string) => {
+    const { error } = await supabase.from("unified_tasks").update({ [field]: value, updated_at: new Date().toISOString() }).eq("id", taskId);
+    if (error) { toast.error(`Failed to update ${field}`); }
+    else { toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} updated`); onTaskUpdated(); }
+  };
+
+  const handlePriorityChange = async (newPriority: string) => {
+    const { error } = await supabase.from("unified_tasks").update({ priority: newPriority, updated_at: new Date().toISOString() }).eq("id", taskId);
+    if (error) { toast.error("Failed to update priority"); }
+    else { toast.success("Priority updated"); onTaskUpdated(); }
+  };
+
+  const handleDueDateChange = async (date: Date | undefined) => {
+    const { error } = await supabase.from("unified_tasks").update({ due_date: date ? date.toISOString() : null, updated_at: new Date().toISOString() }).eq("id", taskId);
+    if (error) { toast.error("Failed to update due date"); }
+    else { toast.success("Due date updated"); onTaskUpdated(); }
   };
 
   if (!task) return null;
@@ -166,7 +203,22 @@ export const UnifiedTaskDetailSheet = ({
                 Created {format(new Date(task.created_at), "MMM d, yyyy")}
               </span>
             </div>
-            <SheetTitle className="text-base font-semibold leading-snug">{task.title}</SheetTitle>
+            {editingField === 'title' ? (
+              <InlineTaskEditor
+                taskId={taskId}
+                field="title"
+                value={task.title}
+                onSave={() => { setEditingField(null); onTaskUpdated(); }}
+                onCancel={() => setEditingField(null)}
+              />
+            ) : (
+              <div className="group/title flex items-center gap-1.5">
+                <SheetTitle className="text-base font-semibold leading-snug flex-1">{task.title}</SheetTitle>
+                <button onClick={() => setEditingField('title')} className="opacity-0 group-hover/title:opacity-100 p-1 rounded hover:bg-muted transition-all">
+                  <Pencil className="h-3 w-3 text-muted-foreground" />
+                </button>
+              </div>
+            )}
           </div>
         </SheetHeader>
 
@@ -182,6 +234,9 @@ export const UnifiedTaskDetailSheet = ({
                   <Badge variant="secondary" className="h-4 px-1 text-[9px]">{completedSubtasks}/{subtasks.length}</Badge>
                 )}
               </div>
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="h-9 rounded-none border-b-2 border-transparent px-4 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent">
+              Activity
             </TabsTrigger>
             <TabsTrigger value="comments" className="h-9 rounded-none border-b-2 border-transparent px-4 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent">
               Comments
@@ -210,10 +265,24 @@ export const UnifiedTaskDetailSheet = ({
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center gap-1 text-xs text-muted-foreground capitalize">
-                <div className={cn("h-1.5 w-1.5 rounded-full", PRIORITY_DOT[task.priority] || "bg-muted-foreground")} />
-                {task.priority}
-              </div>
+              <Select value={task.priority} onValueChange={handlePriorityChange}>
+                <SelectTrigger className="h-7 w-auto gap-1.5 text-xs border-0 bg-transparent p-0 px-1 shadow-none">
+                  <div className="flex items-center gap-1 capitalize">
+                    <div className={cn("h-1.5 w-1.5 rounded-full", PRIORITY_DOT[task.priority] || "bg-muted-foreground")} />
+                    {task.priority}
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {["low", "medium", "high"].map((p) => (
+                    <SelectItem key={p} value={p}>
+                      <div className="flex items-center gap-1.5 capitalize">
+                        <div className={cn("h-1.5 w-1.5 rounded-full", PRIORITY_DOT[p])} />
+                        {p}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {timeInStatus && (
                 <span className="text-[10px] text-muted-foreground/60 ml-auto flex items-center gap-1">
@@ -276,14 +345,33 @@ export const UnifiedTaskDetailSheet = ({
             )}
 
             {/* Description */}
-            {task.description && (
-              <div>
-                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Description</h4>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Description</h4>
+                {!editingField && (
+                  <button onClick={() => setEditingField('description')} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5">
+                    <Pencil className="h-2.5 w-2.5" /> Edit
+                  </button>
+                )}
+              </div>
+              {editingField === 'description' ? (
+                <InlineTaskEditor
+                  taskId={taskId}
+                  field="description"
+                  value={task.description || ''}
+                  onSave={() => { setEditingField(null); onTaskUpdated(); }}
+                  onCancel={() => setEditingField(null)}
+                />
+              ) : task.description ? (
                 <div className="prose prose-sm prose-muted max-w-none text-xs leading-relaxed text-foreground/80">
                   <ReactMarkdown>{task.description}</ReactMarkdown>
                 </div>
-              </div>
-            )}
+              ) : (
+                <p className="text-xs text-muted-foreground/50 italic cursor-pointer hover:text-muted-foreground transition-colors" onClick={() => setEditingField('description')}>
+                  Click to add description...
+                </p>
+              )}
+            </div>
 
             {/* Owners */}
             {owners.length > 0 && (
@@ -348,14 +436,26 @@ export const UnifiedTaskDetailSheet = ({
                   <p className="text-xs font-medium">{format(new Date(task.scheduled_start), "MMM d, HH:mm")}</p>
                 </div>
               )}
-              {task.due_date && (
-                <div className="p-2.5 rounded-lg border border-border/30 bg-muted/20">
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
-                    <Calendar className="h-2.5 w-2.5" /> Due
-                  </div>
-                  <p className="text-xs font-medium">{format(new Date(task.due_date), "MMM d, yyyy")}</p>
+              <div className="p-2.5 rounded-lg border border-border/30 bg-muted/20">
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
+                  <Calendar className="h-2.5 w-2.5" /> Due Date
                 </div>
-              )}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-xs font-medium hover:text-primary transition-colors text-left">
+                      {task.due_date ? format(new Date(task.due_date), "MMM d, yyyy") : "Set due date..."}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarWidget
+                      mode="single"
+                      selected={task.due_date ? new Date(task.due_date) : undefined}
+                      onSelect={handleDueDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </TabsContent>
 
@@ -378,6 +478,37 @@ export const UnifiedTaskDetailSheet = ({
               <Input placeholder="Add subtask…" value={newSubtaskTitle} onChange={(e) => setNewSubtaskTitle(e.target.value)} className="bg-background text-xs h-8" />
               <Button type="submit" size="icon" className="h-8 w-8 shrink-0"><Plus className="h-3.5 w-3.5" /></Button>
             </form>
+          </TabsContent>
+
+          <TabsContent value="activity" className="flex-1 p-5 m-0 focus-visible:ring-0 overflow-y-auto">
+            {activityLog.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                <Clock className="h-6 w-6 mb-1.5 opacity-20" />
+                <p className="text-xs">No activity recorded yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {activityLog.map((entry: any) => (
+                  <div key={entry.id} className="flex items-start gap-2 p-2 rounded-lg border border-border/20 bg-card/50 text-[11px]">
+                    <div className={cn("h-1.5 w-1.5 rounded-full mt-1.5 shrink-0",
+                      entry.action === 'status_change' && entry.new_value === 'completed' ? "bg-emerald-500" :
+                      entry.action === 'status_change' ? "bg-amber-500" : "bg-blue-500"
+                    )} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-foreground">
+                        <span className="font-medium">{(entry.profiles as any)?.full_name || 'System'}</span>
+                        {' '}changed <span className="font-medium">{entry.field_name}</span>
+                        {' '}from <Badge variant="outline" className="text-[9px] h-4 px-1">{entry.old_value}</Badge>
+                        {' '}to <Badge variant="outline" className="text-[9px] h-4 px-1">{entry.new_value}</Badge>
+                      </p>
+                      <p className="text-muted-foreground text-[10px] mt-0.5">
+                        {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="comments" className="flex-1 p-5 m-0 focus-visible:ring-0 overflow-y-auto">

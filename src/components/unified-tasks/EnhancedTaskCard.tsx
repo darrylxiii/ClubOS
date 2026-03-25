@@ -166,18 +166,18 @@ export function EnhancedTaskCard({
         )}
 
         {/* Job/Company context */}
-        {(task as any).job || (task as any).company ? (
+        {task.job || task.company ? (
           <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-            {(task as any).job && (
+            {task.job && (
               <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 gap-0.5 text-primary/80 border-primary/20 bg-primary/5">
                 <Briefcase className="h-2.5 w-2.5" />
-                <span className="truncate max-w-[100px]">{(task as any).job.title}</span>
+                <span className="truncate max-w-[100px]">{task.job.title}</span>
               </Badge>
             )}
-            {(task as any).company && (
+            {task.company && (
               <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 gap-0.5 text-muted-foreground border-border/30">
                 <Building2 className="h-2.5 w-2.5" />
-                <span className="truncate max-w-[80px]">{(task as any).company.name}</span>
+                <span className="truncate max-w-[80px]">{task.company.name}</span>
               </Badge>
             )}
           </div>
