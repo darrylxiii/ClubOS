@@ -65,6 +65,9 @@ export const CreateUnifiedTaskDialog = ({
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [blockingTasks, setBlockingTasks] = useState<string[]>([]);
   const [blockedByTasks, setBlockedByTasks] = useState<string[]>([]);
+  const [availableJobs, setAvailableJobs] = useState<any[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | undefined>(jobId || undefined);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(companyId || undefined);
   const [formData, setFormData] = useState({
     title: initialTitle,
     description: initialDescription,
@@ -79,10 +82,10 @@ export const CreateUnifiedTaskDialog = ({
   useEffect(() => {
     if (open) {
       loadProfiles();
-
       loadObjectives();
       loadProjects();
       loadTasks();
+      if (!jobId) loadAvailableJobs();
       setAssignToSelf(true);
       setSelectedAssignees([]);
       setShowAssignOthers(false);
@@ -130,6 +133,16 @@ export const CreateUnifiedTaskDialog = ({
     if (data) setAllTasks(data);
   };
 
+  const loadAvailableJobs = async () => {
+    const { data } = await supabase
+      .from("jobs")
+      .select("id, title, company_id, companies(name)")
+      .in("status", ["open", "published", "active"])
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (data) setAvailableJobs(data);
+  };
+
   const loadProfiles = async () => {
     try {
       const { data, error } = await supabase
@@ -152,13 +165,16 @@ export const CreateUnifiedTaskDialog = ({
     setLoading(true);
     try {
       // Auto-create objective for job if needed
+      const effectiveJobId = selectedJobId || jobId || null;
+      const effectiveCompanyId = selectedCompanyId || companyId || null;
+      const effectiveJobTitle = effectiveJobId ? (availableJobs.find((j: any) => j.id === effectiveJobId)?.title || jobTitle || 'Job') : null;
       let effectiveObjectiveId = selectedObjective || null;
-      if (jobId && !effectiveObjectiveId) {
+      if (effectiveJobId && !effectiveObjectiveId) {
         // Check if an objective already exists for this job
         const { data: existingObj } = await supabase
           .from("club_objectives")
           .select("id")
-          .eq("job_id", jobId)
+          .eq("job_id", effectiveJobId)
           .maybeSingle();
 
         if (existingObj) {
@@ -168,11 +184,11 @@ export const CreateUnifiedTaskDialog = ({
           const { data: newObj } = await supabase
             .from("club_objectives")
             .insert({
-              title: `Tasks for ${jobTitle || 'Job'}`,
+              title: `Tasks for ${effectiveJobTitle || 'Job'}`,
               status: "active",
               created_by: user.id,
-              job_id: jobId,
-              company_id: companyId || null,
+              job_id: effectiveJobId,
+              company_id: effectiveCompanyId,
             })
             .select("id")
             .single();
@@ -197,8 +213,8 @@ export const CreateUnifiedTaskDialog = ({
           objective_id: effectiveObjectiveId,
           project_id: selectedProject || null,
           board_id: currentBoard?.id || null,
-          job_id: jobId || null,
-          company_id: companyId || null,
+          job_id: effectiveJobId,
+          company_id: effectiveCompanyId,
           user_id: user.id,
           created_by: user.id,
         }])
@@ -290,6 +306,10 @@ export const CreateUnifiedTaskDialog = ({
 
     setSelectedObjective(undefined);
     setSelectedProject(undefined);
+    if (!jobId) {
+      setSelectedJobId(undefined);
+      setSelectedCompanyId(undefined);
+    }
   };
 
   const toggleAssignee = (userId: string) => {
@@ -374,6 +394,44 @@ export const CreateUnifiedTaskDialog = ({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Link to Job — only shown when not pre-filled from Job Dashboard */}
+          {!jobId && (
+            <div>
+              <Label htmlFor="linked-job">Link to Job (Optional)</Label>
+              <Select
+                value={selectedJobId || "none"}
+                onValueChange={(val) => {
+                  const jid = val === "none" ? undefined : val;
+                  setSelectedJobId(jid);
+                  if (jid) {
+                    const foundJob = availableJobs.find((j: any) => j.id === jid);
+                    if (foundJob?.company_id) setSelectedCompanyId(foundJob.company_id);
+                  } else {
+                    setSelectedCompanyId(undefined);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a job" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="none">No job linked</SelectItem>
+                  {availableJobs.map((j: any) => (
+                    <SelectItem key={j.id} value={j.id}>
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-3 w-3 text-muted-foreground" />
+                        <span>{j.title}</span>
+                        {j.companies?.name && (
+                          <span className="text-muted-foreground text-xs">• {j.companies.name}</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>

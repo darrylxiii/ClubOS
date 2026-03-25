@@ -43,14 +43,14 @@ export const PartnerTaskRequestDialog = ({
 
     setLoading(true);
     try {
-      // Find an admin to assign to
+      // Find all admins/strategists to notify
       const { data: admins } = await supabase
         .from("user_roles")
         .select("user_id")
-        .in("role", ["admin", "strategist"])
-        .limit(1);
+        .in("role", ["admin", "strategist"]);
 
-      const adminId = admins?.[0]?.user_id;
+      const adminIds = (admins || []).map((a: any) => a.user_id);
+      const primaryAdminId = adminIds[0];
 
       // Create the task
       const { data: task, error } = await supabase
@@ -66,7 +66,7 @@ export const PartnerTaskRequestDialog = ({
           due_date: dueDate?.toISOString() || null,
           job_id: jobId,
           company_id: companyId || null,
-          user_id: adminId || user.id,
+          user_id: primaryAdminId || user.id,
           created_by: user.id,
         })
         .select("id")
@@ -74,12 +74,13 @@ export const PartnerTaskRequestDialog = ({
 
       if (error) throw error;
 
-      // Assign to admin
-      if (task && adminId) {
-        await supabase.from("unified_task_assignees").insert({
+      // Assign to all admins/strategists so everyone gets notified via trigger
+      if (task && adminIds.length > 0) {
+        const assigneeInserts = adminIds.map((aid: string) => ({
           task_id: task.id,
-          user_id: adminId,
-        });
+          user_id: aid,
+        }));
+        await supabase.from("unified_task_assignees").insert(assigneeInserts);
       }
 
       toast.success("Task request submitted. The team will review it shortly.");

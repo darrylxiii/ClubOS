@@ -19,6 +19,8 @@ interface QuickTaskDialogProps {
   open: boolean;
   onClose: () => void;
   onExpand?: (title: string, priority: string) => void;
+  jobId?: string;
+  companyId?: string;
 }
 
 const PRIORITIES = [
@@ -27,7 +29,7 @@ const PRIORITIES = [
   { value: "high", label: "High", color: "bg-destructive/20 text-destructive" },
 ] as const;
 
-export const QuickTaskDialog = ({ open, onClose, onExpand }: QuickTaskDialogProps) => {
+export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: QuickTaskDialogProps) => {
   const { user } = useAuth();
   const { currentBoard } = useTaskBoard();
   const [title, setTitle] = useState("");
@@ -50,6 +52,8 @@ export const QuickTaskDialog = ({ open, onClose, onExpand }: QuickTaskDialogProp
         task_type: "general",
         scheduling_mode: "manual",
         task_number: "",
+        job_id: jobId || null,
+        company_id: companyId || null,
       }).select("id").single();
 
       if (error) throw error;

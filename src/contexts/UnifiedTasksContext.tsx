@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTaskBoard } from "@/contexts/TaskBoardContext";
 import { toast } from "sonner";
 
 export interface UnifiedTask {
@@ -17,6 +18,7 @@ export interface UnifiedTask {
   project_id?: string | null;
   job_id?: string | null;
   company_id?: string | null;
+  board_id?: string | null;
   time_tracked_minutes?: number | null;
   timer_running?: boolean | null;
   timer_started_at?: string | null;
@@ -27,6 +29,8 @@ export interface UnifiedTask {
     profiles: { full_name: string; avatar_url?: string | null };
   }>;
   labels?: Array<{ id: string; name: string; color: string }>;
+  job?: { id: string; title: string } | null;
+  company?: { id: string; name: string } | null;
   created_at: string;
   updated_at: string;
   completed_at?: string | null;
@@ -50,7 +54,7 @@ interface UnifiedTasksContextType {
   viewMode: 'board' | 'list' | 'calendar' | 'analytics';
   
   // Actions
-  loadTasks: (objectiveId?: string | null) => Promise<void>;
+  loadTasks: (objectiveId?: string | null, boardId?: string | null) => Promise<void>;
   refreshTasks: () => void;
   updateTask: (taskId: string, updates: Partial<UnifiedTask>) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
@@ -86,6 +90,7 @@ export function UnifiedTasksProvider({
   objectiveId?: string | null;
 }) {
   const { user } = useAuth();
+  const { currentBoard } = useTaskBoard();
   const [tasks, setTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
@@ -94,7 +99,7 @@ export function UnifiedTasksProvider({
   const [viewMode, setViewMode] = useState<'board' | 'list' | 'calendar' | 'analytics'>('board');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadTasks = useCallback(async (objId?: string | null) => {
+  const loadTasks = useCallback(async (objId?: string | null, boardId?: string | null) => {
     if (!user) return;
     
     setLoading(true);
@@ -106,12 +111,20 @@ export function UnifiedTasksProvider({
           assignees:unified_task_assignees(
             user_id,
             profiles(full_name, avatar_url)
-          )
+          ),
+          job:jobs!unified_tasks_job_id_fkey(id, title),
+          company:companies!unified_tasks_company_id_fkey(id, name)
         `)
         .order("created_at", { ascending: false });
 
       if (objId) {
         query = query.eq("objective_id", objId);
+      }
+
+      // Filter by board when a board is selected
+      const effectiveBoardId = boardId !== undefined ? boardId : currentBoard?.id;
+      if (effectiveBoardId) {
+        query = query.eq("board_id", effectiveBoardId);
       }
 
       const { data, error } = await query;
@@ -124,11 +137,11 @@ export function UnifiedTasksProvider({
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, currentBoard?.id]);
 
   useEffect(() => {
-    loadTasks(objectiveId);
-  }, [objectiveId, refreshKey, loadTasks]);
+    loadTasks(objectiveId, currentBoard?.id);
+  }, [objectiveId, refreshKey, loadTasks, currentBoard?.id]);
 
   const refreshTasks = useCallback(() => {
     setRefreshKey(prev => prev + 1);
