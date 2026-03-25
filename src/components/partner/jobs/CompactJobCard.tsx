@@ -197,7 +197,25 @@ export const CompactJobCard = memo(({
   const nextAction = getNextAction(job);
   const trendData = generateTrendData(job.candidate_count, job.days_since_opened);
 
-  const getDaysColor = (days: number) => {
+  const lastActivityDaysAgo = job.last_activity
+    ? Math.floor((Date.now() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24))
+    : 999;
+
+  const urgencyResult = useMemo(() => computeJobUrgencyScore({
+    daysOpen: job.days_since_opened,
+    expectedCloseDate: job.expected_close_date,
+    expectedStartDate: job.expected_start_date,
+    urgency: job.urgency,
+    hiredCount: job.hired_count,
+    targetHireCount: job.target_hire_count,
+    isContinuous: false,
+    dealHealthScore: job.deal_health_score,
+    candidateCount: job.candidate_count,
+    activeCount: job.active_stage_count,
+    conversionRate: job.conversion_rate,
+    lastActivityDaysAgo,
+    manualScore: job.urgency_score_manual,
+  }), [job]);
     if (days > 45) return 'text-destructive';
     if (days > 30) return 'text-amber-500';
     return undefined;
