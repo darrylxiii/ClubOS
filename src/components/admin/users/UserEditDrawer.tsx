@@ -13,9 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShieldOff, Ban, Building2, Plus, Trash2, User } from "lucide-react";
+import { ShieldOff, Ban, Building2, Plus, Trash2, User, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { useGodMode } from "@/hooks/useGodMode";
+import { SetPasswordDialog } from "@/components/invites/SetPasswordDialog";
 
 const AVAILABLE_ROLES = [
   { value: "admin", label: "Admin", description: "Full system access" },
@@ -53,6 +54,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
   const [addingCompany, setAddingCompany] = useState(false);
   const [newCompanyId, setNewCompanyId] = useState("");
   const [newCompanyRole, setNewCompanyRole] = useState("member");
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const { data: userData } = useQuery({
     queryKey: ["user-edit-drawer", userId],
@@ -348,6 +350,10 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
                   <ShieldOff className="w-3.5 h-3.5" />
                   Reset MFA
                 </Button>
+                <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={() => setShowPasswordDialog(true)}>
+                  <KeyRound className="w-3.5 h-3.5" />
+                  Set Password
+                </Button>
               </div>
             </div>
           </section>
@@ -362,6 +368,14 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
+
+        <SetPasswordDialog
+          open={showPasswordDialog}
+          onOpenChange={setShowPasswordDialog}
+          targetUserId={userId || ""}
+          targetName={userName}
+          targetEmail={userData?.profile?.email || ""}
+        />
       </SheetContent>
     </Sheet>
   );
