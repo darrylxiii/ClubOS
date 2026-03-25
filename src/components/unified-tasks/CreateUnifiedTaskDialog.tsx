@@ -174,7 +174,7 @@ export const CreateUnifiedTaskDialog = ({
         const { data: existingObj } = await supabase
           .from("club_objectives")
           .select("id")
-          .eq("job_id", jobId)
+          .eq("job_id", effectiveJobId)
           .maybeSingle();
 
         if (existingObj) {
