@@ -94,7 +94,7 @@ export function UnifiedTasksProvider({
   const [viewMode, setViewMode] = useState<'board' | 'list' | 'calendar' | 'analytics'>('board');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadTasks = useCallback(async (objId?: string | null) => {
+  const loadTasks = useCallback(async (objId?: string | null, boardId?: string | null) => {
     if (!user) return;
     
     setLoading(true);
@@ -106,12 +106,20 @@ export function UnifiedTasksProvider({
           assignees:unified_task_assignees(
             user_id,
             profiles(full_name, avatar_url)
-          )
+          ),
+          job:jobs!unified_tasks_job_id_fkey(id, title),
+          company:companies!unified_tasks_company_id_fkey(id, name)
         `)
         .order("created_at", { ascending: false });
 
       if (objId) {
         query = query.eq("objective_id", objId);
+      }
+
+      // Filter by board when a board is selected
+      const effectiveBoardId = boardId !== undefined ? boardId : currentBoard?.id;
+      if (effectiveBoardId) {
+        query = query.eq("board_id", effectiveBoardId);
       }
 
       const { data, error } = await query;
@@ -124,7 +132,7 @@ export function UnifiedTasksProvider({
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, currentBoard?.id]);
 
   useEffect(() => {
     loadTasks(objectiveId);
