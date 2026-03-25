@@ -151,6 +151,35 @@ export const CreateUnifiedTaskDialog = ({
 
     setLoading(true);
     try {
+      // Auto-create objective for job if needed
+      let effectiveObjectiveId = selectedObjective || null;
+      if (jobId && !effectiveObjectiveId) {
+        // Check if an objective already exists for this job
+        const { data: existingObj } = await supabase
+          .from("club_objectives")
+          .select("id")
+          .eq("job_id", jobId)
+          .maybeSingle();
+
+        if (existingObj) {
+          effectiveObjectiveId = existingObj.id;
+        } else {
+          // Create a new objective for this job
+          const { data: newObj } = await supabase
+            .from("club_objectives")
+            .insert({
+              title: `Tasks for ${jobTitle || 'Job'}`,
+              status: "active",
+              created_by: user.id,
+              job_id: jobId,
+              company_id: companyId || null,
+            })
+            .select("id")
+            .single();
+          if (newObj) effectiveObjectiveId = newObj.id;
+        }
+      }
+
       // Create the task
       const { data: task, error: taskError } = await supabase
         .from("unified_tasks")
@@ -165,9 +194,11 @@ export const CreateUnifiedTaskDialog = ({
           due_date: formData.due_date?.toISOString() || null,
           estimated_duration_minutes: formData.estimated_duration_minutes,
 
-          objective_id: selectedObjective || null,
+          objective_id: effectiveObjectiveId,
           project_id: selectedProject || null,
           board_id: currentBoard?.id || null,
+          job_id: jobId || null,
+          company_id: companyId || null,
           user_id: user.id,
           created_by: user.id,
         }])
