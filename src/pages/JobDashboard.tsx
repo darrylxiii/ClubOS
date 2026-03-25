@@ -287,6 +287,10 @@ export default function JobDashboard() {
             <RejectedCandidatesTab jobId={job.id} stages={stages} />
           </TabsContent>
 
+          <TabsContent value="tasks" className="space-y-4 mt-4">
+            <JobTasksPanel jobId={job.id} companyId={job.company_id} jobTitle={job.title} />
+          </TabsContent>
+
           {(role === 'admin' || role === 'strategist') && (
             <TabsContent value="more" className="space-y-4 mt-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

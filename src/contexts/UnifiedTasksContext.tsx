@@ -15,6 +15,8 @@ export interface UnifiedTask {
   scheduled_end?: string | null;
   objective_id?: string | null;
   project_id?: string | null;
+  job_id?: string | null;
+  company_id?: string | null;
   time_tracked_minutes?: number | null;
   timer_running?: boolean | null;
   timer_started_at?: string | null;

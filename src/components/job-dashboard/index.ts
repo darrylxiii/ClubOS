@@ -7,3 +7,5 @@ export { InlineDocumentsCard } from './InlineDocumentsCard';
 export { UpcomingInterviewsCompact } from './UpcomingInterviewsCompact';
 export { InlineActivityFeed } from './InlineActivityFeed';
 export { CollapsibleSection } from './CollapsibleSection';
+export { JobTasksPanel } from './JobTasksPanel';
+export { PartnerTaskRequestDialog } from './PartnerTaskRequestDialog';
