@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, formatDistanceToNow } from "date-fns";
-import { Calendar, Clock, Lock, Unlock, Target, ExternalLink, Users, Briefcase, CheckSquare, Plus } from "lucide-react";
+import { Calendar, Clock, Lock, Unlock, Target, ExternalLink, Users, Briefcase, CheckSquare, Plus, Building2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -53,54 +54,78 @@ export const UnifiedTaskDetailSheet = ({
   onTaskUpdated,
   onStatusChange,
 }: UnifiedTaskDetailSheetProps) => {
-  const [objective, setObjective] = useState<any>(null);
-  const [project, setProject] = useState<any>(null);
-  const [blockingTasks, setBlockingTasks] = useState<any[]>([]);
-  const [blockedByTasks, setBlockedByTasks] = useState<any[]>([]);
-  const [subtasks, setSubtasks] = useState<any[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
-  const [owners, setOwners] = useState<any[]>([]);
+  const [localSubtasks, setLocalSubtasks] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (open && task) loadTaskDetails();
-  }, [open, task]);
+  const taskId = task?.id;
+  const isOpen = open && !!task;
 
-  const loadTaskDetails = async () => {
-    if (!task) return;
-    try {
-      if (task.objective_id) {
-        supabase.from("club_objectives").select("id, title, status").eq("id", task.objective_id).maybeSingle().then(({ data }) => setObjective(data));
-      } else { setObjective(null); }
+  const { data: objective } = useQuery({
+    queryKey: ["task-objective", task?.objective_id],
+    queryFn: async () => {
+      const { data } = await supabase.from("club_objectives").select("id, title, status").eq("id", task.objective_id).maybeSingle();
+      return data;
+    },
+    enabled: isOpen && !!task?.objective_id,
+  });
 
-      if (task.project_id) {
-        supabase.from("marketplace_projects").select("id, title, status").eq("id", task.project_id).maybeSingle().then(({ data }) => setProject(data));
-      } else { setProject(null); }
+  const { data: project } = useQuery({
+    queryKey: ["task-project", task?.project_id],
+    queryFn: async () => {
+      const { data } = await supabase.from("marketplace_projects").select("id, title, status").eq("id", task.project_id).maybeSingle();
+      return data;
+    },
+    enabled: isOpen && !!task?.project_id,
+  });
 
-      supabase.from("task_dependencies")
+  const { data: blockingTasks = [] } = useQuery({
+    queryKey: ["task-blocking", taskId],
+    queryFn: async () => {
+      const { data } = await supabase.from("task_dependencies")
         .select("id, task_id, depends_on:unified_tasks!task_dependencies_task_id_fkey(id, title, task_number, status, priority)")
-        .eq("depends_on_task_id", task.id)
-        .then(({ data }) => setBlockingTasks(data?.map((b: any) => b.depends_on) || []));
+        .eq("depends_on_task_id", taskId);
+      return data?.map((b: any) => b.depends_on) || [];
+    },
+    enabled: isOpen,
+  });
 
-      supabase.from("task_dependencies")
+  const { data: blockedByTasks = [] } = useQuery({
+    queryKey: ["task-blocked-by", taskId],
+    queryFn: async () => {
+      const { data } = await supabase.from("task_dependencies")
         .select("id, depends_on_task_id, blocker:unified_tasks!task_dependencies_depends_on_task_id_fkey(id, title, task_number, status, priority)")
-        .eq("task_id", task.id)
-        .then(({ data }) => setBlockedByTasks(data?.map((b: any) => b.blocker) || []));
+        .eq("task_id", taskId);
+      return data?.map((b: any) => b.blocker) || [];
+    },
+    enabled: isOpen,
+  });
 
-      (supabase.from("unified_tasks") as any)
+  const { data: subtasksData = [] } = useQuery({
+    queryKey: ["task-subtasks", taskId],
+    queryFn: async () => {
+      const { data } = await (supabase.from("unified_tasks") as any)
         .select("id, title, status, task_number")
-        .eq("parent_task_id", task.id)
-        .order("created_at", { ascending: true })
-        .then(({ data }: any) => setSubtasks(data || []));
+        .eq("parent_task_id", taskId)
+        .order("created_at", { ascending: true });
+      return data || [];
+    },
+    enabled: isOpen,
+  });
 
-      if (task.assignees?.length > 0) {
-        const userIds = task.assignees.map((a: any) => a.user_id);
-        supabase.from("profiles").select("id, full_name, avatar_url").in("id", userIds).then(({ data }) => setOwners(data || []));
-      } else { setOwners([]); }
-    } catch (error) {
-      console.error("Error loading task details:", error);
-    }
-  };
+  const { data: owners = [] } = useQuery({
+    queryKey: ["task-owners", taskId],
+    queryFn: async () => {
+      if (!task?.assignees?.length) return [];
+      const userIds = task.assignees.map((a: any) => a.user_id);
+      const { data } = await supabase.from("profiles").select("id, full_name, avatar_url").in("id", userIds);
+      return data || [];
+    },
+    enabled: isOpen,
+  });
+
+  // Merge server subtasks with local optimistic additions
+  const subtasks = [...subtasksData, ...localSubtasks.filter(ls => !subtasksData.some((s: any) => s.id === ls.id))];
 
   const handleAddSubtask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,21 +135,22 @@ export const UnifiedTaskDetailSheet = ({
       .insert({ title: newSubtaskTitle, parent_task_id: task.id, status: "pending", user_id: task.user_id, created_by: task.user_id, task_number: '', task_type: 'general' })
       .select().single();
     if (error) { toast.error("Failed to add subtask"); }
-    else { setSubtasks([...subtasks, newSub]); setNewSubtaskTitle(""); toast.success("Subtask added"); }
+    else { setLocalSubtasks(prev => [...prev, newSub]); setNewSubtaskTitle(""); toast.success("Subtask added"); }
   };
 
   const toggleSubtask = async (subtaskId: string, currentStatus: string) => {
     const newStatus = currentStatus === "completed" ? "pending" : "completed";
     const { error } = await supabase.from("unified_tasks").update({ status: newStatus }).eq("id", subtaskId);
     if (error) { toast.error("Failed to update subtask"); }
-    else { setSubtasks(subtasks.map((s) => (s.id === subtaskId ? { ...s, status: newStatus } : s))); }
+    else {
+      setLocalSubtasks(prev => prev.map(s => s.id === subtaskId ? { ...s, status: newStatus } : s));
+    }
   };
 
   if (!task) return null;
 
   const completedSubtasks = subtasks.filter((s) => s.status === "completed").length;
 
-  // Time in status
   const timeInStatus = task.updated_at
     ? formatDistanceToNow(new Date(task.updated_at), { addSuffix: false })
     : null;
@@ -196,6 +222,30 @@ export const UnifiedTaskDetailSheet = ({
                 </span>
               )}
             </div>
+
+            {/* Job/Company */}
+            {(task.job || task.company) && (
+              <div className="flex items-center gap-2 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
+                <Briefcase className="h-3.5 w-3.5 text-primary shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] text-muted-foreground leading-none mb-0.5">Job / Company</p>
+                  <div className="flex items-center gap-1.5">
+                    {task.job && (
+                      <Link to={`/job-dashboard?jobId=${task.job_id}`} className="text-xs font-medium hover:text-primary transition-colors flex items-center gap-1">
+                        <span className="truncate">{task.job.title}</span>
+                        <ExternalLink className="h-2.5 w-2.5 shrink-0" />
+                      </Link>
+                    )}
+                    {task.company && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <Building2 className="h-2.5 w-2.5" />
+                        {task.company.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Objective */}
             {objective && (

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Building2 } from "lucide-react";
 import { useUnifiedTasks, UnifiedTask } from "@/contexts/UnifiedTasksContext";
 
 interface EnhancedTaskCardProps {
@@ -163,6 +164,24 @@ export function EnhancedTaskCard({
             )}
           </div>
         )}
+
+        {/* Job/Company context */}
+        {(task as any).job || (task as any).company ? (
+          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+            {(task as any).job && (
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 gap-0.5 text-primary/80 border-primary/20 bg-primary/5">
+                <Briefcase className="h-2.5 w-2.5" />
+                <span className="truncate max-w-[100px]">{(task as any).job.title}</span>
+              </Badge>
+            )}
+            {(task as any).company && (
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 gap-0.5 text-muted-foreground border-border/30">
+                <Building2 className="h-2.5 w-2.5" />
+                <span className="truncate max-w-[80px]">{(task as any).company.name}</span>
+              </Badge>
+            )}
+          </div>
+        ) : null}
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/30">

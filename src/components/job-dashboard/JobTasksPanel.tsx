@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,29 @@ export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps
       return data || [];
     },
   });
+
+  // Realtime subscription for live task updates
+  useEffect(() => {
+    const channel = supabase
+      .channel(`job-tasks-${jobId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'unified_tasks',
+          filter: `job_id=eq.${jobId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["job-tasks", jobId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [jobId, queryClient]);
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ taskId, status }: { taskId: string; status: string }) => {

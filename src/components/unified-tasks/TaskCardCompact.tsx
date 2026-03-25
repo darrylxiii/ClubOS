@@ -14,6 +14,8 @@ import {
   Lock,
   Link2,
   CircleCheck,
+  Briefcase,
+  Building2,
 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -110,6 +112,20 @@ export const TaskCardCompact = ({
             <div
               className={cn("h-1.5 w-1.5 rounded-full shrink-0", PRIORITY_DOT[task.priority] || PRIORITY_DOT.low)}
             />
+
+            {/* Job/Company context */}
+            {task.job && (
+              <span className="inline-flex items-center gap-0.5 text-primary/70 font-medium truncate max-w-[80px]" title={task.job.title}>
+                <Briefcase className="h-2.5 w-2.5 shrink-0" />
+                {task.job.title}
+              </span>
+            )}
+            {task.company && !task.job && (
+              <span className="inline-flex items-center gap-0.5 text-muted-foreground font-medium truncate max-w-[80px]" title={task.company.name}>
+                <Building2 className="h-2.5 w-2.5 shrink-0" />
+                {task.company.name}
+              </span>
+            )}
 
             {/* Dependency indicators */}
             {blockedByCount > 0 && (

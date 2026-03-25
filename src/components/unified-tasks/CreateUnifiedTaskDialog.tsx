@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,20 +53,15 @@ export const CreateUnifiedTaskDialog = ({
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange || setInternalOpen;
   const [loading, setLoading] = useState(false);
-  const [profiles, setProfiles] = useState<any[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [assignToSelf, setAssignToSelf] = useState(true);
   const [showAssignOthers, setShowAssignOthers] = useState(false);
   const [assigneeSearch, setAssigneeSearch] = useState("");
 
-  const [objectives, setObjectives] = useState<any[]>([]);
   const [selectedObjective, setSelectedObjective] = useState<string | undefined>(objectiveId || undefined);
-  const [projects, setProjects] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState<string | undefined>(undefined);
-  const [allTasks, setAllTasks] = useState<any[]>([]);
   const [blockingTasks, setBlockingTasks] = useState<string[]>([]);
   const [blockedByTasks, setBlockedByTasks] = useState<string[]>([]);
-  const [availableJobs, setAvailableJobs] = useState<any[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | undefined>(jobId || undefined);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(companyId || undefined);
   const [formData, setFormData] = useState({
@@ -79,84 +75,51 @@ export const CreateUnifiedTaskDialog = ({
     estimated_duration_minutes: 30,
   });
 
-  useEffect(() => {
-    if (open) {
-      loadProfiles();
-      loadObjectives();
-      loadProjects();
-      loadTasks();
-      if (!jobId) loadAvailableJobs();
-      setAssignToSelf(true);
-      setSelectedAssignees([]);
-      setShowAssignOthers(false);
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["task-dialog-profiles", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name, avatar_url").neq("id", user?.id || "").limit(50);
+      return data || [];
+    },
+    enabled: open,
+  });
 
-      setSelectedObjective(objectiveId || undefined);
-      setSelectedProject(undefined);
-      // Set initial values when dialog opens
-      if (initialTitle || initialDescription) {
-        setFormData(prev => ({
-          ...prev,
-          title: initialTitle,
-          description: initialDescription,
-          priority: initialPriority,
-        }));
-      }
-    }
-  }, [open, objectiveId, initialTitle, initialDescription, initialPriority]);
+  const { data: objectives = [] } = useQuery({
+    queryKey: ["task-dialog-objectives"],
+    queryFn: async () => {
+      const { data } = await supabase.from("club_objectives").select("id, title, status").order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: open,
+  });
 
-  const loadObjectives = async () => {
-    const { data } = await supabase
-      .from("club_objectives")
-      .select("id, title, status")
-      .order("created_at", { ascending: false });
+  const { data: projects = [] } = useQuery({
+    queryKey: ["task-dialog-projects"],
+    queryFn: async () => {
+      const { data } = await supabase.from("marketplace_projects").select("id, title, status").eq("status", "active").order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: open,
+  });
 
-    if (data) setObjectives(data);
-  };
+  const { data: allTasks = [] } = useQuery({
+    queryKey: ["task-dialog-tasks"],
+    queryFn: async () => {
+      const { data } = await supabase.from("unified_tasks").select("id, title, status, task_number").order("created_at", { ascending: false }).limit(100);
+      return data || [];
+    },
+    enabled: open,
+  });
 
-  const loadProjects = async () => {
-    const { data } = await supabase
-      .from("marketplace_projects")
-      .select("id, title, status")
-      .eq("status", "active") // Fetch active projects
-      .order("created_at", { ascending: false });
+  const { data: availableJobs = [] } = useQuery({
+    queryKey: ["task-dialog-jobs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("jobs").select("id, title, company_id, companies(name)").in("status", ["open", "published", "active"]).order("created_at", { ascending: false }).limit(50);
+      return data || [];
+    },
+    enabled: open && !jobId,
+  });
 
-    if (data) setProjects(data);
-  };
-
-  const loadTasks = async () => {
-    const { data } = await supabase
-      .from("unified_tasks")
-      .select("id, title, status, task_number")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (data) setAllTasks(data);
-  };
-
-  const loadAvailableJobs = async () => {
-    const { data } = await supabase
-      .from("jobs")
-      .select("id, title, company_id, companies(name)")
-      .in("status", ["open", "published", "active"])
-      .order("created_at", { ascending: false })
-      .limit(50);
-    if (data) setAvailableJobs(data);
-  };
-
-  const loadProfiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .neq("id", user?.id || "")
-        .limit(50);
-
-      if (error) throw error;
-      setProfiles(data || []);
-    } catch (error) {
-      console.error("Error loading profiles:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
