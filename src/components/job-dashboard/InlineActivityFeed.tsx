@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Activity, UserPlus, ArrowRight, XCircle, MessageSquare, 
-  FileText, Calendar, ChevronDown, ChevronUp 
+  FileText, Calendar, ChevronDown, ChevronUp, ArrowUpDown,
+  Eye, Mail, Settings
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow, parseISO } from "date-fns";
@@ -16,26 +17,49 @@ interface InlineActivityFeedProps {
 
 const ACTION_ICONS: Record<string, any> = {
   'candidate_added': UserPlus,
-  'stage_advanced': ArrowRight,
-  'candidate_rejected': XCircle,
+  'candidate_advanced': ArrowRight,
+  'candidate_moved_back': ArrowRight,
+  'candidate_declined': XCircle,
+  'stage_changed_manual': ArrowUpDown,
+  'stage_added': Settings,
+  'stage_removed': XCircle,
+  'stage_updated': Settings,
+  'stage_reordered': ArrowUpDown,
   'interview_scheduled': Calendar,
   'note_added': MessageSquare,
   'document_uploaded': FileText,
-  'job_viewed': Activity,
+  'job_viewed': Eye,
+  'email_dump_created': Mail,
 };
 
 const ACTION_LABELS: Record<string, string> = {
   'candidate_added': 'added a candidate',
-  'stage_advanced': 'advanced a candidate',
-  'candidate_rejected': 'rejected a candidate',
+  'candidate_advanced': 'advanced a candidate',
+  'candidate_moved_back': 'moved back a candidate',
+  'candidate_declined': 'declined a candidate',
+  'stage_changed_manual': 'changed stage',
+  'stage_added': 'added a stage',
+  'stage_removed': 'removed a stage',
+  'stage_updated': 'updated a stage',
+  'stage_reordered': 'reordered stages',
   'interview_scheduled': 'scheduled an interview',
   'note_added': 'added a note',
   'document_uploaded': 'uploaded a document',
   'job_viewed': 'viewed the job',
+  'email_dump_created': 'created email dump',
 };
 
+interface AuditLog {
+  id: string;
+  action: string;
+  created_at: string;
+  user_id: string;
+  stage_data: any;
+  metadata: any;
+}
+
 export const InlineActivityFeed = memo(({ jobId, initialLimit = 5 }: InlineActivityFeedProps) => {
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<(AuditLog & { profile?: { full_name: string | null; avatar_url: string | null } })[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -55,24 +79,37 @@ export const InlineActivityFeed = memo(({ jobId, initialLimit = 5 }: InlineActiv
         const limit = isExpanded ? 20 : initialLimit;
         const { data, error } = await supabase
           .from('pipeline_audit_logs')
-          .select(`
-            id,
-            action,
-            created_at,
-            stage_data,
-            metadata,
-            profiles:user_id (
-              full_name,
-              avatar_url
-            )
-          `)
+          .select('id, action, created_at, user_id, stage_data, metadata')
           .eq('job_id', jobId)
           .order('created_at', { ascending: false })
           .limit(limit);
         
-        if (!error) {
-          setActivities(data || []);
+        if (error) {
+          console.error('Error fetching audit logs:', error);
+          setActivities([]);
+          return;
         }
+
+        if (!data || data.length === 0) {
+          setActivities([]);
+          return;
+        }
+
+        // Fetch profiles separately to avoid join issues
+        const userIds = [...new Set(data.map(d => d.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        const enriched = data.map(log => ({
+          ...log,
+          profile: profileMap.get(log.user_id) || null,
+        }));
+
+        setActivities(enriched);
       } catch (err) {
         console.error('Error fetching activities:', err);
       } finally {
@@ -127,12 +164,12 @@ export const InlineActivityFeed = memo(({ jobId, initialLimit = 5 }: InlineActiv
           <div className="space-y-3">
             {activities.map((activity) => {
               const Icon = ACTION_ICONS[activity.action] || Activity;
-              const actionLabel = ACTION_LABELS[activity.action] || activity.action;
-              const userName = activity.profiles?.full_name || 'Someone';
+              const actionLabel = ACTION_LABELS[activity.action] || activity.action.replace(/_/g, ' ');
+              const userName = activity.profile?.full_name || 'Someone';
               const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
               const timeAgo = formatDistanceToNow(parseISO(activity.created_at), { addSuffix: true });
               
-              // Extract candidate name from metadata if available
+              // Extract candidate name from stage_data or metadata
               const candidateName = activity.stage_data?.candidate_name || activity.metadata?.candidate_name;
               
               return (
@@ -141,7 +178,7 @@ export const InlineActivityFeed = memo(({ jobId, initialLimit = 5 }: InlineActiv
                   className="flex items-start gap-3 group"
                 >
                   <Avatar className="h-7 w-7 flex-shrink-0">
-                    <AvatarImage src={activity.profiles?.avatar_url} />
+                    <AvatarImage src={activity.profile?.avatar_url || undefined} />
                     <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
                   </Avatar>
                   
