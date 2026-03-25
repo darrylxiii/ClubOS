@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTaskBoard } from "@/contexts/TaskBoardContext";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface UnifiedTask {
   id: string;
@@ -24,6 +25,9 @@ export interface UnifiedTask {
   timer_started_at?: string | null;
   is_overdue?: boolean | null;
   recurrence_rule?: unknown | null;
+  auto_scheduled?: boolean;
+  scheduling_mode?: string;
+  migration_status?: string;
   assignees?: Array<{
     user_id: string;
     profiles: { full_name: string; avatar_url?: string | null };
@@ -31,6 +35,14 @@ export interface UnifiedTask {
   labels?: Array<{ id: string; name: string; color: string }>;
   job?: { id: string; title: string } | null;
   company?: { id: string; name: string } | null;
+  // Enrichment counts
+  blockingCount?: number;
+  blockedByCount?: number;
+  subtaskCount?: number;
+  subtaskCompleted?: number;
+  commentCount?: number;
+  project_tag?: string | null;
+  marketplace_projects?: { title: string } | null;
   created_at: string;
   updated_at: string;
   completed_at?: string | null;
@@ -45,38 +57,27 @@ interface SearchFilters {
 }
 
 interface UnifiedTasksContextType {
-  // Data
   tasks: UnifiedTask[];
   loading: boolean;
   selectedTaskIds: Set<string>;
   searchQuery: string;
   filters: SearchFilters;
   viewMode: 'board' | 'list' | 'calendar' | 'analytics';
-  
-  // Actions
   loadTasks: (objectiveId?: string | null, boardId?: string | null) => Promise<void>;
   refreshTasks: () => void;
   updateTask: (taskId: string, updates: Partial<UnifiedTask>) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   bulkUpdateTasks: (taskIds: string[], updates: Partial<UnifiedTask>) => Promise<void>;
   bulkDeleteTasks: (taskIds: string[]) => Promise<void>;
-  
-  // Selection
   selectTask: (taskId: string) => void;
   deselectTask: (taskId: string) => void;
   toggleTaskSelection: (taskId: string) => void;
   selectAllTasks: () => void;
   clearSelection: () => void;
-  
-  // Search & Filter
   setSearchQuery: (query: string) => void;
   setFilters: (filters: SearchFilters) => void;
   clearFilters: () => void;
-  
-  // View
   setViewMode: (mode: 'board' | 'list' | 'calendar' | 'analytics') => void;
-  
-  // Filtered data
   filteredTasks: UnifiedTask[];
 }
 
@@ -91,6 +92,7 @@ export function UnifiedTasksProvider({
 }) {
   const { user } = useAuth();
   const { currentBoard } = useTaskBoard();
+  const queryClient = useQueryClient();
   const [tasks, setTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
@@ -113,7 +115,8 @@ export function UnifiedTasksProvider({
             profiles(full_name, avatar_url)
           ),
           job:jobs!unified_tasks_job_id_fkey(id, title),
-          company:companies!unified_tasks_company_id_fkey(id, name)
+          company:companies!unified_tasks_company_id_fkey(id, name),
+          marketplace_projects(title)
         `)
         .order("created_at", { ascending: false });
 
@@ -121,7 +124,6 @@ export function UnifiedTasksProvider({
         query = query.eq("objective_id", objId);
       }
 
-      // Filter by board when a board is selected
       const effectiveBoardId = boardId !== undefined ? boardId : currentBoard?.id;
       if (effectiveBoardId) {
         query = query.eq("board_id", effectiveBoardId);
@@ -130,7 +132,48 @@ export function UnifiedTasksProvider({
       const { data, error } = await query;
       if (error) throw error;
 
-      setTasks((data || []) as UnifiedTask[]);
+      const baseTasks = (data || []) as UnifiedTask[];
+
+      // Enrich with counts if we have tasks
+      if (baseTasks.length > 0) {
+        const taskIds = baseTasks.map((t) => t.id);
+        const [
+          { data: blockingCounts },
+          { data: blockedByCounts },
+          { data: subtaskRows },
+          { data: commentRows },
+        ] = await Promise.all([
+          supabase.from("task_dependencies").select("depends_on_task_id").in("depends_on_task_id", taskIds),
+          supabase.from("task_dependencies").select("task_id").in("task_id", taskIds),
+          (supabase.from("unified_tasks") as any).select("parent_task_id, status").in("parent_task_id", taskIds),
+          supabase.from("task_comments").select("task_id").in("task_id", taskIds),
+        ]);
+
+        const bm = new Map<string, number>();
+        blockingCounts?.forEach((r: any) => bm.set(r.depends_on_task_id, (bm.get(r.depends_on_task_id) || 0) + 1));
+        const bbm = new Map<string, number>();
+        blockedByCounts?.forEach((r: any) => bbm.set(r.task_id, (bbm.get(r.task_id) || 0) + 1));
+        const scm = new Map<string, number>();
+        const sdm = new Map<string, number>();
+        subtaskRows?.forEach((r: any) => {
+          scm.set(r.parent_task_id, (scm.get(r.parent_task_id) || 0) + 1);
+          if (r.status === "completed") sdm.set(r.parent_task_id, (sdm.get(r.parent_task_id) || 0) + 1);
+        });
+        const ccm = new Map<string, number>();
+        commentRows?.forEach((r: any) => ccm.set(r.task_id, (ccm.get(r.task_id) || 0) + 1));
+
+        setTasks(baseTasks.map((t) => ({
+          ...t,
+          blockingCount: bm.get(t.id) || 0,
+          blockedByCount: bbm.get(t.id) || 0,
+          subtaskCount: scm.get(t.id) || 0,
+          subtaskCompleted: sdm.get(t.id) || 0,
+          commentCount: ccm.get(t.id) || 0,
+          project_tag: t.marketplace_projects?.title || null,
+        })));
+      } else {
+        setTasks([]);
+      }
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Failed to load tasks");
@@ -143,17 +186,41 @@ export function UnifiedTasksProvider({
     loadTasks(objectiveId, currentBoard?.id);
   }, [objectiveId, refreshKey, loadTasks, currentBoard?.id]);
 
+  // Realtime subscription for the main task board
+  useEffect(() => {
+    const boardId = currentBoard?.id;
+    const channelName = boardId ? `board-tasks-${boardId}` : 'all-tasks';
+    
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'unified_tasks',
+          ...(boardId ? { filter: `board_id=eq.${boardId}` } : {}),
+        },
+        () => {
+          setRefreshKey((prev) => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentBoard?.id]);
+
   const refreshTasks = useCallback(() => {
     setRefreshKey(prev => prev + 1);
   }, []);
 
   const updateTask = useCallback(async (taskId: string, updates: Partial<UnifiedTask>) => {
-    // Optimistic update
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { assignees, labels, recurrence_rule, ...dbUpdates } = updates;
+      const { assignees, labels, recurrence_rule, job, company, marketplace_projects, project_tag, blockingCount, blockedByCount, subtaskCount, subtaskCompleted, commentCount, ...dbUpdates } = updates as any;
       const { error } = await supabase
         .from("unified_tasks")
         .update({
@@ -168,7 +235,7 @@ export function UnifiedTasksProvider({
     } catch (error) {
       console.error("Error updating task:", error);
       toast.error("Failed to update task");
-      loadTasks(objectiveId); // Revert on error
+      loadTasks(objectiveId);
     }
   }, [loadTasks, objectiveId]);
 
@@ -195,14 +262,12 @@ export function UnifiedTasksProvider({
   }, []);
 
   const bulkUpdateTasks = useCallback(async (taskIds: string[], updates: Partial<UnifiedTask>) => {
-    // Optimistic update
     setTasks(prev => prev.map(t => 
       taskIds.includes(t.id) ? { ...t, ...updates } : t
     ));
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { assignees, labels, recurrence_rule, ...dbUpdates } = updates;
+      const { assignees, labels, recurrence_rule, job, company, marketplace_projects, project_tag, blockingCount, blockedByCount, subtaskCount, subtaskCompleted, commentCount, ...dbUpdates } = updates as any;
       const { error } = await supabase
         .from("unified_tasks")
         .update({
@@ -242,7 +307,6 @@ export function UnifiedTasksProvider({
     }
   }, []);
 
-  // Selection handlers
   const selectTask = useCallback((taskId: string) => {
     setSelectedTaskIds(prev => new Set(prev).add(taskId));
   }, []);
@@ -258,11 +322,8 @@ export function UnifiedTasksProvider({
   const toggleTaskSelection = useCallback((taskId: string) => {
     setSelectedTaskIds(prev => {
       const next = new Set(prev);
-      if (next.has(taskId)) {
-        next.delete(taskId);
-      } else {
-        next.add(taskId);
-      }
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
       return next;
     });
   }, []);
@@ -280,9 +341,7 @@ export function UnifiedTasksProvider({
     setFilters({});
   }, []);
 
-  // Filtered tasks
   const filteredTasks = tasks.filter(task => {
-    // Search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       const matchesSearch = 
@@ -292,22 +351,12 @@ export function UnifiedTasksProvider({
       if (!matchesSearch) return false;
     }
 
-    // Status filter
-    if (filters.status?.length && !filters.status.includes(task.status)) {
-      return false;
-    }
+    if (filters.status?.length && !filters.status.includes(task.status)) return false;
+    if (filters.priority?.length && !filters.priority.includes(task.priority)) return false;
 
-    // Priority filter
-    if (filters.priority?.length && !filters.priority.includes(task.priority)) {
-      return false;
-    }
-
-    // Date range filter
     if (filters.dateRange && task.due_date) {
       const dueDate = new Date(task.due_date);
-      if (dueDate < filters.dateRange.start || dueDate > filters.dateRange.end) {
-        return false;
-      }
+      if (dueDate < filters.dateRange.start || dueDate > filters.dateRange.end) return false;
     }
 
     return true;
