@@ -391,7 +391,44 @@ export const CreateUnifiedTaskDialog = ({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Link to Job — only shown when not pre-filled from Job Dashboard */}
+          {!jobId && (
+            <div>
+              <Label htmlFor="linked-job">Link to Job (Optional)</Label>
+              <Select
+                value={selectedJobId || "none"}
+                onValueChange={(val) => {
+                  const jid = val === "none" ? undefined : val;
+                  setSelectedJobId(jid);
+                  if (jid) {
+                    const foundJob = availableJobs.find((j: any) => j.id === jid);
+                    if (foundJob?.company_id) setSelectedCompanyId(foundJob.company_id);
+                  } else {
+                    setSelectedCompanyId(undefined);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a job" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="none">No job linked</SelectItem>
+                  {availableJobs.map((j: any) => (
+                    <SelectItem key={j.id} value={j.id}>
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-3 w-3 text-muted-foreground" />
+                        <span>{j.title}</span>
+                        {j.companies?.name && (
+                          <span className="text-muted-foreground text-xs">• {j.companies.name}</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
             <div>
               <Label htmlFor="status">Status</Label>
               <Select
