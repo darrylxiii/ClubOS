@@ -27,6 +27,9 @@ interface CreateUnifiedTaskDialogProps {
   initialTitle?: string;
   initialDescription?: string;
   initialPriority?: string;
+  jobId?: string;
+  companyId?: string;
+  jobTitle?: string;
 }
 
 export const CreateUnifiedTaskDialog = ({
