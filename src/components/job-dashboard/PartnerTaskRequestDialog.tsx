@@ -66,7 +66,7 @@ export const PartnerTaskRequestDialog = ({
           due_date: dueDate?.toISOString() || null,
           job_id: jobId,
           company_id: companyId || null,
-          user_id: adminId || user.id,
+          user_id: primaryAdminId || user.id,
           created_by: user.id,
         })
         .select("id")
