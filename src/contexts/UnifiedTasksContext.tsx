@@ -17,6 +17,7 @@ export interface UnifiedTask {
   project_id?: string | null;
   job_id?: string | null;
   company_id?: string | null;
+  board_id?: string | null;
   time_tracked_minutes?: number | null;
   timer_running?: boolean | null;
   timer_started_at?: string | null;
@@ -27,6 +28,8 @@ export interface UnifiedTask {
     profiles: { full_name: string; avatar_url?: string | null };
   }>;
   labels?: Array<{ id: string; name: string; color: string }>;
+  job?: { id: string; title: string } | null;
+  company?: { id: string; name: string } | null;
   created_at: string;
   updated_at: string;
   completed_at?: string | null;
