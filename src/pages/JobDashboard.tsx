@@ -255,6 +255,7 @@ export default function JobDashboard() {
             </TabsTrigger>
             <TabsTrigger value="tasks" className="text-xs data-[state=active]:bg-background/60">
               Tasks
+              <TaskCountBadge jobId={job.id} />
             </TabsTrigger>
             {(role === 'admin' || role === 'strategist') && (
               <TabsTrigger value="more" className="text-xs data-[state=active]:bg-background/60">
