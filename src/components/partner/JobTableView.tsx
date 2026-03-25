@@ -601,6 +601,8 @@ export const JobTableView = memo(({
               job={job}
               isSelected={isSelected(job.id)}
               isFocused={focusedIndex === index}
+              isAdmin={isAdmin}
+              urgencyResult={urgencyScores.get(job.id)!}
               onToggleSelect={() => onToggleSelect(job.id)}
               onNavigate={() => onNavigate(job.id)}
               onPublish={() => onPublish(job.id, job.title)}
