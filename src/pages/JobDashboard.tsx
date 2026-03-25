@@ -30,6 +30,7 @@ import { JobDashboardHeader } from "@/components/job-dashboard/JobDashboardHeade
 import { JobDashboardStatsBar } from "@/components/job-dashboard/JobDashboardStatsBar";
 import { PipelineKanbanBoard } from "@/components/job-dashboard/PipelineKanbanBoard";
 import { InlineActivityFeed } from "@/components/job-dashboard/InlineActivityFeed";
+import { JobTasksPanel } from "@/components/job-dashboard/JobTasksPanel";
 import { InlineDocumentsCard } from "@/components/job-dashboard/InlineDocumentsCard";
 import { EmailDumpTab } from "@/components/jobs/email-dump";
 import { JobInterviewRecordingsPanel } from "@/components/partner/JobInterviewRecordingsPanel";
