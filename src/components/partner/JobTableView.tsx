@@ -146,6 +146,8 @@ const JobTableRow = memo(({
   job,
   isSelected,
   isFocused,
+  isAdmin,
+  urgencyResult,
   onToggleSelect,
   onNavigate,
   onPublish,
@@ -158,6 +160,8 @@ const JobTableRow = memo(({
   job: JobWithMetrics;
   isSelected: boolean;
   isFocused: boolean;
+  isAdmin: boolean;
+  urgencyResult: UrgencyScoreResult;
   onToggleSelect: () => void;
   onNavigate: () => void;
   onPublish: () => void;
