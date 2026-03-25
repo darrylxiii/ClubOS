@@ -65,6 +65,9 @@ export const CreateUnifiedTaskDialog = ({
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [blockingTasks, setBlockingTasks] = useState<string[]>([]);
   const [blockedByTasks, setBlockedByTasks] = useState<string[]>([]);
+  const [availableJobs, setAvailableJobs] = useState<any[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | undefined>(jobId || undefined);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(companyId || undefined);
   const [formData, setFormData] = useState({
     title: initialTitle,
     description: initialDescription,
