@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,8 @@ import { JobStatusBadge, JobStatus } from '@/components/jobs/JobStatusBadge';
 import { ClubSyncBadge } from '@/components/jobs/ClubSyncBadge';
 import { NextActionBadge } from '@/components/jobs/NextActionBadge';
 import { JobLocationDisplay, type JobLocationItem } from '@/components/jobs/JobLocationDisplay';
+import { UrgencyMeter } from '@/components/jobs/UrgencyMeter';
+import { computeJobUrgencyScore } from '@/lib/jobUrgencyScore';
 
 interface CompactJobCardProps {
   job: {
