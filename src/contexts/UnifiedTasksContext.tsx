@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTaskBoard } from "@/contexts/TaskBoardContext";
 import { toast } from "sonner";
 
 export interface UnifiedTask {
