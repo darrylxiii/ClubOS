@@ -247,7 +247,7 @@ export const CompactJobCard = memo(({
   return (
     <Card
       className={cn(
-        'relative group cursor-pointer transition-all duration-200',
+        'relative group cursor-pointer transition-all duration-200 overflow-hidden',
         'border border-border/30 bg-card/40 backdrop-blur-sm',
         'hover:border-border/50 hover:bg-card/50 hover:shadow-lg',
         isSelected && 'ring-2 ring-primary border-primary/50',
@@ -255,6 +255,11 @@ export const CompactJobCard = memo(({
       )}
       onClick={onNavigate}
     >
+      {/* Urgency accent bar */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+        style={{ backgroundColor: getUrgencyAccentHsl(urgencyResult.effectiveScore) }}
+      />
       <CardHeader className="pb-3 space-y-3">
         {/* Row 1: Checkbox + Logo + Title/Company/Location + Favorite + Menu */}
         <div className="flex items-start gap-3">
