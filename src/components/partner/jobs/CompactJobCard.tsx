@@ -216,6 +216,7 @@ export const CompactJobCard = memo(({
     conversionRate: job.conversion_rate,
     lastActivityDaysAgo,
     manualScore: job.urgency_score_manual,
+  }), [job, lastActivityDaysAgo]);
 
   const getDaysColor = (days: number) => {
     if (days > 45) return 'text-destructive';
