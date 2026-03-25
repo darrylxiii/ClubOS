@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Lock, ExternalLink } from "lucide-react";
 import { JobStatusBadge, JobStatus } from "@/components/jobs/JobStatusBadge";
 import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBadge";
 import { UrgencyBadge } from "@/components/jobs/UrgencyBadge";
+import { UrgencyMeter } from "@/components/jobs/UrgencyMeter";
+import { computeJobUrgencyScore } from "@/lib/jobUrgencyScore";
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
