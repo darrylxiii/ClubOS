@@ -350,6 +350,10 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
                   <ShieldOff className="w-3.5 h-3.5" />
                   Reset MFA
                 </Button>
+                <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={() => setShowPasswordDialog(true)}>
+                  <KeyRound className="w-3.5 h-3.5" />
+                  Set Password
+                </Button>
               </div>
             </div>
           </section>
@@ -364,6 +368,14 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
+
+        <SetPasswordDialog
+          open={showPasswordDialog}
+          onOpenChange={setShowPasswordDialog}
+          targetUserId={userId || ""}
+          targetName={userName}
+          targetEmail={userData?.profile?.email || ""}
+        />
       </SheetContent>
     </Sheet>
   );
